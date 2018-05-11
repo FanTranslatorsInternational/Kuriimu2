@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="Kuriimu.Views.TextEditor2View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:cal="http://www.caliburnproject.org"
+             mc:Ignorable="d" 
+             d:DesignHeight="400" d:DesignWidth="600">
+    <DockPanel Background="White">
+
+        <!-- Main Grid -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Preview and Screenshots -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0">
+                    <ToolBarPanel DockPanel.Dock="Top">
+                        <ToolBar ToolBarTray.IsLocked="True">
+                            <Label Content="Preview"></Label>
+                        </ToolBar>
+                    </ToolBarPanel>
+                    <Border BorderThickness="1" BorderBrush="DarkGray">
+
+                    </Border>
+                </DockPanel>
+                <GridSplitter Grid.Row="1" VerticalAlignment="Stretch" Height="4" />
+                <DockPanel Grid.Row="2">
+                    <ToolBarPanel DockPanel.Dock="Top">
+                        <ToolBar ToolBarTray.IsLocked="True">
+                            <Label Content="Screenshots"></Label>
+                        </ToolBar>
+                    </ToolBarPanel>
+                    <TabControl>
+                        <TabControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="{Binding DisplayName}" />
+                                    <Button Content="X" cal:Message.Attach="CloseItem($dataContext)" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                    </TabControl>
+                </DockPanel>
+            </Grid>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
+
+            <!-- Entry Edit -->
+            <DockPanel Grid.Column="2">
+                <ToolBarPanel DockPanel.Dock="Top">
+                    <ToolBar ToolBarTray.IsLocked="True">
+                        <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
+                        <Button Name="AddEntry" DockPanel.Dock="Top">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="pack://application:,,,/Kuriimu;component/images/menu-add.png" />
+                            </StackPanel>
+                        </Button>
+                    </ToolBar>
+                </ToolBarPanel>
+                <DataGrid CanUserSortColumns="False" ItemsSource="{Binding Entries}" AutoGenerateColumns="False" RowHeaderWidth="0">
+                    <DataGrid.RowBackground>White</DataGrid.RowBackground>
+                    <DataGrid.AlternatingRowBackground>LightGray</DataGrid.AlternatingRowBackground>
+                    <!--<DataGrid.RowHeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DataContext.Label, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGridRow}}"></TextBlock>
+                        </DataTemplate> 
+                    </DataGrid.RowHeaderTemplate>-->
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Entry" Binding="{Binding Label}"/>
+                        <DataGridTextColumn Header="Text" Binding="{Binding Text}"/>
+                        <DataGridTextColumn Header="Original" Binding="{Binding Original}" />
+                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

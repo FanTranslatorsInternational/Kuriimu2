@@ -1,0 +1,69 @@
+﻿<Window x:Class="Kuriimu.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:cal="http://www.caliburnproject.org"
+        mc:Ignorable="d"
+        d:DesignHeight="510" d:DesignWidth="680"
+        Background="#F0F0F0">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Name="OpenMenu" IsEnabled="False" InputGestureText="Ctrl+O">
+                    <MenuItem.Icon>
+                        <Image Source="pack://application:,,,/images/menu-open.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <ToolBarTray DockPanel.Dock="Top" Background="Transparent">
+            <ToolBar ToolBarTray.IsLocked="True">
+                <Button Name="NewButton" IsEnabled="False">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/menu-new.png" />
+                    </StackPanel>
+                </Button>
+                <Button Name="OpenButton" IsEnabled="False">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/menu-open.png" />
+                    </StackPanel>
+                </Button>
+                <Button Name="SaveButton" IsEnabled="False">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/menu-save.png" />
+                    </StackPanel>
+                </Button>
+                <Button Name="SaveAsButton" IsEnabled="False">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/menu-save-as.png" />
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+            <ToolBar>
+                <Button Name="TextEditor1Button">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/text-editor-1.png" />
+                    </StackPanel>
+                </Button>
+                <Button Name="TextEditor2Button">
+                    <StackPanel>
+                        <Image Source="pack://application:,,,/images/text-editor-2.png" />
+                    </StackPanel>
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+
+        <TabControl Name="Items">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="{Binding DisplayName}" />
+                        <Button Content="X" cal:Message.Attach="CloseTab($dataContext)" />
+                    </StackPanel>
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+        </TabControl>
+    </DockPanel>
+</Window>

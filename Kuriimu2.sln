@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{466B2F75-000A-484E-A279-0A2B4548B0D6}"
+	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2", "src\Kuriimu2\Kuriimu2.csproj", "{F6675105-6585-4FD2-A50F-355C14BB3D8E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kontract", "src\Kontract\Kontract.csproj", "{A43ECC92-DC90-4F79-9871-49E02A11ADAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Komponent", "src\Komponent\Komponent.csproj", "{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kore", "src\Kore\Kore.csproj", "{013E1380-0D62-4018-8F55-9129275FDE85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kanvas", "src\Kanvas\Kanvas.csproj", "{810CEFCF-6900-43FF-8939-EF2D52236882}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{810CEFCF-6900-43FF-8939-EF2D52236882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{810CEFCF-6900-43FF-8939-EF2D52236882}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{810CEFCF-6900-43FF-8939-EF2D52236882}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{810CEFCF-6900-43FF-8939-EF2D52236882}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD93AB4B-CC36-4480-8731-F3BC9BD4A239}
+	EndGlobalSection
+EndGlobal
