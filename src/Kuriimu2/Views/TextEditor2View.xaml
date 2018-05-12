@@ -63,7 +63,7 @@
                         <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
                         <Button Name="AddEntry" DockPanel.Dock="Top">
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="pack://application:,,,/Kuriimu;component/images/menu-add.png" />
+                                <Image Source="pack://application:,,,/Kuriimu;component/Images/menu-add.png" />
                             </StackPanel>
                         </Button>
                     </ToolBar>
