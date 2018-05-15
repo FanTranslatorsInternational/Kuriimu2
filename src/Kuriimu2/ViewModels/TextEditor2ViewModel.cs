@@ -1,65 +1,82 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
+using System.IO;
 using Caliburn.Micro;
+using Kontract.Interface;
+using Kore;
 
-namespace Kuriimu.ViewModels
+namespace Kuriimu2.ViewModels
 {
     public sealed class TextEditor2ViewModel : Screen
     {
-        public TextEditor2ViewModel()
+        private ITextAdapter _adapter;
+        private TextEntry _selectedEntry;
+
+        public KoreFile KoreFile;
+        public ObservableCollection<TextEntry> Entries { get; }
+
+        public TextEditor2ViewModel(KoreFile koreFile)
         {
-            DisplayName = "Text Editor 2.x";
-            AddEntry();
-            SelectedEntry = Entries.First();
+            KoreFile = koreFile;
+
+            DisplayName = KoreFile.FileInfo.Name + (KoreFile.HasChanges ? "*" : string.Empty);
+            _adapter = KoreFile.Adapter as ITextAdapter;
+
+            if (_adapter != null)
+                Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
+
+            //SelectedEntry = Entries.First();
         }
 
-        public class Entry
-        {
-            public string Label { get; set; }
-            public string Text { get; set; }
-            public string Original { get; set; } = string.Empty;
-            public string Notes { get; set; } = string.Empty;
+        //public TextEntry SelectedEntry
+        //{
+        //    get => _selectedEntry;
+        //    set
+        //    {
+        //        _selectedEntry = value;
+        //        EditedText = _selectedEntry.EditedText;
+        //        NotifyOfPropertyChange(() => SelectedEntry);
+        //    }
+        //}
 
-            public Entry(string label, string text)
-            {
-                Label = label;
-                Text = text;
-            }
-        }
-
-        public ObservableCollection<Entry> Entries { get; set; } = new ObservableCollection<Entry>();
-
-        Entry _selectedEntry;
-        public Entry SelectedEntry
-        {
-            get => _selectedEntry;
-            set
-            {
-                _selectedEntry = value;
-                EntryText = _selectedEntry.Text;
-                NotifyOfPropertyChange(() => SelectedEntry);
-            }
-        }
-
-        public string EntryText
-        {
-            get => _selectedEntry?.Text;
-            set
-            {
-                if (_selectedEntry == null) return;
-                _selectedEntry.Text = value;
-                NotifyOfPropertyChange(() => EntryText);
-            }
-        }
+        //public string EditedText
+        //{
+        //    get => _selectedEntry?.EditedText;
+        //    set
+        //    {
+        //        if (_selectedEntry == null) return;
+        //        _selectedEntry.EditedText = value;
+        //        NotifyOfPropertyChange(() => EditedText);
+        //    }
+        //}
 
         public string EntryCount => Entries.Count + (Entries.Count > 2 ? " Entries" : " Entry");
 
         public void AddEntry()
         {
-            Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+            //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
             NotifyOfPropertyChange(nameof(EntryCount));
             NotifyOfPropertyChange(nameof(Entries));
+        }
+
+        public void Save(string filename = "")
+        {
+            try
+            {
+                if (filename == string.Empty)
+                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
+                else
+                {
+                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
+                    KoreFile.FileInfo = new FileInfo(filename);
+                }
+                KoreFile.HasChanges = false;
+                NotifyOfPropertyChange(DisplayName);
+            }
+            catch (Exception)
+            {
+                // Handle on UI gracefully somehow~
+            }
         }
     }
 }

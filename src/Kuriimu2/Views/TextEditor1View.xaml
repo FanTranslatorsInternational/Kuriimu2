@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="Kuriimu.Views.TextEditor1View"
+﻿<UserControl x:Class="Kuriimu2.Views.TextEditor1View"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:cal="http://www.caliburnproject.org"
+             xmlns:viewModels="clr-namespace:Kuriimu2.ViewModels"
              mc:Ignorable="d"
              d:DesignHeight="231.667" d:DesignWidth="336.47">
     <DockPanel Background="White">
@@ -27,7 +28,13 @@
                         </Button>
                     </ToolBar>
                 </ToolBarPanel>
-                <TreeView Name="Entries" DisplayMemberPath="Label"></TreeView>
+                <TreeView Name="Entries">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Entries}">
+                            <TextBlock Text="{Binding Name}" />
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
             </DockPanel>
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
 
@@ -53,7 +60,7 @@
                                 <Label Content="Text"></Label>
                             </ToolBar>
                         </ToolBarPanel>
-                        <TextBox Name="EntryText" AcceptsReturn="True" />
+                        <TextBox Name="EditedText" AcceptsReturn="True" />
                     </DockPanel>
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
                     <DockPanel Grid.Column="2">

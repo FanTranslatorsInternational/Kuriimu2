@@ -32,6 +32,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,10 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attribute\ExtensionInfo.cs" />
+    <Compile Include="Attribute\PluginInfo.cs" />
+    <Compile Include="Interface\IIdentifyFiles.cs" />
+    <Compile Include="Interface\ILoadFiles.cs" />
+    <Compile Include="Interface\ISaveFiles.cs" />
+    <Compile Include="Interface\IFileHasExtendedProperties.cs" />
+    <Compile Include="Interface\ITextAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Interface\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

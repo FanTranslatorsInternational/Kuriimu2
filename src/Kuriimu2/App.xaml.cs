@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace Kuriimu
+namespace Kuriimu2
 {
     public partial class App : Application
     {

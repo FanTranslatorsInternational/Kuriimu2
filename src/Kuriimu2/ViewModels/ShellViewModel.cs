@@ -1,22 +1,77 @@
 ﻿using Caliburn.Micro;
+using Kontract.Interface;
+using Microsoft.Win32;
 
-namespace Kuriimu.ViewModels
+namespace Kuriimu2.ViewModels
 {
     public sealed class ShellViewModel : Conductor<IScreen>.Collection.OneActive
     {
+        #region Private
+
+        private Kore.Kore _kore;
+
+        #endregion
+
         public ShellViewModel()
         {
             DisplayName = "Kuriimu";
+            _kore = new Kore.Kore();
         }
 
-        public void TextEditor1Button()
+        public void OpenButton()
         {
-            ActivateItem(new TextEditor1ViewModel());
+            var ofd = new OpenFileDialog { Filter = _kore.FileFilters };
+
+            if (ofd.ShowDialog() == true)
+            {
+                var kf = _kore.LoadFile(ofd.FileName);
+
+                switch (kf.Adapter)
+                {
+                    case ITextAdapter txt2:
+                        ActivateItem(new TextEditor2ViewModel(kf));
+                        break;
+                }
+            }
         }
 
-        public void TextEditor2Button()
+        public void SaveButton()
         {
-            ActivateItem(new TextEditor2ViewModel());
+            switch (ActiveItem)
+            {
+                case TextEditor2ViewModel txt2:
+                    txt2.Save();
+                    break;
+            }
+        }
+
+        public void SaveAsButton()
+        {
+            var filter = "Any File (*.*)|*.*";
+
+            switch (ActiveItem)
+            {
+                case TextEditor2ViewModel txt2:
+                    filter = txt2.KoreFile.Filter;
+                    break;
+            }
+
+            var sfd = new SaveFileDialog { Filter = filter };
+
+            if (sfd.ShowDialog() == true)
+            {
+                switch (ActiveItem)
+                {
+                    case TextEditor2ViewModel txt2:
+                        txt2.Save(sfd.FileName);
+                        break;
+                }
+            }
+        }
+
+        public void DebugButton()
+        {
+            _kore.Debug();
         }
 
         public void CloseTab(Screen tab)

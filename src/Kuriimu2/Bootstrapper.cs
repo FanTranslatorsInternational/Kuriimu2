@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using Caliburn.Micro;
-using Kuriimu.ViewModels;
+using Kuriimu2.ViewModels;
 
-namespace Kuriimu
+namespace Kuriimu2
 {
     // To be configured with MEF for extensibility
     public class AppBootstrapper : BootstrapperBase
