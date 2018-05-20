@@ -10,12 +10,11 @@ namespace Kuriimu2.ViewModels
     public sealed class TextEditor2ViewModel : Screen
     {
         private ITextAdapter _adapter;
-        private TextEntry _selectedEntry;
 
-        public KoreFile KoreFile;
+        public KoreFileInfo KoreFile { get; }
         public ObservableCollection<TextEntry> Entries { get; }
 
-        public TextEditor2ViewModel(KoreFile koreFile)
+        public TextEditor2ViewModel(KoreFileInfo koreFile)
         {
             KoreFile = koreFile;
 

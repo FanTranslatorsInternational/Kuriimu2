@@ -8,13 +8,13 @@ namespace Kuriimu2.ViewModels
 {
     public sealed class TextEditor1ViewModel : Screen
     {
-        private KoreFile _koreFile;
+        private KoreFileInfo _koreFile;
         private ITextAdapter _adapter;
         private TextEntry _selectedEntry;
 
         public ObservableCollection<TextEntry> Entries { get; } = new ObservableCollection<TextEntry>();
 
-        public TextEditor1ViewModel(KoreFile kFile)
+        public TextEditor1ViewModel(KoreFileInfo kFile)
         {
             DisplayName = "Text Editor 1.x";
 

@@ -24,12 +24,12 @@ namespace Kuriimu2.ViewModels
 
             if (ofd.ShowDialog() == true)
             {
-                var kf = _kore.LoadFile(ofd.FileName);
+                var kfi = _kore.LoadFile(ofd.FileName);
 
-                switch (kf.Adapter)
+                switch (kfi.Adapter)
                 {
                     case ITextAdapter txt2:
-                        ActivateItem(new TextEditor2ViewModel(kf));
+                        ActivateItem(new TextEditor2ViewModel(kfi));
                         break;
                 }
             }

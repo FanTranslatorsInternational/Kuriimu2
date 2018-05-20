@@ -44,7 +44,7 @@
   <ItemGroup>
     <Compile Include="Enumerations.cs" />
     <Compile Include="Kore.cs" />
-    <Compile Include="KoreFile.cs" />
+    <Compile Include="KoreFileInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplePlugins\KUP.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />

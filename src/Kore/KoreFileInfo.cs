@@ -6,9 +6,9 @@ using Kontract.Interface;
 namespace Kore
 {
     /// <summary>
-    /// KoreFile is a simple file state tracking class designed to assist the UI.
+    /// KoreFileInfo is a simple file state tracking class designed to assist the UI.
     /// </summary>
-    public class KoreFile
+    public class KoreFileInfo
     {
         public FileInfo FileInfo { get; set; }
 

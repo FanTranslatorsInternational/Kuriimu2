@@ -39,7 +39,7 @@
 
         /// <inheritdoc />
         /// <summary>
-        /// Initializes a new PluginInfo with the provided values;
+        /// Initializes a new PluginInfo with the provided values.
         /// </summary>
         /// <param name="id">GUID</param>
         /// <param name="name">The plugin name.</param>

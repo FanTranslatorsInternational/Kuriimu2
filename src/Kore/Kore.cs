@@ -13,6 +13,9 @@ namespace Kore
 {
     public class Kore
     {
+        /// <summary>
+        /// Stores the currently loaded MEF plugins.
+        /// </summary>
         private CompositionContainer _container;
 
         #region Plugins
@@ -33,55 +36,99 @@ namespace Kore
 
         #region Properties
 
-        public List<KoreFile> OpenFiles { get; }
+        /// <summary>
+        /// The list of currently open files being tracked by Kore.
+        /// </summary>
+        public List<KoreFileInfo> OpenFiles { get; }
 
         #endregion
 
+        /// <summary>
+        /// Initializes a new Kore instance.
+        /// </summary>
         public Kore()
         {
-            OpenFiles = new List<KoreFile>();
+            ComposePlugins();
+            OpenFiles = new List<KoreFileInfo>();
+        }
 
-            // MEF Cataloging
+        /// <summary>
+        /// Re/Loads the plugin container.
+        /// </summary>
+        private void ComposePlugins()
+        {
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
 
             // Adds all the parts found in the same assembly as the Program class.
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+            catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
 
             // Create the CompositionContainer with the parts in the catalog.
+            _container?.Dispose();
             _container = new CompositionContainer(catalog);
 
             // Fill the imports of this object.
             _container.ComposeParts(this);
         }
 
-        public KoreFile LoadFile(string filename)
+        /// <summary>
+        /// Loads a file into the tracking list.
+        /// </summary>
+        /// <param name="filename">The file to be loaded.</param>
+        /// <returns>Returns a KoreFileInfo for the opened file.</returns>
+        public KoreFileInfo LoadFile(string filename)
         {
             var adapter = SelectAdapter(filename);
 
             if (adapter == null)
-                return null;
+            {
+                var cantIdentify = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
 
-            adapter.Load(filename);
+            }
+            else
+            {
+                adapter.Load(filename);
+            }
 
-            var kf = new KoreFile
+            var kfi = new KoreFileInfo
             {
                 FileInfo = new FileInfo(filename),
                 HasChanges = false,
                 Adapter = adapter
             };
 
-            OpenFiles.Add(kf);
+            OpenFiles.Add(kfi);
 
-            return kf;
+            return kfi;
         }
 
+        /// <summary>
+        /// Closes an open file.
+        /// </summary>
+        /// <param name="kfi">The file to be closed.</param>
+        /// <returns>True if file was closed, False otherwise.</returns>
+        public bool CloseFile(KoreFileInfo kfi)
+        {
+            if (!OpenFiles.Contains(kfi)) return false;
+            OpenFiles.Remove(kfi);
+            return true;
+        }
+
+        /// <summary>
+        /// Attempts to select a compatible adapter that it capable of identifying files.
+        /// </summary>
+        /// <param name="filename">The file to be selcted against.</param>
+        /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(string filename)
         {
             // Return an adapter that can Identify whose extension matches that of our filename and sucessfully identifies the file.
             return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfo)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 
+        /// <summary>
+        /// Provides a complete set of supported file format names and extensions for open file dialogs.
+        /// </summary>
         public string FileFilters
         {
             get
@@ -102,12 +149,13 @@ namespace Kore
 
         public void Debug()
         {
+            var sb = new StringBuilder();
+
             foreach (var adapter in _textAdapters)
             {
                 var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfo)) as PluginInfo;
                 var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo)) as PluginExtensionInfo;
 
-                var sb = new StringBuilder();
                 sb.AppendLine($"ID: {pluginInfo?.ID}");
                 sb.AppendLine($"Name: {pluginInfo?.Name}");
                 sb.AppendLine($"Short Name: {pluginInfo?.ShortName}");
@@ -117,9 +165,10 @@ namespace Kore
                 sb.AppendLine($"Identify: {adapter is IIdentifyFiles}");
                 sb.AppendLine($"Load: {adapter is ILoadFiles}");
                 sb.AppendLine($"Save: {adapter is ISaveFiles}");
-
-                MessageBox.Show(sb.ToString(), "Plugin Information");
+                sb.AppendLine("");
             }
+
+            MessageBox.Show(sb.ToString(), "Plugin Information");
         }
     }
 }
