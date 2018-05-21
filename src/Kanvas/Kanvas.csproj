@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,10 +29,15 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -40,7 +46,49 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
+    <Compile Include="Palette\AI.cs" />
+    <Compile Include="Format\ATC.cs" />
+    <Compile Include="Format\ATI.cs" />
+    <Compile Include="Format\DXT.cs" />
+    <Compile Include="Format\HL.cs" />
+    <Compile Include="Format\LA.cs" />
+    <Compile Include="Format\RGBA.cs" />
+    <Compile Include="Interface\IImageFormat.cs" />
+    <Compile Include="Interface\IImageSwizzle.cs" />
+    <Compile Include="Interface\IPaletteFormat.cs" />
+    <Compile Include="Palette\Palette.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Support\ATC.cs" />
+    <Compile Include="Support\ATI.cs" />
+    <Compile Include="Support\BCn\BC1BlockEncoder.cs" />
+    <Compile Include="Support\BCn\BC2ABlockEncoder.cs" />
+    <Compile Include="Support\BCn\BC4BlockEncoder.cs" />
+    <Compile Include="Support\BCn\BCnImage.cs" />
+    <Compile Include="Support\BCn\Blocks.cs" />
+    <Compile Include="Support\BCn\FloatImage.cs" />
+    <Compile Include="Support\BCn\Helpers.cs" />
+    <Compile Include="Support\BCn\ImageEncoder.cs" />
+    <Compile Include="Support\BCn\ImageEncodingHelper.cs" />
+    <Compile Include="Support\DXT.cs" />
+    <Compile Include="Support\Support.cs" />
+    <Compile Include="Swizzle\BC.cs" />
+    <Compile Include="Swizzle\CTR.cs" />
+    <Compile Include="Swizzle\Linear.cs" />
+    <Compile Include="Swizzle\Master.cs" />
+    <Compile Include="Swizzle\Nitro.cs" />
+    <Compile Include="Swizzle\NX.cs" />
+    <Compile Include="Swizzle\Café.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj">
+      <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
+      <Name>Komponent</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
