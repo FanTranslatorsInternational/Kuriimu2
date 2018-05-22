@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Kanvas.Interface;
-using Kanvas.Quantization.ColorCache.Octree;
+using Kanvas.Quantization.ColorCache;
 using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Quantizer.Support;
 

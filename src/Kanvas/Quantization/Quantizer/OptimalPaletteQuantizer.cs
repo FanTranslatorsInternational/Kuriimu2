@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using Kanvas.Interface;
-using Kanvas.Quantization.ColorCache.Octree;
+using Kanvas.Quantization.ColorCache;
 
 namespace Kanvas.Quantization.Quantizer
 {
