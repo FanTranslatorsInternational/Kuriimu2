@@ -23,6 +23,28 @@ namespace Kanvas.Interface
         string FormatName { get; }
 
         /// <summary>
+        /// The Quantizer to use for palette creation
+        /// </summary>
+        ColorQuantizer ColorQuantizer { get; set; }
+        /// <summary>
+        /// The PathProvider the quantizer uses to scan the pixels
+        /// </summary>
+        PathProvider PathProvider { get; set; }
+        /// <summary>
+        /// The ColorCache the quantizer uses to calculate color distances
+        /// </summary>
+        ColorCache ColorCache { get; set; }
+
+        /// <summary>
+        /// The Width of the image
+        /// </summary>
+        int Width { get; set; }
+        /// <summary>
+        /// The Height of the image
+        /// </summary>
+        int Height { get; set; }
+
+        /// <summary>
         /// Sets a list of colors as palette
         /// </summary>
         /// <param name="paletteData">Data to get decoded into the palette</param>
@@ -58,13 +80,6 @@ namespace Kanvas.Interface
         /// </summary>
         /// <param name="colors">List of colors to encode</param>
         /// <returns>Encoded data</returns>
-        byte[] Save(IEnumerable<Color> colors, ColorDistance colorDistance);
-    }
-
-    public enum ColorDistance : byte
-    {
-        OnlyHUE,
-        DirectDistance,
-        HSVWeighting
+        byte[] Save(IEnumerable<Color> colors);
     }
 }

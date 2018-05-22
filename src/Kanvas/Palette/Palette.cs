@@ -20,6 +20,13 @@ namespace Kanvas.Palette
 
         public string FormatName { get; private set; }
 
+        public ColorQuantizer ColorQuantizer { get; set; }
+        public PathProvider PathProvider { get; set; }
+        public ColorCache ColorCache { get; set; }
+
+        public int Width { get; set; }
+        public int Height { get; set; }
+
         int indexDepth;
         ByteOrder byteOrder;
 
@@ -32,9 +39,12 @@ namespace Kanvas.Palette
             BitDepth = indexDepth;
             FormatName = "Palette";
 
-            /*this.paletteFormat = paletteFormat;
-            paletteBytes = paletteData;
-            colors = paletteFormat.Load(paletteData).ToList();*/
+            ColorQuantizer = ColorQuantizer.DistinctSelection;
+            PathProvider = PathProvider.Standard;
+            ColorCache = ColorCache.EuclideanDistance;
+
+            Width = -1;
+            Height = -1;
         }
 
         public void SetPalette(byte[] paletteData, IImageFormat paletteFormat)
@@ -64,21 +74,22 @@ namespace Kanvas.Palette
                     }
         }
 
-        public byte[] Save(IEnumerable<Color> colors, ColorDistance colorDistance = ColorDistance.DirectDistance)
+        public byte[] Save(IEnumerable<Color> colors)
         {
-            savedColors = CreatePalette(colors.ToList(), colorDistance);
+            var (palette, indeces) = Quantization.Palette.CreatePalette(colors.ToList(), Width, Height, 1 << indexDepth, ColorQuantizer, PathProvider, ColorCache);
+            savedColors = palette;
 
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, byteOrder))
             {
-                foreach (var color in colors)
+                for (int i = 0; i < colors.Count(); i++)
                     switch (BitDepth)
                     {
                         case 4:
-                            bw.WriteNibble(savedColors.FindIndex(c => c == color));
+                            bw.WriteNibble(indeces[i]);
                             break;
                         case 8:
-                            bw.Write((byte)savedColors.FindIndex(c => c == color));
+                            bw.Write((byte)indeces[i]);
                             break;
                         default:
                             throw new Exception($"BitDepth {BitDepth} not supported!");
@@ -95,24 +106,6 @@ namespace Kanvas.Palette
         public IEnumerable<Color> GetPalette()
         {
             return savedColors;
-        }
-
-        private List<Color> CreatePalette(List<Color> colors, ColorDistance colorDistance)
-        {
-            List<Color> reducedColors = new List<Color>();
-            foreach (var color in colors)
-                if (reducedColors.Count >= (1 << indexDepth) - 1)
-                {
-                    //get color by color weithing
-                    reducedColors.Add(Helper.GetClosesColor(colors, color, colorDistance));
-                }
-                else
-                {
-                    //add unknown color
-                    if (!reducedColors.Exists(c => c == color)) reducedColors.Add(color);
-                }
-
-            return reducedColors;
         }
     }
 }
