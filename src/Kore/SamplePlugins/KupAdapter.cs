@@ -7,6 +7,7 @@ using Kontract.Interface;
 
 namespace Kore.SamplePlugins
 {
+    [Export(typeof(KupAdapter))]
     [Export(typeof(ITextAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]

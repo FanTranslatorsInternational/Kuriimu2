@@ -21,17 +21,17 @@ namespace Kuriimu2.ViewModels
         public void OpenButton()
         {
             var ofd = new OpenFileDialog { Filter = _kore.FileFilters };
+            if (ofd.ShowDialog() != true) return;
 
-            if (ofd.ShowDialog() == true)
+            var kfi = _kore.LoadFile(ofd.FileName);
+            switch (kfi.Adapter)
             {
-                var kfi = _kore.LoadFile(ofd.FileName);
-
-                switch (kfi.Adapter)
-                {
-                    case ITextAdapter txt2:
-                        ActivateItem(new TextEditor2ViewModel(kfi));
-                        break;
-                }
+                case ITextAdapter txt2:
+                    ActivateItem(new TextEditor2ViewModel(kfi));
+                    break;
+                case IFontAdapter fnt:
+                    ActivateItem(new FontEditorViewModel(kfi));
+                    break;
             }
         }
 

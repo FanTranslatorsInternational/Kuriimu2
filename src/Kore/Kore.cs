@@ -32,6 +32,9 @@ namespace Kore
         //[ImportMany(typeof(IArchiveAdapter))]
         //private List<IArchiveAdapter> _archiveAdapters;
 
+        [ImportMany(typeof(IFontAdapter))]
+        private List<IFontAdapter> _fontAdapters;
+
         #endregion
 
         #region Properties
@@ -62,7 +65,9 @@ namespace Kore
 
             // Adds all the parts found in the same assembly as the Program class.
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
-            catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
+
+            if (Directory.Exists("plugins") && Directory.GetFiles("plugins", "*.dll").Length > 0)
+                catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
 
             // Create the CompositionContainer with the parts in the catalog.
             _container?.Dispose();
@@ -151,7 +156,7 @@ namespace Kore
         {
             var sb = new StringBuilder();
 
-            foreach (var adapter in _textAdapters)
+            foreach (var adapter in _fileAdapters)
             {
                 var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfo)) as PluginInfo;
                 var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo)) as PluginExtensionInfo;

@@ -91,6 +91,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\ShellViewModel.cs" />
+    <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
     <Page Include="Styles\Base.xaml">
@@ -106,6 +107,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Styles\ToolBar.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\FontEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -47,6 +47,7 @@
     <Compile Include="Interface\ILoadFiles.cs" />
     <Compile Include="Interface\ISaveFiles.cs" />
     <Compile Include="Interface\IFileHasExtendedProperties.cs" />
+    <Compile Include="Interface\IFontAdapter.cs" />
     <Compile Include="Interface\ITextAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

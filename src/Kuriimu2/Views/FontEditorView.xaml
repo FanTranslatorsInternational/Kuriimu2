@@ -1,0 +1,92 @@
+﻿<UserControl x:Class="Kuriimu2.Views.FontEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:cal="http://www.caliburnproject.org"
+             mc:Ignorable="d"
+             d:DesignHeight="400" d:DesignWidth="600">
+    <DockPanel Background="White">
+
+        <!-- Main Grid -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Character View -->
+            <DockPanel Grid.Column="0">
+                <DockPanel.Background>
+                    <ImageBrush ImageSource="/Kuriimu2;component/Images/preview-background.png" ViewportUnits="Absolute" Viewport="0, 0, 64, 64" TileMode="Tile"/>
+                </DockPanel.Background>
+                <Image Source="{Binding SelectedTexture}"></Image>
+            </DockPanel>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
+
+            <!-- Preview and Screenshots -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0">
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar HorizontalAlignment="Stretch" ToolBarTray.IsLocked="True">
+                                <Button Name="AddCharacter">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Name="DeleteCharacter">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" />
+                                    </StackPanel>
+                                </Button>
+                            </ToolBar>
+                        </ToolBarPanel>
+                        <Label Grid.Column="1">Characters</Label>
+                    </Grid>
+                    <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"></ListBox>
+                </DockPanel>
+                <GridSplitter Grid.Row="1" VerticalAlignment="Stretch" Height="4" />
+                <DockPanel Grid.Row="2">
+                    <StackPanel DockPanel.Dock="Top">
+                        <Label Content="Properties"></Label>
+                    </StackPanel>
+                    <Grid Margin="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                            <RowDefinition Height="Auto"></RowDefinition>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0,0,4,10">X:</Label>
+                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0,0,4,10">Y:</Label>
+                        <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,4,10">Width:</Label>
+                        <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,4,10">Height:</Label>
+
+                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0,0,0,10" Text="{Binding SelectedCharacter.X}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Y}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Width}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Height}"/>
+                    </Grid>
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</UserControl>

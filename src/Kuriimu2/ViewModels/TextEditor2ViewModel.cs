@@ -27,29 +27,7 @@ namespace Kuriimu2.ViewModels
             //SelectedEntry = Entries.First();
         }
 
-        //public TextEntry SelectedEntry
-        //{
-        //    get => _selectedEntry;
-        //    set
-        //    {
-        //        _selectedEntry = value;
-        //        EditedText = _selectedEntry.EditedText;
-        //        NotifyOfPropertyChange(() => SelectedEntry);
-        //    }
-        //}
-
-        //public string EditedText
-        //{
-        //    get => _selectedEntry?.EditedText;
-        //    set
-        //    {
-        //        if (_selectedEntry == null) return;
-        //        _selectedEntry.EditedText = value;
-        //        NotifyOfPropertyChange(() => EditedText);
-        //    }
-        //}
-
-        public string EntryCount => Entries.Count + (Entries.Count > 2 ? " Entries" : " Entry");
+        public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         public void AddEntry()
         {
