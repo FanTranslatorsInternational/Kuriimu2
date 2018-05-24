@@ -17,10 +17,10 @@
             </Grid.ColumnDefinitions>
 
             <!-- Character View -->
-            <DockPanel Grid.Column="0">
-                <DockPanel.Background>
+            <DockPanel Grid.Column="0" Background="DimGray" Margin="0, 0, 2, 0">
+                <!--<DockPanel.Background>
                     <ImageBrush ImageSource="/Kuriimu2;component/Images/preview-background.png" ViewportUnits="Absolute" Viewport="0, 0, 64, 64" TileMode="Tile"/>
-                </DockPanel.Background>
+                </DockPanel.Background>-->
                 <Image Source="{Binding SelectedTexture}"></Image>
             </DockPanel>
 
@@ -75,15 +75,15 @@
                             <RowDefinition Height="Auto"></RowDefinition>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0,0,4,10">X:</Label>
-                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0,0,4,10">Y:</Label>
-                        <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0,0,4,10">Width:</Label>
-                        <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,4,10">Height:</Label>
+                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0, 0, 4, 10">X:</Label>
+                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Y:</Label>
+                        <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Width:</Label>
+                        <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Height:</Label>
 
-                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0,0,0,10" Text="{Binding SelectedCharacter.X}"/>
-                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Y}"/>
-                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Width}"/>
-                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0,0,0,10" Text="{Binding SelectedCharacter.Height}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.X}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Y}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Width}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Height}"/>
                     </Grid>
                 </DockPanel>
             </Grid>
