@@ -46,6 +46,16 @@ namespace Kore
 
         #endregion
 
+        #region Events
+        public delegate void CantIdentifyEventHandler(object sender, CantIdentifyEventArgs e);
+        public event CantIdentifyEventHandler CantIdentify;
+        public class CantIdentifyEventArgs
+        {
+            public List<ILoadFiles> cantIdentify;
+            public ILoadFiles selectedIdentify = null;
+        }
+        #endregion
+
         /// <summary>
         /// Initializes a new Kore instance.
         /// </summary>
@@ -90,11 +100,17 @@ namespace Kore
             {
                 var cantIdentify = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
 
+                var args = new CantIdentifyEventArgs { cantIdentify = cantIdentify };
+                CantIdentify(this, args);
+
+                //TODO: Handle this case better?
+                if (args.selectedIdentify == null)
+                    return null;
+
+                adapter = args.selectedIdentify;
             }
-            else
-            {
-                adapter.Load(filename);
-            }
+
+            adapter.Load(filename);
 
             var kfi = new KoreFileInfo
             {
