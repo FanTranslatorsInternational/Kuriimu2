@@ -13,24 +13,25 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="300" />
             </Grid.ColumnDefinitions>
 
             <!-- Character View -->
-            <DockPanel Grid.Column="0" Background="DimGray" Margin="0, 0, 2, 0">
-                <!--<DockPanel.Background>
-                    <ImageBrush ImageSource="/Kuriimu2;component/Images/preview-background.png" ViewportUnits="Absolute" Viewport="0, 0, 64, 64" TileMode="Tile"/>
-                </DockPanel.Background>-->
-                <Image Source="{Binding SelectedTexture}"></Image>
+            <DockPanel Grid.Column="0" Background="DimGray">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <Grid SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <Border BorderThickness="1" BorderBrush="Yellow" Margin="{Binding CursorMargin}" Width="{Binding SelectedCharacterGlyphWidth}" Height="{Binding SelectedCharacterGlyphHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    </Grid>
+                </ScrollViewer>
             </DockPanel>
 
-            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
+            <Label Grid.Column="1" Width="4"></Label>
 
             <!-- Preview and Screenshots -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
 
@@ -42,12 +43,12 @@
                         </Grid.ColumnDefinitions>
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar HorizontalAlignment="Stretch" ToolBarTray.IsLocked="True">
-                                <Button Name="AddCharacter">
+                                <Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" />
                                     </StackPanel>
                                 </Button>
-                                <Button Name="DeleteCharacter">
+                                <Button Name="DeleteCharacter" IsEnabled="{Binding DeleteEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" />
                                     </StackPanel>
@@ -56,10 +57,26 @@
                         </ToolBarPanel>
                         <Label Grid.Column="1">Characters</Label>
                     </Grid>
-                    <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"></ListBox>
+                    <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="8" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <DataTemplate.Resources>
+                                    <Style TargetType="{x:Type Label}">
+                                        <Setter Property="FontSize" Value="18px"></Setter>
+                                    </Style>
+                                </DataTemplate.Resources>
+                                <Label Content="{Binding}" HorizontalContentAlignment="Center"></Label>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
-                <GridSplitter Grid.Row="1" VerticalAlignment="Stretch" Height="4" />
-                <DockPanel Grid.Row="2">
+
+                <DockPanel Grid.Row="1">
                     <StackPanel DockPanel.Dock="Top">
                         <Label Content="Properties"></Label>
                     </StackPanel>
@@ -80,10 +97,10 @@
                         <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Width:</Label>
                         <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Height:</Label>
 
-                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.X}"/>
-                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Y}"/>
-                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Width}"/>
-                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacter.Height}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
                     </Grid>
                 </DockPanel>
             </Grid>

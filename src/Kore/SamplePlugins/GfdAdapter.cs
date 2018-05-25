@@ -17,7 +17,7 @@ namespace Kore.SamplePlugins
     [Export(typeof(ISaveFiles))]
     [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font", "GFD", "IcySon55", "This is the GFD text adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
-    public sealed class GfdAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class GfdAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddCharacters, IDeleteCharacters
     {
         private GFD _gfd;
 
@@ -81,6 +81,21 @@ namespace Kore.SamplePlugins
         public void Save(string filename)
         {
             _gfd.Save(File.Create(filename));
+        }
+
+        public FontCharacter NewCharacter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool AddCharacter(FontCharacter character)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool DeleteCharacter(FontCharacter character)
+        {
+            throw new NotImplementedException();
         }
     }
 }

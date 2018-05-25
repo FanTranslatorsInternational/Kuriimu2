@@ -1,7 +1,9 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interface;
@@ -13,17 +15,17 @@ namespace Kuriimu2.ViewModels
     {
         private IFontAdapter _adapter;
 
-        private KoreFileInfo KoreFile { get; }
+        public KoreFileInfo KoreFile { get; }
         public ObservableCollection<FontCharacter> Characters { get; }
 
         private FontCharacter _selectedCharacter;
         private BitmapImage _selectedTexture;
 
-        public FontEditorViewModel(KoreFileInfo koreFIle)
+        public FontEditorViewModel(KoreFileInfo koreFile)
         {
-            KoreFile = koreFIle;
+            KoreFile = koreFile;
 
-            DisplayName = KoreFile.FileInfo.Name + (KoreFile.HasChanges ? "*" : string.Empty);
+            DisplayName = KoreFile.DisplayName;
             _adapter = KoreFile.Adapter as IFontAdapter;
 
             if (_adapter != null)
@@ -40,6 +42,51 @@ namespace Kuriimu2.ViewModels
                 _selectedCharacter = value;
                 SelectedTexture = BitmapToImageSource(_adapter.Textures[_selectedCharacter.TextureIndex]);
                 NotifyOfPropertyChange(() => SelectedCharacter);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
+                NotifyOfPropertyChange(() => CursorMargin);
+            }
+        }
+
+        public int SelectedCharacterGlyphX
+        {
+            get => SelectedCharacter.GlyphX;
+            set
+            {
+                SelectedCharacter.GlyphX = value;
+                NotifyOfPropertyChange(() => CursorMargin);
+            }
+        }
+
+        public int SelectedCharacterGlyphY
+        {
+            get => SelectedCharacter.GlyphY;
+            set
+            {
+                SelectedCharacter.GlyphY = value;
+                NotifyOfPropertyChange(() => CursorMargin);
+            }
+        }
+
+        public int SelectedCharacterGlyphWidth
+        {
+            get => SelectedCharacter.GlyphWidth;
+            set
+            {
+                SelectedCharacter.GlyphWidth = value;
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
+            }
+        }
+
+        public int SelectedCharacterGlyphHeight
+        {
+            get => SelectedCharacter.GlyphHeight;
+            set
+            {
+                SelectedCharacter.GlyphHeight = value;
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
             }
         }
 
@@ -53,12 +100,48 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public Thickness CursorMargin => new Thickness(SelectedCharacter.GlyphX, SelectedCharacter.GlyphY, 0, 0);
+
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
 
-        public void AddEntry()
+        #region Character Management
+
+        public bool AddEnabled => _adapter is IAddCharacters;
+
+        public void AddCharacter()
         {
-            //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-            //NotifyOfPropertyChange(nameof(EntryCount));
+            if (!(_adapter is IAddCharacters)) return;
+
+            (_adapter as IAddCharacters).AddCharacter(new FontCharacter
+            {
+                Character = 'b',
+
+            });
+            NotifyOfPropertyChange(() => Characters);
+        }
+
+        public bool DeleteEnabled => _adapter is IDeleteCharacters;
+
+        #endregion
+
+        public void Save(string filename = "")
+        {
+            try
+            {
+                if (filename == string.Empty)
+                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
+                else
+                {
+                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
+                    KoreFile.FileInfo = new FileInfo(filename);
+                }
+                KoreFile.HasChanges = false;
+                NotifyOfPropertyChange(DisplayName);
+            }
+            catch (Exception)
+            {
+                // Handle on UI gracefully somehow~
+            }
         }
 
         private static BitmapImage BitmapToImageSource(Image bitmap)

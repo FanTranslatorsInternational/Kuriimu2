@@ -54,6 +54,9 @@ namespace Kuriimu2.ViewModels
                 case TextEditor2ViewModel txt2:
                     filter = txt2.KoreFile.Filter;
                     break;
+                case FontEditorViewModel fnt:
+                    filter = fnt.KoreFile.Filter;
+                    break;
             }
 
             var sfd = new SaveFileDialog { Filter = filter };
@@ -64,6 +67,9 @@ namespace Kuriimu2.ViewModels
                 {
                     case TextEditor2ViewModel txt2:
                         txt2.Save(sfd.FileName);
+                        break;
+                    case FontEditorViewModel fnt:
+                        fnt.Save(sfd.FileName);
                         break;
                 }
             }
@@ -77,6 +83,15 @@ namespace Kuriimu2.ViewModels
         public void CloseTab(Screen tab)
         {
             tab.TryClose();
+            switch (ActiveItem)
+            {
+                case TextEditor2ViewModel txt2:
+                    _kore.CloseFile(txt2.KoreFile);
+                    break;
+                case FontEditorViewModel fnt:
+                    _kore.CloseFile(fnt.KoreFile);
+                    break;
+            }
         }
     }
 }

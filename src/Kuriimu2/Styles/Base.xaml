@@ -4,6 +4,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Menu.xaml" />
         <ResourceDictionary Source="ToolBar.xaml" />
+        <ResourceDictionary Source="TabItem.xaml" />
         <ResourceDictionary Source="GridSplitter.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

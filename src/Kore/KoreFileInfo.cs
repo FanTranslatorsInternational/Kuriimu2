@@ -16,6 +16,8 @@ namespace Kore
 
         public ILoadFiles Adapter { get; set; }
 
+        public string DisplayName => FileInfo.Name + (HasChanges ? "*" : string.Empty);
+
         public string Filter
         {
             get

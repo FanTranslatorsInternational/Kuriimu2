@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Text;
 
 namespace Kontract.Interface
 {
@@ -34,7 +32,7 @@ namespace Kontract.Interface
     /// <summary>
     /// This interface allows the font adapter to add new characters through the UI.
     /// </summary>
-    public interface ICanAddCharacters
+    public interface IAddCharacters
     {
         /// <summary>
         /// Creates a new character and allows the plugin to provide its derived type.
@@ -51,23 +49,9 @@ namespace Kontract.Interface
     }
 
     /// <summary>
-    /// This interface allows the font afapter to rename characters through the UI making use of the NameList.
-    /// </summary>
-    public interface ICanRenameCharacters
-    {
-        /// <summary>
-        /// Renames an character and allows the plugin to perform any required renaming steps.
-        /// </summary>
-        /// <param name="character">The character being renamed.</param>
-        /// <param name="name">The new name to be assigned.</param>
-        /// <returns>True if the character was renamed, False otherwise.</returns>
-        bool RenameCharacter(FontCharacter character, string name);
-    }
-
-    /// <summary>
     /// This interface allows the font adapter to delete characters through the UI.
     /// </summary>
-    public interface ICanDeleteCharacters
+    public interface IDeleteCharacters
     {
         /// <summary>
         /// Deletes an character and allows the plugin to perform any required deletion steps.
@@ -94,7 +78,7 @@ namespace Kontract.Interface
     /// <summary>
     /// The base character class.
     /// </summary>
-    public class FontCharacter : INotifyPropertyChanged
+    public class FontCharacter
     {
         public virtual uint Character { get; set; } = 'A';
 
@@ -107,8 +91,6 @@ namespace Kontract.Interface
         public virtual int GlyphWidth { get; set; } = 0;
 
         public virtual int GlyphHeight { get; set; } = 0;
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public override string ToString() => ((char)Character).ToString();
     }

@@ -18,7 +18,7 @@ namespace Kuriimu2.ViewModels
         {
             KoreFile = koreFile;
 
-            DisplayName = KoreFile.FileInfo.Name + (KoreFile.HasChanges ? "*" : string.Empty);
+            DisplayName = KoreFile.DisplayName;
             _adapter = KoreFile.Adapter as ITextAdapter;
 
             if (_adapter != null)

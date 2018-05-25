@@ -36,7 +36,7 @@ namespace Kontract.Interface
     /// <summary>
     /// This interface allows the text adapter to add new entries through the UI.
     /// </summary>
-    public interface ICanAddEntries
+    public interface IAddEntries
     {
         /// <summary>
         /// Creates a new entry and allows the plugin to provide its derived type.
@@ -55,7 +55,7 @@ namespace Kontract.Interface
     /// <summary>
     /// This interface allows the text afapter to rename entries through the UI making use of the NameList.
     /// </summary>
-    public interface ICanRenameEntries
+    public interface IRenameEntries
     {
         /// <summary>
         /// Renames an entry and allows the plugin to perform any required renaming steps.
@@ -69,7 +69,7 @@ namespace Kontract.Interface
     /// <summary>
     /// This interface allows the text adapter to delete entries through the UI.
     /// </summary>
-    public interface ICanDeleteEntries
+    public interface IDeleteEntries
     {
         /// <summary>
         /// Deletes an entry and allows the plugin to perform any required deletion steps.
