@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
@@ -47,8 +48,7 @@ namespace Kore
         #endregion
 
         #region Events
-        public delegate void CantIdentifyEventHandler(object sender, CantIdentifyEventArgs e);
-        public event CantIdentifyEventHandler CantIdentify;
+        public event EventHandler<CantIdentifyEventArgs> CantIdentify;
         public class CantIdentifyEventArgs
         {
             public List<ILoadFiles> cantIdentify;
