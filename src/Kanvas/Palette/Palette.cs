@@ -76,8 +76,12 @@ namespace Kanvas.Palette
 
         public byte[] Save(IEnumerable<Color> colors)
         {
+            if (Width <= 0 || Height <= 0)
+                throw new Exception("You need to set Width and Height for saving palette textures.");
+
             var (palette, indeces) = Quantization.Palette.CreatePalette(colors.ToList(), Width, Height, 1 << indexDepth, ColorQuantizer, PathProvider, ColorCache);
             savedColors = palette;
+            this.colors = palette;
 
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, byteOrder))
