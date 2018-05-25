@@ -46,8 +46,8 @@ namespace Kanvas.Palette
             FormatName = $"A{alphaDepth}I{indexDepth}";
 
             ColorQuantizer = ColorQuantizer.DistinctSelection;
-            PathProvider = PathProvider.Standard;
-            ColorCache = ColorCache.EuclideanDistance;
+            PathProvider = PathProvider.Serpentive;
+            ColorCache = ColorCache.LocalitySensitiveHash;
 
             Width = -1;
             Height = -1;
@@ -76,7 +76,7 @@ namespace Kanvas.Palette
                         case 8:
                             var b = br.ReadByte();
                             yield return Color.FromArgb(
-                                Helper.ChangeBitDepth(b >> alphaShift, alphaDepth, 8),
+                                alphaShift == 8 ? 255 : Helper.ChangeBitDepth(b >> alphaShift, alphaDepth, 8),
                                 colors[b & ((1 << indexDepth) - 1)]);
                             break;
                         default:
@@ -97,9 +97,11 @@ namespace Kanvas.Palette
 
             var (palette, indeces) = Quantization.Palette.CreatePalette(colors.ToList(), Width, Height, 1 << indexDepth, ColorQuantizer, PathProvider, ColorCache);
             savedColors = palette;
+            this.colors = palette;
 
             var alphaShift = indexDepth;
 
+            var listColor = colors.ToList();
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, byteOrder))
             {
@@ -107,7 +109,7 @@ namespace Kanvas.Palette
                     switch (BitDepth)
                     {
                         case 8:
-                            byte b = (byte)(Helper.ChangeBitDepth(colors.ToList()[i].A, 8, alphaDepth) << alphaShift);
+                            byte b = (byte)(Helper.ChangeBitDepth(listColor[i].A, 8, alphaDepth) << alphaShift);
                             bw.Write((byte)(b | indeces[i]));
                             break;
                         default:

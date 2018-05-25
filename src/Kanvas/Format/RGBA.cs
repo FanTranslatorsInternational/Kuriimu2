@@ -144,7 +144,7 @@ namespace Kanvas.Format
                     var g = Helper.ChangeBitDepth(color.G, 8, gDepth);
                     var b = Helper.ChangeBitDepth(color.B, 8, bDepth);
 
-                    var (aShift, rShift, bShift, gShift) = GetBitShifts();
+                    var (aShift, rShift, gShift, bShift) = GetBitShifts();
 
                     long value = 0;
                     value |= (uint)(a << aShift);

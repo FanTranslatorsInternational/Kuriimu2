@@ -25,8 +25,10 @@ namespace Kanvas.Quantization
                 var rgbaData = new RGBA(8, 8, 8, 8, true).Save(colors);
 
                 var img = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
-                var imgData = (byte*)img.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb).Scan0;
-                for (int i = 0; i < rgbaData.Length; i++) imgData[i] = rgbaData[i];
+                var imgData = img.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                var bmpData = (byte*)imgData.Scan0;
+                for (int i = 0; i < rgbaData.Length; i++) bmpData[i] = rgbaData[i];
+                img.UnlockBits(imgData);
 
                 var imgBuf = new ImageBuffer(img, ImageLockMode.ReadWrite);
 
@@ -35,8 +37,7 @@ namespace Kanvas.Quantization
                 SetColorCache(q, quantizer, GetColorCache(colorCache));
 
                 var targetImg = (Bitmap)ImageBuffer.QuantizeImage(imgBuf, q, colorCount);
-
-                var palette = q.GetPalette(colorCount);
+                var palette = ImageBuffer.SynthetizeImagePalette(targetImg, q, 256);
 
                 List<int> indeces = new List<int>();
                 for (int y = 0; y < Height; y++)
