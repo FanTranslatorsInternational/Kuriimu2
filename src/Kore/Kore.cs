@@ -137,7 +137,7 @@ namespace Kore
         }
 
         /// <summary>
-        /// Attempts to select a compatible adapter that it capable of identifying files.
+        /// Attempts to select a compatible adapter that is capable of identifying files.
         /// </summary>
         /// <param name="filename">The file to be selcted against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>

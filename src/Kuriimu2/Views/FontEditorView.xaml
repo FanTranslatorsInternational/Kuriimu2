@@ -13,7 +13,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="294" />
             </Grid.ColumnDefinitions>
 
             <!-- Character View -->
@@ -28,7 +28,7 @@
 
             <Label Grid.Column="1" Width="4"></Label>
 
-            <!-- Preview and Screenshots -->
+            <!-- Character Selection and Details -->
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
@@ -57,20 +57,22 @@
                         </ToolBarPanel>
                         <Label Grid.Column="1">Characters</Label>
                     </Grid>
-                    <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}">
+                    <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.Resources>
+                            <Style TargetType="{x:Type ListBox}">
+                                <Style.Triggers>
+
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.Resources>
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="8" />
+                                <WrapPanel />
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <DataTemplate.Resources>
-                                    <Style TargetType="{x:Type Label}">
-                                        <Setter Property="FontSize" Value="18px"></Setter>
-                                    </Style>
-                                </DataTemplate.Resources>
-                                <Label Content="{Binding}" HorizontalContentAlignment="Center"></Label>
+                                <Label Content="{Binding}" HorizontalContentAlignment="Center" Width="32" Height="32" FontSize="16px"></Label>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
