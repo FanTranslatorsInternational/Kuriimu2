@@ -13,6 +13,20 @@ namespace Komponent.IO
         BigEndian = 0xFFFE
     }
 
+    public enum BitOrder : byte
+    {
+        LSBFirst,
+        MSBFirst,
+        LowestAddressFirst,
+        HighestAddressFirst
+    }
+
+    public enum EffectiveBitOrder : byte
+    {
+        LSBFirst,
+        MSBFirst
+    }
+
     [DebuggerDisplay("{(string)this}")]
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Magic

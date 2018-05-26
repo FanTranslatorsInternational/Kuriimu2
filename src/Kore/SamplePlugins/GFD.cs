@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Runtime.InteropServices;
 using Komponent.IO;
@@ -13,6 +14,7 @@ namespace Kore.SamplePlugins
         public string Name;
         public List<GfdCharacter> Characters;
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
+        public BitOrder BitOrder = BitOrder.MSBFirst;
 
         public GFD(Stream input)
         {
@@ -20,7 +22,10 @@ namespace Kore.SamplePlugins
             {
                 // Set endianess
                 if (br.PeekString() == "\0DFG")
+                {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
+                    br.BitOrder = BitOrder = BitOrder.LSBFirst;
+                }
 
                 // Header
                 Header = br.ReadStruct<Header>();
@@ -28,10 +33,25 @@ namespace Kore.SamplePlugins
 
                 // Name
                 var nameSize = br.ReadInt32();
-                Name = br.ReadCStringA();
+                Name = br.ReadCStringASCII();
 
                 // Characters
-                Characters = new List<GfdCharacter>();
+                Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount)
+                    .Select(ci => new GfdCharacter
+                    {
+                        Character = ci.block0,
+
+                        TextureIndex = (int)ci.block1.TextureIndex,
+                        GlyphX = (int)ci.block1.GlyphX,
+                        GlyphY = (int)ci.block1.GlyphY,
+
+                        Block2Trailer = (int)ci.block2.Block2Trailer,
+                        GlyphWidth = (int)ci.block2.GlyphWidth,
+                        GlyphHeight = (int)ci.block2.GlyphHeight,
+
+                        Block3 = ci.block3
+                    }).ToList(); //new List<GfdCharacter>();
+                /*
                 for (var i = 0; i < Header.CharacterCount; i++)
                 {
                     var block0 = br.ReadUInt32();
@@ -71,7 +91,7 @@ namespace Kore.SamplePlugins
                             Block3 = block3
                         });
                     }
-                }
+                }*/
             }
         }
 
@@ -91,7 +111,28 @@ namespace Kore.SamplePlugins
                 bw.Write((byte)0);
 
                 // Characters
-                for (var i = 0; i < Header.CharacterCount; i++)
+                bw.Write(Characters.Select(c => new CharacterInfo
+                {
+                    block0 = c.Character,
+
+                    block1 = new Block1
+                    {
+                        GlyphY = c.GlyphY,
+                        GlyphX = c.GlyphX,
+                        TextureIndex = c.TextureIndex
+                    },
+
+                    block2 = new Block2
+                    {
+                        GlyphHeight = c.GlyphHeight,
+                        GlyphWidth = c.GlyphWidth,
+                        Block2Trailer = c.Block2Trailer
+                    },
+
+                    block3 = c.Block3
+                }));
+
+                /*for (var i = 0; i < Header.CharacterCount; i++)
                 {
                     var chr = Characters[i];
 
@@ -115,15 +156,16 @@ namespace Kore.SamplePlugins
                     bw.Write(block1);
                     bw.Write(block2);
                     bw.Write(block3);
-                }
+                }*/
             }
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    #region Structs
     public class Header
     {
-        public Magic Magic;
+        [Length(4)]
+        public string Magic;
         public uint Version;
         public int unk0;
         public int unk1;
@@ -135,6 +177,37 @@ namespace Kore.SamplePlugins
         public float BaseLine;
         public float DescentLine;
     }
+
+    public class CharacterInfo
+    {
+        public uint block0;
+        public Block1 block1;
+        public Block2 block2;
+        public uint block3;
+    }
+
+    [BitFieldInfo(BlockSize = 32)]
+    public struct Block1
+    {
+        [BitField(12)]
+        public long GlyphY;
+        [BitField(12)]
+        public long GlyphX;
+        [BitField(8)]
+        public long TextureIndex;
+    }
+
+    [BitFieldInfo(BlockSize = 32)]
+    public struct Block2
+    {
+        [BitField(12)]
+        public long GlyphHeight;
+        [BitField(12)]
+        public long GlyphWidth;
+        [BitField(8)]
+        public long Block2Trailer;
+    }
+    #endregion
 
     public class GfdCharacter : FontCharacter
     {
