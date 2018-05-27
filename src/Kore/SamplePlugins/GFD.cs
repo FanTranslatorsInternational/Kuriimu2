@@ -23,7 +23,7 @@ namespace Kore.SamplePlugins
                 if (br.PeekString() == "\0DFG")
                 {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
-                    br.BitOrder = BitOrder = BitOrder.LowestAddressFirst;
+                    br.BitOrder = BitOrder = BitOrder.LSBFirst;
                 }
 
                 // Header

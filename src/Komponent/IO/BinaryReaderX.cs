@@ -384,7 +384,6 @@ namespace Komponent.IO
                 if (block != null)
                 {
                     BlockSize = block.BlockSize;
-                    BitOrder = block.BitOrder;
 
                     var item = Activator.CreateInstance(type);
 

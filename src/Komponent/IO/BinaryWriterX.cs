@@ -339,7 +339,6 @@ namespace Komponent.IO
                     if (block != null)
                     {
                         BlockSize = block.BlockSize;
-                        BitOrder = block.BitOrder;
 
                         foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                         {
