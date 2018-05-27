@@ -374,7 +374,7 @@ namespace Komponent.IO
             {
                 // Class, Struct
                 // Get endianness attriute
-                var bk_ByteOrder = ByteOrder;
+                var bkByteOrder = ByteOrder;
                 var endian = type.GetCustomAttribute<Endianness>();
                 if (endian != null)
                     ByteOrder = endian.ByteOrder;
@@ -385,18 +385,23 @@ namespace Komponent.IO
                 {
                     BlockSize = block.BlockSize;
 
+                    var bkBitOrder = BitOrder;
+                    if (block.BitOrder != BitOrder.Inherit)
+                        BitOrder = block.BitOrder;
+
                     var item = Activator.CreateInstance(type);
 
                     foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                     {
                         var bitInfo = field.GetCustomAttribute<BitField>();
                         if (bitInfo != null)
-                            field.SetValue(item, ReadBits(bitInfo.BitsToRead));
+                            field.SetValue(item, ReadBits(bitInfo.BitLength));
                         else
                             field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
                     }
 
-                    ByteOrder = bk_ByteOrder;
+                    ByteOrder = bkByteOrder;
+                    BitOrder = bkBitOrder;
                     return item;
                 }
                 else
@@ -406,7 +411,7 @@ namespace Komponent.IO
                     foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                         field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
 
-                    ByteOrder = bk_ByteOrder;
+                    ByteOrder = bkByteOrder;
                     return item;
                 }
             }
@@ -414,13 +419,13 @@ namespace Komponent.IO
             {
                 // Enum
                 // Get endianness attriute
-                var bk_ByteOrder = ByteOrder;
+                var bkByteOrder = ByteOrder;
                 var endian = type.GetCustomAttribute<Endianness>();
                 if (endian != null)
                     ByteOrder = endian.ByteOrder;
 
                 var item = ReadObject(type.GetEnumUnderlyingType());
-                ByteOrder = bk_ByteOrder;
+                ByteOrder = bkByteOrder;
                 return item;
             }
             else

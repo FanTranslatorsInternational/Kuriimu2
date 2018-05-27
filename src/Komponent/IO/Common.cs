@@ -15,6 +15,7 @@ namespace Komponent.IO
 
     public enum BitOrder : byte
     {
+        Inherit,
         LSBFirst,
         MSBFirst,
         LowestAddressFirst,

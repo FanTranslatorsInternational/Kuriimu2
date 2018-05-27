@@ -6,7 +6,7 @@ namespace Komponent.IO
     public class BitFieldInfo : Attribute
     {
         public int BlockSize = 32;
-        public BitOrder BitOrder = BitOrder.MSBFirst;
+        public BitOrder BitOrder = BitOrder.Inherit;
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -18,11 +18,11 @@ namespace Komponent.IO
     [AttributeUsage(AttributeTargets.Field)]
     public class BitField : Attribute
     {
-        public int BitsToRead { get; }
+        public int BitLength { get; }
 
-        public BitField(int bitsToRead)
+        public BitField(int bitLength)
         {
-            BitsToRead = bitsToRead;
+            BitLength = bitLength;
         }
     }
 
