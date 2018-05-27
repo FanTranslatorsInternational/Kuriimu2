@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using Komponent.IO;
 using Kontract.Interface;
 
@@ -24,7 +23,7 @@ namespace Kore.SamplePlugins
                 if (br.PeekString() == "\0DFG")
                 {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
-                    br.BitOrder = BitOrder = BitOrder.LSBFirst;
+                    br.BitOrder = BitOrder = BitOrder.LowestAddressFirst;
                 }
 
                 // Header
@@ -32,72 +31,30 @@ namespace Kore.SamplePlugins
                 HeaderF = br.ReadMultiple<float>(Header.FCount);
 
                 // Name
-                var nameSize = br.ReadInt32();
+                br.ReadInt32();
                 Name = br.ReadCStringASCII();
 
                 // Characters
-                Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount)
-                    .Select(ci => new GfdCharacter
-                    {
-                        Character = ci.block0,
-
-                        TextureIndex = (int)ci.block1.TextureIndex,
-                        GlyphX = (int)ci.block1.GlyphX,
-                        GlyphY = (int)ci.block1.GlyphY,
-
-                        Block2Trailer = (int)ci.block2.Block2Trailer,
-                        GlyphWidth = (int)ci.block2.GlyphWidth,
-                        GlyphHeight = (int)ci.block2.GlyphHeight,
-
-                        Block3 = ci.block3
-                    }).ToList(); //new List<GfdCharacter>();
-                /*
-                for (var i = 0; i < Header.CharacterCount; i++)
+                Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount).Select(ci => new GfdCharacter
                 {
-                    var block0 = br.ReadUInt32();
-                    var block1 = br.ReadUInt32();
-                    var block2 = br.ReadUInt32();
-                    var block3 = br.ReadUInt32();
+                    Character = ci.Block0,
 
-                    if (ByteOrder == ByteOrder.LittleEndian)
-                    {
-                        Characters.Add(new GfdCharacter
-                        {
-                            Character = block0,
-                            TextureIndex = (int)((block1 >> 0) & 0xFF),
-                            GlyphX = (int)((block1 >> 8) & 0xFFF),
-                            GlyphY = (int)((block1 >> 20) & 0xFFF),
+                    TextureIndex = (int)ci.Block1.TextureIndex,
+                    GlyphX = (int)ci.Block1.GlyphX,
+                    GlyphY = (int)ci.Block1.GlyphY,
 
-                            Block2Trailer = (int)((block2 >> 0) & 0xFF),
-                            GlyphWidth = (int)((block2 >> 8) & 0xFFF),
-                            GlyphHeight = (int)((block2 >> 20) & 0xFFF),
+                    Block2Trailer = (int)ci.Block2.Block2Trailer,
+                    GlyphWidth = (int)ci.Block2.GlyphWidth,
+                    GlyphHeight = (int)ci.Block2.GlyphHeight,
 
-                            Block3 = block3
-                        });
-                    }
-                    else
-                    {
-                        Characters.Add(new GfdCharacter
-                        {
-                            Character = block0,
-                            TextureIndex = (int)((block1 >> 24) & 0xFF),
-                            GlyphX = (int)((block1 >> 12) & 0xFFF),
-                            GlyphY = (int)((block1 >> 0) & 0xFFF),
-
-                            Block2Trailer = (int)((block2 >> 24) & 0xFF),
-                            GlyphWidth = (int)((block2 >> 12) & 0xFFF),
-                            GlyphHeight = (int)((block2 >> 0) & 0xFFF),
-
-                            Block3 = block3
-                        });
-                    }
-                }*/
+                    Block3 = ci.Block3
+                }).ToList();
             }
         }
 
         public void Save(Stream output)
         {
-            using (var bw = new BinaryWriterX(output, ByteOrder))
+            using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
             {
                 // Header
                 Header.CharacterCount = Characters.Count;
@@ -111,65 +68,38 @@ namespace Kore.SamplePlugins
                 bw.Write((byte)0);
 
                 // Characters
-                bw.Write(Characters.Select(c => new CharacterInfo
+                bw.WriteMultiple(Characters.Select(c => new CharacterInfo
                 {
-                    block0 = c.Character,
+                    Block0 = c.Character,
 
-                    block1 = new Block1
+                    Block1 = new Block1
                     {
                         GlyphY = c.GlyphY,
                         GlyphX = c.GlyphX,
                         TextureIndex = c.TextureIndex
                     },
 
-                    block2 = new Block2
+                    Block2 = new Block2
                     {
                         GlyphHeight = c.GlyphHeight,
                         GlyphWidth = c.GlyphWidth,
                         Block2Trailer = c.Block2Trailer
                     },
 
-                    block3 = c.Block3
+                    Block3 = c.Block3
                 }));
-
-                /*for (var i = 0; i < Header.CharacterCount; i++)
-                {
-                    var chr = Characters[i];
-
-                    var block0 = chr.Character;
-                    uint block1 = 0;
-                    uint block2 = 0;
-                    var block3 = chr.Block3;
-
-                    if (ByteOrder == ByteOrder.LittleEndian)
-                    {
-                        block1 = (uint)(chr.TextureIndex | (chr.GlyphX << 8) | (chr.GlyphY << 20));
-                        block2 = (uint)(chr.Block2Trailer | chr.GlyphWidth << 8 | (chr.GlyphHeight << 20));
-                    }
-                    else
-                    {
-                        block1 = (uint)(chr.TextureIndex << 24 | (chr.GlyphX << 12) | chr.GlyphY);
-                        block2 = (uint)(chr.Block2Trailer << 24 | chr.GlyphWidth << 12 | chr.GlyphHeight);
-                    }
-
-                    bw.Write(block0);
-                    bw.Write(block1);
-                    bw.Write(block2);
-                    bw.Write(block3);
-                }*/
             }
         }
     }
 
-    #region Structs
     public class Header
     {
-        [Length(4)]
+        [FieldLength(4)]
         public string Magic;
         public uint Version;
-        public int unk0;
-        public int unk1;
-        public int unk2;
+        public int Unk0;
+        public int Unk1;
+        public int Unk2;
         public int FontSize;
         public int FontTexCount;
         public int CharacterCount;
@@ -180,10 +110,10 @@ namespace Kore.SamplePlugins
 
     public class CharacterInfo
     {
-        public uint block0;
-        public Block1 block1;
-        public Block2 block2;
-        public uint block3;
+        public uint Block0;
+        public Block1 Block1;
+        public Block2 Block2;
+        public uint Block3;
     }
 
     [BitFieldInfo(BlockSize = 32)]
@@ -207,12 +137,11 @@ namespace Kore.SamplePlugins
         [BitField(8)]
         public long Block2Trailer;
     }
-    #endregion
 
     public class GfdCharacter : FontCharacter
     {
         /// <summary>
-        /// Trailing 8 bits that block2 is ignoring
+        /// Trailing 8 bits in block2 that are unknown
         /// </summary>
         public int Block2Trailer { get; set; }
 

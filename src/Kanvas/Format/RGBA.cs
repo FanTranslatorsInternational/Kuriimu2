@@ -161,7 +161,7 @@ namespace Kanvas.Format
                         var tmp = (byteOrder == ByteOrder.LittleEndian) ?
                                 new byte[] { (byte)(value & 0xff), (byte)(value >> 8 & 0xff), (byte)(value >> 16 & 0xff) } :
                                 new byte[] { (byte)(value >> 16 & 0xff), (byte)(value >> 8 & 0xff), (byte)(value & 0xff) };
-                        bw.Write(tmp);
+                        bw.WriteMultiple(tmp);
                     }
                     else if (BitDepth <= 32)
                         bw.Write((uint)value);

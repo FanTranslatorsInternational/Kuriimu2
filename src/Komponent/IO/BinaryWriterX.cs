@@ -10,27 +10,25 @@ namespace Komponent.IO
     public class BinaryWriterX : BinaryWriter
     {
         private int _nibble = -1;
-
-        private long buffer = 0;
-        private int bitPosition = 0;
+        private int _blockSize;
+        private int _bitPosition = 0;
+        private long _buffer;
 
         public ByteOrder ByteOrder { get; set; }
-
         public BitOrder BitOrder { get; set; }
+
         public BitOrder EffectiveBitOrder
         {
             get
             {
-                if ((ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.LowestAddressFirst) || (ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.HighestAddressFirst))
+                if (ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.LowestAddressFirst || ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.HighestAddressFirst)
                     return BitOrder.LSBFirst;
-                else if ((ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.HighestAddressFirst) || (ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.LowestAddressFirst))
+                if (ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.HighestAddressFirst || ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.LowestAddressFirst)
                     return BitOrder.MSBFirst;
-                else
-                    return BitOrder;
+                return BitOrder;
             }
         }
 
-        private int _blockSize;
         public int BlockSize
         {
             get => _blockSize;
@@ -43,49 +41,59 @@ namespace Komponent.IO
         }
 
         #region Constructors
-        public BinaryWriterX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, int blockSize = 32, BitOrder BitOrder = BitOrder.MSBFirst) : base(input, Encoding.Unicode)
+
+        public BinaryWriterX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, Encoding.Unicode)
         {
             ByteOrder = byteOrder;
-            _blockSize = blockSize;
-            this.BitOrder = BitOrder;
+            BitOrder = bitOrder;
+            BlockSize = blockSize;
         }
 
-        public BinaryWriterX(Stream input, Encoding encoding, ByteOrder byteOrder = ByteOrder.LittleEndian, int blockSize = 32, BitOrder BitOrder = BitOrder.MSBFirst) : base(input, encoding)
+        public BinaryWriterX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, Encoding.Unicode, leaveOpen)
         {
             ByteOrder = byteOrder;
-            _blockSize = blockSize;
-            this.BitOrder = BitOrder;
+            BitOrder = bitOrder;
+            BlockSize = blockSize;
         }
 
-        public BinaryWriterX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, int blockSize = 32, BitOrder BitOrder = BitOrder.MSBFirst) : base(input, encoding, leaveOpen)
+        public BinaryWriterX(Stream input, Encoding encoding, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, encoding)
         {
             ByteOrder = byteOrder;
-            _blockSize = blockSize;
-            this.BitOrder = BitOrder;
+            BitOrder = bitOrder;
+            BlockSize = blockSize;
         }
 
-        // Parameters out of order with a default encoding of Unicode
-        public BinaryWriterX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, int blockSize = 32, BitOrder BitOrder = BitOrder.MSBFirst) : base(input, Encoding.Unicode, leaveOpen)
+        public BinaryWriterX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
-            _blockSize = blockSize;
-            this.BitOrder = BitOrder;
+            BitOrder = bitOrder;
+            BlockSize = blockSize;
         }
+
         #endregion
 
         #region Default Writes
+
         public override void Write(byte value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
+
+            base.Write(value);
+        }
+
+        public override void Write(sbyte value)
+        {
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             base.Write(value);
         }
 
         public override void Write(short value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -95,8 +103,8 @@ namespace Komponent.IO
 
         public override void Write(int value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -106,8 +114,8 @@ namespace Komponent.IO
 
         public override void Write(long value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -117,8 +125,8 @@ namespace Komponent.IO
 
         public override void Write(ushort value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -128,8 +136,8 @@ namespace Komponent.IO
 
         public override void Write(uint value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -139,8 +147,8 @@ namespace Komponent.IO
 
         public override void Write(ulong value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -150,69 +158,70 @@ namespace Komponent.IO
 
         public override void Write(bool value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             base.Write(value);
         }
 
-        public override void Write(char ch)
+        public override void Write(char value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
-            base.Write(ch);
+            base.Write(value);
+        }
+
+        public override void Write(char[] chars)
+        {
+            if (_bitPosition > 0)
+                FlushBuffer();
+
+            base.Write(chars);
         }
 
         public override void Write(float value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             base.Write(value);
         }
 
         public override void Write(double value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             base.Write(value);
         }
 
         public override void Write(decimal value)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             base.Write(value);
         }
 
-        public override void Write(sbyte value)
-        {
-            if (bitPosition > 0)
-                WriteBuffer();
-
-            base.Write(value);
-        }
         #endregion
 
         #region String Writes
-        public void WriteASCII(string value)
-        {
-            base.Write(Encoding.ASCII.GetBytes(value));
-        }
+
+        public void WriteASCII(string value) => base.Write(Encoding.ASCII.GetBytes(value));
 
         public void WriteString(string value, Encoding encoding, bool leadingCount = true)
         {
             var bytes = encoding.GetBytes(value);
             if (leadingCount)
                 Write((byte)bytes.Length);
-            Write(bytes);
+            WriteMultiple(bytes);
         }
+
         #endregion
 
-        #region Alignement/Padding Writes
+        #region Alignement & Padding Writes
+
         public void WritePadding(int count, byte paddingByte = 0x0)
         {
             for (var i = 0; i < count; i++)
@@ -228,28 +237,30 @@ namespace Komponent.IO
         }
 
         public void WriteAlignment(byte alignmentByte) => WriteAlignment(16, alignmentByte);
+
         #endregion
 
         #region Helpers
-        public void WriteBuffer()
+
+        public void FlushBuffer()
         {
-            bitPosition = 0;
-            switch (BlockSize)
+            _bitPosition = 0;
+            switch (_blockSize)
             {
                 case 8:
-                    Write((byte)buffer);
+                    Write((byte)_buffer);
                     break;
                 case 16:
-                    Write((short)buffer);
+                    Write((short)_buffer);
                     break;
                 case 32:
-                    Write((int)buffer);
+                    Write((int)_buffer);
                     break;
                 case 64:
-                    Write(buffer);
+                    Write(_buffer);
                     break;
             }
-            buffer = 0;
+            _buffer = 0;
         }
 
         public void WritePrimitive(object obj)
@@ -272,9 +283,10 @@ namespace Komponent.IO
             }
         }
 
-        public void WriteObject(object obj)
+        public void WriteObject(object obj, MemberInfo fieldInfo = null)
         {
             var type = obj.GetType();
+
             if (type.IsPrimitive)
             {
                 WritePrimitive(obj);
@@ -283,18 +295,26 @@ namespace Komponent.IO
             {
                 if (Type.GetTypeCode(type) == TypeCode.String)
                 {
-                    //string
-                    WriteString((string)obj, Encoding.ASCII, false);
+                    // String
+                    var fieldSize = fieldInfo?.GetCustomAttribute<FieldLength>();
+                    if (fieldSize != null)
+                    {
+                        WriteString((string)obj, Encoding.ASCII, false);
+                        for (var i = ((string)obj).Length; i < fieldSize.Length; i++)
+                            Write((byte)0);
+                    }
+                    else
+                        WriteString((string)obj, Encoding.ASCII, false);
                 }
                 else if (Type.GetTypeCode(type) == TypeCode.Decimal)
                 {
-                    //decimal
+                    // Decimal
                     Write((decimal)obj);
                 }
                 else if (type.IsArray)
                 {
-                    //array
-                    //get endianness attriute
+                    // Array
+                    // Get endianness attriute
                     var bk_ByteOrder = ByteOrder;
                     var endian = type.GetCustomAttribute<Endianness>();
                     if (endian != null)
@@ -307,54 +327,56 @@ namespace Komponent.IO
                 }
                 else if (type.IsClass || (type.IsValueType && !type.IsEnum))
                 {
-                    //class, struct
-                    //get endianness attriute
+                    // Class, Struct
+                    // Get endianness attriute
                     var bk_ByteOrder = ByteOrder;
                     var endian = type.GetCustomAttribute<Endianness>();
                     if (endian != null)
                         ByteOrder = endian.ByteOrder;
 
-                    //get bitfieldblock attribute
+                    // Get bitfieldblock attribute
                     var block = type.GetCustomAttribute<BitFieldInfo>();
                     if (block != null)
                     {
                         BlockSize = block.BlockSize;
-                        BitOrder = block.Orientation;
+                        BitOrder = block.BitOrder;
 
                         foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                         {
                             var bitInfo = field.GetCustomAttribute<BitField>();
                             if (bitInfo != null)
-                                WriteBits((long)field.GetValue(obj), bitInfo._bitsToRead);
+                                WriteBits((long)field.GetValue(obj), bitInfo.BitsToRead);
                             else
-                                WriteObject(field.GetValue(obj));
+                                WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null);
                         }
 
-                        if (bitPosition > 0)
-                            WriteBuffer();
+                        if (_bitPosition > 0)
+                            FlushBuffer();
                     }
                     else
                     {
                         foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                            WriteObject(field.GetValue(obj));
+                            WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null);
                     }
 
                     ByteOrder = bk_ByteOrder;
                 }
                 else if (type.IsEnum)
                 {
-                    //enum
-                    WriteObject((type as TypeInfo).DeclaredFields.ToList()[0].GetValue(obj));
+                    // Enum
+                    WriteObject((type as TypeInfo)?.DeclaredFields.ToList()[0].GetValue(obj));
                 }
             }
         }
+
         #endregion
 
-        #region Custom methods
+        #region Custom Methods
+
         public void WriteNibble(int val)
         {
-            if (bitPosition > 0)
-                WriteBuffer();
+            if (_bitPosition > 0)
+                FlushBuffer();
 
             val &= 15;
             if (_nibble == -1)
@@ -366,12 +388,13 @@ namespace Komponent.IO
             }
         }
 
+        // Bit Fields
         public void WriteBit(bool value)
         {
             if (EffectiveBitOrder == BitOrder.LSBFirst)
-                buffer |= ((value) ? 1 : 0) << bitPosition++;
+                _buffer |= ((value) ? 1 : 0) << _bitPosition++;
             else
-                buffer |= ((value) ? 1 : 0) << (BlockSize - bitPosition++ - 1);
+                _buffer |= ((value) ? 1 : 0) << (BlockSize - _bitPosition++ - 1);
         }
 
         public void WriteBits(long value, int bitCount)
@@ -400,16 +423,14 @@ namespace Komponent.IO
             }
         }
 
-        public void WriteStruct<T>(T obj)
-        {
-            WriteObject(obj);
-        }
+        public void WriteStruct<T>(T obj) => WriteObject(obj);
 
-        public void Write<T>(IEnumerable<T> list)
+        public void WriteMultiple<T>(IEnumerable<T> list)
         {
             foreach (var element in list)
                 WriteStruct(element);
         }
+
         #endregion
     }
 }

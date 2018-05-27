@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Komponent.IO
 {
@@ -10,7 +6,7 @@ namespace Komponent.IO
     public class BitFieldInfo : Attribute
     {
         public int BlockSize = 32;
-        public BitOrder Orientation = BitOrder.MSBFirst;
+        public BitOrder BitOrder = BitOrder.MSBFirst;
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
@@ -22,20 +18,22 @@ namespace Komponent.IO
     [AttributeUsage(AttributeTargets.Field)]
     public class BitField : Attribute
     {
-        public int _bitsToRead { get; }
+        public int BitsToRead { get; }
+
         public BitField(int bitsToRead)
         {
-            _bitsToRead = bitsToRead;
+            BitsToRead = bitsToRead;
         }
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class Length : Attribute
+    public class FieldLength : Attribute
     {
-        public int _length { get; }
-        public Length(int length)
+        public int Length { get; }
+
+        public FieldLength(int length)
         {
-            _length = length;
+            Length = length;
         }
     }
 }
