@@ -3,35 +3,35 @@
 namespace Komponent.IO
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class BitFieldInfo : Attribute
+    public class BitFieldInfoAttribute : Attribute
     {
         public int BlockSize = 32;
         public BitOrder BitOrder = BitOrder.Inherit;
     }
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class Endianness : Attribute
+    public class EndiannessAttribute : Attribute
     {
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class BitField : Attribute
+    public class BitFieldAttribute : Attribute
     {
         public int BitLength { get; }
 
-        public BitField(int bitLength)
+        public BitFieldAttribute(int bitLength)
         {
             BitLength = bitLength;
         }
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class FieldLength : Attribute
+    public class FieldLengthAttribute : Attribute
     {
         public int Length { get; }
 
-        public FieldLength(int length)
+        public FieldLengthAttribute(int length)
         {
             Length = length;
         }

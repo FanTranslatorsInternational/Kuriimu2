@@ -296,7 +296,7 @@ namespace Komponent.IO
                 if (Type.GetTypeCode(type) == TypeCode.String)
                 {
                     // String
-                    var fieldSize = fieldInfo?.GetCustomAttribute<FieldLength>();
+                    var fieldSize = fieldInfo?.GetCustomAttribute<FieldLengthAttribute>();
                     if (fieldSize != null)
                     {
                         WriteString((string)obj, Encoding.ASCII, false);
@@ -316,7 +316,7 @@ namespace Komponent.IO
                     // Array
                     // Get endianness attriute
                     var bkByteOrder = ByteOrder;
-                    var endian = type.GetCustomAttribute<Endianness>();
+                    var endian = type.GetCustomAttribute<EndiannessAttribute>();
                     if (endian != null)
                         ByteOrder = endian.ByteOrder;
 
@@ -330,12 +330,12 @@ namespace Komponent.IO
                     // Class, Struct
                     // Get endianness attriute
                     var bkByteOrder = ByteOrder;
-                    var endian = type.GetCustomAttribute<Endianness>();
+                    var endian = type.GetCustomAttribute<EndiannessAttribute>();
                     if (endian != null)
                         ByteOrder = endian.ByteOrder;
 
                     // Get bitfieldblock attribute
-                    var block = type.GetCustomAttribute<BitFieldInfo>();
+                    var block = type.GetCustomAttribute<BitFieldInfoAttribute>();
                     if (block != null)
                     {
                         BlockSize = block.BlockSize;
@@ -346,7 +346,7 @@ namespace Komponent.IO
 
                         foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                         {
-                            var bitInfo = field.GetCustomAttribute<BitField>();
+                            var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
                             if (bitInfo != null)
                                 WriteBits((long)field.GetValue(obj), bitInfo.BitLength);
                             else
