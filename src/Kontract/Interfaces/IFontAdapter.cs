@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace Kontract.Interface
+namespace Kontract.Interfaces
 {
     /// <summary>
     /// This is the font adapter interface for creating font format plugins.

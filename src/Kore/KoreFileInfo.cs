@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Reflection;
-using Kontract.Attribute;
-using Kontract.Interface;
+using Kontract.Attributes;
+using Kontract.Interfaces;
 
 namespace Kore
 {
@@ -22,8 +22,8 @@ namespace Kore
         {
             get
             {
-                var pi = (PluginInfo)Adapter.GetType().GetCustomAttribute(typeof(PluginInfo));
-                var pei = (PluginExtensionInfo)Adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo));
+                var pi = (PluginInfoAttribute)Adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
+                var pei = (PluginExtensionInfoAttribute)Adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute));
                 return $"{pi.Name} ({pei.Extension})|{pei.Extension}";
             }
         }

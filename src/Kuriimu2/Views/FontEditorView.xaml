@@ -20,7 +20,9 @@
             <DockPanel Grid.Column="0" Background="DimGray">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                     <Grid SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
+                            <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        </Border>
                         <Border BorderThickness="1" BorderBrush="Yellow" Margin="{Binding CursorMargin}" Width="{Binding SelectedCharacterGlyphWidth}" Height="{Binding SelectedCharacterGlyphHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" />
                     </Grid>
                 </ScrollViewer>
@@ -58,13 +60,6 @@
                         <Label Grid.Column="1">Characters</Label>
                     </Grid>
                     <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.Resources>
-                            <Style TargetType="{x:Type ListBox}">
-                                <Style.Triggers>
-
-                                </Style.Triggers>
-                            </Style>
-                        </ListBox.Resources>
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel />

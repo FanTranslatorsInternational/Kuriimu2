@@ -1,5 +1,7 @@
-﻿using Caliburn.Micro;
-using Kontract.Interface;
+﻿using System.IO;
+using Caliburn.Micro;
+using Kontract.Interfaces;
+using Kuriimu2.Interface;
 using Microsoft.Win32;
 
 namespace Kuriimu2.ViewModels
@@ -14,8 +16,11 @@ namespace Kuriimu2.ViewModels
 
         public ShellViewModel()
         {
-            DisplayName = "Kuriimu";
+            DisplayName = "Kuriimu2";
             _kore = new Kore.Kore();
+
+            if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))
+                LoadFile(AppBootstrapper.Args[0]);
         }
 
         public void OpenButton()
@@ -23,57 +28,34 @@ namespace Kuriimu2.ViewModels
             var ofd = new OpenFileDialog { Filter = _kore.FileFilters };
             if (ofd.ShowDialog() != true) return;
 
-            var kfi = _kore.LoadFile(ofd.FileName);
-            switch (kfi.Adapter)
-            {
-                case ITextAdapter txt2:
-                    ActivateItem(new TextEditor2ViewModel(kfi));
-                    break;
-                case IFontAdapter fnt:
-                    ActivateItem(new FontEditorViewModel(kfi));
-                    break;
-            }
+            LoadFile(ofd.FileName);
         }
 
         public void SaveButton()
         {
-            switch (ActiveItem)
-            {
-                case TextEditor2ViewModel txt2:
-                    txt2.Save();
-                    break;
-            }
+            SaveFile();
         }
 
         public void SaveAsButton()
         {
             var filter = "Any File (*.*)|*.*";
 
-            switch (ActiveItem)
+            if (ActiveItem is IEditor editor)
             {
-                case TextEditor2ViewModel txt2:
-                    filter = txt2.KoreFile.Filter;
-                    break;
-                case FontEditorViewModel fnt:
-                    filter = fnt.KoreFile.Filter;
-                    break;
+                filter = editor.KoreFile.Filter;
+
+                var sfd = new SaveFileDialog { FileName = editor.KoreFile.FileInfo.Name, Filter = filter };
+                if (sfd.ShowDialog() != true) return;
+
+                SaveFile(sfd.FileName);
             }
-
-            var sfd = new SaveFileDialog { Filter = filter };
-
-            if (sfd.ShowDialog() == true)
+            else
             {
-                switch (ActiveItem)
-                {
-                    case TextEditor2ViewModel txt2:
-                        txt2.Save(sfd.FileName);
-                        break;
-                    case FontEditorViewModel fnt:
-                        fnt.Save(sfd.FileName);
-                        break;
-                }
+                
             }
         }
+
+        public bool SaveButtonsEnabled() => (ActiveItem as IEditor)?.KoreFile.Adapter is ISaveFiles;
 
         public void DebugButton()
         {
@@ -93,5 +75,28 @@ namespace Kuriimu2.ViewModels
                     break;
             }
         }
+
+        #region Methods
+
+        private void LoadFile(string filename)
+        {
+            var kfi = _kore.LoadFile(filename);
+            switch (kfi.Adapter)
+            {
+                case ITextAdapter txt2:
+                    ActivateItem(new TextEditor2ViewModel(kfi));
+                    break;
+                case IFontAdapter fnt:
+                    ActivateItem(new FontEditorViewModel(kfi));
+                    break;
+            }
+        }
+
+        private void SaveFile(string filename = "")
+        {
+            (ActiveItem as IEditor)?.Save(filename);
+        }
+
+        #endregion
     }
 }

@@ -6,17 +6,18 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract.Interface;
+using Kontract.Interfaces;
 using Kore;
+using Kuriimu2.Interface;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class FontEditorViewModel : Screen
+    public sealed class FontEditorViewModel : Screen, IEditor
     {
         private IFontAdapter _adapter;
 
         public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<FontCharacter> Characters { get; }
+        public ObservableCollection<FontCharacter> Characters { get; private set; }
 
         private FontCharacter _selectedCharacter;
         private BitmapImage _selectedTexture;
@@ -25,7 +26,6 @@ namespace Kuriimu2.ViewModels
         {
             KoreFile = koreFile;
 
-            DisplayName = KoreFile.DisplayName;
             _adapter = KoreFile.Adapter as IFontAdapter;
 
             if (_adapter != null)
@@ -50,12 +50,16 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public override string DisplayName => KoreFile?.DisplayName;
+
         public int SelectedCharacterGlyphX
         {
             get => SelectedCharacter.GlyphX;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphX != value;
                 SelectedCharacter.GlyphX = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => CursorMargin);
             }
         }
@@ -65,7 +69,9 @@ namespace Kuriimu2.ViewModels
             get => SelectedCharacter.GlyphY;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphY != value;
                 SelectedCharacter.GlyphY = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => CursorMargin);
             }
         }
@@ -100,7 +106,9 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public Thickness CursorMargin => new Thickness(SelectedCharacter.GlyphX, SelectedCharacter.GlyphY, 0, 0);
+        public int ImageBorderThickness => 1;
+
+        public Thickness CursorMargin => new Thickness(SelectedCharacter.GlyphX + ImageBorderThickness, SelectedCharacter.GlyphY + ImageBorderThickness, 0, 0);
 
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
 
@@ -110,14 +118,22 @@ namespace Kuriimu2.ViewModels
 
         public void AddCharacter()
         {
-            if (!(_adapter is IAddCharacters)) return;
+            if (!(_adapter is IAddCharacters add)) return;
 
-            (_adapter as IAddCharacters).AddCharacter(new FontCharacter
+            var character = add.NewCharacter();
+            character.Character = 'b';
+            character.GlyphWidth = SelectedCharacter.GlyphWidth;
+            character.GlyphHeight = SelectedCharacter.GlyphHeight;
+            character.GlyphX = Characters.Last().GlyphX + Characters.Last().GlyphWidth;
+            character.GlyphY = Characters.Last().GlyphY;
+
+            if (add.AddCharacter(character))
             {
-                Character = 'b',
+                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                NotifyOfPropertyChange(() => Characters);
 
-            });
-            NotifyOfPropertyChange(() => Characters);
+                SelectedCharacter = Characters.Last();
+            }
         }
 
         public bool DeleteEnabled => _adapter is IDeleteCharacters;
@@ -136,7 +152,7 @@ namespace Kuriimu2.ViewModels
                     KoreFile.FileInfo = new FileInfo(filename);
                 }
                 KoreFile.HasChanges = false;
-                NotifyOfPropertyChange(DisplayName);
+                NotifyOfPropertyChange(() => DisplayName);
             }
             catch (Exception)
             {

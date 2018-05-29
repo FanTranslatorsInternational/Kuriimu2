@@ -1,12 +1,12 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using Komponent.IO;
-using Kontract.Attribute;
-using Kontract.Interface;
+using Kontract.Attributes;
+using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {
@@ -81,16 +81,23 @@ namespace Kore.SamplePlugins
         public void Save(string filename)
         {
             _gfd.Save(File.Create(filename));
+            for (var i = 0; i < Textures.Count; i++)
+            {
+                var tex = Textures[i];
+                tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
+            }
         }
 
         public FontCharacter NewCharacter()
         {
-            throw new NotImplementedException();
+            return new GfdCharacter();
         }
 
         public bool AddCharacter(FontCharacter character)
         {
-            throw new NotImplementedException();
+            if (!(character is GfdCharacter gfdCharacter)) return false;
+            _gfd.Characters.Add(gfdCharacter);
+            return true;
         }
 
         public bool DeleteCharacter(FontCharacter character)

@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
 using Caliburn.Micro;
-using Kontract.Interface;
+using Kontract.Interfaces;
 using Kore;
 
 namespace Kuriimu2.ViewModels

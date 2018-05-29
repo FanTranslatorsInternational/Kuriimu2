@@ -30,12 +30,12 @@
                         <Image Source="pack://application:,,,/Images/menu-open.png" />
                     </StackPanel>
                 </Button>
-                <Button Name="SaveButton">
+                <Button Name="SaveButton" IsEnabled="{Binding SaveButtonsEnabled}">
                     <StackPanel>
                         <Image Source="pack://application:,,,/Images/menu-save.png" />
                     </StackPanel>
                 </Button>
-                <Button Name="SaveAsButton">
+                <Button Name="SaveAsButton" IsEnabled="{Binding SaveButtonsEnabled}">
                     <StackPanel>
                         <Image Source="pack://application:,,,/Images/menu-save-as.png" />
                     </StackPanel>

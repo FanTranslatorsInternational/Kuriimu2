@@ -1,9 +1,12 @@
-﻿namespace Kontract.Attribute
+﻿using System;
+
+namespace Kontract.Attributes
 {
+    /// <inheritdoc />
     /// <summary>
     /// This attribute is used to define general information about a plugin.
     /// </summary>
-    public class PluginInfo : System.Attribute
+    public class PluginInfoAttribute : Attribute
     {
         // TODO: Determine how to handle plugin selection while using MEF and when two plugins have the same ID.
         /// <summary>
@@ -39,14 +42,14 @@
 
         /// <inheritdoc />
         /// <summary>
-        /// Initializes a new PluginInfo with the provided values.
+        /// Initializes a new PluginInfoAttribute with the provided values.
         /// </summary>
         /// <param name="id">GUID</param>
         /// <param name="name">The plugin name.</param>
         /// <param name="shortName">The plugin short name.</param>
         /// <param name="author">The plugin author(s).</param>
         /// <param name="about">The plugin description.</param>
-        public PluginInfo(string id, string name = "", string shortName = "", string author = "", string about = "")
+        public PluginInfoAttribute(string id, string name = "", string shortName = "", string author = "", string about = "")
         {
             ID = id;
             Name = name;

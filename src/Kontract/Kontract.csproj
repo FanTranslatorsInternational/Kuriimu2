@@ -41,14 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attribute\ExtensionInfo.cs" />
-    <Compile Include="Attribute\PluginInfo.cs" />
-    <Compile Include="Interface\IIdentifyFiles.cs" />
-    <Compile Include="Interface\ILoadFiles.cs" />
-    <Compile Include="Interface\ISaveFiles.cs" />
-    <Compile Include="Interface\IFileHasExtendedProperties.cs" />
-    <Compile Include="Interface\IFontAdapter.cs" />
-    <Compile Include="Interface\ITextAdapter.cs" />
+    <Compile Include="Attributes\ExtensionInfo.cs" />
+    <Compile Include="Attributes\PluginInfo.cs" />
+    <Compile Include="Interfaces\IIdentifyFiles.cs" />
+    <Compile Include="Interfaces\ILoadFiles.cs" />
+    <Compile Include="Interfaces\ISaveFiles.cs" />
+    <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
+    <Compile Include="Interfaces\IFontAdapter.cs" />
+    <Compile Include="Interfaces\ITextAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

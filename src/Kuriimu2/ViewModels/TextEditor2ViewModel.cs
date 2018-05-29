@@ -2,12 +2,13 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using Caliburn.Micro;
-using Kontract.Interface;
+using Kontract.Interfaces;
 using Kore;
+using Kuriimu2.Interface;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor2ViewModel : Screen
+    public sealed class TextEditor2ViewModel : Screen, IEditor
     {
         private ITextAdapter _adapter;
 

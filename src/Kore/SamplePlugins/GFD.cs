@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Komponent.IO;
-using Kontract.Interface;
+using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {

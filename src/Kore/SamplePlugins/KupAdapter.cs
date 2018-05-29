@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using Kontract.Attribute;
-using Kontract.Interface;
+using Kontract.Attributes;
+using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {

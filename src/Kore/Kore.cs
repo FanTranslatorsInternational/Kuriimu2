@@ -7,8 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows;
-using Kontract.Attribute;
-using Kontract.Interface;
+using Kontract.Attributes;
+using Kontract.Interfaces;
 
 namespace Kore
 {
@@ -38,23 +38,24 @@ namespace Kore
 
         #endregion
 
-        #region Properties
-
         /// <summary>
         /// The list of currently open files being tracked by Kore.
         /// </summary>
         public List<KoreFileInfo> OpenFiles { get; }
 
-        #endregion
+        /// <summary>
+        /// Provides an event that the UI can handle to present a plugin list to the user.
+        /// </summary>
+        public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
 
-        #region Events
-        public event EventHandler<CantIdentifyEventArgs> CantIdentify;
-        public class CantIdentifyEventArgs
+        /// <summary>
+        /// Allows the UI to display a list of blind plugins and to return one selected by the user.
+        /// </summary>
+        public class IdentificationFailedEventArgs
         {
-            public List<ILoadFiles> cantIdentify;
-            public ILoadFiles selectedIdentify = null;
+            public List<ILoadFiles> BlindAdapters;
+            public ILoadFiles SelectedAdapter = null;
         }
-        #endregion
 
         /// <summary>
         /// Initializes a new Kore instance.
@@ -100,14 +101,14 @@ namespace Kore
             {
                 var cantIdentify = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
 
-                var args = new CantIdentifyEventArgs { cantIdentify = cantIdentify };
-                CantIdentify(this, args);
+                var args = new IdentificationFailedEventArgs { BlindAdapters = cantIdentify };
+                IdentificationFailed?.Invoke(this, args);
 
                 //TODO: Handle this case better?
-                if (args.selectedIdentify == null)
+                if (args.SelectedAdapter == null)
                     return null;
 
-                adapter = args.selectedIdentify;
+                adapter = args.SelectedAdapter;
             }
 
             adapter.Load(filename);
@@ -139,12 +140,12 @@ namespace Kore
         /// <summary>
         /// Attempts to select a compatible adapter that is capable of identifying files.
         /// </summary>
-        /// <param name="filename">The file to be selcted against.</param>
+        /// <param name="filename">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(string filename)
         {
             // Return an adapter that can Identify whose extension matches that of our filename and sucessfully identifies the file.
-            return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfo)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
+            return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 
         /// <summary>
@@ -155,7 +156,7 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var alltypes = _fileAdapters.Select(x => new { ((PluginInfo)x.GetType().GetCustomAttribute(typeof(PluginInfo))).Name, Extension = ((PluginExtensionInfo)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfo))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+                var alltypes = _fileAdapters.Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
                 // Add the special all supported files filter
                 if (alltypes.Count > 0)
@@ -174,8 +175,8 @@ namespace Kore
 
             foreach (var adapter in _fileAdapters)
             {
-                var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfo)) as PluginInfo;
-                var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfo)) as PluginExtensionInfo;
+                var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute)) as PluginInfoAttribute;
+                var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute)) as PluginExtensionInfoAttribute;
 
                 sb.AppendLine($"ID: {pluginInfo?.ID}");
                 sb.AppendLine($"Name: {pluginInfo?.Name}");
