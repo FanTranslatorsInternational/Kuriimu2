@@ -88,9 +88,17 @@ namespace Kore.SamplePlugins
             }
         }
 
-        public FontCharacter NewCharacter()
+        public FontCharacter NewCharacter(FontCharacter selectedCharacter = null)
         {
-            return new GfdCharacter();
+            var newChar = new GfdCharacter();
+
+            if (selectedCharacter is GfdCharacter gfd)
+            {
+                newChar.Block2Trailer = gfd.Block2Trailer;
+                newChar.Block3 = gfd.Block3;
+            }
+
+            return newChar;
         }
 
         public bool AddCharacter(FontCharacter character)

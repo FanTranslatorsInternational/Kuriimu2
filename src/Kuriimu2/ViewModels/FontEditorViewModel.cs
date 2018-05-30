@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
+using Kuriimu2.DialogViewModels;
 using Kuriimu2.Interface;
 
 namespace Kuriimu2.ViewModels
@@ -40,7 +41,7 @@ namespace Kuriimu2.ViewModels
             set
             {
                 _selectedCharacter = value;
-                SelectedTexture = BitmapToImageSource(_adapter.Textures[_selectedCharacter.TextureIndex]);
+                SelectedTexture = BitmapToImageSource(_adapter.Textures[_selectedCharacter.TextureID]);
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
@@ -120,14 +121,17 @@ namespace Kuriimu2.ViewModels
         {
             if (!(_adapter is IAddCharacters add)) return;
 
-            var character = add.NewCharacter();
-            character.Character = 'b';
-            character.GlyphWidth = SelectedCharacter.GlyphWidth;
-            character.GlyphHeight = SelectedCharacter.GlyphHeight;
+            var character = add.NewCharacter(SelectedCharacter);
+            character.Character = SelectedCharacter.Character;
             character.GlyphX = Characters.Last().GlyphX + Characters.Last().GlyphWidth;
             character.GlyphY = Characters.Last().GlyphY;
+            character.GlyphWidth = SelectedCharacter.GlyphWidth;
+            character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            if (add.AddCharacter(character))
+            IWindowManager wm = new WindowManager();
+            var feac = new FontEditorAddCharacterViewModel(character, () => new ValidationResult { CanClose = _adapter.Characters.All(c => c.Character != character.Character), ErrorMessage = $"The '{(char)character.Character}' character already exists in the list." });
+
+            if (wm.ShowDialog(feac) == true && add.AddCharacter(character))
             {
                 Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);

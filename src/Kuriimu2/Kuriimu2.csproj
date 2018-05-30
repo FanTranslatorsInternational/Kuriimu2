@@ -85,6 +85,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="DialogViewModels\FontEditorAddCharacterViewModel.cs" />
     <Compile Include="Interfaces\IEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -95,6 +96,10 @@
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
+    <Page Include="DialogViews\FontEditorAddCharacterView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\Base.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -213,8 +218,6 @@
       <Name>Kore</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Dialogs\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

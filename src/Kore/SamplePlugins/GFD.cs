@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Komponent.IO;
+using Kontract.Attributes;
 using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
@@ -39,7 +40,7 @@ namespace Kore.SamplePlugins
                 {
                     Character = ci.Block0,
 
-                    TextureIndex = (int)ci.Block1.TextureIndex,
+                    TextureID = (int)ci.Block1.TextureIndex,
                     GlyphX = (int)ci.Block1.GlyphX,
                     GlyphY = (int)ci.Block1.GlyphY,
 
@@ -76,7 +77,7 @@ namespace Kore.SamplePlugins
                     {
                         GlyphY = c.GlyphY,
                         GlyphX = c.GlyphX,
-                        TextureIndex = c.TextureIndex
+                        TextureIndex = c.TextureID
                     },
 
                     Block2 = new Block2
@@ -143,11 +144,13 @@ namespace Kore.SamplePlugins
         /// <summary>
         /// Trailing 8 bits in block2 that are unknown
         /// </summary>
+        [FormField(typeof(int), "Block 2 Trailer")]
         public int Block2Trailer { get; set; }
 
         /// <summary>
         /// Unknown character metadata.
         /// </summary>
+        [FormField(typeof(uint), "Block 3")]
         public uint Block3 { get; set; }
     }
 }

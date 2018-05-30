@@ -41,8 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\ExtensionInfo.cs" />
-    <Compile Include="Attributes\PluginInfo.cs" />
+    <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
+    <Compile Include="Attributes\FormFieldAttribute.cs" />
+    <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Interfaces\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\ILoadFiles.cs" />
     <Compile Include="Interfaces\ISaveFiles.cs" />

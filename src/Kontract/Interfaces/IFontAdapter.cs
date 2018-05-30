@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using Kontract.Attributes;
 
 namespace Kontract.Interfaces
 {
@@ -38,7 +39,7 @@ namespace Kontract.Interfaces
         /// Creates a new character and allows the plugin to provide its derived type.
         /// </summary>
         /// <returns>FontCharacter or a derived type.</returns>
-        FontCharacter NewCharacter();
+        FontCharacter NewCharacter(FontCharacter selectedCharacter = null);
 
         /// <summary>
         /// Adds a newly created character to the file and allows the plugin to perform any required adding steps.
@@ -80,16 +81,22 @@ namespace Kontract.Interfaces
     /// </summary>
     public class FontCharacter
     {
+        [FormField(typeof(char), "Character", 1, 1)]
         public virtual uint Character { get; set; } = 'A';
 
-        public virtual int TextureIndex { get; set; } = 0;
+        [FormField(typeof(int), "Texture ID")]
+        public virtual int TextureID { get; set; } = 0;
 
+        [FormField(typeof(int), "X")]
         public virtual int GlyphX { get; set; } = 0;
 
+        [FormField(typeof(int), "Y")]
         public virtual int GlyphY { get; set; } = 0;
 
+        [FormField(typeof(int), "Width")]
         public virtual int GlyphWidth { get; set; } = 0;
 
+        [FormField(typeof(int), "Height")]
         public virtual int GlyphHeight { get; set; } = 0;
 
         public override string ToString() => ((char)Character).ToString();

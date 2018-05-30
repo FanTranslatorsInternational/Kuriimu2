@@ -47,12 +47,12 @@
                             <ToolBar HorizontalAlignment="Stretch" ToolBarTray.IsLocked="True">
                                 <Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" />
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="DeleteCharacter" IsEnabled="{Binding DeleteEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" />
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
