@@ -1,8 +1,8 @@
 ﻿<UserControl x:Class="Kuriimu2.Views.FontEditorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:cal="http://www.caliburnproject.org"
              mc:Ignorable="d"
              d:DesignHeight="400" d:DesignWidth="600">
@@ -34,7 +34,7 @@
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
-                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0">
@@ -57,7 +57,7 @@
                                 </Button>
                             </ToolBar>
                         </ToolBarPanel>
-                        <Label Grid.Column="1">Characters</Label>
+                        <Label Grid.Column="1" Content="{Binding CharacterCount}"/>
                     </Grid>
                     <ListBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemsPanel>
@@ -67,16 +67,14 @@
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Label Content="{Binding}" HorizontalContentAlignment="Center" Width="32" Height="32" FontSize="16px"></Label>
+                                <Label Content="{Binding}" HorizontalContentAlignment="Center" Width="32" Height="32" FontSize="16px" cal:Message.Attach="[Event MouseDoubleClick] = [Action Edit($dataContext)]"></Label>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
 
-                <DockPanel Grid.Row="1">
-                    <StackPanel DockPanel.Dock="Top">
-                        <Label Content="Properties"></Label>
-                    </StackPanel>
+                <StackPanel Grid.Row="1">
+                    <Label Content="Properties"></Label>
                     <Grid Margin="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"></ColumnDefinition>
@@ -99,7 +97,7 @@
                         <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
                         <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
                     </Grid>
-                </DockPanel>
+                </StackPanel>
             </Grid>
         </Grid>
     </DockPanel>

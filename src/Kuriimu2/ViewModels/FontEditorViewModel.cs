@@ -128,15 +128,56 @@ namespace Kuriimu2.ViewModels
             character.GlyphWidth = SelectedCharacter.GlyphWidth;
             character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            IWindowManager wm = new WindowManager();
-            var feac = new FontEditorAddCharacterViewModel(character, () => new ValidationResult { CanClose = _adapter.Characters.All(c => c.Character != character.Character), ErrorMessage = $"The '{(char)character.Character}' character already exists in the list." });
+            var feac = new FontEditorEditCharacterViewModel
+            {
+                Title = "Add Character",
+                Mode = DialogMode.Add,
+                Message = "New character attributes:",
+                Character = character,
+                ValidationCallback = () => new ValidationResult
+                {
+                    CanClose = _adapter.Characters.All(c => c.Character != character.Character),
+                    ErrorMessage = $"The '{(char) character.Character}' character already exists in the list."
+                }
+            };
 
+            IWindowManager wm = new WindowManager();
             if (wm.ShowDialog(feac) == true && add.AddCharacter(character))
             {
                 Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
 
                 SelectedCharacter = Characters.Last();
+            }
+        }
+
+        public void Edit(FontCharacter character)
+        {
+            if (!(_adapter is IFontAdapter fnt)) return;
+
+            //var clone = (FontCharacter)character.Clone();
+            var originalChar = character.Character;
+            
+            var feac = new FontEditorEditCharacterViewModel
+            {
+                Title = "Edit Character",
+                Message = "Edit character attributes:",
+                Character = character,
+                ValidationCallback = () => new ValidationResult
+                {
+                    CanClose = originalChar == character.Character,
+                    ErrorMessage = $"You cannot change the character while editing."
+                }
+            };
+
+            IWindowManager wm = new WindowManager();
+            if (wm.ShowDialog(feac) == true)
+            {
+                NotifyOfPropertyChange(() => Characters);
+            }
+            else
+            {
+                character.Character = originalChar;
             }
         }
 
@@ -148,6 +189,7 @@ namespace Kuriimu2.ViewModels
         {
             try
             {
+                //((IFontAdapter) KoreFile.Adapter).Characters = Characters.ToList();
                 if (filename == string.Empty)
                     ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
                 else

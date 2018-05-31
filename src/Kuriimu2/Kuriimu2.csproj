@@ -85,7 +85,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="DialogViewModels\FontEditorAddCharacterViewModel.cs" />
+    <Compile Include="DialogViewModels\FontEditorEditCharacterViewModel.cs" />
     <Compile Include="Interfaces\IEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -96,7 +96,7 @@
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
-    <Page Include="DialogViews\FontEditorAddCharacterView.xaml">
+    <Page Include="DialogViews\FontEditorEditCharacterView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

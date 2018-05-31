@@ -1,11 +1,11 @@
-﻿<Window x:Class="Kuriimu2.DialogViews.FontEditorAddCharacterView"
+﻿<Window x:Class="Kuriimu2.DialogViews.FontEditorEditCharacterView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Kuriimu2.DialogViews"
+        xmlns:cal="http://www.caliburnproject.org"
         mc:Ignorable="d"
-        Title="Add Character" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
+        Title="{Binding Title}" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -17,10 +17,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Image Source="pack://application:,,,/Images/menu-add.png" Width="32" Height="32" VerticalAlignment="Top" Margin="10, 10, 20, 0" />
+        <Image Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Top" Margin="10, 10, 20, 0" />
 
         <StackPanel Grid.Column="1" Grid.Row="0">
-            <Label Content="{Binding Label}" Margin="0, 0, 0, 10" />
+            <Label Content="{Binding Message}" Margin="0, 0, 0, 10" />
 
             <ItemsControl ItemsSource="{Binding Fields}" Grid.IsSharedSizeScope="True">
                 <ItemsControl.ItemTemplate>
@@ -31,7 +31,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" Name="Question" Content="{Binding Value.Label, Mode=OneWay}" HorizontalContentAlignment="Right" />
-                            <TextBox Grid.Column="1" Name="Answer" MinWidth="200" Text="{Binding Value.Value, UpdateSourceTrigger=PropertyChanged}" MaxLength="{Binding Value.MaxLength}" />
+                            <TextBox Grid.Column="1" Name="Answer" MinWidth="200" Text="{Binding Value.Value, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Editable}" MaxLength="{Binding Value.MaxLength}" />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
