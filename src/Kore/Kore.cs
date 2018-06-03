@@ -93,26 +93,41 @@ namespace Kore
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename)
+        public KoreFileInfo LoadFile(string filename, out LoadResult loadResult)
         {
             var adapter = SelectAdapter(filename);
 
+            // Ask the user to select a plugin directly.
             if (adapter == null)
             {
-                var cantIdentify = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
+                var blindAdapters = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
 
-                var args = new IdentificationFailedEventArgs { BlindAdapters = cantIdentify };
+                var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters };
                 IdentificationFailed?.Invoke(this, args);
 
                 //TODO: Handle this case better?
                 if (args.SelectedAdapter == null)
+                {
+                    loadResult = LoadResult.Cancelled;
                     return null;
+                }
 
                 adapter = args.SelectedAdapter;
             }
 
+            if (adapter == null)
+            {
+                loadResult = LoadResult.NoPlugin;
+                return new KoreFileInfo();
+            }
+
+            // Instantiate a new instance of the adapter.
+            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+
+            // Load the file(s).
             adapter.Load(filename);
 
+            // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
             {
                 FileInfo = new FileInfo(filename),
@@ -122,6 +137,7 @@ namespace Kore
 
             OpenFiles.Add(kfi);
 
+            loadResult = LoadResult.Success;
             return kfi;
         }
 

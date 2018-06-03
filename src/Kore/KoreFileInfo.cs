@@ -24,7 +24,7 @@ namespace Kore
             {
                 var pi = (PluginInfoAttribute)Adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
                 var pei = (PluginExtensionInfoAttribute)Adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute));
-                return $"{pi.Name} ({pei.Extension})|{pei.Extension}";
+                return pi != null && pei != null ? $"{pi.Name} ({pei.Extension})|{pei.Extension}" : "";
             }
         }
     }

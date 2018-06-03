@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Windows;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kore;
 using Kuriimu2.Interface;
 using Microsoft.Win32;
 
@@ -80,15 +83,29 @@ namespace Kuriimu2.ViewModels
 
         private void LoadFile(string filename)
         {
-            var kfi = _kore.LoadFile(filename);
-            switch (kfi.Adapter)
+            var kfi = _kore.LoadFile(filename, out var loadResult);
+
+            switch (loadResult)
             {
-                case ITextAdapter txt2:
-                    ActivateItem(new TextEditor2ViewModel(kfi));
+                case LoadResult.Success:
+                    switch (kfi.Adapter)
+                    {
+                        case ITextAdapter txt2:
+                            ActivateItem(new TextEditor2ViewModel(kfi));
+                            break;
+                        case IFontAdapter fnt:
+                            ActivateItem(new FontEditorViewModel(kfi));
+                            break;
+                    }
                     break;
-                case IFontAdapter fnt:
-                    ActivateItem(new FontEditorViewModel(kfi));
+                case LoadResult.NoPlugin:
+                    MessageBox.Show("The selected plugin could not open the file.");
                     break;
+                case LoadResult.Cancelled:
+                    // Do nothing.
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Kore.LoadFile.LoadResult");
             }
         }
 
