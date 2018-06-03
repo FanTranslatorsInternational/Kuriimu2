@@ -209,6 +209,10 @@
     <Resource Include="Images\text-editor-2.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj">
+      <Project>{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}</Project>
+      <Name>Komponent</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Kontract\Kontract.csproj">
       <Project>{A43ECC92-DC90-4F79-9871-49E02A11ADAD}</Project>
       <Name>Kontract</Name>

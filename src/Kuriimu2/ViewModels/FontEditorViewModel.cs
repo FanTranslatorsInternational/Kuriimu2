@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
+using Komponent.Tools;
 using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.DialogViewModels;
@@ -146,7 +147,6 @@ namespace Kuriimu2.ViewModels
             {
                 Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
-
                 SelectedCharacter = Characters.Last();
             }
         }
@@ -155,17 +155,16 @@ namespace Kuriimu2.ViewModels
         {
             if (!(_adapter is IFontAdapter fnt)) return;
 
-            //var clone = (FontCharacter)character.Clone();
-            var originalChar = character.Character;
+            var clonedCharacter = (FontCharacter)character.Clone();
             
             var feac = new FontEditorEditCharacterViewModel
             {
                 Title = "Edit Character",
                 Message = "Edit character attributes:",
-                Character = character,
+                Character = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
-                    CanClose = originalChar == character.Character,
+                    CanClose = clonedCharacter.Character == character.Character,
                     ErrorMessage = $"You cannot change the character while editing."
                 }
             };
@@ -173,11 +172,13 @@ namespace Kuriimu2.ViewModels
             IWindowManager wm = new WindowManager();
             if (wm.ShowDialog(feac) == true)
             {
-                NotifyOfPropertyChange(() => Characters);
-            }
-            else
-            {
-                character.Character = originalChar;
+                clonedCharacter.CopyProperties(character);
+                NotifyOfPropertyChange(() => SelectedCharacter);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
+                NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
+                NotifyOfPropertyChange(() => CursorMargin);
             }
         }
 
@@ -189,7 +190,6 @@ namespace Kuriimu2.ViewModels
         {
             try
             {
-                //((IFontAdapter) KoreFile.Adapter).Characters = Characters.ToList();
                 if (filename == string.Empty)
                     ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
                 else

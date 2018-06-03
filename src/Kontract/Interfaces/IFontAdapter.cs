@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Attributes;
 
@@ -79,7 +80,7 @@ namespace Kontract.Interfaces
     /// <summary>
     /// The base character class.
     /// </summary>
-    public class FontCharacter
+    public class FontCharacter : ICloneable
     {
         [FormField(typeof(char), "Character", 1, 1)]
         public virtual uint Character { get; set; } = 'A';
@@ -98,6 +99,16 @@ namespace Kontract.Interfaces
 
         [FormField(typeof(int), "Height")]
         public virtual int GlyphHeight { get; set; } = 0;
+
+        public virtual object Clone() => new FontCharacter
+        {
+            Character = Character,
+            TextureID = TextureID,
+            GlyphX = GlyphX,
+            GlyphY = GlyphY,
+            GlyphWidth = GlyphWidth,
+            GlyphHeight = GlyphHeight
+        };
 
         public override string ToString() => ((char)Character).ToString();
     }

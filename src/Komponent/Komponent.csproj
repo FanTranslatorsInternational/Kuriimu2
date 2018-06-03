@@ -48,6 +48,7 @@
     <Compile Include="IO\BinaryWriterX.cs" />
     <Compile Include="IO\Extensions.cs" />
     <Compile Include="IO\Tools.cs" />
+    <Compile Include="Tools\Extensions.cs" />
     <Compile Include="Tools\KmpSearcher.cs" />
     <Compile Include="IO\Common.cs" />
     <Compile Include="IO\SubStream.cs" />

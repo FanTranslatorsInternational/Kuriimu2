@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
@@ -139,7 +140,7 @@ namespace Kore.SamplePlugins
         public long Block2Trailer;
     }
 
-    public class GfdCharacter : FontCharacter
+    public class GfdCharacter : FontCharacter, ICloneable
     {
         /// <summary>
         /// Trailing 8 bits in block2 that are unknown
@@ -152,5 +153,21 @@ namespace Kore.SamplePlugins
         /// </summary>
         [FormField(typeof(uint), "Block 3")]
         public uint Block3 { get; set; }
+
+        /// <summary>
+        /// Allows cloning of GfdCharcaters,
+        /// </summary>
+        /// <returns>A cloned GfdCharacter.</returns>
+        public override object Clone() => new GfdCharacter
+        {
+            Character = Character,
+            TextureID = TextureID,
+            GlyphX = GlyphX,
+            GlyphY = GlyphY,
+            GlyphWidth = GlyphWidth,
+            GlyphHeight = GlyphHeight,
+            Block2Trailer = Block2Trailer,
+            Block3 = Block3
+        };
     }
 }

@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"
+        xmlns:dialogViewModels="clr-namespace:Kuriimu2.DialogViewModels"
         mc:Ignorable="d"
         Title="{Binding Title}" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner">
-    <Grid Margin="10">
+    <Grid Name="Root" Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
@@ -31,7 +32,7 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <Label Grid.Column="0" Name="Question" Content="{Binding Value.Label, Mode=OneWay}" HorizontalContentAlignment="Right" />
-                            <TextBox Grid.Column="1" Name="Answer" MinWidth="200" Text="{Binding Value.Value, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Editable}" MaxLength="{Binding Value.MaxLength}" />
+                            <TextBox Grid.Column="1" Name="Answer" MinWidth="{Binding DataContext.TextBoxWidth, ElementName=Root}" Text="{Binding Value.Value, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Editable}" MaxLength="{Binding Value.MaxLength}" />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

@@ -18,6 +18,7 @@ namespace Kuriimu2.DialogViewModels
         public BitmapImage Icon { get; private set; }
         public string Message { get; set; } = "Character Attributes:";
         public string Error { get; set; } = string.Empty;
+        public int TextBoxWidth { get; set; } = 200;
 
         public DialogMode Mode
         {
@@ -45,7 +46,7 @@ namespace Kuriimu2.DialogViewModels
 
                 foreach (var prop in props)
                 {
-                    var ft = ((FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute)));
+                    var ft = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
                     var df = new DynaField
                     {
                         Label = (ft?.DisplayName ?? prop.Name) + " :",
@@ -57,7 +58,6 @@ namespace Kuriimu2.DialogViewModels
                 }
                 NotifyOfPropertyChange(() => Fields);
             }
-
         }
 
         public Func<ValidationResult> ValidationCallback;
@@ -75,7 +75,7 @@ namespace Kuriimu2.DialogViewModels
 
             foreach (var prop in props)
             {
-                var ft = ((FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute)));
+                var ft = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
                 var df = Fields[prop.Name];
 
                 prop.SetValue(_character, ft != null ? Convert.ChangeType(df.Value, ft.Type) : df.Value);
