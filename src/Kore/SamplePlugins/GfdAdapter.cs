@@ -81,11 +81,11 @@ namespace Kore.SamplePlugins
         public void Save(string filename)
         {
             _gfd.Save(File.Create(filename));
-            for (var i = 0; i < Textures.Count; i++)
-            {
-                var tex = Textures[i];
-                tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
-            }
+            //for (var i = 0; i < Textures.Count; i++)
+            //{
+            //    var tex = Textures[i];
+            //    tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
+            //}
         }
 
         public FontCharacter NewCharacter(FontCharacter selectedCharacter = null)
@@ -95,7 +95,9 @@ namespace Kore.SamplePlugins
             if (selectedCharacter is GfdCharacter gfd)
             {
                 newChar.Block2Trailer = gfd.Block2Trailer;
-                newChar.Block3 = gfd.Block3;
+                newChar.CharacterKerning = gfd.CharacterKerning;
+                newChar.CharacterUnknown = gfd.CharacterUnknown;
+                newChar.Block3Trailer = gfd.Block3Trailer;
             }
 
             return newChar;
@@ -105,6 +107,7 @@ namespace Kore.SamplePlugins
         {
             if (!(character is GfdCharacter gfdCharacter)) return false;
             _gfd.Characters.Add(gfdCharacter);
+            _gfd.Characters.Sort((l, r) => l.Character.CompareTo(r.Character));
             return true;
         }
 

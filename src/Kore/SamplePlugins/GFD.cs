@@ -49,7 +49,9 @@ namespace Kore.SamplePlugins
                     GlyphWidth = (int)ci.Block2.GlyphWidth,
                     GlyphHeight = (int)ci.Block2.GlyphHeight,
 
-                    Block3 = ci.Block3
+                    Block3Trailer = (int)ci.Block3.Block3Trailer,
+                    CharacterKerning = (int)ci.Block3.CharacterKerning,
+                    CharacterUnknown = (int)ci.Block3.CharacterHeight
                 }).ToList();
             }
         }
@@ -88,7 +90,12 @@ namespace Kore.SamplePlugins
                         Block2Trailer = c.Block2Trailer
                     },
 
-                    Block3 = c.Block3
+                    Block3 = new Block3
+                    {
+                        CharacterHeight = ((GfdCharacter)c).CharacterUnknown,
+                        CharacterKerning = ((GfdCharacter)c).CharacterKerning,
+                        Block3Trailer = ((GfdCharacter)c).Block3Trailer
+                    }
                 }));
             }
         }
@@ -115,7 +122,7 @@ namespace Kore.SamplePlugins
         public uint Block0;
         public Block1 Block1;
         public Block2 Block2;
-        public uint Block3;
+        public Block3 Block3;
     }
 
     [BitFieldInfo(BlockSize = 32)]
@@ -140,6 +147,17 @@ namespace Kore.SamplePlugins
         public long Block2Trailer;
     }
 
+    [BitFieldInfo(BlockSize = 32)]
+    public struct Block3
+    {
+        [BitField(8)]
+        public long Block3Trailer;
+        [BitField(12)]
+        public long CharacterHeight;
+        [BitField(12)]
+        public long CharacterKerning;
+    }
+
     public class GfdCharacter : FontCharacter, ICloneable
     {
         /// <summary>
@@ -149,10 +167,22 @@ namespace Kore.SamplePlugins
         public int Block2Trailer { get; set; }
 
         /// <summary>
-        /// Unknown character metadata.
+        /// Character kerning.
         /// </summary>
-        [FormField(typeof(uint), "Block 3")]
-        public uint Block3 { get; set; }
+        [FormField(typeof(int), "Kerning")]
+        public int CharacterKerning { get; set; }
+
+        /// <summary>
+        /// Character unknown.
+        /// </summary>
+        [FormField(typeof(int), "Unknown")]
+        public int CharacterUnknown { get; set; }
+
+        /// <summary>
+        /// Trailing 8 bits in block3 that are unknown
+        /// </summary>
+        [FormField(typeof(int), "Block 3 Trailer")]
+        public int Block3Trailer { get; set; }
 
         /// <summary>
         /// Allows cloning of GfdCharcaters,
@@ -167,7 +197,9 @@ namespace Kore.SamplePlugins
             GlyphWidth = GlyphWidth,
             GlyphHeight = GlyphHeight,
             Block2Trailer = Block2Trailer,
-            Block3 = Block3
+            CharacterKerning = CharacterKerning,
+            CharacterUnknown = CharacterUnknown,
+            Block3Trailer = Block3Trailer
         };
     }
 }

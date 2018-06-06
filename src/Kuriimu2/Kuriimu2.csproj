@@ -26,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -85,7 +86,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="DialogViewModels\FontEditorEditCharacterViewModel.cs" />
+    <Compile Include="DialogViewModels\PropertyEditorViewModel.cs" />
     <Compile Include="Interfaces\IEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -96,7 +97,7 @@
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
-    <Page Include="DialogViews\FontEditorEditCharacterView.xaml">
+    <Page Include="DialogViews\PropertyEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

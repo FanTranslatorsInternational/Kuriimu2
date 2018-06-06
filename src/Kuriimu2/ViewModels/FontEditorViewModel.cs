@@ -11,6 +11,7 @@ using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.DialogViewModels;
 using Kuriimu2.Interface;
+using MoreLinq;
 
 namespace Kuriimu2.ViewModels
 {
@@ -83,7 +84,9 @@ namespace Kuriimu2.ViewModels
             get => SelectedCharacter.GlyphWidth;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphWidth != value;
                 SelectedCharacter.GlyphWidth = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
             }
         }
@@ -93,7 +96,9 @@ namespace Kuriimu2.ViewModels
             get => SelectedCharacter.GlyphHeight;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphHeight != value;
                 SelectedCharacter.GlyphHeight = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
             }
         }
@@ -122,14 +127,19 @@ namespace Kuriimu2.ViewModels
         {
             if (!(_adapter is IAddCharacters add)) return;
 
+            var last = Characters.OrderByDescending(c => c.GlyphY).ThenByDescending(c => c.GlyphX).FirstOrDefault();
+
             var character = add.NewCharacter(SelectedCharacter);
             character.Character = SelectedCharacter.Character;
-            character.GlyphX = Characters.Last().GlyphX + Characters.Last().GlyphWidth;
-            character.GlyphY = Characters.Last().GlyphY;
+            if (last != null)
+            {
+                character.GlyphX = last.GlyphX + last.GlyphWidth;
+                character.GlyphY = last.GlyphY;
+            }
             character.GlyphWidth = SelectedCharacter.GlyphWidth;
             character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            var feac = new FontEditorEditCharacterViewModel
+            var feac = new PropertyEditorViewModel
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
@@ -145,9 +155,11 @@ namespace Kuriimu2.ViewModels
             IWindowManager wm = new WindowManager();
             if (wm.ShowDialog(feac) == true && add.AddCharacter(character))
             {
+                KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
                 Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
-                SelectedCharacter = Characters.Last();
+                SelectedCharacter = character;
             }
         }
 
@@ -157,7 +169,7 @@ namespace Kuriimu2.ViewModels
 
             var clonedCharacter = (FontCharacter)character.Clone();
             
-            var feac = new FontEditorEditCharacterViewModel
+            var feac = new PropertyEditorViewModel
             {
                 Title = "Edit Character",
                 Message = "Edit character attributes:",
@@ -172,6 +184,8 @@ namespace Kuriimu2.ViewModels
             IWindowManager wm = new WindowManager();
             if (wm.ShowDialog(feac) == true)
             {
+                KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
                 clonedCharacter.CopyProperties(character);
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);

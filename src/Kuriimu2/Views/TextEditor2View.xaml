@@ -6,7 +6,7 @@
              xmlns:cal="http://www.caliburnproject.org"
              mc:Ignorable="d"
              d:DesignHeight="400" d:DesignWidth="600">
-    <DockPanel Background="White">
+    <DockPanel Name="Root" Background="White">
 
         <!-- Main Grid -->
         <Grid>
@@ -61,7 +61,7 @@
                 <ToolBarPanel DockPanel.Dock="Top">
                     <ToolBar ToolBarTray.IsLocked="True">
                         <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
-                        <Button Name="AddEntry" DockPanel.Dock="Top">
+                        <Button Name="AddEntry">
                             <StackPanel Orientation="Horizontal">
                                 <Image Source="pack://application:,,,/Kuriimu;component/Images/menu-add.png" />
                             </StackPanel>
@@ -69,6 +69,9 @@
                     </ToolBar>
                 </ToolBarPanel>
                 <DataGrid ItemsSource="{Binding Entries}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">
+                    <DataGrid.Resources>
+                        <!--<local:BindingProxy x:Key="Proxy" Data="{Binding}" />-->
+                    </DataGrid.Resources>
                     <DataGrid.RowBackground>White</DataGrid.RowBackground>
                     <DataGrid.AlternatingRowBackground>#F0F0F0</DataGrid.AlternatingRowBackground>
                     <DataGrid.HorizontalGridLinesBrush>#E0E0E0</DataGrid.HorizontalGridLinesBrush>
@@ -88,7 +91,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Entry" Binding="{Binding Name}" Width="1*" IsReadOnly="True" />
                         <DataGridTextColumn Header="Text" Binding="{Binding EditedText}" Width="3*" />
-                        <DataGridTextColumn Header="Original" Binding="{Binding OriginalText}" Width="3*" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Original" Binding="{Binding OriginalText}" Width="3*" IsReadOnly="{Binding OriginalTextReadOnly, ElementName=Root}" />
                         <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="3*" />
                     </DataGrid.Columns>
                 </DataGrid>

@@ -9,7 +9,7 @@ using Kontract.Interfaces;
 
 namespace Kuriimu2.DialogViewModels
 {
-    public sealed class FontEditorEditCharacterViewModel : Screen
+    public sealed class PropertyEditorViewModel : Screen
     {
         private FontCharacter _character;
         private DialogMode _mode  = DialogMode.Edit;
@@ -64,7 +64,7 @@ namespace Kuriimu2.DialogViewModels
 
         public Dictionary<string, DynaField> Fields { get; private set; }
 
-        public FontEditorEditCharacterViewModel()
+        public PropertyEditorViewModel()
         {
             Mode = DialogMode.Edit;
         }
