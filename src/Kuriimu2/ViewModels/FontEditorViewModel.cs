@@ -11,7 +11,6 @@ using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.DialogViewModels;
 using Kuriimu2.Interface;
-using MoreLinq;
 
 namespace Kuriimu2.ViewModels
 {
