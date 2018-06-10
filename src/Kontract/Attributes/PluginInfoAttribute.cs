@@ -8,7 +8,7 @@ namespace Kontract.Attributes
     /// </summary>
     public class PluginInfoAttribute : Attribute
     {
-        // TODO: Determine how to handle plugin selection while using MEF and when two plugins have the same ID.
+        // TODO: Determine how to handle plugin selection when two plugins have the same ID.
         /// <summary>
         /// This is the unique GUID of the plugin.
         /// "82FAE4B0-9734-4802-A3C6-1594EE8C6EEA"
@@ -35,6 +35,12 @@ namespace Kontract.Attributes
         public string Author { get; }
 
         /// <summary>
+        /// The plugin website.
+        /// "https://github.com/FanTranslatorsInternational/Kuriimu2"
+        /// </summary>
+        public string WebSite { get; }
+
+        /// <summary>
         /// This is the long form description of the plugin.
         /// "This is the KUP text adapter for Kuriimu."
         /// </summary>
@@ -48,13 +54,15 @@ namespace Kontract.Attributes
         /// <param name="name">The plugin name.</param>
         /// <param name="shortName">The plugin short name.</param>
         /// <param name="author">The plugin author(s).</param>
+        /// <param name="webSite">The plugin website.</param>
         /// <param name="about">The plugin description.</param>
-        public PluginInfoAttribute(string id, string name = "", string shortName = "", string author = "", string about = "")
+        public PluginInfoAttribute(string id, string name = "", string shortName = "", string author = "", string webSite = "", string about = "")
         {
             ID = id;
             Name = name;
             ShortName = shortName;
             Author = author;
+            WebSite = webSite;
             About = about;
         }
     }

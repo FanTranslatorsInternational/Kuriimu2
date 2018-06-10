@@ -22,6 +22,7 @@ namespace Kuriimu2.ViewModels
             DisplayName = "Kuriimu2";
             _kore = new Kore.Kore();
 
+            // Load passed-in file
             if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))
                 LoadFile(AppBootstrapper.Args[0]);
         }
@@ -54,7 +55,7 @@ namespace Kuriimu2.ViewModels
             }
             else
             {
-                
+
             }
         }
 

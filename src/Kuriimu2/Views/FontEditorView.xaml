@@ -11,7 +11,7 @@
         <!-- Main Grid -->
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="294" />
             </Grid.ColumnDefinitions>
@@ -79,8 +79,10 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"></RowDefinition>
                             <RowDefinition Height="Auto"></RowDefinition>
                             <RowDefinition Height="Auto"></RowDefinition>
                             <RowDefinition Height="Auto"></RowDefinition>
@@ -92,10 +94,17 @@
                         <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Width:</Label>
                         <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Height:</Label>
 
-                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <Button Name="GenerateFromCurrentSet" Grid.Column="1" Grid.Row="4" Margin="0, 0, 5, 0" IsEnabled="{Binding AddEnabled}">
+                            <TextBlock TextAlignment="Center">Generate From<LineBreak />Current Set</TextBlock>
+                        </Button>
+                        <Button Name="GenerateFromNewSet" Grid.Column="2" Grid.Row="4" Margin="5, 0, 0, 0" IsEnabled="False">
+                            <TextBlock TextAlignment="Center">Generate From<LineBreak />New Set</TextBlock>
+                        </Button>
                     </Grid>
                 </StackPanel>
             </Grid>

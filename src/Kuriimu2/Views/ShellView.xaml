@@ -7,20 +7,31 @@
         mc:Ignorable="d"
         d:DesignHeight="510" d:DesignWidth="680"
         Background="#F0F0F0">
-    <DockPanel>
+    <DockPanel Name="Root">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_Open" Name="OpenMenu" IsEnabled="False" InputGestureText="Ctrl+O">
+                <MenuItem Header="_Open" Name="OpenMenu" cal:Message.Attach="[Event Click] = [Action OpenButton]">
                     <MenuItem.Icon>
                         <Image Source="pack://application:,,,/Images/menu-open.png" />
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
+            <!--<MenuItem Header="_Tools">
+                <MenuItem Header="_Generators">
+                    <MenuItem.Items>
+                        <MenuItem Header="_Font (GFD)">
+                            <MenuItem.Icon>
+                                <Image Source="pack://application:,,,/Images/menu-new.png" />
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem.Items>
+                </MenuItem>
+            </MenuItem>-->
         </Menu>
 
         <ToolBarTray DockPanel.Dock="Top" Background="Transparent">
             <ToolBar ToolBarTray.IsLocked="True">
-                <Button Name="NewButton" IsEnabled="False">
+                <Button Name="NewButton">
                     <StackPanel>
                         <Image Source="pack://application:,,,/Images/menu-new.png" />
                     </StackPanel>

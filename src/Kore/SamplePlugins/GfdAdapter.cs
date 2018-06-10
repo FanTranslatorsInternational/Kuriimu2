@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -15,7 +15,7 @@ namespace Kore.SamplePlugins
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font", "GFD", "IcySon55", "This is the GFD font adapter for Kuriimu.")]
+    [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font", "GFD", "IcySon55", "", "This is the GFD font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
     public sealed class GfdAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddCharacters, IDeleteCharacters
     {
@@ -23,9 +23,13 @@ namespace Kore.SamplePlugins
 
         #region Properties
 
-        public IEnumerable<FontCharacter> Characters => _gfd?.Characters;
+        public IEnumerable<FontCharacter> Characters
+        {
+            get => _gfd?.Characters;
+            set => _gfd.Characters = value.Select(fc => (GfdCharacter)fc).ToList();
+        }
 
-        public List<Bitmap> Textures { get; private set; }
+        public List<Bitmap> Textures { get; set; }
 
         public float BaseLine
         {
@@ -113,7 +117,9 @@ namespace Kore.SamplePlugins
 
         public bool DeleteCharacter(FontCharacter character)
         {
-            throw new NotImplementedException();
+            if (!(character is GfdCharacter gfdCharacter)) return false;
+            _gfd.Characters.Remove(gfdCharacter);
+            return true;
         }
     }
 }
