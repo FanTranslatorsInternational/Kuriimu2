@@ -4,19 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Komponent.Tools;
 using Kontract.Interfaces;
 using Kore;
-using Kuriimu2.DialogViewModels;
+using Kuriimu2.Dialog.Common;
+using Kuriimu2.Dialog.ViewModels;
 using Kuriimu2.Interface;
 using Kuriimu2.Tools;
 using FontFamily = System.Windows.Media.FontFamily;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class FontEditorViewModel : Screen, IEditor
+    public sealed class FontEditorViewModel : Screen, IFileEditor
     {
         private IWindowManager wm = new WindowManager();
         private IFontAdapter _adapter;
@@ -165,12 +165,12 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public void Edit(FontCharacter character)
+        public void EditCharacter()
         {
             if (!(_adapter is IFontAdapter fnt)) return;
 
             // Clone the selected character so that changes don't propagate to the plugin
-            var clonedCharacter = (FontCharacter)character.Clone();
+            var clonedCharacter = (FontCharacter)SelectedCharacter.Clone();
 
             var pe = new PropertyEditorViewModel
             {
@@ -179,7 +179,7 @@ namespace Kuriimu2.ViewModels
                 Character = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
-                    CanClose = clonedCharacter.Character == character.Character,
+                    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
                     ErrorMessage = $"You cannot change the character while editing."
                 }
             };
@@ -188,7 +188,7 @@ namespace Kuriimu2.ViewModels
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
-                clonedCharacter.CopyProperties(character);
+                clonedCharacter.CopyProperties(SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphY);

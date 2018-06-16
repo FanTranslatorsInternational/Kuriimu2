@@ -108,8 +108,8 @@ namespace Kore.Generators
                     var fc = add.NewCharacter();
                     fc.Character = character;
                     fc.TextureID = 0;
-                    fc.GlyphX = (int)rect.X; // This doesn't appear to work as expected
-                    fc.GlyphY = (int)rect.Y; // This doesn't appear to work as expected
+                    fc.GlyphX = (int)current.X; // This doesn't appear to work as expected
+                    fc.GlyphY = (int)current.Y; // This doesn't appear to work as expected
                     fc.GlyphWidth = (int)rect.Width;
                     fc.GlyphHeight = (int)rect.Height;
                     add.AddCharacter(fc);

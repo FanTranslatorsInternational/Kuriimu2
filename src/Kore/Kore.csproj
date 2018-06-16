@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enumerations.cs" />
-    <Compile Include="Generators\FontGlyphGenerator.cs" />
+    <Compile Include="Generators\BitmapFontGenerator.cs" />
     <Compile Include="Kore.cs" />
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

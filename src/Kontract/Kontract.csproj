@@ -45,6 +45,7 @@
     <Compile Include="Attributes\FormFieldAttribute.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Interfaces\IIdentifyFiles.cs" />
+    <Compile Include="Interfaces\ICreateFiles.cs" />
     <Compile Include="Interfaces\ILoadFiles.cs" />
     <Compile Include="Interfaces\ISaveFiles.cs" />
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />

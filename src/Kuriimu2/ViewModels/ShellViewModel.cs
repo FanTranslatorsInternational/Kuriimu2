@@ -35,6 +35,8 @@ namespace Kuriimu2.ViewModels
             LoadFile(ofd.FileName);
         }
 
+        public bool SaveButtonsEnabled() => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
+
         public void SaveButton()
         {
             SaveFile();
@@ -44,7 +46,7 @@ namespace Kuriimu2.ViewModels
         {
             var filter = "Any File (*.*)|*.*";
 
-            if (ActiveItem is IEditor editor)
+            if (ActiveItem is IFileEditor editor)
             {
                 filter = editor.KoreFile.Filter;
 
@@ -59,28 +61,29 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public bool SaveButtonsEnabled() => (ActiveItem as IEditor)?.KoreFile.Adapter is ISaveFiles;
-
         public void DebugButton()
         {
             _kore.Debug();
         }
 
-        public void CloseTab(Screen tab)
+        public void CloseTab(IScreen tab)
         {
             tab.TryClose();
-            switch (ActiveItem)
+            switch (tab)
             {
-                case TextEditor2ViewModel txt2:
-                    _kore.CloseFile(txt2.KoreFile);
-                    break;
-                case FontEditorViewModel fnt:
-                    _kore.CloseFile(fnt.KoreFile);
+                case IFileEditor editor:
+                    _kore.CloseFile(editor.KoreFile);
                     break;
             }
         }
 
-        #region Methods
+        public void CloseAllTabs()
+        {
+            for (var i = Items.Count - 1; i >= 0; i--)
+                CloseTab(Items[i]);
+        }
+
+        #region Private Methods
 
         private void LoadFile(string filename)
         {
@@ -112,7 +115,7 @@ namespace Kuriimu2.ViewModels
 
         private void SaveFile(string filename = "")
         {
-            (ActiveItem as IEditor)?.Save(filename);
+            (ActiveItem as IFileEditor)?.Save(filename);
         }
 
         #endregion

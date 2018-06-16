@@ -14,8 +14,17 @@ namespace Kore.SamplePlugins
         public List<float> HeaderF;
         public string Name;
         public List<GfdCharacter> Characters;
+
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
         public BitOrder BitOrder = BitOrder.MSBFirst;
+
+        public GFD()
+        {
+            Header = new Header();
+            HeaderF = new List<float>();
+            Name = string.Empty;
+            Characters = new List<GfdCharacter>();
+        }
 
         public GFD(Stream input)
         {
@@ -39,7 +48,7 @@ namespace Kore.SamplePlugins
                 // Characters
                 Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount).Select(ci => new GfdCharacter
                 {
-                    Character = ci.Block0,
+                    Character = ci.Character,
 
                     TextureID = (int)ci.Block1.TextureIndex,
                     GlyphX = (int)ci.Block1.GlyphX,
@@ -51,7 +60,7 @@ namespace Kore.SamplePlugins
 
                     Block3Trailer = (int)ci.Block3.Block3Trailer,
                     CharacterKerning = (int)ci.Block3.CharacterKerning,
-                    CharacterUnknown = (int)ci.Block3.CharacterHeight
+                    CharacterUnknown = (int)ci.Block3.CharacterUnknown
                 }).ToList();
             }
         }
@@ -72,29 +81,29 @@ namespace Kore.SamplePlugins
                 bw.Write((byte)0);
 
                 // Characters
-                bw.WriteMultiple(Characters.Select(c => new CharacterInfo
+                bw.WriteMultiple(Characters.Select(ci => new CharacterInfo
                 {
-                    Block0 = c.Character,
+                    Character = ci.Character,
 
                     Block1 = new Block1
                     {
-                        GlyphY = c.GlyphY,
-                        GlyphX = c.GlyphX,
-                        TextureIndex = c.TextureID
+                        GlyphY = ci.GlyphY,
+                        GlyphX = ci.GlyphX,
+                        TextureIndex = ci.TextureID
                     },
 
                     Block2 = new Block2
                     {
-                        GlyphHeight = c.GlyphHeight,
-                        GlyphWidth = c.GlyphWidth,
-                        Block2Trailer = c.Block2Trailer
+                        GlyphHeight = ci.GlyphHeight,
+                        GlyphWidth = ci.GlyphWidth,
+                        Block2Trailer = ci.Block2Trailer
                     },
 
                     Block3 = new Block3
                     {
-                        CharacterHeight = ((GfdCharacter)c).CharacterUnknown,
-                        CharacterKerning = ((GfdCharacter)c).CharacterKerning,
-                        Block3Trailer = ((GfdCharacter)c).Block3Trailer
+                        CharacterUnknown = ((GfdCharacter)ci).CharacterUnknown,
+                        CharacterKerning = ((GfdCharacter)ci).CharacterKerning,
+                        Block3Trailer = ((GfdCharacter)ci).Block3Trailer
                     }
                 }));
             }
@@ -106,20 +115,44 @@ namespace Kore.SamplePlugins
         [FieldLength(4)]
         public string Magic;
         public uint Version;
-        public int Unk0;
-        public int Unk1;
-        public int Unk2;
+
+        /// <summary>
+        /// IsDynamic, InsertSpace, EvenLayout
+        /// </summary>
+        public int HeaderBlock1;
+
+        /// <summary>
+        /// This is texture suffix id (as in NOMIP, etc.)
+        /// 0x0 and anything greater than 0x6 means no suffix
+        /// </summary>
+        public int Suffix;
+
+        public int FontType;
         public int FontSize;
         public int FontTexCount;
         public int CharacterCount;
         public int FCount;
+
+        /// <summary>
+        /// Internally called MaxAscent
+        /// </summary>
         public float BaseLine;
+
+        /// <summary>
+        /// Internally called MaxDescent
+        /// </summary>
         public float DescentLine;
+    }
+
+    public enum Version : uint
+    {
+        _3DS = 0x10A05, // 68101
+        _PS3 = 0x10B05, // 68357
     }
 
     public class CharacterInfo
     {
-        public uint Block0;
+        public uint Character;
         public Block1 Block1;
         public Block2 Block2;
         public Block3 Block3;
@@ -153,12 +186,12 @@ namespace Kore.SamplePlugins
         [BitField(8)]
         public long Block3Trailer;
         [BitField(12)]
-        public long CharacterHeight;
+        public long CharacterUnknown;
         [BitField(12)]
         public long CharacterKerning;
     }
 
-    public class GfdCharacter : FontCharacter, ICloneable
+    public class GfdCharacter : FontCharacter
     {
         /// <summary>
         /// Trailing 8 bits in block2 that are unknown

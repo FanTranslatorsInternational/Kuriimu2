@@ -8,7 +8,7 @@ using Kuriimu2.Interface;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor2ViewModel : Screen, IEditor
+    public sealed class TextEditor2ViewModel : Screen, IFileEditor
     {
         private ITextAdapter _adapter;
 

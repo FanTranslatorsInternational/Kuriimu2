@@ -50,6 +50,11 @@
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
                                     </StackPanel>
                                 </Button>
+                                <Button Name="EditCharacter" IsEnabled="{Binding EditEnabled}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-edit.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
                                 <Button Name="DeleteCharacter" IsEnabled="{Binding DeleteEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
@@ -67,7 +72,7 @@
                         </ListBox.ItemsPanel>
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Label Content="{Binding}" HorizontalContentAlignment="Center" Width="32" Height="32" FontSize="16px" cal:Message.Attach="[Event MouseDoubleClick] = [Action Edit($dataContext)]"></Label>
+                                <Label Content="{Binding}" HorizontalContentAlignment="Center" Width="32" Height="32" FontSize="16px" cal:Message.Attach="[Event MouseDoubleClick] = [Action EditCharacter]"></Label>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

@@ -86,8 +86,11 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="DialogViewModels\PropertyEditorViewModel.cs" />
-    <Compile Include="Interfaces\IEditor.cs" />
+    <Compile Include="Dialog\Common\Enumerations.cs" />
+    <Compile Include="Dialog\ViewModels\NewFileViewModel.cs" />
+    <Compile Include="Dialog\ViewModels\PropertyEditorViewModel.cs" />
+    <Compile Include="Dialog\Common\Common.cs" />
+    <Compile Include="Interfaces\IFileEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -98,7 +101,11 @@
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
-    <Page Include="DialogViews\PropertyEditorView.xaml">
+    <Page Include="Dialog\Views\NewFileView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\Views\PropertyEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

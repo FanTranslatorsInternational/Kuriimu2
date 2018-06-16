@@ -66,6 +66,12 @@ namespace Kore.SamplePlugins
             return result;
         }
 
+        public void Create()
+        {
+            _gfd = new GFD();
+            Textures = new List<Bitmap>();
+        }
+
         public void Load(string filename)
         {
             if (File.Exists(filename))
@@ -120,6 +126,12 @@ namespace Kore.SamplePlugins
             if (!(character is GfdCharacter gfdCharacter)) return false;
             _gfd.Characters.Remove(gfdCharacter);
             return true;
+        }
+
+        public void Dispose()
+        {
+            foreach (var tex in Textures)
+                tex.Dispose();
         }
     }
 }
