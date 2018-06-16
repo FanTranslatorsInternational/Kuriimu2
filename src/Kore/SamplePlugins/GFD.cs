@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
@@ -101,9 +100,9 @@ namespace Kore.SamplePlugins
 
                     Block3 = new Block3
                     {
-                        CharacterUnknown = ((GfdCharacter)ci).CharacterUnknown,
-                        CharacterKerning = ((GfdCharacter)ci).CharacterKerning,
-                        Block3Trailer = ((GfdCharacter)ci).Block3Trailer
+                        CharacterUnknown = ci.CharacterUnknown,
+                        CharacterKerning = ci.CharacterKerning,
+                        Block3Trailer = ci.Block3Trailer
                     }
                 }));
             }
