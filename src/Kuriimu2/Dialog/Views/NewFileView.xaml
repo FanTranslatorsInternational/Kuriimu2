@@ -36,7 +36,7 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            
+
             <Label Content="{Binding Error}" />
         </StackPanel>
 

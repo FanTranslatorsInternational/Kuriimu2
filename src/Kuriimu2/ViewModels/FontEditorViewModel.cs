@@ -247,34 +247,27 @@ namespace Kuriimu2.ViewModels
 
         public void GenerateFromCurrentSet()
         {
-            // TODO: Generation data needs to be user configurable
-            //var fontGen = new Kore.Generators.BitmapFontGeneratorWpf
-            //{
-            //    Adapter = _adapter,
             //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-            //    FontSize = 32,
-            //    GlyphHeight = 30,
-            //    GlyphPadding = 1,
-            //    MaxCanvasWidth = 512
-            //};
 
-            var fontGen = new Kore.Generators.BitmapFontGeneratorGdi
+            var fg = new BitmapFontGeneratorViewModel
             {
                 Adapter = _adapter,
-                Font = new Font(new System.Drawing.FontFamily("Arial"), 30),
-                GlyphHeight = 48,
-                GlyphLeftPadding = 2,
-                GlyphRightPadding = 0,
-                MaxCanvasWidth = 1024
+                Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
+                GenerationCompleteCallback = () =>
+                {
+                    Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                    SelectedCharacter = Characters.FirstOrDefault();
+                    NotifyOfPropertyChange(() => Characters);
+                }
+
+                //ValidationCallback = () => new ValidationResult
+                //{
+                //    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
+                //    ErrorMessage = $"You cannot change the character while editing."
+                //}
             };
 
-            var chars = Characters.Select(c => (ushort) c.Character).ToList();
-            chars.Sort();
-            fontGen.Generate(chars);
-
-            Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
-            SelectedCharacter = Characters.FirstOrDefault();
-            NotifyOfPropertyChange(() => Characters);
+            wm.ShowWindow(fg);
         }
 
         #endregion
