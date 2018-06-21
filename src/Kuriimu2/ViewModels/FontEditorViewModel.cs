@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -12,7 +14,6 @@ using Kuriimu2.Dialog.Common;
 using Kuriimu2.Dialog.ViewModels;
 using Kuriimu2.Interface;
 using Kuriimu2.Tools;
-using FontFamily = System.Windows.Media.FontFamily;
 
 namespace Kuriimu2.ViewModels
 {
@@ -59,7 +60,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphX
         {
-            get => SelectedCharacter.GlyphX;
+            get => SelectedCharacter?.GlyphX ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphX != value;
@@ -71,7 +72,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphY
         {
-            get => SelectedCharacter.GlyphY;
+            get => SelectedCharacter?.GlyphY ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphY != value;
@@ -83,7 +84,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphWidth
         {
-            get => SelectedCharacter.GlyphWidth;
+            get => SelectedCharacter?.GlyphWidth ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphWidth != value;
@@ -95,7 +96,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphHeight
         {
-            get => SelectedCharacter.GlyphHeight;
+            get => SelectedCharacter?.GlyphHeight ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphHeight != value;
@@ -117,7 +118,7 @@ namespace Kuriimu2.ViewModels
 
         public int ImageBorderThickness => 1;
 
-        public Thickness CursorMargin => new Thickness(SelectedCharacter.GlyphX + ImageBorderThickness, SelectedCharacter.GlyphY + ImageBorderThickness, 0, 0);
+        public Thickness CursorMargin => new Thickness((SelectedCharacter?.GlyphX ?? 0) + ImageBorderThickness, (SelectedCharacter?.GlyphY ?? 0) + ImageBorderThickness, 0, 0);
 
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
 
@@ -165,6 +166,8 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public bool EditEnabled => SelectedCharacter != null;
+
         public void EditCharacter()
         {
             if (!(_adapter is IFontAdapter fnt)) return;
@@ -198,7 +201,7 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public bool DeleteEnabled => _adapter is IDeleteCharacters;
+        public bool DeleteEnabled => _adapter is IDeleteCharacters && SelectedCharacter != null;
 
         public void DeleteCharacter()
         {
@@ -219,26 +222,57 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public void ExportTextures()
+        {
+            try
+            {
+                var dir = KoreFile.FileInfo.Directory.FullName;
+                var name = Path.GetFileNameWithoutExtension(KoreFile.FileInfo.Name);
+
+                for (var index = 0; index < _adapter.Textures.Count; index++)
+                {
+                    var texture = _adapter.Textures[index];
+                    texture.Save(Path.Combine(dir, name + $"_{index:00}.png"), ImageFormat.Png);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                MessageBox.Show("Textures exported successfully!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         public void GenerateFromCurrentSet()
         {
             // TODO: Generation data needs to be user configurable
-            var fontGen = new Kore.Generators.BitmapFontGenerator
+            //var fontGen = new Kore.Generators.BitmapFontGeneratorWpf
+            //{
+            //    Adapter = _adapter,
+            //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+            //    FontSize = 32,
+            //    GlyphHeight = 30,
+            //    GlyphPadding = 1,
+            //    MaxCanvasWidth = 512
+            //};
+
+            var fontGen = new Kore.Generators.BitmapFontGeneratorGdi
             {
                 Adapter = _adapter,
-                Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-                FontSize = 32,
-                GlyphHeight = 30,
-                GlyphPadding = 1,
-                MaxCanvasWidth = 512
+                Font = new Font(new System.Drawing.FontFamily("Arial"), 30),
+                GlyphHeight = 48,
+                GlyphLeftPadding = 2,
+                GlyphRightPadding = 0,
+                MaxCanvasWidth = 1024
             };
 
             var chars = Characters.Select(c => (ushort) c.Character).ToList();
             chars.Sort();
             fontGen.Generate(chars);
 
-            // Temporary image assignment
-            _adapter.Textures = fontGen.Textures.Select(t => t.ToBitmap()).ToList();
-            Characters = new ObservableCollection<FontCharacter>(fontGen.Characters);
+            Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
             SelectedCharacter = Characters.FirstOrDefault();
             NotifyOfPropertyChange(() => Characters);
         }

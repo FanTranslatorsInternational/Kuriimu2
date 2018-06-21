@@ -7,7 +7,7 @@ using Kontract.Interfaces;
 
 namespace Kore.Generators
 {
-    public class BitmapFontGenerator
+    public class BitmapFontGeneratorWpf
     {
         // Input
         public int GlyphHeight { get; set; } = 50;
@@ -25,12 +25,12 @@ namespace Kore.Generators
         public IEnumerable<DrawingImage> Textures { get; private set; } = null;
         public IEnumerable<FontCharacter> Characters { get; private set; } = null;
 
-        public BitmapFontGenerator()
+        public BitmapFontGeneratorWpf()
         {
 
         }
 
-        public BitmapFontGenerator(int maxCanvasWidth, int maxCanvasHeight)
+        public BitmapFontGeneratorWpf(int maxCanvasWidth, int maxCanvasHeight)
         {
             MaxCanvasWidth = maxCanvasWidth;
             MaxCanvasHeight = maxCanvasHeight;

@@ -60,6 +60,11 @@
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
                                     </StackPanel>
                                 </Button>
+                                <Button Name="ExportTextures" IsEnabled="{Binding TextureExportEnabled}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-export-image.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
                             </ToolBar>
                         </ToolBarPanel>
                         <Label Grid.Column="1" Content="{Binding CharacterCount}"/>
