@@ -90,6 +90,7 @@ namespace Kore.SamplePlugins
 
         public void Save(string filename)
         {
+            _gfd.Header.FontTexCount = Textures.Count;
             _gfd.Save(File.Create(filename));
             //for (var i = 0; i < Textures.Count; i++)
             //{
@@ -117,6 +118,22 @@ namespace Kore.SamplePlugins
         {
             if (!(character is GfdCharacter gfdCharacter)) return false;
             _gfd.Characters.Add(gfdCharacter);
+
+            // Set GFD Kerning for new characters
+            if (gfdCharacter.CharacterKerning == 0)
+                gfdCharacter.CharacterKerning = gfdCharacter.GlyphWidth;
+
+            // Set GFD Unknown for space characters
+            switch (character.Character)
+            {
+                case 'Ø':
+                case '¬':
+                case 'þ':
+                case ' ':
+                    gfdCharacter.CharacterUnknown = 32;
+                    break;
+            }
+
             _gfd.Characters.Sort((l, r) => l.Character.CompareTo(r.Character));
             return true;
         }
