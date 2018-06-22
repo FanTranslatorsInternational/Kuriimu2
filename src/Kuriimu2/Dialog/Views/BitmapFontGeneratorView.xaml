@@ -96,7 +96,7 @@
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
                     <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="100" />
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="100" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
                 <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding PaddingLeft, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" />

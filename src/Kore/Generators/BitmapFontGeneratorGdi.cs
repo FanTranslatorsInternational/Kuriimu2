@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Kontract.Interfaces;
 
 namespace Kore.Generators
@@ -71,7 +72,7 @@ namespace Kore.Generators
                 var cstr = c.ToString();
 
                 // Get character bounds
-                var size = cstr == " " ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault) : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic);
+                var size = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault) : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic);
                 size.Width = (float)Math.Ceiling(size.Width);
                 size.Height = GlyphHeight;
 
@@ -79,7 +80,7 @@ namespace Kore.Generators
                 var glyphX = cursor.X;
 
                 var cat = char.GetUnicodeCategory(c);
-                if (cat == UnicodeCategory.OtherLetter)
+                if (cat == UnicodeCategory.OtherLetter || c == '　')
                     draw.Width = draw.Height;
                 else
                     draw.Width += GlyphLeftPadding + GlyphRightPadding;
