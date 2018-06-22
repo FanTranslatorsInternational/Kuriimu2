@@ -65,7 +65,7 @@ namespace Kore.SamplePlugins
                 _kup = KUP.Load(filename);
         }
 
-        public void Save(string filename)
+        public void Save(string filename, int versionIndex = 0)
         {
             _kup.Save(filename);
         }

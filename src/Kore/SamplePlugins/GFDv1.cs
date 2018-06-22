@@ -7,25 +7,25 @@ using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {
-    public class GFD
+    public class GFDv1 : IFormatConverter<GFDv1, GFDv2>
     {
-        public Header Header;
+        public FileHeader Header;
         public List<float> HeaderF;
         public string Name;
-        public List<GfdCharacter> Characters;
+        public List<GFDv1Character> Characters;
 
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
         public BitOrder BitOrder = BitOrder.MSBFirst;
 
-        public GFD()
+        public GFDv1()
         {
-            Header = new Header();
+            Header = new FileHeader();
             HeaderF = new List<float>();
             Name = string.Empty;
-            Characters = new List<GfdCharacter>();
+            Characters = new List<GFDv1Character>();
         }
 
-        public GFD(Stream input)
+        public GFDv1(Stream input)
         {
             using (var br = new BinaryReaderX(input))
             {
@@ -37,7 +37,7 @@ namespace Kore.SamplePlugins
                 }
 
                 // Header
-                Header = br.ReadStruct<Header>();
+                Header = br.ReadStruct<FileHeader>();
                 HeaderF = br.ReadMultiple<float>(Header.FCount);
 
                 // Name
@@ -45,21 +45,21 @@ namespace Kore.SamplePlugins
                 Name = br.ReadCStringASCII();
 
                 // Characters
-                Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount).Select(ci => new GfdCharacter
+                Characters = br.ReadMultiple<CharacterInfo>(Header.CharacterCount).Select(ci => new GFDv1Character
                 {
                     Character = ci.Character,
 
-                    TextureID = (int)ci.Block1.TextureIndex,
                     GlyphX = (int)ci.Block1.GlyphX,
                     GlyphY = (int)ci.Block1.GlyphY,
+                    TextureID = (int)ci.Block1.TextureIndex,
 
-                    Block2Trailer = (int)ci.Block2.Block2Trailer,
-                    GlyphWidth = (int)ci.Block2.GlyphWidth,
                     GlyphHeight = (int)ci.Block2.GlyphHeight,
+                    GlyphWidth = (int)ci.Block2.GlyphWidth,
+                    Block2Trailer = (int)ci.Block2.Block2Trailer,
 
                     Block3Trailer = (int)ci.Block3.Block3Trailer,
-                    CharacterKerning = (int)ci.Block3.CharacterKerning,
-                    CharacterUnknown = (int)ci.Block3.CharacterUnknown
+                    CharacterUnknown = (int)ci.Block3.CharacterUnknown,
+                    CharacterKerning = (int)ci.Block3.CharacterKerning
                 }).ToList();
             }
         }
@@ -69,6 +69,7 @@ namespace Kore.SamplePlugins
             using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
             {
                 // Header
+                Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD" : "\0DFG";
                 Header.CharacterCount = Characters.Count;
                 bw.WriteStruct(Header);
                 foreach (var f in HeaderF)
@@ -100,97 +101,103 @@ namespace Kore.SamplePlugins
 
                     Block3 = new Block3
                     {
+                        Block3Trailer = ci.Block3Trailer,
                         CharacterUnknown = ci.CharacterUnknown,
-                        CharacterKerning = ci.CharacterKerning,
-                        Block3Trailer = ci.Block3Trailer
+                        CharacterKerning = ci.CharacterKerning
                     }
                 }));
             }
         }
+
+        // Conversion
+        public GFDv2 ConvertTo(GFDv1 inFormat)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public static implicit operator GFDv2(GFDv1 source)
+        {
+            return new GFDv2();
+        }
+
+        // Support
+        public class FileHeader
+        {
+            [FieldLength(4)]
+            public string Magic;
+            public uint Version;
+
+            /// <summary>
+            /// IsDynamic, InsertSpace, EvenLayout
+            /// </summary>
+            public int HeaderBlock1;
+
+            /// <summary>
+            /// This is texture suffix id (as in NOMIP, etc.)
+            /// 0x0 and anything greater than 0x6 means no suffix
+            /// </summary>
+            public int Suffix;
+
+            public int FontType;
+            public int FontSize;
+            public int FontTexCount;
+            public int CharacterCount;
+            public int FCount;
+
+            /// <summary>
+            /// Internally called MaxAscent
+            /// </summary>
+            public float BaseLine;
+
+            /// <summary>
+            /// Internally called MaxDescent
+            /// </summary>
+            public float DescentLine;
+        }
+
+        public class CharacterInfo
+        {
+            public uint Character;
+            public Block1 Block1;
+            public Block2 Block2;
+            public Block3 Block3;
+        }
+
+        [BitFieldInfo(BlockSize = 32)]
+        public struct Block1
+        {
+            [BitField(12)]
+            public long GlyphY;
+            [BitField(12)]
+            public long GlyphX;
+            [BitField(8)]
+            public long TextureIndex;
+        }
+
+        [BitFieldInfo(BlockSize = 32)]
+        public struct Block2
+        {
+            [BitField(12)]
+            public long GlyphHeight;
+            [BitField(12)]
+            public long GlyphWidth;
+            [BitField(8)]
+            public long Block2Trailer;
+        }
+
+        [BitFieldInfo(BlockSize = 32)]
+        public struct Block3
+        {
+            [BitField(8)]
+            public long Block3Trailer;
+            [BitField(12)]
+            public long CharacterUnknown;
+            [BitField(12)]
+            public long CharacterKerning;
+        }
     }
 
-    public class Header
-    {
-        [FieldLength(4)]
-        public string Magic;
-        public uint Version;
-
-        /// <summary>
-        /// IsDynamic, InsertSpace, EvenLayout
-        /// </summary>
-        public int HeaderBlock1;
-
-        /// <summary>
-        /// This is texture suffix id (as in NOMIP, etc.)
-        /// 0x0 and anything greater than 0x6 means no suffix
-        /// </summary>
-        public int Suffix;
-
-        public int FontType;
-        public int FontSize;
-        public int FontTexCount;
-        public int CharacterCount;
-        public int FCount;
-
-        /// <summary>
-        /// Internally called MaxAscent
-        /// </summary>
-        public float BaseLine;
-
-        /// <summary>
-        /// Internally called MaxDescent
-        /// </summary>
-        public float DescentLine;
-    }
-
-    public enum Version : uint
-    {
-        _3DS = 0x10A05, // 68101
-        _PS3 = 0x10B05, // 68357
-    }
-
-    public class CharacterInfo
-    {
-        public uint Character;
-        public Block1 Block1;
-        public Block2 Block2;
-        public Block3 Block3;
-    }
-
-    [BitFieldInfo(BlockSize = 32)]
-    public struct Block1
-    {
-        [BitField(12)]
-        public long GlyphY;
-        [BitField(12)]
-        public long GlyphX;
-        [BitField(8)]
-        public long TextureIndex;
-    }
-
-    [BitFieldInfo(BlockSize = 32)]
-    public struct Block2
-    {
-        [BitField(12)]
-        public long GlyphHeight;
-        [BitField(12)]
-        public long GlyphWidth;
-        [BitField(8)]
-        public long Block2Trailer;
-    }
-
-    [BitFieldInfo(BlockSize = 32)]
-    public struct Block3
-    {
-        [BitField(8)]
-        public long Block3Trailer;
-        [BitField(12)]
-        public long CharacterUnknown;
-        [BitField(12)]
-        public long CharacterKerning;
-    }
-
-    public class GfdCharacter : FontCharacter
+    public class GFDv1Character : FontCharacter
     {
         /// <summary>
         /// Trailing 8 bits in block2 that are unknown
@@ -220,7 +227,7 @@ namespace Kore.SamplePlugins
         /// Allows cloning of GfdCharcaters,
         /// </summary>
         /// <returns>A cloned GfdCharacter.</returns>
-        public override object Clone() => new GfdCharacter
+        public override object Clone() => new GFDv1Character
         {
             Character = Character,
             TextureID = TextureID,

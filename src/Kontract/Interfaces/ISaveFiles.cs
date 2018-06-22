@@ -9,6 +9,7 @@
         /// Allows a plugin to save files.
         /// </summary>
         /// <param name="filename">The file to be saved.</param>
-        void Save(string filename);
+        /// <param name="versionIndex">The version index that the user selected.</param>
+        void Save(string filename, int versionIndex = 0);
     }
 }
