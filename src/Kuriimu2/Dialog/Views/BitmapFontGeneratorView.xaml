@@ -51,7 +51,7 @@
                     <Style TargetType="CheckBox">
                         <Setter Property="Margin">
                             <Setter.Value>
-                                <Thickness Bottom="10" />
+                                <Thickness Right="10" Bottom="10" />
                             </Setter.Value>
                         </Setter>
                     </Style>
@@ -73,28 +73,37 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Label Grid.Column="0" Grid.Row="0">Generator</Label>
                 <Label Grid.Column="0" Grid.Row="1">Font Family</Label>
                 <Label Grid.Column="0" Grid.Row="2">Font Size</Label>
-                <Label Grid.Column="0" Grid.Row="3">Characters</Label>
-                <Label Grid.Column="0" Grid.Row="4">Glyph Height</Label>
-                <Label Grid.Column="0" Grid.Row="5">Padding Left</Label>
-                <Label Grid.Column="0" Grid.Row="6">Padding Right</Label>
-                <Label Grid.Column="0" Grid.Row="7">Canvas Width</Label>
-                <Label Grid.Column="0" Grid.Row="8">Canvas Height</Label>
+                <Label Grid.Column="0" Grid.Row="3"></Label>
+                <Label Grid.Column="0" Grid.Row="4">Characters</Label>
+                <Label Grid.Column="0" Grid.Row="5">Glyph Height</Label>
+                <Label Grid.Column="0" Grid.Row="6">Padding Left</Label>
+                <Label Grid.Column="0" Grid.Row="7">Padding Right</Label>
+                <Label Grid.Column="0" Grid.Row="8">Padding Top</Label>
+                <Label Grid.Column="0" Grid.Row="9">Canvas Width</Label>
+                <Label Grid.Column="0" Grid.Row="10">Canvas Height</Label>
 
                 <ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding GeneratorTypes}" SelectedItem="{Binding SelectedGenerator}" IsEnabled="False" />
                 <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding FontFamilies}" SelectedItem="{Binding FontFamily}" />
                 <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="100" />
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding PaddingLeft, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Grid.Column="1" Grid.Row="9" IsChecked="{Binding Debug}" Content="Show Debug Boxes" />
+                <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal">
+                    <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
+                    <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
+                </StackPanel>
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" MinHeight="100" />
+                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding PaddingLeft, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding PaddingTop, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="9" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="10" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Grid.Column="1" Grid.Row="11" IsChecked="{Binding Debug}" Content="Show Debug Boxes" />
             </Grid>
 
             <Label Content="{Binding Error}" />

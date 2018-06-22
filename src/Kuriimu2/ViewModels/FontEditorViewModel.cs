@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -19,7 +19,8 @@ namespace Kuriimu2.ViewModels
 {
     public sealed class FontEditorViewModel : Screen, IFileEditor
     {
-        private IWindowManager wm = new WindowManager();
+        private IWindowManager _wm = new WindowManager();
+        private List<IScreen> _windows = new List<IScreen>();
         private IFontAdapter _adapter;
 
         public KoreFileInfo KoreFile { get; }
@@ -155,8 +156,9 @@ namespace Kuriimu2.ViewModels
                     ErrorMessage = $"The '{(char)character.Character}' character already exists in the list."
                 }
             };
+            _windows.Add(pe);
 
-            if (wm.ShowDialog(pe) == true && add.AddCharacter(character))
+            if (_wm.ShowDialog(pe) == true && add.AddCharacter(character))
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
@@ -186,8 +188,9 @@ namespace Kuriimu2.ViewModels
                     ErrorMessage = $"You cannot change the character while editing."
                 }
             };
+            _windows.Add(pe);
 
-            if (wm.ShowDialog(pe) == true)
+            if (_wm.ShowDialog(pe) == true)
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
@@ -248,8 +251,7 @@ namespace Kuriimu2.ViewModels
         public void GenerateFromCurrentSet()
         {
             //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
-
-            var fg = new BitmapFontGeneratorViewModel
+            var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
             {
                 Adapter = _adapter,
                 Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
@@ -267,7 +269,11 @@ namespace Kuriimu2.ViewModels
                 //}
             };
 
-            wm.ShowWindow(fg);
+            if(!_windows.Contains(fg))
+                _windows.Add(fg);
+
+            if (!fg.IsActive)
+                _wm.ShowWindow(fg);
         }
 
         #endregion
@@ -290,6 +296,13 @@ namespace Kuriimu2.ViewModels
             {
                 // Handle on UI gracefully somehow~
             }
+        }
+
+        public override void TryClose(bool? dialogResult = null)
+        {
+            foreach (var scr in _windows)
+                scr.TryClose(dialogResult);
+            base.TryClose(dialogResult);
         }
     }
 }

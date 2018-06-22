@@ -240,7 +240,7 @@
     <Resource Include="Images\menu-export-image.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\icon-generator.png" />
+    <Resource Include="Images\icon-text-page.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

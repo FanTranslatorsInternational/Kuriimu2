@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
+using System.Linq;
 using Kontract.Interfaces;
 
 namespace Kore.Generators
@@ -17,6 +18,7 @@ namespace Kore.Generators
         public int GlyphHeight { get; set; } = 50;
         public int GlyphLeftPadding { get; set; } = 0;
         public int GlyphRightPadding { get; set; } = 0;
+        public int GlyphTopPadding { get; set; } = 0;
 
         public int MaxCanvasWidth { get; set; } = 1024;
         public int MaxCanvasHeight { get; set; } = 512;
@@ -63,7 +65,7 @@ namespace Kore.Generators
 
             var cursor = new Point(0, 0);
             var color = Color.Red;
-            foreach (var character in characters)
+            foreach (var character in characters.Distinct())
             {
                 var c = (char)character;
                 var cstr = c.ToString();
@@ -88,11 +90,15 @@ namespace Kore.Generators
                     cursor.X = 0;
                     cursor.Y += draw.Height;
 
-                    if (cursor.Y >= MaxCanvasHeight)
+                    if (cursor.Y + draw.Height >= MaxCanvasHeight)
                     {
                         cursor.Y = 0;
                         img = new Bitmap(MaxCanvasWidth, MaxCanvasHeight);
                         gfx = Graphics.FromImage(img);
+                        gfx.SmoothingMode = SmoothingMode.None;
+                        gfx.InterpolationMode = InterpolationMode.Bicubic;
+                        gfx.PixelOffsetMode = PixelOffsetMode.Default;
+                        gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
                         Adapter.Textures.Add(img);
                     }
                 }
@@ -104,7 +110,7 @@ namespace Kore.Generators
                     glyphX = cursor.X + GlyphLeftPadding;
 
                 // Draw Character
-                gfx.DrawString(((char)character).ToString(), Font, new SolidBrush(Color.White), new PointF(glyphX, cursor.Y), StringFormat.GenericTypographic);
+                gfx.DrawString(((char)character).ToString(), Font, new SolidBrush(Color.White), new PointF(glyphX, cursor.Y + GlyphTopPadding), StringFormat.GenericTypographic);
 
                 if (Debug)
                 {
