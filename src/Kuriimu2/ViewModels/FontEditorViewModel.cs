@@ -300,8 +300,12 @@ namespace Kuriimu2.ViewModels
 
         public override void TryClose(bool? dialogResult = null)
         {
-            foreach (var scr in _windows)
+            for (var i = _windows.Count - 1; i >= 0; i--)
+            {
+                var scr = _windows[i];
                 scr.TryClose(dialogResult);
+                _windows.Remove(scr);
+            }
             base.TryClose(dialogResult);
         }
     }
