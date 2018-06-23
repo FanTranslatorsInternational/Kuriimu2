@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Kuriimu2</id>
+    <version>$version$</version>
+    <title>Kuriimu 2 SDK</title>
+    <authors>IcySon55,onepiecefreak3,Neobeo</authors>
+    <owners>IcySon55,onepiecefreak3,Neobeo</owners>
+    <projectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</projectUrl>
+    <iconUrl>https://avatars0.githubusercontent.com/u/36773106</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Development Kit for the Kuriimu 2 Suite for interpreting, manipulating and translating game files.</description>
+    <copyright>$copyright$</copyright>
+  </metadata>
+  <files>
+    <file src="bin\Release\Komponent.xml" />
+	<file src="bin\Release\Kore.xml" />
+	<file src="bin\Release\Kontract.xml" />
+	<file src="..\Kanvas\bin\Release\Kanvas.xml" />
+  </files>
+</package>
