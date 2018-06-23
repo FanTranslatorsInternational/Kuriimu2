@@ -94,7 +94,7 @@ namespace Kontract.Interfaces
     }
 
     /// <summary>
-    /// The base entry class.
+    /// The base text entry class.
     /// </summary>
     public class TextEntry
     {
@@ -108,7 +108,7 @@ namespace Kontract.Interfaces
         /// Stores the original text for the entry.
         /// </summary>
         [XmlElement("original")]
-        public virtual string OriginalText { get; } = string.Empty;
+        public virtual string OriginalText { get; set; } = string.Empty;
 
         /// <summary>
         /// Stores the edited text for the entry.
@@ -127,7 +127,7 @@ namespace Kontract.Interfaces
         /// 0 for unlimited.
         /// </summary>
         [XmlAttribute("max_length")]
-        public virtual int MaxLength { get; } = 0;
+        public virtual int MaxLength { get; set; } = 0;
 
         /// <summary>
         /// Determines whether this entry can be edited.

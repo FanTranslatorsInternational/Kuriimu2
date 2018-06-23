@@ -1,28 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Media.Imaging;
+using System.Windows.Media;
 using Caliburn.Micro;
 using Komponent.Tools;
 using Kontract.Interfaces;
 using Kore;
-using Kuriimu2.DialogViewModels;
+using Kuriimu2.Dialog.Common;
+using Kuriimu2.Dialog.ViewModels;
 using Kuriimu2.Interface;
+using Kuriimu2.Tools;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class FontEditorViewModel : Screen, IEditor
+    public sealed class FontEditorViewModel : Screen, IFileEditor
     {
+        private IWindowManager _wm = new WindowManager();
+        private List<IScreen> _windows = new List<IScreen>();
         private IFontAdapter _adapter;
 
         public KoreFileInfo KoreFile { get; }
         public ObservableCollection<FontCharacter> Characters { get; private set; }
 
         private FontCharacter _selectedCharacter;
-        private BitmapImage _selectedTexture;
+        private ImageSource _selectedTexture;
 
         public FontEditorViewModel(KoreFileInfo koreFile)
         {
@@ -42,7 +47,7 @@ namespace Kuriimu2.ViewModels
             set
             {
                 _selectedCharacter = value;
-                SelectedTexture = BitmapToImageSource(_adapter.Textures[_selectedCharacter.TextureID]);
+                SelectedTexture = _adapter.Textures[_selectedCharacter.TextureID].ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
@@ -56,7 +61,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphX
         {
-            get => SelectedCharacter.GlyphX;
+            get => SelectedCharacter?.GlyphX ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphX != value;
@@ -68,7 +73,7 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphY
         {
-            get => SelectedCharacter.GlyphY;
+            get => SelectedCharacter?.GlyphY ?? 0;
             set
             {
                 KoreFile.HasChanges = SelectedCharacter.GlyphY != value;
@@ -80,25 +85,29 @@ namespace Kuriimu2.ViewModels
 
         public int SelectedCharacterGlyphWidth
         {
-            get => SelectedCharacter.GlyphWidth;
+            get => SelectedCharacter?.GlyphWidth ?? 0;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphWidth != value;
                 SelectedCharacter.GlyphWidth = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
             }
         }
 
         public int SelectedCharacterGlyphHeight
         {
-            get => SelectedCharacter.GlyphHeight;
+            get => SelectedCharacter?.GlyphHeight ?? 0;
             set
             {
+                KoreFile.HasChanges = SelectedCharacter.GlyphHeight != value;
                 SelectedCharacter.GlyphHeight = value;
+                NotifyOfPropertyChange(() => DisplayName);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
             }
         }
 
-        public BitmapImage SelectedTexture
+        public ImageSource SelectedTexture
         {
             get => _selectedTexture;
             set
@@ -110,7 +119,7 @@ namespace Kuriimu2.ViewModels
 
         public int ImageBorderThickness => 1;
 
-        public Thickness CursorMargin => new Thickness(SelectedCharacter.GlyphX + ImageBorderThickness, SelectedCharacter.GlyphY + ImageBorderThickness, 0, 0);
+        public Thickness CursorMargin => new Thickness((SelectedCharacter?.GlyphX ?? 0) + ImageBorderThickness, (SelectedCharacter?.GlyphY ?? 0) + ImageBorderThickness, 0, 0);
 
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
 
@@ -122,14 +131,20 @@ namespace Kuriimu2.ViewModels
         {
             if (!(_adapter is IAddCharacters add)) return;
 
+            // Add a new characters based on the selected character
             var character = add.NewCharacter(SelectedCharacter);
             character.Character = SelectedCharacter.Character;
-            character.GlyphX = Characters.Last().GlyphX + Characters.Last().GlyphWidth;
-            character.GlyphY = Characters.Last().GlyphY;
+            // Copy the perceived last character's X and Y positions (lazy mode)
+            var last = Characters.OrderByDescending(c => c.GlyphY).ThenByDescending(c => c.GlyphX).FirstOrDefault();
+            if (last != null)
+            {
+                character.GlyphX = last.GlyphX + last.GlyphWidth;
+                character.GlyphY = last.GlyphY;
+            }
             character.GlyphWidth = SelectedCharacter.GlyphWidth;
             character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            var feac = new FontEditorEditCharacterViewModel
+            var pe = new PropertyEditorViewModel
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
@@ -138,41 +153,48 @@ namespace Kuriimu2.ViewModels
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = _adapter.Characters.All(c => c.Character != character.Character),
-                    ErrorMessage = $"The '{(char) character.Character}' character already exists in the list."
+                    ErrorMessage = $"The '{(char)character.Character}' character already exists in the list."
                 }
             };
+            _windows.Add(pe);
 
-            IWindowManager wm = new WindowManager();
-            if (wm.ShowDialog(feac) == true && add.AddCharacter(character))
+            if (_wm.ShowDialog(pe) == true && add.AddCharacter(character))
             {
+                KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
                 Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
-                SelectedCharacter = Characters.Last();
+                SelectedCharacter = character;
             }
         }
 
-        public void Edit(FontCharacter character)
+        public bool EditEnabled => SelectedCharacter != null;
+
+        public void EditCharacter()
         {
             if (!(_adapter is IFontAdapter fnt)) return;
 
-            var clonedCharacter = (FontCharacter)character.Clone();
-            
-            var feac = new FontEditorEditCharacterViewModel
+            // Clone the selected character so that changes don't propagate to the plugin
+            var clonedCharacter = (FontCharacter)SelectedCharacter.Clone();
+
+            var pe = new PropertyEditorViewModel
             {
                 Title = "Edit Character",
                 Message = "Edit character attributes:",
                 Character = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
-                    CanClose = clonedCharacter.Character == character.Character,
+                    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
                     ErrorMessage = $"You cannot change the character while editing."
                 }
             };
+            _windows.Add(pe);
 
-            IWindowManager wm = new WindowManager();
-            if (wm.ShowDialog(feac) == true)
+            if (_wm.ShowDialog(pe) == true)
             {
-                clonedCharacter.CopyProperties(character);
+                KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
+                clonedCharacter.CopyProperties(SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
@@ -182,7 +204,77 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public bool DeleteEnabled => _adapter is IDeleteCharacters;
+        public bool DeleteEnabled => _adapter is IDeleteCharacters && SelectedCharacter != null;
+
+        public void DeleteCharacter()
+        {
+            if (!(_adapter is IDeleteCharacters del)) return;
+
+            if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedCharacter.Character}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                if (del.DeleteCharacter(SelectedCharacter))
+                {
+                    Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                    SelectedCharacter = Characters.FirstOrDefault();
+                    NotifyOfPropertyChange(() => Characters);
+                }
+                else
+                {
+                    // Character was not removed.
+                }
+            }
+        }
+
+        public void ExportTextures()
+        {
+            try
+            {
+                var dir = KoreFile.FileInfo.Directory.FullName;
+                var name = Path.GetFileNameWithoutExtension(KoreFile.FileInfo.Name);
+
+                for (var index = 0; index < _adapter.Textures.Count; index++)
+                {
+                    var texture = _adapter.Textures[index];
+                    texture.Save(Path.Combine(dir, name + $"_{index:00}.png"), ImageFormat.Png);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                MessageBox.Show("Textures exported successfully!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        public void GenerateFromCurrentSet()
+        {
+            //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
+            var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
+            {
+                Adapter = _adapter,
+                Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
+                GenerationCompleteCallback = () =>
+                {
+                    Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                    SelectedCharacter = Characters.FirstOrDefault();
+                    NotifyOfPropertyChange(() => Characters);
+                }
+
+                //ValidationCallback = () => new ValidationResult
+                //{
+                //    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
+                //    ErrorMessage = $"You cannot change the character while editing."
+                //}
+            };
+
+            if(!_windows.Contains(fg))
+                _windows.Add(fg);
+
+            if (!fg.IsActive)
+                _wm.ShowWindow(fg);
+        }
 
         #endregion
 
@@ -206,19 +298,15 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        private static BitmapImage BitmapToImageSource(Image bitmap)
+        public override void TryClose(bool? dialogResult = null)
         {
-            using (var memory = new MemoryStream())
+            for (var i = _windows.Count - 1; i >= 0; i--)
             {
-                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Png);
-                memory.Position = 0;
-                var bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.StreamSource = memory;
-                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                bitmapImage.EndInit();
-                return bitmapImage;
+                var scr = _windows[i];
+                scr.TryClose(dialogResult);
+                _windows.Remove(scr);
             }
+            base.TryClose(dialogResult);
         }
     }
 }

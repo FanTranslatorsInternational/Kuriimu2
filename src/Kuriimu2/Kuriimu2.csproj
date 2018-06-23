@@ -26,6 +26,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,8 +73,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Xceed.Wpf.AvalonDock, Version=3.6.17613.9190, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Xceed.Wpf.AvalonDock.3.6.17613.09190\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
+    <Reference Include="Xceed.Wpf.AvalonDock, Version=3.7.18313.20590, Culture=neutral, PublicKeyToken=ba83ff368b7563c6, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Xceed.Wpf.AvalonDock.3.7.18313.20590\lib\net40\Xceed.Wpf.AvalonDock.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -85,18 +86,31 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="DialogViewModels\FontEditorEditCharacterViewModel.cs" />
-    <Compile Include="Interfaces\IEditor.cs" />
+    <Compile Include="Dialog\Common\Enumerations.cs" />
+    <Compile Include="Dialog\ViewModels\BitmapFontGeneratorViewModel.cs" />
+    <Compile Include="Dialog\ViewModels\NewFileViewModel.cs" />
+    <Compile Include="Dialog\ViewModels\PropertyEditorViewModel.cs" />
+    <Compile Include="Dialog\Common\Common.cs" />
+    <Compile Include="Interfaces\IFileEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Tools\Extensions.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
-    <Page Include="DialogViews\FontEditorEditCharacterView.xaml">
+    <Page Include="Dialog\Views\BitmapFontGeneratorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\Views\NewFileView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialog\Views\PropertyEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -222,6 +236,11 @@
       <Name>Kore</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\menu-export-image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\icon-text-page.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

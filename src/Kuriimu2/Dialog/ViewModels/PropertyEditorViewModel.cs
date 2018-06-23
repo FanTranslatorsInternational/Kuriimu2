@@ -6,10 +6,11 @@ using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kuriimu2.Dialog.Common;
 
-namespace Kuriimu2.DialogViewModels
+namespace Kuriimu2.Dialog.ViewModels
 {
-    public sealed class FontEditorEditCharacterViewModel : Screen
+    public sealed class PropertyEditorViewModel : Screen
     {
         private FontCharacter _character;
         private DialogMode _mode  = DialogMode.Edit;
@@ -64,7 +65,7 @@ namespace Kuriimu2.DialogViewModels
 
         public Dictionary<string, DynaField> Fields { get; private set; }
 
-        public FontEditorEditCharacterViewModel()
+        public PropertyEditorViewModel()
         {
             Mode = DialogMode.Edit;
         }
@@ -100,22 +101,10 @@ namespace Kuriimu2.DialogViewModels
         }
     }
 
-    public enum DialogMode
-    {
-        Add,
-        Edit
-    }
-
     public sealed class DynaField
     {
         public string Label { get; set; }
         public object Value { get; set; }
         public int MaxLength { get; set; }
-    }
-
-    public class ValidationResult
-    {
-        public bool CanClose { get; set; }
-        public string ErrorMessage { get; set; }
     }
 }

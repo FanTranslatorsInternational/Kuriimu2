@@ -8,7 +8,7 @@ using Kuriimu2.Interface;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor2ViewModel : Screen, IEditor
+    public sealed class TextEditor2ViewModel : Screen, IFileEditor
     {
         private ITextAdapter _adapter;
 
@@ -29,6 +29,8 @@ namespace Kuriimu2.ViewModels
         }
 
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
+
+        public bool OriginalTextReadOnly => true;
 
         public void AddEntry()
         {

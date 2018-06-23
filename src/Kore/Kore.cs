@@ -21,6 +21,9 @@ namespace Kore
 
         #region Plugins
 
+        [ImportMany(typeof(ICreateFiles))]
+        private List<ICreateFiles> _createAdapters;
+
         [ImportMany(typeof(ILoadFiles))]
         private List<ILoadFiles> _fileAdapters;
 
@@ -149,6 +152,7 @@ namespace Kore
         public bool CloseFile(KoreFileInfo kfi)
         {
             if (!OpenFiles.Contains(kfi)) return false;
+            kfi.Adapter.Dispose();
             OpenFiles.Remove(kfi);
             return true;
         }

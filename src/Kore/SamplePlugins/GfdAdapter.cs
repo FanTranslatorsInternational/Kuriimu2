@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -15,28 +15,107 @@ namespace Kore.SamplePlugins
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font", "GFD", "IcySon55", "This is the GFD font adapter for Kuriimu.")]
+    [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font", "GFD", "IcySon55", "", "This is the GFD font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
     public sealed class GfdAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddCharacters, IDeleteCharacters
     {
-        private GFD _gfd;
+        private GFDv1 _gfdv1;
+        private GFDv2 _gfdv2;
+        private int _version = 1;
+
+        public enum Version : uint
+        {
+            _3DSv1 = 0x10A05, // 68101 GFDv1
+            _3DSv2 = 0x10F06, // 69382 GFDv2
+            _PS3v1 = 0x10B05, // 68357 GFDv1
+        }
 
         #region Properties
 
-        public IEnumerable<FontCharacter> Characters => _gfd?.Characters;
+        public IEnumerable<FontCharacter> Characters
+        {
+            get
+            {
+                switch (_version)
+                {
+                    case 1:
+                        return _gfdv1.Characters;
+                    case 2:
+                        return _gfdv2.Characters;
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1.Characters = value.Select(fc => (GFDv1Character)fc).ToList();
+                        break;
+                    case 2:
+                        _gfdv2.Characters = value.Select(fc => (GFDv2Character)fc).ToList();
+                        break;
+                }
+            }
+        }
 
-        public List<Bitmap> Textures { get; private set; }
+        public List<Bitmap> Textures { get; set; }
 
         public float BaseLine
         {
-            get => _gfd.Header.BaseLine;
-            set => _gfd.Header.BaseLine = value;
+            get
+            {
+                switch (_version)
+                {
+                    case 1:
+                        return _gfdv1.Header.BaseLine;
+                    case 2:
+                        return _gfdv2.Header.BaseLine;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1.Header.BaseLine = value;
+                        break;
+                    case 2:
+                        _gfdv2.Header.BaseLine = value;
+                        break;
+                }
+            }
         }
 
         public float DescentLine
         {
-            get => _gfd.Header.DescentLine;
-            set => _gfd.Header.DescentLine = value;
+            get
+            {
+                switch (_version)
+                {
+                    case 1:
+                        return _gfdv1.Header.DescentLine;
+                    case 2:
+                        return _gfdv2.Header.DescentLine;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1.Header.DescentLine = value;
+                        break;
+                    case 2:
+                        _gfdv2.Header.DescentLine = value;
+                        break;
+                }
+            }
         }
 
         #endregion
@@ -62,12 +141,46 @@ namespace Kore.SamplePlugins
             return result;
         }
 
+        //public void Create()
+        //{
+        //    _gfdv1 = new GFDv1();
+        //    Textures = new List<Bitmap>();
+        //}
+
         public void Load(string filename)
         {
             if (File.Exists(filename))
             {
-                _gfd = new GFD(File.OpenRead(filename));
+                // Determine Version
+                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                {
+                    br.BaseStream.Position += sizeof(int);
+                    switch ((Version)br.ReadUInt32())
+                    {
+                        case Version._3DSv1:
+                        case Version._PS3v1:
+                            _version = 1;
+                            break;
+                        case Version._3DSv2:
+                            _version = 2;
+                            break;
+                        default:
+                            _version = 1;
+                            break;
+                    }
+                }
 
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1 = new GFDv1(File.OpenRead(filename));
+                        break;
+                    case 2:
+                        _gfdv2 = new GFDv2(File.OpenRead(filename));
+                        break;
+                }
+
+                // Load Textures
                 var textureFiles = Directory.GetFiles(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename) + "*.png");
 
                 Textures = new List<Bitmap>();
@@ -78,24 +191,55 @@ namespace Kore.SamplePlugins
                 throw new FileNotFoundException();
         }
 
-        public void Save(string filename)
+        public void Save(string filename, int versionIndex = 0)
         {
-            _gfd.Save(File.Create(filename));
-            for (var i = 0; i < Textures.Count; i++)
+            switch (_version)
             {
-                var tex = Textures[i];
-                tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
+                case 1:
+                    _gfdv1.Header.FontTexCount = Textures.Count;
+                    _gfdv1.Save(File.Create(filename));
+                    break;
+                case 2:
+                    _gfdv2.Header.FontTexCount = Textures.Count;
+                    _gfdv2.Save(File.Create(filename));
+                    break;
             }
+            //for (var i = 0; i < Textures.Count; i++)
+            //{
+            //    var tex = Textures[i];
+            //    tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
+            //}
         }
 
         public FontCharacter NewCharacter(FontCharacter selectedCharacter = null)
         {
-            var newChar = new GfdCharacter();
+            FontCharacter newChar = null;
 
-            if (selectedCharacter is GfdCharacter gfd)
+            switch (_version)
             {
-                newChar.Block2Trailer = gfd.Block2Trailer;
-                newChar.Block3 = gfd.Block3;
+                case 1:
+                    newChar = new GFDv1Character();
+                    if (selectedCharacter is GFDv1Character chrv1)
+                    {
+                        var chr = (GFDv1Character)newChar;
+                        chr.Block2Trailer = chrv1.Block2Trailer;
+                        chr.CharacterKerning = chrv1.CharacterKerning;
+                        chr.CharacterUnknown = chrv1.CharacterUnknown;
+                        chr.Block3Trailer = chrv1.Block3Trailer;
+                    }
+                    break;
+                case 2:
+                    newChar = new GFDv2Character();
+                    if (selectedCharacter is GFDv2Character chrv2)
+                    {
+                        var chr = (GFDv2Character)newChar;
+                        chr.Block2Trailer = chrv2.Block2Trailer;
+                        chr.CharacterWidth = chrv2.CharacterWidth;
+                        chr.CharacterHeight = chrv2.CharacterHeight;
+                        chr.XAdjust = chrv2.XAdjust;
+                        chr.YAdjust = chrv2.YAdjust;
+                    }
+                    break;
             }
 
             return newChar;
@@ -103,14 +247,67 @@ namespace Kore.SamplePlugins
 
         public bool AddCharacter(FontCharacter character)
         {
-            if (!(character is GfdCharacter gfdCharacter)) return false;
-            _gfd.Characters.Add(gfdCharacter);
+            switch (_version)
+            {
+                case 1:
+                    if (!(character is GFDv1Character chrv1)) return false;
+                    _gfdv1.Characters.Add(chrv1);
+
+                    // Set GFD Kerning for new characters
+                    if (chrv1.CharacterKerning == 0)
+                        chrv1.CharacterKerning = chrv1.GlyphWidth;
+
+                    // Set GFD Unknown for space characters
+                    switch (character.Character)
+                    {
+                        case 'Ø':
+                        case '¬':
+                        case 'þ':
+                        case ' ':
+                            chrv1.CharacterUnknown = 32;
+                            break;
+                    }
+
+                    _gfdv1.Characters.Sort((l, r) => l.Character.CompareTo(r.Character));
+                    break;
+                case 2:
+                    if (!(character is GFDv2Character chrv2)) return false;
+                    _gfdv2.Characters.Add(chrv2);
+
+                    // Set Character Width and Height
+                    if (chrv2.CharacterWidth == 0)
+                        chrv2.CharacterWidth = chrv2.GlyphWidth - 1; // They often seem to subtract one
+                    if (chrv2.CharacterHeight == 0)
+                        chrv2.CharacterHeight = chrv2.GlyphHeight; // Use glyph height because we don't generate compact textures.
+
+                    _gfdv2.Characters.Sort((l, r) => l.Character.CompareTo(r.Character));
+                    break;
+            }
+
             return true;
         }
 
         public bool DeleteCharacter(FontCharacter character)
         {
-            throw new NotImplementedException();
+            switch (_version)
+            {
+                case 1:
+                    if (!(character is GFDv1Character chrv1)) return false;
+                    _gfdv1.Characters.Remove(chrv1);
+                    break;
+                case 2:
+                    if (!(character is GFDv2Character chrv2)) return false;
+                    _gfdv2.Characters.Remove(chrv2);
+                    break;
+            }
+
+            return true;
+        }
+
+        public void Dispose()
+        {
+            foreach (var tex in Textures)
+                tex.Dispose();
         }
     }
 }

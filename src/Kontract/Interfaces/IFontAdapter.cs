@@ -13,12 +13,12 @@ namespace Kontract.Interfaces
         /// <summary>
         /// The list of characters provided by the font adapter to the UI.
         /// </summary>
-        IEnumerable<FontCharacter> Characters { get; }
+        IEnumerable<FontCharacter> Characters { get; set; }
 
         /// <summary>
         /// The list of textures provided by the font adapter to the UI.
         /// </summary>
-        List<Bitmap> Textures { get; }
+        List<Bitmap> Textures { get; set; }
 
         /// <summary>
         /// Character baseline.
