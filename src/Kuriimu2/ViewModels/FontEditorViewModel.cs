@@ -10,8 +10,8 @@ using Caliburn.Micro;
 using Komponent.Tools;
 using Kontract.Interfaces;
 using Kore;
-using Kuriimu2.Dialog.Common;
-using Kuriimu2.Dialog.ViewModels;
+using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interface;
 using Kuriimu2.Tools;
 
@@ -23,23 +23,11 @@ namespace Kuriimu2.ViewModels
         private List<IScreen> _windows = new List<IScreen>();
         private IFontAdapter _adapter;
 
-        public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<FontCharacter> Characters { get; private set; }
-
         private FontCharacter _selectedCharacter;
         private ImageSource _selectedTexture;
 
-        public FontEditorViewModel(KoreFileInfo koreFile)
-        {
-            KoreFile = koreFile;
-
-            _adapter = KoreFile.Adapter as IFontAdapter;
-
-            if (_adapter != null)
-                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
-
-            SelectedCharacter = Characters.First();
-        }
+        public KoreFileInfo KoreFile { get; }
+        public ObservableCollection<FontCharacter> Characters { get; private set; }
 
         public FontCharacter SelectedCharacter
         {
@@ -122,6 +110,19 @@ namespace Kuriimu2.ViewModels
         public Thickness CursorMargin => new Thickness((SelectedCharacter?.GlyphX ?? 0) + ImageBorderThickness, (SelectedCharacter?.GlyphY ?? 0) + ImageBorderThickness, 0, 0);
 
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
+
+        // Constructor
+        public FontEditorViewModel(KoreFileInfo koreFile)
+        {
+            KoreFile = koreFile;
+
+            _adapter = KoreFile.Adapter as IFontAdapter;
+
+            if (_adapter != null)
+                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+
+            SelectedCharacter = Characters.First();
+        }
 
         #region Character Management
 
@@ -255,6 +256,8 @@ namespace Kuriimu2.ViewModels
             {
                 Adapter = _adapter,
                 Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
+                CanvasWidth = _adapter.Textures[_selectedCharacter.TextureID].Width,
+                CanvasHeight = _adapter.Textures[_selectedCharacter.TextureID].Height,
                 GenerationCompleteCallback = () =>
                 {
                     Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);

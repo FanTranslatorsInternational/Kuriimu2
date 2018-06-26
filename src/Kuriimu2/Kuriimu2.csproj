@@ -86,11 +86,12 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
-    <Compile Include="Dialog\Common\Enumerations.cs" />
-    <Compile Include="Dialog\ViewModels\BitmapFontGeneratorViewModel.cs" />
-    <Compile Include="Dialog\ViewModels\NewFileViewModel.cs" />
-    <Compile Include="Dialog\ViewModels\PropertyEditorViewModel.cs" />
-    <Compile Include="Dialog\Common\Common.cs" />
+    <Compile Include="Controls\ZoomBorder.cs" />
+    <Compile Include="Dialogs\Common\Enumerations.cs" />
+    <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
+    <Compile Include="Dialogs\ViewModels\NewFileViewModel.cs" />
+    <Compile Include="Dialogs\ViewModels\PropertyEditorViewModel.cs" />
+    <Compile Include="Dialogs\Common\Common.cs" />
     <Compile Include="Interfaces\IFileEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -102,15 +103,15 @@
     <Compile Include="ViewModels\FontEditorViewModel.cs" />
     <Compile Include="ViewModels\TextEditor2ViewModel.cs" />
     <Compile Include="ViewModels\TextEditor1ViewModel.cs" />
-    <Page Include="Dialog\Views\BitmapFontGeneratorView.xaml">
+    <Page Include="Dialogs\Views\BitmapFontGeneratorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialog\Views\NewFileView.xaml">
+    <Page Include="Dialogs\Views\NewFileView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Dialog\Views\PropertyEditorView.xaml">
+    <Page Include="Dialogs\Views\PropertyEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -242,5 +243,6 @@
   <ItemGroup>
     <Resource Include="Images\icon-text-page.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

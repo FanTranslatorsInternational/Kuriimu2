@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kuriimu2.Dialog.Common
+namespace Kuriimu2.Dialogs.Common
 {
     public enum DialogMode
     {

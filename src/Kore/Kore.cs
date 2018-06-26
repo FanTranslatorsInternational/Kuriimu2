@@ -20,6 +20,7 @@ namespace Kore
         private CompositionContainer _container;
 
         #region Plugins
+        #pragma warning disable 0649, 0169
 
         [ImportMany(typeof(ICreateFiles))]
         private List<ICreateFiles> _createAdapters;
@@ -39,6 +40,7 @@ namespace Kore
         [ImportMany(typeof(IFontAdapter))]
         private List<IFontAdapter> _fontAdapters;
 
+        #pragma warning restore 0649, 0169
         #endregion
 
         /// <summary>

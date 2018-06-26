@@ -136,5 +136,57 @@ namespace Kore.Generators
                 cursor.X += draw.Width;
             }
         }
+
+        public Bitmap Preview(char c)
+        {
+            var img = new Bitmap(MaxCanvasWidth, MaxCanvasHeight);
+
+            var gfx = Graphics.FromImage(img);
+            gfx.SmoothingMode = SmoothingMode.None;
+            gfx.InterpolationMode = InterpolationMode.Bicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.Default;
+            gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+
+            var cursor = new Point(0, 0);
+            var color = Color.Red;
+            var cstr = c.ToString();
+
+            // Get character bounds
+            var size = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault) : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic);
+            size.Width = (float)Math.Ceiling(size.Width);
+            size.Height = GlyphHeight;
+
+            var draw = new Size((int)size.Width, (int)size.Height);
+            var glyphX = cursor.X;
+
+            var cat = char.GetUnicodeCategory(c);
+            if (cat == UnicodeCategory.OtherLetter || c == '　')
+                draw.Width = draw.Height;
+            else
+                draw.Width += GlyphLeftPadding + GlyphRightPadding;
+
+            img = new Bitmap(draw.Width, draw.Height);
+            gfx = Graphics.FromImage(img);
+            gfx.SmoothingMode = SmoothingMode.None;
+            gfx.InterpolationMode = InterpolationMode.Bicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.Default;
+            gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+
+            // Calculate Glyph Centering
+            if (cat == UnicodeCategory.OtherLetter)
+                glyphX = cursor.X + (int)Math.Ceiling((float)draw.Width / 2 - size.Width / 2);
+            else
+                glyphX = cursor.X + GlyphLeftPadding;
+
+            // Draw Character
+            gfx.DrawString(c.ToString(), Font, new SolidBrush(Color.White), new PointF(glyphX, cursor.Y + GlyphTopPadding), StringFormat.GenericTypographic);
+
+            if (Debug)
+            {
+                gfx.DrawRectangle(new Pen(color, 1), new Rectangle(cursor.X, cursor.Y, draw.Width - 1, draw.Height - 1));
+            }
+
+            return img;
+        }
     }
 }
