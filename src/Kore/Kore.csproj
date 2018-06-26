@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Kore.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -37,6 +39,9 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -57,8 +62,27 @@
     <Compile Include="SamplePlugins\KUP.cs" />
     <Compile Include="SamplePlugins\GfdAdapter.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />
+    <Compile Include="XF\BitmapPixelMap.cs" />
+    <Compile Include="XF\Compression\Huffman.cs" />
+    <Compile Include="XF\Compression\HuffSupport.cs" />
+    <Compile Include="XF\Compression\Level5.cs" />
+    <Compile Include="XF\Compression\LZ10.cs" />
+    <Compile Include="XF\Compression\LZ11.cs" />
+    <Compile Include="XF\Compression\RLE.cs" />
+    <Compile Include="XF\IMGC\IMGC.cs" />
+    <Compile Include="XF\IMGC\ImgcSupport.cs" />
+    <Compile Include="XF\Interface\IArchiveManager.cs" />
+    <Compile Include="XF\Interface\IFilePlugin.cs" />
+    <Compile Include="XF\XF.cs" />
+    <Compile Include="XF\XfAdapter.cs" />
+    <Compile Include="XF\XPCK\XPCK.cs" />
+    <Compile Include="XF\XPCK\XpckSupport.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj">
+      <Project>{810cefcf-6900-43ff-8939-ef2d52236882}</Project>
+      <Name>Kanvas</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Komponent\Komponent.csproj">
       <Project>{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}</Project>
       <Name>Komponent</Name>
@@ -70,6 +94,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Batch\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

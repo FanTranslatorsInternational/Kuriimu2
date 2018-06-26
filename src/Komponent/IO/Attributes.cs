@@ -2,7 +2,7 @@
 
 namespace Komponent.IO
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
     public class BitFieldInfoAttribute : Attribute
     {
         public int BlockSize = 32;

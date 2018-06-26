@@ -12,6 +12,7 @@ namespace Komponent.IO
     {
         private int _nibble = -1;
         private int _blockSize;
+        private int _currentBlockSize;
         private int _bitPosition = 64;
         private long _buffer;
 
@@ -32,12 +33,13 @@ namespace Komponent.IO
 
         public int BlockSize
         {
-            get => _blockSize;
+            get => _currentBlockSize;
             set
             {
                 if (value != 8 && value != 16 && value != 32 && value != 64)
                     throw new Exception("BlockSize can only be 8, 16, 32, or 64.");
                 _blockSize = value;
+                _currentBlockSize = value;
             }
         }
 
@@ -287,6 +289,7 @@ namespace Komponent.IO
 
         public void FillBuffer()
         {
+            _currentBlockSize = _blockSize;
             switch (_blockSize)
             {
                 case 8:
@@ -383,7 +386,7 @@ namespace Komponent.IO
                 var block = type.GetCustomAttribute<BitFieldInfoAttribute>();
                 if (block != null)
                 {
-                    BlockSize = block.BlockSize;
+                    _blockSize = block.BlockSize;
 
                     var bkBitOrder = BitOrder;
                     if (block.BitOrder != BitOrder.Inherit)
@@ -393,11 +396,22 @@ namespace Komponent.IO
 
                     foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                     {
+                        var fieldBlock = field.GetCustomAttribute<BitFieldInfoAttribute>();
+                        int bkfieldBlockSize = -1;
+                        if (fieldBlock != null)
+                        {
+                            bkfieldBlockSize = _blockSize;
+                            _blockSize = fieldBlock.BlockSize;
+                        }
+
                         var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
                         if (bitInfo != null)
                             field.SetValue(item, ReadBits(bitInfo.BitLength));
                         else
                             field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
+
+                        if (bkfieldBlockSize > -1)
+                            _blockSize = bkfieldBlockSize;
                     }
 
                     ByteOrder = bkByteOrder;
@@ -409,7 +423,24 @@ namespace Komponent.IO
                     var item = Activator.CreateInstance(type);
 
                     foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                        field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
+                    {
+                        var fieldBlock = field.GetCustomAttribute<BitFieldInfoAttribute>();
+                        int bkfieldBlockSize = -1;
+                        if (fieldBlock != null)
+                        {
+                            bkfieldBlockSize = _blockSize;
+                            _blockSize = fieldBlock.BlockSize;
+                        }
+
+                        var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
+                        if (bitInfo != null)
+                            field.SetValue(item, ReadBits(bitInfo.BitLength));
+                        else
+                            field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
+
+                        if (bkfieldBlockSize > -1)
+                            _blockSize = bkfieldBlockSize;
+                    }
 
                     ByteOrder = bkByteOrder;
                     return item;
@@ -492,7 +523,7 @@ namespace Komponent.IO
         // Bit Fields
         public bool ReadBit()
         {
-            if (_bitPosition >= _blockSize)
+            if (_bitPosition >= _currentBlockSize)
                 FillBuffer();
 
             switch (EffectiveBitOrder)
@@ -500,7 +531,7 @@ namespace Komponent.IO
                 case BitOrder.LSBFirst:
                     return ((_buffer >> _bitPosition++) & 0x1) == 1;
                 case BitOrder.MSBFirst:
-                    return ((_buffer >> (_blockSize - _bitPosition++ - 1)) & 0x1) == 1;
+                    return ((_buffer >> (_currentBlockSize - _bitPosition++ - 1)) & 0x1) == 1;
                 default:
                     throw new NotSupportedException("BitOrder not supported.");
             }
