@@ -35,7 +35,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center">
+                <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">
                     <TextBox Text="{Binding MarginLeft, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
                 </StackPanel>
 
@@ -63,12 +63,10 @@
                         <TextBox Text="{Binding PaddingTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
                     </StackPanel>
 
-                    <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black" Margin="0 0 0 5">
+                    <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black">
                         <DockPanel Background="DimGray" MinWidth="80" MinHeight="100">
-                            <Grid SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
-                                    <Image Source="{Binding PreviewCharacter}" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                                </Border>
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True">
+                                <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Left" VerticalAlignment="Top" />
                             </Grid>
                         </DockPanel>
                     </Border>
@@ -76,9 +74,13 @@
                     <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">
                         <TextBox Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
                     </StackPanel>
+
+                    <StackPanel Grid.Column="1" Grid.Row="2">
+                        <TextBox Text="{Binding PreviewCharacter, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="5" MaxLength="1" />
+                    </StackPanel>
                 </Grid>
 
-                <StackPanel Grid.Column="2" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center">
+                <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">
                     <TextBox Text="{Binding MarginRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
                 </StackPanel>
 
@@ -162,11 +164,11 @@
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
                     <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" MaxWidth="400" MinHeight="100" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="100" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
                 <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Grid.Column="1" Grid.Row="8" IsChecked="{Binding Debug}" Content="Show Debug Boxes" />
+                <CheckBox Grid.Column="1" Grid.Row="8" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />
             </Grid>
 
             <Label Content="{Binding Error}" />

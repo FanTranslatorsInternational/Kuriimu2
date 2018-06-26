@@ -54,6 +54,7 @@
     <Compile Include="Enumerations.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
     <Compile Include="Generators\BitmapFontGeneratorWpf.cs" />
+    <Compile Include="Generators\Common.cs" />
     <Compile Include="Kore.cs" />
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

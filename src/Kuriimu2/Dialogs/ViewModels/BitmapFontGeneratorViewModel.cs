@@ -17,7 +17,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 {
     public sealed class BitmapFontGeneratorViewModel : Screen
     {
-        private ImageSource _previewCharacter;
+        private ImageSource _previewCharacterImage;
         private int _marginLeft = 0;
         private int _marginTop = 0;
         private int _marginRight = 0;
@@ -25,6 +25,7 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _paddingLeft = 0;
         private int _paddingTop = 0;
         private int _paddingRight = 0;
+        private char _previewCharacter = 'A';
         private string _fontFamily = "Arial";
         private float _fontSize = 24;
         private bool _bold = false;
@@ -35,13 +36,13 @@ namespace Kuriimu2.Dialogs.ViewModels
         public string Error { get; set; } = string.Empty;
         public IFontAdapter Adapter { get; set; } = null;
 
-        public ImageSource PreviewCharacter
+        public ImageSource PreviewCharacterImage
         {
-            get => _previewCharacter;
+            get => _previewCharacterImage;
             set
             {
-                _previewCharacter = value;
-                NotifyOfPropertyChange(() => PreviewCharacter);
+                _previewCharacterImage = value;
+                NotifyOfPropertyChange(() => PreviewCharacterImage);
             }
         }
 
@@ -137,6 +138,17 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         #endregion
 
+        public char PreviewCharacter
+        {
+            get => _previewCharacter;
+            set
+            {
+                _previewCharacter = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => PreviewCharacter);
+            }
+        }
+
         public List<string> GeneratorTypes => new List<string>
         {
             "GDI+",
@@ -213,7 +225,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public int CanvasWidth { get; set; } = 1024;
         public int CanvasHeight { get; set; } = 512;
-        public bool Debug { get; set; } = false;
+        public bool ShowDebugBoxes { get; set; } = false;
 
         #endregion
 
@@ -274,13 +286,23 @@ namespace Kuriimu2.Dialogs.ViewModels
             {
                 Adapter = Adapter,
                 Font = new Font(new FontFamily(FontFamily), FontSize, fs),
+                GlyphMargin = new Kore.Generators.Padding
+                {
+                    Left = MarginLeft,
+                    Top = MarginTop,
+                    Right = MarginRight,
+                    Bottom = MarginBottom
+                },
+                GlyphPadding = new Kore.Generators.Padding
+                {
+                    Left = PaddingLeft,
+                    Top = PaddingTop,
+                    Right = PaddingRight
+                },
                 GlyphHeight = GlyphHeight,
-                GlyphLeftPadding = PaddingLeft,
-                GlyphRightPadding = PaddingRight,
-                GlyphTopPadding = PaddingTop,
-                MaxCanvasWidth = CanvasWidth,
-                MaxCanvasHeight = CanvasHeight,
-                Debug = Debug
+                CanvasWidth = CanvasWidth,
+                CanvasHeight = CanvasHeight,
+                ShowDebugBoxes = ShowDebugBoxes
             };
 
             // Select distinct characters amd sort them.
@@ -309,18 +331,26 @@ namespace Kuriimu2.Dialogs.ViewModels
             {
                 Adapter = Adapter,
                 Font = new Font(new FontFamily(FontFamily), FontSize, fs),
+                GlyphMargin = new Kore.Generators.Padding
+                {
+                    Left = MarginLeft,
+                    Top = MarginTop,
+                    Right = MarginRight,
+                    Bottom = MarginBottom
+                },
+                GlyphPadding = new Kore.Generators.Padding
+                {
+                    Left = PaddingLeft,
+                    Top = PaddingTop,
+                    Right = PaddingRight
+                },
                 GlyphHeight = GlyphHeight,
-                GlyphLeftPadding = PaddingLeft,
-                GlyphRightPadding = PaddingRight,
-                GlyphTopPadding = PaddingTop,
-                MaxCanvasWidth = CanvasWidth,
-                MaxCanvasHeight = CanvasHeight,
-                Debug = true
+                CanvasWidth = CanvasWidth,
+                CanvasHeight = CanvasHeight,
+                ShowDebugBoxes = ShowDebugBoxes
             };
 
-            bfg.Preview('A').Save("C:\\test.png", ImageFormat.Png);
-
-            PreviewCharacter = bfg.Preview('A').ToBitmapImage();
+            PreviewCharacterImage = bfg.Preview(_previewCharacter).ToBitmapImage();
         }
 
         public void CloseButton()
