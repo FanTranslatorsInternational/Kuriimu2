@@ -157,22 +157,22 @@ namespace Komponent.IO
         public override float ReadSingle()
         {
             ResetBuffer();
-
-            return base.ReadSingle();
+            
+            return ByteOrder == ByteOrder.LittleEndian ? base.ReadSingle() : BitConverter.ToSingle(ReadBytes(4).Reverse().ToArray(), 0);
         }
 
         public override double ReadDouble()
         {
             ResetBuffer();
 
-            return base.ReadDouble();
+            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDouble() : BitConverter.ToDouble(ReadBytes(8).Reverse().ToArray(), 0);
         }
 
         public override decimal ReadDecimal()
         {
             ResetBuffer();
 
-            return base.ReadDecimal();
+            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : BitConverterExt.ToDecimal(ReadBytes(16).Reverse().ToArray());
         }
 
         #endregion

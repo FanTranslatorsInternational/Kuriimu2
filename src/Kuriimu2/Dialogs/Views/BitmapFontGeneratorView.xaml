@@ -18,7 +18,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Image Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Top" Margin="8, 8, 16, 0" />
+        <Image Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Top" Margin="8 8 16 0" />
 
         <StackPanel Grid.Column="1" Grid.Row="0">
             <Label Content="Margins &amp; Padding" HorizontalAlignment="Center" Margin="0 0 0 8" />
@@ -91,7 +91,7 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2" Grid.Row="0" Margin="8 0 0 0">
-            <Label Content="Generator Settings:" Margin="0, 0, 0, 8" />
+            <Label Content="Generator Settings:" Margin="0 0 0 8" />
 
             <Grid>
                 <Grid.Resources>

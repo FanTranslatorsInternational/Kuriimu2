@@ -185,7 +185,10 @@ namespace Komponent.IO
             if (_bitPosition > 0)
                 FlushBuffer();
 
-            base.Write(value);
+            if (ByteOrder == ByteOrder.LittleEndian)
+                base.Write(value);
+            else
+                base.Write(BitConverter.GetBytes(value).Reverse().ToArray());
         }
 
         public override void Write(double value)
@@ -193,7 +196,10 @@ namespace Komponent.IO
             if (_bitPosition > 0)
                 FlushBuffer();
 
-            base.Write(value);
+            if (ByteOrder == ByteOrder.LittleEndian)
+                base.Write(value);
+            else
+                base.Write(BitConverter.GetBytes(value).Reverse().ToArray());
         }
 
         public override void Write(decimal value)
@@ -201,7 +207,10 @@ namespace Komponent.IO
             if (_bitPosition > 0)
                 FlushBuffer();
 
-            base.Write(value);
+            if (ByteOrder == ByteOrder.LittleEndian)
+                base.Write(value);
+            else
+                base.Write(BitConverterExt.GetBytes(value).Reverse().ToArray());
         }
 
         #endregion
