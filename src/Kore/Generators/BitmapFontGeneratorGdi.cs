@@ -128,10 +128,10 @@ namespace Kore.Generators
                     var fc = add.NewCharacter();
                     fc.Character = character;
                     fc.TextureID = Adapter.Textures.IndexOf(img);
-                    fc.GlyphX = glyphPos.X;
-                    fc.GlyphY = glyphPos.Y;
-                    fc.GlyphWidth = glyphDim.Width;
-                    fc.GlyphHeight = glyphDim.Height;
+                    fc.GlyphX = charPos.X;
+                    fc.GlyphY = charPos.Y;
+                    fc.GlyphWidth = charDim.Width;
+                    fc.GlyphHeight = charDim.Height;
                     add.AddCharacter(fc);
                 }
 
@@ -151,7 +151,6 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             var glyphPos = new Point(0, 0);
-            var color = Color.Red;
             var cstr = c.ToString();
 
             // Get Bounds
