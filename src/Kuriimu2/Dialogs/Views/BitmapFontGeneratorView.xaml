@@ -36,11 +36,11 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">
-                    <TextBox Text="{Binding MarginLeft, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                    <TextBox Text="{Binding MarginLeft, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Grid.Row="0">
-                    <TextBox Text="{Binding MarginTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                    <TextBox Text="{Binding MarginTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                 </StackPanel>
 
                 <Grid Grid.Column="1" Grid.Row="1" Background="DarkGray">
@@ -56,11 +56,11 @@
                     </Grid.RowDefinitions>
 
                     <StackPanel Grid.Column="0" Grid.Row="1" VerticalAlignment="Center">
-                        <TextBox Text="{Binding PaddingLeft, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                        <TextBox Text="{Binding PaddingLeft, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom">
-                        <TextBox Text="{Binding PaddingTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                        <TextBox Text="{Binding PaddingTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                     </StackPanel>
 
                     <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black">
@@ -72,20 +72,20 @@
                     </Border>
 
                     <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">
-                        <TextBox Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                        <TextBox Text="{Binding PaddingRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Grid.Row="2">
-                        <TextBox Text="{Binding PreviewCharacter, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="5" MaxLength="1" />
+                        <TextBox Text="{Binding PreviewCharacter, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="4" MaxLength="1" />
                     </StackPanel>
                 </Grid>
 
                 <StackPanel Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">
-                    <TextBox Text="{Binding MarginRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                    <TextBox Text="{Binding MarginRight, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Grid.Row="2">
-                    <TextBox Text="{Binding MarginBottom, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="25" Margin="5" />
+                    <TextBox Text="{Binding MarginBottom, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                 </StackPanel>
             </Grid>
         </StackPanel>
@@ -164,7 +164,7 @@
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
                     <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="100" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="  0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
                 <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
