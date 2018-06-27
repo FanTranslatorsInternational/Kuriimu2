@@ -44,4 +44,11 @@ namespace Kontract.Attributes
             MaxLength = maxLength;
         }
     }
+
+    /// <inheritdoc />
+    /// <summary>
+    /// Marker attribute that makes fields invisible to the property editor.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class FormFieldIgnoreAttribute : Attribute { }
 }

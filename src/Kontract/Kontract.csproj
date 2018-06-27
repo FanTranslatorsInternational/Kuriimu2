@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
-    <Compile Include="Attributes\FormFieldAttribute.cs" />
+    <Compile Include="Attributes\FormFieldAttributes.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\IIdentifyFiles.cs" />

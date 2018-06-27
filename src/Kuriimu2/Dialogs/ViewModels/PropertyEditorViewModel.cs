@@ -5,15 +5,14 @@ using System.Reflection;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Attributes;
-using Kontract.Interfaces;
 using Kuriimu2.Dialogs.Common;
 
 namespace Kuriimu2.Dialogs.ViewModels
 {
-    public sealed class PropertyEditorViewModel : Screen
+    public sealed class PropertyEditorViewModel<T> : Screen
     {
-        private FontCharacter _character;
-        private DialogMode _mode  = DialogMode.Edit;
+        private T _object;
+        private DialogMode _mode = DialogMode.Edit;
 
         public string Title { get; set; } = "Edit Character";
         public BitmapImage Icon { get; private set; }
@@ -29,32 +28,33 @@ namespace Kuriimu2.Dialogs.ViewModels
                 _mode = value;
 
                 if (value == DialogMode.Add)
-                    Icon = new BitmapImage( new Uri("pack://application:,,,/Images/menu-add.png"));
+                    Icon = new BitmapImage(new Uri("pack://application:,,,/Images/menu-add.png"));
                 else if (value == DialogMode.Edit)
                     Icon = new BitmapImage(new Uri("pack://application:,,,/Images/menu-edit.png"));
             }
         }
 
-        public FontCharacter Character
+        public T Object
         {
-            get => _character;
+            get => _object;
             set
             {
-                _character = value;
+                _object = value;
 
                 Fields = new Dictionary<string, DynaField>();
-                var props = _character.GetType().GetProperties().ToList();
+                var props = _object.GetType().GetProperties().ToList();
 
                 foreach (var prop in props)
                 {
-                    var ft = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
+                    var ff = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
+                    if ((FormFieldIgnoreAttribute)prop.GetCustomAttribute(typeof(FormFieldIgnoreAttribute)) != null) continue;
+
                     var df = new DynaField
                     {
-                        Label = (ft?.DisplayName ?? prop.Name) + " :",
-                        Value = ft != null ? Convert.ChangeType(prop.GetValue(_character), ft.Type) : prop.GetValue(_character),
-                        MaxLength = ft?.MaxLength ?? 0
+                        Label = (ff?.DisplayName ?? prop.Name) + " :",
+                        Value = ff != null ? Convert.ChangeType(prop.GetValue(_object), ff.Type) : prop.GetValue(_object),
+                        MaxLength = ff?.MaxLength ?? 0
                     };
-
                     Fields.Add(prop.Name, df);
                 }
                 NotifyOfPropertyChange(() => Fields);
@@ -65,21 +65,17 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public Dictionary<string, DynaField> Fields { get; private set; }
 
-        public PropertyEditorViewModel()
-        {
-            Mode = DialogMode.Edit;
-        }
-
         public void OKButton()
         {
-            var props = _character.GetType().GetProperties().ToList();
+            var props = _object.GetType().GetProperties().ToList();
 
             foreach (var prop in props)
             {
-                var ft = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
-                var df = Fields[prop.Name];
+                var ff = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
+                if ((FormFieldIgnoreAttribute)prop.GetCustomAttribute(typeof(FormFieldIgnoreAttribute)) != null) continue;
 
-                prop.SetValue(_character, ft != null ? Convert.ChangeType(df.Value, ft.Type) : df.Value);
+                var df = Fields[prop.Name];
+                prop.SetValue(_object, ff != null ? Convert.ChangeType(df.Value, ff.Type) : df.Value);
             }
 
             if (ValidationCallback != null)

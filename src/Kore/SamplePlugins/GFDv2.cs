@@ -136,7 +136,7 @@ namespace Kore.SamplePlugins
             public int FontSize;
             public int FontTexCount;
             public int CharacterCount;
-            public int Unk3;
+            public int Unknown1;
             public int FCount;
             public float MaxCharWidth;
             public float MaxCharHeight;

@@ -124,6 +124,24 @@ namespace Kuriimu2.ViewModels
             SelectedCharacter = Characters.First();
         }
 
+        public void FontProperties()
+        {
+            if (!(_adapter is IFontAdapter fnt)) return;
+
+            var pe = new PropertyEditorViewModel<IFontAdapter>
+            {
+                Title = $"Font Properties",
+                Message = "Properties:",
+                Object = _adapter
+            };
+            _windows.Add(pe);
+
+            if (_wm.ShowDialog(pe) == true)
+            {
+                KoreFile.HasChanges = true;
+            }
+        }
+
         #region Character Management
 
         public bool AddEnabled => _adapter is IAddCharacters;
@@ -145,12 +163,12 @@ namespace Kuriimu2.ViewModels
             character.GlyphWidth = SelectedCharacter.GlyphWidth;
             character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            var pe = new PropertyEditorViewModel
+            var pe = new PropertyEditorViewModel<FontCharacter>
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
                 Message = "New character attributes:",
-                Character = character,
+                Object = character,
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = _adapter.Characters.All(c => c.Character != character.Character),
@@ -178,11 +196,11 @@ namespace Kuriimu2.ViewModels
             // Clone the selected character so that changes don't propagate to the plugin
             var clonedCharacter = (FontCharacter)SelectedCharacter.Clone();
 
-            var pe = new PropertyEditorViewModel
+            var pe = new PropertyEditorViewModel<FontCharacter>
             {
                 Title = "Edit Character",
                 Message = "Edit character attributes:",
-                Character = clonedCharacter,
+                Object = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = clonedCharacter.Character == SelectedCharacter.Character,
