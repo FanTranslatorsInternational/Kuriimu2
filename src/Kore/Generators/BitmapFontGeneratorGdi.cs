@@ -4,8 +4,12 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
 using Kontract.Interfaces;
 
 namespace Kore.Generators
@@ -19,8 +23,8 @@ namespace Kore.Generators
         public Padding GlyphMargin { get; set; }
         public Padding GlyphPadding { get; set; }
 
-        public int GlyphHeight { get; set; } = 50;
-        public int CanvasWidth { get; set; } = 1024;
+        public int GlyphHeight { get; set; } = 36;
+        public int CanvasWidth { get; set; } = 512;
         public int CanvasHeight { get; set; } = 512;
         public bool ShowDebugBoxes { get; set; } = false;
 
@@ -203,6 +207,71 @@ namespace Kore.Generators
             gfx.DrawRectangle(new Pen(Color.FromArgb(200, 255, 255, 0), 1), new Rectangle(glyphPos.X, glyphPos.Y, glyphDim.Width - 1, glyphDim.Height - 1));
 
             return img;
+        }
+    }
+
+    [XmlRoot("profile")]
+    public class BitmapFontGeneratorGdiProfile
+    {
+        [XmlElement("fontFamily")]
+        public string FontFamily { get; set; } = "Arial";
+
+        [XmlElement("fontSize")]
+        public float FontSize { get; set; } = 24;
+
+        [XmlElement("bold")]
+        public bool Bold { get; set; }
+
+        [XmlElement("italic")]
+        public bool Italic { get; set; }
+
+        [XmlElement("padding")]
+        public Padding GlyphMargin { get; set; }
+
+        [XmlElement("margin")]
+        public Padding GlyphPadding { get; set; }
+
+        [XmlElement("glyphHeight")]
+        public int GlyphHeight { get; set; } = 36;
+
+        [XmlElement("canvasWidth")]
+        public int CanvasWidth { get; set; } = 512;
+
+        [XmlElement("canvasHeight")]
+        public int CanvasHeight { get; set; } = 512;
+
+        [XmlElement("showDebugBoxes")]
+        public bool ShowDebugBoxes { get; set; }
+
+        public static BitmapFontGeneratorGdiProfile Load(string filename)
+        {
+            var xmlSettings = new XmlReaderSettings {CheckCharacters = false};
+
+            using (var fs = File.OpenRead(filename))
+            {
+                return (BitmapFontGeneratorGdiProfile)new XmlSerializer(typeof(BitmapFontGeneratorGdiProfile)).Deserialize(XmlReader.Create(fs, xmlSettings));
+            }
+        }
+
+        public void Save(string filename)
+        {
+            var xmlSettings = new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8,
+                Indent = true,
+                NewLineOnAttributes = false,
+                NewLineHandling = NewLineHandling.Entitize,
+                IndentChars = "	",
+                CheckCharacters = false
+            };
+
+            using (var xmlIO = new StreamWriter(filename, false, xmlSettings.Encoding))
+            {
+                var serializer = new XmlSerializer(typeof(BitmapFontGeneratorGdiProfile));
+                var namespaces = new XmlSerializerNamespaces();
+                namespaces.Add(string.Empty, string.Empty);
+                serializer.Serialize(XmlWriter.Create(xmlIO, xmlSettings), this, namespaces);
+            }
         }
     }
 }

@@ -8,8 +8,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kore.Generators;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Tools;
+using Microsoft.Win32;
 using Action = System.Action;
 using FontFamily = System.Drawing.FontFamily;
 
@@ -17,6 +19,8 @@ namespace Kuriimu2.Dialogs.ViewModels
 {
     public sealed class BitmapFontGeneratorViewModel : Screen
     {
+        private const string _profileFilter = "Bitmap Font Generator Profile (*.bfgp)|*.bfgp";
+
         private ImageSource _previewCharacterImage;
         private int _marginLeft = 0;
         private int _marginTop = 0;
@@ -282,10 +286,19 @@ namespace Kuriimu2.Dialogs.ViewModels
             if (Italic)
                 fs ^= FontStyle.Italic;
 
+            var ff = new FontFamily(FontFamily);
+
+            if (!ff.IsStyleAvailable(FontStyle.Regular) && (fs & FontStyle.Regular) != 0)
+                fs ^= FontStyle.Regular;
+            if (!ff.IsStyleAvailable(FontStyle.Bold) && (fs & FontStyle.Bold) != 0)
+                fs ^= FontStyle.Bold;
+            if (!ff.IsStyleAvailable(FontStyle.Italic) && (fs & FontStyle.Italic) != 0)
+                fs ^= FontStyle.Italic;
+
             var bfg = new Kore.Generators.BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
-                Font = new Font(new FontFamily(FontFamily), FontSize, fs),
+                Font = new Font(ff, FontSize, fs),
                 GlyphMargin = new Kore.Generators.Padding
                 {
                     Left = MarginLeft,
@@ -327,10 +340,19 @@ namespace Kuriimu2.Dialogs.ViewModels
             if (Italic)
                 fs ^= FontStyle.Italic;
 
+            var ff = new FontFamily(FontFamily);
+
+            if (!ff.IsStyleAvailable(FontStyle.Regular) && (fs & FontStyle.Regular) != 0)
+                fs ^= FontStyle.Regular;
+            if (!ff.IsStyleAvailable(FontStyle.Bold) && (fs & FontStyle.Bold) != 0)
+                fs ^= FontStyle.Bold;
+            if (!ff.IsStyleAvailable(FontStyle.Italic) && (fs & FontStyle.Italic) != 0)
+                fs ^= FontStyle.Italic;
+
             var bfg = new Kore.Generators.BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
-                Font = new Font(new FontFamily(FontFamily), FontSize, fs),
+                Font = new Font(ff, FontSize, fs),
                 GlyphMargin = new Kore.Generators.Padding
                 {
                     Left = MarginLeft,
@@ -351,6 +373,66 @@ namespace Kuriimu2.Dialogs.ViewModels
             };
 
             PreviewCharacterImage = bfg.Preview(_previewCharacter).ToBitmapImage();
+        }
+
+        public void LoadProfileButton()
+        {
+            var ofd = new OpenFileDialog {FileName = "", Filter = _profileFilter};
+            if (ofd.ShowDialog() != true) return;
+
+            var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
+            
+            FontFamily = profile.FontFamily;
+            FontSize = profile.FontSize;
+            Bold = profile.Bold;
+            Italic = profile.Italic;
+
+            MarginLeft = profile.GlyphMargin.Left;
+            MarginTop = profile.GlyphMargin.Top;
+            MarginRight = profile.GlyphMargin.Right;
+            MarginBottom = profile.GlyphMargin.Bottom;
+
+            PaddingLeft = profile.GlyphPadding.Left;
+            PaddingTop = profile.GlyphPadding.Top;
+            PaddingRight = profile.GlyphPadding.Right;
+            
+            GlyphHeight = GlyphHeight;
+            CanvasWidth = CanvasWidth;
+            CanvasHeight = CanvasHeight;
+            ShowDebugBoxes = ShowDebugBoxes;
+        }
+
+        public void SaveProfileButton()
+        {
+            var sfd = new SaveFileDialog { FileName = "", Filter = _profileFilter };
+            if (sfd.ShowDialog() != true) return;
+
+            var profile = new BitmapFontGeneratorGdiProfile
+            {
+                FontFamily = FontFamily,
+                FontSize = FontSize,
+                Bold = Bold,
+                Italic = Italic,
+                GlyphMargin = new Padding
+                {
+                    Left = MarginLeft,
+                    Top = MarginTop,
+                    Right = MarginRight,
+                    Bottom = MarginBottom
+                },
+                GlyphPadding = new Padding
+                {
+                    Left = PaddingLeft,
+                    Top = PaddingTop,
+                    Right = PaddingRight,
+                },
+                GlyphHeight = GlyphHeight,
+                CanvasWidth = CanvasWidth,
+                CanvasHeight = CanvasHeight,
+                ShowDebugBoxes = ShowDebugBoxes
+            };
+
+            profile.Save(sfd.FileName);
         }
 
         public void CloseButton()

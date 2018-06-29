@@ -1,5 +1,8 @@
-﻿namespace Kore.Generators
+﻿using System;
+
+namespace Kore.Generators
 {
+    [Serializable]
     public class Padding
     {
         public int Left { get; set; }
