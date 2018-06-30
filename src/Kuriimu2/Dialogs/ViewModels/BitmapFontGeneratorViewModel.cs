@@ -32,7 +32,7 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _zoomLevel = 5;
         private string _fontFamily = "Arial";
         private float _fontSize = 24;
-        private int _baseline = 30;
+        private float _baseline = 30;
         private int _glyphHeight = 36;
         private bool _bold;
         private bool _italic;
@@ -197,7 +197,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        public int Baseline
+        public float Baseline
         {
             get => _baseline;
             set
@@ -260,6 +260,11 @@ namespace Kuriimu2.Dialogs.ViewModels
         public BitmapFontGeneratorViewModel()
         {
             Icon = new BitmapImage(new Uri("pack://application:,,,/Images/icon-text-page.png"));
+        }
+
+        protected override void OnActivate()
+        {
+            base.OnActivate();
             UpdatePreview();
         }
 
@@ -335,7 +340,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 ShowDebugBoxes = ShowDebugBoxes
             };
 
-            // Select distinct characters amd sort them.
+            // Select distinct characters and sort them.
             var chars = Characters.Distinct().Select(c => (ushort)c).ToList();
             chars.Sort();
             bfg.Generate(chars);
@@ -387,15 +392,15 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public void LoadProfileButton()
         {
-            var ofd = new OpenFileDialog {FileName = "", Filter = _profileFilter};
+            var ofd = new OpenFileDialog { FileName = "", Filter = _profileFilter };
             if (ofd.ShowDialog() != true) return;
 
             var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
-            
+
             FontFamily = profile.FontFamily;
             FontSize = profile.FontSize;
-            Baseline = Baseline;
-            GlyphHeight = GlyphHeight;
+            Baseline = profile.Baseline;
+            GlyphHeight = profile.GlyphHeight;
             Bold = profile.Bold;
             Italic = profile.Italic;
 
@@ -407,10 +412,10 @@ namespace Kuriimu2.Dialogs.ViewModels
             PaddingLeft = profile.GlyphPadding.Left;
             PaddingTop = profile.GlyphPadding.Top;
             PaddingRight = profile.GlyphPadding.Right;
-            
-            CanvasWidth = CanvasWidth;
-            CanvasHeight = CanvasHeight;
-            ShowDebugBoxes = ShowDebugBoxes;
+
+            CanvasWidth = profile.CanvasWidth;
+            CanvasHeight = profile.CanvasHeight;
+            ShowDebugBoxes = profile.ShowDebugBoxes;
         }
 
         public void SaveProfileButton()

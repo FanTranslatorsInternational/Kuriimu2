@@ -273,6 +273,7 @@ namespace Kuriimu2.ViewModels
             var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
             {
                 Adapter = _adapter,
+                Baseline = _adapter.Baseline,
                 Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
                 CanvasWidth = _adapter.Textures[_selectedCharacter.TextureID].Width,
                 CanvasHeight = _adapter.Textures[_selectedCharacter.TextureID].Height,
