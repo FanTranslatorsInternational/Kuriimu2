@@ -24,6 +24,7 @@ namespace Kore.Generators
         public Padding GlyphPadding { get; set; }
 
         public int GlyphHeight { get; set; } = 36;
+        public float Baseline { get; set; } = 30;
         public int CanvasWidth { get; set; } = 512;
         public int CanvasHeight { get; set; } = 512;
         public bool ShowDebugBoxes { get; set; } = false;
@@ -55,37 +56,30 @@ namespace Kore.Generators
             gfx.PixelOffsetMode = PixelOffsetMode.Default;
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
-            var glyphPos = new Point(0, 0);
+            var baseline = Baseline + +GlyphMargin.Top;
+            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+
+            var imagePos = new Point(0, 0);
             var color = Color.FromArgb(180, 255, 0, 0);
             foreach (var character in characters.Distinct())
             {
                 var c = (char)character;
                 var cstr = c.ToString();
 
-                // Get Bounds
-                var size = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault) : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic);
-                var charDim = new Size((int)Math.Ceiling(size.Width), GlyphHeight);
-                var glyphDim = new Size(charDim.Width, charDim.Height);
+                var measuredWidth = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault).Width : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic).Width;
 
-                var cat = char.GetUnicodeCategory(c);
-                if (cat == UnicodeCategory.OtherLetter || c == '　')
-                    glyphDim.Width = glyphDim.Height;
-                else
-                    glyphDim.Width += GlyphPadding.Left + GlyphPadding.Right;
+                var charPos = new Point(0, 0);
+                var charDim = new Size((int)Math.Ceiling(measuredWidth), GlyphHeight);
 
-                // Margin
-                glyphDim.Width += GlyphMargin.Left + GlyphMargin.Right;
-                glyphDim.Height += GlyphMargin.Top + GlyphMargin.Bottom;
-
-                // Line Change
-                if (glyphPos.X + glyphDim.Width >= CanvasWidth)
+                // New Line/Page
+                if (imagePos.X + charDim.Width + GlyphMargin.Left + GlyphMargin.Right + GlyphPadding.Left + GlyphPadding.Right >= CanvasWidth)
                 {
-                    glyphPos.X = 0;
-                    glyphPos.Y += glyphDim.Height;
+                    imagePos.X = 0;
+                    imagePos.Y += charDim.Height + GlyphMargin.Top + GlyphMargin.Bottom;
 
-                    if (glyphPos.Y + glyphDim.Height >= CanvasHeight)
+                    if (imagePos.Y + charDim.Height + GlyphMargin.Top + GlyphMargin.Bottom >= CanvasHeight)
                     {
-                        glyphPos.Y = 0;
+                        imagePos.Y = 0;
                         img = new Bitmap(CanvasWidth, CanvasHeight);
                         gfx = Graphics.FromImage(img);
                         gfx.SmoothingMode = SmoothingMode.None;
@@ -96,35 +90,53 @@ namespace Kore.Generators
                     }
                 }
 
+                var glyphPos = new Point(imagePos.X + GlyphMargin.Left, imagePos.Y + GlyphMargin.Top);
+                var glyphDim = new Size(charDim.Width + GlyphPadding.Left + GlyphPadding.Right, charDim.Height);
+
+                var imageDim = new Size(glyphDim.Width + GlyphMargin.Left + GlyphMargin.Right, glyphDim.Height + GlyphMargin.Top + GlyphMargin.Bottom);
+
+                //var cat = char.GetUnicodeCategory(c);
+                //if (cat == UnicodeCategory.OtherLetter || c == '　')
+                //    glyphDim.Width = glyphDim.Height;
+                //else
+                //    glyphDim.Width += GlyphPadding.Left + GlyphPadding.Right;
+
                 // Calculate Glyph Centering | Margin & Padding
-                var charPos = new Point(glyphPos.X, glyphPos.Y);
-                if (cat == UnicodeCategory.OtherLetter)
-                    charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
-                else
-                    charPos.X += GlyphMargin.Left + GlyphPadding.Left;
+                //var charPos = new Point(glyphPos.X, glyphPos.Y);
+                //if (cat == UnicodeCategory.OtherLetter)
+                //    charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
+                //else
+                //    charPos.X += GlyphMargin.Left + GlyphPadding.Left;
 
-                charPos.Y += GlyphMargin.Top + GlyphPadding.Top;
-
-                // Draw Character
-                gfx.DrawString(cstr, Font, new SolidBrush(Color.White), new PointF(charPos.X, charPos.Y), StringFormat.GenericTypographic);
+                charPos.X = imagePos.X + GlyphMargin.Left + GlyphPadding.Left;
+                charPos.Y = imagePos.Y + GlyphMargin.Top;
 
                 if (ShowDebugBoxes)
                 {
                     color = color == Color.FromArgb(180, 255, 0, 0) ? Color.FromArgb(180, 0, 0, 0) : Color.FromArgb(180, 255, 0, 0);
 
-                    // Disable Padding
-                    if (cat == UnicodeCategory.OtherLetter)
-                    {
-                        charPos.X = glyphPos.X;
-                        charDim.Width = glyphDim.Width;
-                    }
+                    //// Disable Padding
+                    //if (cat == UnicodeCategory.OtherLetter)
+                    //{
+                    //    charPos.X = glyphPos.X;
+                    //    charDim.Width = glyphDim.Width;
+                    //}
 
-                    // Glyph Box
-                    gfx.DrawRectangle(new Pen(Color.FromArgb(100, 0, 0, 0), 1), new Rectangle(glyphPos.X, glyphPos.Y, glyphDim.Width - 1, glyphDim.Height - 1));
+                    // Image Box
+                    gfx.DrawRectangle(new Pen(Color.FromArgb(80, 0, 0, 0), 1), new Rectangle(imagePos.X, imagePos.Y, imageDim.Width - 1, imageDim.Height - 1));
+
+                    // Baseline
+                    gfx.DrawLine(new Pen(Color.FromArgb(100, 255, 255, 255)), new PointF(imagePos.X, imagePos.Y + baseline), new PointF(imagePos.X + imageDim.Width - 1, imagePos.Y + baseline));
 
                     // Character Box
-                    gfx.DrawRectangle(new Pen(color, 1), new Rectangle(glyphPos.X + GlyphMargin.Left, glyphPos.Y + GlyphMargin.Top, glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right - 1, glyphDim.Height - GlyphMargin.Top - GlyphMargin.Bottom - 1));
+                    gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 255, 0), 1), new Rectangle(charPos.X, glyphPos.Y, charDim.Width - 1, charDim.Height - 1));
+
+                    // Glyph Box
+                    gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 0, 0), 1), new Rectangle(glyphPos.X, glyphPos.Y, glyphDim.Width - 1, glyphDim.Height - 1));
                 }
+
+                // Draw Character
+                gfx.DrawString(cstr, Font, new SolidBrush(Color.White), new PointF(charPos.X, charPos.Y + baselineOffsetPixels + 0.475f), StringFormat.GenericTypographic);
 
                 // Add Character
                 if (Adapter is IAddCharacters add)
@@ -139,8 +151,8 @@ namespace Kore.Generators
                     add.AddCharacter(fc);
                 }
 
-                // Next X
-                glyphPos.X += glyphDim.Width;
+                // Next
+                imagePos.X += imageDim.Width;
             }
         }
 
@@ -154,27 +166,31 @@ namespace Kore.Generators
             gfx.PixelOffsetMode = PixelOffsetMode.Default;
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
-            var glyphPos = new Point(0, 0);
+            var baseline = Baseline + +GlyphMargin.Top;
+            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+
             var cstr = c.ToString();
 
-            // Get Bounds
-            var size = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault) : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic);
-            var charDim = new Size((int)Math.Ceiling(size.Width), GlyphHeight);
-            var glyphDim = new Size(charDim.Width, charDim.Height);
+            var measuredWidth = Regex.IsMatch(cstr, @"\s") ? gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericDefault).Width : gfx.MeasureString(cstr, Font, new SizeF(1000, 1000), StringFormat.GenericTypographic).Width;
+
+            var charPos = new Point(0, 0);
+            var charDim = new Size((int)Math.Ceiling(measuredWidth), GlyphHeight);
+
+            var glyphPos = new Point(GlyphMargin.Left, GlyphMargin.Top);
+            var glyphDim = new Size(charDim.Width + GlyphPadding.Left + GlyphPadding.Right, charDim.Height);
+
+            var imageDim = new Size(glyphDim.Width + GlyphMargin.Left + GlyphMargin.Right, glyphDim.Height + GlyphMargin.Top + GlyphMargin.Bottom);
+            if (imageDim.Width == 0 || imageDim.Height == 0) return null;
 
             // Adjust Glyph Dimensions
-            var cat = char.GetUnicodeCategory(c);
-            if (cat == UnicodeCategory.OtherLetter || c == '　')
-                glyphDim.Width = glyphDim.Height;
-            else
-                glyphDim.Width += GlyphPadding.Left + GlyphPadding.Right;
-
-            // Margin
-            glyphDim.Width += GlyphMargin.Left + GlyphMargin.Right;
-            glyphDim.Height += GlyphMargin.Top + GlyphMargin.Bottom;
+            //var cat = char.GetUnicodeCategory(c);
+            //if (cat == UnicodeCategory.OtherLetter || c == '　')
+            //    glyphDim.Width = glyphDim.Height;
+            //else
+            //    glyphDim.Width += GlyphPadding.Left + GlyphPadding.Right;
 
             // Reset the Bitmap
-            img = new Bitmap(glyphDim.Width, glyphDim.Height);
+            img = new Bitmap(imageDim.Width, imageDim.Height);
             gfx = Graphics.FromImage(img);
             gfx.SmoothingMode = SmoothingMode.None;
             gfx.InterpolationMode = InterpolationMode.Bicubic;
@@ -182,29 +198,34 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             // Calculate Glyph Centering | Margin & Padding
-            var charPos = new Point(glyphPos.X, glyphPos.Y);
-            if (cat == UnicodeCategory.OtherLetter)
-                charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
-            else
-                charPos.X += GlyphMargin.Left + GlyphPadding.Left;
+            //if (cat == UnicodeCategory.OtherLetter)
+            //    charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
+            //else
 
-            charPos.Y += GlyphMargin.Top + GlyphPadding.Top;
+            charPos.X += GlyphMargin.Left + GlyphPadding.Left;
+            charPos.Y += GlyphMargin.Top; /* + GlyphPadding.Top;*/
 
-            // Draw Character
-            gfx.DrawString(cstr, Font, new SolidBrush(Color.White), new PointF(charPos.X, charPos.Y), StringFormat.GenericTypographic);
+            //// Disable Padding
+            //if (cat == UnicodeCategory.OtherLetter)
+            //{
+            //    charPos.X = glyphPos.X;
+            //    charDim.Width = glyphDim.Width;
+            //}
 
-            // Disable Padding
-            if (cat == UnicodeCategory.OtherLetter)
-            {
-                charPos.X = glyphPos.X;
-                charDim.Width = glyphDim.Width;
-            }
+            // Image Box
+            gfx.DrawRectangle(new Pen(Color.FromArgb(80, 0, 0, 0), 1), new Rectangle(0, 0, imageDim.Width - 1, imageDim.Height - 1));
+
+            // Baseline
+            gfx.DrawLine(new Pen(Color.FromArgb(100, 255, 255, 255)), new PointF(0, baseline), new PointF(imageDim.Width, baseline));
 
             // Character Box
-            gfx.DrawRectangle(new Pen(Color.FromArgb(200, 255, 0, 0), 1), new Rectangle(charPos.X - GlyphPadding.Left, charPos.Y - GlyphPadding.Top, charDim.Width + GlyphPadding.Left + GlyphPadding.Right - 1, charDim.Height - 1));
+            gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 255, 0), 1), new Rectangle(charPos.X, glyphPos.Y, charDim.Width - 1, charDim.Height - 1));
 
             // Glyph Box
-            gfx.DrawRectangle(new Pen(Color.FromArgb(200, 255, 255, 0), 1), new Rectangle(glyphPos.X, glyphPos.Y, glyphDim.Width - 1, glyphDim.Height - 1));
+            gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 0, 0), 1), new Rectangle(glyphPos.X, glyphPos.Y, glyphDim.Width - 1, glyphDim.Height - 1));
+
+            // Draw Character
+            gfx.DrawString(cstr, Font, new SolidBrush(Color.White), new PointF(charPos.X, charPos.Y + baselineOffsetPixels + 0.475f), StringFormat.GenericTypographic);
 
             return img;
         }
@@ -219,6 +240,12 @@ namespace Kore.Generators
         [XmlElement("fontSize")]
         public float FontSize { get; set; } = 24;
 
+        [XmlElement("baseline")]
+        public float Baseline { get; set; } = 30;
+
+        [XmlElement("glyphHeight")]
+        public int GlyphHeight { get; set; } = 36;
+
         [XmlElement("bold")]
         public bool Bold { get; set; }
 
@@ -231,9 +258,6 @@ namespace Kore.Generators
         [XmlElement("margin")]
         public Padding GlyphPadding { get; set; }
 
-        [XmlElement("glyphHeight")]
-        public int GlyphHeight { get; set; } = 36;
-
         [XmlElement("canvasWidth")]
         public int CanvasWidth { get; set; } = 512;
 
@@ -245,7 +269,7 @@ namespace Kore.Generators
 
         public static BitmapFontGeneratorGdiProfile Load(string filename)
         {
-            var xmlSettings = new XmlReaderSettings {CheckCharacters = false};
+            var xmlSettings = new XmlReaderSettings { CheckCharacters = false };
 
             using (var fs = File.OpenRead(filename))
             {

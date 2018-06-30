@@ -37,15 +37,15 @@ namespace Kore.XFont
 
         public List<Bitmap> Textures { get; set; }
 
-        public float BaseLine
+        public float Baseline
         {
             get
             {
-                return _xf.Header.BaseLine;
+                return _xf.Header.Baseline;
             }
             set
             {
-                _xf.Header.BaseLine = (int)value;
+                _xf.Header.Baseline = (int)value;
             }
         }
 

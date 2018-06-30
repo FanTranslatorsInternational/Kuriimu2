@@ -142,16 +142,16 @@ namespace Kore.SamplePlugins
         }
 
         [FormField(typeof(float), "Base Line")]
-        public float BaseLine
+        public float Baseline
         {
             get
             {
                 switch (_version)
                 {
                     case 1:
-                        return _gfdv1.Header.BaseLine;
+                        return _gfdv1.Header.Baseline;
                     case 2:
-                        return _gfdv2.Header.BaseLine;
+                        return _gfdv2.Header.Baseline;
                     default:
                         return 0;
                 }
@@ -161,10 +161,10 @@ namespace Kore.SamplePlugins
                 switch (_version)
                 {
                     case 1:
-                        _gfdv1.Header.BaseLine = value;
+                        _gfdv1.Header.Baseline = value;
                         break;
                     case 2:
-                        _gfdv2.Header.BaseLine = value;
+                        _gfdv2.Header.Baseline = value;
                         break;
                 }
             }

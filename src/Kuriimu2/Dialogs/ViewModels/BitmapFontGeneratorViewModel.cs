@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Media;
@@ -22,19 +21,21 @@ namespace Kuriimu2.Dialogs.ViewModels
         private const string _profileFilter = "Bitmap Font Generator Profile (*.bfgp)|*.bfgp";
 
         private ImageSource _previewCharacterImage;
-        private int _marginLeft = 0;
-        private int _marginTop = 0;
-        private int _marginRight = 0;
-        private int _marginBottom = 0;
-        private int _paddingLeft = 0;
-        private int _paddingTop = 0;
-        private int _paddingRight = 0;
+        private int _marginLeft;
+        private int _marginTop;
+        private int _marginRight;
+        private int _marginBottom;
+        private int _paddingLeft;
+        private int _paddingTop;
+        private int _paddingRight;
         private char _previewCharacter = 'A';
+        private int _zoomLevel = 5;
         private string _fontFamily = "Arial";
         private float _fontSize = 24;
-        private bool _bold = false;
-        private bool _italic = false;
+        private int _baseline = 30;
         private int _glyphHeight = 36;
+        private bool _bold;
+        private bool _italic;
 
         public BitmapImage Icon { get; }
         public string Error { get; set; } = string.Empty;
@@ -50,7 +51,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        #region Margin
+        #region Preview
 
         public int MarginLeft
         {
@@ -100,10 +101,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        #endregion
-
-        #region Padding
-
         public int PaddingLeft
         {
             get => _paddingLeft;
@@ -140,8 +137,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        #endregion
-
         public char PreviewCharacter
         {
             get => _previewCharacter;
@@ -152,6 +147,19 @@ namespace Kuriimu2.Dialogs.ViewModels
                 NotifyOfPropertyChange(() => PreviewCharacter);
             }
         }
+
+        public int ZoomLevel
+        {
+            get => _zoomLevel;
+            set
+            {
+                if (value == _zoomLevel) return;
+                _zoomLevel = value;
+                NotifyOfPropertyChange(() => ZoomLevel);
+            }
+        }
+
+        #endregion
 
         public List<string> GeneratorTypes => new List<string>
         {
@@ -189,6 +197,30 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
+        public int Baseline
+        {
+            get => _baseline;
+            set
+            {
+                if (value == _baseline) return;
+                _baseline = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => Baseline);
+            }
+        }
+
+        public int GlyphHeight
+        {
+            get => _glyphHeight;
+            set
+            {
+                if (value == _glyphHeight) return;
+                _glyphHeight = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => GlyphHeight);
+            }
+        }
+
         public bool Bold
         {
             get => _bold;
@@ -215,21 +247,9 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public string Characters { get; set; }
 
-        public int GlyphHeight
-        {
-            get => _glyphHeight;
-            set
-            {
-                if (value == _glyphHeight) return;
-                _glyphHeight = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => GlyphHeight);
-            }
-        }
-
         public int CanvasWidth { get; set; } = 1024;
         public int CanvasHeight { get; set; } = 512;
-        public bool ShowDebugBoxes { get; set; } = false;
+        public bool ShowDebugBoxes { get; set; }
 
         #endregion
 
@@ -242,6 +262,10 @@ namespace Kuriimu2.Dialogs.ViewModels
             Icon = new BitmapImage(new Uri("pack://application:,,,/Images/icon-text-page.png"));
             UpdatePreview();
         }
+
+        public void ZoomOut() => ZoomLevel = Math.Max(ZoomLevel - 1, 1);
+
+        public void ZoomIn() => ZoomLevel = Math.Min(ZoomLevel + 1, 5);
 
         public void GenerateButton()
         {
@@ -279,40 +303,33 @@ namespace Kuriimu2.Dialogs.ViewModels
             if (stop) return;
 
             // Generate
-            var fs = FontStyle.Regular;
-
-            if (Bold)
-                fs ^= FontStyle.Bold;
-            if (Italic)
-                fs ^= FontStyle.Italic;
-
             var ff = new FontFamily(FontFamily);
+            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular : ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold : ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic : FontStyle.Regular;
 
-            if (!ff.IsStyleAvailable(FontStyle.Regular) && (fs & FontStyle.Regular) != 0)
-                fs ^= FontStyle.Regular;
-            if (!ff.IsStyleAvailable(FontStyle.Bold) && (fs & FontStyle.Bold) != 0)
+            if (Bold && ff.IsStyleAvailable(FontStyle.Bold))
                 fs ^= FontStyle.Bold;
-            if (!ff.IsStyleAvailable(FontStyle.Italic) && (fs & FontStyle.Italic) != 0)
+            if (Italic && ff.IsStyleAvailable(FontStyle.Italic))
                 fs ^= FontStyle.Italic;
 
-            var bfg = new Kore.Generators.BitmapFontGeneratorGdi
+            var bfg = new BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
                 Font = new Font(ff, FontSize, fs),
-                GlyphMargin = new Kore.Generators.Padding
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
+                GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
                     Top = MarginTop,
                     Right = MarginRight,
                     Bottom = MarginBottom
                 },
-                GlyphPadding = new Kore.Generators.Padding
+                GlyphPadding = new Padding
                 {
                     Left = PaddingLeft,
                     Top = PaddingTop,
                     Right = PaddingRight
                 },
-                GlyphHeight = GlyphHeight,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -333,40 +350,33 @@ namespace Kuriimu2.Dialogs.ViewModels
         public void UpdatePreview()
         {
             // Generate
-            var fs = FontStyle.Regular;
-
-            if (Bold)
-                fs ^= FontStyle.Bold;
-            if (Italic)
-                fs ^= FontStyle.Italic;
-
             var ff = new FontFamily(FontFamily);
+            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular : ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold : ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic : FontStyle.Regular;
 
-            if (!ff.IsStyleAvailable(FontStyle.Regular) && (fs & FontStyle.Regular) != 0)
-                fs ^= FontStyle.Regular;
-            if (!ff.IsStyleAvailable(FontStyle.Bold) && (fs & FontStyle.Bold) != 0)
+            if (Bold && ff.IsStyleAvailable(FontStyle.Bold))
                 fs ^= FontStyle.Bold;
-            if (!ff.IsStyleAvailable(FontStyle.Italic) && (fs & FontStyle.Italic) != 0)
+            if (Italic && ff.IsStyleAvailable(FontStyle.Italic))
                 fs ^= FontStyle.Italic;
 
-            var bfg = new Kore.Generators.BitmapFontGeneratorGdi
+            var bfg = new BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
                 Font = new Font(ff, FontSize, fs),
-                GlyphMargin = new Kore.Generators.Padding
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
+                GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
                     Top = MarginTop,
                     Right = MarginRight,
                     Bottom = MarginBottom
                 },
-                GlyphPadding = new Kore.Generators.Padding
+                GlyphPadding = new Padding
                 {
                     Left = PaddingLeft,
                     Top = PaddingTop,
                     Right = PaddingRight
                 },
-                GlyphHeight = GlyphHeight,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -384,6 +394,8 @@ namespace Kuriimu2.Dialogs.ViewModels
             
             FontFamily = profile.FontFamily;
             FontSize = profile.FontSize;
+            Baseline = Baseline;
+            GlyphHeight = GlyphHeight;
             Bold = profile.Bold;
             Italic = profile.Italic;
 
@@ -396,7 +408,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             PaddingTop = profile.GlyphPadding.Top;
             PaddingRight = profile.GlyphPadding.Right;
             
-            GlyphHeight = GlyphHeight;
             CanvasWidth = CanvasWidth;
             CanvasHeight = CanvasHeight;
             ShowDebugBoxes = ShowDebugBoxes;
@@ -411,6 +422,8 @@ namespace Kuriimu2.Dialogs.ViewModels
             {
                 FontFamily = FontFamily,
                 FontSize = FontSize,
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
                 Bold = Bold,
                 Italic = Italic,
                 GlyphMargin = new Padding
@@ -424,9 +437,8 @@ namespace Kuriimu2.Dialogs.ViewModels
                 {
                     Left = PaddingLeft,
                     Top = PaddingTop,
-                    Right = PaddingRight,
+                    Right = PaddingRight
                 },
-                GlyphHeight = GlyphHeight,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes

@@ -23,7 +23,7 @@ namespace Kontract.Interfaces
         /// <summary>
         /// Character baseline.
         /// </summary>
-        float BaseLine { get; set; }
+        float Baseline { get; set; }
 
         /// <summary>
         /// Character descent line.

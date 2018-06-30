@@ -58,7 +58,7 @@ namespace Kore.XFont
         {
             [FieldLength(8)]
             public string magic;
-            public int BaseLine;
+            public int Baseline;
             public short DescentLine;
             public short unk3;
             public short unk4;

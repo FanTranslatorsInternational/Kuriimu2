@@ -144,7 +144,7 @@ namespace Kore.SamplePlugins
             /// <summary>
             /// Internally called MaxAscent
             /// </summary>
-            public float BaseLine;
+            public float Baseline;
 
             /// <summary>
             /// Internally called MaxDescent

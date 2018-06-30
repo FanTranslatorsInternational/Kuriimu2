@@ -23,7 +23,7 @@
         <StackPanel Grid.Column="1" Grid.Row="0">
             <Label Content="Margins &amp; Padding" HorizontalAlignment="Center" Margin="0 0 0 8" />
 
-            <Grid Background="LightGray">
+            <Grid Background="LightGray" Margin="0 0 0 8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -60,13 +60,17 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Bottom">
-                        <TextBox Text="{Binding PaddingTop, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
+                        <TextBox Text="{Binding PreviewCharacter, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="4" MaxLength="1" />
                     </StackPanel>
 
                     <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black">
-                        <DockPanel Background="DimGray" MinWidth="80" MinHeight="100">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="True">
-                                <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <DockPanel Background="DimGray">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Top" SnapsToDevicePixels="True">
+                                <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Left" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <Image.LayoutTransform>
+                                        <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"></ScaleTransform>
+                                    </Image.LayoutTransform>
+                                </Image>
                             </Grid>
                         </DockPanel>
                     </Border>
@@ -76,7 +80,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Grid.Row="2">
-                        <TextBox Text="{Binding PreviewCharacter, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="4" MaxLength="1" />
+                        <TextBox Text="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                     </StackPanel>
                 </Grid>
 
@@ -88,6 +92,12 @@
                     <TextBox Text="{Binding MarginBottom, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
                 </StackPanel>
             </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Name="ZoomOut" Content="-" Width="22" Margin="0 0 8 0" />
+                <Label Content="{Binding ZoomLevel}" Margin="0 0 8 0" />
+                <Button Name="ZoomIn" Content="+" Width="22" />
+            </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Grid.Row="0" Margin="8 0 0 0">
@@ -146,29 +156,32 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Label Grid.Column="0" Grid.Row="0">Generator</Label>
                 <Label Grid.Column="0" Grid.Row="1">Font Family</Label>
                 <Label Grid.Column="0" Grid.Row="2">Font Size</Label>
+                <Label Grid.Column="0" Grid.Row="3">Baseline</Label>
+                <Label Grid.Column="0" Grid.Row="4">Glyph Height</Label>
 
-                <Label Grid.Column="0" Grid.Row="4">Characters</Label>
-                <Label Grid.Column="0" Grid.Row="5">Glyph Height</Label>
-                <Label Grid.Column="0" Grid.Row="6">Canvas Width</Label>
-                <Label Grid.Column="0" Grid.Row="7">Canvas Height</Label>
+                <Label Grid.Column="0" Grid.Row="6">Characters</Label>
+                <Label Grid.Column="0" Grid.Row="7">Canvas Width</Label>
+                <Label Grid.Column="0" Grid.Row="8">Canvas Height</Label>
 
                 <ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding GeneratorTypes}" SelectedItem="{Binding Generator}" IsEnabled="False" />
                 <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding FontFamilies}" SelectedItem="{Binding FontFamily}" />
                 <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding FontSize, UpdateSourceTrigger=PropertyChanged}" />
-                <StackPanel Grid.Column="1" Grid.Row="3" Orientation="Horizontal">
+                <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
+                <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal">
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
                     <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="  0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
-                <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Grid.Column="1" Grid.Row="8" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />
+                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="  0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Grid.Column="1" Grid.Row="9" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />
             </Grid>
 
             <Label Content="{Binding Error}" />
