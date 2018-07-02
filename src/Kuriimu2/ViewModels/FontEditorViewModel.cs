@@ -139,6 +139,7 @@ namespace Kuriimu2.ViewModels
             if (_wm.ShowDialog(pe) == true)
             {
                 KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
             }
         }
 
@@ -269,7 +270,6 @@ namespace Kuriimu2.ViewModels
 
         public void GenerateFromCurrentSet()
         {
-            //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
             var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
             {
                 Adapter = _adapter,
@@ -279,16 +279,12 @@ namespace Kuriimu2.ViewModels
                 CanvasHeight = _adapter.Textures[_selectedCharacter.TextureID].Height,
                 GenerationCompleteCallback = () =>
                 {
+                    KoreFile.HasChanges = true;
+                    NotifyOfPropertyChange(() => DisplayName);
                     Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
-
-                //ValidationCallback = () => new ValidationResult
-                //{
-                //    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
-                //    ErrorMessage = $"You cannot change the character while editing."
-                //}
             };
 
             if(!_windows.Contains(fg))

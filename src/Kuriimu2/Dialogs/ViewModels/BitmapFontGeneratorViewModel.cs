@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
@@ -30,6 +31,8 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _paddingRight;
         private char _previewCharacter = 'A';
         private int _zoomLevel = 5;
+        private ObservableCollection<AdjustedCharacter> _adjustedCharacters;
+        private AdjustedCharacter _selectedAdjustedCharacter;
         private string _fontFamily = "Arial";
         private float _fontSize = 24;
         private float _baseline = 30;
@@ -149,6 +152,30 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         #endregion
 
+        public ObservableCollection<AdjustedCharacter> AdjustedCharacters
+        {
+            get => _adjustedCharacters;
+            set
+            {
+                if (Equals(value, _adjustedCharacters)) return;
+                _adjustedCharacters = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => AdjustedCharacters);
+            }
+        }
+
+        public AdjustedCharacter SelectedAdjustedCharacter
+        {
+            get => _selectedAdjustedCharacter;
+            set
+            {
+                if (Equals(value, _selectedAdjustedCharacter)) return;
+                _selectedAdjustedCharacter = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => SelectedAdjustedCharacter);
+            }
+        }
+
         public List<string> GeneratorTypes => new List<string>
         {
             "GDI+",
@@ -248,6 +275,7 @@ namespace Kuriimu2.Dialogs.ViewModels
         public BitmapFontGeneratorViewModel()
         {
             Icon = new BitmapImage(new Uri("pack://application:,,,/Images/icon-text-page.png"));
+            AdjustedCharacters = new ObservableCollection<AdjustedCharacter>();
         }
 
         protected override void OnActivate()
@@ -319,6 +347,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                     Left = PaddingLeft,
                     Right = PaddingRight
                 },
+                AdjustedCharacters = AdjustedCharacters.ToList(),
                 Font = new Font(ff, FontSize, fs),
                 Baseline = Baseline,
                 GlyphHeight = GlyphHeight,
@@ -365,6 +394,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                     Left = PaddingLeft,
                     Right = PaddingRight
                 },
+                AdjustedCharacters = AdjustedCharacters.ToList(),
                 Font = new Font(ff, FontSize, fs),
                 Baseline = Baseline,
                 GlyphHeight = GlyphHeight,
@@ -374,6 +404,25 @@ namespace Kuriimu2.Dialogs.ViewModels
             };
 
             PreviewCharacterImage = bfg.Preview(_previewCharacter).ToBitmapImage();
+        }
+
+        public void AddAdjustedCharacter()
+        {
+            if (AdjustedCharacters.Any(ac => ac.Character == PreviewCharacter)) return;
+            AdjustedCharacters.Add(new AdjustedCharacter
+            {
+                Character = PreviewCharacter,
+                Padding = new Padding()
+            });
+            NotifyOfPropertyChange(() => AdjustedCharacters);
+        }
+
+        public void DeleteAdjustedCharacter()
+        {
+            if (SelectedAdjustedCharacter == null) return;
+            AdjustedCharacters.Remove(SelectedAdjustedCharacter);
+            SelectedAdjustedCharacter = AdjustedCharacters.FirstOrDefault();
+            NotifyOfPropertyChange(() => AdjustedCharacters);
         }
 
         public void LoadProfileButton()
@@ -390,6 +439,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
             PaddingLeft = profile.GlyphPadding.Left;
             PaddingRight = profile.GlyphPadding.Right;
+            AdjustedCharacters = new ObservableCollection<AdjustedCharacter>(profile.AdjustedCharacters);
 
             FontFamily = profile.FontFamily;
             FontSize = profile.FontSize;
@@ -422,6 +472,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                     Left = PaddingLeft,
                     Right = PaddingRight
                 },
+                AdjustedCharacters = AdjustedCharacters.ToList(),
                 FontFamily = FontFamily,
                 FontSize = FontSize,
                 Baseline = Baseline,
