@@ -234,6 +234,12 @@ namespace Kore.Generators
     [XmlRoot("profile")]
     public class BitmapFontGeneratorGdiProfile
     {
+        [XmlElement("padding")]
+        public Padding GlyphMargin { get; set; }
+
+        [XmlElement("margin")]
+        public Padding GlyphPadding { get; set; }
+
         [XmlElement("fontFamily")]
         public string FontFamily { get; set; } = "Arial";
 
@@ -252,11 +258,8 @@ namespace Kore.Generators
         [XmlElement("italic")]
         public bool Italic { get; set; }
 
-        [XmlElement("padding")]
-        public Padding GlyphMargin { get; set; }
-
-        [XmlElement("margin")]
-        public Padding GlyphPadding { get; set; }
+        [XmlElement("characters")]
+        public string Characters { get; set; }
 
         [XmlElement("canvasWidth")]
         public int CanvasWidth { get; set; } = 512;

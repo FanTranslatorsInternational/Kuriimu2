@@ -20,10 +20,10 @@
 
         <Image Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Top" Margin="8 8 16 0" />
 
-        <StackPanel Grid.Column="1" Grid.Row="0">
-            <Label Content="Margins &amp; Padding" HorizontalAlignment="Center" Margin="0 0 0 8" />
+        <DockPanel Grid.Column="1" Grid.Row="0">
+            <Label DockPanel.Dock="Top" Content="Margins &amp; Padding" HorizontalAlignment="Center" Margin="0 0 0 8" />
 
-            <Grid Background="LightGray" Margin="0 0 0 8">
+            <Grid DockPanel.Dock="Top" Background="LightGray" Margin="0 0 0 8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -80,7 +80,7 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Grid.Row="2">
-                        <TextBox Text="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="24" Margin="4" />
+                        <TextBox Text="{Binding Baseline, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center" Width="50" Margin="4" />
                     </StackPanel>
                 </Grid>
 
@@ -93,12 +93,12 @@
                 </StackPanel>
             </Grid>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
                 <Button Name="ZoomOut" Content="-" Width="22" Margin="0 0 8 0" />
-                <Label Content="{Binding ZoomLevel}" Margin="0 0 8 0" />
+                <Label Content="{Binding ZoomLevel, Mode=OneWay}" Margin="0 0 8 0" />
                 <Button Name="ZoomIn" Content="+" Width="22" />
             </StackPanel>
-        </StackPanel>
+        </DockPanel>
 
         <StackPanel Grid.Column="2" Grid.Row="0" Margin="8 0 0 0">
             <Label Content="Generator Settings:" Margin="0 0 0 8" />

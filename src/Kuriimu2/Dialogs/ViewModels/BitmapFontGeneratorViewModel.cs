@@ -113,18 +113,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        public int PaddingTop
-        {
-            get => _paddingTop;
-            set
-            {
-                if (value == _paddingTop) return;
-                _paddingTop = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => PaddingTop);
-            }
-        }
-
         public int PaddingRight
         {
             get => _paddingRight;
@@ -319,9 +307,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             var bfg = new BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
-                Font = new Font(ff, FontSize, fs),
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
                 GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
@@ -332,9 +317,11 @@ namespace Kuriimu2.Dialogs.ViewModels
                 GlyphPadding = new Padding
                 {
                     Left = PaddingLeft,
-                    Top = PaddingTop,
                     Right = PaddingRight
                 },
+                Font = new Font(ff, FontSize, fs),
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -366,9 +353,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             var bfg = new BitmapFontGeneratorGdi
             {
                 Adapter = Adapter,
-                Font = new Font(ff, FontSize, fs),
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
                 GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
@@ -379,9 +363,11 @@ namespace Kuriimu2.Dialogs.ViewModels
                 GlyphPadding = new Padding
                 {
                     Left = PaddingLeft,
-                    Top = PaddingTop,
                     Right = PaddingRight
                 },
+                Font = new Font(ff, FontSize, fs),
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -397,22 +383,21 @@ namespace Kuriimu2.Dialogs.ViewModels
 
             var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
 
-            FontFamily = profile.FontFamily;
-            FontSize = profile.FontSize;
-            Baseline = profile.Baseline;
-            GlyphHeight = profile.GlyphHeight;
-            Bold = profile.Bold;
-            Italic = profile.Italic;
-
             MarginLeft = profile.GlyphMargin.Left;
             MarginTop = profile.GlyphMargin.Top;
             MarginRight = profile.GlyphMargin.Right;
             MarginBottom = profile.GlyphMargin.Bottom;
 
             PaddingLeft = profile.GlyphPadding.Left;
-            PaddingTop = profile.GlyphPadding.Top;
             PaddingRight = profile.GlyphPadding.Right;
 
+            FontFamily = profile.FontFamily;
+            FontSize = profile.FontSize;
+            Baseline = profile.Baseline;
+            GlyphHeight = profile.GlyphHeight;
+            Bold = profile.Bold;
+            Italic = profile.Italic;
+            Characters = profile.Characters;
             CanvasWidth = profile.CanvasWidth;
             CanvasHeight = profile.CanvasHeight;
             ShowDebugBoxes = profile.ShowDebugBoxes;
@@ -425,12 +410,6 @@ namespace Kuriimu2.Dialogs.ViewModels
 
             var profile = new BitmapFontGeneratorGdiProfile
             {
-                FontFamily = FontFamily,
-                FontSize = FontSize,
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
-                Bold = Bold,
-                Italic = Italic,
                 GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
@@ -441,9 +420,15 @@ namespace Kuriimu2.Dialogs.ViewModels
                 GlyphPadding = new Padding
                 {
                     Left = PaddingLeft,
-                    Top = PaddingTop,
                     Right = PaddingRight
                 },
+                FontFamily = FontFamily,
+                FontSize = FontSize,
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
+                Bold = Bold,
+                Italic = Italic,
+                Characters = Characters,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
