@@ -65,7 +65,7 @@
 
                     <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black">
                         <DockPanel Background="DimGray">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Top" SnapsToDevicePixels="True">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Top">
                                 <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Left" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor">
                                     <Image.LayoutTransform>
                                         <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"></ScaleTransform>

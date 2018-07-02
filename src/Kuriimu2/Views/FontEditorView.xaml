@@ -19,7 +19,7 @@
             <!-- Character View -->
             <DockPanel Grid.Column="0" Background="DimGray">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Grid SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
                             <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         </Border>
