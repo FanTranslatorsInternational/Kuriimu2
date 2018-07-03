@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"
-        xmlns:local="clr-namespace:Kuriimu2.Controls"
+        xmlns:controls="clr-namespace:Kuriimu2.Controls"
         mc:Ignorable="d"
         Title="Bitmap Font Generator" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid Name="Root" Margin="8">
@@ -65,8 +65,8 @@
 
                     <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black">
                         <DockPanel Background="DimGray">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Top">
-                                <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Left" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Top" MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}">
+                                <Image Source="{Binding PreviewCharacterImage}" HorizontalAlignment="Center" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor">
                                     <Image.LayoutTransform>
                                         <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"></ScaleTransform>
                                     </Image.LayoutTransform>
@@ -125,7 +125,7 @@
                     <DataGrid.HorizontalGridLinesBrush>#E0E0E0</DataGrid.HorizontalGridLinesBrush>
                     <DataGrid.VerticalGridLinesBrush>#E0E0E0</DataGrid.VerticalGridLinesBrush>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Character" Binding="{Binding Character}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Character}" IsReadOnly="True"></DataGridTextColumn>
                         <DataGridTextColumn Header="Pad Left" Binding="{Binding Padding.Left}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Pad Right" Binding="{Binding Padding.Right}"></DataGridTextColumn>
                     </DataGrid.Columns>
@@ -217,7 +217,8 @@
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
                     <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="  0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <controls:TrackableTextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" CaretPosition="{Binding CaretIndex, Mode=OneWayToSource}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <!--<TextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" CaretIndex="{Binding CaretIndex, Mode=OneWayToSource}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />-->
                 <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
                 <CheckBox Grid.Column="1" Grid.Row="9" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />

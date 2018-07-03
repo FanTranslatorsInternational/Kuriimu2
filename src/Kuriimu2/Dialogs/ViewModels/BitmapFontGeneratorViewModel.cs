@@ -4,16 +4,17 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore.Generators;
-using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Tools;
 using Microsoft.Win32;
 using Action = System.Action;
 using FontFamily = System.Drawing.FontFamily;
+using ValidationResult = Kuriimu2.Dialogs.Common.ValidationResult;
 
 namespace Kuriimu2.Dialogs.ViewModels
 {
@@ -39,6 +40,7 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _glyphHeight = 36;
         private bool _bold;
         private bool _italic;
+        private int _caretIndex;
 
         public BitmapImage Icon { get; }
         public string Error { get; set; } = string.Empty;
@@ -152,6 +154,8 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         #endregion
 
+        #region Adjusted Characters
+
         public ObservableCollection<AdjustedCharacter> AdjustedCharacters
         {
             get => _adjustedCharacters;
@@ -176,6 +180,10 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
+        #endregion
+
+        #region Font Settings
+
         public List<string> GeneratorTypes => new List<string>
         {
             "GDI+",
@@ -183,8 +191,6 @@ namespace Kuriimu2.Dialogs.ViewModels
         };
 
         public string Generator { get; set; } = "GDI+";
-
-        #region Font Settings
 
         public List<string> FontFamilies => new InstalledFontCollection().Families.Select(ff => ff.Name).ToList();
 
@@ -262,6 +268,19 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public string Characters { get; set; }
 
+        public int CaretIndex
+        {
+            get => _caretIndex;
+            set
+            {
+                if (value == _caretIndex) return;
+                _caretIndex = value;
+                NotifyOfPropertyChange(() => CaretIndex);
+                if (value < Characters.Length)
+                    PreviewCharacter = Characters[value];
+            }
+        }
+
         public int CanvasWidth { get; set; } = 1024;
         public int CanvasHeight { get; set; } = 512;
         public bool ShowDebugBoxes { get; set; }
@@ -286,7 +305,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public void ZoomOut() => ZoomLevel = Math.Max(ZoomLevel - 1, 1);
 
-        public void ZoomIn() => ZoomLevel = Math.Min(ZoomLevel + 1, 5);
+        public void ZoomIn() => ZoomLevel = Math.Min(ZoomLevel + 1, 10);
 
         public void GenerateButton()
         {
@@ -366,6 +385,11 @@ namespace Kuriimu2.Dialogs.ViewModels
             NotifyOfPropertyChange(() => Characters);
 
             GenerationCompleteCallback?.Invoke();
+        }
+
+        public void UpdatePreviewCharacter(TextBox txt)
+        {
+            PreviewCharacter = Characters[txt.SelectionStart];
         }
 
         public void UpdatePreview()

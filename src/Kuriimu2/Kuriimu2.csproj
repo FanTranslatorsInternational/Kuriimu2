@@ -86,6 +86,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Controls\TrackableTextBox.cs" />
     <Compile Include="Controls\ZoomBorder.cs" />
     <Compile Include="Dialogs\Common\Enumerations.cs" />
     <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
