@@ -168,6 +168,11 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
+        public void AdjustedCharacterUpdated(DataGridCellEditEndingEventArgs eventArgs)
+        {
+            UpdatePreview();
+        }
+
         public AdjustedCharacter SelectedAdjustedCharacter
         {
             get => _selectedAdjustedCharacter;

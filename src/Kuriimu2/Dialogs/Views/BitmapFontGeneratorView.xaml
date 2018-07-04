@@ -119,7 +119,7 @@
 
             <StackPanel DockPanel.Dock="Bottom" Margin="0 0 0 8">
                 <Label HorizontalAlignment="Center">Adjusted Characters</Label>
-                <DataGrid ItemsSource="{Binding AdjustedCharacters}" SelectedItem="{Binding SelectedAdjustedCharacter}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0" MinHeight="100" MaxHeight="300">
+                <DataGrid ItemsSource="{Binding AdjustedCharacters}" SelectedItem="{Binding SelectedAdjustedCharacter}" cal:Message.Attach="[Event CellEditEnding] = [Action AdjustedCharacterUpdated($eventArgs)]" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0" MinHeight="100" MaxHeight="300">
                     <DataGrid.RowBackground>White</DataGrid.RowBackground>
                     <DataGrid.AlternatingRowBackground>#F0F0F0</DataGrid.AlternatingRowBackground>
                     <DataGrid.HorizontalGridLinesBrush>#E0E0E0</DataGrid.HorizontalGridLinesBrush>
