@@ -126,8 +126,8 @@
                     <DataGrid.VerticalGridLinesBrush>#E0E0E0</DataGrid.VerticalGridLinesBrush>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Character" Binding="{Binding Character}" IsReadOnly="True"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Pad Left" Binding="{Binding Padding.Left}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Pad Right" Binding="{Binding Padding.Right}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Pad Left" Binding="{Binding Padding.Left, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Pad Right" Binding="{Binding Padding.Right, UpdateSourceTrigger=PropertyChanged}"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </StackPanel>
@@ -155,7 +155,7 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
-                    <Style TargetType="TextBox">
+                    <Style x:Key="FormField" TargetType="TextBox">
                         <Setter Property="MinWidth" Value="200" />
                         <Setter Property="Margin">
                             <Setter.Value>
@@ -163,6 +163,8 @@
                             </Setter.Value>
                         </Setter>
                     </Style>
+                    <Style TargetType="TextBox" BasedOn="{StaticResource FormField}" />
+                    <Style TargetType="controls:TrackableTextBox" BasedOn="{StaticResource FormField}" />
                     <Style TargetType="ComboBox">
                         <Setter Property="MinWidth" Value="200" />
                         <Setter Property="Margin">
