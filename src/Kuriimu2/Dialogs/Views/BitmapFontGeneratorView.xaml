@@ -6,7 +6,7 @@
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:controls="clr-namespace:Kuriimu2.Controls"
         mc:Ignorable="d"
-        Title="Bitmap Font Generator" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Bitmap Font Generator" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" SnapsToDevicePixels="True">
     <Grid Name="Root" Margin="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -93,31 +93,7 @@
                 </StackPanel>
             </Grid>
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
-                <StackPanel.Resources>
-                    <Style TargetType="Image">
-                        <Setter Property="Margin" Value="0 0 2 0" />
-                    </Style>
-                    <Style TargetType="Label">
-                        <Setter Property="Padding" Value="2 0" />
-                    </Style>
-                </StackPanel.Resources>
-
-                <Button Name="AddAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
-                        <Label>Add</Label>
-                    </StackPanel>
-                </Button>
-                <Button Name="DeleteAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
-                        <Label>Delete</Label>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-
-            <StackPanel DockPanel.Dock="Bottom" Margin="0 0 0 8">
+            <StackPanel DockPanel.Dock="Bottom">
                 <Label HorizontalAlignment="Center">Adjusted Characters</Label>
                 <DataGrid ItemsSource="{Binding AdjustedCharacters}" SelectedItem="{Binding SelectedAdjustedCharacter}" cal:Message.Attach="[Event CellEditEnding] = [Action AdjustedCharacterUpdated($eventArgs)]" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0" MinHeight="100" MaxHeight="300">
                     <DataGrid.RowBackground>White</DataGrid.RowBackground>
@@ -138,6 +114,30 @@
                 <Button Name="ZoomIn" Content="+" Width="22" />
             </StackPanel>
         </DockPanel>
+
+        <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom">
+            <StackPanel.Resources>
+                <Style TargetType="Image">
+                    <Setter Property="Margin" Value="0 0 2 0" />
+                </Style>
+                <Style TargetType="Label">
+                    <Setter Property="Padding" Value="2 0" />
+                </Style>
+            </StackPanel.Resources>
+
+            <Button Name="AddAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
+                    <Label>Add</Label>
+                </StackPanel>
+            </Button>
+            <Button Name="DeleteAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
+                    <Label>Delete</Label>
+                </StackPanel>
+            </Button>
+        </StackPanel>
 
         <StackPanel Grid.Column="2" Grid.Row="0" Margin="8 0 0 0">
             <Label Content="Generator Settings:" Margin="0 0 0 8" />

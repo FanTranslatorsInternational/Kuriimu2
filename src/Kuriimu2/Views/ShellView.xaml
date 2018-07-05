@@ -6,7 +6,7 @@
         xmlns:cal="http://www.caliburnproject.org"
         mc:Ignorable="d"
         d:DesignHeight="510" d:DesignWidth="680"
-        Background="#F0F0F0" cal:Message.Attach="[Event Closing] = [Action CloseAllTabs]">
+        Background="#F0F0F0" cal:Message.Attach="[Event Closing] = [Action CloseAllTabs]" SnapsToDevicePixels="True">
     <DockPanel Name="Root">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
