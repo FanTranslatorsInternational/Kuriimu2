@@ -123,7 +123,7 @@ namespace Kore.SamplePlugins
         // Support
         public class FileHeader
         {
-            [FieldLength(4)]
+            [FixedLength(4)]
             public string Magic;
             public uint Version;
 

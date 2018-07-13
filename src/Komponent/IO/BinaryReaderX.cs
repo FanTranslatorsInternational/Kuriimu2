@@ -157,7 +157,7 @@ namespace Komponent.IO
         public override float ReadSingle()
         {
             ResetBuffer();
-            
+
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadSingle() : BitConverter.ToSingle(ReadBytes(4).Reverse().ToArray(), 0);
         }
 
@@ -328,139 +328,128 @@ namespace Komponent.IO
             }
         }
 
-        private object ReadObject(Type type, MemberInfo fieldInfo = null)
+        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string, object)> readVals = null)
         {
+            object returnValue;
+
+            var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
+            var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
+            var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
+            var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
+            var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
+
+            var bkByteOrder = ByteOrder;
+            var bkBitOrder = BitOrder;
+            var bkBlockSize = _blockSize;
+
+            ByteOrder = TypeEndian?.ByteOrder ?? FieldEndian?.ByteOrder ?? ByteOrder;
+
             if (type.IsPrimitive)
             {
-                return ReadPrimitive(type);
+                //Primitive
+                returnValue = ReadPrimitive(type);
             }
-
-            if (Type.GetTypeCode(type) == TypeCode.String)
+            else if (Type.GetTypeCode(type) == TypeCode.String)
             {
                 // String
-                var fieldSize = fieldInfo.GetCustomAttribute<FieldLengthAttribute>();
-                if (fieldSize != null)
-                    return ReadString(fieldSize.Length);
+                if (FixedSize != null || VarSize != null)
+                {
+                    var strEnc = FixedSize?.StringEncoding ?? VarSize.StringEncoding;
+                    Encoding enc;
+                    switch (strEnc)
+                    {
+                        default:
+                        case StringEncoding.ASCII: enc = Encoding.ASCII; break;
+                        case StringEncoding.SJIS: enc = Encoding.GetEncoding("SJIS"); break;
+                        case StringEncoding.Unicode: enc = Encoding.Unicode; break;
+                        case StringEncoding.UTF16: enc = Encoding.Unicode; break;
+                        case StringEncoding.UTF32: enc = Encoding.UTF32; break;
+                        case StringEncoding.UTF7: enc = Encoding.UTF7; break;
+                        case StringEncoding.UTF8: enc = Encoding.UTF8; break;
+                    }
+
+                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+
+                    returnValue = ReadString(length, enc);
+                }
                 else
-                    return null;
+                    returnValue = null;
             }
             else if (Type.GetTypeCode(type) == TypeCode.Decimal)
             {
                 // Decimal
-                return ReadDecimal();
+                returnValue = ReadDecimal();
             }
             else if (type.IsArray)
             {
                 // Array
-                // Get endianness attriute
-                var bk_ByteOrder = ByteOrder;
-                var endian = type.GetCustomAttribute<EndiannessAttribute>();
-                if (endian != null)
-                    ByteOrder = endian.ByteOrder;
-
-                var fieldSize = fieldInfo.GetCustomAttribute<FieldLengthAttribute>();
-                if (fieldSize != null)
+                if (FixedSize != null || VarSize != null)
                 {
-                    IList arr = Array.CreateInstance(type.GetElementType(), fieldSize.Length);
-                    for (int i = 0; i < fieldSize.Length; i++)
+                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    IList arr = Array.CreateInstance(type.GetElementType(), length);
+
+                    for (int i = 0; i < length; i++)
                         arr[i] = ReadObject(type.GetElementType());
-                    ByteOrder = bk_ByteOrder;
-                    return arr;
+
+                    returnValue = arr;
                 }
                 else
+                    returnValue = null;
+            }
+            else if (type.IsGenericType && type.Name.Contains("List"))
+            {
+                // List
+                if (FixedSize != null || VarSize != null)
                 {
-                    ByteOrder = bk_ByteOrder;
-                    return null;
+                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var paramType = type.GenericTypeArguments.First();
+                    var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(new[] { paramType }));
+
+                    for (int i = 0; i < length; i++)
+                        list.GetType().GetMethod("Add").Invoke(list, new[] { ReadObject(paramType) });
+
+                    returnValue = list;
                 }
+                else
+                    returnValue = null;
             }
             else if (type.IsClass || type.IsValueType && !type.IsEnum)
             {
                 // Class, Struct
-                // Get endianness attriute
-                var bkByteOrder = ByteOrder;
-                var endian = type.GetCustomAttribute<EndiannessAttribute>();
-                if (endian != null)
-                    ByteOrder = endian.ByteOrder;
+                BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
+                _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
 
-                // Get bitfieldblock attribute
-                var block = type.GetCustomAttribute<BitFieldInfoAttribute>();
-                if (block != null)
+                var readValsIntern = new List<(string, object)>();
+                var item = Activator.CreateInstance(type);
+
+                foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                 {
-                    _blockSize = block.BlockSize;
+                    var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
 
-                    var bkBitOrder = BitOrder;
-                    if (block.BitOrder != BitOrder.Inherit)
-                        BitOrder = block.BitOrder;
+                    object val;
+                    if (bitInfo != null)
+                        val = ReadBits(bitInfo.BitLength);
+                    else
+                        val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readValsIntern);
 
-                    var item = Activator.CreateInstance(type);
-
-                    foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                    {
-                        var fieldBlock = field.GetCustomAttribute<BitFieldInfoAttribute>();
-                        int bkfieldBlockSize = -1;
-                        if (fieldBlock != null)
-                        {
-                            bkfieldBlockSize = _blockSize;
-                            _blockSize = fieldBlock.BlockSize;
-                        }
-
-                        var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
-                        if (bitInfo != null)
-                            field.SetValue(item, ReadBits(bitInfo.BitLength));
-                        else
-                            field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
-
-                        if (bkfieldBlockSize > -1)
-                            _blockSize = bkfieldBlockSize;
-                    }
-
-                    ByteOrder = bkByteOrder;
-                    BitOrder = bkBitOrder;
-                    return item;
+                    readValsIntern.Add((field.Name, val));
+                    field.SetValue(item, val);
                 }
-                else
-                {
-                    var item = Activator.CreateInstance(type);
 
-                    foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                    {
-                        var fieldBlock = field.GetCustomAttribute<BitFieldInfoAttribute>();
-                        int bkfieldBlockSize = -1;
-                        if (fieldBlock != null)
-                        {
-                            bkfieldBlockSize = _blockSize;
-                            _blockSize = fieldBlock.BlockSize;
-                        }
-
-                        var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
-                        if (bitInfo != null)
-                            field.SetValue(item, ReadBits(bitInfo.BitLength));
-                        else
-                            field.SetValue(item, ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null));
-
-                        if (bkfieldBlockSize > -1)
-                            _blockSize = bkfieldBlockSize;
-                    }
-
-                    ByteOrder = bkByteOrder;
-                    return item;
-                }
+                returnValue = item;
             }
             else if (type.IsEnum)
             {
                 // Enum
-                // Get endianness attriute
-                var bkByteOrder = ByteOrder;
-                var endian = type.GetCustomAttribute<EndiannessAttribute>();
-                if (endian != null)
-                    ByteOrder = endian.ByteOrder;
-
-                var item = ReadObject(type.GetEnumUnderlyingType());
-                ByteOrder = bkByteOrder;
-                return item;
+                returnValue = ReadObject(type.GetEnumUnderlyingType());
             }
-            else
-                return null;
+            else throw new UnsupportedTypeException(type);
+
+            ByteOrder = bkByteOrder;
+            BitOrder = bkBitOrder;
+            _blockSize = bkBlockSize;
+
+            return returnValue;
         }
 
         #endregion

@@ -48,7 +48,7 @@ namespace Kore.SamplePlugins
 
         public class NW4CHeader
         {
-            [FieldLength(4)]
+            [FixedLength(4)]
             public string Magic;
             public ByteOrder ByteOrder;
             public short HeaderSize;
@@ -60,7 +60,7 @@ namespace Kore.SamplePlugins
 
         public class ImageHeader
         {
-            [FieldLength(4)]
+            [FixedLength(4)]
             public string Magic;
             public int SectionSize;
             public short Width;

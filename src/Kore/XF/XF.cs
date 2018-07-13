@@ -55,7 +55,7 @@ namespace Kore.XFont
 
         public class XFHeader
         {
-            [FieldLength(8)]
+            [FixedLength(8)]
             public string magic;
             public int BaseLine;
             public short DescentLine;

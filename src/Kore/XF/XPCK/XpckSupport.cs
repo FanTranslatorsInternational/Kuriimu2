@@ -32,7 +32,7 @@ namespace Kore.XFont.Archive
     
     public struct XPCKHeader
     {
-        [FieldLength(4)]
+        [FixedLength(4)]
         public string magic;
         public byte fc1;
         public byte fc2;

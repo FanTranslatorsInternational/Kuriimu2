@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Komponent.IO
 {
@@ -292,95 +293,122 @@ namespace Komponent.IO
             }
         }
 
-        public void WriteObject(object obj, MemberInfo fieldInfo = null)
+        public void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string, object)> wroteVals = null)
         {
             var type = obj.GetType();
 
+            var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
+            var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
+            var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
+            var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
+            var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
+
+            var bkByteOrder = ByteOrder;
+            var bkBitOrder = BitOrder;
+            var bkBlockSize = _blockSize;
+
+            ByteOrder = TypeEndian?.ByteOrder ?? FieldEndian?.ByteOrder ?? ByteOrder;
+
             if (type.IsPrimitive)
             {
+                //Primitive
                 WritePrimitive(obj);
             }
-            else
+            else if (Type.GetTypeCode(type) == TypeCode.String)
             {
-                if (Type.GetTypeCode(type) == TypeCode.String)
+                // String
+                if (FixedSize != null || VarSize != null)
                 {
-                    // String
-                    var fieldSize = fieldInfo?.GetCustomAttribute<FieldLengthAttribute>();
-                    if (fieldSize != null)
+                    var strEnc = FixedSize?.StringEncoding ?? VarSize.StringEncoding;
+                    Encoding enc;
+                    switch (strEnc)
                     {
-                        WriteString((string)obj, Encoding.ASCII, false);
-                        for (var i = ((string)obj).Length; i < fieldSize.Length; i++)
-                            Write((byte)0);
-                    }
-                    else
-                        WriteString((string)obj, Encoding.ASCII, false);
-                }
-                else if (Type.GetTypeCode(type) == TypeCode.Decimal)
-                {
-                    // Decimal
-                    Write((decimal)obj);
-                }
-                else if (type.IsArray)
-                {
-                    // Array
-                    // Get endianness attriute
-                    var bkByteOrder = ByteOrder;
-                    var endian = type.GetCustomAttribute<EndiannessAttribute>();
-                    if (endian != null)
-                        ByteOrder = endian.ByteOrder;
-
-                    foreach (var element in (Array)obj)
-                        WriteObject(element);
-
-                    ByteOrder = bkByteOrder;
-                }
-                else if (type.IsClass || (type.IsValueType && !type.IsEnum))
-                {
-                    // Class, Struct
-                    // Get endianness attriute
-                    var bkByteOrder = ByteOrder;
-                    var endian = type.GetCustomAttribute<EndiannessAttribute>();
-                    if (endian != null)
-                        ByteOrder = endian.ByteOrder;
-
-                    // Get bitfieldblock attribute
-                    var block = type.GetCustomAttribute<BitFieldInfoAttribute>();
-                    if (block != null)
-                    {
-                        BlockSize = block.BlockSize;
-
-                        var bkBitOrder = BitOrder;
-                        if (block.BitOrder != BitOrder.Inherit)
-                            BitOrder = block.BitOrder;
-
-                        foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                        {
-                            var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
-                            if (bitInfo != null)
-                                WriteBits((long)field.GetValue(obj), bitInfo.BitLength);
-                            else
-                                WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null);
-                        }
-
-                        if (_bitPosition > 0)
-                            FlushBuffer();
-
-                        BitOrder = bkBitOrder;
-                    }
-                    else
-                    {
-                        foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                            WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null);
+                        default:
+                        case StringEncoding.ASCII: enc = Encoding.ASCII; break;
+                        case StringEncoding.SJIS: enc = Encoding.GetEncoding("SJIS"); break;
+                        case StringEncoding.Unicode: enc = Encoding.Unicode; break;
+                        case StringEncoding.UTF16: enc = Encoding.Unicode; break;
+                        case StringEncoding.UTF32: enc = Encoding.UTF32; break;
+                        case StringEncoding.UTF7: enc = Encoding.UTF7; break;
+                        case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    ByteOrder = bkByteOrder;
-                }
-                else if (type.IsEnum)
-                {
-                    // Enum
-                    WriteObject((type as TypeInfo)?.DeclaredFields.ToList()[0].GetValue(obj));
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+
+                    if (enc.GetByteCount((string)obj) != length)
+                        throw new FieldLengthMismatchException(enc.GetByteCount((string)obj), length);
+
+                    WriteString((string)obj, enc, false);
                 }
             }
+            else if (Type.GetTypeCode(type) == TypeCode.Decimal)
+            {
+                // Decimal
+                Write((decimal)obj);
+            }
+            else if (type.IsArray)
+            {
+                // Array
+                if (FixedSize != null || VarSize != null)
+                {
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var arr = (obj as Array);
+
+                    if (arr.Length != length)
+                        throw new FieldLengthMismatchException(arr.Length, length);
+
+                    foreach (var element in arr)
+                        WriteObject(element);
+                }
+            }
+            else if (type.IsGenericType && type.Name.Contains("List"))
+            {
+                // List
+                if (FixedSize != null || VarSize != null)
+                {
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var list = (obj as IList);
+
+                    if (list.Count != length)
+                        throw new FieldLengthMismatchException(list.Count, length);
+
+                    foreach (var element in list)
+                        WriteObject(element);
+                }
+            }
+            else if (type.IsClass || (type.IsValueType && !type.IsEnum))
+            {
+                // Class/Struct
+                BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
+                _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
+
+                var wroteValsIntern = new List<(string, object)>();
+                foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
+                {
+                    wroteValsIntern.Add((field.Name, field.GetValue(obj)));
+
+                    var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
+                    if (bitInfo != null)
+                    {
+                        WriteBits((long)field.GetValue(obj), bitInfo.BitLength);
+                    }
+                    else
+                        WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteValsIntern);
+                }
+
+                if (_bitPosition > 0)
+                    FlushBuffer();
+            }
+            else if (type.IsEnum)
+            {
+                // Enum
+                WriteObject((type as TypeInfo)?.DeclaredFields.ToList()[0].GetValue(obj));
+            }
+            else throw new UnsupportedTypeException(type);
+
+            ByteOrder = bkByteOrder;
+            BitOrder = bkBitOrder;
+            _blockSize = bkBlockSize;
         }
 
         #endregion

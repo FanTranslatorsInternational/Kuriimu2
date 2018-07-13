@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Komponent.IO
 {
@@ -9,7 +10,7 @@ namespace Komponent.IO
         public BitOrder BitOrder = BitOrder.Inherit;
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
     public class EndiannessAttribute : Attribute
     {
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
@@ -27,13 +28,37 @@ namespace Komponent.IO
     }
 
     [AttributeUsage(AttributeTargets.Field)]
-    public class FieldLengthAttribute : Attribute
+    public class FixedLengthAttribute : Attribute
     {
         public int Length { get; }
+        public StringEncoding StringEncoding = StringEncoding.ASCII;
 
-        public FieldLengthAttribute(int length)
+        public FixedLengthAttribute(int length)
         {
             Length = length;
         }
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class VariableLengthAttribute : Attribute
+    {
+        public string FieldName { get; }
+        public StringEncoding StringEncoding = StringEncoding.ASCII;
+
+        public VariableLengthAttribute(string fieldName)
+        {
+            FieldName = fieldName;
+        }
+    }
+
+    public enum StringEncoding : byte
+    {
+        ASCII,
+        UTF7,
+        UTF8,
+        UTF16,
+        Unicode,
+        UTF32,
+        SJIS
     }
 }

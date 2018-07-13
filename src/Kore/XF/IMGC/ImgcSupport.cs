@@ -14,7 +14,7 @@ namespace Kore.XFont.Image
 {
     public class IMGCHeader
     {
-        [FieldLength(4)]
+        [FixedLength(4)]
         public string magic; // IMGC
         public int const1; // 30 30 00 00
         public short const2; // 30 00
