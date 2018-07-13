@@ -65,7 +65,6 @@
     <Compile Include="SamplePlugins\GfdAdapter.cs" />
     <Compile Include="SamplePlugins\BclimAdapter.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />
-    <Compile Include="XF\BitmapPixelMap.cs" />
     <Compile Include="XF\Compression\Huffman.cs" />
     <Compile Include="XF\Compression\HuffSupport.cs" />
     <Compile Include="XF\Compression\Level5.cs" />
