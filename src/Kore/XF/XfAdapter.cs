@@ -41,11 +41,11 @@ namespace Kore.XFont
         {
             get
             {
-                return _xf.Header.Baseline;
+                return _xf.Header.BaseLine;
             }
             set
             {
-                _xf.Header.Baseline = (int)value;
+                _xf.Header.BaseLine = (int)value;
             }
         }
 
