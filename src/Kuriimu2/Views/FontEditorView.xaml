@@ -125,5 +125,6 @@
                 </StackPanel>
             </Grid>
         </Grid>
+
     </DockPanel>
 </UserControl>

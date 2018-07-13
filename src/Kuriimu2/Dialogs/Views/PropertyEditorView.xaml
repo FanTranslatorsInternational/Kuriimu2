@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:cal="http://www.caliburnproject.org"
         mc:Ignorable="d"
-        Title="{Binding Title}" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True">
+        Icon="/Images/kuriimu2.ico" Title="{Binding Title}" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True">
     <Grid Name="Root" Margin="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />

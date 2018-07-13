@@ -162,12 +162,12 @@ namespace Kore.XFont
                     });*/
 
                 //Add Textures
-                var bmpInfo = new BitmapInfo(bmp);
+                var bmpInfo = new IO.BitmapInfo(bmp);
 
                 Textures = new List<Bitmap>();
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Red));
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Green));
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Blue));
+                Textures.Add(bmpInfo.CreateChannelBitmap(IO.BitmapInfo.Channel.Red));
+                Textures.Add(bmpInfo.CreateChannelBitmap(IO.BitmapInfo.Channel.Green));
+                Textures.Add(bmpInfo.CreateChannelBitmap(IO.BitmapInfo.Channel.Blue));
             }
         }
 

@@ -6,7 +6,7 @@
         xmlns:cal="http://www.caliburnproject.org"
         xmlns:controls="clr-namespace:Kuriimu2.Controls"
         mc:Ignorable="d"
-        Title="Bitmap Font Generator" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" SnapsToDevicePixels="True">
+        Icon="/Images/kuriimu2.ico" Title="Bitmap Font Generator" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" ResizeMode="NoResize" SnapsToDevicePixels="True">
     <Grid Name="Root" Margin="8">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
