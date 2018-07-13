@@ -15,7 +15,7 @@ namespace Kore.XFont
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     //[Export(typeof(ISaveFiles))]
-    [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "Level 5 Font", "XF", "onepiecefreak", "", "This is the XF font adapter for Kuriimu.")]
+    [PluginInfo("33B42E7E-FFA6-4F8D-B30A-D0334910BC45", "Level 5 Font", "XF", "onepiecefreak", "", "This is the XF font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.xf")]
     public sealed class XfAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, IAddCharacters, IDeleteCharacters
     {

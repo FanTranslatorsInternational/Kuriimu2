@@ -283,6 +283,8 @@ namespace Kuriimu2.Dialogs.ViewModels
                 NotifyOfPropertyChange(() => CaretIndex);
                 if (value < Characters.Length)
                     PreviewCharacter = Characters[value];
+                else if (value == Characters.Length)
+                    PreviewCharacter = Characters.Last();
             }
         }
 
@@ -390,11 +392,6 @@ namespace Kuriimu2.Dialogs.ViewModels
             NotifyOfPropertyChange(() => Characters);
 
             GenerationCompleteCallback?.Invoke();
-        }
-
-        public void UpdatePreviewCharacter(TextBox txt)
-        {
-            PreviewCharacter = Characters[txt.SelectionStart];
         }
 
         public void UpdatePreview()
