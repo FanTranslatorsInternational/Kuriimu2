@@ -32,6 +32,7 @@ namespace Kore.SamplePlugins
 
         #region Properties
 
+        [FormFieldIgnore]
         public IEnumerable<FontCharacter> Characters
         {
             get
@@ -60,18 +61,20 @@ namespace Kore.SamplePlugins
             }
         }
 
+        [FormFieldIgnore]
         public List<Bitmap> Textures { get; set; }
 
-        public float BaseLine
+        [FormField(typeof(int), "Font Size")]
+        public int FontSize
         {
             get
             {
                 switch (_version)
                 {
                     case 1:
-                        return _gfdv1.Header.BaseLine;
+                        return _gfdv1.Header.FontSize;
                     case 2:
-                        return _gfdv2.Header.BaseLine;
+                        return _gfdv2.Header.FontSize;
                     default:
                         return 0;
                 }
@@ -81,15 +84,93 @@ namespace Kore.SamplePlugins
                 switch (_version)
                 {
                     case 1:
-                        _gfdv1.Header.BaseLine = value;
+                        _gfdv1.Header.FontSize = value;
                         break;
                     case 2:
-                        _gfdv2.Header.BaseLine = value;
+                        _gfdv2.Header.FontSize = value;
                         break;
                 }
             }
         }
 
+        [FormField(typeof(float), "(GFDv2) Max Character Width")]
+        public float MaxCharWidth
+        {
+            get
+            {
+                switch (_version)
+                {
+                    case 2:
+                        return _gfdv2.Header.MaxCharWidth;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 2:
+                        _gfdv2.Header.MaxCharWidth = value;
+                        break;
+                }
+            }
+        }
+
+        [FormField(typeof(float), "(GFDv2) Max Character Height")]
+        public float MaxCharHeight
+        {
+            get
+            {
+                switch (_version)
+                {
+                    case 2:
+                        return _gfdv2.Header.MaxCharHeight;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 2:
+                        _gfdv2.Header.MaxCharHeight = value;
+                        break;
+                }
+            }
+        }
+
+        [FormField(typeof(float), "Base Line")]
+        public float Baseline
+        {
+            get
+            {
+                switch (_version)
+                {
+                    case 1:
+                        return _gfdv1.Header.Baseline;
+                    case 2:
+                        return _gfdv2.Header.Baseline;
+                    default:
+                        return 0;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1.Header.Baseline = value;
+                        break;
+                    case 2:
+                        _gfdv2.Header.Baseline = value;
+                        break;
+                }
+            }
+        }
+
+        [FormField(typeof(float), "Descent Line")]
         public float DescentLine
         {
             get

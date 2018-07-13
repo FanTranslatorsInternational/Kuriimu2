@@ -19,7 +19,7 @@
             <!-- Character View -->
             <DockPanel Grid.Column="0" Background="DimGray">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Grid SnapsToDevicePixels="True" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                         <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
                             <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
                         </Border>
@@ -44,7 +44,7 @@
                             <ColumnDefinition Width="Auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <ToolBarPanel Grid.Column="0">
-                            <ToolBar HorizontalAlignment="Stretch" ToolBarTray.IsLocked="True">
+                            <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
@@ -63,6 +63,15 @@
                                 <Button Name="ExportTextures" IsEnabled="{Binding TextureExportEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-export-image.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                            </ToolBar>
+                        </ToolBarPanel>
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                                <Button Name="FontProperties" ToolTip="Font Properties">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
@@ -99,25 +108,23 @@
                             <RowDefinition Height="Auto"></RowDefinition>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0, 0, 4, 10">X:</Label>
-                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Y:</Label>
-                        <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Width:</Label>
-                        <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 10">Height:</Label>
+                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0, 0, 4, 8">X:</Label>
+                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Y:</Label>
+                        <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Width:</Label>
+                        <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Height:</Label>
 
-                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 10" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
 
-                        <Button Name="GenerateFromCurrentSet" Grid.Column="1" Grid.Row="4" Margin="0, 0, 5, 0" IsEnabled="{Binding AddEnabled}">
-                            <TextBlock TextAlignment="Center">Generate From<LineBreak />Current Set</TextBlock>
-                        </Button>
-                        <Button Name="GenerateFromNewSet" Grid.Column="2" Grid.Row="4" Margin="5, 0, 0, 0" IsEnabled="False">
-                            <TextBlock TextAlignment="Center">Generate From<LineBreak />New Set</TextBlock>
+                        <Button Name="GenerateFromCurrentSet" Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" Margin="0, 0, 0, 0" IsEnabled="{Binding AddEnabled}">
+                            <TextBlock TextAlignment="Center">Open Font Generator</TextBlock>
                         </Button>
                     </Grid>
                 </StackPanel>
             </Grid>
         </Grid>
+
     </DockPanel>
 </UserControl>

@@ -54,13 +54,16 @@
     <Compile Include="Enumerations.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
     <Compile Include="Generators\BitmapFontGeneratorWpf.cs" />
+    <Compile Include="Generators\Common.cs" />
     <Compile Include="Kore.cs" />
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SamplePlugins\BCLIM.cs" />
     <Compile Include="SamplePlugins\GFDv2.cs" />
     <Compile Include="SamplePlugins\GFDv1.cs" />
     <Compile Include="SamplePlugins\KUP.cs" />
     <Compile Include="SamplePlugins\GfdAdapter.cs" />
+    <Compile Include="SamplePlugins\BclimAdapter.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />
     <Compile Include="XF\BitmapPixelMap.cs" />
     <Compile Include="XF\Compression\Huffman.cs" />

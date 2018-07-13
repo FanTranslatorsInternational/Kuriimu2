@@ -10,8 +10,8 @@ using Caliburn.Micro;
 using Komponent.Tools;
 using Kontract.Interfaces;
 using Kore;
-using Kuriimu2.Dialog.Common;
-using Kuriimu2.Dialog.ViewModels;
+using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interface;
 using Kuriimu2.Tools;
 
@@ -23,23 +23,11 @@ namespace Kuriimu2.ViewModels
         private List<IScreen> _windows = new List<IScreen>();
         private IFontAdapter _adapter;
 
-        public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<FontCharacter> Characters { get; private set; }
-
         private FontCharacter _selectedCharacter;
         private ImageSource _selectedTexture;
 
-        public FontEditorViewModel(KoreFileInfo koreFile)
-        {
-            KoreFile = koreFile;
-
-            _adapter = KoreFile.Adapter as IFontAdapter;
-
-            if (_adapter != null)
-                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
-
-            SelectedCharacter = Characters.First();
-        }
+        public KoreFileInfo KoreFile { get; }
+        public ObservableCollection<FontCharacter> Characters { get; private set; }
 
         public FontCharacter SelectedCharacter
         {
@@ -123,6 +111,38 @@ namespace Kuriimu2.ViewModels
 
         public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
 
+        // Constructor
+        public FontEditorViewModel(KoreFileInfo koreFile)
+        {
+            KoreFile = koreFile;
+
+            _adapter = KoreFile.Adapter as IFontAdapter;
+
+            if (_adapter != null)
+                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+
+            SelectedCharacter = Characters.First();
+        }
+
+        public void FontProperties()
+        {
+            if (!(_adapter is IFontAdapter fnt)) return;
+
+            var pe = new PropertyEditorViewModel<IFontAdapter>
+            {
+                Title = $"Font Properties",
+                Message = "Properties:",
+                Object = _adapter
+            };
+            _windows.Add(pe);
+
+            if (_wm.ShowDialog(pe) == true)
+            {
+                KoreFile.HasChanges = true;
+                NotifyOfPropertyChange(() => DisplayName);
+            }
+        }
+
         #region Character Management
 
         public bool AddEnabled => _adapter is IAddCharacters;
@@ -144,12 +164,12 @@ namespace Kuriimu2.ViewModels
             character.GlyphWidth = SelectedCharacter.GlyphWidth;
             character.GlyphHeight = SelectedCharacter.GlyphHeight;
 
-            var pe = new PropertyEditorViewModel
+            var pe = new PropertyEditorViewModel<FontCharacter>
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
                 Message = "New character attributes:",
-                Character = character,
+                Object = character,
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = _adapter.Characters.All(c => c.Character != character.Character),
@@ -177,11 +197,11 @@ namespace Kuriimu2.ViewModels
             // Clone the selected character so that changes don't propagate to the plugin
             var clonedCharacter = (FontCharacter)SelectedCharacter.Clone();
 
-            var pe = new PropertyEditorViewModel
+            var pe = new PropertyEditorViewModel<FontCharacter>
             {
                 Title = "Edit Character",
                 Message = "Edit character attributes:",
-                Character = clonedCharacter,
+                Object = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = clonedCharacter.Character == SelectedCharacter.Character,
@@ -250,23 +270,21 @@ namespace Kuriimu2.ViewModels
 
         public void GenerateFromCurrentSet()
         {
-            //    Typeface = new Typeface(new FontFamily("Arial"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal),
             var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
             {
                 Adapter = _adapter,
+                Baseline = _adapter.Baseline,
                 Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
+                CanvasWidth = _adapter.Textures[_selectedCharacter.TextureID].Width,
+                CanvasHeight = _adapter.Textures[_selectedCharacter.TextureID].Height,
                 GenerationCompleteCallback = () =>
                 {
+                    KoreFile.HasChanges = true;
+                    NotifyOfPropertyChange(() => DisplayName);
                     Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
-
-                //ValidationCallback = () => new ValidationResult
-                //{
-                //    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
-                //    ErrorMessage = $"You cannot change the character while editing."
-                //}
             };
 
             if(!_windows.Contains(fg))

@@ -117,7 +117,7 @@ namespace Kore.SamplePlugins
 
         public static implicit operator GFDv2(GFDv1 source)
         {
-            return new GFDv2();
+            throw new System.NotImplementedException();
         }
 
         // Support
@@ -147,7 +147,7 @@ namespace Kore.SamplePlugins
             /// <summary>
             /// Internally called MaxAscent
             /// </summary>
-            public float BaseLine;
+            public float Baseline;
 
             /// <summary>
             /// Internally called MaxDescent

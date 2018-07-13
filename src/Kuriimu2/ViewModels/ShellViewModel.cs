@@ -97,6 +97,9 @@ namespace Kuriimu2.ViewModels
                         case ITextAdapter txt2:
                             ActivateItem(new TextEditor2ViewModel(kfi));
                             break;
+                        case IImageAdapter img:
+                            ActivateItem(new ImageEditorViewModel(kfi));
+                            break;
                         case IFontAdapter fnt:
                             ActivateItem(new FontEditorViewModel(kfi));
                             break;

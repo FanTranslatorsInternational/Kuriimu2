@@ -13,6 +13,8 @@ namespace Kuriimu2.Tools
         // ToBitmapImage/ImageSource
         public static BitmapImage ToBitmapImage(this Image bitmap)
         {
+            if (bitmap == null) return null;
+
             using (var ms = new MemoryStream())
             {
                 bitmap.Save(ms, ImageFormat.Png);
