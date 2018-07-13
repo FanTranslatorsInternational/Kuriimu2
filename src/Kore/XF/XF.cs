@@ -129,6 +129,12 @@ namespace Kore.XFont
                     smallChars = new BinaryReaderX(new MemoryStream(Level5.Decompress(fntR.BaseStream))).ReadMultiple<CharacterMap>(Header.table2EntryCount);
                 }
 
+                Textures = new List<Bitmap>();
+                var bmpInfo = new BitmapInfo(bmp);
+                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Red));
+                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Green));
+                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Blue));
+
                 //Add Characters
                 Characters = new List<XFCharacter>();
                 foreach (var glyph in largeChars)
@@ -162,12 +168,6 @@ namespace Kore.XFont
                     });*/
 
                 //Add Textures
-                var bmpInfo = new BitmapInfo(bmp);
-
-                Textures = new List<Bitmap>();
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Red));
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Green));
-                Textures.Add(bmpInfo.CreateChannelBitmap(BitmapInfo.Channel.Blue));
             }
         }
 
