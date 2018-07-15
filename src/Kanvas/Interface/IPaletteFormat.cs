@@ -10,7 +10,7 @@ namespace Kanvas.Interface
     /// <summary>
     /// An interface for defining a palette format to use in the Kanvas image library
     /// </summary>
-    public interface IPaletteFormat : IImageFormat
+    public interface IPaletteFormat : IImageFormat, IImageFormatKnownDimensions
     {
         /// <summary>
         /// The Quantizer to use for palette creation
@@ -24,15 +24,6 @@ namespace Kanvas.Interface
         /// The ColorCache the quantizer uses to calculate color distances
         /// </summary>
         ColorCache ColorCache { get; set; }
-
-        /// <summary>
-        /// The Width of the image
-        /// </summary>
-        int Width { get; set; }
-        /// <summary>
-        /// The Height of the image
-        /// </summary>
-        int Height { get; set; }
 
         /// <summary>
         /// Sets a list of colors as palette

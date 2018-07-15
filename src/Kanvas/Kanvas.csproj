@@ -115,19 +115,19 @@
     <Compile Include="Quantization\Quantizer\Support\WuColorCube.cs" />
     <Compile Include="Quantization\Quantizer\UniformQuantizer.cs" />
     <Compile Include="Quantization\Quantizer\WuColorQuantizer.cs" />
-    <Compile Include="Support\ATC.cs" />
-    <Compile Include="Support\ATI.cs" />
-    <Compile Include="Support\BCn\BC1BlockEncoder.cs" />
-    <Compile Include="Support\BCn\BC2ABlockEncoder.cs" />
-    <Compile Include="Support\BCn\BC4BlockEncoder.cs" />
-    <Compile Include="Support\BCn\BCnImage.cs" />
-    <Compile Include="Support\BCn\Blocks.cs" />
-    <Compile Include="Support\BCn\FloatImage.cs" />
-    <Compile Include="Support\BCn\Helpers.cs" />
-    <Compile Include="Support\BCn\ImageEncoder.cs" />
-    <Compile Include="Support\BCn\ImageEncodingHelper.cs" />
-    <Compile Include="Support\DXT.cs" />
-    <Compile Include="Support\Support.cs" />
+    <Compile Include="Format\Support\ATC.cs" />
+    <Compile Include="Format\Support\ATI.cs" />
+    <Compile Include="Format\Support\BCn\BC1BlockEncoder.cs" />
+    <Compile Include="Format\Support\BCn\BC2ABlockEncoder.cs" />
+    <Compile Include="Format\Support\BCn\BC4BlockEncoder.cs" />
+    <Compile Include="Format\Support\BCn\BCnImage.cs" />
+    <Compile Include="Format\Support\BCn\Blocks.cs" />
+    <Compile Include="Format\Support\BCn\FloatImage.cs" />
+    <Compile Include="Format\Support\BCn\Helpers.cs" />
+    <Compile Include="Format\Support\BCn\ImageEncoder.cs" />
+    <Compile Include="Format\Support\BCn\ImageEncodingHelper.cs" />
+    <Compile Include="Format\Support\DXT.cs" />
+    <Compile Include="Format\Support\Support.cs" />
     <Compile Include="Swizzle\BC.cs" />
     <Compile Include="Swizzle\CTR.cs" />
     <Compile Include="Swizzle\Linear.cs" />
@@ -136,7 +136,6 @@
     <Compile Include="Swizzle\NX.cs" />
     <Compile Include="Swizzle\Café.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

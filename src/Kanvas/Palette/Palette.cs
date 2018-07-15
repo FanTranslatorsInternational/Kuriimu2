@@ -20,6 +20,8 @@ namespace Kanvas.Palette
 
         public string FormatName { get; private set; }
 
+        public bool IsBlockCompression { get => false; }
+
         public ColorQuantizer ColorQuantizer { get; set; }
         public PathProvider PathProvider { get; set; }
         public ColorCache ColorCache { get; set; }

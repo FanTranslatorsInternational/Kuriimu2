@@ -19,6 +19,11 @@ namespace Kanvas.Interface
         int BitDepth { get; }
 
         /// <summary>
+        /// Defines if a format is a block compression format
+        /// </summary>
+        bool IsBlockCompression { get; }
+
+        /// <summary>
         /// The name to display for this format
         /// </summary>
         string FormatName { get; }
