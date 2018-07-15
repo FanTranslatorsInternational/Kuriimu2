@@ -19,6 +19,8 @@ namespace Kanvas.Format
             ATI2,
         }
 
+        public bool IsBlockCompression { get => true; }
+
         public int BitDepth { get; set; }
         public int BlockBitDepth { get; set; }
 

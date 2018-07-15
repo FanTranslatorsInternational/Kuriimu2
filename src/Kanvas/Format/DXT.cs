@@ -9,24 +9,27 @@ namespace Kanvas.Format
 {
     public class DXT : IImageFormat
     {
-        public enum Version
+        public enum Format
         {
             DXT1,
             DXT3,
             DXT5
         }
 
+        public bool IsBlockCompression { get => true; }
+
         public int BitDepth { get; set; }
         public int BlockBitDepth { get; set; }
+
         public string FormatName { get; set; }
 
-        Version version;
+        Format version;
         ByteOrder byteOrder;
 
-        public DXT(Version version, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        public DXT(Format version, ByteOrder byteOrder = ByteOrder.LittleEndian)
         {
-            BitDepth = (version == Version.DXT1) ? 4 : 8;
-            BlockBitDepth = (version == Version.DXT1) ? 64 : 128;
+            BitDepth = (version == Format.DXT1) ? 4 : 8;
+            BlockBitDepth = (version == Format.DXT1) ? 64 : 128;
 
             this.version = version;
             this.byteOrder = byteOrder;
@@ -45,7 +48,7 @@ namespace Kanvas.Format
                 {
                     yield return dxtdecoder.Get(() =>
                     {
-                        var dxt5Alpha = version == Version.DXT3 || version == Version.DXT5 ? br.ReadUInt64() : 0;
+                        var dxt5Alpha = version == Format.DXT3 || version == Format.DXT5 ? br.ReadUInt64() : 0;
                         return (dxt5Alpha, br.ReadUInt64());
                     });
                 }
@@ -62,7 +65,7 @@ namespace Kanvas.Format
                 foreach (var color in colors)
                     dxtencoder.Set(color, data =>
                     {
-                        if (version == Version.DXT5) bw.Write(data.alpha);
+                        if (version == Format.DXT5) bw.Write(data.alpha);
                         bw.Write(data.block);
                     });
 

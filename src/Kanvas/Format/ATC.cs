@@ -9,8 +9,11 @@ namespace Kanvas.Format
 {
     public class ATC : IImageFormat
     {
+        public bool IsBlockCompression { get => true; }
+
         public int BitDepth { get; set; }
         public int BlockBitDepth { get; set; }
+
         public string FormatName { get; set; }
 
         bool alpha;

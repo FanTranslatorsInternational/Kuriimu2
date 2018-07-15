@@ -15,6 +15,8 @@ namespace Kanvas.Format
     {
         public int BitDepth { get; set; }
 
+        public bool IsBlockCompression { get => false; }
+
         public string FormatName { get; set; }
 
         int lDepth;
