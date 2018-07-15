@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
@@ -23,7 +24,7 @@ namespace Kuriimu2.ViewModels
         private ImageSource _selectedTexture;
 
         public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<BitmapInfo> Bitmaps { get; private set; }
+        public ObservableCollection<BitmapInfoUI> Bitmaps { get; private set; }
 
         public BitmapInfo SelectedBitmap
         {
@@ -60,7 +61,7 @@ namespace Kuriimu2.ViewModels
             _adapter = KoreFile.Adapter as IImageAdapter;
 
             if (_adapter != null)
-                Bitmaps = new ObservableCollection<BitmapInfo>(_adapter.Bitmaps);
+                Bitmaps = new ObservableCollection<BitmapInfoUI>(_adapter.Bitmaps.Select(bi => new BitmapInfoUI(bi)));
 
             SelectedBitmap = Bitmaps.First();
         }
@@ -154,6 +155,17 @@ namespace Kuriimu2.ViewModels
                 _windows.Remove(scr);
             }
             base.TryClose(dialogResult);
+        }
+    }
+
+    public sealed class BitmapInfoUI : BitmapInfo
+    {
+        public BitmapImage Source => Bitmap.ToBitmapImage();
+
+        public BitmapInfoUI(BitmapInfo bi)
+        {
+            Bitmap = bi.Bitmap;
+            Name = bi.Name;
         }
     }
 }

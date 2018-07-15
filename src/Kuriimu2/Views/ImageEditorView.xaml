@@ -98,19 +98,26 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" cal:Message.Attach="[Event MouseDoubleClick] = [Action EditBitmap]">
-                                    <Image Source="{Binding Bitmap}"></Image>
-                                    <Label Content="{Binding Name}" HorizontalContentAlignment="Center" MinWidth="96" Height="64" FontSize="16px"></Label>
+                                    <Grid Margin="2 4">
+                                        <Grid.Background>
+                                            <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                                                <VisualBrush.Visual>
+                                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Grid.Background>
+                                        <Image Source="{Binding Source}" MaxWidth="96" Height="64"></Image>
+                                    </Grid>
+                                    <Label Content="{Binding Name}" HorizontalContentAlignment="Center" FontSize="16px"></Label>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
 
-                <StackPanel Grid.Row="1">
-                    <xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}">
-                        
-                    </xc:PropertyGrid>
-                </StackPanel>
+                <DockPanel Grid.Row="1">
+                    <!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
+                </DockPanel>
             </Grid>
         </Grid>
 
