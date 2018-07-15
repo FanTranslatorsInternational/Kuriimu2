@@ -20,6 +20,7 @@ namespace Kanvas
         public int padHeight { get; set; } = 0;
 
         public IImageSwizzle Swizzle { get; set; }
+        public IDitherer Ditherer { get; set; }
         public Func<Color, Color> PixelShader { get; set; }
     }
 
@@ -96,25 +97,43 @@ namespace Kanvas
         /// <returns>byte[]</returns>
         public static byte[] Save(Bitmap bmp, ImageSettings settings)
         {
-            var points = GetPointSequence(settings);
+            int width = settings.Width, height = settings.Height;
+            if (settings.Format is IImageFormatKnownDimensions)
+            {
+                (settings.Format as IImageFormatKnownDimensions).Width = width;
+                (settings.Format as IImageFormatKnownDimensions).Height = height;
+            }
+
             var colors = new List<Color>();
+            var ditherColors = new List<Color>();
+            var points = GetPointSequence(settings);
+
+            if (settings.Ditherer != null)
+            {
+                settings.Ditherer.Width = width;
+                settings.Ditherer.Height = height;
+
+                for (int y = 0; y < bmp.Height; y++)
+                    for (int x = 0; x < bmp.Width; x++)
+                        ditherColors.Add(bmp.GetPixel(x, y));
+                settings.Format.Save(ditherColors);
+                ditherColors = settings.Ditherer.Process(ditherColors, (settings.Format as IPaletteFormat).GetPalette().ToList()).ToList();
+            }
 
             foreach (var point in points)
             {
                 int x = Clamp(point.X, 0, bmp.Width);
                 int y = Clamp(point.Y, 0, bmp.Height);
 
-                var color = bmp.GetPixel(x, y);
+                Color color;
+                if (settings.Ditherer != null)
+                    color = ditherColors[x + y * bmp.Width];
+                else
+                    color = bmp.GetPixel(x, y);
+
                 if (settings.PixelShader != null) color = settings.PixelShader(color);
 
                 colors.Add(color);
-            }
-
-            int width = settings.Width, height = settings.Height;
-            if (settings.Format is IImageFormatKnownDimensions)
-            {
-                (settings.Format as IImageFormatKnownDimensions).Width = width;
-                (settings.Format as IImageFormatKnownDimensions).Height = height;
             }
 
             return settings.Format.Save(colors);
