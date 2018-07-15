@@ -69,7 +69,7 @@ namespace Kore.SamplePlugins
             using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
             {
                 // Header
-                Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD" : "\0DFG";
+                Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD\0" : "\0DFG";
                 Header.CharacterCount = Characters.Count;
                 bw.WriteStruct(Header);
                 foreach (var f in HeaderF)

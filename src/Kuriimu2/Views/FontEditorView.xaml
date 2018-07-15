@@ -17,16 +17,25 @@
             </Grid.ColumnDefinitions>
 
             <!-- Character View -->
-            <DockPanel Grid.Column="0" Background="DimGray">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
-                            <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                        </Border>
-                        <Border BorderThickness="1" BorderBrush="Yellow" Margin="{Binding CursorMargin}" Width="{Binding SelectedCharacterGlyphWidth}" Height="{Binding SelectedCharacterGlyphHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                    </Grid>
-                </ScrollViewer>
-            </DockPanel>
+            <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
+                <DockPanel>
+                    <DockPanel.Background>
+                        <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                            <VisualBrush.Visual>
+                                <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </DockPanel.Background>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Background="DimGray">
+                            <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
+                                <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                            </Border>
+                            <Border BorderThickness="1" BorderBrush="Yellow" Margin="{Binding CursorMargin}" Width="{Binding SelectedCharacterGlyphWidth}" Height="{Binding SelectedCharacterGlyphHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
 
             <Label Grid.Column="1" Width="4"></Label>
 
