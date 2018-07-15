@@ -210,7 +210,7 @@ namespace Kore.SamplePlugins
                 using (var br = new BinaryReaderX(File.OpenRead(filename)))
                 {
                     var magic = br.ReadString(4);
-                    if (!magic.StartsWith("GFD") && !magic.StartsWith("\0DFG"))
+                    if (!magic.StartsWith("GFD\0") && !magic.StartsWith("\0DFG"))
                         result = false;
                 }
             }

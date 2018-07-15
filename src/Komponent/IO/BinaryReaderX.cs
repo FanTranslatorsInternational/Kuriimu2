@@ -199,12 +199,12 @@ namespace Komponent.IO
 
         public string ReadString(int length)
         {
-            return Encoding.ASCII.GetString(ReadBytes(length)).TrimEnd('\0');
+            return Encoding.ASCII.GetString(ReadBytes(length));
         }
 
         public string ReadString(int length, Encoding encoding)
         {
-            return encoding.GetString(ReadBytes(length)).TrimEnd('\0');
+            return encoding.GetString(ReadBytes(length));
         }
 
         public string PeekString(int length = 4)
