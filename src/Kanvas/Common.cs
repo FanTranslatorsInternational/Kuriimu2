@@ -59,6 +59,12 @@ namespace Kanvas
         {
             int width = settings.Width, height = settings.Height;
 
+            if (settings.Format is IImageFormatKnownDimensions)
+            {
+                (settings.Format as IImageFormatKnownDimensions).Width = width;
+                (settings.Format as IImageFormatKnownDimensions).Height = height;
+            }
+
             var points = GetPointSequence(settings);
 
             var bmp = new Bitmap(width, height);
@@ -102,6 +108,13 @@ namespace Kanvas
                 if (settings.PixelShader != null) color = settings.PixelShader(color);
 
                 colors.Add(color);
+            }
+
+            int width = settings.Width, height = settings.Height;
+            if (settings.Format is IImageFormatKnownDimensions)
+            {
+                (settings.Format as IImageFormatKnownDimensions).Width = width;
+                (settings.Format as IImageFormatKnownDimensions).Height = height;
             }
 
             return settings.Format.Save(colors);

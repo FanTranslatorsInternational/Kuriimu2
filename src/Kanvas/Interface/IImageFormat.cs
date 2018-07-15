@@ -36,4 +36,20 @@ namespace Kanvas.Interface
         /// <returns>Encoded data</returns>
         byte[] Save(IEnumerable<Color> colors);
     }
+
+    /// <summary>
+    /// An interface for additionally defining a Width and a Height to use in the format conversion
+    /// </summary>
+    public interface IImageFormatKnownDimensions : IImageFormat
+    {
+        /// <summary>
+        /// The Width of the image to convert
+        /// </summary>
+        int Width { set; }
+
+        /// <summary>
+        /// The Height of the image to convert
+        /// </summary>
+        int Height { set; }
+    }
 }
