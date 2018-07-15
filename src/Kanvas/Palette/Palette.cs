@@ -38,6 +38,7 @@ namespace Kanvas.Palette
 
             this.byteOrder = byteOrder;
 
+            this.indexDepth = indexDepth;
             BitDepth = indexDepth;
             FormatName = "Palette";
 
@@ -62,7 +63,7 @@ namespace Kanvas.Palette
         public IEnumerable<Color> Load(byte[] data)
         {
             using (var br = new BinaryReaderX(new MemoryStream(data), true, byteOrder))
-                while (true)
+                while (br.BaseStream.Position < br.BaseStream.Length && br.IsFirstNibble)
                     switch (BitDepth)
                     {
                         case 4:

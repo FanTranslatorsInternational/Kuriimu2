@@ -18,6 +18,7 @@ namespace Komponent.IO
 
         public ByteOrder ByteOrder { get; set; }
         public BitOrder BitOrder { get; set; }
+        public bool IsFirstNibble { get => _nibble == -1; }
 
         public BitOrder EffectiveBitOrder
         {
