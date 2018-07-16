@@ -30,15 +30,17 @@ namespace Kanvas.Palette
         public int Height { get; set; }
 
         int indexDepth;
+        int colorCount;
         ByteOrder byteOrder;
 
-        public Palette(int indexDepth = 8, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        public Palette(int indexDepth = 8, int colorCount = -1, ByteOrder byteOrder = ByteOrder.LittleEndian)
         {
             if (indexDepth % 4 != 0) throw new Exception("IndexDepth has to be dividable by 4.");
 
             this.byteOrder = byteOrder;
 
             this.indexDepth = indexDepth;
+            this.colorCount = colorCount;
             BitDepth = indexDepth;
             FormatName = "Palette";
 
@@ -82,7 +84,7 @@ namespace Kanvas.Palette
             if (Width <= 0 || Height <= 0)
                 throw new Exception("You need to set Width and Height for saving palette textures.");
 
-            var (palette, indeces) = Quantization.Palette.CreatePalette(colors.ToList(), Width, Height, 1 << indexDepth, ColorQuantizer, PathProvider, ColorCache);
+            var (palette, indeces) = Quantization.Palette.CreatePalette(colors.ToList(), Width, Height, (colorCount == -1) ? 1 << indexDepth : colorCount, ColorQuantizer, PathProvider, ColorCache);
             savedColors = palette;
             this.colors = palette;
 
