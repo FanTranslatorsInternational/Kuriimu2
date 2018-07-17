@@ -89,6 +89,7 @@ namespace Kore.Generators
                     {
                         imagePos.Y = 0;
                         img = new Bitmap(CanvasWidth, CanvasHeight);
+                        img.SetResolution(Dpi, Dpi);
                         gfx = Graphics.FromImage(img);
                         gfx.SmoothingMode = SmoothingMode.None;
                         gfx.InterpolationMode = InterpolationMode.Bicubic;
@@ -103,32 +104,12 @@ namespace Kore.Generators
 
                 var imageDim = new Size(glyphDim.Width + GlyphMargin.Left + GlyphMargin.Right, glyphDim.Height + GlyphMargin.Top + GlyphMargin.Bottom);
 
-                //var cat = char.GetUnicodeCategory(c);
-                //if (cat == UnicodeCategory.OtherLetter || c == '　')
-                //    glyphDim.Width = glyphDim.Height;
-                //else
-                //    glyphDim.Width += glyphPaddingLeft + glyphPaddingRight;
-
-                // Calculate Glyph Centering | Margin & Padding
-                //var charPos = new Point(glyphPos.X, glyphPos.Y);
-                //if (cat == UnicodeCategory.OtherLetter)
-                //    charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
-                //else
-                //    charPos.X += GlyphMargin.Left + glyphPaddingLeft;
-
                 charPos.X = imagePos.X + GlyphMargin.Left + glyphPaddingLeft;
                 charPos.Y = imagePos.Y + GlyphMargin.Top;
 
                 if (ShowDebugBoxes)
                 {
                     color = color == Color.FromArgb(180, 255, 0, 0) ? Color.FromArgb(180, 0, 0, 0) : Color.FromArgb(180, 255, 0, 0);
-
-                    //// Disable Padding
-                    //if (cat == UnicodeCategory.OtherLetter)
-                    //{
-                    //    charPos.X = glyphPos.X;
-                    //    charDim.Width = glyphDim.Width;
-                    //}
 
                     // Image Box
                     gfx.DrawRectangle(new Pen(Color.FromArgb(80, 0, 0, 0), 1), new Rectangle(imagePos.X, imagePos.Y, imageDim.Width - 1, imageDim.Height - 1));
@@ -196,35 +177,17 @@ namespace Kore.Generators
             var imageDim = new Size(glyphDim.Width + GlyphMargin.Left + GlyphMargin.Right, glyphDim.Height + GlyphMargin.Top + GlyphMargin.Bottom);
             if (imageDim.Width == 0 || imageDim.Height == 0) return null;
 
-            // Adjust Glyph Dimensions
-            //var cat = char.GetUnicodeCategory(c);
-            //if (cat == UnicodeCategory.OtherLetter || c == '　')
-            //    glyphDim.Width = glyphDim.Height;
-            //else
-            //    glyphDim.Width += GlyphPadding.Left + GlyphPadding.Right;
-
             // Reset the Bitmap
             img = new Bitmap(imageDim.Width, imageDim.Height);
+            img.SetResolution(Dpi, Dpi);
             gfx = Graphics.FromImage(img);
             gfx.SmoothingMode = SmoothingMode.None;
             gfx.InterpolationMode = InterpolationMode.Bicubic;
             gfx.PixelOffsetMode = PixelOffsetMode.Default;
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
-            // Calculate Glyph Centering | Margin & Padding
-            //if (cat == UnicodeCategory.OtherLetter)
-            //    charPos.X += GlyphMargin.Left + (int)Math.Ceiling((float)(glyphDim.Width - GlyphMargin.Left - GlyphMargin.Right) / 2 - (float)charDim.Width / 2);
-            //else
-
             charPos.X += GlyphMargin.Left + glyphPaddingLeft;
             charPos.Y += GlyphMargin.Top; /* + GlyphPadding.Top;*/
-
-            //// Disable Padding
-            //if (cat == UnicodeCategory.OtherLetter)
-            //{
-            //    charPos.X = glyphPos.X;
-            //    charDim.Width = glyphDim.Width;
-            //}
 
             // Image Box
             gfx.DrawRectangle(new Pen(Color.FromArgb(80, 0, 0, 0), 1), new Rectangle(0, 0, imageDim.Width - 1, imageDim.Height - 1));
