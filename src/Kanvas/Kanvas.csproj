@@ -48,6 +48,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
+    <Compile Include="Ditherer\BayerDitherer.cs" />
+    <Compile Include="Ditherer\Support\OrderedDitherer.cs" />
+    <Compile Include="Interface\IDitherer.cs" />
     <Compile Include="Interface\Quantization\IColorQuantizer.cs" />
     <Compile Include="Interface\Quantization\IPathProvider.cs" />
     <Compile Include="Palette\AI.cs" />
@@ -136,6 +139,7 @@
     <Compile Include="Swizzle\NX.cs" />
     <Compile Include="Swizzle\Café.cs" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
