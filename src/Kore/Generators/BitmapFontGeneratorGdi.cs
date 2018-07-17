@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,6 +15,8 @@ namespace Kore.Generators
 {
     public class BitmapFontGeneratorGdi
     {
+        private const int Dpi = 96;
+
         // Input
         public IFontAdapter Adapter { get; set; } = null;
         public Font Font { get; set; } = null;
@@ -49,6 +50,7 @@ namespace Kore.Generators
             Adapter.Textures = new List<Bitmap>();
 
             var img = new Bitmap(CanvasWidth, CanvasHeight);
+            img.SetResolution(Dpi, Dpi);
             Adapter.Textures.Add(img);
 
             var gfx = Graphics.FromImage(img);
@@ -58,8 +60,7 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             var baseline = Baseline + GlyphMargin.Top;
-            var baselineOffsetPixels = Baseline - 96 / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
-            //var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
 
             var imagePos = new Point(0, 0);
             var color = Color.FromArgb(180, 255, 0, 0);
@@ -166,6 +167,7 @@ namespace Kore.Generators
         public Bitmap Preview(char c)
         {
             var img = new Bitmap(CanvasWidth, CanvasHeight);
+            img.SetResolution(Dpi, Dpi);
 
             var gfx = Graphics.FromImage(img);
             gfx.SmoothingMode = SmoothingMode.None;
@@ -174,8 +176,7 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             var baseline = Baseline + GlyphMargin.Top;
-            var baselineOffsetPixels = Baseline - 96 / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
-            //var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
 
             var cstr = c.ToString();
 
