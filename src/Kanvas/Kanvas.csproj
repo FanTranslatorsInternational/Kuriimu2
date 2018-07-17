@@ -50,6 +50,8 @@
     <Compile Include="Common.cs" />
     <Compile Include="Ditherer\BayerDitherer.cs" />
     <Compile Include="Ditherer\ClusteredDotDitherer.cs" />
+    <Compile Include="Ditherer\FanDitherer.cs" />
+    <Compile Include="Ditherer\Support\ErrorDiffusionDitherer.cs" />
     <Compile Include="Ditherer\Support\OrderedDitherer.cs" />
     <Compile Include="Interface\IDitherer.cs" />
     <Compile Include="Interface\Quantization\IColorQuantizer.cs" />

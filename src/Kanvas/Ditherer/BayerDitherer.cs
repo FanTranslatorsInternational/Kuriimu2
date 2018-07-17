@@ -16,7 +16,7 @@ namespace Kanvas.Ditherer
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public string DithererName { get; set; }
+        public string DithererName { get; private set; }
 
         int[,] CachedMatrix;
         byte MatrixWidth { get; set; }
