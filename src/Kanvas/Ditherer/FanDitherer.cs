@@ -33,7 +33,7 @@ namespace Kanvas.Ditherer
             DithererName = $"FanDitherer{MatrixSideWidth * 2 + 1}x{MatrixSideHeight * 2 + 1}";
         }
 
-        public IEnumerable<Color> Process(IEnumerable<Color> source, List<Color> palette) =>
-            Support.ErrorDiffusionDitherer.TransformColors(source, palette, MatrixSideWidth, MatrixSideHeight, Width, Height, CachedMatrix);
+        public IEnumerable<Color> Process(IEnumerable<Color> source, IEnumerable<Color> target, List<Color> palette) =>
+            Support.ErrorDiffusionDitherer.TransformColors(source, target.ToList(), palette, MatrixSideWidth, MatrixSideHeight, Width, Height, CachedMatrix);
     }
 }

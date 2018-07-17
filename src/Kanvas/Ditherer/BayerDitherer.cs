@@ -64,7 +64,7 @@ namespace Kanvas.Ditherer
             return res;
         }
 
-        public IEnumerable<Color> Process(IEnumerable<Color> source, List<Color> palette) =>
+        public IEnumerable<Color> Process(IEnumerable<Color> source, IEnumerable<Color> target, List<Color> palette) =>
             Support.OrderedDitherer.TransformColors(source, palette, MatrixWidth, MatrixHeight, Width, CachedMatrix);
     }
 }

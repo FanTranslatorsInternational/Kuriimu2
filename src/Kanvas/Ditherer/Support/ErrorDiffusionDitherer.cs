@@ -9,10 +9,8 @@ namespace Kanvas.Ditherer.Support
 {
     public static class ErrorDiffusionDitherer
     {
-        public static IEnumerable<Color> TransformColors(IEnumerable<Color> source, List<Color> palette, int MatrixSideWidth, int MatrixSideHeight, int ImageWidth, int ImageHeight, int[,] CachedMatrix)
+        public static IEnumerable<Color> TransformColors(IEnumerable<Color> source, List<Color> target, List<Color> palette, int MatrixSideWidth, int MatrixSideHeight, int ImageWidth, int ImageHeight, int[,] CachedMatrix)
         {
-            var target = new List<Color>(source);
-
             var CachedSummedMatrix = CreateCachedSummedMatrix(CachedMatrix);
 
             var index = 0;
@@ -21,7 +19,7 @@ namespace Kanvas.Ditherer.Support
                 var sourceCoord = new Point(index / ImageWidth, index % ImageWidth);
 
                 var sourceColor = p;
-                var targetColor = palette[OrderedDitherer.NearestColor(palette, p)];
+                var targetColor = target.ElementAt(index);
 
                 int redError = sourceColor.R - targetColor.R;
                 int greenError = sourceColor.G - targetColor.G;
@@ -43,7 +41,7 @@ namespace Kanvas.Ditherer.Support
                                 targetX >= 0 && targetX < ImageWidth &&
                                 targetY >= 0 && targetY < ImageHeight)
                             {
-                                ProcessNeighbor(target, targetX + targetY * ImageWidth, coeficientSummed, redError, greenError, blueError);
+                                ProcessNeighbor(target, palette, targetX + targetY * ImageWidth, coeficientSummed, redError, greenError, blueError);
                             }
                         }
                 }
@@ -54,7 +52,7 @@ namespace Kanvas.Ditherer.Support
             return target;
         }
 
-        private static void ProcessNeighbor(List<Color> target, int index, float factor, int redError, int greenError, int blueError)
+        private static void ProcessNeighbor(List<Color> target, List<Color> palette, int index, float factor, int redError, int greenError, int blueError)
         {
             Color oldColor = target[index];
 
@@ -63,7 +61,7 @@ namespace Kanvas.Ditherer.Support
             Int32 blue = GetClampedColorElementWithError(oldColor.B, factor, blueError);
             Color newColor = Color.FromArgb(255, red, green, blue);
 
-            target[index] = newColor;
+            target[index] = palette[OrderedDitherer.NearestColor(palette, newColor)];
         }
 
         private static int GetClampedColorElementWithError(int colorElement, float factor, int error)

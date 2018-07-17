@@ -33,6 +33,6 @@ namespace Kanvas.Interface
         /// <param name="source">RGBA8888 source image</param>
         /// <param name="toDither">Downsampled version of source</param>
         /// <returns></returns>
-        IEnumerable<Color> Process(IEnumerable<Color> toDither, List<Color> palette);
+        IEnumerable<Color> Process(IEnumerable<Color> toDither, IEnumerable<Color> target, List<Color> palette);
     }
 }

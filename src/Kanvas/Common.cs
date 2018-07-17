@@ -117,8 +117,8 @@ namespace Kanvas
                 for (int y = 0; y < bmp.Height; y++)
                     for (int x = 0; x < bmp.Width; x++)
                         ditherColors.Add(bmp.GetPixel(x, y));
-                settings.Format.Save(ditherColors);
-                ditherColors = settings.Ditherer.Process(ditherColors, (settings.Format as IPaletteFormat).GetPalette().ToList()).ToList();
+                var target = settings.Format.Load(settings.Format.Save(ditherColors));
+                ditherColors = settings.Ditherer.Process(ditherColors, target, (settings.Format as IPaletteFormat).GetPalette().ToList()).ToList();
             }
 
             foreach (var point in points)
