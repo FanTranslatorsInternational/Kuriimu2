@@ -58,7 +58,8 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             var baseline = Baseline + GlyphMargin.Top;
-            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            var baselineOffsetPixels = Baseline - 96 / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            //var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
 
             var imagePos = new Point(0, 0);
             var color = Color.FromArgb(180, 255, 0, 0);
@@ -173,7 +174,8 @@ namespace Kore.Generators
             gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
 
             var baseline = Baseline + GlyphMargin.Top;
-            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            var baselineOffsetPixels = Baseline - 96 / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
+            //var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
 
             var cstr = c.ToString();
 
