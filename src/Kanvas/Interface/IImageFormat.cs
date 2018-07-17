@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Drawing;
 
 namespace Kanvas.Interface
@@ -34,6 +29,7 @@ namespace Kanvas.Interface
         /// <param name="input">Image data to decode</param>
         /// <returns>Decoded list of colors</returns>
         IEnumerable<Color> Load(byte[] input);
+
         /// <summary>
         /// Encodes a list of colors
         /// </summary>

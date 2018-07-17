@@ -60,10 +60,10 @@ namespace Kanvas
         {
             int width = settings.Width, height = settings.Height;
 
-            if (settings.Format is IImageFormatKnownDimensions)
+            if (settings.Format is IImageFormatKnownDimensions ifkd)
             {
-                (settings.Format as IImageFormatKnownDimensions).Width = width;
-                (settings.Format as IImageFormatKnownDimensions).Height = height;
+                ifkd.Width = width;
+                ifkd.Height = height;
             }
 
             var points = GetPointSequence(settings);
@@ -98,10 +98,11 @@ namespace Kanvas
         public static byte[] Save(Bitmap bmp, ImageSettings settings)
         {
             int width = settings.Width, height = settings.Height;
-            if (settings.Format is IImageFormatKnownDimensions)
+
+            if (settings.Format is IImageFormatKnownDimensions ifkd)
             {
-                (settings.Format as IImageFormatKnownDimensions).Width = width;
-                (settings.Format as IImageFormatKnownDimensions).Height = height;
+                ifkd.Width = width;
+                ifkd.Height = height;
             }
 
             var colors = new List<Color>();
