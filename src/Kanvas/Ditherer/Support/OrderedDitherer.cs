@@ -29,7 +29,7 @@ namespace Kanvas.Ditherer.Support
                 oldColor = Color.FromArgb(255, oldColor.R, oldColor.G, oldColor.B);
 
                 // determines the threshold
-                var threshold = CachedMatrix[x, y] + 1;
+                var threshold = CachedMatrix[x, y];
 
                 // only process dithering if threshold is substantial
                 if (threshold > 0)

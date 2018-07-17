@@ -44,7 +44,7 @@ namespace Kanvas.Ditherer
 
             for (int y = 0; y < matrixSize; y++)
                 for (int x = 0; x < matrixSize; x++)
-                    res[y, x] = GetEntry(x, y, (int)Math.Log(matrixSize, 2));
+                    res[y, x] = GetEntry(x, y, (int)Math.Log(matrixSize, 2)) + 1;
 
             return res;
         }
