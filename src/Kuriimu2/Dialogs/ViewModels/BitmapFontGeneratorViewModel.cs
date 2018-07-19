@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Controls;
@@ -28,7 +29,6 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _marginRight;
         private int _marginBottom;
         private int _paddingLeft;
-        private int _paddingTop;
         private int _paddingRight;
         private char _previewCharacter = 'A';
         private int _zoomLevel = 5;
@@ -40,6 +40,7 @@ namespace Kuriimu2.Dialogs.ViewModels
         private int _glyphHeight = 36;
         private bool _bold;
         private bool _italic;
+        private string _renderTextRenderingHint = "AntiAlias";
         private int _caretIndex;
 
         public BitmapImage Icon { get; }
@@ -290,6 +291,20 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public int CanvasWidth { get; set; } = 1024;
         public int CanvasHeight { get; set; } = 512;
+
+        public List<string> RenderTextRenderingHints => Enum.GetNames(typeof(TextRenderingHint)).ToList();
+        public string RenderTextRenderingHint
+        {
+            get => _renderTextRenderingHint;
+            set
+            {
+                if (value == _renderTextRenderingHint) return;
+                _renderTextRenderingHint = value;
+                UpdatePreview();
+                NotifyOfPropertyChange(() => RenderTextRenderingHint);
+            }
+        }
+
         public bool ShowDebugBoxes { get; set; }
 
         #endregion
@@ -377,6 +392,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 Font = new Font(ff, FontSize, fs),
                 Baseline = Baseline,
                 GlyphHeight = GlyphHeight,
+                TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint),
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -424,6 +440,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 Font = new Font(ff, FontSize, fs),
                 Baseline = Baseline,
                 GlyphHeight = GlyphHeight,
+                TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint),
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,
                 ShowDebugBoxes = ShowDebugBoxes
@@ -473,6 +490,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             GlyphHeight = profile.GlyphHeight;
             Bold = profile.Bold;
             Italic = profile.Italic;
+            RenderTextRenderingHint = profile.TextRenderingHint;
             Characters = profile.Characters;
             CanvasWidth = profile.CanvasWidth;
             CanvasHeight = profile.CanvasHeight;
@@ -505,6 +523,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 GlyphHeight = GlyphHeight,
                 Bold = Bold,
                 Italic = Italic,
+                TextRenderingHint = RenderTextRenderingHint,
                 Characters = Characters,
                 CanvasWidth = CanvasWidth,
                 CanvasHeight = CanvasHeight,

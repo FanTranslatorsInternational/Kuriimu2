@@ -198,6 +198,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Label Grid.Column="0" Grid.Row="0">Generator</Label>
@@ -206,9 +207,10 @@
                 <Label Grid.Column="0" Grid.Row="3">Baseline</Label>
                 <Label Grid.Column="0" Grid.Row="4">Glyph Height</Label>
 
-                <Label Grid.Column="0" Grid.Row="6">Characters</Label>
-                <Label Grid.Column="0" Grid.Row="7">Canvas Width</Label>
-                <Label Grid.Column="0" Grid.Row="8">Canvas Height</Label>
+                <Label Grid.Column="0" Grid.Row="6">Text Rendering</Label>
+                <Label Grid.Column="0" Grid.Row="7">Characters</Label>
+                <Label Grid.Column="0" Grid.Row="8">Canvas Width</Label>
+                <Label Grid.Column="0" Grid.Row="9">Canvas Height</Label>
 
                 <ComboBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding GeneratorTypes}" SelectedItem="{Binding Generator}" IsEnabled="False" />
                 <ComboBox Grid.Column="1" Grid.Row="1" ItemsSource="{Binding FontFamilies}" SelectedItem="{Binding FontFamily}" />
@@ -217,13 +219,14 @@
                 <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding GlyphHeight, UpdateSourceTrigger=PropertyChanged}" />
                 <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal">
                     <CheckBox IsChecked="{Binding Bold}" Content="Bold" />
-                    <CheckBox IsChecked="{Binding Italic}" Content="Italic" />
+                    <CheckBox IsChecked="{Binding Italic}" Content="Italic" /> 
                 </StackPanel>
-                <controls:TrackableTextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" CaretPosition="{Binding CaretIndex, Mode=OneWayToSource}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+                <ComboBox Grid.Column="1" Grid.Row="6" ItemsSource="{Binding RenderTextRenderingHints}" SelectedItem="{Binding RenderTextRenderingHint}" />
+                <controls:TrackableTextBox Grid.Column="1" Grid.Row="7" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" CaretPosition="{Binding CaretIndex, Mode=OneWayToSource}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
                 <!--<TextBox Grid.Column="1" Grid.Row="6" Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" CaretIndex="{Binding CaretIndex, Mode=OneWayToSource}" TextWrapping="Wrap" AcceptsReturn="False" Width="300" MinHeight="0" MaxHeight="200" VerticalScrollBarVisibility="Auto" />-->
-                <TextBox Grid.Column="1" Grid.Row="7" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
-                <CheckBox Grid.Column="1" Grid.Row="9" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />
+                <TextBox Grid.Column="1" Grid.Row="8" Text="{Binding CanvasWidth, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Grid.Column="1" Grid.Row="9" Text="{Binding CanvasHeight, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Grid.Column="1" Grid.Row="10" IsChecked="{Binding ShowDebugBoxes}" Content="Show Debug Boxes" />
             </Grid>
 
             <Label Content="{Binding Error}" />

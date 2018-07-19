@@ -29,6 +29,7 @@ namespace Kore.Generators
         public float Baseline { get; set; } = 30;
         public int CanvasWidth { get; set; } = 512;
         public int CanvasHeight { get; set; } = 512;
+        public TextRenderingHint TextRenderingHint { get; set; } = TextRenderingHint.AntiAlias;
         public bool ShowDebugBoxes { get; set; } = false;
 
         public void Generate(List<ushort> characters)
@@ -54,10 +55,10 @@ namespace Kore.Generators
             Adapter.Textures.Add(img);
 
             var gfx = Graphics.FromImage(img);
-            gfx.SmoothingMode = SmoothingMode.None;
-            gfx.InterpolationMode = InterpolationMode.Bicubic;
-            gfx.PixelOffsetMode = PixelOffsetMode.Default;
-            gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+            gfx.SmoothingMode = SmoothingMode.HighQuality;
+            gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.None;
+            gfx.TextRenderingHint = TextRenderingHint;
 
             var baseline = Baseline + GlyphMargin.Top;
             var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
@@ -91,10 +92,10 @@ namespace Kore.Generators
                         img = new Bitmap(CanvasWidth, CanvasHeight);
                         img.SetResolution(Dpi, Dpi);
                         gfx = Graphics.FromImage(img);
-                        gfx.SmoothingMode = SmoothingMode.None;
-                        gfx.InterpolationMode = InterpolationMode.Bicubic;
-                        gfx.PixelOffsetMode = PixelOffsetMode.Default;
-                        gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+                        gfx.SmoothingMode = SmoothingMode.HighQuality;
+                        gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        gfx.PixelOffsetMode = PixelOffsetMode.None;
+                        gfx.TextRenderingHint = TextRenderingHint;
                         Adapter.Textures.Add(img);
                     }
                 }
@@ -151,10 +152,10 @@ namespace Kore.Generators
             img.SetResolution(Dpi, Dpi);
 
             var gfx = Graphics.FromImage(img);
-            gfx.SmoothingMode = SmoothingMode.None;
-            gfx.InterpolationMode = InterpolationMode.Bicubic;
-            gfx.PixelOffsetMode = PixelOffsetMode.Default;
-            gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+            gfx.SmoothingMode = SmoothingMode.HighQuality;
+            gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.None;
+            gfx.TextRenderingHint = TextRenderingHint;
 
             var baseline = Baseline + GlyphMargin.Top;
             var baselineOffsetPixels = Baseline - gfx.DpiY / 72f * (Font.SizeInPoints / Font.FontFamily.GetEmHeight(Font.Style) * Font.FontFamily.GetCellAscent(Font.Style));
@@ -181,10 +182,10 @@ namespace Kore.Generators
             img = new Bitmap(imageDim.Width, imageDim.Height);
             img.SetResolution(Dpi, Dpi);
             gfx = Graphics.FromImage(img);
-            gfx.SmoothingMode = SmoothingMode.None;
-            gfx.InterpolationMode = InterpolationMode.Bicubic;
-            gfx.PixelOffsetMode = PixelOffsetMode.Default;
-            gfx.TextRenderingHint = TextRenderingHint.AntiAlias;
+            gfx.SmoothingMode = SmoothingMode.HighQuality;
+            gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.None;
+            gfx.TextRenderingHint = TextRenderingHint;
 
             charPos.X += GlyphMargin.Left + glyphPaddingLeft;
             charPos.Y += GlyphMargin.Top; /* + GlyphPadding.Top;*/
@@ -238,6 +239,9 @@ namespace Kore.Generators
 
         [XmlElement("italic")]
         public bool Italic { get; set; }
+
+        [XmlElement("textRenderingHint")]
+        public string TextRenderingHint { get; set; } = "AntiAlias";
 
         [XmlElement("characters")]
         public string Characters { get; set; }
