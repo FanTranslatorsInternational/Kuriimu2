@@ -50,7 +50,7 @@ namespace Kanvas.Ditherer.Support
         }
 
         // closed match in RGB space
-        static int NearestColor(List<Color> colors, Color target)
+        public static int NearestColor(List<Color> colors, Color target)
         {
             var colorDiffs = colors.Select(n => ColorDiff(n, target)).Min(n => n);
             return colors.FindIndex(n => ColorDiff(n, target) == colorDiffs);
@@ -64,7 +64,7 @@ namespace Kanvas.Ditherer.Support
                                    + (c1.B - c2.B) * (c1.B - c2.B));
         }
 
-        static int GetClampedColorElement(int colorElement)
+        public static int GetClampedColorElement(int colorElement)
         {
             int result = colorElement;
             if (result < 0) result = 0;
