@@ -304,8 +304,8 @@ namespace Kore.SamplePlugins
                     {
                         var chr = (GFDv1Character)newChar;
                         chr.Block2Trailer = chrv1.Block2Trailer;
-                        chr.CharacterKerning = chrv1.CharacterKerning;
-                        chr.CharacterUnknown = chrv1.CharacterUnknown;
+                        chr.CharacterWidth = chrv1.CharacterWidth;
+                        chr.XAdjust = chrv1.XAdjust;
                         chr.Block3Trailer = chrv1.Block3Trailer;
                     }
                     break;
@@ -335,8 +335,8 @@ namespace Kore.SamplePlugins
                     _gfdv1.Characters.Add(chrv1);
 
                     // Set GFD Kerning for new characters
-                    if (chrv1.CharacterKerning == 0)
-                        chrv1.CharacterKerning = chrv1.GlyphWidth;
+                    if (chrv1.CharacterWidth == 0)
+                        chrv1.CharacterWidth = chrv1.GlyphWidth;
 
                     // Set GFD Unknown for space characters
                     switch (character.Character)
@@ -345,7 +345,7 @@ namespace Kore.SamplePlugins
                         case '¬':
                         case 'þ':
                         case ' ':
-                            chrv1.CharacterUnknown = 32;
+                            chrv1.XAdjust = 32;
                             break;
                     }
 
