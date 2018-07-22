@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Controls;
@@ -41,7 +40,11 @@ namespace Kuriimu2.Dialogs.ViewModels
         private bool _bold;
         private bool _italic;
         private string _renderTextRenderingHint = "AntiAlias";
+        private string _characters;
         private int _caretIndex;
+        private int _canvasWidth = 1024;
+        private int _canvasHeight = 512;
+        private bool _showDebugBoxes;
 
         public BitmapImage Icon { get; }
         public string Error { get; set; } = string.Empty;
@@ -272,7 +275,16 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        public string Characters { get; set; }
+        public string Characters
+        {
+            get => _characters;
+            set
+            {
+                if (value == _characters) return;
+                _characters = value;
+                NotifyOfPropertyChange(() => Characters);
+            }
+        }
 
         public int CaretIndex
         {
@@ -289,10 +301,30 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        public int CanvasWidth { get; set; } = 1024;
-        public int CanvasHeight { get; set; } = 512;
+        public int CanvasWidth
+        {
+            get => _canvasWidth;
+            set
+            {
+                if (value == _canvasWidth) return;
+                _canvasWidth = value;
+                NotifyOfPropertyChange(() => CanvasWidth);
+            }
+        }
+
+        public int CanvasHeight
+        {
+            get => _canvasHeight;
+            set
+            {
+                if (value == _canvasHeight) return;
+                _canvasHeight = value;
+                NotifyOfPropertyChange(() => CanvasHeight);
+            }
+        }
 
         public List<string> RenderTextRenderingHints => Enum.GetNames(typeof(TextRenderingHint)).ToList();
+
         public string RenderTextRenderingHint
         {
             get => _renderTextRenderingHint;
@@ -305,7 +337,16 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
         }
 
-        public bool ShowDebugBoxes { get; set; }
+        public bool ShowDebugBoxes
+        {
+            get => _showDebugBoxes;
+            set
+            {
+                if (value == _showDebugBoxes) return;
+                _showDebugBoxes = value;
+                NotifyOfPropertyChange(() => ShowDebugBoxes);
+            }
+        }
 
         #endregion
 
