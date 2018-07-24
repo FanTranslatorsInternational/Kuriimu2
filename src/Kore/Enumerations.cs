@@ -1,9 +1,10 @@
 ﻿namespace Kore
 {
-    public enum LoadResult
-    {
-        Success,
-        Cancelled,
-        NoPlugin
-    }
+    //public enum LoadResult
+    //{
+    //    Succeeded,
+    //    Failed,
+    //    Cancelled,
+    //    NoPlugin
+    //}
 }

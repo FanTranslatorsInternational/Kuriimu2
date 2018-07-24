@@ -53,6 +53,7 @@
     <Compile Include="Ditherer\FanDitherer.cs" />
     <Compile Include="Ditherer\Support\ErrorDiffusionDitherer.cs" />
     <Compile Include="Ditherer\Support\OrderedDitherer.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Interface\IDitherer.cs" />
     <Compile Include="Interface\Quantization\IColorQuantizer.cs" />
     <Compile Include="Interface\Quantization\IPathProvider.cs" />

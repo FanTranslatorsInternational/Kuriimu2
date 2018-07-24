@@ -87,33 +87,30 @@ namespace Kuriimu2.ViewModels
 
         private void LoadFile(string filename)
         {
-            var kfi = _kore.LoadFile(filename, out var loadResult);
+            KoreFileInfo kfi = null;
 
-            switch (loadResult)
+            try
             {
-                case LoadResult.Success:
-                    switch (kfi.Adapter)
-                    {
-                        case ITextAdapter txt2:
-                            ActivateItem(new TextEditor2ViewModel(kfi));
-                            break;
-                        case IImageAdapter img:
-                            ActivateItem(new ImageEditorViewModel(kfi));
-                            break;
-                        case IFontAdapter fnt:
-                            ActivateItem(new FontEditorViewModel(kfi));
-                            break;
-                    }
-                    break;
-                case LoadResult.NoPlugin:
-                    MessageBox.Show("The selected plugin could not open the file.");
-                    break;
-                case LoadResult.Cancelled:
-                    // Do nothing.
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException("Kore.LoadFile.LoadResult");
+                kfi = _kore.LoadFile(filename);
             }
+            catch (LoadFileException ex)
+            {
+                MessageBox.Show(ex.Message, "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (kfi != null)
+                switch (kfi.Adapter)
+                {
+                    case ITextAdapter txt2:
+                        ActivateItem(new TextEditor2ViewModel(kfi));
+                        break;
+                    case IImageAdapter img:
+                        ActivateItem(new ImageEditorViewModel(kfi));
+                        break;
+                    case IFontAdapter fnt:
+                        ActivateItem(new FontEditorViewModel(kfi));
+                        break;
+                }
         }
 
         private void SaveFile(string filename = "")

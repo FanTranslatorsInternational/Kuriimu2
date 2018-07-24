@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
@@ -20,19 +21,19 @@ namespace Kuriimu2.ViewModels
         private List<IScreen> _windows = new List<IScreen>();
         private IImageAdapter _adapter;
 
-        private BitmapInfo _selectedBitmap;
+        private BitmapEntry _selectedBitmapInfo;
         private ImageSource _selectedTexture;
 
         public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<BitmapInfoUI> Bitmaps { get; private set; }
+        public ObservableCollection<BitmapEntry> Bitmaps { get; private set; }
 
-        public BitmapInfo SelectedBitmap
+        public BitmapEntry SelectedBitmap
         {
-            get => _selectedBitmap;
+            get => _selectedBitmapInfo;
             set
             {
-                _selectedBitmap = value;
-                SelectedTexture = _selectedBitmap.Bitmap.ToBitmapImage();
+                _selectedBitmapInfo = value;
+                SelectedTexture = _selectedBitmapInfo.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }
@@ -61,7 +62,7 @@ namespace Kuriimu2.ViewModels
             _adapter = KoreFile.Adapter as IImageAdapter;
 
             if (_adapter != null)
-                Bitmaps = new ObservableCollection<BitmapInfoUI>(_adapter.Bitmaps.Select(bi => new BitmapInfoUI(bi)));
+                Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.Bitmaps.Select(bi => new BitmapEntry(bi)));
 
             SelectedBitmap = Bitmaps.First();
         }
@@ -158,14 +159,35 @@ namespace Kuriimu2.ViewModels
         }
     }
 
-    public sealed class BitmapInfoUI : BitmapInfo
+    public sealed class BitmapEntry
     {
-        public BitmapImage Source => Bitmap.ToBitmapImage();
+        public BitmapInfo BitmapInfo = null;
 
-        public BitmapInfoUI(BitmapInfo bi)
+        public string Name => BitmapInfo?.Name;
+
+        public BitmapImage ImageOne => BitmapInfo?.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+
+        public BitmapImage ImageTwo => BitmapInfo?.Bitmaps.Skip(1).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageTwoVisible => BitmapInfo?.Bitmaps.Count > 1 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapImage ImageThree => BitmapInfo?.Bitmaps.Skip(2).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageThreeVisible => BitmapInfo?.Bitmaps.Count > 2 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapImage ImageFour => BitmapInfo?.Bitmaps.Skip(3).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageFourVisible => BitmapInfo?.Bitmaps.Count > 3 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapImage ImageFive => BitmapInfo?.Bitmaps.Skip(4).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageFiveVisible => BitmapInfo?.Bitmaps.Count > 4 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapImage ImageSix => BitmapInfo?.Bitmaps.Skip(5).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageSixVisible => BitmapInfo?.Bitmaps.Count > 5 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapImage ImageSeven => BitmapInfo?.Bitmaps.Skip(6).FirstOrDefault()?.ToBitmapImage();
+        public Visibility ImageSevenVisible => BitmapInfo?.Bitmaps.Count > 6 ? Visibility.Visible : Visibility.Hidden;
+
+        public BitmapEntry(BitmapInfo bitmapInfo)
         {
-            Bitmap = bi.Bitmap;
-            Name = bi.Name;
+            BitmapInfo = bitmapInfo;
         }
     }
 }

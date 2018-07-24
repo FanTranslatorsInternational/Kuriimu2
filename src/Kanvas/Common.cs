@@ -8,7 +8,7 @@ using Kanvas.Interface;
 namespace Kanvas
 {
     /// <summary>
-    /// Defines the settings with which an image will be loaded/saved
+    /// Defines the settings with which an image will be loaded and saved.
     /// </summary>
     public class ImageSettings
     {
@@ -16,8 +16,8 @@ namespace Kanvas
         public int Height { get; set; }
         public IImageFormat Format { get; set; }
 
-        public int padWidth { get; set; } = 0;
-        public int padHeight { get; set; } = 0;
+        public int PadWidth { get; set; } = 0;
+        public int PadHeight { get; set; } = 0;
 
         public IImageSwizzle Swizzle { get; set; }
         public IDitherer Ditherer { get; set; }
@@ -25,7 +25,7 @@ namespace Kanvas
     }
 
     /// <summary>
-    /// Basic wrapper for all supported Image Formats in Kuriimu
+    /// Main wrapper for all supported Image Formats in Kanvas.
     /// </summary>
     public class Common
     {
@@ -35,7 +35,7 @@ namespace Kanvas
         /// <summary>
         /// Gives back a sequence of points, modified by Swizzles if applied
         /// </summary>
-        static IEnumerable<Point> GetPointSequence(ImageSettings settings)
+        private static IEnumerable<Point> GetPointSequence(ImageSettings settings)
         {
             int strideWidth = (settings.Swizzle != null) ? settings.Swizzle.Width : settings.Width;
             int strideHeight = (settings.Swizzle != null) ? settings.Swizzle.Height : settings.Height;
