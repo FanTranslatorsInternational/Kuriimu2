@@ -189,7 +189,7 @@ namespace Kore.SamplePlugins
         public class Block2
         {
             [BitField(8)]
-            public long Block2Trailer = 0;
+            public long Block2Trailer;
             [BitField(12)]
             public long GlyphHeight;
             [BitField(12)]
@@ -229,13 +229,13 @@ namespace Kore.SamplePlugins
         public int CharacterHeight { get; set; }
 
         /// <summary>
-        /// 
+        /// X adjustment.
         /// </summary>
         [FormField(typeof(int), "X Adjust")]
         public int XAdjust { get; set; }
 
         /// <summary>
-        /// 
+        /// Y adjustment.
         /// </summary>
         [FormField(typeof(int), "Y Adjust")]
         public int YAdjust { get; set; }

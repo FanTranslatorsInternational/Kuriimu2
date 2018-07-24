@@ -58,8 +58,8 @@ namespace Kore.SamplePlugins
                     Block2Trailer = (int)ci.Block2.Block2Trailer,
 
                     Block3Trailer = (int)ci.Block3.Block3Trailer,
-                    CharacterUnknown = (int)ci.Block3.CharacterUnknown,
-                    CharacterKerning = (int)ci.Block3.CharacterKerning
+                    XAdjust = (int)ci.Block3.XAdjust,
+                    CharacterWidth = (int)ci.Block3.CharacterWidth
                 }).ToList();
             }
         }
@@ -102,8 +102,8 @@ namespace Kore.SamplePlugins
                     Block3 = new Block3
                     {
                         Block3Trailer = ci.Block3Trailer,
-                        CharacterUnknown = ci.CharacterUnknown,
-                        CharacterKerning = ci.CharacterKerning
+                        XAdjust = ci.XAdjust,
+                        CharacterWidth = ci.CharacterWidth
                     }
                 }));
             }
@@ -191,9 +191,9 @@ namespace Kore.SamplePlugins
             [BitField(8)]
             public long Block3Trailer;
             [BitField(12)]
-            public long CharacterUnknown;
+            public long XAdjust;
             [BitField(12)]
-            public long CharacterKerning;
+            public long CharacterWidth;
         }
     }
 
@@ -202,25 +202,25 @@ namespace Kore.SamplePlugins
         /// <summary>
         /// Trailing 8 bits in block2 that are unknown
         /// </summary>
-        [FormField(typeof(int), "Block 2 Trailer")]
+        [FormFieldIgnore]
         public int Block2Trailer { get; set; }
 
         /// <summary>
         /// Character kerning.
         /// </summary>
-        [FormField(typeof(int), "Kerning")]
-        public int CharacterKerning { get; set; }
+        [FormField(typeof(int), "Character Width")]
+        public int CharacterWidth { get; set; }
 
         /// <summary>
         /// Character unknown.
         /// </summary>
-        [FormField(typeof(int), "Unknown")]
-        public int CharacterUnknown { get; set; }
+        [FormField(typeof(int), "X Adjust")]
+        public int XAdjust { get; set; }
 
         /// <summary>
         /// Trailing 8 bits in block3 that are unknown
         /// </summary>
-        [FormField(typeof(int), "Block 3 Trailer")]
+        [FormFieldIgnore]
         public int Block3Trailer { get; set; }
 
         /// <summary>
@@ -236,8 +236,8 @@ namespace Kore.SamplePlugins
             GlyphWidth = GlyphWidth,
             GlyphHeight = GlyphHeight,
             Block2Trailer = Block2Trailer,
-            CharacterKerning = CharacterKerning,
-            CharacterUnknown = CharacterUnknown,
+            CharacterWidth = CharacterWidth,
+            XAdjust = XAdjust,
             Block3Trailer = Block3Trailer
         };
     }
