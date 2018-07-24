@@ -160,9 +160,9 @@ namespace Kore.SamplePlugins
         {
             var (A, Y, Cb, Cr) = (c.G, c.A, c.B - CbCrThreshold, c.R - CbCrThreshold);
             return Color.FromArgb(A,
-                Kanvas.Common.Clamp(Y + 1.402 * Cr),
-                Kanvas.Common.Clamp(Y - 0.344136 * Cb - 0.714136 * Cr),
-                Kanvas.Common.Clamp(Y + 1.772 * Cb));
+                Common.Clamp(Y + 1.402 * Cr),
+                Common.Clamp(Y - 0.344136 * Cb - 0.714136 * Cr),
+                Common.Clamp(Y + 1.772 * Cb));
         }
 
         public static Color ToOptimisedColors(Color c)
@@ -171,7 +171,7 @@ namespace Kore.SamplePlugins
                 0.299 * c.R + 0.587 * c.G + 0.114 * c.B,
                 CbCrThreshold - 0.168736 * c.R - 0.331264 * c.G + 0.5 * c.B,
                 CbCrThreshold + 0.5 * c.R - 0.418688 * c.G - 0.081312 * c.B);
-            return Color.FromArgb(Kanvas.Common.Clamp(Y), Kanvas.Common.Clamp(Cr), A, Kanvas.Common.Clamp(Cb));
+            return Color.FromArgb(Common..Clamp(Y), Common..Clamp(Cr), A, Common..Clamp(Cb));
         }
     }
 }

@@ -111,7 +111,7 @@ namespace Kore.SamplePlugins
                     else if ((Format)HeaderInfo.Format == Format.DXT5_YCbCr)
                         Settings.PixelShader = ToProperColors;
 
-                    Bitmaps.Add(Kanvas.Common.Load(br.ReadBytes(texDataSize), Settings));
+                    Bitmaps.Add(Common.Load(br.ReadBytes(texDataSize), Settings));
                 }
 
                 if (SwitchUnknownData != null)
@@ -191,7 +191,7 @@ namespace Kore.SamplePlugins
                     else if (Settings.Format.FormatName.Contains("DXT"))
                         Settings.Swizzle = new BlockSwizzle(bmp.Width, bmp.Height);
 
-                    bitmaps.Add(Kanvas.Common.Save(bmp, Settings));
+                    bitmaps.Add(Common.Save(bmp, Settings));
                 }
 
                 if (HeaderInfo.Version == Version._Switchv1)

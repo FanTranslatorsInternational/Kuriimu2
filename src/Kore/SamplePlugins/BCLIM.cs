@@ -37,7 +37,7 @@ namespace Kore.SamplePlugins
                     Swizzle = new CTRSwizzle(TextureHeader.Width, TextureHeader.Height, TextureHeader.SwizzleTileMode)
                 };
 
-                Texture = Kanvas.Common.Load(texture, Settings);
+                Texture = Common.Load(texture, Settings);
             }
         }
 
