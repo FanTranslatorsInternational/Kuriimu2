@@ -56,7 +56,7 @@ namespace Kore.XFont.Image
                     Format = Support.Format[header.imageFormat],
                     Swizzle = new ImgcSwizzle(header.width, header.height)
                 };
-                Image = Common..Load(pic, settings);
+                Image = Common.Load(pic, settings);
             }
         }
 
@@ -116,7 +116,7 @@ namespace Kore.XFont.Image
                 Format = Support.Format[header.imageFormat],
                 Swizzle = new ImgcSwizzle(width, height)
             };
-            byte[] pic = Common..Save(Image, settings);
+            byte[] pic = Common.Save(Image, settings);
 
             using (var bw = new BinaryWriterX(file, true))
             {

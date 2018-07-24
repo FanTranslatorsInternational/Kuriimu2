@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using Kanvas;
 using Kanvas.Format;
 using Kanvas.Interface;
 using Kanvas.Swizzle;
@@ -171,7 +172,7 @@ namespace Kore.SamplePlugins
                 0.299 * c.R + 0.587 * c.G + 0.114 * c.B,
                 CbCrThreshold - 0.168736 * c.R - 0.331264 * c.G + 0.5 * c.B,
                 CbCrThreshold + 0.5 * c.R - 0.418688 * c.G - 0.081312 * c.B);
-            return Color.FromArgb(Common..Clamp(Y), Common..Clamp(Cr), A, Common..Clamp(Cb));
+            return Color.FromArgb(Common.Clamp(Y), Common.Clamp(Cr), A, Common.Clamp(Cb));
         }
     }
 }
