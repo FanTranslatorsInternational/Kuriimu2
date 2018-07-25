@@ -21,12 +21,12 @@ namespace Kore.SamplePlugins
     public sealed class MtTexAdapter : IImageAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
     {
         private MTTEX _format;
-        private List<BitmapInfo> _bitmaps;
+        private List<BitmapInfo> _bitmapInfos;
 
         #region Properties
 
         [FormFieldIgnore]
-        public IList<BitmapInfo> Bitmaps => _bitmaps;
+        public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
         #endregion
 
@@ -61,7 +61,7 @@ namespace Kore.SamplePlugins
             if (File.Exists(filename))
             {
                 _format = new MTTEX(File.OpenRead(filename));
-                _bitmaps = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = _format.Bitmaps, Name = "0" } };
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = _format.Bitmaps, Name = "0" } };
             }
         }
 

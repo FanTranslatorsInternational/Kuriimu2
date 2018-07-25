@@ -15,7 +15,7 @@ namespace Kontract.Interfaces
         /// <summary>
         /// The list of images provided by the image adapter to the UI.
         /// </summary>
-        IList<BitmapInfo> Bitmaps { get; }
+        IList<BitmapInfo> BitmapInfos { get; }
 
         /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.

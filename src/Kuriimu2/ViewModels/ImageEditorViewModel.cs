@@ -62,7 +62,7 @@ namespace Kuriimu2.ViewModels
             _adapter = KoreFile.Adapter as IImageAdapter;
 
             if (_adapter != null)
-                Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.Bitmaps.Select(bi => new BitmapEntry(bi)));
+                Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
             SelectedBitmap = Bitmaps.First();
         }

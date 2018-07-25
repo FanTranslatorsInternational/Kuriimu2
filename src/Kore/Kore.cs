@@ -79,7 +79,7 @@ namespace Kore
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
 
-            // Adds all the parts found in the same assembly as the Program class.
+            // Adds all the parts found in the same assembly as the Kore class.
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
 
             if (Directory.Exists("plugins") && Directory.GetFiles("plugins", "*.dll").Length > 0)
@@ -91,6 +91,23 @@ namespace Kore
 
             // Fill the imports of this object.
             _container.ComposeParts(this);
+        }
+
+        // TEMPORARY
+        public static void ComposeSamplePlugins(object parent, CompositionContainer container)
+        {
+            // An aggregate catalog that combines multiple catalogs.
+            var catalog = new AggregateCatalog();
+
+            // Adds all the parts found in the same assembly as the Kore class.
+            catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+
+            // Create the CompositionContainer with the parts in the catalog if it doesn't exist.
+            if (container == null)
+                container = new CompositionContainer(catalog);
+
+            // Fill the imports of this object.
+            container.ComposeParts(parent);
         }
 
         /// <summary>
@@ -133,7 +150,7 @@ namespace Kore
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\nPlugin: {ex.Message}");
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\nPlugin: {ex.Message}");
             }
 
             // Create a KoreFileInfo to keep track of the now open file.

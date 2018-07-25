@@ -62,7 +62,33 @@ namespace Kore.SamplePlugins
         }
 
         [FormFieldIgnore]
-        public List<Bitmap> Textures { get; set; }
+        public List<Bitmap> Textures
+        {
+            get
+            {
+                switch (_version)
+                {
+                    case 1:
+                        return _gfdv1.Textures;
+                    case 2:
+                        //return _gfdv2.Textures;
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                switch (_version)
+                {
+                    case 1:
+                        _gfdv1.Textures = value;
+                        break;
+                    case 2:
+                        //_gfdv2.Textures = value;
+                        break;
+                }
+            }
+        }
 
         [FormField(typeof(int), "Font Size")]
         public int FontSize
@@ -260,13 +286,6 @@ namespace Kore.SamplePlugins
                         _gfdv2 = new GFDv2(File.OpenRead(filename));
                         break;
                 }
-
-                // Load Textures
-                var textureFiles = Directory.GetFiles(Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename) + "*.png");
-
-                Textures = new List<Bitmap>();
-                foreach (var file in textureFiles)
-                    Textures.Add((Bitmap)Image.FromFile(file));
             }
             else
                 throw new FileNotFoundException();
@@ -277,7 +296,6 @@ namespace Kore.SamplePlugins
             switch (_version)
             {
                 case 1:
-                    _gfdv1.Header.FontTexCount = Textures.Count;
                     _gfdv1.Save(File.Create(filename));
                     break;
                 case 2:
@@ -285,11 +303,6 @@ namespace Kore.SamplePlugins
                     _gfdv2.Save(File.Create(filename));
                     break;
             }
-            //for (var i = 0; i < Textures.Count; i++)
-            //{
-            //    var tex = Textures[i];
-            //    tex.Save(Path.Combine(Path.GetDirectoryName(filename), $"{Path.GetFileNameWithoutExtension(filename)}_{i:00}.png"), ImageFormat.Png);
-            //}
         }
 
         public FontCharacter NewCharacter(FontCharacter selectedCharacter = null)

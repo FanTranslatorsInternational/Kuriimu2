@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
 
@@ -13,9 +17,21 @@ namespace Kore.SamplePlugins
         public List<float> HeaderF;
         public string Name;
         public List<GFDv1Character> Characters;
+        public List<Bitmap> Textures;
 
         public ByteOrder ByteOrder = ByteOrder.LittleEndian;
         public BitOrder BitOrder = BitOrder.MSBFirst;
+
+        private string _sourceFile;
+
+        #region MT Tex Adapter
+
+        private CompositionContainer _container;
+
+        [Import(typeof(MtTexAdapter))]
+        private MtTexAdapter _texAdapter;
+
+        #endregion
 
         public GFDv1()
         {
@@ -23,10 +39,19 @@ namespace Kore.SamplePlugins
             HeaderF = new List<float>();
             Name = string.Empty;
             Characters = new List<GFDv1Character>();
+            Textures = new List<Bitmap>();
+
+            Plugins.ComposePlugins(this, _container);
+            Kore.ComposeSamplePlugins(this, _container);
         }
 
-        public GFDv1(Stream input)
+        public GFDv1(FileStream input)
         {
+            _sourceFile = input.Name;
+
+            Plugins.ComposePlugins(this, _container);
+            Kore.ComposeSamplePlugins(this, _container);
+
             using (var br = new BinaryReaderX(input))
             {
                 // Set endianess
@@ -61,16 +86,29 @@ namespace Kore.SamplePlugins
                     XAdjust = (int)ci.Block3.XAdjust,
                     CharacterWidth = (int)ci.Block3.CharacterWidth
                 }).ToList();
+
+                // Textures
+                Textures = new List<Bitmap>();
+
+                if (_texAdapter == null)
+                    throw new PluginNotFoundException("MtTexAdapter");
+
+                for (var i = 0; i < Header.FontTexCount; i++)
+                {
+                    _texAdapter.Load(GetTexName(_sourceFile, i));
+                    Textures.Add(_texAdapter.BitmapInfos[0].Bitmaps[0]);
+                }
             }
         }
 
-        public void Save(Stream output)
+        public void Save(FileStream output)
         {
             using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
             {
                 // Header
                 Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD\0" : "\0DFG";
                 Header.CharacterCount = Characters.Count;
+                Header.FontTexCount = Textures.Count;
                 bw.WriteStruct(Header);
                 foreach (var f in HeaderF)
                     bw.Write(f);
@@ -106,7 +144,34 @@ namespace Kore.SamplePlugins
                         CharacterWidth = ci.CharacterWidth
                     }
                 }));
+
+                // Textures
+                if (_texAdapter == null)
+                    throw new PluginNotFoundException("MtTexAdapter");
+
+                for (var i = 0; i < Header.FontTexCount; i++)
+                {
+                    _texAdapter.Load(GetTexName(_sourceFile, i));
+                    _texAdapter.BitmapInfos[0].Bitmaps[0] = Textures[i];
+                    _texAdapter.Save(GetTexName(output.Name, i));
+                }
             }
+        }
+
+        private string GetTexName(string filename, int textureIndex)
+        {
+            var dName = Path.GetDirectoryName(filename);
+            var fName = Path.GetFileNameWithoutExtension(filename) + "_" + textureIndex.ToString("00");
+
+            switch (Header.Suffix)
+            {
+                case 0x6:
+                    fName += "_AM_NOMIP";
+                    break;
+            }
+            fName += ".tex";
+
+            return Path.Combine(dName, fName);
         }
 
         // Conversion
