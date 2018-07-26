@@ -31,14 +31,20 @@ namespace Kore
         [ImportMany(typeof(ITextAdapter))]
         private List<ITextAdapter> _textAdapters;
 
-        //[ImportMany(typeof(IImageAdapter))]
-        //private List<IImageAdapter> _imageAdapters;
+        [ImportMany(typeof(IImageAdapter))]
+        private List<IImageAdapter> _imageAdapters;
 
         //[ImportMany(typeof(IArchiveAdapter))]
         //private List<IArchiveAdapter> _archiveAdapters;
 
         [ImportMany(typeof(IFontAdapter))]
         private List<IFontAdapter> _fontAdapters;
+
+        //[ImportMany(typeof(IAudioAdapter))]
+        //private List<IAudioAdapter> _audioAdapters;
+
+        //[ImportMany(typeof(IModelAdapter))]
+        //private List<IModelAdapter> _modelAdapters;
 
         #pragma warning restore 0649, 0169
         #endregion
