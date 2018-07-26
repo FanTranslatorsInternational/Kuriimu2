@@ -80,6 +80,12 @@ namespace Kore.SamplePlugins
 
                     if (result)
                     {
+                        if (br.PeekString() == "\0DFG")
+                        {
+                            br.ByteOrder = ByteOrder.BigEndian;
+                            br.BitOrder = BitOrder.LSBFirst;
+                        }
+
                         var magic = br.ReadString(4);
                         if (!magic.StartsWith("GFD\0") && !magic.StartsWith("\0DFG"))
                             result = false;

@@ -28,8 +28,8 @@ namespace Kore.SamplePlugins
 
         private CompositionContainer _container;
 
-        [Import(typeof(MtTexAdapter))]
-        private MtTexAdapter _texAdapter;
+        [ImportMany(typeof(IMtFrameworkTextureAdapter))]
+        private List<IMtFrameworkTextureAdapter> _texAdapters;
 
         #endregion
 
@@ -91,14 +91,12 @@ namespace Kore.SamplePlugins
 
                 // Textures
                 Textures = new List<Bitmap>();
-
-                if (_texAdapter == null)
-                    throw new PluginNotFoundException("MtTexAdapter");
-
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    _texAdapter.Load(GetTexName(_sourceFile, i));
-                    Textures.Add(_texAdapter.BitmapInfos[0].Bitmaps[0]);
+                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    if (texAdapter == null) continue;
+                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0]);
                 }
             }
         }
@@ -150,15 +148,16 @@ namespace Kore.SamplePlugins
                 }));
 
                 // Textures
-                if (_texAdapter == null)
-                    throw new PluginNotFoundException("MtTexAdapter");
-
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    _texAdapter.Load(GetTexName(_sourceFile, i));
-                    _texAdapter.BitmapInfos[0].Bitmaps[0] = Textures[i];
-                    _texAdapter.Save(GetTexName(output.Name, i));
+                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(_sourceFile));
+                    if (texAdapter == null) continue;
+                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    ((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0] = Textures[i];
+                    ((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
                 }
+
+                _sourceFile = output.Name;
             }
         }
 

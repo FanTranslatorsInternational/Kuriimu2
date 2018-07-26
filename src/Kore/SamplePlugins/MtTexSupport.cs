@@ -10,6 +10,11 @@ using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {
+    /// <summary>
+    /// Marker interface.
+    /// </summary>
+    public interface IMtFrameworkTextureAdapter { }
+
     public partial class MTTEX
     {
         // Format
@@ -45,12 +50,6 @@ namespace Kore.SamplePlugins
             MirroredNormalMaps1 = 0x13, // ?
             MirroredNormalMaps2 = 0x1B, // ?
             CTMipTexture = 0x20 // ?
-        }
-
-        public enum TransformDirection
-        {
-            ToProperColors,
-            ToOptimizedColors
         }
 
         public class FileHeader
