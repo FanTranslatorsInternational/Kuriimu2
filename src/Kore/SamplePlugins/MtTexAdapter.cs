@@ -10,17 +10,17 @@ using Kontract.Interfaces;
 
 namespace Kore.SamplePlugins
 {
-    [Export(typeof(BclimAdapter))]
+    [Export(typeof(MtTexAdapter))]
     [Export(typeof(IImageAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ICreateFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("FAD19315-1A30-44A3-B0D4-0E6A8E71A39F", "NW4C BCLIM Image", "BCLIM", "IcySon55", "", "This is the BCLIM image adapter for Kuriimu.")]
-    [PluginExtensionInfo("*.bclim")]
-    public sealed class BclimAdapter : IImageAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
+    [PluginInfo("5D5B51A3-7280-4E90-B02E-E0ABD7C1F005", "MT Framework Texture", "MTTEX", "IcySon55", "", "This is the MTTEX image adapter for Kuriimu.")]
+    [PluginExtensionInfo("*.tex")]
+    public sealed class MtTexAdapter : IImageAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
     {
-        private BCLIM _format;
+        private MTTEX _format;
         private List<BitmapInfo> _bitmapInfos;
 
         #region Properties
@@ -38,10 +38,8 @@ namespace Kore.SamplePlugins
             {
                 using (var br = new BinaryReaderX(File.OpenRead(filename)))
                 {
-                    if (br.BaseStream.Length < 0x28) return false;
-
-                    br.BaseStream.Position = br.BaseStream.Length - 0x28;
-                    if (br.ReadString(4) != "CLIM")
+                    var magic = br.ReadString(4);
+                    if (magic != "TEX\0" && magic != "\0XET")
                         result = false;
                 }
             }
@@ -55,15 +53,15 @@ namespace Kore.SamplePlugins
 
         public void Create()
         {
-            _format = new BCLIM();
+            //_format = new MTTEX();
         }
 
         public void Load(string filename)
         {
             if (File.Exists(filename))
             {
-                _format = new BCLIM(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = new List<System.Drawing.Bitmap> { _format.Texture }, Name = "0" } };
+                _format = new MTTEX(File.OpenRead(filename));
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = _format.Bitmaps, Name = "0" } };
             }
         }
 

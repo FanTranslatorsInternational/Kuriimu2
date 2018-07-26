@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
@@ -46,6 +47,7 @@
     <Compile Include="Attributes\FormFieldAttributes.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Common.cs" />
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\ICreateFiles.cs" />

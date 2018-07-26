@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Kontract.Interfaces
@@ -14,7 +15,7 @@ namespace Kontract.Interfaces
         /// <summary>
         /// The list of images provided by the image adapter to the UI.
         /// </summary>
-        IList<BitmapInfo> Bitmaps { get; }
+        IList<BitmapInfo> BitmapInfos { get; }
 
         /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.
@@ -33,7 +34,14 @@ namespace Kontract.Interfaces
         /// The bitmap data.
         /// </summary>
         [Browsable(false)]
-        public Bitmap Bitmap { get; set; }
+        public List<Bitmap> Bitmaps { get; set; }
+
+        /// <summary>
+        /// The number of mipmaps that this BitmapInfo has.
+        /// </summary>
+        [Category("Properties")]
+        [ReadOnly(true)]
+        public virtual int MipMapCount => Bitmaps?.Count ?? 0;
 
         /// <summary>
         /// The name of the bitmap.
@@ -47,6 +55,6 @@ namespace Kontract.Interfaces
         /// </summary>
         [Category("Properties")]
         [Description("The dimensions of the image.")]
-        public Size Size => Bitmap?.Size ?? new Size();
+        public Size Size => Bitmaps.FirstOrDefault()?.Size ?? new Size();
     }
 }

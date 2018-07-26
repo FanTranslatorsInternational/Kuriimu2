@@ -62,7 +62,7 @@ namespace Kanvas.Format
         {
             using (var br = new BinaryReaderX(new MemoryStream(tex), byteOrder))
             {
-                var (aShift, rShift, bShift, gShift) = GetBitShifts();
+                var (aShift, rShift, gShift, bShift) = GetBitShifts();
                 var (aBitMask, rBitMask, gBitMask, bBitMask) = GetChannelMasks();
 
                 while (br.BaseStream.Position < br.BaseStream.Length)

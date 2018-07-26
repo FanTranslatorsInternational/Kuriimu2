@@ -7,129 +7,179 @@
              xmlns:xc="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d"
              d:DesignHeight="400" d:DesignWidth="600">
-    <Grid Background="White">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="294" />
-        </Grid.ColumnDefinitions>
+    <DockPanel Background="White">
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-        </Grid.RowDefinitions>
-
-        <!-- Bitmap View -->
-        <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
-            <DockPanel>
-                <DockPanel.Background>
-                    <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
-                        <VisualBrush.Visual>
-                            <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
-                        </VisualBrush.Visual>
-                    </VisualBrush>
-                </DockPanel.Background>
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
-                            </Border.Effect>
-                        </Border>
-                        <Image Source="{Binding SelectedTexture}" RenderOptions.BitmapScalingMode="NearestNeighbor">
-                            <Image.LayoutTransform>
-                                <ScaleTransform ScaleX="3" ScaleY="3"></ScaleTransform>
-                            </Image.LayoutTransform>
-                        </Image>
-                    </Grid>
-                </ScrollViewer>
-            </DockPanel>
-        </Border>
-
-        <Label Grid.Column="1" Width="4"></Label>
-
-        <!-- Bitmap Selection and Details -->
-        <Grid Grid.Column="2">
+        <!-- Main Grid -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="294" />
+            </Grid.ColumnDefinitions>
+            
             <Grid.RowDefinitions>
-                <RowDefinition Height="2*"></RowDefinition>
-                <RowDefinition Height="1*"></RowDefinition>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <DockPanel Grid.Row="0">
-                <Grid DockPanel.Dock="Top">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"></ColumnDefinition>
-                        <ColumnDefinition Width="Auto"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <ToolBarPanel Grid.Column="0">
-                        <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                            <Button Name="AddBitmap" IsEnabled="{Binding AddEnabled}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
-                                </StackPanel>
-                            </Button>
-                            <Button Name="EditBitmap" IsEnabled="{Binding EditEnabled}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-edit.png" Width="16" />
-                                </StackPanel>
-                            </Button>
-                            <Button Name="DeleteBitmap" IsEnabled="{Binding DeleteEnabled}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
-                                </StackPanel>
-                            </Button>
-                        </ToolBar>
-                    </ToolBarPanel>
-                    <ToolBarPanel Grid.Column="0">
-                        <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                            <Button Name="ImageProperties" ToolTip="Image Properties">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
-                                </StackPanel>
-                            </Button>
-                        </ToolBar>
-                    </ToolBarPanel>
-                    <Label Grid.Column="1" Content="{Binding ImageCount}"/>
-                </Grid>
-                <ListBox ItemsSource="{Binding Bitmaps}" SelectedItem="{Binding SelectedBitmap}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical" />
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" cal:Message.Attach="[Event MouseDoubleClick] = [Action EditBitmap]">
-                                <Grid Margin="1 3">
-                                    <Grid.Background>
-                                        <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
-                                            <VisualBrush.Visual>
-                                                <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
-                                            </VisualBrush.Visual>
-                                        </VisualBrush>
-                                    </Grid.Background>
-                                    <Image Source="{Binding Source}" MaxWidth="96" Height="64"></Image>
-                                </Grid>
-                                <Label Content="{Binding Name}" HorizontalContentAlignment="Center" FontSize="16px"></Label>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
+            <!-- Bitmap View -->
+            <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
+                <DockPanel>
+                    <DockPanel.Background>
+                        <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                            <VisualBrush.Visual>
+                                <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </DockPanel.Background>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
+                                </Border.Effect>
+                            </Border>
+                            <Image Source="{Binding SelectedTexture}" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                <Image.LayoutTransform>
+                                    <ScaleTransform ScaleX="3" ScaleY="3"></ScaleTransform>
+                                </Image.LayoutTransform>
+                            </Image>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
 
-            <DockPanel Grid.Row="1">
-                <!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
-            </DockPanel>
+            <Label Grid.Column="1" Width="4"></Label>
+
+            <!-- Bitmap Selection and Details -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"></RowDefinition>
+                    <RowDefinition Height="1*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <DockPanel Grid.Row="0">
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                                <Button Name="AddBitmap" IsEnabled="{Binding AddEnabled}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Name="EditBitmap" IsEnabled="{Binding EditEnabled}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-edit.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Name="DeleteBitmap" IsEnabled="{Binding DeleteEnabled}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                            </ToolBar>
+                        </ToolBarPanel>
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                                <Button Name="ImageProperties" ToolTip="Image Properties">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                            </ToolBar>
+                        </ToolBarPanel>
+                        <Label Grid.Column="1" Content="{Binding ImageCount}"/>
+                    </Grid>
+                    <ListBox ItemsSource="{Binding Bitmaps}" SelectedItem="{Binding SelectedBitmap}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" cal:Message.Attach="[Event MouseDoubleClick] = [Action EditBitmap]">
+                                    <Grid Margin="2 4">
+                                        <Grid.Resources>
+                                            <Style TargetType="Grid">
+                                                <Style.Resources>
+                                                    <Style TargetType="Image">
+                                                        <Setter Property="HorizontalAlignment" Value="Center" />
+                                                        <Setter Property="VerticalAlignment" Value="Center" />
+                                                    </Style>
+                                                </Style.Resources>
+                                                <Setter Property="HorizontalAlignment" Value="Left" />
+                                                <Setter Property="VerticalAlignment" Value="Top" />
+                                                <Setter Property="Margin" Value="0 0 1 1" />
+                                            </Style>
+                                        </Grid.Resources>
+
+                                        <Grid.Background>
+                                            <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                                                <VisualBrush.Visual>
+                                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Grid.Background>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="65" />
+                                            <ColumnDefinition Width="17" />
+                                            <ColumnDefinition Width="5" />
+                                            <ColumnDefinition Width="11" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="33" />
+                                            <RowDefinition Height="9" />
+                                            <RowDefinition Height="5" />
+                                            <RowDefinition Height="3" />
+                                            <RowDefinition Height="15" />
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="5" Width="64" Height="64">
+                                            <Image Source="{Binding ImageOne}" MaxWidth="64" MaxHeight="64" />
+                                        </Grid>
+                                        <Grid Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="3" Grid.RowSpan="1" Width="32" Height="32">
+                                            <Image Source="{Binding ImageTwo}" Visibility="{Binding ImageTwoVisible}" MaxWidth="32" MaxHeight="32" />
+                                        </Grid>
+                                        <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="4" Width="16" Height="16">
+                                            <Image Source="{Binding ImageThree}" Visibility="{Binding ImageThreeVisible}" MaxWidth="16" MaxHeight="16" />
+                                        </Grid>
+                                        <Grid Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="1" Width="8" Height="8">
+                                            <Image Source="{Binding ImageFour}" Visibility="{Binding ImageFourVisible}" MaxWidth="8" MaxHeight="8" />
+                                        </Grid>
+                                        <Grid Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="1" Grid.RowSpan="2" Width="4" Height="4">
+                                            <Image Source="{Binding ImageFive}" Visibility="{Binding ImageFiveVisible}" MaxWidth="4" MaxHeight="4" />
+                                        </Grid>
+                                        <Grid Grid.Column="3" Grid.Row="2" Grid.ColumnSpan="2" Grid.RowSpan="1" Width="2" Height="2">
+                                            <Image Source="{Binding ImageSix}" Visibility="{Binding ImageSixVisible}" MaxWidth="2" MaxHeight="2" />
+                                        </Grid>
+                                        <Grid Grid.Column="3" Grid.Row="3" Grid.ColumnSpan="1" Grid.RowSpan="1" Width="1" Height="1">
+                                            <Image Source="{Binding ImageSeven}" Visibility="{Binding ImageSevenVisible}" MaxWidth="1" MaxHeight="1" />
+                                        </Grid>
+                                    </Grid>
+                                    <Label Content="{Binding Name}"></Label>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+
+                <DockPanel Grid.Row="1">
+                    <!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
+                </DockPanel>
+            </Grid>
+
+            <!-- Status bar -->
+            <StatusBar Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3">
+                <StatusBarItem>
+                    <Label Height="16" Content="{Binding ProgressActionName}" Padding="0" />
+                </StatusBarItem>
+                <StatusBarItem HorizontalContentAlignment="Stretch">
+                    <ProgressBar Height="16" Visibility="{Binding ProgressActive}"></ProgressBar>
+                </StatusBarItem>
+            </StatusBar>
         </Grid>
 
-        <!-- Status bar -->
-        <StatusBar Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3">
-            <StatusBarItem>
-                <Label Height="16" Content="{Binding ProgressActionName}" Padding="0" />
-            </StatusBarItem>
-            <StatusBarItem HorizontalContentAlignment="Stretch">
-                <ProgressBar Height="16" Visibility="{Binding ProgressActive}"></ProgressBar>
-            </StatusBarItem>
-        </StatusBar>
-    </Grid>
+    </DockPanel>
 </UserControl>

@@ -79,7 +79,7 @@ namespace Kore
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
 
-            // Adds all the parts found in the same assembly as the Program class.
+            // Adds all the parts found in the same assembly as the Kore class.
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
 
             if (Directory.Exists("plugins") && Directory.GetFiles("plugins", "*.dll").Length > 0)
@@ -93,12 +93,29 @@ namespace Kore
             _container.ComposeParts(this);
         }
 
+        // TEMPORARY
+        public static void ComposeSamplePlugins(object parent, CompositionContainer container)
+        {
+            // An aggregate catalog that combines multiple catalogs.
+            var catalog = new AggregateCatalog();
+
+            // Adds all the parts found in the same assembly as the Kore class.
+            catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+
+            // Create the CompositionContainer with the parts in the catalog if it doesn't exist.
+            if (container == null)
+                container = new CompositionContainer(catalog);
+
+            // Fill the imports of this object.
+            container.ComposeParts(parent);
+        }
+
         /// <summary>
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename, out LoadResult loadResult)
+        public KoreFileInfo LoadFile(string filename)
         {
             var adapter = SelectAdapter(filename);
 
@@ -113,7 +130,6 @@ namespace Kore
                 //TODO: Handle this case better?
                 if (args.SelectedAdapter == null)
                 {
-                    loadResult = LoadResult.Cancelled;
                     return null;
                 }
 
@@ -121,16 +137,21 @@ namespace Kore
             }
 
             if (adapter == null)
-            {
-                loadResult = LoadResult.NoPlugin;
-                return new KoreFileInfo();
-            }
+                throw new LoadFileException("No plugins were able to ");
 
             // Instantiate a new instance of the adapter.
             adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
 
             // Load the file(s).
-            adapter.Load(filename);
+            try
+            {
+                adapter.Load(filename);
+            }
+            catch (Exception ex)
+            {
+                var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\nPlugin: {ex.Message}");
+            }
 
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
@@ -142,7 +163,6 @@ namespace Kore
 
             OpenFiles.Add(kfi);
 
-            loadResult = LoadResult.Success;
             return kfi;
         }
 
