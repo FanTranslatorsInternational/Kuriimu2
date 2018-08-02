@@ -60,13 +60,13 @@
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplePlugins\BCLIM.cs" />
-    <Compile Include="SamplePlugins\GfdV2Adapter.cs" />
+    <Compile Include="SamplePlugins\GFDv2Adapter.cs" />
     <Compile Include="SamplePlugins\MTTEX.cs" />
     <Compile Include="SamplePlugins\MtTexAdapter.cs" />
     <Compile Include="SamplePlugins\GFDv2.cs" />
     <Compile Include="SamplePlugins\GFDv1.cs" />
     <Compile Include="SamplePlugins\KUP.cs" />
-    <Compile Include="SamplePlugins\GfdV1Adapter.cs" />
+    <Compile Include="SamplePlugins\GFDv1Adapter.cs" />
     <Compile Include="SamplePlugins\BclimAdapter.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />
     <Compile Include="SamplePlugins\MtTexSupport.cs" />
