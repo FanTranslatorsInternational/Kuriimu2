@@ -24,7 +24,7 @@ namespace Kore.SamplePlugins
 
         private string _sourceFile;
 
-        #region MT Tex Adapter
+        #region MT Texture Adapters
 
         private CompositionContainer _container;
 
@@ -80,10 +80,10 @@ namespace Kore.SamplePlugins
 
                     GlyphHeight = (int)ci.Block2.GlyphHeight,
                     GlyphWidth = (int)ci.Block2.GlyphWidth,
-                    Block2Trailer = (int)ci.Block2.Block2Trailer,
+                    XAdjust = (int)ci.Block2.XAdjust,
 
-                    Block3Trailer = (int)ci.Block3.Block3Trailer,
-                    XAdjust = (int)ci.Block3.XAdjust,
+                    IsSpace = ci.Block3.IsSpace > 0 ? true : false,
+                    Superscript = ci.Block3.Superscript > 0 ? true : false,
                     CharacterWidth = (int)ci.Block3.CharacterWidth
                 }).ToList();
 
@@ -132,13 +132,13 @@ namespace Kore.SamplePlugins
                     {
                         GlyphHeight = ci.GlyphHeight,
                         GlyphWidth = ci.GlyphWidth,
-                        Block2Trailer = ci.Block2Trailer
+                        XAdjust = ci.XAdjust
                     },
 
                     Block3 = new Block3
                     {
-                        Block3Trailer = ci.Block3Trailer,
-                        XAdjust = ci.XAdjust,
+                        IsSpace = ci.IsSpace ? 1 : 0,
+                        Superscript = ci.Superscript ? 1 : 0,
                         CharacterWidth = ci.CharacterWidth
                     }
                 }));
@@ -249,16 +249,16 @@ namespace Kore.SamplePlugins
             [BitField(12)]
             public long GlyphWidth;
             [BitField(8)]
-            public long Block2Trailer;
+            public long XAdjust;
         }
 
         [BitFieldInfo(BlockSize = 32)]
         public struct Block3
         {
-            [BitField(8)]
-            public long Block3Trailer;
-            [BitField(12)]
-            public long XAdjust;
+            [BitField(14)]
+            public long IsSpace;
+            [BitField(6)]
+            public long Superscript;
             [BitField(12)]
             public long CharacterWidth;
         }
@@ -267,28 +267,28 @@ namespace Kore.SamplePlugins
     public class GFDv1Character : FontCharacter
     {
         /// <summary>
-        /// Trailing 8 bits in block2 that are unknown
-        /// </summary>
-        [FormFieldIgnore]
-        public int Block2Trailer { get; set; }
-
-        /// <summary>
-        /// Character kerning.
+        /// Character width.
         /// </summary>
         [FormField(typeof(int), "Character Width")]
         public int CharacterWidth { get; set; }
 
         /// <summary>
-        /// Character unknown.
+        /// Trailing 8 bits in block2 that are unknown
         /// </summary>
         [FormField(typeof(int), "X Adjust")]
         public int XAdjust { get; set; }
 
         /// <summary>
-        /// Trailing 8 bits in block3 that are unknown
+        /// Determines whether the character is a space.
         /// </summary>
-        [FormFieldIgnore]
-        public int Block3Trailer { get; set; }
+        [FormField(typeof(bool), "Is Space")]
+        public bool IsSpace { get; set; }
+
+        /// <summary>
+        /// Determines whether the character is superscript.
+        /// </summary>
+        [FormField(typeof(bool), "Superscript")]
+        public bool Superscript { get; set; }
 
         /// <summary>
         /// Allows cloning of GfdCharcaters,
@@ -302,10 +302,10 @@ namespace Kore.SamplePlugins
             GlyphY = GlyphY,
             GlyphWidth = GlyphWidth,
             GlyphHeight = GlyphHeight,
-            Block2Trailer = Block2Trailer,
-            CharacterWidth = CharacterWidth,
             XAdjust = XAdjust,
-            Block3Trailer = Block3Trailer
+            CharacterWidth = CharacterWidth,
+            Superscript = Superscript,
+            IsSpace = IsSpace
         };
     }
 }

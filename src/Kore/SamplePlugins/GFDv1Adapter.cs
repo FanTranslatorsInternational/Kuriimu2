@@ -130,10 +130,10 @@ namespace Kore.SamplePlugins
 
             if (selectedCharacter is GFDv1Character chr)
             {
-                newChar.Block2Trailer = chr.Block2Trailer;
-                newChar.CharacterWidth = chr.CharacterWidth;
                 newChar.XAdjust = chr.XAdjust;
-                newChar.Block3Trailer = chr.Block3Trailer;
+                newChar.CharacterWidth = chr.CharacterWidth;
+                newChar.Superscript = chr.Superscript;
+                newChar.IsSpace = chr.IsSpace;
             }
 
             return newChar;
@@ -155,7 +155,7 @@ namespace Kore.SamplePlugins
                 case '¬':
                 case 'þ':
                 case ' ':
-                    chr.XAdjust = 32;
+                    chr.Superscript = 32;
                     break;
             }
 
