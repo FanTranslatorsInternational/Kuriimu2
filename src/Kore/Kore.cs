@@ -12,6 +12,9 @@ using Kontract.Interfaces;
 
 namespace Kore
 {
+    /// <summary>
+    /// Kore is the main brain library of Kuriimu. It performs all of the important and UI agnostic functions of Kuriimu.
+    /// </summary>
     public class Kore
     {
         /// <summary>
