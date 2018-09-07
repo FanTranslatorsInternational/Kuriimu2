@@ -54,6 +54,10 @@
     <Compile Include="Ditherer\Support\ErrorDiffusionDitherer.cs" />
     <Compile Include="Ditherer\Support\OrderedDitherer.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Format\ETC1.cs" />
+    <Compile Include="Format\PVRTC.cs" />
+    <Compile Include="Format\Support\ETC1.cs" />
+    <Compile Include="Format\Support\PVRTC.cs" />
     <Compile Include="Interface\IDitherer.cs" />
     <Compile Include="Interface\Quantization\IColorQuantizer.cs" />
     <Compile Include="Interface\Quantization\IPathProvider.cs" />
@@ -151,6 +155,15 @@
       <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
       <Name>Komponent</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Libraries\PVRTexLib.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Libraries\PVRTexLibWrapper.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
