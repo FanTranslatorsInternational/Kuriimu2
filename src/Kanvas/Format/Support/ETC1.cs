@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace Kontract.Image.Support
+namespace Kanvas.Support
 {
     public class ETC1
     {

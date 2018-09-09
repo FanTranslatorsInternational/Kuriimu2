@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Kontract.Image.Support
+namespace Kanvas.Support
 {
     public class PVRTC
     {
@@ -97,7 +97,7 @@ namespace Kontract.Image.Support
         public class PVRTexture : IDisposable
         {
             #region Interop
-            private const string dllName = "PVRTexLibWrapper.dll";
+            private const string dllName = @"Libraries\PVRTexLibWrapper.dll";
 
             [DllImport(dllName, CallingConvention = CallingConvention.Cdecl)]
             public static extern IntPtr CreateTexture(IntPtr data, uint u32Width, uint u32Height, uint u32Depth, PixelFormat ptFormat, bool preMultiplied, VariableType eChannelType, ColourSpace eColourspace);

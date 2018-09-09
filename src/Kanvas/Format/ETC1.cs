@@ -8,7 +8,7 @@ using System.Drawing;
 using Komponent.IO;
 using System.IO;
 
-namespace Kontract.Image.Format
+namespace Kanvas.Format
 {
     public class ETC1 : IImageFormat
     {

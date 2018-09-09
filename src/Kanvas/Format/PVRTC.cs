@@ -7,9 +7,9 @@ using Kanvas.Interface;
 using System.Drawing;
 using Komponent.IO;
 using System.IO;
-using static Kontract.Image.Support.PVRTC;
+using static Kanvas.Support.PVRTC;
 
-namespace Kontract.Image.Format
+namespace Kanvas.Format
 {
     public class PVRTC : IImageFormatKnownDimensions
     {

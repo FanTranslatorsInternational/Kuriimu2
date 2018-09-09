@@ -54,8 +54,12 @@
     <Compile Include="Ditherer\Support\ErrorDiffusionDitherer.cs" />
     <Compile Include="Ditherer\Support\OrderedDitherer.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Format\ASTC.cs" />
     <Compile Include="Format\ETC1.cs" />
     <Compile Include="Format\PVRTC.cs" />
+    <Compile Include="Format\Support\ASTC\KTX\KTX.cs" />
+    <Compile Include="Format\Support\ASTC\Wrapper\NativeCalls.cs" />
+    <Compile Include="Format\Support\ASTC\Wrapper\Wrapper.cs" />
     <Compile Include="Format\Support\ETC1.cs" />
     <Compile Include="Format\Support\PVRTC.cs" />
     <Compile Include="Interface\IDitherer.cs" />
@@ -158,6 +162,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Content Include="Libraries\astcenc.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Libraries\PVRTexLib.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
