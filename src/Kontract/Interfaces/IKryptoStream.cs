@@ -9,6 +9,8 @@ namespace Kontract.Interfaces
 {
     public interface IKryptoStream
     {
+        long Position { get; set; }
+
         int BlockSize { get; }
 
         byte[] Key { get; }

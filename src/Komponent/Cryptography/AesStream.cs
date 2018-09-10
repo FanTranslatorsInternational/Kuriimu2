@@ -26,6 +26,8 @@ namespace Komponent.Cryptography
 
     public class AesStream : IKryptoStream
     {
+        public long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
+
         public int BlockSize { get; private set; }
 
         public byte[] Key => throw new NotImplementedException();
@@ -161,6 +163,12 @@ namespace Komponent.Cryptography
 
         public long Seek(long offset, SeekOrigin origin)
         {
+            if (_aesMode == AesMode.XTS)
+            {
+                _xtsDecryptor.Seek(offset, origin);
+                return _xtsEncryptor.Seek((origin == SeekOrigin.Current) ? 0 : offset, origin);
+            }
+
             if (_aesMode == AesMode.CTR)
                 switch (origin)
                 {
@@ -173,8 +181,8 @@ namespace Komponent.Cryptography
                         _ctrEncryptor.SeekCtr(_stream.Position + offset);
                         break;
                     case SeekOrigin.End:
-                        _ctrDecryptor.SeekCtr(_stream.Length + offset);
-                        _ctrEncryptor.SeekCtr(_stream.Length + offset);
+                        _ctrDecryptor.SeekCtr(_stream.Length - offset);
+                        _ctrEncryptor.SeekCtr(_stream.Length - offset);
                         break;
                 }
 
