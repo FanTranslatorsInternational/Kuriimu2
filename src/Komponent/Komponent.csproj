@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
@@ -47,6 +48,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\AesStream.cs" />
+    <Compile Include="Cryptography\AES\CTR\AesCTR.cs" />
+    <Compile Include="Cryptography\AES\XTS\RandomAccessSectorStream.cs" />
+    <Compile Include="Cryptography\AES\XTS\SectorStream.cs" />
+    <Compile Include="Cryptography\AES\XTS\Xts.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsAes128.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsAes256.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsCryptoTransform.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsSectorStream.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsStream.cs" />
+    <Compile Include="Cryptography\NCACryptoStream.cs" />
     <Compile Include="IO\Attributes.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
     <Compile Include="IO\BinaryWriterX.cs" />
@@ -62,5 +74,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kontract\Kontract.csproj">
+      <Project>{a43ecc92-dc90-4f79-9871-49e02a11adad}</Project>
+      <Name>Kontract</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
