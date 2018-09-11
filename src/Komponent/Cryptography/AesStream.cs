@@ -30,11 +30,15 @@ namespace Komponent.Cryptography
 
         public int BlockSize { get; private set; }
 
+        public int BlockSizeBytes => 16;
+
         public byte[] Key => throw new NotImplementedException();
 
         public int KeySize => throw new NotImplementedException();
 
         public byte[] IV => throw new NotImplementedException();
+
+        public List<byte[]> Keys => throw new NotImplementedException();
 
         CryptoStream _decryptor = null;
         CryptoStream _encryptor = null;
@@ -42,8 +46,8 @@ namespace Komponent.Cryptography
         CtrCryptoTransform _ctrDecryptor = null;
         CtrCryptoTransform _ctrEncryptor = null;
 
-        XtsStream _xtsDecryptor = null;
-        XtsStream _xtsEncryptor = null;
+        InternalXtsStream _xtsDecryptor = null;
+        InternalXtsStream _xtsEncryptor = null;
 
 
         Stream _stream;
@@ -112,13 +116,13 @@ namespace Komponent.Cryptography
                         {
                             if (key1.Length == 128 / 8 && key2.Length == 128 / 8)
                             {
-                                _xtsDecryptor = new XtsStream(_stream, XtsAes128.Create(key1, key2, xtsNinTweak));
-                                _xtsEncryptor = new XtsStream(_stream, XtsAes128.Create(key1, key2, xtsNinTweak));
+                                _xtsDecryptor = new InternalXtsStream(_stream, XtsAes128.Create(key1, key2, xtsNinTweak));
+                                _xtsEncryptor = new InternalXtsStream(_stream, XtsAes128.Create(key1, key2, xtsNinTweak));
                             }
                             else if (key1.Length == 256 / 8 && key2.Length == 256 / 8)
                             {
-                                _xtsDecryptor = new XtsStream(_stream, XtsAes256.Create(key1, key2, xtsNinTweak));
-                                _xtsEncryptor = new XtsStream(_stream, XtsAes256.Create(key1, key2, xtsNinTweak));
+                                _xtsDecryptor = new InternalXtsStream(_stream, XtsAes256.Create(key1, key2, xtsNinTweak));
+                                _xtsEncryptor = new InternalXtsStream(_stream, XtsAes256.Create(key1, key2, xtsNinTweak));
                             }
                             else
                                 throw new InvalidDataException("Key1 or Key2 have invalid size.");
@@ -127,13 +131,13 @@ namespace Komponent.Cryptography
                         {
                             if (key1.Length == 256 / 8)
                             {
-                                _xtsDecryptor = new XtsStream(_stream, XtsAes128.Create(key1, xtsNinTweak));
-                                _xtsEncryptor = new XtsStream(_stream, XtsAes128.Create(key1, xtsNinTweak));
+                                _xtsDecryptor = new InternalXtsStream(_stream, XtsAes128.Create(key1, xtsNinTweak));
+                                _xtsEncryptor = new InternalXtsStream(_stream, XtsAes128.Create(key1, xtsNinTweak));
                             }
                             else if (key1.Length == 512 / 8)
                             {
-                                _xtsDecryptor = new XtsStream(_stream, XtsAes256.Create(key1, xtsNinTweak));
-                                _xtsEncryptor = new XtsStream(_stream, XtsAes256.Create(key1, xtsNinTweak));
+                                _xtsDecryptor = new InternalXtsStream(_stream, XtsAes256.Create(key1, xtsNinTweak));
+                                _xtsEncryptor = new InternalXtsStream(_stream, XtsAes256.Create(key1, xtsNinTweak));
                             }
                             else
                                 throw new InvalidDataException("Key1 has invalid size.");

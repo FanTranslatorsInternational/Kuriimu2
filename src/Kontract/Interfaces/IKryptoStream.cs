@@ -9,19 +9,12 @@ namespace Kontract.Interfaces
 {
     public interface IKryptoStream
     {
-        long Position { get; set; }
-
         int BlockSize { get; }
+        int BlockSizeBytes { get; }
 
-        byte[] Key { get; }
+        List<byte[]> Keys { get; }
         int KeySize { get; }
 
         byte[] IV { get; }
-
-        long Seek(long offset, SeekOrigin origin);
-        int Read(byte[] buffer, int offset, int count);
-        int ReadByte();
-        void Write(byte[] buffer, int offset, int count);
-        void WriteByte(byte value);
     }
 }

@@ -31,14 +31,14 @@ namespace Komponent.Cryptography.AES.XTS
     /// <summary>
     /// A random access, xts encrypted stream
     /// </summary>
-    public class XtsStream : RandomAccessSectorStream
+    internal class InternalXtsStream : RandomAccessSectorStream
     {
         /// <summary>
         /// Creates a new stream
         /// </summary>
         /// <param name="baseStream">The base stream</param>
         /// <param name="xts">Xts implementation to use</param>
-        public XtsStream(Stream baseStream, Xts xts)
+        public InternalXtsStream(Stream baseStream, Xts xts)
             : this(baseStream, xts, XtsSectorStream.DEFAULT_SECTOR_SIZE)
         {
         }
@@ -49,7 +49,7 @@ namespace Komponent.Cryptography.AES.XTS
         /// <param name="baseStream">The base stream</param>
         /// <param name="xts">Xts implementation to use</param>
         /// <param name="sectorSize">Sector size</param>
-        public XtsStream(Stream baseStream, Xts xts, int sectorSize)
+        public InternalXtsStream(Stream baseStream, Xts xts, int sectorSize)
             : base(new XtsSectorStream(baseStream, xts, sectorSize), true)
         {
         }
@@ -62,7 +62,7 @@ namespace Komponent.Cryptography.AES.XTS
         /// <param name="xts">Xts implementation to use</param>
         /// <param name="sectorSize">Sector size</param>
         /// <param name="offset">Offset to start counting sectors</param>
-        public XtsStream(Stream baseStream, Xts xts, int sectorSize, long offset)
+        public InternalXtsStream(Stream baseStream, Xts xts, int sectorSize, long offset)
             : base(new XtsSectorStream(baseStream, xts, sectorSize, offset), true)
         {
         }

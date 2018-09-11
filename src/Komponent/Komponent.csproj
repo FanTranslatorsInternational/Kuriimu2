@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cryptography\AesStream.cs" />
+    <Compile Include="Cryptography\AES\EcbStream.cs" />
     <Compile Include="Cryptography\AES\CTR\AesCTR.cs" />
     <Compile Include="Cryptography\AES\XTS\RandomAccessSectorStream.cs" />
     <Compile Include="Cryptography\AES\XTS\SectorStream.cs" />
@@ -57,7 +58,7 @@
     <Compile Include="Cryptography\AES\XTS\XtsAes256.cs" />
     <Compile Include="Cryptography\AES\XTS\XtsCryptoTransform.cs" />
     <Compile Include="Cryptography\AES\XTS\XtsSectorStream.cs" />
-    <Compile Include="Cryptography\AES\XTS\XtsStream.cs" />
+    <Compile Include="Cryptography\AES\XTS\InternalXtsStream.cs" />
     <Compile Include="Cryptography\NCACryptoStream.cs" />
     <Compile Include="IO\Attributes.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
