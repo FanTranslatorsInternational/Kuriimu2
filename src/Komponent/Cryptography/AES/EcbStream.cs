@@ -27,16 +27,22 @@ namespace Komponent.Cryptography.AES
 
         public override bool CanWrite => true;
 
-        public override long Length => _stream.Length;
+        private long _length = 0;
+        public override long Length => _length;
+        private long TotalBlocks => CalculateBlockCount(Length);
+
+        private long CalculateBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
 
         public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
 
+        private byte[] _lastBlockBuffer;
         private Stream _stream;
         private ICryptoTransform _encryptor;
         private ICryptoTransform _decryptor;
 
         public EcbStream(Stream input, byte[] key)
         {
+            _lastBlockBuffer = new byte[BlockSizeBytes];
             _stream = input;
 
             Keys = new List<byte[]>();
@@ -45,7 +51,8 @@ namespace Komponent.Cryptography.AES
             var aes = new AesManaged
             {
                 Key = key,
-                Mode = CipherMode.ECB
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.Zeros
             };
             _encryptor = aes.CreateEncryptor();
             _decryptor = aes.CreateDecryptor();
@@ -53,10 +60,27 @@ namespace Komponent.Cryptography.AES
 
         public override void Flush()
         {
-            throw new NotImplementedException();
         }
 
-        public override long Seek(long offset, SeekOrigin origin) => _stream.Seek(offset, origin);
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            return _stream.Seek(offset, origin);
+            //switch (origin)
+            //{
+            //    case SeekOrigin.Begin:
+            //        _position = offset;
+            //        break;
+            //    case SeekOrigin.Current:
+            //        _position += offset;
+            //        break;
+            //    case SeekOrigin.End:
+            //        _position = Math.Max(_length - offset, 0);
+            //        break;
+            //}
+            //_stream.Position = _position;
+
+            //return _position;
+        }
 
         public override void SetLength(long value)
         {
@@ -65,49 +89,84 @@ namespace Komponent.Cryptography.AES
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            ValidateInput(buffer, offset, count);
+
+            var decrypted = ReadDecrypted(count);
+
+            long offsetIntoBlock = 0;
+            if (Position % BlockSizeBytes > 0)
+                offsetIntoBlock = Position % BlockSizeBytes;
+            Array.Copy(decrypted.Skip((int)offsetIntoBlock).Take(count).ToArray(), 0, buffer, 0, count);
+            Position += count;
+
+            return count;
+        }
+        private void ValidateInput(byte[] buffer, int offset, int count)
+        {
             if (offset < 0 || count < 0)
                 throw new InvalidDataException("Offset and count can't be negative.");
             if (offset + count > buffer.Length)
                 throw new InvalidDataException("Buffer too short.");
+            if (count > Length - Position)
+                throw new InvalidDataException($"Can't read {count} bytes from position {Position} in stream with length {Length}.");
+        }
+        private byte[] ReadDecrypted(int count)
+        {
+            long offsetIntoBlock = 0;
+            if (Position % BlockSizeBytes > 0)
+                offsetIntoBlock = Position % BlockSizeBytes;
 
-            var blocksToRead = count / BlockSizeBytes + (count % BlockSizeBytes > 0 ? 1 : 0);
+            var blocksToRead = CalculateBlockCount(offsetIntoBlock + count);
             var blockPaddedCount = blocksToRead * BlockSizeBytes;
-
-            if (blockPaddedCount > _stream.Length - _stream.Position)
-                throw new InvalidDataException($"Can't read {blockPaddedCount} bytes from position {Position} in stream with length {_stream.Length}.");
 
             var originalPosition = Position;
             Position = Position / BlockSizeBytes;
-            var result = new byte[blockPaddedCount];
-            for (int i = 0; i < blocksToRead; i++)
-            {
-                var tmp = new byte[BlockSizeBytes];
-                _stream.Read(tmp, 0, BlockSizeBytes);
-                var tmp2 = new byte[BlockSizeBytes];
-                _decryptor.TransformBlock(tmp, 0, BlockSizeBytes, tmp2, 0);
-            }
 
-            var off = originalPosition - Position;
-            buffer = result.Skip((int)off).Take(count).ToArray();
-            Position = originalPosition + count;
+            var tmp = new byte[blockPaddedCount];
+            _stream.Read(tmp, 0, (int)blockPaddedCount);
+            if (CalculateBlockCount(Position + count) >= TotalBlocks)
+                Array.Copy(_lastBlockBuffer, 0, tmp, tmp.Length - BlockSizeBytes, _lastBlockBuffer.Length);
 
-            return count;
+            var result = _decryptor.TransformFinalBlock(tmp, 0, (int)blockPaddedCount);
+
+            Position = originalPosition;
+
+            return result;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            var enc = new byte[count];
-            _encryptor.TransformBlock(buffer, offset, count, enc, 0);
+            long offsetIntoBlock = 0;
+            if (Position % BlockSizeBytes > 0)
+                offsetIntoBlock = Position % BlockSizeBytes;
 
-            _stream.Write(enc, 0, enc.Length);
+            var blocksToWrite = CalculateBlockCount(offsetIntoBlock + count);
+            var blockPaddedCount = blocksToWrite * BlockSizeBytes;
 
-            //if (offset < 0 || count < 0)
-            //    throw new InvalidDataException("Offset and count can't be negative.");
-            //if (offset + count >= buffer.Length)
-            //    throw new InvalidDataException("Buffer too short.");
+            byte[] decrypted = new byte[blockPaddedCount];
+            if (Position < Length)
+                decrypted = ReadDecrypted(count);
 
-            //var blocksToWrite = count / BlockSizeBytes + (count % BlockSizeBytes > 0 ? 1 : 0);
-            //var blockPaddedCount = blocksToRead * BlockSizeBytes;
+            Array.Copy(buffer, 0, decrypted, offsetIntoBlock, count);
+            var encrypted = _encryptor.TransformFinalBlock(decrypted, 0, decrypted.Length);
+
+            if (CalculateBlockCount(Position + count) >= TotalBlocks)
+                Array.Copy(encrypted.Skip(encrypted.Length - BlockSizeBytes).Take(BlockSizeBytes).ToArray(), _lastBlockBuffer, BlockSizeBytes);
+
+            _length = Math.Max(_length, Position + count);
+            _stream.Write(encrypted, (int)offsetIntoBlock, count);
+        }
+
+        public byte[] ReadBytes(int count)
+        {
+            var buffer = new byte[count];
+            Read(buffer, 0, count);
+            return buffer;
+        }
+
+        public void WriteBytes(byte[] input)
+        {
+            Write(input, 0, input.Length);
         }
     }
 }
