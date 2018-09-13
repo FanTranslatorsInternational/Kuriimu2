@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 
 namespace Komponent.Cryptography.AES
 {
-    public class EcbStream : Stream, IKryptoStream
+    public class CbcStream : Stream, IKryptoStream
     {
         public int BlockSize => 128;
 
@@ -19,7 +19,7 @@ namespace Komponent.Cryptography.AES
 
         public int KeySize => Keys[0]?.Length ?? 0;
 
-        public byte[] IV => throw new NotSupportedException();
+        public byte[] IV { get; }
 
         public override bool CanRead => true;
 
@@ -37,25 +37,54 @@ namespace Komponent.Cryptography.AES
 
         private byte[] _lastBlockBuffer;
         private Stream _stream;
-        private ICryptoTransform _encryptor;
-        private ICryptoTransform _decryptor;
+        private AesManaged _aes;
 
-        public EcbStream(Stream input, byte[] key)
+        public CbcStream(Stream input, byte[] key, byte[] iv)
         {
             _lastBlockBuffer = new byte[BlockSizeBytes];
             _stream = input;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
+            IV = iv;
 
-            var aes = new AesManaged
+            _aes = new AesManaged
             {
                 Key = key,
-                Mode = CipherMode.ECB,
+                Mode = CipherMode.CBC,
+                IV = iv,
                 Padding = PaddingMode.Zeros
             };
-            _encryptor = aes.CreateEncryptor();
-            _decryptor = aes.CreateDecryptor();
+        }
+
+        private ICryptoTransform CreateDecryptor(byte[] iv)
+        {
+            _aes.IV = iv;
+            return _aes.CreateDecryptor();
+        }
+
+        private ICryptoTransform CreateEncryptor(byte[] iv)
+        {
+            _aes.IV = iv;
+            return _aes.CreateEncryptor();
+        }
+
+        private byte[] GetStartIV(int blockToBeginWith)
+        {
+            if (blockToBeginWith <= 1)
+                return IV;
+            else
+            {
+                var iv = new byte[BlockSizeBytes];
+
+                var originalPosition = Position;
+                Position = (blockToBeginWith - 1) * BlockSizeBytes;
+                _stream.Read(iv, 0, iv.Length);
+
+                Position = originalPosition;
+
+                return iv;
+            }
         }
 
         public override void Flush()
@@ -121,7 +150,7 @@ namespace Komponent.Cryptography.AES
             if (CalculateBlockCount(Position + count) >= TotalBlocks)
                 Array.Copy(_lastBlockBuffer, 0, bytesRead, bytesRead.Length - BlockSizeBytes, _lastBlockBuffer.Length);
 
-            var decrypted = _decryptor.TransformFinalBlock(bytesRead, 0, minimalDecryptableSize);
+            var decrypted = CreateDecryptor(GetStartIV((int)CalculateBlockCount(Position))).TransformFinalBlock(bytesRead, 0, minimalDecryptableSize);
             var result = new byte[blockPaddedCount];
             Array.Copy(decrypted, 0, result, 0, minimalDecryptableSize);
 
@@ -134,6 +163,7 @@ namespace Komponent.Cryptography.AES
             if (Position % BlockSizeBytes > 0)
                 offsetIntoBlock = Position % BlockSizeBytes;
 
+            var positionToBegin = Position - offsetIntoBlock;
             var blocksToWrite = CalculateBlockCount(offsetIntoBlock + count);
             var blockPaddedCount = blocksToWrite * BlockSizeBytes;
 
@@ -143,12 +173,13 @@ namespace Komponent.Cryptography.AES
             if (CalculateBlockCount(Length) < CalculateBlockCount(Position) - 1)
             {
                 var betweenBlocks = CalculateBlockCount(Position) - CalculateBlockCount(Length) - 1;
+                positionToBegin -= betweenBlocks * BlockSizeBytes;
                 var newDecrypted = new byte[betweenBlocks * BlockSizeBytes + decrypted.Length];
                 Array.Copy(decrypted, 0, newDecrypted, betweenBlocks * BlockSizeBytes, decrypted.Length);
                 decrypted = newDecrypted;
             }
 
-            var encrypted = _encryptor.TransformFinalBlock(decrypted, 0, decrypted.Length);
+            var encrypted = CreateEncryptor(GetStartIV((int)positionToBegin)).TransformFinalBlock(decrypted, 0, decrypted.Length);
 
             if (CalculateBlockCount(Position + count) >= TotalBlocks)
                 Array.Copy(encrypted.Skip(encrypted.Length - BlockSizeBytes).Take(BlockSizeBytes).ToArray(), _lastBlockBuffer, BlockSizeBytes);
@@ -187,8 +218,6 @@ namespace Komponent.Cryptography.AES
 
             _stream.Dispose();
             _lastBlockBuffer = null;
-            _decryptor = null;
-            _encryptor = null;
         }
     }
 }
