@@ -220,5 +220,15 @@ namespace Komponent.Cryptography
                 _encryptor.Flush();
             }
         }
+
+        public byte[] ReadBytes(int count)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteBytes(byte[] input)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

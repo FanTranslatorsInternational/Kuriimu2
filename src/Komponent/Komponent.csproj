@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Cryptography\AesStream.cs" />
     <Compile Include="Cryptography\AES\CbcStream.cs" />
+    <Compile Include="Cryptography\AES\CtrStream.cs" />
     <Compile Include="Cryptography\AES\EcbStream.cs" />
     <Compile Include="Cryptography\AES\CTR\AesCTR.cs" />
     <Compile Include="Cryptography\AES\XTS\RandomAccessSectorStream.cs" />

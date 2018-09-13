@@ -16,5 +16,8 @@ namespace Kontract.Interfaces
         int KeySize { get; }
 
         byte[] IV { get; }
+
+        byte[] ReadBytes(int count);
+        void WriteBytes(byte[] input);
     }
 }
