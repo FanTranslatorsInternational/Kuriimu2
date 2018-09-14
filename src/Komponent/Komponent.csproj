@@ -61,6 +61,7 @@
     <Compile Include="Cryptography\AES\XTS\XtsCryptoTransform.cs" />
     <Compile Include="Cryptography\AES\XTS\XtsSectorStream.cs" />
     <Compile Include="Cryptography\AES\XTS\InternalXtsStream.cs" />
+    <Compile Include="Cryptography\KryptoStream.cs" />
     <Compile Include="Cryptography\NCACryptoStream.cs" />
     <Compile Include="IO\Attributes.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
