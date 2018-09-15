@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace Komponent.Cryptography
+namespace Kontract.Abstracts
 {
     public abstract class KryptoStream : Stream
     {

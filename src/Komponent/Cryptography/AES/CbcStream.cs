@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces;
 using System.Security.Cryptography;
+using Kontract.Abstracts;
 
 namespace Komponent.Cryptography.AES
 {
@@ -101,7 +102,7 @@ namespace Komponent.Cryptography.AES
             long offsetIntoBlock = 0;
             if (Position % BlockSizeBytes > 0)
                 offsetIntoBlock = Position % BlockSizeBytes;
-            
+
             var positionToBegin = Position - offsetIntoBlock;
             var blocksToWrite = CalculateBlockCount(offsetIntoBlock + count);
             var blockPaddedCount = blocksToWrite * BlockSizeBytes;

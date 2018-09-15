@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Komponent.Cryptography.AES.XTS;
+using Kontract.Abstracts;
 
 namespace Komponent.Cryptography.AES
 {

@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstracts\KryptoStream.cs" />
     <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
     <Compile Include="Attributes\FormFieldAttributes.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
