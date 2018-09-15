@@ -53,6 +53,7 @@
     <Compile Include="Cryptography\AES\CtrStream.cs" />
     <Compile Include="Cryptography\AES\EcbStream.cs" />
     <Compile Include="Cryptography\AES\CTR\AesCTR.cs" />
+    <Compile Include="Cryptography\AES\XtsStream.cs" />
     <Compile Include="Cryptography\AES\XTS\RandomAccessSectorStream.cs" />
     <Compile Include="Cryptography\AES\XTS\SectorStream.cs" />
     <Compile Include="Cryptography\AES\XTS\Xts.cs" />
