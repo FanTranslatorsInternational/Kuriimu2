@@ -16,9 +16,13 @@ namespace Komponent.Cryptography.AES
         private byte[] _finalBlock;
         private long _length = 0;
         private Stream _stream;
+
+        public EcbStream(byte[] input, byte[] key) : this(new MemoryStream(input), key) { }
+
         public EcbStream(Stream input, byte[] key)
         {
             _stream = input;
+            _length = _stream.Length;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
@@ -66,7 +70,7 @@ namespace Komponent.Cryptography.AES
             long offsetIntoBlock = 0;
             if (Position % BlockSizeBytes > 0)
                 offsetIntoBlock = Position % BlockSizeBytes;
-            Array.Copy(decrypted.Skip((int)offsetIntoBlock).Take(count).ToArray(), 0, buffer, 0, count);
+            Array.Copy(decrypted.Skip((int)offsetIntoBlock).Take(count).ToArray(), 0, buffer, offset, count);
             Position += count;
 
             return count;
@@ -92,7 +96,7 @@ namespace Komponent.Cryptography.AES
             var blockPaddedCount = blocksToWrite * BlockSizeBytes;
 
             byte[] decrypted = ReadDecrypted(count);
-            Array.Copy(buffer, 0, decrypted, offsetIntoBlock, count);
+            Array.Copy(buffer, offset, decrypted, offsetIntoBlock, count);
 
             if (CalculateBlockCount((int)Length) < CalculateBlockCount((int)Position) - 1)
             {

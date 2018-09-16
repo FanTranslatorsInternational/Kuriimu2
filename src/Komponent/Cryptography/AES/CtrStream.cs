@@ -15,15 +15,21 @@ namespace Komponent.Cryptography.AES
         private ICryptoTransform _encryptor;
         private byte[] _finalBlock;
         private long _length = 0;
+        private long _offset = 0;
         private Stream _stream;
-        public CtrStream(Stream input, byte[] key, byte[] counter)
+
+        public CtrStream(byte[] input, long offset, long length, byte[] key, byte[] counter) : this(new MemoryStream(input), offset, length, key, counter) { }
+
+        public CtrStream(Stream input, long offset, long length, byte[] key, byte[] counter)
         {
             _stream = input;
+            _length = length;
+            _offset = offset;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
 
-            IV = counter;
+            _counter = IV = counter;
 
             var aes = new AesManaged
             {
@@ -34,6 +40,33 @@ namespace Komponent.Cryptography.AES
             _encryptor = aes.CreateEncryptor();
 
             _finalBlock = new byte[BlockSizeBytes];
+
+            Position = input.Position;
+        }
+
+        public CtrStream(byte[] input, byte[] key, byte[] counter) : this(new MemoryStream(input), key, counter) { }
+
+        public CtrStream(Stream input, byte[] key, byte[] counter)
+        {
+            _stream = input;
+            _length = _stream.Length;
+
+            Keys = new List<byte[]>();
+            Keys.Add(key);
+
+            _counter = IV = counter;
+
+            var aes = new AesManaged
+            {
+                Key = key,
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.None
+            };
+            _encryptor = aes.CreateEncryptor();
+
+            _finalBlock = new byte[BlockSizeBytes];
+
+            Position = input.Position;
         }
 
         public override int BlockSize => 128;
@@ -49,7 +82,11 @@ namespace Komponent.Cryptography.AES
         public override int KeySize => Keys?[0]?.Length ?? 0;
         public override long Length => _length;
 
-        public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
+        public override long Position
+        {
+            get => _stream.Position - _offset;
+            set => Seek(value, SeekOrigin.Begin);
+        }
         private int TotalBlocks => CalculateBlockCount((int)Length);
         public override void Flush()
         {
@@ -60,6 +97,8 @@ namespace Komponent.Cryptography.AES
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            SeekCtr(Position);
+
             ValidateInput(buffer, offset, count);
 
             var decrypted = ReadDecrypted(count);
@@ -67,7 +106,7 @@ namespace Komponent.Cryptography.AES
             long offsetIntoBlock = 0;
             if (Position % BlockSizeBytes > 0)
                 offsetIntoBlock = Position % BlockSizeBytes;
-            Array.Copy(decrypted.Skip((int)offsetIntoBlock).Take(count).ToArray(), 0, buffer, 0, count);
+            Array.Copy(decrypted.Skip((int)offsetIntoBlock).Take(count).ToArray(), 0, buffer, offset, count);
             Position += count;
 
             return count;
@@ -81,14 +120,14 @@ namespace Komponent.Cryptography.AES
                     SeekCtr(offset);
                     break;
                 case SeekOrigin.Current:
-                    SeekCtr(_stream.Position + offset);
+                    SeekCtr(Position + offset);
                     break;
                 case SeekOrigin.End:
-                    SeekCtr(_stream.Length + offset);
+                    SeekCtr(Length + offset);
                     break;
             }
 
-            return _stream.Seek(offset, origin);
+            return _stream.Seek(offset + _offset, origin);
         }
 
         public override void SetLength(long value)
@@ -98,6 +137,8 @@ namespace Komponent.Cryptography.AES
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            SeekCtr(Position);
+
             long offsetIntoBlock = 0;
             if (Position % BlockSizeBytes > 0)
                 offsetIntoBlock = Position % BlockSizeBytes;
@@ -106,7 +147,7 @@ namespace Komponent.Cryptography.AES
             var blockPaddedCount = blocksToWrite * BlockSizeBytes;
 
             byte[] decrypted = ReadDecrypted(count);
-            Array.Copy(buffer, 0, decrypted, offsetIntoBlock, count);
+            Array.Copy(buffer, offset, decrypted, offsetIntoBlock, count);
 
             if (CalculateBlockCount((int)Length) < CalculateBlockCount((int)Position) - 1)
             {
