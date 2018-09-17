@@ -146,7 +146,7 @@ namespace Komponent.Cryptography.AES
                 decrypted = newDecrypted;
             }
 
-            var encrypted = CreateEncryptor(GetStartIV((int)positionToBegin)).TransformFinalBlock(decrypted, 0, decrypted.Length);
+            var encrypted = CreateEncryptor(GetStartIV(CalculateCurrentBlock((int)positionToBegin))).TransformFinalBlock(decrypted, 0, decrypted.Length);
 
             if (CalculateBlockCount(Position + count) >= TotalBlocks)
                 Array.Copy(encrypted.Skip(encrypted.Length - BlockSizeBytes).Take(BlockSizeBytes).ToArray(), _finalBlock, BlockSizeBytes);
@@ -163,6 +163,7 @@ namespace Komponent.Cryptography.AES
         }
 
         private long CalculateBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
+        private int CalculateCurrentBlock(int input) => (int)Math.Floor((double)input / BlockSizeBytes);
         private ICryptoTransform CreateDecryptor(byte[] iv)
         {
             _aes.IV = iv;
@@ -177,7 +178,7 @@ namespace Komponent.Cryptography.AES
 
         private byte[] GetStartIV(int blockToBeginWith)
         {
-            if (blockToBeginWith <= 1)
+            if (blockToBeginWith <= 0)
                 return IV;
             else
             {
@@ -215,7 +216,7 @@ namespace Komponent.Cryptography.AES
             if (CalculateBlockCount(Position + count) >= TotalBlocks)
                 Array.Copy(_finalBlock, 0, bytesRead, bytesRead.Length - BlockSizeBytes, _finalBlock.Length);
 
-            var decrypted = CreateDecryptor(GetStartIV((int)CalculateBlockCount(Position))).TransformFinalBlock(bytesRead, 0, minimalDecryptableSize);
+            var decrypted = CreateDecryptor(GetStartIV(CalculateCurrentBlock((int)Position))).TransformFinalBlock(bytesRead, 0, minimalDecryptableSize);
             var result = new byte[blockPaddedCount];
             Array.Copy(decrypted, 0, result, 0, minimalDecryptableSize);
 
