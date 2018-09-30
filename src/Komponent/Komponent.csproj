@@ -61,6 +61,7 @@
     <Compile Include="Cryptography\NCA\NcaBodySectionCryptoStream.cs" />
     <Compile Include="Cryptography\NCA\NcaCryptoStream.cs" />
     <Compile Include="Cryptography\NCA\NcaHeaderCryptoStream.cs" />
+    <Compile Include="Cryptography\XOR\XorStream.cs" />
     <Compile Include="IO\Attributes.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
     <Compile Include="IO\BinaryWriterX.cs" />
