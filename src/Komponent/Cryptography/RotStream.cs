@@ -6,9 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Kontract.Abstracts;
 
-namespace Komponent.Cryptography.XOR
+namespace Komponent.Cryptography
 {
-    class XorStream : KryptoStream
+    public class RotStream : KryptoStream
     {
         public override int BlockSize => 8;
 
@@ -32,17 +32,12 @@ namespace Komponent.Cryptography.XOR
 
         private Stream _stream;
 
-        public XorStream(Stream input, string key, Encoding enc) : this(input, enc.GetBytes(key))
-        {
-
-        }
-
-        public XorStream(Stream input, byte[] key)
+        public RotStream(Stream input, byte n)
         {
             _stream = input;
 
             Keys = new List<byte[]>();
-            Keys.Add(key);
+            Keys.Add(new byte[] { n });
         }
 
         public override void Flush()
@@ -56,15 +51,11 @@ namespace Komponent.Cryptography.XOR
 
             var length = (int)Math.Max(0, Math.Min(count, Length - Position));
 
-            var keyPos = Position % KeySize;
             for (int i = 0; i < length; i++)
-            {
-                buffer[offset + i] = (byte)(Keys[0][keyPos++] ^ _stream.ReadByte());
-                if (keyPos >= KeySize)
-                    keyPos = 0;
-            }
+                buffer[offset + i] = (byte)(_stream.ReadByte() - Keys[0][0]);
 
             return length;
+
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -82,13 +73,8 @@ namespace Komponent.Cryptography.XOR
             if (offset + count >= buffer.Length)
                 throw new InvalidDataException($"Buffer is too small.");
 
-            var keyPos = Position % KeySize;
             for (int i = 0; i < count; i++)
-            {
-                _stream.WriteByte((byte)(buffer[offset + i] ^ Keys[0][keyPos++]));
-                if (keyPos >= KeySize)
-                    keyPos = 0;
-            }
+                _stream.WriteByte((byte)(buffer[offset + i] + Keys[0][0]));
         }
     }
 }
