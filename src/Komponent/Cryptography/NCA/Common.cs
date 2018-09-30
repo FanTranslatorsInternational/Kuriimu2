@@ -8,7 +8,7 @@ namespace Komponent.Cryptography.NCA
 {
     internal class Common
     {
-        public const int mediaSize = 0x200;
+        public const long mediaSize = 0x200;
     }
 
     public class SectionEntry
