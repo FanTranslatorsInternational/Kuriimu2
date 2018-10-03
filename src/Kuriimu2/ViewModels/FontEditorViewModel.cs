@@ -35,7 +35,8 @@ namespace Kuriimu2.ViewModels
             set
             {
                 _selectedCharacter = value;
-                SelectedTexture = _adapter.Textures[_selectedCharacter.TextureID].ToBitmapImage();
+                if (_selectedCharacter.TextureID < _adapter.Textures.Count)
+                    SelectedTexture = _adapter.Textures[_selectedCharacter.TextureID].ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
@@ -287,7 +288,7 @@ namespace Kuriimu2.ViewModels
                 }
             };
 
-            if(!_windows.Contains(fg))
+            if (!_windows.Contains(fg))
                 _windows.Add(fg);
 
             if (!fg.IsActive)

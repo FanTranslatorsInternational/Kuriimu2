@@ -95,7 +95,7 @@ namespace Kuriimu2.ViewModels
             }
             catch (LoadFileException ex)
             {
-                MessageBox.Show(ex.Message, "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             if (kfi != null)
