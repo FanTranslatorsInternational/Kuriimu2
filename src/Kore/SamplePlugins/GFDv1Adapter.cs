@@ -91,7 +91,7 @@ namespace Kore.SamplePlugins
                             result = false;
 
                         var version = (Versions)br.ReadUInt32();
-                        if (version != Versions._3DSv1 && version != Versions._3DSv2  && version != Versions._PS3v1)
+                        if (version != Versions._3DSv1 && version != Versions._3DSv2 && version != Versions._PS3v1)
                             result = false;
                     }
                 }
@@ -148,17 +148,6 @@ namespace Kore.SamplePlugins
             if (chr.CharacterWidth == 0)
                 chr.CharacterWidth = chr.GlyphWidth;
 
-            // Set GFD XAdjust for space characters
-            switch (character.Character)
-            {
-                case 'Ø':
-                case '¬':
-                case 'þ':
-                case ' ':
-                    chr.Superscript = 32;
-                    break;
-            }
-
             _gfd.Characters.Sort((l, r) => l.Character.CompareTo(r.Character));
 
             return true;
@@ -168,7 +157,7 @@ namespace Kore.SamplePlugins
         {
             if (!(character is GFDv1Character chr)) return false;
             _gfd.Characters.Remove(chr);
-            
+
             return true;
         }
 

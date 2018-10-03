@@ -146,7 +146,7 @@ namespace Kore.SamplePlugins
                 // Textures
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(_sourceFile));
+                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
                     if (texAdapter == null) continue;
                     ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
                     ((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0] = Textures[i];
@@ -160,12 +160,15 @@ namespace Kore.SamplePlugins
         private string GetTexName(string filename, int textureIndex)
         {
             var dName = Path.GetDirectoryName(filename);
-            var fName = Path.GetFileNameWithoutExtension(filename) + "_" + textureIndex.ToString("00");
+            var fName = Name.Split('\\').Last() + "_" + textureIndex.ToString("00");
 
             switch (Header.Suffix)
             {
                 case 0x1:
                     fName += "_ID";
+                    break;
+                case 0x3:
+                    fName += "_ID_HQ";
                     break;
                 case 0x6:
                     fName += "_AM_NOMIP";
