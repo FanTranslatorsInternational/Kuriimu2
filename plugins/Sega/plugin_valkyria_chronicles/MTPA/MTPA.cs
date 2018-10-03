@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Komponent.IO;
@@ -10,9 +9,14 @@ namespace plugin_valkyria_chronicles.MTPA
     public sealed class MTPA
     {
         /// <summary>
+        /// The size in bytes of the MTPA Packet Header.
+        /// </summary>
+        private const int MtpaPacketHeaderSize = 0x10;
+
+        /// <summary>
         /// The list of text entries in the file.
         /// </summary>
-        public List<TextEntry> Entries { get; set; }
+        public List<TextEntry> Entries { get; set; } = new List<TextEntry>();
 
         #region InstanceData
 
@@ -32,11 +36,9 @@ namespace plugin_valkyria_chronicles.MTPA
         /// <summary>
         /// Read an MTPA file into memory.
         /// </summary>
-        /// <param name="input">A readable stream to an MTPA file.</param>
+        /// <param name="input">A readable stream of an MTPA file.</param>
         public MTPA(Stream input)
         {
-            Entries = new List<TextEntry>();
-
             using (var br = new BinaryReaderX(input))
             {
                 // Packet Header
@@ -73,7 +75,7 @@ namespace plugin_valkyria_chronicles.MTPA
                         offset += _mtpaTextMetadataX[i].Offset;
 
                     br.BaseStream.Position = offset;
-                    var length = ReadROT1Int32(br);
+                    var length = br.ReadROTnInt32();
 
                     if (length == 0)
                     {
@@ -86,9 +88,7 @@ namespace plugin_valkyria_chronicles.MTPA
                             length = textEnd - currentOffset - 4;
                     }
 
-                    var str = br.ReadBytes(Math.Max(length, 0));
-                    for (var j = 0; j < str.Length; j++)
-                        str[j] -= 1;
+                    var str = br.ReadROTnBytes(length);
 
                     Entries.Add(new TextEntry
                     {
@@ -115,14 +115,24 @@ namespace plugin_valkyria_chronicles.MTPA
             }
         }
 
-        private int ReadROT1Int32(BinaryReader br)
+        /// <summary>
+        /// Write an MTPA file to disk.
+        /// </summary>
+        /// <param name="output">A writable stream of an MTPA file.</param>
+        public void Save(Stream output)
         {
-            var oi = br.ReadBytes(4);
-            if (oi[0] > 0) oi[0] -= 1;
-            if (oi[1] > 0) oi[1] -= 1;
-            if (oi[2] > 0) oi[2] -= 1;
-            if (oi[3] > 0) oi[3] -= 1;
-            return BitConverter.ToInt32(oi, 0);
+            using (var bw = new BinaryWriterX(output))
+            {
+                var dataSize = _mtpaPacketHeader.DataSize;
+
+                // Move to the beginning of the text data
+                bw.BaseStream.Position = Common.PacketHeaderXSize + MtpaPacketHeaderSize + _mtpaPacketHeaderData.Count * sizeof(int) + _mtpaTextMetadataPointers.Count * sizeof(int);
+                bw.BaseStream.Position += _mtpaPacketHeader.DataCount * sizeof(int) * dataSize;
+
+                var textStart = (int)bw.BaseStream.Position;
+
+
+            }
         }
     }
 }

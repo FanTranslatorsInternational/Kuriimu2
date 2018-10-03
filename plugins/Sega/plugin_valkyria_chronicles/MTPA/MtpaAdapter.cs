@@ -11,7 +11,6 @@ namespace plugin_valkyria_chronicles.MTPA
     [Export(typeof(MtpaAdapter))]
     [Export(typeof(ITextAdapter))]
     [Export(typeof(IIdentifyFiles))]
-    //[Export(typeof(ICreateFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
     [PluginInfo("FD00E783-0904-4A9E-8575-59CDA5A165B9", "MTPA Text File", "MTPA", "IcySon55", "", "This is the MTP text adapter for Kuriimu2.")]
@@ -40,7 +39,7 @@ namespace plugin_valkyria_chronicles.MTPA
             try
             {
                 using (var br = new BinaryReaderX(File.OpenRead(filename)))
-                    return br.PeekString(4) == "MTPA";
+                    return br.PeekString() == "MTPA";
             }
             catch (Exception)
             {
@@ -56,7 +55,7 @@ namespace plugin_valkyria_chronicles.MTPA
 
         public void Save(string filename, int versionIndex = 0)
         {
-            //_kup.Save(filename);
+            _mtpa.Save(File.Create(filename));
         }
 
         public void Dispose() { }
