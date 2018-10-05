@@ -63,6 +63,9 @@
     <Compile Include="MTPA\MTPA.cs" />
     <Compile Include="MTPA\MtpaAdapter.cs" />
     <Compile Include="MTPA\MtpaSupport.cs" />
+    <Compile Include="MXEN\MxenAdapter.cs" />
+    <Compile Include="MXEN\MxenSupport.cs" />
+    <Compile Include="MXEN\MXEN.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
