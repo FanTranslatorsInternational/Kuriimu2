@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -24,29 +25,34 @@ namespace Kore.SamplePlugins
             var xmlSettings = new XmlReaderSettings {CheckCharacters = false};
 
             using (var fs = File.OpenRead(filename))
-            {
                 return (KUP)new XmlSerializer(typeof(KUP)).Deserialize(XmlReader.Create(fs, xmlSettings));
-            }
         }
 
         public void Save(string filename)
         {
-            var xmlSettings = new XmlWriterSettings
+            try
             {
-                Encoding = Encoding.UTF8,
-                Indent = true,
-                NewLineOnAttributes = false,
-                NewLineHandling = NewLineHandling.Entitize,
-                IndentChars = "	",
-                CheckCharacters = false
-            };
+                var xmlSettings = new XmlWriterSettings
+                {
+                    Encoding = Encoding.UTF8,
+                    Indent = true,
+                    NewLineOnAttributes = false,
+                    NewLineHandling = NewLineHandling.Entitize,
+                    IndentChars = "	",
+                    CheckCharacters = false
+                };
 
-            using (var xmlIO = new StreamWriter(filename, false, xmlSettings.Encoding))
+                using (var xmlIO = new StreamWriter(filename, false, xmlSettings.Encoding))
+                {
+                    var serializer = new XmlSerializer(typeof(KUP));
+                    var namespaces = new XmlSerializerNamespaces();
+                    namespaces.Add(string.Empty, string.Empty);
+                    serializer.Serialize(XmlWriter.Create(xmlIO, xmlSettings), this, namespaces);
+                }
+            }
+            catch (Exception ex)
             {
-                var serializer = new XmlSerializer(typeof(KUP));
-                var namespaces = new XmlSerializerNamespaces();
-                namespaces.Add(string.Empty, string.Empty);
-                serializer.Serialize(XmlWriter.Create(xmlIO, xmlSettings), this, namespaces);
+                throw ex;
             }
         }
     }
