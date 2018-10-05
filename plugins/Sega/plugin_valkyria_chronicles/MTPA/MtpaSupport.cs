@@ -1,24 +1,54 @@
 ﻿namespace plugin_valkyria_chronicles.MTPA
 {
-    public sealed class MTPAPacketHeader
+    public sealed class MTPAHeader
     {
         public int Unk1;
         public int PointerCount;
-        public int DataSize;
-        public int DataCount;
+        public int MetadataSize;
+        public int MetadataCount;
     }
 
-    public class TextMetadata
+    public interface ITextMetadata
     {
-        public int ID;
-        public int Offset;
+        int ID { get; set; }
+        int Offset { get; set; }
     }
 
-    public class TextMetadataX
+    public class TextMetadata : ITextMetadata
     {
-        public int ID;
-        public int Zero;
-        public int Offset;
-        public int Flag;
+        public int _ID;
+        public int _offset;
+
+        public int ID
+        {
+            get => _ID;
+            set => _ID = value;
+        }
+
+        public int Offset
+        {
+            get => _offset;
+            set => _offset = value;
+        }
+    }
+
+    public class TextMetadataX : ITextMetadata
+    {
+        public int _ID;
+        public int _zero;
+        public int _offset;
+        public int _flags;
+
+        public int ID
+        {
+            get => _ID;
+            set => _ID = value;
+        }
+
+        public int Offset
+        {
+            get => _offset;
+            set => _offset = value;
+        }
     }
 }

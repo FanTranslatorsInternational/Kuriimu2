@@ -32,7 +32,7 @@ namespace plugin_valkyria_chronicles
         public int HeaderSize;
         public int Flags;
     }
-    
+
     /// <summary>
     /// PacketHeaderX is an extended header in many VC file formats.
     /// </summary>
@@ -40,7 +40,7 @@ namespace plugin_valkyria_chronicles
     {
         [FixedLength(4)]
         public string Magic;
-        
+
         /// <summary>
         /// The size of this packet after this header and just before the EOFC including nested packets.
         /// </summary>
@@ -94,6 +94,18 @@ namespace plugin_valkyria_chronicles
         public static int ReadROTnInt32(this BinaryReader br, int rot = 1)
         {
             return BitConverter.ToInt32(br.ReadROTnBytes(4, rot), 0);
+        }
+
+        public static void WriteROTnBytes(this BinaryWriter bw, byte[] value, int rot = 1)
+        {
+            for (var i = 0; i < value.Length; i++)
+                if (rot <= 0xFF - value[i])
+                    bw.Write(value[i] += (byte)rot);
+        }
+
+        public static void WriteROTnInt32(this BinaryWriter bw, int value, int rot = 1)
+        {
+            bw.WriteROTnBytes(BitConverter.GetBytes(value), rot);
         }
     }
 }

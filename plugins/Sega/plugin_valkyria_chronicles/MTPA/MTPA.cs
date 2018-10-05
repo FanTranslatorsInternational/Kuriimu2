@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Kontract.Interfaces;
@@ -9,9 +10,9 @@ namespace plugin_valkyria_chronicles.MTPA
     public sealed class MTPA
     {
         /// <summary>
-        /// The size in bytes of the MTPA Packet Header.
+        /// The size in bytes of the MTPA Header.
         /// </summary>
-        private const int MtpaPacketHeaderSize = 0x10;
+        private const int MtpaHeaderSize = 0x10;
 
         /// <summary>
         /// The list of text entries in the file.
@@ -21,11 +22,10 @@ namespace plugin_valkyria_chronicles.MTPA
         #region InstanceData
 
         private PacketHeaderX _packetHeader;
-        private MTPAPacketHeader _mtpaPacketHeader;
-        private List<int> _mtpaPacketHeaderData;
+        private MTPAHeader _mtpaHeader;
+        private List<int> _mtpaHeaderData;
         private List<int> _mtpaTextMetadataPointers;
-        private List<TextMetadata> _mtpaTextMetadata;
-        private List<TextMetadataX> _mtpaTextMetadataX;
+        private List<ITextMetadata> _mtpaTextMetadata;
         private PacketHeaderX _enrs;
         private byte[] _enrsData;
         private PacketHeaderX _enrsFooter;
@@ -44,46 +44,43 @@ namespace plugin_valkyria_chronicles.MTPA
                 // Packet Header
                 _packetHeader = br.ReadStruct<PacketHeaderX>();
 
-                // MTPA Packet Header
-                _mtpaPacketHeader = br.ReadStruct<MTPAPacketHeader>();
-                var dataSize = _mtpaPacketHeader.DataSize;
+                // MTPA Header
+                _mtpaHeader = br.ReadStruct<MTPAHeader>();
+                var metadataSize = _mtpaHeader.MetadataSize;
 
-                // Unknown Packet Data
-                _mtpaPacketHeaderData = br.ReadMultiple<int>(_mtpaPacketHeader.DataSize);
+                // Unknown MTPA Data
+                _mtpaHeaderData = br.ReadMultiple<int>(_mtpaHeader.MetadataSize);
 
                 // Text Metadata Pointers
-                _mtpaTextMetadataPointers = br.ReadMultiple<int>(_mtpaPacketHeader.PointerCount);
+                _mtpaTextMetadataPointers = br.ReadMultiple<int>(_mtpaHeader.PointerCount);
 
                 // Text Metadata
-                if (dataSize == 2)
-                    _mtpaTextMetadata = br.ReadMultiple<TextMetadata>(_mtpaPacketHeader.DataCount);
-                else if (dataSize == 4)
-                    _mtpaTextMetadataX = br.ReadMultiple<TextMetadataX>(_mtpaPacketHeader.DataCount);
+                if (metadataSize == 2)
+                    _mtpaTextMetadata = br.ReadMultiple<TextMetadata>(_mtpaHeader.MetadataCount).ToList<ITextMetadata>();
+                else if (metadataSize == 4)
+                    _mtpaTextMetadata = br.ReadMultiple<TextMetadataX>(_mtpaHeader.MetadataCount).ToList<ITextMetadata>();
 
                 // Text
                 var textStart = (int)br.BaseStream.Position;
                 var textEnd = _packetHeader.DataSize + _packetHeader.HeaderSize;
 
-                for (var i = 0; i < _mtpaPacketHeader.DataCount; i++)
+                for (var i = 0; i < _mtpaHeader.MetadataCount; i++)
                 {
                     var offset = textStart;
                     var unused = false;
 
-                    if (dataSize == 2)
-                        offset += _mtpaTextMetadata[i].Offset;
-                    else if (dataSize == 4)
-                        offset += _mtpaTextMetadataX[i].Offset;
+                    offset += _mtpaTextMetadata[i].Offset;
 
                     br.BaseStream.Position = offset;
                     var length = br.ReadROTnInt32();
 
                     if (length == 0)
                     {
-                        var currentOffset = (dataSize == 2 ? _mtpaTextMetadata[i].Offset : _mtpaTextMetadataX[i].Offset);
+                        var currentOffset = _mtpaTextMetadata[i].Offset;
                         unused = true;
 
-                        if (i != _mtpaPacketHeader.DataCount - 1)
-                            length = (dataSize == 2 ? _mtpaTextMetadata[i + 1].Offset : _mtpaTextMetadataX[i + 1].Offset) - currentOffset - 4;
+                        if (i != _mtpaHeader.MetadataCount - 1)
+                            length = _mtpaTextMetadata[i + 1].Offset - currentOffset - 4;
                         else
                             length = textEnd - currentOffset - 4;
                     }
@@ -92,7 +89,7 @@ namespace plugin_valkyria_chronicles.MTPA
 
                     Entries.Add(new TextEntry
                     {
-                        Name = dataSize == 2 ? _mtpaTextMetadata[i].ID.ToString() : _mtpaTextMetadataX[i].ID.ToString(),
+                        Name = _mtpaTextMetadata[i].ID.ToString(),
                         EditedText = Encoding.GetEncoding("shift-jis").GetString(str).Trim('\0'),
                         Notes = unused ? "Text length was set to zero. This line might be unused." : string.Empty
                     });
@@ -102,13 +99,13 @@ namespace plugin_valkyria_chronicles.MTPA
 
                 // ENRS
                 _enrs = br.ReadStruct<PacketHeaderX>();
-                if (br.BaseStream.Position + sizeof(int) * 0x8 + _enrs.DataSize + sizeof(int) * 0x10 <= br.BaseStream.Length)
+                if (br.BaseStream.Position + _enrs.DataSize + Common.PacketHeaderXSize * 2 <= br.BaseStream.Length)
                 {
                     _enrsData = br.ReadBytes(_enrs.DataSize);
                     _enrsFooter = br.ReadStruct<PacketHeaderX>();
                 }
                 else
-                    br.BaseStream.Position = br.BaseStream.Length - sizeof(int) * 0x8;
+                    br.BaseStream.Position = br.BaseStream.Length - Common.PacketHeaderXSize;
 
                 // MTPA Footer
                 _mtpaFooter = br.ReadStruct<PacketHeaderX>();
@@ -123,15 +120,61 @@ namespace plugin_valkyria_chronicles.MTPA
         {
             using (var bw = new BinaryWriterX(output))
             {
-                var dataSize = _mtpaPacketHeader.DataSize;
+                var metadataSize = _mtpaHeader.MetadataSize;
 
-                // Move to the beginning of the text data
-                bw.BaseStream.Position = Common.PacketHeaderXSize + MtpaPacketHeaderSize + _mtpaPacketHeaderData.Count * sizeof(int) + _mtpaTextMetadataPointers.Count * sizeof(int);
-                bw.BaseStream.Position += _mtpaPacketHeader.DataCount * sizeof(int) * dataSize;
+                // Move passed the headers.
+                bw.BaseStream.Position = Common.PacketHeaderXSize + MtpaHeaderSize + _mtpaHeaderData.Count * sizeof(int);
 
+                // Write the metadata pointers which don't change (add not supported).
+                foreach (var pointer in _mtpaTextMetadataPointers)
+                    bw.Write(pointer);
+
+                // Move passed the metadata.
+                var metadataStart = bw.BaseStream.Position;
+                bw.BaseStream.Position += _mtpaHeader.MetadataCount * sizeof(int) * metadataSize;
+
+                // Write out the text strings.
                 var textStart = (int)bw.BaseStream.Position;
+                for (var i = 0; i < Entries.Count; i++)
+                {
+                    var text = Encoding.GetEncoding("Shift-JIS").GetBytes(Entries[i].EditedText);
+                    _mtpaTextMetadata[i].Offset = (int)bw.BaseStream.Position - textStart;
+                    bw.WriteROTnInt32(text.Length);
+                    bw.WriteROTnBytes(text);
+                    bw.Write((byte)0x01);
+                    bw.WriteAlignment(4, 0x01);
+                }
+                bw.WriteAlignment(8);
 
+                // Update Packet Header
+                _packetHeader.DataSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
 
+                // ENRS
+                bw.WriteStruct(_enrs);
+                bw.Write(_enrsData);
+                bw.WriteStruct(_enrsFooter);
+
+                // Update Packet Header
+                _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
+
+                // Footer
+                bw.WriteStruct(_mtpaFooter);
+
+                // Write Text Metadata
+                bw.BaseStream.Position = metadataStart;
+                foreach (var pointer in _mtpaTextMetadata)
+                    bw.WriteStruct(pointer);
+
+                // Write Packer Header
+                bw.BaseStream.Position = 0;
+                bw.WriteStruct(_packetHeader);
+
+                // Write MTPA Header
+                bw.WriteStruct(_mtpaHeader);
+
+                // Write Unknown MTPA Data
+                foreach (var data in _mtpaHeaderData)
+                    bw.Write(data);
             }
         }
     }
