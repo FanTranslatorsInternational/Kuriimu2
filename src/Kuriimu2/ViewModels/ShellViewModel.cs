@@ -102,10 +102,10 @@ namespace Kuriimu2.ViewModels
                 switch (kfi.Adapter)
                 {
                     case ITextAdapter txt2:
-                        var dr = MessageBox.Show("Use V1 Editor?", "Editor Selection", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                        if (dr == MessageBoxResult.Yes)
-                            ActivateItem(new TextEditor1ViewModel(kfi));
-                        else
+                        //var dr = MessageBox.Show("Use V1 Editor?", "Editor Selection", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                        //if (dr == MessageBoxResult.Yes)
+                        //    ActivateItem(new TextEditor1ViewModel(kfi));
+                        //else
                             ActivateItem(new TextEditor2ViewModel(kfi));
                         break;
                     case IImageAdapter img:
