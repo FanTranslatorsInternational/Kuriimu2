@@ -10,6 +10,7 @@ namespace Komponent.Cryptography.AES
     public class EcbStream : KryptoStream
     {
         private Stream _stream;
+        private long _length;
         private ICryptoTransform _decryptor;
         private ICryptoTransform _encryptor;
         private long _blocksBetweenLengthPosition = 0;
@@ -24,7 +25,7 @@ namespace Komponent.Cryptography.AES
         public override byte[] IV => throw new NotImplementedException();
         public override List<byte[]> Keys { get; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
-        public override long Length => _stream.Length;
+        public override long Length => _length;
         public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
         private long TotalBlocks => GetBlockCount(Length);
 
@@ -36,6 +37,7 @@ namespace Komponent.Cryptography.AES
         public EcbStream(Stream input, byte[] key)
         {
             _stream = input;
+            _length = input.Length;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
@@ -74,6 +76,8 @@ namespace Komponent.Cryptography.AES
 
         private int ReadDecrypted(byte[] buffer, int offset, int count)
         {
+            var originalPosition = Position;
+
             count = (int)Math.Min(count, Length - Position);
             var alignedCount = (int)GetBlockCount(_bytesIntoBlock + count) * BlockSizeBytes;
 
@@ -83,7 +87,7 @@ namespace Komponent.Cryptography.AES
 
             Array.Copy(decData, _bytesIntoBlock, buffer, offset, count);
 
-            UpdateSeekable(Position, SeekOrigin.Begin);
+            Seek(originalPosition + count, SeekOrigin.Begin);
 
             return count;
         }
@@ -102,30 +106,33 @@ namespace Komponent.Cryptography.AES
 
         public override long Seek(long offset, SeekOrigin origin)
         {
+            if (!CanSeek)
+                throw new NotSupportedException("Seek is not supported.");
+
             UpdateSeekable(offset, origin);
             return _stream.Seek(offset, origin);
         }
 
         private void UpdateSeekable(long offset, SeekOrigin origin)
         {
+            var newOffset = 0L;
+
             switch (origin)
             {
                 case SeekOrigin.Begin:
-                    _blocksBetweenLengthPosition = GetBlocksBetween(offset);
-                    _blockPosition = offset / BlockSizeBytes * BlockSizeBytes;
-                    _bytesIntoBlock = offset % BlockSizeBytes;
+                    newOffset = offset;
                     break;
                 case SeekOrigin.Current:
-                    _blocksBetweenLengthPosition = GetBlocksBetween(Position + offset);
-                    _blockPosition = (Position + offset) / BlockSizeBytes * BlockSizeBytes;
-                    _bytesIntoBlock = (Position + offset) % BlockSizeBytes;
+                    newOffset = Position + offset;
                     break;
                 case SeekOrigin.End:
-                    _blocksBetweenLengthPosition = GetBlocksBetween(Length + offset);
-                    _blockPosition = (Length + offset) / BlockSizeBytes * BlockSizeBytes;
-                    _bytesIntoBlock = (Length + offset) % BlockSizeBytes;
+                    newOffset = Length + offset;
                     break;
             }
+
+            _blocksBetweenLengthPosition = GetBlocksBetween(newOffset);
+            _blockPosition = newOffset / BlockSizeBytes * BlockSizeBytes;
+            _bytesIntoBlock = newOffset % BlockSizeBytes;
         }
 
         private long GetBlocksBetween(long position)
@@ -133,7 +140,7 @@ namespace Komponent.Cryptography.AES
             var offsetBlock = GetCurrentBlock(position);
             var lengthBlock = GetCurrentBlock(Length);
             if (Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) > 1)
-                return Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock);
+                return Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) - 1;
             else
                 return 0;
         }
@@ -157,10 +164,14 @@ namespace Komponent.Cryptography.AES
             var encBuffer = new byte[readBuffer.Length];
             _encryptor.TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
 
+            var originalPosition = Position;
             _stream.Position -= dataStart;
             _stream.Write(encBuffer, 0, encBuffer.Length);
 
-            UpdateSeekable(_stream.Position, SeekOrigin.Begin);
+            if (originalPosition + count > _length)
+                _length = originalPosition + count;
+
+            Seek(originalPosition + count, SeekOrigin.Begin);
         }
 
         private void ValidateWrite(byte[] buffer, int offset, int count)
@@ -191,53 +202,13 @@ namespace Komponent.Cryptography.AES
 
         private void PeakOverlappingData(byte[] buffer, int offset, int count)
         {
-            if (Position < Length)
+            if (Position - offset < Length)
             {
                 long originalPosition = Position;
-                var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - Position, count)) * BlockSizeBytes);
+                var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockSizeBytes);
                 Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
                 Position = originalPosition;
             }
         }
-
-        //private byte[] ReadDecrypted(int count)
-        //{
-        //    long offsetIntoBlock = 0;
-        //    if (Position % BlockSizeBytes > 0)
-        //        offsetIntoBlock = Position % BlockSizeBytes;
-
-        //    var blocksToRead = GetBlockCount((int)offsetIntoBlock + count);
-        //    var blockPaddedCount = blocksToRead * BlockSizeBytes;
-
-        //    if (Length <= 0 || count <= 0)
-        //        return new byte[blockPaddedCount];
-
-        //    var originalPosition = Position;
-        //    Position -= offsetIntoBlock;
-
-        //    var minimalDecryptableSize = (int)Math.Min(GetBlockCount(Length) * BlockSizeBytes, blockPaddedCount);
-        //    var bytesRead = new byte[minimalDecryptableSize];
-        //    _stream.Read(bytesRead, 0, minimalDecryptableSize);
-        //    Position = originalPosition;
-
-        //    if (GetBlockCount((int)Position + count) >= TotalBlocks)
-        //        Array.Copy(new byte[BlockSizeBytes], 0, bytesRead, bytesRead.Length - BlockSizeBytes, BlockSizeBytes);
-
-        //    var decrypted = _decryptor.TransformFinalBlock(bytesRead, 0, minimalDecryptableSize);
-        //    var result = new byte[blockPaddedCount];
-        //    Array.Copy(decrypted, 0, result, 0, minimalDecryptableSize);
-
-        //    return result;
-        //}
-
-        //private void ValidateInput(byte[] buffer, int offset, int count)
-        //{
-        //    if (offset < 0 || count < 0)
-        //        throw new InvalidDataException("Offset and count can't be negative.");
-        //    if (offset + count > buffer.Length)
-        //        throw new InvalidDataException("Buffer too short.");
-        //    if (count > Length - Position)
-        //        throw new InvalidDataException($"Can't read {count} bytes from position {Position} in stream with length {Length}.");
-        //}
     }
 }
