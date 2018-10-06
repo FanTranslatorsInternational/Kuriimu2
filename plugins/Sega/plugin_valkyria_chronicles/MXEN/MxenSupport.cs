@@ -56,6 +56,8 @@ namespace plugin_valkyria_chronicles.MXEN
         public object Data;
 
         public List<Table1ObjectText> Texts = new List<Table1ObjectText>();
+
+        public override string ToString() => Type;
     }
 
     public sealed class Table1ObjectText
@@ -68,6 +70,8 @@ namespace plugin_valkyria_chronicles.MXEN
     {
         public int Offset;
         public string Text;
+
+        public override string ToString() => Text;
     }
 
     #endregion
