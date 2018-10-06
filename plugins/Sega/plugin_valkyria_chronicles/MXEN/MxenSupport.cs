@@ -1,4 +1,6 @@
-﻿namespace plugin_valkyria_chronicles.MXEN
+﻿using System.Collections.Generic;
+
+namespace plugin_valkyria_chronicles.MXEN
 {
     public sealed class MXECHeader
     {
@@ -36,6 +38,8 @@
         public int Padding13;
     }
 
+    #region Table1
+
     public sealed class Table1Metadata
     {
         public int ID;
@@ -44,29 +48,27 @@
         public int DataOffset;
     }
 
-    public sealed class Table1Entry
+    public sealed class Table1Object
     {
         public Table1Metadata Metadata;
-        public int TextIndex;
         public string Type;
+        public int TypeIndex;
         public object Data;
+
+        public List<Table1ObjectText> Texts = new List<Table1ObjectText>();
     }
 
-    public sealed class VlMxSlgLandformInfo
+    public sealed class Table1ObjectText
     {
-        public int ID;
-        public int TypeOffset;
-        public int Unk1;
-        public int Unk2;
-        public int Unk3;
-        public int Unk4;
-        public int Unk5;
-        public int Unk6;
+        public int DataOffset;
+        public int TextIndex;
     }
-
-    public sealed class MxecTextEntry
+    
+    public sealed class Table1TextEntry
     {
         public int Offset;
         public string Text;
     }
+
+    #endregion
 }

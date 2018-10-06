@@ -47,7 +47,7 @@ namespace plugin_valkyria_chronicles
         public int PacketSize;
         public int HeaderSize;
         public int Flags;
-        public int Depth;
+        public int Unk1;
 
         /// <summary>
         /// The size of the data in the packet after this header and just before any nested packets.

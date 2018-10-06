@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Komponent.IO;
 using Kontract.Interfaces;
 
@@ -26,8 +26,9 @@ namespace plugin_valkyria_chronicles.MXEN
         private MXECHeader _mxecHeader;
 
         private List<Table1Metadata> _table1Metadata;
-        private List<Table1Entry> _table1Entries;
-        private List<MxecTextEntry> _textEntries;
+        private List<Table1Object> _table1Entries;
+        private List<Table1TextEntry> _textEntries;
+        private Dictionary<int, string> _editableTexts;
 
         private PacketHeaderX _pof0;
         private byte[] _pof0Data;
@@ -61,41 +62,48 @@ namespace plugin_valkyria_chronicles.MXEN
                 // MXEC Header
                 _mxecHeader = br.ReadStruct<MXECHeader>();
 
+                // No Table1
+                if (_mxecHeader.Table1Count < 0 || _mxecHeader.Table1Count > 0 && (_mxecHeader.Table2Offset < 0 || _mxecHeader.Table4Offset < 0 || _mxecHeader.Table6Offset < 0))
+                    throw new Exception("Table1 doesn't exist in this MXE.");
+
+                // Unsupported Tables
+                if (_mxecHeader.Table2Offset > 0)
+                    throw new Exception("Table2 is not supported by this plugin.");
+                if (_mxecHeader.Table4Offset > 0)
+                    throw new Exception("Table4 is not supported by this plugin.");
+                if (_mxecHeader.Table6Offset > 0)
+                    throw new Exception("Table6 is not supported by this plugin.");
+
                 // Table1 Metadata
                 _table1Metadata = br.ReadMultiple<Table1Metadata>(_mxecHeader.Table1Count);
-                _table1Entries = new List<Table1Entry>();
+                _table1Entries = new List<Table1Object>();
 
                 // Table1
                 foreach (var metadata in _table1Metadata)
                 {
-                    var entry = new Table1Entry { Metadata = metadata };
+                    var entry = new Table1Object { Metadata = metadata };
+                    _table1Entries.Add(entry);
 
                     br.BaseStream.Position = Common.PacketHeaderXSize + metadata.TypeOffset;
                     entry.Type = br.ReadCStringSJIS();
 
                     br.BaseStream.Position = Common.PacketHeaderXSize + metadata.DataOffset;
-                    switch (entry.Type)
-                    {
-                        case "VlMxSlgLandformInfo":
-                            entry.Data = br.ReadStruct<VlMxSlgLandformInfo>();
-                            break;
-                        default:
-                            entry.Data = br.ReadBytes(metadata.DataSize);
-                            break;
-                    }
-
-                    _table1Entries.Add(entry);
+                    entry.Data = br.ReadBytes(metadata.DataSize);
                 }
 
                 br.SeekAlignment();
 
+                // Text Dimensions
+                var textStart = br.BaseStream.Position - Common.PacketHeaderXSize;
+                var textEnd = Common.PacketHeaderXSize + _mxecPacketHeader.DataSize;
+
                 // Text
-                _textEntries = new List<MxecTextEntry>();
+                _textEntries = new List<Table1TextEntry>();
                 while (true)
                 {
-                    var entry = new MxecTextEntry { Offset = (int)br.BaseStream.Position - Common.PacketHeaderXSize };
+                    var entry = new Table1TextEntry { Offset = (int)br.BaseStream.Position - Common.PacketHeaderXSize };
                     var text = br.ReadCStringSJIS();
-                    if (text == string.Empty)
+                    if (br.BaseStream.Position == textEnd + Common.PacketHeaderXSize)
                         break;
                     entry.Text = text;
                     _textEntries.Add(entry);
@@ -103,24 +111,42 @@ namespace plugin_valkyria_chronicles.MXEN
 
                 br.SeekAlignment();
 
-                // Sew into TextEntries
+                // Entry Object Interrogator
+                _editableTexts = new Dictionary<int, string>();
                 foreach (var entry in _table1Entries)
                 {
-                    switch (entry.Type)
-                    {
-                        case "VlMxSlgLandformInfo":
-                            var data = entry.Data as VlMxSlgLandformInfo;
-                            entry.TextIndex = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == data.TypeOffset));
-                            break;
-                        default:
-                            continue;
-                    }
+                    entry.TypeIndex = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == entry.Metadata.TypeOffset));
 
-                    Entries.Add(new TextEntry
+                    var data = entry.Data as byte[];
+                    for (var i = 0; i < data.Length / 4; i++)
                     {
-                        Name = entry.Metadata.ID.ToString(),
-                        EditedText = _textEntries[entry.TextIndex].Text
-                    });
+                        var val = BitConverter.ToInt32(data, i * 4);
+
+                        if (val >= textStart && val <= textEnd)
+                        {
+                            entry.Texts.Add(new Table1ObjectText
+                            {
+                                DataOffset = i,
+                                TextIndex = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == val))
+                            });
+                            if (!_editableTexts.ContainsKey(val))
+                                _editableTexts.Add(val, entry.Type);
+                            else if (!_editableTexts[val].Contains(entry.Type))
+                                _editableTexts[val] += ", " + entry.Type;
+                        }
+                    }
+                }
+
+                // Sew into TextEntries
+                foreach (var entry in _textEntries)
+                {
+                    if (_editableTexts.ContainsKey(entry.Offset))
+                        Entries.Add(new TextEntry
+                        {
+                            Name = entry.Offset.ToString(),
+                            EditedText = entry.Text,
+                            Notes = _editableTexts[entry.Offset]
+                        });
                 }
 
                 // POF0
