@@ -61,6 +61,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplePlugins\BCLIM.cs" />
     <Compile Include="SamplePlugins\GFDv2Adapter.cs" />
+    <Compile Include="SamplePlugins\Lot.cs" />
     <Compile Include="SamplePlugins\MTTEX.cs" />
     <Compile Include="SamplePlugins\MtTexAdapter.cs" />
     <Compile Include="SamplePlugins\GFDv2.cs" />

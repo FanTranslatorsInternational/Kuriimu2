@@ -59,6 +59,7 @@ namespace Kuriimu2.ViewModels
         {
             KoreFile = koreFile;
 
+            DisplayName = KoreFile.DisplayName.Replace("_", "__");
             _adapter = KoreFile.Adapter as IImageAdapter;
 
             if (_adapter != null)

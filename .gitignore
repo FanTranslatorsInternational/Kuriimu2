@@ -263,3 +263,4 @@ __pycache__/
 ## Our own ignores
 /sample_files
 /src/Kuriimu2/Images/Source
+/LinqPad.ps1
