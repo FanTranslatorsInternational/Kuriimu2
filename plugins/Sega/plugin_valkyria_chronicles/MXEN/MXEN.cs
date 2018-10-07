@@ -119,8 +119,8 @@ namespace plugin_valkyria_chronicles.MXEN
                 bbr.SeekAlignment();
 
                 // Text
-                var textStart = bbr.BaseStream.Position - Common.PacketHeaderXSize;
-                var textEnd = _mxecPacketHeader.DataSize - Common.PacketHeaderXSize;
+                var textStart = bbr.BaseStream.Position;
+                var textEnd = _mxecPacketHeader.DataSize;
 
                 _textEntries = new List<Table1TextEntry>();
                 while (true)
@@ -148,11 +148,15 @@ namespace plugin_valkyria_chronicles.MXEN
 
                         if (val >= textStart && val <= textEnd)
                         {
+                            var index = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == val));
+                            if (index <= -1) continue;
+
                             entry.Texts.Add(new Table1ObjectText
                             {
                                 DataOffset = i * 4,
-                                TextIndex = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == val))
+                                TextIndex = index
                             });
+
                             if (!_editableTexts.ContainsKey(val))
                                 _editableTexts.Add(val, entry.Type);
                             else if (!_editableTexts[val].Contains(entry.Type))
@@ -205,8 +209,6 @@ namespace plugin_valkyria_chronicles.MXEN
                 // Table1 MemoryStream
                 var ms = new MemoryStream();
 
-                bw.BaseStream.Position = Common.PacketHeaderXSize * 2;
-
                 // Write Table1
                 using (var bbw = new BinaryWriterX(ms, true))
                 {
@@ -218,7 +220,10 @@ namespace plugin_valkyria_chronicles.MXEN
 
                     // Skip Table1Entries
                     foreach (var entry in _table1Entries)
-                        ms.Position += entry.Data.Length;
+                    {
+                        if (entry.Metadata.DataOffset + entry.Data.Length > ms.Position)
+                            ms.Position = entry.Metadata.DataOffset + entry.Data.Length - Common.PacketHeaderXSize;
+                    }
 
                     bbw.WriteAlignment();
 
@@ -258,11 +263,15 @@ namespace plugin_valkyria_chronicles.MXEN
 
                     // Write Table1Entries
                     foreach (var entry in _table1Entries)
+                    {
+                        bbw.BaseStream.Position = entry.Metadata.DataOffset - Common.PacketHeaderXSize;
                         bbw.Write(entry.Data);
+                    }
 
                     bbw.WriteAlignment();
 
                     // Write out to the base stream.
+                    bw.BaseStream.Position = Common.PacketHeaderXSize * 2;
                     ms.Position = 0;
                     if (_xorKey != 0x0)
                     {
