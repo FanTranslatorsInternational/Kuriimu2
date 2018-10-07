@@ -53,7 +53,7 @@ namespace plugin_valkyria_chronicles.MXEN
         public Table1Metadata Metadata;
         public string Type;
         public int TypeIndex;
-        public object Data;
+        public byte[] Data;
 
         public List<Table1ObjectText> Texts = new List<Table1ObjectText>();
 
