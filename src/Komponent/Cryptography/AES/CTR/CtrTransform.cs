@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -42,17 +43,11 @@ namespace Komponent.Cryptography.AES.CTR
 
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
-            var watch = new Stopwatch();
-            watch.Start();
-
             Validate();
 
             var ivToUse = GetFirstToUseIV(inputOffset);
 
             Process(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, ivToUse);
-
-            Console.Write($"XOR time: " + watch.Elapsed + "\r");
-            watch.Stop();
 
             _firstTransform = false;
             return inputCount;
@@ -72,10 +67,28 @@ namespace Komponent.Cryptography.AES.CTR
 
         private void IncrementCtr(byte[] ctr, int count)
         {
-            for (int i = 0; i < count; i++)
-                for (int j = ctr.Length - 1; j >= 0; j--)
-                    if (++ctr[j] != 0)
-                        break;
+            for (int i = ctr.Length - 1; i >= 0; i--)
+            {
+                if (count == 0)
+                    break;
+
+                var check = ctr[i];
+                ctr[i] += (byte)count;
+                count >>= 8;
+
+                int off = 0;
+                while (i - off - 1 >= 0 && ctr[i - off] < check)
+                {
+                    check = ctr[i - off - 1];
+                    ctr[i - off - 1]++;
+                    off++;
+                }
+            }
+
+            //for (int i = 0; i < count; i++)
+            //    for (int j = ctr.Length - 1; j >= 0; j--)
+            //        if (++ctr[j] != 0)
+            //            break;
         }
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] iv)
@@ -84,7 +97,21 @@ namespace Komponent.Cryptography.AES.CTR
 
             var encryptedIVs = GetProcessedIVs(iv, alignedCount);
 
-            for (int i = 0; i < inputCount; i++)
+            XORData(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedIVs);
+        }
+
+        private void XORData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedIVs)
+        {
+            var reducedCount = inputCount & ~0x7;
+            var restCount = inputCount & 0x7;
+
+            var inputSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(inputBuffer, inputOffset, reducedCount));
+            var outputSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(outputBuffer, outputOffset, reducedCount));
+            var ivSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(encryptedIVs, 0, reducedCount));
+            for (int i = 0; i < reducedCount / 8; i++)
+                outputSpan[i] = inputSpan[i] ^ ivSpan[i];
+
+            for (int i = reducedCount; i < restCount; i++)
                 outputBuffer[outputOffset + i] = (byte)(inputBuffer[inputOffset + i] ^ encryptedIVs[i]);
         }
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Komponent.Cryptography.AES.CTR;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Komponent.Cryptography.AES
 {
@@ -58,6 +60,9 @@ namespace Komponent.Cryptography.AES
         public CtrStream(Stream input, byte[] key, byte[] iv)
         {
             _stream = input;
+            _offset = 0;
+            _length = input.Length;
+            _fixedLength = false;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
@@ -125,8 +130,11 @@ namespace Komponent.Cryptography.AES
         {
             ValidateSeek(offset, origin);
 
-            UpdateSeekable(offset, origin);
-            return _stream.Seek(offset + _offset, origin);
+            var result = _stream.Seek(offset + _offset, origin);
+
+            UpdateSeekable();
+
+            return result;
         }
 
         private void ValidateSeek(long offset, SeekOrigin origin)
@@ -151,50 +159,48 @@ namespace Komponent.Cryptography.AES
                 }
         }
 
-        private void UpdateSeekable(long offset, SeekOrigin origin)
+        private void UpdateSeekable()
         {
-            var newOffset = 0L;
-
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    newOffset = offset;
-                    break;
-                case SeekOrigin.Current:
-                    newOffset = Position + offset;
-                    break;
-                case SeekOrigin.End:
-                    newOffset = Length + offset;
-                    break;
-            }
-
-            _lastValidIV = CalculateLastValidIV(newOffset);
-            _blocksBetweenLengthPosition = GetBlocksBetween(newOffset);
-            _blockPosition = newOffset / BlockSizeBytes * BlockSizeBytes;
-            _bytesIntoBlock = newOffset % BlockSizeBytes;
+            _lastValidIV = CalculateLastValidIV(Position);
+            _blocksBetweenLengthPosition = GetBlocksBetween(Position);
+            _blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
+            _bytesIntoBlock = Position % BlockSizeBytes;
         }
 
+        byte[] _ivBuffer = new byte[0x10];
         private byte[] CalculateLastValidIV(long position)
         {
-            var ivBuffer = new byte[BlockSizeBytes];
-            Array.Copy(IV, ivBuffer, BlockSizeBytes);
+            Array.Copy(IV, _ivBuffer, BlockSizeBytes);
 
             var length = GetBlockCount(Length) * BlockSizeBytes;
             if (length < BlockSizeBytes || position < BlockSizeBytes)
-                return ivBuffer;
+                return _ivBuffer;
 
             var increment = (int)GetCurrentBlock(Math.Min(length, position));
-            IncrementCtr(ivBuffer, increment);
+            IncrementCtr(_ivBuffer, increment);
 
-            return ivBuffer;
+            return _ivBuffer;
         }
 
         private void IncrementCtr(byte[] ctr, int count)
         {
-            for (int i = 0; i < count; i++)
-                for (int j = ctr.Length - 1; j >= 0; j--)
-                    if (++ctr[j] != 0)
-                        break;
+            for (int i = ctr.Length - 1; i >= 0; i--)
+            {
+                if (count == 0)
+                    break;
+
+                var check = ctr[i];
+                ctr[i] += (byte)count;
+                count >>= 8;
+
+                int off = 0;
+                while (i - off - 1 >= 0 && ctr[i - off] < check)
+                {
+                    check = ctr[i - off - 1];
+                    ctr[i - off - 1]++;
+                    off++;
+                }
+            }
         }
 
         private long GetBlocksBetween(long position)
@@ -202,17 +208,17 @@ namespace Komponent.Cryptography.AES
             if (Length <= 0)
                 return GetCurrentBlock(position);
 
-            if (position % BlockSizeBytes == 0 && Length % BlockSizeBytes == 0)
-                return Math.Max(position % BlockSizeBytes, Length % BlockSizeBytes) - Math.Min(position % BlockSizeBytes, Length % BlockSizeBytes);
-
             var offsetBlock = GetCurrentBlock(position);
             var lengthBlock = GetCurrentBlock(Length);
+
             if (offsetBlock == lengthBlock)
                 return 0;
-            //if (Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) > 1)
+
+            var lengthRest = Length % BlockSizeBytes;
+            if (lengthRest == 0 && position > Length)
+                return Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock);
+
             return Math.Max(offsetBlock, lengthBlock) - (Math.Min(offsetBlock, lengthBlock) + 1);
-            //else
-            //    return 0;
         }
 
         public override void SetLength(long value)
@@ -238,6 +244,7 @@ namespace Komponent.Cryptography.AES
 
             var originalPosition = Position;
             Position -= dataStart;
+
             _stream.Write(encBuffer, 0, encBuffer.Length);
 
             if (originalPosition + count > _length)
