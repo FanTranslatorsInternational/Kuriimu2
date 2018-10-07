@@ -46,7 +46,10 @@ namespace plugin_valkyria_chronicles
         /// </summary>
         public int PacketSize;
         public int HeaderSize;
-        public int Flags;
+        public byte Flags1;
+        public byte Flags2;
+        public byte Flags3;
+        public byte Flags4;
         public int Unk1;
 
         /// <summary>
@@ -55,17 +58,6 @@ namespace plugin_valkyria_chronicles
         public int DataSize;
         public int Unk2;
         public int Unk3;
-
-        /// <summary>
-        /// Create a new EOFC footer with default values.
-        /// </summary>
-        /// <returns>A new EOFC footer.</returns>
-        public static PacketHeaderX NewEOFC() => new PacketHeaderX
-        {
-            Magic = "EOFC",
-            HeaderSize = Common.PacketHeaderXSize,
-            Flags = 0x10000000
-        };
     }
 
     public static class Extensions
