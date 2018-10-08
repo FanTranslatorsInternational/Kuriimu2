@@ -22,6 +22,11 @@ namespace Kore
         /// </summary>
         private CompositionContainer _container;
 
+        /// <summary>
+        /// Stores the plugin directory that was set at construction time.
+        /// </summary>
+        private string _pluginDirectory = "plugins";
+
         #region Plugins
         #pragma warning disable 0649, 0169
 
@@ -81,6 +86,17 @@ namespace Kore
         }
 
         /// <summary>
+        /// Initializes a new Kore instance with the given plugin directory.
+        /// </summary>
+        /// <param name="pluginDirectory"></param>
+        public Kore(string pluginDirectory)
+        {
+            _pluginDirectory = pluginDirectory;
+            ComposePlugins();
+            OpenFiles = new List<KoreFileInfo>();
+        }
+
+        /// <summary>
         /// Re/Loads the plugin container.
         /// </summary>
         private void ComposePlugins()
@@ -91,8 +107,8 @@ namespace Kore
             // Adds all the parts found in the same assembly as the Kore class.
             catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
 
-            if (Directory.Exists("plugins") && Directory.GetFiles("plugins", "*.dll").Length > 0)
-                catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
+            if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
+                catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
 
             // Create the CompositionContainer with the parts in the catalog.
             _container?.Dispose();
@@ -159,7 +175,7 @@ namespace Kore
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\nPlugin: {ex.Message}");
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
             }
 
             // Create a KoreFileInfo to keep track of the now open file.

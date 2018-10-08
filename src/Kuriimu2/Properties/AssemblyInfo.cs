@@ -7,11 +7,11 @@ using System.Windows;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Kuriimu")]
+[assembly: AssemblyTitle("Kuriimu2")]
 [assembly: AssemblyDescription("Kuriimu is a general purpose game translation project manager and toolkit for authors of fan translations and game modders.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Fan Translators International")]
-[assembly: AssemblyProduct("Kuriimu")]
+[assembly: AssemblyProduct("Kuriimu2")]
 [assembly: AssemblyCopyright("Copyright © Fan Translators International 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
