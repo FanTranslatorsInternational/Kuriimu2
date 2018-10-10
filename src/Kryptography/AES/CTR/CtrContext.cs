@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Komponent.Cryptography.AES.CTR
+namespace Kryptography.AES.CTR
 {
     public class AesCtr : SymmetricAlgorithm
     {

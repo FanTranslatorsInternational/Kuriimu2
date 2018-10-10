@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Komponent.Cryptography.AES;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
-using Komponent.Tools;
+using Kryptography.AES;
 
-namespace Komponent.Cryptography.NCA
+namespace Kryptography.NCA
 {
     public class KeyStorage
     {

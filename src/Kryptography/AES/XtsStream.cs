@@ -1,15 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Abstracts;
-using Komponent.Cryptography.AES.XTS;
-using System.Diagnostics;
-using System.Security.Cryptography;
+using Kryptography.AES.XTS;
 
-namespace Komponent.Cryptography.AES
+namespace Kryptography.AES
 {
     public class XtsStream : KryptoStream
     {

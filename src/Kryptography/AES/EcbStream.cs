@@ -1,11 +1,9 @@
-﻿using Kontract.Abstracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 
-namespace Komponent.Cryptography.AES
+namespace Kryptography.AES
 {
     public class EcbStream : KryptoStream
     {

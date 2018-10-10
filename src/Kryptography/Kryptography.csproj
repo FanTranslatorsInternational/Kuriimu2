@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}</ProjectGuid>
+    <ProjectGuid>{B0D44561-33F6-4BD0-8617-537DF06E2AAB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Komponent</RootNamespace>
-    <AssemblyName>Komponent</AssemblyName>
+    <RootNamespace>Kryptography</RootNamespace>
+    <AssemblyName>Kryptography</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +22,6 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,8 +30,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\Komponent.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -49,11 +47,6 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.4.5.0\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
-    <Reference Include="System.Security" />
-    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -62,27 +55,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\Attributes.cs" />
-    <Compile Include="IO\BinaryReaderX.cs" />
-    <Compile Include="IO\BinaryWriterX.cs" />
-    <Compile Include="IO\Exceptions.cs" />
-    <Compile Include="IO\Extensions.cs" />
-    <Compile Include="IO\Tools.cs" />
-    <Compile Include="Tools\Extensions.cs" />
-    <Compile Include="Tools\KmpSearcher.cs" />
-    <Compile Include="IO\Common.cs" />
-    <Compile Include="IO\SubStream.cs" />
+    <Compile Include="AES\CbcStream.cs" />
+    <Compile Include="AES\CtrStream.cs" />
+    <Compile Include="AES\CTR\CtrContext.cs" />
+    <Compile Include="AES\CTR\CtrCryptoTransform.cs" />
+    <Compile Include="AES\EcbStream.cs" />
+    <Compile Include="AES\Transform.cs" />
+    <Compile Include="AES\XtsStream.cs" />
+    <Compile Include="AES\XTS\XtsContext.cs" />
+    <Compile Include="AES\XTS\XtsCryptoTransform.cs" />
+    <Compile Include="KryptoStream.cs" />
+    <Compile Include="NCA\Common.cs" />
+    <Compile Include="NCA\KeyStorage.cs" />
+    <Compile Include="NCA\NcaBodySectionCryptoStream.cs" />
+    <Compile Include="NCA\NCACryptoStream.cs" />
+    <Compile Include="NCA\NcaHeaderCryptoStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RotStream.cs" />
+    <Compile Include="XorStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Kontract\Kontract.csproj">
-      <Project>{a43ecc92-dc90-4f79-9871-49e02a11adad}</Project>
-      <Name>Kontract</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

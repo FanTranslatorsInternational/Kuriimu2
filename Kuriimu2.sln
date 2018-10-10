@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kore", "src\Kore\Kore.cspro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kanvas", "src\Kanvas\Kanvas.csproj", "{810CEFCF-6900-43FF-8939-EF2D52236882}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kryptography", "src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,9 @@ Global
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

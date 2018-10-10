@@ -1,16 +1,15 @@
-﻿using System.Resources;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Komponent")]
-[assembly: AssemblyDescription("Kuriimu2 IO and Tools library.")]
+[assembly: AssemblyTitle("Kryptography")]
+[assembly: AssemblyDescription("Kuriimu2 Kryptography library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Fan Translators International")]
-[assembly: AssemblyProduct("Komponent")]
+[assembly: AssemblyProduct("Kryptography")]
 [assembly: AssemblyCopyright("Copyright © Fan Translators International 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -21,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0601DFC5-60DD-44A3-AFF8-A62E1E1481DB")]
+[assembly: Guid("B0D44561-33F6-4BD0-8617-537DF06E2AAB")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -35,5 +34,3 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.0.0")]
 [assembly: AssemblyFileVersion("2.0.0.0")]
-[assembly: NeutralResourcesLanguage("en")]
-

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Kontract.Abstracts;
 
-namespace Komponent.Cryptography
+namespace Kryptography.XOR
 {
-    public class RotStream : KryptoStream
+    public class XorStream : KryptoStream
     {
         public override int BlockSize => 8;
 
@@ -32,12 +29,17 @@ namespace Komponent.Cryptography
 
         private Stream _stream;
 
-        public RotStream(Stream input, byte n)
+        public XorStream(Stream input, string key, Encoding enc) : this(input, enc.GetBytes(key))
+        {
+
+        }
+
+        public XorStream(Stream input, byte[] key)
         {
             _stream = input;
 
             Keys = new List<byte[]>();
-            Keys.Add(new byte[] { n });
+            Keys.Add(key);
         }
 
         public override void Flush()
@@ -51,11 +53,15 @@ namespace Komponent.Cryptography
 
             var length = (int)Math.Max(0, Math.Min(count, Length - Position));
 
+            var keyPos = Position % KeySize;
             for (int i = 0; i < length; i++)
-                buffer[offset + i] = (byte)(_stream.ReadByte() - Keys[0][0]);
+            {
+                buffer[offset + i] = (byte)(Keys[0][keyPos++] ^ _stream.ReadByte());
+                if (keyPos >= KeySize)
+                    keyPos = 0;
+            }
 
             return length;
-
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -73,8 +79,13 @@ namespace Komponent.Cryptography
             if (offset + count >= buffer.Length)
                 throw new InvalidDataException($"Buffer is too small.");
 
+            var keyPos = Position % KeySize;
             for (int i = 0; i < count; i++)
-                _stream.WriteByte((byte)(buffer[offset + i] + Keys[0][0]));
+            {
+                _stream.WriteByte((byte)(buffer[offset + i] ^ Keys[0][keyPos++]));
+                if (keyPos >= KeySize)
+                    keyPos = 0;
+            }
         }
     }
 }

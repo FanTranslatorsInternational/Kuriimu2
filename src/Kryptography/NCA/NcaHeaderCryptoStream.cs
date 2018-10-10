@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Komponent.Cryptography.AES;
-using Komponent.IO;
-using Kontract.Abstracts;
+using Kryptography.AES;
 
-namespace Komponent.Cryptography.NCA
+namespace Kryptography.NCA
 {
     public class NcaHeaderCryptoStream : KryptoStream
     {

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Komponent.Cryptography.AES.XTS
+namespace Kryptography.AES.XTS
 {
     public class XtsCryptoTransform : ICryptoTransform
     {
@@ -57,7 +53,7 @@ namespace Komponent.Cryptography.AES.XTS
             if (inputCount % InputBlockSize != 0)
                 throw new InvalidOperationException("Only aligned data can be encrypted.");
         }
-        
+
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
             //Array.Copy(inputBuffer, inputOffset, outputBuffer, outputOffset, inputCount);
