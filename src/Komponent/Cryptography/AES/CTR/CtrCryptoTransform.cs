@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -9,23 +10,17 @@ using System.Threading.Tasks;
 
 namespace Komponent.Cryptography.AES.CTR
 {
-    public class CtrTransform : ICryptoTransform
+    public class CtrCryptoTransform : ICryptoTransform
     {
-        byte[] _key;
-        byte[] _iv;
+        public byte[] IV { get; set; }
         ICryptoTransform _cryptor;
 
         bool _firstTransform = true;
 
-        public CtrTransform(byte[] key, byte[] iv)
+        public CtrCryptoTransform(ICryptoTransform cryptor, byte[] iv)
         {
-            _key = key;
-            _iv = iv;
-
-            var aes = Aes.Create();
-            aes.Mode = CipherMode.ECB;
-            aes.Padding = PaddingMode.None;
-            _cryptor = aes.CreateEncryptor(key, null);
+            IV = iv;
+            _cryptor = cryptor;
         }
 
         public int InputBlockSize => 16;
@@ -34,7 +29,7 @@ namespace Komponent.Cryptography.AES.CTR
 
         public bool CanTransformMultipleBlocks => true;
 
-        public bool CanReuseTransform => false;
+        public bool CanReuseTransform => true;
 
         public void Dispose()
         {
@@ -56,10 +51,10 @@ namespace Komponent.Cryptography.AES.CTR
         private byte[] GetFirstToUseIV(int offset)
         {
             var increase = offset / InputBlockSize;
-            if (increase == 0) return _iv;
+            if (increase == 0) return IV;
 
             var buffer = new byte[InputBlockSize];
-            Array.Copy(_iv, 0, buffer, 0, InputBlockSize);
+            Array.Copy(IV, 0, buffer, 0, InputBlockSize);
             IncrementCtr(buffer, increase);
 
             return buffer;
@@ -84,38 +79,35 @@ namespace Komponent.Cryptography.AES.CTR
                     off++;
                 }
             }
-
-            //for (int i = 0; i < count; i++)
-            //    for (int j = ctr.Length - 1; j >= 0; j--)
-            //        if (++ctr[j] != 0)
-            //            break;
         }
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] iv)
         {
             var alignedCount = (int)Math.Ceiling((double)inputCount / InputBlockSize) * InputBlockSize;
 
-            var encryptedIVs = GetProcessedIVs(iv, alignedCount);
+            var encryptedIVs = CreateXORPad(iv, alignedCount);
 
             XORData(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedIVs);
         }
 
         private void XORData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedIVs)
         {
-            var reducedCount = inputCount & ~0x7;
-            var restCount = inputCount & 0x7;
+            var simdLength = Vector<byte>.Count;
+            var j = 0;
+            for (j = 0; j <= inputCount - simdLength; j += simdLength)
+            {
+                var va = new Vector<byte>(inputBuffer, j + inputOffset);
+                var vb = new Vector<byte>(encryptedIVs, j);
+                (va ^ vb).CopyTo(outputBuffer, j + outputOffset);
+            }
 
-            var inputSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(inputBuffer, inputOffset, reducedCount));
-            var outputSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(outputBuffer, outputOffset, reducedCount));
-            var ivSpan = MemoryMarshal.Cast<byte, long>(new Span<byte>(encryptedIVs, 0, reducedCount));
-            for (int i = 0; i < reducedCount / 8; i++)
-                outputSpan[i] = inputSpan[i] ^ ivSpan[i];
-
-            for (int i = reducedCount; i < restCount; i++)
-                outputBuffer[outputOffset + i] = (byte)(inputBuffer[inputOffset + i] ^ encryptedIVs[i]);
+            for (; j < inputCount; ++j)
+            {
+                outputBuffer[outputOffset + j] = (byte)(inputBuffer[inputOffset + j] ^ encryptedIVs[j]);
+            }
         }
 
-        private byte[] GetProcessedIVs(byte[] initialIV, int alignedCount)
+        private byte[] CreateXORPad(byte[] initialIV, int alignedCount)
         {
             var ivs = new byte[alignedCount];
             for (int i = 0; i < alignedCount; i += InputBlockSize)

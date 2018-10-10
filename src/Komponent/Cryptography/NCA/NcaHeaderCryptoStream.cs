@@ -162,7 +162,7 @@ namespace Komponent.Cryptography.NCA
             {
                 var read = 0;
 
-                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], true);
+                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], new byte[16], true);
                 if (Position < 0x400)
                 {
                     read = xtsStream.Read(buffer, offset, (int)Math.Min(count, 0x400 - Position));
@@ -175,7 +175,7 @@ namespace Komponent.Cryptography.NCA
                         var index = 0;
                         while (count - read > 0)
                         {
-                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _keyStorage["header_key"], true);
+                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _keyStorage["header_key"], new byte[16], true);
                             var read2 = xtsStream.Read(buffer, offset + read, Math.Min(count - read, 0x200));
                             index++;
                             read += read2;
@@ -215,7 +215,7 @@ namespace Komponent.Cryptography.NCA
             {
                 var nonSectionBytes = (int)Math.Min(count, 0x400 - Position);
 
-                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], true);
+                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], new byte[16], true);
                 if (Position < 0x400)
                 {
                     xtsStream.Write(buffer.Take(nonSectionBytes).ToArray(), 0, nonSectionBytes);
@@ -231,7 +231,7 @@ namespace Komponent.Cryptography.NCA
                         while (count - nonSectionBytes - sectionBytesWritten > 0)
                         {
                             var toWrite = Math.Min(count - nonSectionBytes - sectionBytesWritten, 0x200);
-                            xtsStream = new XtsStream(new SubStream(_stream, 0x400 + index * 0x200, 0x200), _keyStorage["header_key"], true);
+                            xtsStream = new XtsStream(new SubStream(_stream, 0x400 + index * 0x200, 0x200), _keyStorage["header_key"], new byte[16], true);
                             xtsStream.Write(buffer, nonSectionBytes + sectionBytesWritten, toWrite);
                             index++;
                             sectionBytesWritten += toWrite;

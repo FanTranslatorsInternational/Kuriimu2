@@ -13,7 +13,8 @@ namespace Komponent.Cryptography.AES
     public class CtrStream : KryptoStream
     {
         private Stream _stream;
-        private SymmetricAlgorithm _ctr;
+        private CtrCryptoTransform _decryptor;
+        private CtrCryptoTransform _encryptor;
         private byte[] _lastValidIV;
         private long _blocksBetweenLengthPosition = 0;
         private long _blockPosition = 0;
@@ -52,7 +53,9 @@ namespace Komponent.Cryptography.AES
             IV = iv;
             _lastValidIV = iv;
 
-            _ctr = AesCtr.Create();
+            var aes = AesCtr.Create();
+            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
+            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
         }
 
         public CtrStream(byte[] input, byte[] key, byte[] iv) : this(new MemoryStream(input), key, iv) { }
@@ -69,7 +72,9 @@ namespace Komponent.Cryptography.AES
             IV = iv;
             _lastValidIV = iv;
 
-            _ctr = AesCtr.Create();
+            var aes = AesCtr.Create();
+            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
+            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
         }
 
         public override void Flush()
@@ -121,7 +126,8 @@ namespace Komponent.Cryptography.AES
             _stream.Read(readData, 0, alignedCount);
 
             var decData = new byte[alignedCount];
-            _ctr.CreateDecryptor(Keys[0], iv).TransformBlock(readData, 0, readData.Length, decData, 0);
+            _decryptor.IV = iv;
+            _decryptor.TransformBlock(readData, 0, readData.Length, decData, 0);
 
             return decData;
         }
@@ -240,7 +246,8 @@ namespace Komponent.Cryptography.AES
             Array.Copy(buffer, offset, readBuffer, dataStart, count);
 
             var encBuffer = new byte[readBuffer.Length];
-            _ctr.CreateEncryptor(Keys[0], _lastValidIV).TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
+            _encryptor.IV = _lastValidIV;
+            _encryptor.TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
 
             var originalPosition = Position;
             Position -= dataStart;

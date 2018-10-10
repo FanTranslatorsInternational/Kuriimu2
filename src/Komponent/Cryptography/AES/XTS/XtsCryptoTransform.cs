@@ -1,235 +1,165 @@
-﻿// Copyright (c) 2010 Gareth Lennox (garethl@dwakn.com)
-// All rights reserved.
-
-// Redistribution and use in source and binary forms, with or without modification,
-// are permitted provided that the following conditions are met:
-
-//     * Redistributions of source code must retain the above copyright notice,
-//       this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright notice,
-//       this list of conditions and the following disclaimer in the documentation
-//       and/or other materials provided with the distribution.
-//     * Neither the name of Gareth Lennox nor the names of its
-//       contributors may be used to endorse or promote products derived from this
-//       software without specific prior written permission.
-
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-// THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-using System;
+﻿using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Komponent.Cryptography.AES.XTS
 {
-    /// <summary>
-    /// The actual Xts cryptography transform
-    /// </summary>
-    /// <remarks>
-    /// The reason that it doesn't implement ICryptoTransform, as the interface is different.
-    /// 
-    /// Most of the logic was taken from the LibTomCrypt project - http://libtom.org and 
-    /// converted to C#
-    /// </remarks>
-    public class XtsCryptoTransform : IDisposable
+    public class XtsCryptoTransform : ICryptoTransform
     {
-        private readonly byte[] _cc = new byte[16];
-        private readonly bool _decrypting;
-        private readonly bool _nin_tweak;
-        private readonly ICryptoTransform _key1;
-        private readonly ICryptoTransform _key2;
+        private ICryptoTransform _key1;
+        private ICryptoTransform _key2;
+        public int SectorSize { get; set; }
+        public byte[] SectorId { get; set; }
+        private bool _firstTransform;
 
-        private readonly byte[] _pp = new byte[16];
-        private readonly byte[] _t = new byte[16];
-        private readonly byte[] _tweak = new byte[16];
-
-        /// <summary>
-        /// Creates a new transform
-        /// </summary>
-        /// <param name="key1">Transform 1</param>
-        /// <param name="key2">Transform 2</param>
-        /// <param name="decrypting">Is this a decryption transform?</param>
-        /// <param name="nin_tweak">Use Nintendo Tweak?</param>
-        public XtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, bool decrypting, bool nin_tweak)
+        public XtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, byte[] sectorId, int sectorSize, bool decrypting)
         {
-            if (key1 == null)
-                throw new ArgumentNullException("key1");
-
-            if (key2 == null)
-                throw new ArgumentNullException("key2");
-
             _key1 = key1;
             _key2 = key2;
-            _decrypting = decrypting;
-            _nin_tweak = nin_tweak;
+            SectorSize = sectorSize;
+            SectorId = sectorId;
+            _firstTransform = true;
         }
 
-        #region IDisposable Members
+        public int InputBlockSize => 16;
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
+        public int OutputBlockSize => 16;
+
+        public bool CanTransformMultipleBlocks => true;
+
+        public bool CanReuseTransform => true;
+
         public void Dispose()
         {
-            _key1.Dispose();
-            _key2.Dispose();
+            _key1 = null;
+            _key2 = null;
         }
 
-        #endregion
-
-        /// <summary>
-        /// Transforms a single block.
-        /// </summary>
-        /// <param name="inputBuffer"> The input for which to compute the transform.</param>
-        /// <param name="inputOffset">The offset into the input byte array from which to begin using data.</param>
-        /// <param name="inputCount">The number of bytes in the input byte array to use as data.</param>
-        /// <param name="outputBuffer">The output to which to write the transform.</param>
-        /// <param name="outputOffset">The offset into the output byte array from which to begin writing data.</param>
-        /// <param name="sector">The sector number of the block</param>
-        /// <returns>The number of bytes written.</returns>
-        public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, ulong sector)
+        public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
-            FillArrayFromSector(_tweak, sector);
+            Validate(inputCount);
 
-            int lim;
+            Process(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
 
-            /* get number of blocks */
-            var m = inputCount >> 4;
-            var mo = inputCount & 15;
+            _firstTransform = false;
+            return 0;
+        }
 
-            /* encrypt the tweak */
-            _key2.TransformBlock(_tweak, 0, _tweak.Length, _t, 0);
+        private void Validate(int inputCount)
+        {
+            if (!_firstTransform && !CanReuseTransform)
+                throw new InvalidOperationException("Can't reuse transform.");
+            if (inputCount % InputBlockSize != 0)
+                throw new InvalidOperationException("Only aligned data can be encrypted.");
+        }
+        
+        private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
+        {
+            //Array.Copy(inputBuffer, inputOffset, outputBuffer, outputOffset, inputCount);
 
-            /* for i = 0 to m-2 do */
-            if (mo == 0)
-                lim = m;
-            else
-                lim = m - 1;
+            var tweak = new byte[16];
+            //var encTweak = new byte[16];
+            Array.Copy(SectorId, tweak, 16);
 
-            for (var i = 0; i < lim; i++)
+            for (int i = 0; i < Math.Ceiling((double)inputCount / SectorSize); i++)
             {
-                TweakCrypt(inputBuffer, inputOffset, outputBuffer, outputOffset, _t);
-                inputOffset += 16;
-                outputOffset += 16;
+                var length = inputCount % SectorSize != 0 ? inputCount % SectorSize : SectorSize;
+                TweakCryptSector(inputBuffer, inputOffset, length, outputBuffer, outputOffset, tweak);
+
+                //Increment tweak
+                Increment(tweak, 1);
             }
+        }
 
-            /* if ptlen not divide 16 then */
-            if (mo > 0)
+        private void TweakCryptSector(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] tweak)
+        {
+            //Encrypt tweaks for sector
+            byte[] encryptedTweaks = InitializeByteArray(inputCount);
+            ComputeEncryptedTweaks(encryptedTweaks, inputCount, tweak);
+
+            //XEX
+            ApplyXEX(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedTweaks);
+
+            //Free encryptedTweaks
+            FreeByteArray(encryptedTweaks);
+        }
+
+        private byte[] InitializeByteArray(int length)
+        {
+            if (length <= 0x40)
+                return new byte[length];
+            else
+                return ArrayPool<byte>.Shared.Rent(length);
+        }
+
+        private unsafe void ComputeEncryptedTweaks(byte[] encryptedTweakBuffer, int inputCount, byte[] tweak)
+        {
+            //var encTweak = new byte[16];
+            //_key2.TransformBlock(tweak, 0, 16, encTweak, 0);
+
+            ////Compute encrypted tweaks for every block
+            //for (int i = 0; i < inputCount >> 4; i++)
+            //{
+            //    Buffer.BlockCopy(encTweak, 0, encryptedTweakBuffer, i * 16, 16);
+            //    MultiplyByX(encTweak);
+            //}
+
+            var encTweak = new byte[16]; // todo: compare with ArrayPool
+            _key2.TransformBlock(tweak, 0, 16, encTweak, 0);
+
+            var q0 = BitConverter.ToInt64(encTweak, 0);
+            var q1 = BitConverter.ToInt64(encTweak, 8);
+
+            fixed (byte* p = encryptedTweakBuffer)
             {
-                if (_decrypting)
+                long* q = (long*)p;
+                for (int i = 0; i < inputCount >> 4; i++)
                 {
-                    Buffer.BlockCopy(_t, 0, _cc, 0, 16);
-                    MultiplyByX(_cc);
-
-                    /* CC = tweak encrypt block m-1 */
-                    TweakCrypt(inputBuffer, inputOffset, _pp, 0, _cc);
-
-                    /* Cm = first ptlen % 16 bytes of CC */
-                    int i;
-                    for (i = 0; i < mo; i++)
-                    {
-                        _cc[i] = inputBuffer[16 + i + inputOffset];
-                        outputBuffer[16 + i + outputOffset] = _pp[i];
-                    }
-
-                    for (; i < 16; i++)
-                    {
-                        _cc[i] = _pp[i];
-                    }
-
-                    /* Cm-1 = Tweak encrypt PP */
-                    TweakCrypt(_cc, 0, outputBuffer, outputOffset, _t);
-                }
-                else
-                {
-                    /* CC = tweak encrypt block m-1 */
-                    TweakCrypt(inputBuffer, inputOffset, _cc, 0, _t);
-
-                    /* Cm = first ptlen % 16 bytes of CC */
-                    int i;
-                    for (i = 0; i < mo; i++)
-                    {
-                        _pp[i] = inputBuffer[16 + i + inputOffset];
-                        outputBuffer[16 + i + outputOffset] = _cc[i];
-                    }
-
-                    for (; i < 16; i++)
-                    {
-                        _pp[i] = _cc[i];
-                    }
-
-                    /* Cm-1 = Tweak encrypt PP */
-                    TweakCrypt(_pp, 0, outputBuffer, outputOffset, _t);
+                    *q++ = q0;
+                    *q++ = q1;
+                    (q0, q1) = (q0 << 1 ^ (q1 >> 63 & 135), q1 << 1 ^ (q0 >> 63 & 1));
                 }
             }
-
-            return inputCount;
         }
 
-        /// <summary>
-        /// Fills a byte array from a sector number
-        /// </summary>
-        /// <param name="value">The destination</param>
-        /// <param name="sector">The sector number</param>
-        private void FillArrayFromSector(byte[] value, ulong sector)
+        private void ApplyXEX(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedTweaks)
         {
-            if (_nin_tweak)
+            XORData(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedTweaks);
+            _key1.TransformBlock(outputBuffer, outputOffset, inputCount, outputBuffer, outputOffset);
+            XORData(outputBuffer, outputOffset, inputCount, outputBuffer, outputOffset, encryptedTweaks);
+        }
+
+        private void XORData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedTweaks)
+        {
+            var simdLength = Vector<byte>.Count;
+            var j = 0;
+            for (j = 0; j <= inputCount - simdLength; j += simdLength)
             {
-                value[8] = (byte)((sector >> 56) & 255);
-                value[9] = (byte)((sector >> 48) & 255);
-                value[10] = (byte)((sector >> 40) & 255);
-                value[11] = (byte)((sector >> 32) & 255);
-                value[12] = (byte)((sector >> 24) & 255);
-                value[13] = (byte)((sector >> 16) & 255);
-                value[14] = (byte)((sector >> 8) & 255);
-                value[15] = (byte)(sector & 255);
+                var va = new Vector<byte>(inputBuffer, j + inputOffset);
+                var vb = new Vector<byte>(encryptedTweaks, j);
+                (va ^ vb).CopyTo(outputBuffer, j + outputOffset);
             }
+
+            for (; j < inputCount; ++j)
+            {
+                outputBuffer[outputOffset + j] = (byte)(inputBuffer[inputOffset + j] ^ encryptedTweaks[j]);
+            }
+        }
+
+        private void FreeByteArray(byte[] toFree)
+        {
+            if (toFree.Length <= 0x40)
+                toFree = null;
             else
-            {
-                value[7] = (byte)((sector >> 56) & 255);
-                value[6] = (byte)((sector >> 48) & 255);
-                value[5] = (byte)((sector >> 40) & 255);
-                value[4] = (byte)((sector >> 32) & 255);
-                value[3] = (byte)((sector >> 24) & 255);
-                value[2] = (byte)((sector >> 16) & 255);
-                value[1] = (byte)((sector >> 8) & 255);
-                value[0] = (byte)(sector & 255);
-            }
+                ArrayPool<byte>.Shared.Return(toFree);
         }
 
-        /// <summary>
-        /// Performs the Xts TweakCrypt operation
-        /// </summary>
-        private void TweakCrypt(byte[] inputBuffer, int inputOffset, byte[] outputBuffer, int outputOffset, byte[] t)
-        {
-            for (var x = 0; x < 16; x++)
-            {
-                outputBuffer[x + outputOffset] = (byte)(inputBuffer[x + inputOffset] ^ t[x]);
-            }
-
-            _key1.TransformBlock(outputBuffer, outputOffset, 16, outputBuffer, outputOffset);
-
-            for (var x = 0; x < 16; x++)
-            {
-                outputBuffer[x + outputOffset] = (byte)(outputBuffer[x + outputOffset] ^ t[x]);
-            }
-
-            MultiplyByX(t);
-        }
-
-        /// <summary>
-        /// Multiply by x
-        /// </summary>
-        /// <param name="i">The value to multiply by x (LFSR shift)</param>
-        private static void MultiplyByX(byte[] i)
+        private void MultiplyByX(byte[] i)
         {
             byte t = 0, tt = 0;
 
@@ -242,6 +172,35 @@ namespace Komponent.Cryptography.AES.XTS
 
             if (tt > 0)
                 i[0] ^= 0x87;
+        }
+
+        private void Increment(byte[] ctr, int count)
+        {
+            for (int i = ctr.Length - 1; i >= 0; i--)
+            {
+                if (count == 0)
+                    break;
+
+                var check = ctr[i];
+                ctr[i] += (byte)count;
+                count >>= 8;
+
+                int off = 0;
+                while (i - off - 1 >= 0 && ctr[i - off] < check)
+                {
+                    check = ctr[i - off - 1];
+                    ctr[i - off - 1]++;
+                    off++;
+                }
+            }
+        }
+
+        public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
+        {
+            var outputBuffer = new byte[inputCount];
+            TransformBlock(inputBuffer, inputOffset, inputCount, outputBuffer, 0);
+
+            return outputBuffer;
         }
     }
 }

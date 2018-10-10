@@ -9,7 +9,8 @@ namespace Komponent.Cryptography.AES.CTR
 {
     public class AesCtr : SymmetricAlgorithm
     {
-        public override byte[] Key { get; set; }
+        private byte[] _key;
+        public override byte[] Key { get => _key; set { _key = value; _cryptor = _aes.CreateEncryptor(_key, null); } }
         public override byte[] IV { get; set; }
         public override PaddingMode Padding { get; set; }
 
@@ -28,19 +29,31 @@ namespace Komponent.Cryptography.AES.CTR
                 throw new InvalidOperationException("Key and IV need to be 16 bytes.");
         }
 
-        protected AesCtr() { }
+        private Aes _aes;
+        private ICryptoTransform _cryptor;
+
+        protected AesCtr() { CreateAesContext(); }
 
         protected AesCtr(byte[] key, byte[] iv)
         {
             Key = key;
             IV = iv;
+
+            CreateAesContext();
+        }
+
+        private void CreateAesContext()
+        {
+            _aes = Aes.Create();
+            _aes.Mode = CipherMode.ECB;
+            _aes.Padding = PaddingMode.None;
         }
 
         public new ICryptoTransform CreateDecryptor()
         {
             ValidateKeyIV();
 
-            return new CtrTransform(Key, IV);
+            return new CtrCryptoTransform(_cryptor, IV);
         }
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
@@ -50,7 +63,7 @@ namespace Komponent.Cryptography.AES.CTR
 
             ValidateKeyIV();
 
-            return new CtrTransform(Key, IV);
+            return new CtrCryptoTransform(_cryptor, IV);
         }
 
         private void ValidateKeyIV()
@@ -63,7 +76,7 @@ namespace Komponent.Cryptography.AES.CTR
         {
             ValidateKeyIV();
 
-            return new CtrTransform(Key, IV);
+            return new CtrCryptoTransform(_cryptor, IV);
         }
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
@@ -73,7 +86,7 @@ namespace Komponent.Cryptography.AES.CTR
 
             ValidateKeyIV();
 
-            return new CtrTransform(Key, IV);
+            return new CtrCryptoTransform(_cryptor, IV);
         }
 
         public override void GenerateIV()

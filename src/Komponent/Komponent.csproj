@@ -65,12 +65,10 @@
     <Compile Include="Cryptography\AES\CbcStream.cs" />
     <Compile Include="Cryptography\AES\CtrStream.cs" />
     <Compile Include="Cryptography\AES\CTR\CtrContext.cs" />
-    <Compile Include="Cryptography\AES\CTR\CtrTransform.cs" />
+    <Compile Include="Cryptography\AES\CTR\CtrCryptoTransform.cs" />
     <Compile Include="Cryptography\AES\EcbStream.cs" />
     <Compile Include="Cryptography\AES\XtsStream.cs" />
-    <Compile Include="Cryptography\AES\XTS\Xts.cs" />
-    <Compile Include="Cryptography\AES\XTS\XtsAes128.cs" />
-    <Compile Include="Cryptography\AES\XTS\XtsAes256.cs" />
+    <Compile Include="Cryptography\AES\XTS\XtsContext.cs" />
     <Compile Include="Cryptography\AES\XTS\XtsCryptoTransform.cs" />
     <Compile Include="Cryptography\NCA\Common.cs" />
     <Compile Include="Cryptography\NCA\KeyStorage.cs" />

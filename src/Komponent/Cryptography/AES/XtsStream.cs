@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Kontract.Abstracts;
 using Komponent.Cryptography.AES.XTS;
+using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace Komponent.Cryptography.AES
 {
@@ -14,7 +16,8 @@ namespace Komponent.Cryptography.AES
         public int SectorSize { get; }
 
         private Stream _stream;
-        private Xts _xts;
+        private XtsCryptoTransform _encryptor;
+        private XtsCryptoTransform _decryptor;
         private long _sectorsBetweenLengthPosition = 0;
         private long _sectorPosition = 0;
         private long _bytesIntoSector = 0;
@@ -22,6 +25,7 @@ namespace Komponent.Cryptography.AES
         private long _offset;
         private long _length;
         private bool _fixedLength = false;
+        private bool _littleEndianId;
 
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
@@ -31,124 +35,148 @@ namespace Komponent.Cryptography.AES
 
         public override List<byte[]> Keys { get; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
-        public override byte[] IV => throw new NotImplementedException();
+        public override byte[] IV { get; }
         public override long Length => _length;
         public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
         private long TotalSectors => GetSectorCount(Length);
 
         private long GetSectorCount(long input) => (long)Math.Ceiling((double)input / SectorSize);
         private long GetCurrentSector(long input) => input / SectorSize;
+        private byte[] GetCurrentSectorId(long input)
+        {
+            var id = new byte[16];
+            Array.Copy(IV, id, 16);
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key1, bool nintendo_tweak = false) : this(input, offset, length, key1, null, 512, nintendo_tweak) { }
+            Increment(id, (int)GetCurrentSector(input));
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key1, int sectorSize, bool nintendo_tweak = false) : this(input, offset, length, key1, null, sectorSize, nintendo_tweak) { }
+            return id;
+        }
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key1, byte[] key2, bool nintendo_tweak = false) : this(input, offset, length, key1, key2, 512, nintendo_tweak) { }
+        private void Increment(byte[] ctr, int count)
+        {
+            for (int i = ctr.Length - 1; i >= 0; i--)
+            {
+                if (count == 0)
+                    break;
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key1, byte[] key2, int sectorSize, bool nintendo_tweak = false) : this(new MemoryStream(input), offset, length, key1, key2, sectorSize, nintendo_tweak) { }
+                var check = ctr[i];
+                ctr[i] += (byte)count;
+                count >>= 8;
 
-        public XtsStream(Stream input, long offset, long length, byte[] key1, bool nintendo_tweak = false) : this(input, offset, length, key1, null, 512, nintendo_tweak) { }
+                int off = 0;
+                while (i - off - 1 >= 0 && ctr[i - off] < check)
+                {
+                    check = ctr[i - off - 1];
+                    ctr[i - off - 1]++;
+                    off++;
+                }
+            }
+        }
 
-        public XtsStream(Stream input, long offset, long length, byte[] key1, int sectorSize, bool nintendo_tweak = false) : this(input, offset, length, key1, null, sectorSize, nintendo_tweak) { }
+        public XtsStream(byte[] input, long offset, long length, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId) { }
 
-        public XtsStream(Stream input, long offset, long length, byte[] key1, byte[] key2, bool nintendo_tweak = false) : this(input, offset, length, key1, key2, 512, nintendo_tweak) { }
+        public XtsStream(byte[] input, long offset, long length, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, sectorSize, sectorId, littleEndianId) { }
 
-        public XtsStream(Stream input, long offset, long length, byte[] key1, byte[] key2, int sectorSize, bool nintendo_tweak = false)
+        public XtsStream(Stream input, long offset, long length, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(input, offset, length, key, 512, sectorId, littleEndianId) { }
+
+        public XtsStream(Stream input, long offset, long length, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false)
         {
             _stream = input;
             _offset = offset;
             _length = length;
             _fixedLength = true;
+            _littleEndianId = littleEndianId;
 
             SectorSize = sectorSize;
+            IV = NumericToArray(sectorId, littleEndianId);
 
             Keys = new List<byte[]>();
-            Keys.Add(key1);
-            if (key2 != null)
-                Keys.Add(key2);
+            Keys.Add(key);
 
-            if (key2 != null)
-            {
-                if (key1.Length == 128 / 8 && key2.Length == 128 / 8)
-                {
-                    _xts = XtsAes128.Create(key1, key2, nintendo_tweak);
-                }
-                else if (key1.Length == 256 / 8 && key2.Length == 256 / 8)
-                {
-                    _xts = XtsAes256.Create(key1, key2, nintendo_tweak);
-                }
-                else
-                    throw new InvalidDataException("Key1 or Key2 have invalid size.");
-            }
-            else
-            {
-                if (key1.Length == 256 / 8)
-                {
-                    _xts = XtsAes128.Create(key1, nintendo_tweak);
-                }
-                else if (key1.Length == 512 / 8)
-                {
-                    _xts = XtsAes256.Create(key1, nintendo_tweak);
-                }
-                else
-                    throw new InvalidDataException("Key1 has invalid size.");
-            }
+            var xts = XtsContext.Create(key, NumericToArray(sectorId, littleEndianId), sectorSize);
+
+            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
+            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
-        public XtsStream(byte[] input, byte[] key1, bool nintendo_tweak = false) : this(input, key1, null, 512, nintendo_tweak) { }
+        public XtsStream(byte[] input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId) { }
 
-        public XtsStream(byte[] input, byte[] key1, int sectorSize, bool nintendo_tweak = false) : this(input, key1, null, sectorSize, nintendo_tweak) { }
+        public XtsStream(byte[] input, long offset, long length, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, sectorSize, sectorId, littleEndianId) { }
 
-        public XtsStream(byte[] input, byte[] key1, byte[] key2, bool nintendo_tweak = false) : this(input, key1, key2, 512, nintendo_tweak) { }
+        public XtsStream(Stream input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(input, offset, length, key, 512, sectorId, littleEndianId) { }
 
-        public XtsStream(byte[] input, byte[] key1, byte[] key2, int sectorSize, bool nintendo_tweak = false) : this(new MemoryStream(input), key1, key2, sectorSize, nintendo_tweak) { }
+        public XtsStream(Stream input, long offset, long length, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false)
+        {
+            _stream = input;
+            _offset = offset;
+            _length = length;
+            _fixedLength = true;
+            _littleEndianId = littleEndianId;
 
-        public XtsStream(Stream input, byte[] key1, bool nintendo_tweak = false) : this(input, key1, null, 512, nintendo_tweak) { }
+            SectorSize = sectorSize;
+            IV = new byte[16];
+            Array.Copy(sectorId, IV, 16);
 
-        public XtsStream(Stream input, byte[] key1, int sectorSize, bool nintendo_tweak = false) : this(input, key1, null, sectorSize, nintendo_tweak) { }
+            Keys = new List<byte[]>();
+            Keys.Add(key);
 
-        public XtsStream(Stream input, byte[] key1, byte[] key2, bool nintendo_tweak = false) : this(input, key1, key2, 512, nintendo_tweak) { }
+            var xts = XtsContext.Create(key, sectorId, sectorSize);
 
-        public XtsStream(Stream input, byte[] key1, byte[] key2, int sectorSize, bool nintendo_tweak = false)
+            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
+            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
+        }
+
+        public XtsStream(byte[] input, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), key, 512, sectorId, littleEndianId) { }
+
+        public XtsStream(byte[] input, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), key, sectorSize, sectorId, littleEndianId) { }
+
+        public XtsStream(Stream input, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(input, key, 512, sectorId, littleEndianId) { }
+
+        public XtsStream(Stream input, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false)
         {
             _stream = input;
             _offset = 0;
             _length = input.Length;
             _fixedLength = false;
+            _littleEndianId = littleEndianId;
 
             SectorSize = sectorSize;
+            IV = NumericToArray(sectorId, littleEndianId);
 
             Keys = new List<byte[]>();
-            Keys.Add(key1);
-            if (key2 != null)
-                Keys.Add(key2);
+            Keys.Add(key);
 
-            if (key2 != null)
-            {
-                if (key1.Length == 128 / 8 && key2.Length == 128 / 8)
-                {
-                    _xts = XtsAes128.Create(key1, key2, nintendo_tweak);
-                }
-                else if (key1.Length == 256 / 8 && key2.Length == 256 / 8)
-                {
-                    _xts = XtsAes256.Create(key1, key2, nintendo_tweak);
-                }
-                else
-                    throw new InvalidDataException("Key1 or Key2 have invalid size.");
-            }
-            else
-            {
-                if (key1.Length == 256 / 8)
-                {
-                    _xts = XtsAes128.Create(key1, nintendo_tweak);
-                }
-                else if (key1.Length == 512 / 8)
-                {
-                    _xts = XtsAes256.Create(key1, nintendo_tweak);
-                }
-                else
-                    throw new InvalidDataException("Key1 has invalid size.");
-            }
+            var xts = XtsContext.Create(key, NumericToArray(sectorId, littleEndianId), sectorSize);
+
+            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
+            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
+        }
+
+        public XtsStream(byte[] input, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), key, 512, sectorId, littleEndianId) { }
+
+        public XtsStream(byte[] input, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), key, sectorSize, sectorId, littleEndianId) { }
+
+        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(input, key, 512, sectorId, littleEndianId) { }
+
+        public XtsStream(Stream input, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false)
+        {
+            _stream = input;
+            _offset = 0;
+            _length = input.Length;
+            _fixedLength = false;
+            _littleEndianId = littleEndianId;
+
+            SectorSize = sectorSize;
+            IV = new byte[16];
+            Array.Copy(sectorId, IV, 16);
+
+            Keys = new List<byte[]>();
+            Keys.Add(key);
+
+            var xts = XtsContext.Create(key, sectorId, sectorSize);
+
+            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
+            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
         public override void Flush()
@@ -196,21 +224,41 @@ namespace Komponent.Cryptography.AES
             var readData = new byte[alignedCount];
             _stream.Read(readData, 0, alignedCount);
 
-            var decData = DecryptSectors(readData, (ulong)GetCurrentSector(begin));
+            var decData = DecryptSectors(readData, GetCurrentSectorId(begin));
 
             return decData;
         }
 
-        private byte[] DecryptSectors(byte[] sectors, ulong sectorId)
+        private byte[] DecryptSectors(byte[] sectors, byte[] sectorId)
         {
             if (sectors.Length % SectorSize != 0)
                 throw new InvalidDataException($"{nameof(DecryptSectors)} needs sector padded amount of data.");
 
             byte[] result = new byte[sectors.Length];
-            for (int i = 0; i < GetSectorCount(sectors.Length); i++)
-                _xts.CreateDecryptor().TransformBlock(sectors, i * SectorSize, SectorSize, result, i * SectorSize, sectorId++);
+            _decryptor.SectorId = sectorId;
+            _decryptor.TransformBlock(sectors, 0, sectors.Length, result, 0);
 
             return result;
+        }
+
+        private byte[] NumericToArray(long value, bool le)
+        {
+            var res = new byte[0x10];
+
+            if (le)
+                for (int i = 15; i >= 8; i--)
+                {
+                    res[i] = (byte)(value & 0xFF);
+                    value >>= 8;
+                }
+            else
+                for (int i = 0; i < 8; i++)
+                {
+                    res[i] = (byte)(value & 0xFF);
+                    value >>= 8;
+                }
+
+            return res;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -292,7 +340,8 @@ namespace Komponent.Cryptography.AES
             var originalPosition = Position;
             Position -= dataStart;
 
-            var encBuffer = EncryptSectors(readBuffer, (ulong)GetCurrentSector(Position));
+            var encBuffer = EncryptSectors(readBuffer, GetCurrentSectorId(Position));
+
             _stream.Write(encBuffer, 0, encBuffer.Length);
 
             if (originalPosition + count > _length)
@@ -338,14 +387,14 @@ namespace Komponent.Cryptography.AES
             }
         }
 
-        private byte[] EncryptSectors(byte[] sectors, ulong sectorId)
+        private byte[] EncryptSectors(byte[] sectors, byte[] sectorId)
         {
             if (sectors.Length % SectorSize != 0)
                 throw new InvalidDataException($"{nameof(EncryptSectors)} needs sector padded amount of data.");
 
             byte[] result = new byte[sectors.Length];
-            for (int i = 0; i < GetSectorCount(sectors.Length); i++)
-                _xts.CreateEncryptor().TransformBlock(sectors, i * SectorSize, SectorSize, result, i * SectorSize, sectorId++);
+            _encryptor.SectorId = sectorId;
+            _encryptor.TransformBlock(sectors, 0, sectors.Length, result, 0);
 
             return result;
         }
