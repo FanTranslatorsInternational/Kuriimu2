@@ -45,8 +45,16 @@ namespace Kryptography.AES
             _encryptor = aes.CreateEncryptor(key, null);
         }
 
+        new public void Dispose()
+        {
+            _stream.Dispose();
+            _decryptor.Dispose();
+            _encryptor.Dispose();
+        }
+
         public override void Flush()
         {
+            throw new NotImplementedException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)

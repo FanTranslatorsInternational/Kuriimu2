@@ -10,10 +10,6 @@ namespace Kryptography.AES
         private Stream _stream;
         private CtrCryptoTransform _decryptor;
         private CtrCryptoTransform _encryptor;
-        private byte[] _lastValidIV;
-        private long _blocksBetweenLengthPosition = 0;
-        private long _blockPosition = 0;
-        private long _bytesIntoBlock = 0;
 
         private long _offset;
         private long _length;
@@ -46,7 +42,6 @@ namespace Kryptography.AES
             Keys = new List<byte[]>();
             Keys.Add(key);
             IV = iv;
-            _lastValidIV = iv;
 
             var aes = AesCtr.Create();
             _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
@@ -65,18 +60,22 @@ namespace Kryptography.AES
             Keys = new List<byte[]>();
             Keys.Add(key);
             IV = iv;
-            _lastValidIV = iv;
 
             var aes = AesCtr.Create();
             _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
         }
 
+        new public void Dispose()
+        {
+            _stream.Dispose();
+            _encryptor.Dispose();
+            _decryptor.Dispose();
+        }
+
         public override void Flush()
         {
-            //if (Position % BlockSizeBytes > 0)
-            //    Position -= Position % BlockSizeBytes;
-            //_stream.Write(_finalBlock, 0, _finalBlock.Length);
+            throw new NotImplementedException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -98,16 +97,20 @@ namespace Kryptography.AES
 
         private int ReadDecrypted(byte[] buffer, int offset, int count)
         {
+            var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
+            var bytesIntoBlock = Position % BlockSizeBytes;
+
             var originalPosition = Position;
 
             count = (int)Math.Min(count, Length - Position);
-            var alignedCount = (int)GetBlockCount(_bytesIntoBlock + count) * BlockSizeBytes;
+            var alignedCount = (int)GetBlockCount(bytesIntoBlock + count) * BlockSizeBytes;
 
             if (alignedCount == 0) return alignedCount;
 
-            var decData = Decrypt(_blockPosition, alignedCount, _lastValidIV);
+            var stateVector = CalculateLastValidIV();
+            var decData = Decrypt(blockPosition, alignedCount, stateVector);
 
-            Array.Copy(decData, _bytesIntoBlock, buffer, offset, count);
+            Array.Copy(decData, bytesIntoBlock, buffer, offset, count);
 
             Seek(originalPosition + count, SeekOrigin.Begin);
 
@@ -131,11 +134,7 @@ namespace Kryptography.AES
         {
             ValidateSeek(offset, origin);
 
-            var result = _stream.Seek(offset + _offset, origin);
-
-            UpdateSeekable();
-
-            return result;
+            return _stream.Seek(offset + _offset, origin);
         }
 
         private void ValidateSeek(long offset, SeekOrigin origin)
@@ -160,27 +159,19 @@ namespace Kryptography.AES
                 }
         }
 
-        private void UpdateSeekable()
+        private byte[] CalculateLastValidIV()
         {
-            _lastValidIV = CalculateLastValidIV(Position);
-            _blocksBetweenLengthPosition = GetBlocksBetween(Position);
-            _blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
-            _bytesIntoBlock = Position % BlockSizeBytes;
-        }
-
-        byte[] _ivBuffer = new byte[0x10];
-        private byte[] CalculateLastValidIV(long position)
-        {
-            Array.Copy(IV, _ivBuffer, BlockSizeBytes);
+            byte[] ivBuffer = new byte[0x10];
+            Array.Copy(IV, ivBuffer, BlockSizeBytes);
 
             var length = GetBlockCount(Length) * BlockSizeBytes;
-            if (length < BlockSizeBytes || position < BlockSizeBytes)
-                return _ivBuffer;
+            if (length < BlockSizeBytes || Position < BlockSizeBytes)
+                return ivBuffer;
 
-            var increment = (int)GetCurrentBlock(Math.Min(length, position));
-            IncrementCtr(_ivBuffer, increment);
+            var increment = (int)GetCurrentBlock(Math.Min(length, Position));
+            IncrementCtr(ivBuffer, increment);
 
-            return _ivBuffer;
+            return ivBuffer;
         }
 
         private void IncrementCtr(byte[] ctr, int count)
@@ -236,16 +227,18 @@ namespace Kryptography.AES
             if (count == 0) return;
             var readBuffer = GetInitializedReadBuffer(count, out var dataStart);
 
-            PeakOverlappingData(readBuffer, (int)dataStart, count);
+            var originalPosition = Position;
+            Position -= dataStart;
+
+            var stateVector = CalculateLastValidIV();
+
+            PeakOverlappingData(readBuffer, (int)dataStart, count, stateVector);
 
             Array.Copy(buffer, offset, readBuffer, dataStart, count);
 
             var encBuffer = new byte[readBuffer.Length];
-            _encryptor.IV = _lastValidIV;
+            _encryptor.IV = stateVector;
             _encryptor.TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
-
-            var originalPosition = Position;
-            Position -= dataStart;
 
             _stream.Write(encBuffer, 0, encBuffer.Length);
 
@@ -267,13 +260,16 @@ namespace Kryptography.AES
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
         {
-            dataStart = _bytesIntoBlock;
+            var blocksBetweenLengthPosition = GetBlocksBetween(Position);
+            var bytesIntoBlock = Position % BlockSizeBytes;
 
-            var bufferBlocks = GetBlockCount(_bytesIntoBlock + count);
+            dataStart = bytesIntoBlock;
+
+            var bufferBlocks = GetBlockCount(bytesIntoBlock + count);
             if (Position >= Length)
             {
-                bufferBlocks += _blocksBetweenLengthPosition;
-                dataStart += _blocksBetweenLengthPosition * BlockSizeBytes;
+                bufferBlocks += blocksBetweenLengthPosition;
+                dataStart += blocksBetweenLengthPosition * BlockSizeBytes;
             }
 
             var bufferLength = bufferBlocks * BlockSizeBytes;
@@ -281,12 +277,12 @@ namespace Kryptography.AES
             return new byte[bufferLength];
         }
 
-        private void PeakOverlappingData(byte[] buffer, int offset, int count)
+        private void PeakOverlappingData(byte[] buffer, int offset, int count, byte[] stateVector)
         {
-            if (Position - offset < Length)
+            if (Position < Length)
             {
                 long originalPosition = Position;
-                var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockSizeBytes, _lastValidIV);
+                var readBuffer = Decrypt(Position, (int)GetBlockCount(Math.Min(Length - (Position), count)) * BlockSizeBytes, stateVector);
                 Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
                 Position = originalPosition;
             }

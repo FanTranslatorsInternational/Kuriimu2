@@ -12,9 +12,6 @@ namespace Kryptography.AES
         private Stream _stream;
         private XtsCryptoTransform _encryptor;
         private XtsCryptoTransform _decryptor;
-        private long _sectorsBetweenLengthPosition = 0;
-        private long _sectorPosition = 0;
-        private long _bytesIntoSector = 0;
 
         private long _offset;
         private long _length;
@@ -175,6 +172,7 @@ namespace Kryptography.AES
 
         public override void Flush()
         {
+            throw new NotImplementedException();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -196,16 +194,19 @@ namespace Kryptography.AES
 
         private int ReadDecrypted(byte[] buffer, int offset, int count)
         {
+            var sectorPosition = Position / SectorSize * SectorSize;
+            var bytesIntoSector = Position % SectorSize;
+
             var originalPosition = Position;
 
             count = (int)Math.Min(count, Length - Position);
-            var alignedCount = (int)GetSectorCount(_bytesIntoSector + count) * SectorSize;
+            var alignedCount = (int)GetSectorCount(bytesIntoSector + count) * SectorSize;
 
             if (alignedCount == 0) return alignedCount;
 
-            var decData = Decrypt(_sectorPosition, alignedCount);
+            var decData = Decrypt(sectorPosition, alignedCount);
 
-            Array.Copy(decData, _bytesIntoSector, buffer, offset, count);
+            Array.Copy(decData, bytesIntoSector, buffer, offset, count);
 
             Seek(originalPosition + count, SeekOrigin.Begin);
 
@@ -259,11 +260,7 @@ namespace Kryptography.AES
         {
             ValidateSeek(offset, origin);
 
-            var result = _stream.Seek(offset + _offset, origin);
-
-            UpdateSeekable();
-
-            return result;
+            return _stream.Seek(offset + _offset, origin);
         }
 
         private void ValidateSeek(long offset, SeekOrigin origin)
@@ -286,13 +283,6 @@ namespace Kryptography.AES
                             throw new InvalidDataException("Position can't be set outside set stream length.");
                         break;
                 }
-        }
-
-        private void UpdateSeekable()
-        {
-            _sectorsBetweenLengthPosition = GetSectorsBetween(Position);
-            _sectorPosition = Position / SectorSize * SectorSize;
-            _bytesIntoSector = Position % SectorSize;
         }
 
         private long GetSectorsBetween(long position)
@@ -356,13 +346,16 @@ namespace Kryptography.AES
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
         {
-            dataStart = _bytesIntoSector;
+            var sectorsBetweenLengthPosition = GetSectorsBetween(Position);
+            var bytesIntoSector = Position % SectorSize;
 
-            var bufferSectors = GetSectorCount(_bytesIntoSector + count);
+            dataStart = bytesIntoSector;
+
+            var bufferSectors = GetSectorCount(bytesIntoSector + count);
             if (Position >= Length)
             {
-                bufferSectors += _sectorsBetweenLengthPosition;
-                dataStart += _sectorsBetweenLengthPosition * BlockSizeBytes;
+                bufferSectors += sectorsBetweenLengthPosition;
+                dataStart += sectorsBetweenLengthPosition * BlockSizeBytes;
             }
 
             var bufferLength = bufferSectors * SectorSize;

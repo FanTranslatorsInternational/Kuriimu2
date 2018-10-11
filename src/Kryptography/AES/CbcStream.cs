@@ -42,6 +42,12 @@ namespace Kryptography.AES
             _aes.Mode = CipherMode.CBC;
         }
 
+        new public void Dispose()
+        {
+            _stream.Dispose();
+            _aes.Dispose();
+        }
+
         public override void Flush()
         {
         }
