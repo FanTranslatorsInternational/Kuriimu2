@@ -60,10 +60,10 @@
     <Compile Include="AES\CTR\CtrContext.cs" />
     <Compile Include="AES\CTR\CtrCryptoTransform.cs" />
     <Compile Include="AES\EcbStream.cs" />
-    <Compile Include="AES\Transform.cs" />
     <Compile Include="AES\XtsStream.cs" />
     <Compile Include="AES\XTS\XtsContext.cs" />
     <Compile Include="AES\XTS\XtsCryptoTransform.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="KryptoStream.cs" />
     <Compile Include="NCA\Common.cs" />
     <Compile Include="NCA\KeyStorage.cs" />

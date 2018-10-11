@@ -12,15 +12,15 @@ namespace Kryptography.NCA
 
         private int _cryptoType;
         private byte[] _keyArea;
-        private KeyStorage _keyStorage;
+        private NcaKeyStorage _keyStorage;
         private KryptoStream _kryptoStream;
         private long _length;
         private long _offset;
         private Stream _stream;
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, KeyStorage keyStorage)
+        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
             : this(input, offset, length, cryptoType, keyArea, keyStorage, null) { }
 
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, KeyStorage keyStorage, byte[] section_ctr)
+        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage, byte[] section_ctr)
         {
             _stream = input;
             _offset = offset;

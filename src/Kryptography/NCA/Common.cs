@@ -2,7 +2,8 @@
 {
     internal class Common
     {
-        public const long mediaSize = 0x200;
+        internal const long mediaSize = 0x200;
+        internal const long ncaHeaderSize = 0xC00;
     }
 
     public class SectionEntry

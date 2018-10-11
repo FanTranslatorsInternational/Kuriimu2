@@ -9,22 +9,21 @@ namespace Kryptography.NCA
 {
     public class NcaHeaderCryptoStream : KryptoStream
     {
-        private const long _maxLength = 0xC00;
-        private KeyStorage _keyStorage;
+        private NcaKeyStorage _ncaKeyStorage;
         private Stream _stream;
-        public NcaHeaderCryptoStream(Stream input, KeyStorage keyStorage, NCAVersion ncaVersion, bool shouldEncrypt)
+        public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage, NCAVersion ncaVersion, bool shouldEncrypt)
         {
             _stream = input;
-            _keyStorage = keyStorage;
+            _ncaKeyStorage = keyStorage;
 
             NCAVersion = ncaVersion;
             IsHeaderEncrypted = shouldEncrypt;
         }
 
-        public NcaHeaderCryptoStream(Stream input, KeyStorage keyStorage)
+        public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage)
         {
             _stream = input;
-            _keyStorage = keyStorage;
+            _ncaKeyStorage = keyStorage;
 
             SetHeaderInformation();
         }
@@ -38,7 +37,7 @@ namespace Kryptography.NCA
         public override byte[] IV => throw new NotImplementedException();
         public override List<byte[]> Keys => throw new NotImplementedException();
         public override int KeySize => throw new NotImplementedException();
-        public override long Length => _maxLength;
+        public override long Length => Common.ncaHeaderSize;
         public NCAVersion NCAVersion { get; private set; }
         public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
         public override void Flush()
@@ -84,13 +83,13 @@ namespace Kryptography.NCA
             switch (keyIndex[0])
             {
                 case 0:
-                    new EcbStream(keyArea, _keyStorage[$"key_area_key_application_{PeekCryptoType():00}"]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
+                    new EcbStream(keyArea, _ncaKeyStorage.KEKApplication[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
                 case 1:
-                    new EcbStream(keyArea, _keyStorage[$"key_area_key_ocean_{PeekCryptoType():00}"]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
+                    new EcbStream(keyArea, _ncaKeyStorage.KEKOcean[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
                 case 2:
-                    new EcbStream(keyArea, _keyStorage[$"key_area_key_system_{PeekCryptoType():00}"]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
+                    new EcbStream(keyArea, _ncaKeyStorage.KEKSystem[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
             }
 
@@ -136,9 +135,16 @@ namespace Kryptography.NCA
             var origPos = Position;
             Position = 0x240;
 
-            List<SectionEntry> result;
-            using (var br = new BinaryReaderX(this, true))
-                result = br.ReadMultiple<SectionEntry>(4);
+            List<SectionEntry> result = new List<SectionEntry>();
+            using (var br = new BinaryReader(this, Encoding.ASCII, true))
+                for (int i = 0; i < 4; i++)
+                    result.Add(new SectionEntry
+                    {
+                        mediaOffset = br.ReadInt32(),
+                        endMediaOffset = br.ReadInt32(),
+                        unk1 = br.ReadInt32(),
+                        unk2 = br.ReadInt32()
+                    });
 
             Position = origPos;
             return result;
@@ -146,10 +152,10 @@ namespace Kryptography.NCA
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (Position >= _maxLength)
-                throw new EndOfStreamException($"NCA Header is only 0x{_maxLength:X4} bytes long but Position was 0x{Position:X4}.");
-            if (Position + count > _maxLength)
-                throw new EndOfStreamException($"NCA Header is only 0x{_maxLength:X4} bytes long but it was tried to read 0x{count:X4} bytes from Position 0x{Position:X4}.");
+            if (Position >= Common.ncaHeaderSize)
+                throw new EndOfStreamException($"NCA Header is only 0x{Common.ncaHeaderSize:X4} bytes long but Position was 0x{Position:X4}.");
+            if (Position + count > Common.ncaHeaderSize)
+                throw new EndOfStreamException($"NCA Header is only 0x{Common.ncaHeaderSize:X4} bytes long but it was tried to read 0x{count:X4} bytes from Position 0x{Position:X4}.");
 
             if (!IsHeaderEncrypted)
             {
@@ -159,7 +165,7 @@ namespace Kryptography.NCA
             {
                 var read = 0;
 
-                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], new byte[16], true);
+                var xtsStream = new XtsStream(_stream, _ncaKeyStorage["header_key"], new byte[16], true);
                 if (Position < 0x400)
                 {
                     read = xtsStream.Read(buffer, offset, (int)Math.Min(count, 0x400 - Position));
@@ -172,7 +178,7 @@ namespace Kryptography.NCA
                         var index = 0;
                         while (count - read > 0)
                         {
-                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _keyStorage["header_key"], new byte[16], true);
+                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], true);
                             var read2 = xtsStream.Read(buffer, offset + read, Math.Min(count - read, 0x200));
                             index++;
                             read += read2;
@@ -199,10 +205,10 @@ namespace Kryptography.NCA
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (Position >= _maxLength)
-                throw new EndOfStreamException($"NCA Header is only 0x{_maxLength:X4} bytes long but Position was 0x{Position:X4}.");
-            if (Position + count > _maxLength)
-                throw new EndOfStreamException($"NCA Header is only 0x{_maxLength:X4} bytes long but it was tried to write 0x{count:X4} bytes on Position 0x{Position:X4}.");
+            if (Position >= Common.ncaHeaderSize)
+                throw new EndOfStreamException($"NCA Header is only 0x{Common.ncaHeaderSize:X4} bytes long but Position was 0x{Position:X4}.");
+            if (Position + count > Common.ncaHeaderSize)
+                throw new EndOfStreamException($"NCA Header is only 0x{Common.ncaHeaderSize:X4} bytes long but it was tried to write 0x{count:X4} bytes on Position 0x{Position:X4}.");
 
             if (!IsHeaderEncrypted)
             {
@@ -212,7 +218,7 @@ namespace Kryptography.NCA
             {
                 var nonSectionBytes = (int)Math.Min(count, 0x400 - Position);
 
-                var xtsStream = new XtsStream(_stream, _keyStorage["header_key"], new byte[16], true);
+                var xtsStream = new XtsStream(_stream, _ncaKeyStorage["header_key"], new byte[16], true);
                 if (Position < 0x400)
                 {
                     xtsStream.Write(buffer.Take(nonSectionBytes).ToArray(), 0, nonSectionBytes);
@@ -228,7 +234,7 @@ namespace Kryptography.NCA
                         while (count - nonSectionBytes - sectionBytesWritten > 0)
                         {
                             var toWrite = Math.Min(count - nonSectionBytes - sectionBytesWritten, 0x200);
-                            xtsStream = new XtsStream(new SubStream(_stream, 0x400 + index * 0x200, 0x200), _keyStorage["header_key"], new byte[16], true);
+                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], true);
                             xtsStream.Write(buffer, nonSectionBytes + sectionBytesWritten, toWrite);
                             index++;
                             sectionBytesWritten += toWrite;
@@ -256,13 +262,13 @@ namespace Kryptography.NCA
             switch (keyIndex)
             {
                 case 0:
-                    new EcbStream(_stream, _keyStorage[$"key_area_key_application_{cryptoType:00}"]).Write(plainKeyArea, 0, plainKeyArea.Length);
+                    new EcbStream(_stream, _ncaKeyStorage.KEKApplication[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;
                 case 1:
-                    new EcbStream(_stream, _keyStorage[$"key_area_key_ocean_{cryptoType:00}"]).Write(plainKeyArea, 0, plainKeyArea.Length);
+                    new EcbStream(_stream, _ncaKeyStorage.KEKOcean[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;
                 case 2:
-                    new EcbStream(_stream, _keyStorage[$"key_area_key_system_{cryptoType:00}"]).Write(plainKeyArea, 0, plainKeyArea.Length);
+                    new EcbStream(_stream, _ncaKeyStorage.KEKSystem[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;
             }
 

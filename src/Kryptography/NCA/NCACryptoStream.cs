@@ -7,13 +7,12 @@ namespace Kryptography.NCA
 {
     public class NcaCryptoStream : Stream
     {
-        private KeyStorage _keyStorage;
-
+        private NcaKeyStorage _ncaKeyStorage;
         private Stream _stream;
+
         private NcaHeaderCryptoStream _ncaHeader;
         private List<SectionEntry> _bodySections;
         private NcaBodySectionCryptoStream[] _ncaBodySections;
-        private const long _ncaBodyOffset = 0xC00;
 
         public bool IsHeaderEncrypted => _ncaHeader.IsHeaderEncrypted;
         public NCAVersion NCAVersion => _ncaHeader.NCAVersion;
@@ -23,9 +22,9 @@ namespace Kryptography.NCA
         public NcaCryptoStream(Stream input, string keyFile)
         {
             _stream = input;
-            _keyStorage = new KeyStorage(keyFile);
+            _ncaKeyStorage = new NcaKeyStorage(keyFile);
 
-            _ncaHeader = new NcaHeaderCryptoStream(input, _keyStorage);
+            _ncaHeader = new NcaHeaderCryptoStream(input, _ncaKeyStorage);
             var keyArea = _ncaHeader.PeekDecryptedKeyArea();
 
             _ncaBodySections = new NcaBodySectionCryptoStream[4];
@@ -38,7 +37,7 @@ namespace Kryptography.NCA
                         _bodySections[i].endMediaOffset * Common.mediaSize,
                         _ncaHeader.PeekSectionCryptoType(i),
                         keyArea,
-                        _keyStorage,
+                        _ncaKeyStorage,
                         _ncaHeader.PeekSectionCtr(i).Reverse().ToArray());
         }
 
@@ -61,9 +60,9 @@ namespace Kryptography.NCA
             var read = 0;
 
             //Header reading
-            if (Position < _ncaBodyOffset)
+            if (Position < Common.ncaHeaderSize)
             {
-                read = _ncaHeader.Read(buffer, offset, (int)Math.Min(count, _ncaBodyOffset - Position));
+                read = _ncaHeader.Read(buffer, offset, (int)Math.Min(count, Common.ncaHeaderSize - Position));
                 if (read >= count)
                     return read;
             }

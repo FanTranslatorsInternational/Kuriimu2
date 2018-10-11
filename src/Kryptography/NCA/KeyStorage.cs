@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,10 +8,16 @@ using Kryptography.AES;
 
 namespace Kryptography.NCA
 {
-    public class KeyStorage
+    public class NcaKeyStorage
     {
-        private Dictionary<string, byte[]> _keyMaterial;
+        #region Key Storages
+        public Dictionary<int, byte[]> MasterKeys { get; private set; }
+        public Dictionary<int, byte[]> KEKApplication { get; private set; }
+        public Dictionary<int, byte[]> KEKOcean { get; private set; }
+        public Dictionary<int, byte[]> KEKSystem { get; private set; }
+        #endregion
 
+        private Dictionary<string, byte[]> _keyMaterial;
         public byte[] this[string i]
         {
             get
@@ -28,11 +35,19 @@ namespace Kryptography.NCA
             }
         }
 
-        public KeyStorage(string keyFile)
+        public NcaKeyStorage(string keyFile)
         {
             if (!File.Exists(keyFile))
                 throw new FileNotFoundException($"{keyFile} doesn't exist.");
 
+            LoadKeysIntoArray(keyFile);
+            LoadMasterKeys();
+
+            LoadKEKs();
+        }
+
+        private void LoadKeysIntoArray(string keyFile)
+        {
             _keyMaterial = File.ReadAllLines(keyFile)
                 .Select(l => l.Replace(" ", "").Replace("\t", ""))
                 .Where(l => !l.StartsWith(";") && !String.IsNullOrEmpty(l) && Regex.IsMatch(l.Split('=').Skip(1).First(), "^[a-fA-F0-9]+$"))
@@ -40,40 +55,52 @@ namespace Kryptography.NCA
                     l => l.Split('=').First(),
                     l => l.Split('=').Skip(1).First().Hexlify()
                     );
+        }
 
-            var masterKeys = _keyMaterial.Where(k => Regex.IsMatch(k.Key, "master_key_[\\d]{2}")).Select(m => Convert.ToInt32(Regex.Match(m.Key, "[\\d]{2}").Value));
-            foreach (var i in masterKeys)
+        private void LoadMasterKeys()
+        {
+            MasterKeys = new Dictionary<int, byte[]>(_keyMaterial
+                .Where(x => Regex.IsMatch(x.Key, "master_key_[\\d]{2}"))
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("master_key_", "")), y => y.Value));
+        }
+
+        private void LoadKEKs()
+        {
+            foreach (var masterKey in MasterKeys)
             {
-                if (!_keyMaterial.ContainsKey($"key_area_key_application_{i:00}"))
-                    this[$"key_area_key_application_{i:00}"] = GenerateKek(this["key_area_key_application_source"], this[$"master_key_{i:00}"], this["aes_kek_generation_source"], this["aes_key_generation_source"]);
-                if (!_keyMaterial.ContainsKey($"key_area_key_ocean_{i:00}"))
-                    this[$"key_area_key_ocean_{i:00}"] = GenerateKek(this["key_area_key_ocean_source"], this[$"master_key_{i:00}"], this["aes_kek_generation_source"], this["aes_key_generation_source"]);
-                if (!_keyMaterial.ContainsKey($"key_area_key_system_{i:00}"))
-                    this[$"key_area_key_system_{i:00}"] = GenerateKek(this["key_area_key_system_source"], this[$"master_key_{i:00}"], this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_application_{masterKey.Key:X00}"))
+                    this[$"key_area_key_application_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_application_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_ocean_{masterKey.Key:X00}"))
+                    this[$"key_area_key_ocean_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_ocean_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_system_{masterKey.Key:X00}"))
+                    this[$"key_area_key_system_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_system_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
 
-                if (!_keyMaterial.ContainsKey($"titlekek_{i:00}"))
-                    new EcbStream(this["titlekek_source"], this[$"master_key_{i:00}"]).Read(this[$"titlekek_{i:00}"], 0, this[$"titlekek_{i:00}"].Length);
+                if (!_keyMaterial.ContainsKey($"titlekek_{masterKey.Key:X00}"))
+                    new EcbStream(this["titlekek_source"], masterKey.Value).Read(this[$"titlekek_{masterKey.Key:X00}"], 0, this[$"titlekek_{masterKey.Key:X00}"].Length);
             }
+
+            KEKApplication = new Dictionary<int, byte[]>(_keyMaterial
+                .Where(x => Regex.IsMatch(x.Key, "key_area_key_application_[\\d]{2}"))
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_application_", "")), y => y.Value));
+            KEKOcean = new Dictionary<int, byte[]>(_keyMaterial
+                .Where(x => Regex.IsMatch(x.Key, "key_area_key_ocean_[\\d]{2}"))
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_ocean_", "")), y => y.Value)); ;
+            KEKSystem = new Dictionary<int, byte[]>(_keyMaterial
+                .Where(x => Regex.IsMatch(x.Key, "key_area_key_system_[\\d]{2}"))
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_system_", "")), y => y.Value)); ;
         }
 
         private byte[] GenerateKek(byte[] generationSource, byte[] masterKey, byte[] aesKekGenSource, byte[] aesKeyGenSource)
         {
             var kek = new byte[16];
-            var src_kek = new byte[16];
 
             new EcbStream(aesKekGenSource, masterKey).Read(kek, 0, kek.Length);
-            new EcbStream(generationSource, kek).Read(src_kek, 0, src_kek.Length);
+            new EcbStream(generationSource, kek).Read(kek, 0, kek.Length);
 
             if (aesKeyGenSource != null)
-            {
-                var buffer = new byte[16];
-                new EcbStream(aesKeyGenSource, src_kek).Read(buffer, 0, buffer.Length);
-                return buffer;
-            }
-            else
-            {
-                return src_kek;
-            }
+                new EcbStream(aesKeyGenSource, kek).Read(kek, 0, kek.Length);
+
+            return kek;
         }
     }
 }
