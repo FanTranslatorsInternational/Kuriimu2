@@ -11,9 +11,6 @@ namespace Kryptography.AES
         private long _length;
         private ICryptoTransform _decryptor;
         private ICryptoTransform _encryptor;
-        private long _blocksBetweenLengthPosition = 0;
-        private long _blockPosition = 0;
-        private long _bytesIntoBlock = 0;
 
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
@@ -50,9 +47,6 @@ namespace Kryptography.AES
 
         public override void Flush()
         {
-            //if (Position % BlockSizeBytes > 0)
-            //    Position -= Position % BlockSizeBytes;
-            //_stream.Write(_finalBlock, 0, _finalBlock.Length);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -74,16 +68,19 @@ namespace Kryptography.AES
 
         private int ReadDecrypted(byte[] buffer, int offset, int count)
         {
+            var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
+            var bytesIntoBlock = Position % BlockSizeBytes;
+
             var originalPosition = Position;
 
             count = (int)Math.Min(count, Length - Position);
-            var alignedCount = (int)GetBlockCount(_bytesIntoBlock + count) * BlockSizeBytes;
+            var alignedCount = (int)GetBlockCount(bytesIntoBlock + count) * BlockSizeBytes;
 
             if (alignedCount == 0) return alignedCount;
 
-            var decData = Decrypt(_blockPosition, alignedCount);
+            var decData = Decrypt(blockPosition, alignedCount);
 
-            Array.Copy(decData, _bytesIntoBlock, buffer, offset, count);
+            Array.Copy(decData, bytesIntoBlock, buffer, offset, count);
 
             Seek(originalPosition + count, SeekOrigin.Begin);
 
@@ -107,30 +104,7 @@ namespace Kryptography.AES
             if (!CanSeek)
                 throw new NotSupportedException("Seek is not supported.");
 
-            UpdateSeekable(offset, origin);
             return _stream.Seek(offset, origin);
-        }
-
-        private void UpdateSeekable(long offset, SeekOrigin origin)
-        {
-            var newOffset = 0L;
-
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    newOffset = offset;
-                    break;
-                case SeekOrigin.Current:
-                    newOffset = Position + offset;
-                    break;
-                case SeekOrigin.End:
-                    newOffset = Length + offset;
-                    break;
-            }
-
-            _blocksBetweenLengthPosition = GetBlocksBetween(newOffset);
-            _blockPosition = newOffset / BlockSizeBytes * BlockSizeBytes;
-            _bytesIntoBlock = newOffset % BlockSizeBytes;
         }
 
         private long GetBlocksBetween(long position)
@@ -184,13 +158,16 @@ namespace Kryptography.AES
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
         {
-            dataStart = _bytesIntoBlock;
+            var blocksBetweenLengthPosition = GetBlocksBetween(Position);
+            var bytesIntoBlock = Position % BlockSizeBytes;
 
-            var bufferBlocks = GetBlockCount(_bytesIntoBlock + count);
+            dataStart = bytesIntoBlock;
+
+            var bufferBlocks = GetBlockCount(bytesIntoBlock + count);
             if (Position >= Length)
             {
-                bufferBlocks += _blocksBetweenLengthPosition;
-                dataStart += _blocksBetweenLengthPosition * BlockSizeBytes;
+                bufferBlocks += blocksBetweenLengthPosition;
+                dataStart += blocksBetweenLengthPosition * BlockSizeBytes;
             }
 
             var bufferLength = bufferBlocks * BlockSizeBytes;

@@ -10,10 +10,6 @@ namespace Kryptography.AES
         private Stream _stream;
         private long _length;
         private Aes _aes;
-        private byte[] _lastValidIV;
-        private long _blocksBetweenLengthPosition = 0;
-        private long _blockPosition = 0;
-        private long _bytesIntoBlock = 0;
 
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
@@ -40,7 +36,6 @@ namespace Kryptography.AES
             Keys = new List<byte[]>();
             Keys.Add(key);
             IV = iv;
-            _lastValidIV = iv;
 
             _aes = Aes.Create();
             _aes.Padding = PaddingMode.None;
@@ -49,9 +44,6 @@ namespace Kryptography.AES
 
         public override void Flush()
         {
-            //if (Position % BlockSizeBytes > 0)
-            //    Position -= Position % BlockSizeBytes;
-            //_stream.Write(_finalBlock, 0, _finalBlock.Length);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -75,14 +67,18 @@ namespace Kryptography.AES
         {
             var originalPosition = Position;
 
+            var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
+            var bytesIntoBlock = Position % BlockSizeBytes;
+
             count = (int)Math.Min(count, Length - Position);
-            var alignedCount = (int)GetBlockCount(_bytesIntoBlock + count) * BlockSizeBytes;
+            var alignedCount = (int)GetBlockCount(bytesIntoBlock + count) * BlockSizeBytes;
 
             if (alignedCount == 0) return alignedCount;
 
-            var decData = Decrypt(_blockPosition, alignedCount, _lastValidIV);
+            var stateVector = PeekLastValidVector();
+            var decData = Decrypt(blockPosition, alignedCount, stateVector);
 
-            Array.Copy(decData, _bytesIntoBlock, buffer, offset, count);
+            Array.Copy(decData, bytesIntoBlock, buffer, offset, count);
 
             Seek(originalPosition + count, SeekOrigin.Begin);
 
@@ -106,43 +102,21 @@ namespace Kryptography.AES
             if (!CanSeek)
                 throw new NotSupportedException("Seek is not supported.");
 
-            UpdateSeekable(offset, origin);
             return _stream.Seek(offset, origin);
         }
 
-        private void UpdateSeekable(long offset, SeekOrigin origin)
+        private byte[] PeekLastValidVector()
         {
-            var newOffset = 0L;
+            var ivBuffer = new byte[BlockSizeBytes];
+            Array.Copy(IV, ivBuffer, BlockSizeBytes);
 
-            switch (origin)
-            {
-                case SeekOrigin.Begin:
-                    newOffset = offset;
-                    break;
-                case SeekOrigin.Current:
-                    newOffset = Position + offset;
-                    break;
-                case SeekOrigin.End:
-                    newOffset = Length + offset;
-                    break;
-            }
-
-            _lastValidIV = PeakLastValidIV(newOffset);
-            _blocksBetweenLengthPosition = GetBlocksBetween(newOffset);
-            _blockPosition = newOffset / BlockSizeBytes * BlockSizeBytes;
-            _bytesIntoBlock = newOffset % BlockSizeBytes;
-        }
-
-        private byte[] PeakLastValidIV(long position)
-        {
             var length = GetBlockCount(Length) * BlockSizeBytes;
-            if (length == 0 || position < BlockSizeBytes)
-                return IV;
+            if (length == 0 || Position < BlockSizeBytes)
+                return ivBuffer;
 
             var originalPosition = Position;
-            _stream.Position = (GetCurrentBlock(Math.Min(length, position)) - 1) * BlockSizeBytes;
+            _stream.Position = (GetCurrentBlock(Math.Min(length, Position)) - 1) * BlockSizeBytes;
 
-            var ivBuffer = new byte[BlockSizeBytes];
             _stream.Read(ivBuffer, 0, ivBuffer.Length);
 
             _stream.Position = originalPosition;
@@ -172,15 +146,18 @@ namespace Kryptography.AES
             if (count == 0) return;
             var readBuffer = GetInitializedReadBuffer(count, out var dataStart);
 
-            PeakOverlappingData(readBuffer, (int)dataStart, count);
+            var originalPosition = Position;
+            Position -= dataStart;
+
+            var stateVector = PeekLastValidVector();
+
+            PeekOverlappingData(readBuffer, 0, count, stateVector);
 
             Array.Copy(buffer, offset, readBuffer, dataStart, count);
 
             var encBuffer = new byte[readBuffer.Length];
-            _aes.CreateEncryptor(Keys[0], _lastValidIV).TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
+            _aes.CreateEncryptor(Keys[0], stateVector).TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
 
-            var originalPosition = Position;
-            _stream.Position -= dataStart;
             _stream.Write(encBuffer, 0, encBuffer.Length);
 
             if (originalPosition + count > _length)
@@ -203,13 +180,16 @@ namespace Kryptography.AES
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
         {
-            dataStart = _bytesIntoBlock;
+            var blocksBetweenLengthPosition = GetBlocksBetween(Position);
+            var bytesIntoBlock = Position % BlockSizeBytes;
 
-            var bufferBlocks = GetBlockCount(_bytesIntoBlock + count);
+            dataStart = bytesIntoBlock;
+
+            var bufferBlocks = GetBlockCount(bytesIntoBlock + count);
             if (Position >= Length)
             {
-                bufferBlocks += _blocksBetweenLengthPosition;
-                dataStart += _blocksBetweenLengthPosition * BlockSizeBytes;
+                bufferBlocks += blocksBetweenLengthPosition;
+                dataStart += blocksBetweenLengthPosition * BlockSizeBytes;
             }
 
             var bufferLength = bufferBlocks * BlockSizeBytes;
@@ -217,13 +197,15 @@ namespace Kryptography.AES
             return new byte[bufferLength];
         }
 
-        private void PeakOverlappingData(byte[] buffer, int offset, int count)
+        private void PeekOverlappingData(byte[] buffer, int offset, int count, byte[] stateVector)
         {
             if (Position - offset < Length)
             {
                 long originalPosition = Position;
-                var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockSizeBytes, _lastValidIV);
+
+                var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockSizeBytes, stateVector);
                 Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
+
                 Position = originalPosition;
             }
         }
