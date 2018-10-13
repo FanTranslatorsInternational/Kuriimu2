@@ -53,6 +53,27 @@ namespace Kryptography.AES
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
         }
 
+        public CtrStream(byte[] input, byte[] key, byte[] ctr, bool littleEndianCtr = false) : this(new MemoryStream(input), key, ctr, littleEndianCtr)
+        {
+        }
+
+        public CtrStream(Stream input, byte[] key, byte[] ctr, bool littleEndianCtr = false)
+        {
+            _stream = input;
+            _offset = 0;
+            _length = _stream.Length;
+            _fixedLength = false;
+            _littleEndianCtr = littleEndianCtr;
+
+            Keys = new List<byte[]>();
+            Keys.Add(key);
+            IV = ctr;
+
+            var aes = AesCtr.Create();
+            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, ctr);
+            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
+        }
+
         new public void Dispose()
         {
             _stream.Dispose();

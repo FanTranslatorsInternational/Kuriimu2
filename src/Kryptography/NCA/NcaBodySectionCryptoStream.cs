@@ -40,11 +40,11 @@ namespace Kryptography.NCA
             switch (cryptoType)
             {
                 case 2:
-                    _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), new byte[16], false);
+                    _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), 512,new byte[16], false);
                     break;
 
                 case 3:
-                    _kryptoStream = new CtrStream(input, offset, length, GetKeyAreaKey(1), GenerateCTR(section_ctr, offset));
+                    _kryptoStream = new CtrStream(input, offset, length, GetKeyAreaKey(1), GenerateCTR(section_ctr, offset),false);
                     break;
             }
         }
