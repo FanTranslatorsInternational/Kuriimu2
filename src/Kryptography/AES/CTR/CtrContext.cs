@@ -19,7 +19,7 @@ namespace Kryptography.AES.CTR
             return new AesCtr(key, iv);
         }
 
-        static void ValidateInput(byte[] key, byte[] iv)
+        private static void ValidateInput(byte[] key, byte[] iv)
         {
             if (key.Length != 16 || iv.Length != 16)
                 throw new InvalidOperationException("Key and IV need to be 16 bytes.");
@@ -28,7 +28,10 @@ namespace Kryptography.AES.CTR
         private Aes _aes;
         private ICryptoTransform _cryptor;
 
-        protected AesCtr() { CreateAesContext(); }
+        protected AesCtr()
+        {
+            CreateAesContext();
+        }
 
         protected AesCtr(byte[] key, byte[] iv)
         {

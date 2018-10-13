@@ -25,9 +25,12 @@ namespace Kryptography.AES
         private long TotalBlocks => GetBlockCount(Length);
 
         private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
+
         private long GetCurrentBlock(long input) => input / BlockSizeBytes;
 
-        public EcbStream(byte[] input, byte[] key) : this(new MemoryStream(input), key) { }
+        public EcbStream(byte[] input, byte[] key) : this(new MemoryStream(input), key)
+        {
+        }
 
         public EcbStream(Stream input, byte[] key)
         {

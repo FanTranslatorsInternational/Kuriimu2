@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Kryptography.AES.XTS;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Kryptography.AES.XTS;
 
 namespace Kryptography.AES
 {
@@ -32,7 +32,9 @@ namespace Kryptography.AES
         private long TotalSectors => GetSectorCount(Length);
 
         private long GetSectorCount(long input) => (long)Math.Ceiling((double)input / SectorSize);
+
         private long GetCurrentSector(long input) => input / SectorSize;
+
         private byte[] GetCurrentSectorId(long input)
         {
             var id = new byte[16];
@@ -64,37 +66,17 @@ namespace Kryptography.AES
             }
         }
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(byte[] input, long offset, long length, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, sectorSize, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, long offset, long length, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(input, offset, length, key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, long offset, long length, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false)
+        public XtsStream(byte[] input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId)
         {
-            _stream = input;
-            _offset = offset;
-            _length = length;
-            _fixedLength = true;
-            _littleEndianId = littleEndianId;
-
-            SectorSize = sectorSize;
-            IV = NumericToArray(sectorId, littleEndianId);
-
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-
-            var xts = XtsContext.Create(key, NumericToArray(sectorId, littleEndianId), sectorSize);
-
-            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
-            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId) { }
+        public XtsStream(byte[] input, long offset, long length, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, sectorSize, sectorId, littleEndianId)
+        {
+        }
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, sectorSize, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(input, offset, length, key, 512, sectorId, littleEndianId) { }
+        public XtsStream(Stream input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(input, offset, length, key, 512, sectorId, littleEndianId)
+        {
+        }
 
         public XtsStream(Stream input, long offset, long length, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false)
         {
@@ -102,7 +84,6 @@ namespace Kryptography.AES
             _offset = offset;
             _length = length;
             _fixedLength = true;
-            _littleEndianId = littleEndianId;
 
             SectorSize = sectorSize;
             IV = new byte[16];
@@ -111,60 +92,7 @@ namespace Kryptography.AES
             Keys = new List<byte[]>();
             Keys.Add(key);
 
-            var xts = XtsContext.Create(key, sectorId, sectorSize);
-
-            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
-            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
-        }
-
-        public XtsStream(byte[] input, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(byte[] input, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false) : this(new MemoryStream(input), key, sectorSize, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, byte[] key, long sectorId = 0, bool littleEndianId = false) : this(input, key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, byte[] key, int sectorSize, long sectorId = 0, bool littleEndianId = false)
-        {
-            _stream = input;
-            _offset = 0;
-            _length = input.Length;
-            _fixedLength = false;
-            _littleEndianId = littleEndianId;
-
-            SectorSize = sectorSize;
-            IV = NumericToArray(sectorId, littleEndianId);
-
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-
-            var xts = XtsContext.Create(key, NumericToArray(sectorId, littleEndianId), sectorSize);
-
-            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
-            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
-        }
-
-        public XtsStream(byte[] input, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(byte[] input, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), key, sectorSize, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(input, key, 512, sectorId, littleEndianId) { }
-
-        public XtsStream(Stream input, byte[] key, int sectorSize, byte[] sectorId, bool littleEndianId = false)
-        {
-            _stream = input;
-            _offset = 0;
-            _length = input.Length;
-            _fixedLength = false;
-            _littleEndianId = littleEndianId;
-
-            SectorSize = sectorSize;
-            IV = new byte[16];
-            Array.Copy(sectorId, IV, 16);
-
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-
-            var xts = XtsContext.Create(key, sectorId, sectorSize);
+            var xts = XtsContext.Create(key, sectorId, littleEndianId, sectorSize);
 
             _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
             _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
@@ -281,10 +209,12 @@ namespace Kryptography.AES
                         if (_offset + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");
                         break;
+
                     case SeekOrigin.Current:
                         if (_offset + Position + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");
                         break;
+
                     case SeekOrigin.End:
                         if (Length + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");

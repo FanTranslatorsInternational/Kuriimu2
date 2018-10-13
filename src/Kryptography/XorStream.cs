@@ -31,7 +31,6 @@ namespace Kryptography.XOR
 
         public XorStream(Stream input, string key, Encoding enc) : this(input, enc.GetBytes(key))
         {
-
         }
 
         public XorStream(Stream input, byte[] key)

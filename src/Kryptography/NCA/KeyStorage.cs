@@ -1,23 +1,25 @@
-﻿using System;
-using System.Collections;
+﻿using Kryptography.AES;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Kryptography.AES;
 
 namespace Kryptography.NCA
 {
     public class NcaKeyStorage
     {
         #region Key Storages
+
         public Dictionary<int, byte[]> MasterKeys { get; private set; }
         public Dictionary<int, byte[]> KEKApplication { get; private set; }
         public Dictionary<int, byte[]> KEKOcean { get; private set; }
         public Dictionary<int, byte[]> KEKSystem { get; private set; }
-        #endregion
+
+        #endregion Key Storages
 
         private Dictionary<string, byte[]> _keyMaterial;
+
         public byte[] this[string i]
         {
             get

@@ -12,14 +12,16 @@ namespace Kryptography.AES.XTS
         public int SectorSize { get; set; }
         public byte[] SectorId { get; set; }
         private bool _firstTransform;
+        private bool _littleEndianId;
 
-        public XtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, byte[] sectorId, int sectorSize, bool decrypting)
+        public XtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, byte[] sectorId, int sectorSize, bool littleEndianId)
         {
             _key1 = key1;
             _key2 = key2;
             SectorSize = sectorSize;
             SectorId = sectorId;
             _firstTransform = true;
+            _littleEndianId = littleEndianId;
         }
 
         public int InputBlockSize => 16;
@@ -133,25 +135,44 @@ namespace Kryptography.AES.XTS
             }
         }
 
-        private void Increment(byte[] ctr, int count)
+        private void Increment(byte[] id, int count)
         {
-            for (int i = ctr.Length - 1; i >= 0; i--)
-            {
-                if (count == 0)
-                    break;
-
-                var check = ctr[i];
-                ctr[i] += (byte)count;
-                count >>= 8;
-
-                int off = 0;
-                while (i - off - 1 >= 0 && ctr[i - off] < check)
+            if (!_littleEndianId)
+                for (int i = id.Length - 1; i >= 0; i--)
                 {
-                    check = ctr[i - off - 1];
-                    ctr[i - off - 1]++;
-                    off++;
+                    if (count == 0)
+                        break;
+
+                    var check = id[i];
+                    id[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i - off - 1 >= 0 && id[i - off] < check)
+                    {
+                        check = id[i - off - 1];
+                        id[i - off - 1]++;
+                        off++;
+                    }
                 }
-            }
+            else
+                for (int i = 0; i < id.Length; i++)
+                {
+                    if (count == 0)
+                        break;
+
+                    var check = id[i];
+                    id[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i + off + 1 < id.Length && id[i + off] < check)
+                    {
+                        check = id[i + off + 1];
+                        id[i + off + 1]++;
+                        off++;
+                    }
+                }
         }
 
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)

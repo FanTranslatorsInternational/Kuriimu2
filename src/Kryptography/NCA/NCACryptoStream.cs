@@ -17,7 +17,9 @@ namespace Kryptography.NCA
         public bool IsHeaderEncrypted => _ncaHeader.IsHeaderEncrypted;
         public NCAVersion NCAVersion => _ncaHeader.NCAVersion;
 
-        public NcaCryptoStream(Stream input) : this(input, @"bin\switch_keys.dat") { }
+        public NcaCryptoStream(Stream input) : this(input, @"bin\switch_keys.dat")
+        {
+        }
 
         public NcaCryptoStream(Stream input, string keyFile)
         {

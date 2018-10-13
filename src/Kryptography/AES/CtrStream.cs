@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Kryptography.AES.CTR;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Kryptography.AES.CTR;
 
 namespace Kryptography.AES
 {
@@ -28,9 +28,12 @@ namespace Kryptography.AES
         private long TotalBlocks => GetBlockCount(Length);
 
         private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
+
         private long GetCurrentBlock(long input) => input / BlockSizeBytes;
 
-        public CtrStream(byte[] input, long offset, long length, byte[] key, byte[] iv) : this(new MemoryStream(input), offset, length, key, iv) { }
+        public CtrStream(byte[] input, long offset, long length, byte[] key, byte[] iv) : this(new MemoryStream(input), offset, length, key, iv)
+        {
+        }
 
         public CtrStream(Stream input, long offset, long length, byte[] key, byte[] iv)
         {
@@ -48,7 +51,9 @@ namespace Kryptography.AES
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
         }
 
-        public CtrStream(byte[] input, byte[] key, byte[] iv) : this(new MemoryStream(input), key, iv) { }
+        public CtrStream(byte[] input, byte[] key, byte[] iv) : this(new MemoryStream(input), key, iv)
+        {
+        }
 
         public CtrStream(Stream input, byte[] key, byte[] iv)
         {
@@ -148,10 +153,12 @@ namespace Kryptography.AES
                         if (_offset + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");
                         break;
+
                     case SeekOrigin.Current:
                         if (_offset + Position + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");
                         break;
+
                     case SeekOrigin.End:
                         if (Length + offset >= Length)
                             throw new InvalidDataException("Position can't be set outside set stream length.");

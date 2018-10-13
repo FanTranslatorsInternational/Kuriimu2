@@ -51,7 +51,6 @@ namespace Kryptography
                 buffer[offset + i] = (byte)(_stream.ReadByte() - Keys[0][0]);
 
             return length;
-
         }
 
         public override long Seek(long offset, SeekOrigin origin)

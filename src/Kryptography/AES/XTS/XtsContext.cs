@@ -12,39 +12,43 @@ namespace Kryptography.AES.XTS
         public override byte[] Key { get => _totalKey; set { ValidateKey(value); _totalKey = value; SplitKey(); } }
         public override byte[] IV { get => _sectorId; set { ValidateIV(value); _sectorId = value; } }
         private int _sectorSize;
+        private bool _littleEndianId;
         private Aes _aes;
 
         /// <summary>
         /// Creates a XtsContext
         /// </summary>
         /// <param name="sectorSize">Defines the size of a sector</param>
-        public static XtsContext Create(int sectorSize)
+        public static XtsContext Create(bool littleEndianId, int sectorSize)
         {
-            return new XtsContext(sectorSize);
+            return new XtsContext(littleEndianId, sectorSize);
         }
 
         /// <summary>
         /// Creates a XtsContext
         /// </summary>
         /// <param name="keys">Contains both Xts Keys. Needs to be 32 or 64 bytes.</param>
-        /// <param name="iv">Contains sectionId as byte[]</param>
+        /// <param name="sectorId">Contains sectionId as byte[]</param>
+        /// <param name="littleEndianId">Defines how the Id gets increment later on</param>
         /// <param name="sectorSize">Defines the size of a sector</param>
-        public static XtsContext Create(byte[] keys, byte[] sectorId, int sectorSize)
+        public static XtsContext Create(byte[] keys, byte[] sectorId, bool littleEndianId, int sectorSize)
         {
-            return new XtsContext(keys, sectorId, sectorSize);
+            return new XtsContext(keys, sectorId, littleEndianId, sectorSize);
         }
 
-        protected XtsContext(int sectorSize)
+        protected XtsContext(bool littleEndianId, int sectorSize)
         {
+            _littleEndianId = littleEndianId;
             _sectorSize = sectorSize;
             CreateAesContext();
         }
 
-        protected XtsContext(byte[] keys, byte[] iv, int sectorSize)
+        protected XtsContext(byte[] keys, byte[] iv, bool littleEndianId, int sectorSize)
         {
             Key = keys;
             IV = iv;
             _sectorSize = sectorSize;
+            _littleEndianId = littleEndianId;
 
             CreateAesContext();
         }
@@ -83,12 +87,12 @@ namespace Kryptography.AES.XTS
 
         public override ICryptoTransform CreateDecryptor()
         {
-            return new XtsCryptoTransform(_aes.CreateDecryptor(_key1, null), _aes.CreateEncryptor(_key2, null), IV, _sectorSize, true);
+            return new XtsCryptoTransform(_aes.CreateDecryptor(_key1, null), _aes.CreateEncryptor(_key2, null), IV, _sectorSize, _littleEndianId);
         }
 
         public override ICryptoTransform CreateEncryptor()
         {
-            return new XtsCryptoTransform(_aes.CreateEncryptor(_key1, null), _aes.CreateEncryptor(_key2, null), IV, _sectorSize, false);
+            return new XtsCryptoTransform(_aes.CreateEncryptor(_key1, null), _aes.CreateEncryptor(_key2, null), IV, _sectorSize, _littleEndianId);
         }
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)

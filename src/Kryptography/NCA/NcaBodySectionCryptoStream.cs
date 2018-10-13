@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Kryptography.AES;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kryptography.AES;
 
 namespace Kryptography.NCA
 {
@@ -17,6 +17,7 @@ namespace Kryptography.NCA
         private long _length;
         private long _offset;
         private Stream _stream;
+
         public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
             : this(input, offset, length, cryptoType, keyArea, keyStorage, null) { }
 
@@ -39,8 +40,9 @@ namespace Kryptography.NCA
             switch (cryptoType)
             {
                 case 2:
-                    _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), new byte[16], true);
+                    _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), new byte[16], false);
                     break;
+
                 case 3:
                     _kryptoStream = new CtrStream(input, offset, length, GetKeyAreaKey(1), GenerateCTR(section_ctr, offset));
                     break;
@@ -61,6 +63,7 @@ namespace Kryptography.NCA
         public override long Length => _length;
 
         public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
+
         public override void Flush()
         {
         }
@@ -76,9 +79,11 @@ namespace Kryptography.NCA
             {
                 case 1:
                     return _stream.Read(buffer, offset, count);
+
                 case 2: //XTS
                 case 3: //CTR
                     return _kryptoStream.Read(buffer, offset, count);
+
                 case 4: //BKTR
                     throw new InvalidOperationException("BKTR Sections are not supported yet.");
                 default:
@@ -108,10 +113,12 @@ namespace Kryptography.NCA
                 case 1:
                     _stream.Write(buffer, offset, count);
                     break;
+
                 case 2: //XTS
                 case 3: //CTR
                     _kryptoStream.Write(buffer, offset, count);
                     break;
+
                 case 4: //BKTR
                     throw new InvalidOperationException("BKTR Sections are not supported yet.");
                 default:
@@ -144,16 +151,20 @@ namespace Kryptography.NCA
             }
             return ctr;
         }
+
         private byte[] GetKeyAreaKey(int count)
         {
             switch (count)
             {
                 case 0:
                     return _keyArea.Take(0x20).ToArray();
+
                 case 1:
                     return _keyArea.Skip(0x20).Take(0x10).ToArray();
+
                 case 2:
                     return _keyArea.Skip(0x30).Take(0x10).ToArray();
+
                 default:
                     throw new InvalidDataException($"KeyArea Key {count} doesn't exist.");
             }

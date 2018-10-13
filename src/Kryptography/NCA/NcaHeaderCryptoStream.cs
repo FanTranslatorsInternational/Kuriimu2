@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Kryptography.AES;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Kryptography.AES;
 
 namespace Kryptography.NCA
 {
@@ -11,6 +11,7 @@ namespace Kryptography.NCA
     {
         private NcaKeyStorage _ncaKeyStorage;
         private Stream _stream;
+
         public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage, NCAVersion ncaVersion, bool shouldEncrypt)
         {
             _stream = input;
@@ -40,6 +41,7 @@ namespace Kryptography.NCA
         public override long Length => Common.ncaHeaderSize;
         public NCAVersion NCAVersion { get; private set; }
         public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
+
         public override void Flush()
         {
         }
@@ -85,9 +87,11 @@ namespace Kryptography.NCA
                 case 0:
                     new EcbStream(keyArea, _ncaKeyStorage.KEKApplication[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
+
                 case 1:
                     new EcbStream(keyArea, _ncaKeyStorage.KEKOcean[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
+
                 case 2:
                     new EcbStream(keyArea, _ncaKeyStorage.KEKSystem[PeekCryptoType()]).Read(decryptedKeyArea, 0, decryptedKeyArea.Length);
                     break;
@@ -165,7 +169,7 @@ namespace Kryptography.NCA
             {
                 var read = 0;
 
-                var xtsStream = new XtsStream(_stream, _ncaKeyStorage["header_key"], new byte[16], true);
+                var xtsStream = new XtsStream(_stream, 0, _stream.Length, _ncaKeyStorage["header_key"], new byte[16], false);
                 if (Position < 0x400)
                 {
                     read = xtsStream.Read(buffer, offset, (int)Math.Min(count, 0x400 - Position));
@@ -178,15 +182,17 @@ namespace Kryptography.NCA
                         var index = 0;
                         while (count - read > 0)
                         {
-                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], true);
+                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], false);
                             var read2 = xtsStream.Read(buffer, offset + read, Math.Min(count - read, 0x200));
                             index++;
                             read += read2;
                         }
                         return read;
+
                     case NCAVersion.NCA3:
                         read += xtsStream.Read(buffer, offset + read, count - read);
                         return read;
+
                     default:
                         throw new NotSupportedException("Unsupported NCA Version.");
                 }
@@ -218,7 +224,7 @@ namespace Kryptography.NCA
             {
                 var nonSectionBytes = (int)Math.Min(count, 0x400 - Position);
 
-                var xtsStream = new XtsStream(_stream, _ncaKeyStorage["header_key"], new byte[16], true);
+                var xtsStream = new XtsStream(_stream, 0, _stream.Length, _ncaKeyStorage["header_key"], new byte[16], false);
                 if (Position < 0x400)
                 {
                     xtsStream.Write(buffer.Take(nonSectionBytes).ToArray(), 0, nonSectionBytes);
@@ -234,15 +240,17 @@ namespace Kryptography.NCA
                         while (count - nonSectionBytes - sectionBytesWritten > 0)
                         {
                             var toWrite = Math.Min(count - nonSectionBytes - sectionBytesWritten, 0x200);
-                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], true);
+                            xtsStream = new XtsStream(_stream, 0x400 + index * 0x200, 0x200, _ncaKeyStorage["header_key"], new byte[16], false);
                             xtsStream.Write(buffer, nonSectionBytes + sectionBytesWritten, toWrite);
                             index++;
                             sectionBytesWritten += toWrite;
                         }
                         break;
+
                     case NCAVersion.NCA3:
                         xtsStream.Write(buffer, nonSectionBytes, count - nonSectionBytes);
                         break;
+
                     default:
                         throw new NotSupportedException("Unsupported NCA Version.");
                 }
@@ -264,9 +272,11 @@ namespace Kryptography.NCA
                 case 0:
                     new EcbStream(_stream, _ncaKeyStorage.KEKApplication[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;
+
                 case 1:
                     new EcbStream(_stream, _ncaKeyStorage.KEKOcean[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;
+
                 case 2:
                     new EcbStream(_stream, _ncaKeyStorage.KEKSystem[cryptoType]).Write(plainKeyArea, 0, plainKeyArea.Length);
                     break;

@@ -7,9 +7,9 @@ namespace Kryptography.AES.CTR
     public class CtrCryptoTransform : ICryptoTransform
     {
         public byte[] IV { get; set; }
-        ICryptoTransform _cryptor;
+        private ICryptoTransform _cryptor;
 
-        bool _firstTransform = true;
+        private bool _firstTransform = true;
 
         public CtrCryptoTransform(ICryptoTransform cryptor, byte[] iv)
         {
