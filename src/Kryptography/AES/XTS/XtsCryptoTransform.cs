@@ -52,75 +52,61 @@ namespace Kryptography.AES.XTS
                 throw new InvalidOperationException("Can't reuse transform.");
             if (inputCount % InputBlockSize != 0)
                 throw new InvalidOperationException("Only aligned data can be encrypted.");
+            if (SectorSize % InputBlockSize > 0)
+                throw new InvalidOperationException("SectorSize needs to be a multiple of 16.");
         }
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
-            //Array.Copy(inputBuffer, inputOffset, outputBuffer, outputOffset, inputCount);
-
             var tweak = new byte[16];
-            //var encTweak = new byte[16];
             Array.Copy(SectorId, tweak, 16);
 
-            for (int i = 0; i < Math.Ceiling((double)inputCount / SectorSize); i++)
-            {
-                var length = inputCount % SectorSize != 0 ? inputCount % SectorSize : SectorSize;
-                TweakCryptSector(inputBuffer, inputOffset, length, outputBuffer, outputOffset, tweak);
-
-                //Increment tweak
-                Increment(tweak, 1);
-            }
+            TweakCrypt(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, tweak);
         }
 
-        private void TweakCryptSector(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] tweak)
+        private void TweakCrypt(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] tweak)
         {
-            //Encrypt tweaks for sector
-            byte[] encryptedTweaks = InitializeByteArray(inputCount);
-            ComputeEncryptedTweaks(encryptedTweaks, inputCount, tweak);
+            var encryptedTweakBuffer = ArrayPool<byte>.Shared.Rent(inputCount);
+            ComputeEncryptedTweaks(encryptedTweakBuffer, inputCount, tweak);
 
-            //XEX
-            ApplyXEX(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedTweaks);
+            ApplyXEX(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, encryptedTweakBuffer);
 
-            //Free encryptedTweaks
-            FreeByteArray(encryptedTweaks);
-        }
-
-        private byte[] InitializeByteArray(int length)
-        {
-            if (length <= 0x40)
-                return new byte[length];
-            else
-                return ArrayPool<byte>.Shared.Rent(length);
+            ArrayPool<byte>.Shared.Return(encryptedTweakBuffer);
         }
 
         private unsafe void ComputeEncryptedTweaks(byte[] encryptedTweakBuffer, int inputCount, byte[] tweak)
         {
-            //var encTweak = new byte[16];
-            //_key2.TransformBlock(tweak, 0, 16, encTweak, 0);
+            //Collect sector Tweaks
+            var sectorCount = inputCount / SectorSize + (inputCount % SectorSize > 0 ? 1 : 0);
+            var encTweak = ArrayPool<byte>.Shared.Rent(sectorCount << 4);
+            for (int i = 0; i < sectorCount; i++)
+            {
+                Array.Copy(tweak, encTweak, 16);
+                Increment(tweak, 1);
+            }
 
-            ////Compute encrypted tweaks for every block
-            //for (int i = 0; i < inputCount >> 4; i++)
-            //{
-            //    Buffer.BlockCopy(encTweak, 0, encryptedTweakBuffer, i * 16, 16);
-            //    MultiplyByX(encTweak);
-            //}
-
-            var encTweak = new byte[16]; // todo: compare with ArrayPool
-            _key2.TransformBlock(tweak, 0, 16, encTweak, 0);
-
-            var q0 = BitConverter.ToInt64(encTweak, 0);
-            var q1 = BitConverter.ToInt64(encTweak, 8);
+            //Encrypt SectorTweaks
+            _key2.TransformBlock(encTweak, 0, encTweak.Length, encTweak, 0);
 
             fixed (byte* p = encryptedTweakBuffer)
             {
                 long* q = (long*)p;
-                for (int i = 0; i < inputCount >> 4; i++)
+                for (int i = 0; i < sectorCount; i++)
                 {
-                    *q++ = q0;
-                    *q++ = q1;
-                    (q0, q1) = (q0 << 1 ^ (q1 >> 63 & 135), q1 << 1 ^ (q0 >> 63 & 1));
+                    var q0 = BitConverter.ToInt64(encTweak, i << 4);
+                    var q1 = BitConverter.ToInt64(encTweak, i << 4 | 0x8);
+
+                    for (int j = 0; j < Math.Min(inputCount >> 4, SectorSize >> 4); j++)
+                    {
+                        *q++ = q0;
+                        *q++ = q1;
+                        (q0, q1) = (q0 << 1 ^ (q1 >> 63 & 135), q1 << 1 ^ (q0 >> 63 & 1));  //Multiply by x
+                    }
+                    inputCount -= SectorSize;
                 }
             }
+
+            ArrayPool<byte>.Shared.Return(encTweak);
         }
 
         private void ApplyXEX(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedTweaks)
@@ -145,29 +131,6 @@ namespace Kryptography.AES.XTS
             {
                 outputBuffer[outputOffset + j] = (byte)(inputBuffer[inputOffset + j] ^ encryptedTweaks[j]);
             }
-        }
-
-        private void FreeByteArray(byte[] toFree)
-        {
-            if (toFree.Length <= 0x40)
-                toFree = null;
-            else
-                ArrayPool<byte>.Shared.Return(toFree);
-        }
-
-        private void MultiplyByX(byte[] i)
-        {
-            byte t = 0, tt = 0;
-
-            for (var x = 0; x < 16; x++)
-            {
-                tt = (byte)(i[x] >> 7);
-                i[x] = (byte)(((i[x] << 1) | t) & 0xFF);
-                t = tt;
-            }
-
-            if (tt > 0)
-                i[0] ^= 0x87;
         }
 
         private void Increment(byte[] ctr, int count)

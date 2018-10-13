@@ -170,6 +170,13 @@ namespace Kryptography.AES
             _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
+        new public void Dispose()
+        {
+            _stream.Dispose();
+            _encryptor.Dispose();
+            _decryptor.Dispose();
+        }
+
         public override void Flush()
         {
             throw new NotImplementedException();
