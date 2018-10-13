@@ -14,6 +14,7 @@ namespace Kryptography.AES
         private long _offset;
         private long _length;
         private bool _fixedLength = false;
+        private bool _littleEndianCtr;
 
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
@@ -31,44 +32,25 @@ namespace Kryptography.AES
 
         private long GetCurrentBlock(long input) => input / BlockSizeBytes;
 
-        public CtrStream(byte[] input, long offset, long length, byte[] key, byte[] iv) : this(new MemoryStream(input), offset, length, key, iv)
+        public CtrStream(byte[] input, long offset, long length, byte[] key, byte[] ctr, bool littleEndianCtr = false) : this(new MemoryStream(input), offset, length, key, ctr, littleEndianCtr)
         {
         }
 
-        public CtrStream(Stream input, long offset, long length, byte[] key, byte[] iv)
+        public CtrStream(Stream input, long offset, long length, byte[] key, byte[] ctr, bool littleEndianCtr = false)
         {
             _stream = input;
             _offset = offset;
             _length = length;
             _fixedLength = true;
+            _littleEndianCtr = littleEndianCtr;
 
             Keys = new List<byte[]>();
             Keys.Add(key);
-            IV = iv;
+            IV = ctr;
 
             var aes = AesCtr.Create();
-            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
-            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
-        }
-
-        public CtrStream(byte[] input, byte[] key, byte[] iv) : this(new MemoryStream(input), key, iv)
-        {
-        }
-
-        public CtrStream(Stream input, byte[] key, byte[] iv)
-        {
-            _stream = input;
-            _offset = 0;
-            _length = input.Length;
-            _fixedLength = false;
-
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-            IV = iv;
-
-            var aes = AesCtr.Create();
-            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, iv);
-            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, iv);
+            _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, ctr);
+            _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
         }
 
         new public void Dispose()
@@ -183,23 +165,42 @@ namespace Kryptography.AES
 
         private void IncrementCtr(byte[] ctr, int count)
         {
-            for (int i = ctr.Length - 1; i >= 0; i--)
-            {
-                if (count == 0)
-                    break;
-
-                var check = ctr[i];
-                ctr[i] += (byte)count;
-                count >>= 8;
-
-                int off = 0;
-                while (i - off - 1 >= 0 && ctr[i - off] < check)
+            if (!_littleEndianCtr)
+                for (int i = ctr.Length - 1; i >= 0; i--)
                 {
-                    check = ctr[i - off - 1];
-                    ctr[i - off - 1]++;
-                    off++;
+                    if (count == 0)
+                        break;
+
+                    var check = ctr[i];
+                    ctr[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i - off - 1 >= 0 && ctr[i - off] < check)
+                    {
+                        check = ctr[i - off - 1];
+                        ctr[i - off - 1]++;
+                        off++;
+                    }
                 }
-            }
+            else
+                for (int i = 0; i < ctr.Length; i++)
+                {
+                    if (count == 0)
+                        break;
+
+                    var check = ctr[i];
+                    ctr[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i + off + 1 < ctr.Length && ctr[i + off] < check)
+                    {
+                        check = ctr[i + off + 1];
+                        ctr[i + off + 1]++;
+                        off++;
+                    }
+                }
         }
 
         private long GetBlocksBetween(long position)

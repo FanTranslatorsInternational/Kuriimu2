@@ -6,17 +6,18 @@ namespace Kryptography.AES.CTR
     public class AesCtr : SymmetricAlgorithm
     {
         private byte[] _key;
+        private bool _littleEndianCtr;
         public override byte[] Key { get => _key; set { _key = value; _cryptor = _aes.CreateEncryptor(_key, null); } }
         public override byte[] IV { get; set; }
         public override PaddingMode Padding { get; set; }
 
-        public new static SymmetricAlgorithm Create() => new AesCtr();
+        public static SymmetricAlgorithm Create(bool littleEndianCtr) => new AesCtr(littleEndianCtr);
 
-        public static SymmetricAlgorithm Create(byte[] key, byte[] iv)
+        public static SymmetricAlgorithm Create(byte[] key, byte[] iv, bool littleEndianCtr)
         {
             ValidateInput(key, iv);
 
-            return new AesCtr(key, iv);
+            return new AesCtr(key, iv, littleEndianCtr);
         }
 
         private static void ValidateInput(byte[] key, byte[] iv)
@@ -28,15 +29,17 @@ namespace Kryptography.AES.CTR
         private Aes _aes;
         private ICryptoTransform _cryptor;
 
-        protected AesCtr()
+        protected AesCtr(bool littleEndianCtr)
         {
+            _littleEndianCtr = littleEndianCtr;
             CreateAesContext();
         }
 
-        protected AesCtr(byte[] key, byte[] iv)
+        protected AesCtr(byte[] key, byte[] iv, bool littleEndianCtr)
         {
             Key = key;
             IV = iv;
+            _littleEndianCtr = littleEndianCtr;
 
             CreateAesContext();
         }
@@ -52,7 +55,7 @@ namespace Kryptography.AES.CTR
         {
             ValidateKeyIV();
 
-            return new CtrCryptoTransform(_cryptor, IV);
+            return new CtrCryptoTransform(_cryptor, IV, _littleEndianCtr);
         }
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
@@ -62,7 +65,7 @@ namespace Kryptography.AES.CTR
 
             ValidateKeyIV();
 
-            return new CtrCryptoTransform(_cryptor, IV);
+            return new CtrCryptoTransform(_cryptor, IV, _littleEndianCtr);
         }
 
         private void ValidateKeyIV()
@@ -75,7 +78,7 @@ namespace Kryptography.AES.CTR
         {
             ValidateKeyIV();
 
-            return new CtrCryptoTransform(_cryptor, IV);
+            return new CtrCryptoTransform(_cryptor, IV, _littleEndianCtr);
         }
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
@@ -85,7 +88,7 @@ namespace Kryptography.AES.CTR
 
             ValidateKeyIV();
 
-            return new CtrCryptoTransform(_cryptor, IV);
+            return new CtrCryptoTransform(_cryptor, IV, _littleEndianCtr);
         }
 
         public override void GenerateIV()

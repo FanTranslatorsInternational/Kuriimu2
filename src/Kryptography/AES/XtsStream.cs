@@ -45,25 +45,44 @@ namespace Kryptography.AES
             return id;
         }
 
-        private void Increment(byte[] ctr, int count)
+        private void Increment(byte[] id, int count)
         {
-            for (int i = ctr.Length - 1; i >= 0; i--)
-            {
-                if (count == 0)
-                    break;
-
-                var check = ctr[i];
-                ctr[i] += (byte)count;
-                count >>= 8;
-
-                int off = 0;
-                while (i - off - 1 >= 0 && ctr[i - off] < check)
+            if (!_littleEndianId)
+                for (int i = id.Length - 1; i >= 0; i--)
                 {
-                    check = ctr[i - off - 1];
-                    ctr[i - off - 1]++;
-                    off++;
+                    if (count == 0)
+                        break;
+
+                    var check = id[i];
+                    id[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i - off - 1 >= 0 && id[i - off] < check)
+                    {
+                        check = id[i - off - 1];
+                        id[i - off - 1]++;
+                        off++;
+                    }
                 }
-            }
+            else
+                for (int i = 0; i < id.Length; i++)
+                {
+                    if (count == 0)
+                        break;
+
+                    var check = id[i];
+                    id[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i + off + 1 < id.Length && id[i + off] < check)
+                    {
+                        check = id[i + off + 1];
+                        id[i + off + 1]++;
+                        off++;
+                    }
+                }
         }
 
         public XtsStream(byte[] input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false) : this(new MemoryStream(input), offset, length, key, 512, sectorId, littleEndianId)
@@ -84,6 +103,7 @@ namespace Kryptography.AES
             _offset = offset;
             _length = length;
             _fixedLength = true;
+            _littleEndianId = littleEndianId;
 
             SectorSize = sectorSize;
             IV = new byte[16];

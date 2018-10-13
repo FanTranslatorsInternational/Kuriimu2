@@ -10,11 +10,13 @@ namespace Kryptography.AES.CTR
         private ICryptoTransform _cryptor;
 
         private bool _firstTransform = true;
+        private bool _littleEndianCtr;
 
-        public CtrCryptoTransform(ICryptoTransform cryptor, byte[] iv)
+        public CtrCryptoTransform(ICryptoTransform cryptor, byte[] iv, bool littleEndianCtr)
         {
             IV = iv;
             _cryptor = cryptor;
+            _littleEndianCtr = littleEndianCtr;
         }
 
         public int InputBlockSize => 16;
@@ -56,23 +58,42 @@ namespace Kryptography.AES.CTR
 
         private void IncrementCtr(byte[] ctr, int count)
         {
-            for (int i = ctr.Length - 1; i >= 0; i--)
-            {
-                if (count == 0)
-                    break;
-
-                var check = ctr[i];
-                ctr[i] += (byte)count;
-                count >>= 8;
-
-                int off = 0;
-                while (i - off - 1 >= 0 && ctr[i - off] < check)
+            if (!_littleEndianCtr)
+                for (int i = ctr.Length - 1; i >= 0; i--)
                 {
-                    check = ctr[i - off - 1];
-                    ctr[i - off - 1]++;
-                    off++;
+                    if (count == 0)
+                        break;
+
+                    var check = ctr[i];
+                    ctr[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i - off - 1 >= 0 && ctr[i - off] < check)
+                    {
+                        check = ctr[i - off - 1];
+                        ctr[i - off - 1]++;
+                        off++;
+                    }
                 }
-            }
+            else
+                for (int i = 0; i < ctr.Length; i++)
+                {
+                    if (count == 0)
+                        break;
+
+                    var check = ctr[i];
+                    ctr[i] += (byte)count;
+                    count >>= 8;
+
+                    int off = 0;
+                    while (i + off + 1 < ctr.Length && ctr[i + off] < check)
+                    {
+                        check = ctr[i + off + 1];
+                        ctr[i + off + 1]++;
+                        off++;
+                    }
+                }
         }
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] iv)
