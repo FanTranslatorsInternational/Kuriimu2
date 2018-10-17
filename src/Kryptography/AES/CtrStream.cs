@@ -48,7 +48,7 @@ namespace Kryptography.AES
             Keys.Add(key);
             IV = ctr;
 
-            var aes = AesCtr.Create();
+            var aes = AesCtr.Create(false);
             _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, ctr);
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
         }
@@ -69,7 +69,7 @@ namespace Kryptography.AES
             Keys.Add(key);
             IV = ctr;
 
-            var aes = AesCtr.Create();
+            var aes = AesCtr.Create(false);
             _decryptor = (CtrCryptoTransform)aes.CreateDecryptor(key, ctr);
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
         }
@@ -105,6 +105,9 @@ namespace Kryptography.AES
 
         private int ReadDecrypted(byte[] buffer, int offset, int count)
         {
+            if (_fixedLength && Position >= Length)
+                return 0;
+
             var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
             var bytesIntoBlock = Position % BlockSizeBytes;
 
@@ -149,24 +152,24 @@ namespace Kryptography.AES
         {
             if (!CanSeek)
                 throw new NotSupportedException("Seek is not supported.");
-            if (_fixedLength)
-                switch (origin)
-                {
-                    case SeekOrigin.Begin:
-                        if (_offset + offset >= Length)
-                            throw new InvalidDataException("Position can't be set outside set stream length.");
-                        break;
+            //if (_fixedLength)
+            //    switch (origin)
+            //    {
+            //        case SeekOrigin.Begin:
+            //            if (_offset + offset >= Length)
+            //                throw new InvalidDataException("Position can't be set outside set stream length.");
+            //            break;
 
-                    case SeekOrigin.Current:
-                        if (_offset + Position + offset >= Length)
-                            throw new InvalidDataException("Position can't be set outside set stream length.");
-                        break;
+            //        case SeekOrigin.Current:
+            //            if (_offset + Position + offset >= Length)
+            //                throw new InvalidDataException("Position can't be set outside set stream length.");
+            //            break;
 
-                    case SeekOrigin.End:
-                        if (Length + offset >= Length)
-                            throw new InvalidDataException("Position can't be set outside set stream length.");
-                        break;
-                }
+            //        case SeekOrigin.End:
+            //            if (Length + offset >= Length)
+            //                throw new InvalidDataException("Position can't be set outside set stream length.");
+            //            break;
+            //    }
         }
 
         private byte[] CalculateLastValidIV()
@@ -281,6 +284,8 @@ namespace Kryptography.AES
         {
             if (!CanWrite)
                 throw new NotSupportedException("Write is not supported");
+            if (_fixedLength && Position >= Length)
+                throw new InvalidOperationException("Nothing can be written outside the set boundaries.");
             if (offset < 0 || count < 0)
                 throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length)

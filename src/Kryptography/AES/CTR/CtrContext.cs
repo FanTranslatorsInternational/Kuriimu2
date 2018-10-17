@@ -11,6 +11,8 @@ namespace Kryptography.AES.CTR
         public override byte[] IV { get; set; }
         public override PaddingMode Padding { get; set; }
 
+        new public static AesCtr Create() => new AesCtr(false);
+
         public static AesCtr Create(bool littleEndianCtr) => new AesCtr(littleEndianCtr);
 
         public static AesCtr Create(byte[] key, byte[] iv, bool littleEndianCtr)

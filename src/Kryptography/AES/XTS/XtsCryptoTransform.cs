@@ -83,7 +83,7 @@ namespace Kryptography.AES.XTS
             var encTweak = ArrayPool<byte>.Shared.Rent(sectorCount << 4);
             for (int i = 0; i < sectorCount; i++)
             {
-                Array.Copy(tweak, encTweak, 16);
+                Array.Copy(tweak, 0, encTweak, i * 16, 16);
                 Increment(tweak, 1);
             }
 
