@@ -47,7 +47,7 @@ namespace Kryptography.XOR
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (offset + count >= buffer.Length)
+            if (offset + count > buffer.Length)
                 throw new InvalidDataException($"Buffer is too small.");
 
             var length = (int)Math.Max(0, Math.Min(count, Length - Position));
@@ -75,7 +75,7 @@ namespace Kryptography.XOR
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (offset + count >= buffer.Length)
+            if (offset + count > buffer.Length)
                 throw new InvalidDataException($"Buffer is too small.");
 
             var keyPos = Position % KeySize;
