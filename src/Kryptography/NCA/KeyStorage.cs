@@ -70,15 +70,15 @@ namespace Kryptography.NCA
         {
             foreach (var masterKey in MasterKeys)
             {
-                if (!_keyMaterial.ContainsKey($"key_area_key_application_{masterKey.Key:X00}"))
-                    this[$"key_area_key_application_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_application_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
-                if (!_keyMaterial.ContainsKey($"key_area_key_ocean_{masterKey.Key:X00}"))
-                    this[$"key_area_key_ocean_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_ocean_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
-                if (!_keyMaterial.ContainsKey($"key_area_key_system_{masterKey.Key:X00}"))
-                    this[$"key_area_key_system_{masterKey.Key:X00}"] = GenerateKek(this["key_area_key_system_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_application_{masterKey.Key:X2}"))
+                    this[$"key_area_key_application_{masterKey.Key:X2}"] = GenerateKek(this["key_area_key_application_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_ocean_{masterKey.Key:X2}"))
+                    this[$"key_area_key_ocean_{masterKey.Key:X2}"] = GenerateKek(this["key_area_key_ocean_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
+                if (!_keyMaterial.ContainsKey($"key_area_key_system_{masterKey.Key:X2}"))
+                    this[$"key_area_key_system_{masterKey.Key:X2}"] = GenerateKek(this["key_area_key_system_source"], masterKey.Value, this["aes_kek_generation_source"], this["aes_key_generation_source"]);
 
-                if (!_keyMaterial.ContainsKey($"titlekek_{masterKey.Key:X00}"))
-                    new EcbStream(this["titlekek_source"], masterKey.Value).Read(this[$"titlekek_{masterKey.Key:X00}"], 0, this[$"titlekek_{masterKey.Key:X00}"].Length);
+                if (!_keyMaterial.ContainsKey($"titlekek_{masterKey.Key:X2}"))
+                    new EcbStream(this["titlekek_source"], masterKey.Value).Read(this[$"titlekek_{masterKey.Key:X2}"], 0, this[$"titlekek_{masterKey.Key:X2}"].Length);
             }
 
             KEKApplication = new Dictionary<int, byte[]>(_keyMaterial
