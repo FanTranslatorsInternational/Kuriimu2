@@ -15,15 +15,15 @@ namespace Kontract
         /// </summary>
         /// <param name="parent">The parent object to load plugins for.</param>
         /// <param name="container">The container to load plugins into.</param>
-        public static void ComposePlugins(object parent, CompositionContainer container)
+        public static void ComposePlugins(object parent, CompositionContainer container, string pluginDirectory = "plugins")
         {
             try
             {
                 // An aggregate catalog that combines multiple catalogs.
                 var catalog = new AggregateCatalog();
 
-                if (Directory.Exists("plugins") && Directory.GetFiles("plugins", "*.dll").Length > 0)
-                    catalog.Catalogs.Add(new DirectoryCatalog("plugins"));
+                if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
+                    catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
 
                 // Create the CompositionContainer with the parts in the catalog.
                 container?.Dispose();

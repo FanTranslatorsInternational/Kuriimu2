@@ -11,6 +11,7 @@
     <AssemblyName>Kontract</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -52,7 +53,9 @@
     <Compile Include="Interfaces\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\ICreateFiles.cs" />
     <Compile Include="Interfaces\IImageAdapter.cs" />
+    <Compile Include="Interfaces\ILoadStreams.cs" />
     <Compile Include="Interfaces\ILoadFiles.cs" />
+    <Compile Include="Interfaces\ISaveStreams.cs" />
     <Compile Include="Interfaces\ISaveFiles.cs" />
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\IFontAdapter.cs" />
