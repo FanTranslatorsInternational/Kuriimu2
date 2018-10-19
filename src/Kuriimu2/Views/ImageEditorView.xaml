@@ -81,6 +81,11 @@
                                         <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
                                     </StackPanel>
                                 </Button>
+                                <Button Name="ExportPng">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-export-image.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
                             </ToolBar>
                         </ToolBarPanel>
                         <ToolBarPanel Grid.Column="0">

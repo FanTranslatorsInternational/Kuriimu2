@@ -12,6 +12,7 @@ using Kore;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interface;
 using Kuriimu2.Tools;
+using Microsoft.Win32;
 
 namespace Kuriimu2.ViewModels
 {
@@ -124,6 +125,23 @@ namespace Kuriimu2.ViewModels
             //        // Bitmap was not removed.
             //    }
             //}
+        }
+
+        public void ExportPng()
+        {
+            if (!(_adapter is IImageAdapter img)) return;
+
+            var sfd = new SaveFileDialog
+            {
+                Title = "Export PNG",
+                FileName = KoreFile.FileInfo.Name + ".png",
+                Filter = "Portable Network Graphics (*.png)|.png"
+            };
+
+            if ((bool)sfd.ShowDialog())
+            {
+                SelectedBitmap.BitmapInfo.Bitmaps.First().Save(sfd.FileName);
+            }
         }
 
         #endregion
