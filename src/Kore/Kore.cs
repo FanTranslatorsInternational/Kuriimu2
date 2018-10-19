@@ -15,7 +15,7 @@ namespace Kore
     /// <summary>
     /// Kore is the main brain library of Kuriimu. It performs all of the important and UI agnostic functions of Kuriimu.
     /// </summary>
-    public class Kore
+    public sealed class Kore
     {
         /// <summary>
         /// Stores the currently loaded MEF plugins.
@@ -25,10 +25,10 @@ namespace Kore
         /// <summary>
         /// Stores the plugin directory that was set at construction time.
         /// </summary>
-        private string _pluginDirectory = "plugins";
+        private readonly string _pluginDirectory = "plugins";
 
         #region Plugins
-        #pragma warning disable 0649, 0169
+#pragma warning disable 0649, 0169
 
         [ImportMany(typeof(ICreateFiles))]
         private List<ICreateFiles> _createAdapters;
@@ -54,7 +54,7 @@ namespace Kore
         //[ImportMany(typeof(IModelAdapter))]
         //private List<IModelAdapter> _modelAdapters;
 
-        #pragma warning restore 0649, 0169
+#pragma warning restore 0649, 0169
         #endregion
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace Kore
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(string filename)
         {
-            // Return an adapter that can Identify whose extension matches that of our filename and sucessfully identifies the file.
+            // Return an adapter that can Identify whose extension matches that of our filename and successfully identifies the file.
             return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 
@@ -223,16 +223,16 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var alltypes = _fileAdapters.Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+                var allTypes = _fileAdapters.Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
                 // Add the special all supported files filter
-                if (alltypes.Count > 0)
-                    alltypes.Insert(0, new { Name = "All Supported Files", Extension = string.Join(";", alltypes.Select(x => x.Extension).Distinct()) });
+                if (allTypes.Count > 0)
+                    allTypes.Insert(0, new { Name = "All Supported Files", Extension = string.Join(";", allTypes.Select(x => x.Extension).Distinct()) });
 
                 // Add the special all files filter
-                alltypes.Add(new { Name = "All Files", Extension = "*.*" });
+                allTypes.Add(new { Name = "All Files", Extension = "*.*" });
 
-                return string.Join("|", alltypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
+                return string.Join("|", allTypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
             }
         }
 

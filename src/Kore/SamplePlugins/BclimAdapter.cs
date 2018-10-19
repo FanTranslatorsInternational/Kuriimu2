@@ -69,7 +69,7 @@ namespace Kore.SamplePlugins
 
         public async Task<bool> Encode(IProgress<ProgressReport> progress)
         {
-            // TODO: Get the Kanvas to encode the image and update the UI with it.
+            // TODO: Get Kanvas to encode the image and update the UI with it.
             return false;
         }
 

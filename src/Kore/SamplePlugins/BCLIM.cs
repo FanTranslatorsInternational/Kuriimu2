@@ -54,7 +54,7 @@ namespace Kore.SamplePlugins
             public short HeaderSize;
             public int Version;
             public int FileSize;
-            public short CectionCount;
+            public short SectionCount;
             public short Padding;
         }
 
