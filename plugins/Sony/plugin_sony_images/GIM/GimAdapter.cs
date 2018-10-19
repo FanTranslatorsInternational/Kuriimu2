@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
@@ -57,7 +58,7 @@ namespace plugin_sony_images.GIM
                 throw new Exception("No stream was provided to load from.");
 
             _format = new GIM(inputs[0]);
-            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo { Bitmaps = new List<Bitmap> { _format.Image }, Name = "0" } };
+            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo { Bitmaps = i, Name = $"{index}" }).ToList();
         }
 
         public async Task<bool> Encode(IProgress<ProgressReport> progress)

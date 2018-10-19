@@ -46,7 +46,7 @@
       <HintPath>..\packages\Kuriimu2.2.0.0\lib\net461\Kore.dll</HintPath>
     </Reference>
     <Reference Include="plugin_sony_images">
-      <HintPath>..\..\Sony\plugin_sony_images\bin\Release\plugin_sony_images.dll</HintPath>
+      <HintPath>..\..\Sony\plugin_sony_images\bin\Debug\plugin_sony_images.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
