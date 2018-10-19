@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B72A608F-68AA-47B3-B6F7-D322D7656F2D}</ProjectGuid>
+    <ProjectGuid>{4CBEE890-FDAA-4941-8692-FD52ED7B57C5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>plugin_valkyria_chronicles</RootNamespace>
-    <AssemblyName>plugin_valkyria_chronicles</AssemblyName>
+    <RootNamespace>plugin_sony_images</RootNamespace>
+    <AssemblyName>plugin_sony_images</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -21,8 +21,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -44,9 +42,6 @@
     </Reference>
     <Reference Include="Kore, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Kuriimu2.2.0.0\lib\net461\Kore.dll</HintPath>
-    </Reference>
-    <Reference Include="plugin_sony_images">
-      <HintPath>..\..\Sony\plugin_sony_images\bin\Release\plugin_sony_images.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -76,16 +71,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common.cs" />
-    <Compile Include="HTEX\HTEX.cs" />
-    <Compile Include="HTEX\HtexAdapter.cs" />
-    <Compile Include="HTEX\HtexSupport.cs" />
-    <Compile Include="MTPA\MTPA.cs" />
-    <Compile Include="MTPA\MtpaAdapter.cs" />
-    <Compile Include="MTPA\MtpaSupport.cs" />
-    <Compile Include="MXEN\MxenAdapter.cs" />
-    <Compile Include="MXEN\MxenSupport.cs" />
-    <Compile Include="MXEN\MXEN.cs" />
+    <Compile Include="GIM\GIM.cs" />
+    <Compile Include="GIM\GimAdapter.cs" />
+    <Compile Include="GIM\GimSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
