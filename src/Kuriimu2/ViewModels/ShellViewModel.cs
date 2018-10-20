@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using Caliburn.Micro;
 using Kontract.Interfaces;
@@ -33,6 +32,16 @@ namespace Kuriimu2.ViewModels
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
+                LoadFile(file);
+        }
+
+        public void FileDrop(DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files == null) return;
+
+            foreach (var file in files)
                 LoadFile(file);
         }
 

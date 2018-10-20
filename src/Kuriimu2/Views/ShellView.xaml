@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         d:DesignHeight="510" d:DesignWidth="680"
         Icon="/Images/kuriimu2.ico" Background="#F0F0F0" cal:Message.Attach="[Event Closing] = [Action CloseAllTabs]" SnapsToDevicePixels="True">
-    <DockPanel Name="Root">
+    <DockPanel Name="Root" AllowDrop="True" cal:Message.Attach="[Event Drop] = [Action FileDrop($eventArgs)]">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open" Name="OpenMenu" cal:Message.Attach="[Event Click] = [Action OpenButton]">
