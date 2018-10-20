@@ -80,7 +80,7 @@ namespace plugin_sony_images.GIM
                 _imageMeta = br.ReadStruct<ImageBlockMeta>();
 
                 //Read Palette if needed
-                if (_imageMeta.ImageFormat >= 0x04 && _imageMeta.ImageFormat <= 0x07)
+                if (_imageMeta.ImageFormat >= ImageFormat.Palette_4 && _imageMeta.ImageFormat <= ImageFormat.Palette_32)
                 {
                     _paletteUsed = true;
 
@@ -99,7 +99,7 @@ namespace plugin_sony_images.GIM
                     Height = _imageMeta.Height,
                     Width = _imageMeta.Width,
                     Format = Support.Formats[_imageMeta.ImageFormat],
-                    Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(_imageMeta.Width, _imageMeta.Height, _imageMeta.PitchAlign) : null
+                    Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(_imageMeta.Width, _imageMeta.Height, _imageMeta.PitchAlign, _imageMeta.HeightAlign) : null
                 };
 
                 if (_paletteUsed)
@@ -107,42 +107,12 @@ namespace plugin_sony_images.GIM
 
                 for (var i = 0; i < _imageMeta.LevelCount; i++)
                 {
-                    // TODO: Migrate this capability into Kanvas, or fix whatever in Kanvas doesn't allow this to work:
-                    if (_palette.Count == 16)
-                    {
-                        var bmp = new Bitmap(settings.Width, settings.Height, PixelFormat.Format32bppArgb);
-                        var data = bmp.LockBits(new Rectangle(0, 0, settings.Width, settings.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-                        unsafe
-                        {
-                            var ptr = (int*)data.Scan0;
-                            int x = 0, y = 0;
-                            foreach (var b in br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8))
-                            {
-                                if (0 <= x && x < settings.Width && 0 <= y && y < settings.Height)
-                                {
-                                    ptr[data.Stride * y / 4 + x] = _palette[b & 0xF].ToArgb();
-                                    x++;
-                                    ptr[data.Stride * y / 4 + x] = _palette[b >> 4].ToArgb();
-                                    x++;
-                                }
-
-                                if (x == settings.Width)
-                                {
-                                    x = 0;
-                                    y++;
-                                }
-                            }
-                        }
-                        bmp.UnlockBits(data);
-
-                        Bitmaps.Add(bmp);
-                    }
-                    else
-                        Bitmaps.Add(Common.Load(br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8), settings));
+                    var data = br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8);
+                    Bitmaps.Add(Common.Load(data, settings));
 
                     settings.Height >>= 1;
                     settings.Width >>= 1;
-                    settings.Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(settings.Width, settings.Height, _imageMeta.PitchAlign) : null;
+                    settings.Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(settings.Width, settings.Height, _imageMeta.PitchAlign, _imageMeta.HeightAlign) : null;
                 }
 
                 if (_paletteUsed)
@@ -163,6 +133,7 @@ namespace plugin_sony_images.GIM
         {
             using (var br = new BinaryReaderX(input, true))
             {
+                _absoluteBlockPosition = input.Position;
                 _chunkHeader = br.ReadStruct<GIMChunk>();
                 _imageMeta = br.ReadStruct<ImageBlockMeta>();
 
@@ -175,7 +146,7 @@ namespace plugin_sony_images.GIM
     {
         public short MetaLength;
         public short Unk1;
-        public short ImageFormat;
+        public ImageFormat ImageFormat;
         public short PixelOrder;
         public short Width;
         public short Height;
@@ -199,21 +170,36 @@ namespace plugin_sony_images.GIM
         public byte[] Padding;
     }
 
+    public enum ImageFormat : short
+    {
+        RGB565,
+        RGBA5551,
+        RGBA4444,
+        RGBA8888,
+        Palette_4,
+        Palette_8,
+        Palette_16,
+        Palette_32,
+        DXT1,
+        DXT3,
+        DXT5
+    }
+
     public sealed class Support
     {
-        public static Dictionary<short, IImageFormat> Formats = new Dictionary<short, IImageFormat>
+        public static Dictionary<ImageFormat, IImageFormat> Formats = new Dictionary<ImageFormat, IImageFormat>
         {
-            [0] = new RGBA(5, 6, 5, 0, true, true),
-            [1] = new RGBA(5, 5, 5, 1, true, true),
-            [2] = new RGBA(4, 4, 4, 4, true, true),
-            [3] = new RGBA(8, 8, 8, 8, true, true),
-            [4] = new Palette(4),
-            [5] = new Palette(8),
+            [ImageFormat.RGB565] = new RGBA(5, 6, 5, 0, true, true),
+            [ImageFormat.RGBA5551] = new RGBA(5, 5, 5, 1, true, true),
+            [ImageFormat.RGBA4444] = new RGBA(4, 4, 4, 4, true, true),
+            [ImageFormat.RGBA8888] = new RGBA(8, 8, 8, 8, true, true),
+            [ImageFormat.Palette_4] = new Palette(4),
+            [ImageFormat.Palette_8] = new Palette(8),
             //[6] = new AI(8,8),    ??
             //[7] = new AI(24,8),   ??
-            [8] = new DXT(DXT.Format.DXT1),
-            [9] = new DXT(DXT.Format.DXT3),
-            [10] = new DXT(DXT.Format.DXT5),
+            [ImageFormat.DXT1] = new DXT(DXT.Format.DXT1),
+            [ImageFormat.DXT3] = new DXT(DXT.Format.DXT3),
+            [ImageFormat.DXT5] = new DXT(DXT.Format.DXT5),
         };
     }
 
@@ -221,12 +207,16 @@ namespace plugin_sony_images.GIM
     {
         MasterSwizzle _master;
 
-        public GIMSwizzle(int Width, int Height, int WidthStride)
+        public GIMSwizzle(int Width, int Height, int WidthAlign, int HeightAlign)
         {
             this.Width = Width;
             this.Height = Height;
-
-            var bitField = new[] { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (0, 2), (0, 4) };
+            
+            List<(int, int)> bitField = new List<(int, int)> { (0, 0) };
+            if (Width >= 128 && Height >= 256)
+                bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (0, 2), (0, 4) };
+            else
+                bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (16, 0), (0, 1), (0, 2), (0, 4) };
             _master = new MasterSwizzle(Width, new Point(0, 0), bitField);
         }
 
