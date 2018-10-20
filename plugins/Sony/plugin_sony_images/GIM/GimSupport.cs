@@ -14,46 +14,88 @@ namespace plugin_sony_images.GIM
 {
     public sealed class RootBlock
     {
-        private GIMChunk _chunkHeader;
-        private long _absoluteBlockPosition;
+        public List<PictureBlock> PictureBlocks = new List<PictureBlock>();
 
-        public List<PictureBlock> PictureBlocks;
-
-        public RootBlock(Stream input)
+        public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
-                _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                var absoluteBlockPosition = input.Position;
+                var chunkHeader = br.ReadStruct<GIMChunk>();
 
-                PictureBlocks = new List<PictureBlock>();
                 while (input.Position < input.Length)
                 {
-                    PictureBlocks.Add(new PictureBlock(input));
+                    var pb = new PictureBlock();
+                    pb.Load(input);
+                    PictureBlocks.Add(pb);
                 }
             }
+        }
+
+        public void Save(Stream output, List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> bmps)
+        {
+            var headerOffset = output.Position;
+            var header = new GIMChunk();
+            header.BlockID = 2;
+            header.NextBlockRelativeOffset = 0x10;
+
+            output.Position += 0x10;
+            var pb = new PictureBlock();
+            pb.Save(output, bmps);
+
+            header.BlockSize = (int)(output.Length - headerOffset);
+            output.Position = headerOffset;
+
+            using (var bw = new BinaryWriterX(output, true)) bw.WriteStruct(header);
+            output.Position = output.Length;
         }
     }
 
     public sealed class PictureBlock
     {
-        private GIMChunk _chunkHeader;
-        private long _absoluteBlockPosition;
+        public List<ImageBlock> ImageBlocks = new List<ImageBlock>();
 
-        public List<ImageBlock> ImageBlocks;
-
-        public PictureBlock(Stream input)
+        public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
-                _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                var absoluteBlockPosition = input.Position;
+                var chunkHeader = br.ReadStruct<GIMChunk>();
 
-                ImageBlocks = new List<ImageBlock>();
                 while (input.Position < input.Length)
                 {
-                    ImageBlocks.Add(new ImageBlock(input));
+                    var ib = new ImageBlock();
+                    ib.Load(input);
+                    ImageBlocks.Add(ib);
                 }
+            }
+        }
+
+        public void Save(Stream output, List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> bmps)
+        {
+            int index = 0;
+            foreach (var picture in bmps)
+            {
+                bool last = false;
+                if (index == bmps.Count - 1)
+                    last = true;
+
+                var headerOffset = output.Position;
+                var header = new GIMChunk();
+                header.BlockID = 3;
+                header.NextBlockRelativeOffset = 0x10;
+
+                output.Position += 0x10;
+                var ib = new ImageBlock();
+                ib.Save(output, picture, last);
+
+                header.BlockSize = (int)(output.Length - headerOffset);
+                output.Position = headerOffset;
+
+                using (var bw = new BinaryWriterX(output, true)) bw.WriteStruct(header);
+                output.Position = output.Length;
+
+                index++;
             }
         }
     }
@@ -66,11 +108,14 @@ namespace plugin_sony_images.GIM
 
         private bool _paletteUsed;
         private List<Color> _palette;
+        private IImageFormat _paletteFormat;
+        private ImageBlockMeta _paletteMeta;
         private long _paletteBlockEnd;
 
-        public List<Bitmap> Bitmaps = new List<Bitmap>();
+        public List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)> Bitmaps =
+            new List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>();
 
-        public ImageBlock(Stream input)
+        public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
@@ -87,8 +132,11 @@ namespace plugin_sony_images.GIM
                     var bk = input.Position;
                     input.Position = _absoluteBlockPosition + _chunkHeader.NextBlockRelativeOffset;
 
-                    var paletteBlock = new PaletteBlock(input);
+                    var paletteBlock = new PaletteBlock();
+                    paletteBlock.Load(input);
                     _palette = paletteBlock.Palette;
+                    _paletteFormat = paletteBlock.Format;
+                    _paletteMeta = paletteBlock.ImageMeta;
 
                     _paletteBlockEnd = input.Position;
                     input.Position = bk;
@@ -110,7 +158,7 @@ namespace plugin_sony_images.GIM
                 for (var i = 0; i < _imageMeta.LevelCount; i++)
                 {
                     var data = br.ReadBytes(Width * Height * _imageMeta.Bpp / 8);
-                    Bitmaps.Add(Common.Load(data, settings));
+                    Bitmaps.Add((Common.Load(data, settings), Support.Formats[_imageMeta.ImageFormat], _imageMeta, _paletteFormat, _paletteMeta));
 
                     settings.Height >>= 1;
                     settings.Width >>= 1;
@@ -121,55 +169,131 @@ namespace plugin_sony_images.GIM
                     input.Position = _paletteBlockEnd;
             }
         }
+
+        public void Save(Stream output, List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)> bmps, bool last)
+        {
+            int index = 0;
+            foreach (var image in bmps)
+            {
+                bool last2 = false;
+                if (index == bmps.Count - 1)
+                    last2 = true;
+
+                var headerOffset = output.Position;
+                var header = new GIMChunk();
+                header.BlockID = 4;
+
+                var meta = image.Item3;
+                meta.ImageFormat = ImageFormat.RGBA4444;
+                meta.Height = (short)image.Item1.Height;
+                meta.Width = (short)image.Item1.Width;
+
+                (int Width, int Height) = Support.SwizzleAlign(meta.Width, meta.Height, meta.Bpp);
+
+                var settings = new ImageSettings
+                {
+                    Width = meta.Width,
+                    Height = meta.Height,
+                    Swizzle = meta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, meta.Bpp) : null,
+                    Format = Support.Formats[meta.ImageFormat]
+                };
+                var data = Common.Save(image.Item1, settings);
+
+                meta.PixelEnd = data.Length + meta.PixelStart;
+                if (!(last2 & last /*& !(image.Item2 is IPaletteFormat)*/))
+                    header.NextBlockRelativeOffset = (0x10 + 0x40 + data.Length + 0xF) & ~0xF;
+                using (var bw = new BinaryWriterX(output, true))
+                {
+                    bw.WriteStruct(header);
+                    bw.WriteStruct(meta);
+                    bw.Write(data);
+                    bw.WriteAlignment();
+                }
+
+                //if (image.Item2 is IPaletteFormat paletteFormat)
+                //{
+                //    var pab = new PaletteBlock();
+                //    pab.Save(output, paletteFormat.GetPalette(), image.Item4, image.Item5, last2 & last);
+                //}
+
+                output.Position = output.Length;
+
+                index++;
+            }
+        }
     }
 
     public sealed class PaletteBlock
     {
         private GIMChunk _chunkHeader;
-        private ImageBlockMeta _imageMeta;
+        public ImageBlockMeta ImageMeta;
         private long _absoluteBlockPosition;
 
         public List<Color> Palette;
+        public IImageFormat Format;
 
-        public PaletteBlock(Stream input)
+        public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = input.Position;
                 _chunkHeader = br.ReadStruct<GIMChunk>();
-                _imageMeta = br.ReadStruct<ImageBlockMeta>();
+                ImageMeta = br.ReadStruct<ImageBlockMeta>();
 
-                Palette = Support.Formats[_imageMeta.ImageFormat].Load(br.ReadBytes(_imageMeta.Width * _imageMeta.Height * _imageMeta.Bpp / 8)).ToList();
+                Format = Support.Formats[ImageMeta.ImageFormat];
+                Palette = Format.Load(br.ReadBytes(ImageMeta.Width * ImageMeta.Height * ImageMeta.Bpp / 8)).ToList();
+            }
+        }
+
+        public void Save(Stream output, IEnumerable<Color> palette, IImageFormat format, ImageBlockMeta meta, bool last)
+        {
+            var headerOffset = output.Position;
+            var header = new GIMChunk();
+            header.BlockID = 5;
+
+            meta.PixelOrder = 0;
+            var dataP = format.Save(palette);
+
+            header.BlockSize = (0x10 + 0x40 + dataP.Length + 0xF) & ~0xF;
+            if (!last)
+                header.NextBlockRelativeOffset = (int)(output.Length - headerOffset);
+
+            using (var bw = new BinaryWriterX(output, true))
+            {
+                bw.WriteStruct(header);
+                bw.WriteStruct(meta);
+                bw.Write(dataP);
+                bw.WriteAlignment();
             }
         }
     }
 
     public sealed class ImageBlockMeta
     {
-        public short MetaLength;
-        public short Unk1;
+        public short MetaLength = 0x30;
+        public short Unk1 = 0;
         public ImageFormat ImageFormat;
         public short PixelOrder;
         public short Width;
         public short Height;
         public short Bpp;
-        public short PitchAlign;
-        public short HeightAlign;
-        public short Unk2;
-        public int Unk3;
-        public int IndexStart;
-        public int PixelStart;
+        public short PitchAlign = 0x10;
+        public short HeightAlign = 8;
+        public short Unk2 = 2;
+        public int Unk3 = 0;
+        public int IndexStart = 0x30;
+        public int PixelStart = 0x40;
         public int PixelEnd;
 
-        public int PlaneMask;
+        public int PlaneMask = 0;
         public short LevelType;
-        public short LevelCount;
-        public short FrameType;
-        public short FrameCount;
-        public int Frame_n_Offset;
+        public short LevelCount = 1;
+        public short FrameType = 3;
+        public short FrameCount = 1;
+        public int Frame_n_Offset = 0x40;
 
         [FixedLength(0xC)]
-        public byte[] Padding;
+        public byte[] Padding = new byte[0xC];
     }
 
     public enum ImageFormat : short
@@ -256,9 +380,9 @@ namespace plugin_sony_images.GIM
     public sealed class GIMChunk
     {
         public short BlockID;
-        public short Unk1;
+        public short Unk1 = 0;
         public int BlockSize; // With Header
         public int NextBlockRelativeOffset;
-        public int BlockDataOffset;
+        public int BlockDataOffset = 0x10;
     }
 }

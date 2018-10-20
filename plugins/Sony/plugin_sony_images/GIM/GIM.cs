@@ -2,22 +2,37 @@
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using Kanvas.Interface;
 using Komponent.IO;
 
 namespace plugin_sony_images.GIM
 {
     public sealed class GIM
     {
-        public List<List<Bitmap>> Images { get; set; }
+        public List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> Images { get; set; }
+
+        private RootBlock _root;
+        private byte[] _magic;
 
         public GIM(Stream input)
         {
             using (var br = new BinaryReaderX(input))
             {
-                var magic = br.ReadBytes(0x10);
-                var root = new RootBlock(input);
+                _magic = br.ReadBytes(0x10);
 
-                Images = root.PictureBlocks.SelectMany(p => p.ImageBlocks.Select(i => i.Bitmaps)).ToList();
+                _root = new RootBlock();
+                _root.Load(input);
+
+                Images = _root.PictureBlocks.SelectMany(p => p.ImageBlocks.Select(i => i.Bitmaps)).ToList();
+            }
+        }
+
+        public void Save(Stream input)
+        {
+            using (var bw = new BinaryWriterX(input))
+            {
+                bw.Write(_magic);
+                _root.Save(input, Images);
             }
         }
     }
