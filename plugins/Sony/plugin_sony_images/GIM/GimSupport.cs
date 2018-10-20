@@ -184,7 +184,9 @@ namespace plugin_sony_images.GIM
                 header.BlockID = 4;
 
                 var meta = image.Item3;
-                meta.ImageFormat = ImageFormat.RGBA4444;
+                meta.ImageFormat = ImageFormat.RGBA8888;
+                meta.Bpp = 32;
+                meta.PixelOrder = 0;
                 meta.Height = (short)image.Item1.Height;
                 meta.Width = (short)image.Item1.Width;
 
@@ -200,6 +202,7 @@ namespace plugin_sony_images.GIM
                 var data = Common.Save(image.Item1, settings);
 
                 meta.PixelEnd = data.Length + meta.PixelStart;
+                header.BlockSize = (0x10 + 0x40 + data.Length + 0xF) & ~0xF;
                 if (!(last2 & last /*& !(image.Item2 is IPaletteFormat)*/))
                     header.NextBlockRelativeOffset = (0x10 + 0x40 + data.Length + 0xF) & ~0xF;
                 using (var bw = new BinaryWriterX(output, true))
@@ -341,7 +344,7 @@ namespace plugin_sony_images.GIM
                     return (Align(Width, 16), Align(Height, 8));
 
                 default:
-                    return (0, 0);
+                    return (Width, Height);
             }
         }
     }
