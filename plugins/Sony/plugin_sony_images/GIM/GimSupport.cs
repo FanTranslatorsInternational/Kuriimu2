@@ -1,23 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Komponent.IO;
-using System.IO;
-using Kanvas.Interface;
-using Kanvas.Format;
-using Kanvas.Palette;
-using Kanvas;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using Kanvas;
+using Kanvas.Format;
+using Kanvas.Interface;
+using Kanvas.Palette;
 using Kanvas.Swizzle;
+using Komponent.IO;
 
 namespace plugin_sony_images.GIM
 {
     public sealed class RootBlock
     {
-        GIMChunk _chunkHeader;
-        long _absoluteBlockPosition;
+        private GIMChunk _chunkHeader;
+        private long _absoluteBlockPosition;
+
         public List<PictureBlock> PictureBlocks;
 
         public RootBlock(Stream input)
@@ -38,8 +37,9 @@ namespace plugin_sony_images.GIM
 
     public sealed class PictureBlock
     {
-        GIMChunk _chunkHeader;
-        long _absoluteBlockPosition;
+        private GIMChunk _chunkHeader;
+        private long _absoluteBlockPosition;
+
         public List<ImageBlock> ImageBlocks;
 
         public PictureBlock(Stream input)
@@ -60,13 +60,13 @@ namespace plugin_sony_images.GIM
 
     public sealed class ImageBlock
     {
-        GIMChunk _chunkHeader;
-        ImageBlockMeta _imageMeta;
-        long _absoluteBlockPosition;
+        private GIMChunk _chunkHeader;
+        private ImageBlockMeta _imageMeta;
+        private long _absoluteBlockPosition;
 
-        bool paletteUsed;
-        List<Color> Palette;
-        long paletteBlockEnd;
+        private bool _paletteUsed;
+        private List<Color> _palette;
+        private long _paletteBlockEnd;
 
         public List<Bitmap> Bitmaps = new List<Bitmap>();
 
@@ -82,15 +82,15 @@ namespace plugin_sony_images.GIM
                 //Read Palette if needed
                 if (_imageMeta.ImageFormat >= 0x04 && _imageMeta.ImageFormat <= 0x07)
                 {
-                    paletteUsed = true;
+                    _paletteUsed = true;
 
                     var bk = input.Position;
                     input.Position = _absoluteBlockPosition + _chunkHeader.NextBlockRelativeOffset;
 
                     var paletteBlock = new PaletteBlock(input);
-                    Palette = paletteBlock.Palette;
+                    _palette = paletteBlock.Palette;
 
-                    paletteBlockEnd = input.Position;
+                    _paletteBlockEnd = input.Position;
                     input.Position = bk;
                 }
 
@@ -101,28 +101,62 @@ namespace plugin_sony_images.GIM
                     Format = Support.Formats[_imageMeta.ImageFormat],
                     Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(_imageMeta.Width, _imageMeta.Height, _imageMeta.PitchAlign) : null
                 };
-                if (paletteUsed)
-                    (settings.Format as IPaletteFormat).SetPalette(Palette);
-                for (int i = 0; i < _imageMeta.LevelCount; i++)
+
+                if (_paletteUsed)
+                    (settings.Format as IPaletteFormat)?.SetPalette(_palette);
+
+                for (var i = 0; i < _imageMeta.LevelCount; i++)
                 {
-                    Bitmaps.Add(Common.Load(br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8), settings));
+                    // TODO: Migrate this capability into Kanvas, or fix whatever in Kanvas doesn't allow this to work:
+                    if (_palette.Count == 16)
+                    {
+                        var bmp = new Bitmap(settings.Width, settings.Height, PixelFormat.Format32bppArgb);
+                        var data = bmp.LockBits(new Rectangle(0, 0, settings.Width, settings.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+                        unsafe
+                        {
+                            var ptr = (int*)data.Scan0;
+                            int x = 0, y = 0;
+                            foreach (var b in br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8))
+                            {
+                                if (0 <= x && x < settings.Width && 0 <= y && y < settings.Height)
+                                {
+                                    ptr[data.Stride * y / 4 + x] = _palette[b & 0xF].ToArgb();
+                                    x++;
+                                    ptr[data.Stride * y / 4 + x] = _palette[b >> 4].ToArgb();
+                                    x++;
+                                }
+
+                                if (x == settings.Width)
+                                {
+                                    x = 0;
+                                    y++;
+                                }
+                            }
+                        }
+                        bmp.UnlockBits(data);
+
+                        Bitmaps.Add(bmp);
+                    }
+                    else
+                        Bitmaps.Add(Common.Load(br.ReadBytes(settings.Width * settings.Height * _imageMeta.Bpp / 8), settings));
 
                     settings.Height >>= 1;
                     settings.Width >>= 1;
                     settings.Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(settings.Width, settings.Height, _imageMeta.PitchAlign) : null;
                 }
 
-                if (paletteUsed)
-                    input.Position = paletteBlockEnd;
+                if (_paletteUsed)
+                    input.Position = _paletteBlockEnd;
             }
         }
     }
 
     public sealed class PaletteBlock
     {
-        GIMChunk _chunkHeader;
-        ImageBlockMeta _imageMeta;
-        long _absoluteBlockPosition;
+        private GIMChunk _chunkHeader;
+        private ImageBlockMeta _imageMeta;
+        private long _absoluteBlockPosition;
+
         public List<Color> Palette;
 
         public PaletteBlock(Stream input)
@@ -159,10 +193,10 @@ namespace plugin_sony_images.GIM
         public short LevelCount;
         public short FrameType;
         public short FrameCount;
+        public int Frame_n_Offset;
 
-        public int frame_n_offset;
         [FixedLength(0xC)]
-        public byte[] padding;
+        public byte[] Padding;
     }
 
     public sealed class Support
@@ -207,7 +241,7 @@ namespace plugin_sony_images.GIM
     {
         public short BlockID;
         public short Unk1;
-        public int BlockSize;   //With header
+        public int BlockSize; // With Header
         public int NextBlockRelativeOffset;
         public int BlockDataOffset;
     }
