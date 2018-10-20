@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using Kanvas;
@@ -94,14 +93,14 @@ namespace plugin_sony_images.GIM
                     input.Position = bk;
                 }
 
-                (int Width, int Height) = Support.SwizzleAlign(_imageMeta.Width, _imageMeta.Height, _imageMeta.Bpp);
+                var (width, height) = Support.SwizzleAlign(_imageMeta.Width, _imageMeta.Height, _imageMeta.Bpp);
 
                 var settings = new ImageSettings
                 {
                     Height = _imageMeta.Height,
                     Width = _imageMeta.Width,
                     Format = Support.Formats[_imageMeta.ImageFormat],
-                    Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
+                    Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(width, height, _imageMeta.Bpp) : null
                 };
 
                 if (_paletteUsed)
@@ -109,7 +108,7 @@ namespace plugin_sony_images.GIM
 
                 for (var i = 0; i < _imageMeta.LevelCount; i++)
                 {
-                    var data = br.ReadBytes(Width * Height * _imageMeta.Bpp / 8);
+                    var data = br.ReadBytes(width * height * _imageMeta.Bpp / 8);
                     Bitmaps.Add(Common.Load(data, settings));
 
                     settings.Height >>= 1;
@@ -204,18 +203,16 @@ namespace plugin_sony_images.GIM
             [ImageFormat.DXT5] = new DXT(DXT.Format.DXT5),
         };
 
-        public static (int, int) SwizzleAlign(int Width, int Height, int Bpp)
+        public static (int, int) SwizzleAlign(int width, int height, int bpp)
         {
             int Align(int input, int align) => input + (align - 1) & ~(align - 1);
 
-            switch (Bpp)
+            switch (bpp)
             {
                 case 4:
-                    return (Align(Width, 32), Align(Height, 8));
-
+                    return (Align(width, 32), Align(height, 8));
                 case 8:
-                    return (Align(Width, 16), Align(Height, 8));
-
+                    return (Align(width, 16), Align(height, 8));
                 default:
                     return (0, 0);
             }
@@ -226,24 +223,23 @@ namespace plugin_sony_images.GIM
     {
         MasterSwizzle _master;
 
-        public GIMSwizzle(int Width, int Height, int Bpp)
+        public GIMSwizzle(int width, int height, int bpp)
         {
-            this.Width = Width;
-            this.Height = Height;
+            Width = width;
+            Height = height;
 
-            List<(int, int)> bitField = new List<(int, int)> { (0, 0) };
-            switch (Bpp)
+            var bitField = new List<(int, int)> { (0, 0) };
+            switch (bpp)
             {
                 case 4:
                     bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (16, 0), (0, 1), (0, 2), (0, 4) };
                     break;
-
                 case 8:
                     bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (0, 2), (0, 4) };
                     break;
             }
 
-            _master = new MasterSwizzle(Width, new Point(0, 0), bitField);
+            _master = new MasterSwizzle(width, new Point(0, 0), bitField);
         }
 
         public int Width { get; }
