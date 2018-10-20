@@ -201,6 +201,15 @@ namespace plugin_sony_images.GIM
             [ImageFormat.DXT3] = new DXT(DXT.Format.DXT3),
             [ImageFormat.DXT5] = new DXT(DXT.Format.DXT5),
         };
+
+        public static int SwizzleAlignWidth(int Width)
+        {
+            return 0;
+        }
+        public static int SwizzleAlignHeight(int Height)
+        {
+            return 0;
+        }
     }
 
     public sealed class GIMSwizzle : IImageSwizzle
@@ -211,9 +220,9 @@ namespace plugin_sony_images.GIM
         {
             this.Width = Width;
             this.Height = Height;
-            
+
             List<(int, int)> bitField = new List<(int, int)> { (0, 0) };
-            if (Width >= 128 && Height >= 256)
+            if (Width >= 256 || Height >= 256)
                 bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (0, 2), (0, 4) };
             else
                 bitField = new List<(int, int)> { (1, 0), (2, 0), (4, 0), (8, 0), (16, 0), (0, 1), (0, 2), (0, 4) };
