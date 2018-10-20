@@ -29,10 +29,11 @@ namespace Kuriimu2.ViewModels
 
         public void OpenButton()
         {
-            var ofd = new OpenFileDialog { Filter = _kore.FileFilters };
+            var ofd = new OpenFileDialog { Filter = _kore.FileFilters, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
-            LoadFile(ofd.FileName);
+            foreach (var file in ofd.FileNames)
+                LoadFile(file);
         }
 
         public bool SaveButtonsEnabled() => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
