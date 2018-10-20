@@ -65,7 +65,7 @@ namespace Kanvas.Palette
         public IEnumerable<Color> Load(byte[] data)
         {
             using (var br = new BinaryReaderX(new MemoryStream(data), true, byteOrder))
-                while (br.BaseStream.Position < br.BaseStream.Length && br.IsFirstNibble)
+                while (br.BaseStream.Position < br.BaseStream.Length)
                     switch (BitDepth)
                     {
                         case 4:
