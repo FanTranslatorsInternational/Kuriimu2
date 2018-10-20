@@ -42,7 +42,7 @@ namespace Kanvas.Palette
             this.indexDepth = indexDepth;
             this.colorCount = colorCount;
             BitDepth = indexDepth;
-            FormatName = "Palette";
+            FormatName = "Palette " + indexDepth + "Bit";
 
             ColorQuantizer = ColorQuantizer.DistinctSelection;
             PathProvider = PathProvider.Standard;
