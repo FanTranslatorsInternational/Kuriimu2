@@ -49,8 +49,6 @@ namespace plugin_sony_images.GIM
         {
             if (File.Exists(filename))
                 Load(File.OpenRead(filename));
-
-            //Save(filename + ".save");
         }
 
         public void Load(params Stream[] inputs)
@@ -71,7 +69,14 @@ namespace plugin_sony_images.GIM
         public void Save(string filename, int versionIndex = 0)
         {
             _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.Bitmaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
-            _format.Save(File.Create(filename));
+            using (var output = File.Create(filename))
+                _format.Save(output);
+        }
+
+        public void Save(Stream output, int versionIndex = 0)
+        {
+            _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.Bitmaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
+            _format.Save(output);
         }
 
         public void Dispose() { }

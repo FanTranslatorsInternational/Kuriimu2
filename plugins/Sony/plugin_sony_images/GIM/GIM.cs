@@ -27,12 +27,12 @@ namespace plugin_sony_images.GIM
             }
         }
 
-        public void Save(Stream input)
+        public void Save(Stream output)
         {
-            using (var bw = new BinaryWriterX(input))
+            using (var bw = new BinaryWriterX(output, true))
             {
                 bw.Write(_magic);
-                _root.Save(input, Images);
+                _root.Save(output, Images);
             }
         }
     }
