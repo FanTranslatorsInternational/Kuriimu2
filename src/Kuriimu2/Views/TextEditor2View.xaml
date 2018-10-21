@@ -89,10 +89,46 @@
                         </Style>
                     </DataGrid.Resources>-->
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Entry" Binding="{Binding Name}" Width="1*" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Text" Binding="{Binding EditedText}" Width="3*" />
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="1*" IsReadOnly="True" />
+                        <DataGridTextColumn Header="Text" Binding="{Binding EditedText}" Width="3*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                    <Setter Property="AcceptsReturn" Value="True" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding">
+                                        <Setter.Value>
+                                            <Thickness Top="0" Bottom="0" Left="0" Right="0"></Thickness>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Original" Binding="{Binding OriginalText}" Width="3*" IsReadOnly="{Binding OriginalTextReadOnly, ElementName=Root}" />
-                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="3*" />
+                        <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="3*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                    <Setter Property="AcceptsReturn" Value="True" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding">
+                                        <Setter.Value>
+                                            <Thickness Top="0" Bottom="0" Left="0" Right="0"></Thickness>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>
