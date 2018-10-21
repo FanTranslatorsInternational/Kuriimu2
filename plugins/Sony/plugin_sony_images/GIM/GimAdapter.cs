@@ -17,9 +17,10 @@ namespace plugin_sony_images.GIM
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ILoadStreams))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("1AD809EE-3C0F-4837-98AD-E21EC42F29B8", "GIM File", "GIM", "IcySon55", "", "This is the GIM image adapter for Kuriimu2.")]
+    [Export(typeof(ISaveStreams))]
+    [PluginInfo("1AD809EE-3C0F-4837-98AD-E21EC42F29B8", "Graphic Image Map", "GIM", "IcySon55", "", "This is the GIM image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.gim")]
-    public sealed class GimAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ILoadStreams, ISaveFiles
+    public sealed class GimAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ILoadStreams, ISaveFiles, ISaveStreams
     {
         private GIM _format;
         private List<BitmapInfo> _bitmapInfos;
