@@ -64,7 +64,7 @@ namespace plugin_valkyria_chronicles.HTEX
                 ImageStream.CopyTo(bw.BaseStream);
 
                 // Footers
-                _htsfPacketHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
+                _htsfPacketHeader.PacketSize = _htsfPacketHeader.DataSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
                 bw.WriteStruct(_htsfFooter);
 
                 _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
