@@ -16,7 +16,6 @@ namespace plugin_valkyria_chronicles.HTEX
         private PacketHeaderX _htsfPacketHeader;
         private HtsfHeader _htsfHeader;
 
-        private PacketHeaderX _ccrsFooter;
         private PacketHeaderX _htsfFooter;
         private PacketHeaderX _htexFooter;
 
@@ -59,10 +58,12 @@ namespace plugin_valkyria_chronicles.HTEX
         {
             using (var bw = new BinaryWriterX(output))
             {
+                bw.BaseStream.Position = Common.PacketHeaderXSize * 3;
+
+                ImageStream.Position = 0;
+                ImageStream.CopyTo(bw.BaseStream);
 
                 // Footers
-                bw.WriteStruct(_ccrsFooter);
-
                 _htsfPacketHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
                 bw.WriteStruct(_htsfFooter);
 

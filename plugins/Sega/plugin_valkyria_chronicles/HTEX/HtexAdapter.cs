@@ -15,10 +15,10 @@ namespace plugin_valkyria_chronicles.HTEX
     [Export(typeof(IImageAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
-    //[Export(typeof(ISaveFiles))]
+    [Export(typeof(ISaveFiles))]
     [PluginInfo("0337C082-324C-46C2-ABDA-CBD873864D75", "HTEX File", "HTEX", "IcySon55", "", "This is the HTX image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.htx")]
-    public sealed class HtexAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles//, ISaveFiles
+    public sealed class HtexAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private HTEX _format;
         private GimAdapter _gim = new GimAdapter();
@@ -59,9 +59,15 @@ namespace plugin_valkyria_chronicles.HTEX
 
         public void Save(string filename, int versionIndex = 0)
         {
+            var gimOutput = new MemoryStream();
+            _gim.Save(gimOutput);
+            _format.ImageStream = gimOutput;
             _format.Save(File.Create(filename));
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            _format.ImageStream.Close();
+        }
     }
 }
