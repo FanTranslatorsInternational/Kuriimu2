@@ -192,6 +192,26 @@ namespace Kore
         }
 
         /// <summary>
+        /// Saves an open file. Optionally to a new name.
+        /// </summary>
+        /// <param name="kfi">The KoreFileInfo to be saved.</param>
+        /// <param name="filename">The optional new name of the file to be saved.</param>
+        public void SaveFile(KoreFileInfo kfi, string filename = "")
+        {
+            if (!OpenFiles.Contains(kfi) || !(kfi.Adapter is ISaveFiles)) return;
+
+            var adapter = (ISaveFiles)kfi.Adapter;
+
+            if (filename == string.Empty)
+                adapter.Save(kfi.FileInfo.FullName);
+            else
+            {
+                adapter.Save(filename);
+                kfi.FileInfo = new FileInfo(filename);
+            }
+        }
+
+        /// <summary>
         /// Closes an open file.
         /// </summary>
         /// <param name="kfi">The file to be closed.</param>

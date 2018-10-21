@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -101,9 +102,7 @@ namespace Kuriimu2.ViewModels
 
         public void EditBitmap()
         {
-            if (!(_adapter is IImageAdapter fnt)) return;
-
-            
+            if (!(_adapter is IImageAdapter img)) return;
         }
 
         //public bool DeleteEnabled => _adapter is IDeleteBitmaps && SelectedBitmap != null;
@@ -140,7 +139,7 @@ namespace Kuriimu2.ViewModels
 
             if ((bool)sfd.ShowDialog())
             {
-                SelectedBitmap.BitmapInfo.Bitmaps.First().Save(sfd.FileName);
+                SelectedBitmap.BitmapInfo.Bitmaps.First().Save(sfd.FileName, ImageFormat.Png);
             }
         }
 
