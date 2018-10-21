@@ -62,9 +62,10 @@ namespace plugin_valkyria_chronicles.HTEX
 
                 ImageStream.Position = 0;
                 ImageStream.CopyTo(bw.BaseStream);
+                _htsfPacketHeader.DataSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
 
                 // Footers
-                _htsfPacketHeader.PacketSize = _htsfPacketHeader.DataSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
+                _htsfPacketHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
                 bw.WriteStruct(_htsfFooter);
 
                 _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
@@ -76,6 +77,9 @@ namespace plugin_valkyria_chronicles.HTEX
 
                 // Write HTSF Packet Header
                 bw.WriteStruct(_htsfPacketHeader);
+
+                // Write HTSF Header
+                bw.WriteStruct(_htsfHeader);
             }
         }
     }
