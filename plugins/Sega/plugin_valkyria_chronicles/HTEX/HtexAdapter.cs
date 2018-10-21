@@ -16,7 +16,7 @@ namespace plugin_valkyria_chronicles.HTEX
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("0337C082-324C-46C2-ABDA-CBD873864D75", "HTEX File", "HTEX", "IcySon55", "", "This is the HTX image adapter for Kuriimu2.")]
+    [PluginInfo("0337C082-324C-46C2-ABDA-CBD873864D75", "VC-HTEX Image", "HTEX", "IcySon55", "", "This is the HTX image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.htx")]
     public sealed class HtexAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {

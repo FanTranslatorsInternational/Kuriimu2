@@ -13,7 +13,7 @@ namespace plugin_valkyria_chronicles.MTPA
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("FD00E783-0904-4A9E-8575-59CDA5A165B9", "MTPA Text File", "MTPA", "IcySon55", "", "This is the MTP text adapter for Kuriimu2.")]
+    [PluginInfo("FD00E783-0904-4A9E-8575-59CDA5A165B9", "VC-MTPA Text", "MTPA", "IcySon55", "", "This is the MTP text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.mtp")]
     public sealed class MtpaAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {

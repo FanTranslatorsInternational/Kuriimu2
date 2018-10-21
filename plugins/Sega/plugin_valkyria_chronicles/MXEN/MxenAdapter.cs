@@ -13,7 +13,7 @@ namespace plugin_valkyria_chronicles.MXEN
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("66812C1F-BDB6-44A5-819D-4FAD9B991A65", "MXEN File", "MXEN", "IcySon55", "", "This is the MXE text adapter for Kuriimu2.")]
+    [PluginInfo("66812C1F-BDB6-44A5-819D-4FAD9B991A65", "VC-MXEN Data", "MXEN", "IcySon55", "", "This is the MXE text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.mxe")]
     public sealed class MxenAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
