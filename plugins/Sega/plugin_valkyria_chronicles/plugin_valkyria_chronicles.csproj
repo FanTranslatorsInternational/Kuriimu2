@@ -80,6 +80,9 @@
     <Compile Include="HTEX\HTEX.cs" />
     <Compile Include="HTEX\HtexAdapter.cs" />
     <Compile Include="HTEX\HtexSupport.cs" />
+    <Compile Include="MLX0\Mlx0Support.cs" />
+    <Compile Include="MLX0\Mlx0Adapter.cs" />
+    <Compile Include="MLX0\MLX0.cs" />
     <Compile Include="MTPA\MTPA.cs" />
     <Compile Include="MTPA\MtpaAdapter.cs" />
     <Compile Include="MTPA\MtpaSupport.cs" />
@@ -91,6 +94,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
