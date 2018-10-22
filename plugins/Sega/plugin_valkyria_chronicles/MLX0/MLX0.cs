@@ -65,7 +65,7 @@ namespace plugin_valkyria_chronicles.MLX0
                 }
 
                 var index = 0;
-                var strings = new List<string>();
+                var names = new List<string>();
                 foreach (var list in _izcaChunkOffsets)
                     foreach (var offset in list)
                     {
@@ -78,20 +78,20 @@ namespace plugin_valkyria_chronicles.MLX0
                                 _mlx0PacketHeader = br.ReadStruct<PacketHeader>();
                                 _mlx0Data = br.ReadBytes(_mlx0PacketHeader.PacketSize);
                                 break;
-                            case "MXTL": // Image Names~
+                            case "MXTL": // Names
                                 _mxtlPacketHeader = br.ReadStruct<PacketHeader>();
                                 _mxtlData = br.ReadBytes(_mxtlPacketHeader.PacketSize);
                                 using (var mbr = new BinaryReaderX(new MemoryStream(_mxtlData)))
                                 {
-                                    mbr.ReadInt32(); // Unk1
+                                    mbr.ReadInt32(); // Always 0x1
                                     var stringBase = mbr.BaseStream.Position;
-                                    mbr.ReadInt32(); // Unk2
+                                    mbr.ReadInt32(); // Always 0x8
                                     var stringCount = mbr.ReadInt32();
                                     var stringMeta = mbr.ReadMultiple<MxtlChunk>(stringCount);
                                     foreach (var meta in stringMeta)
                                     {
                                         mbr.BaseStream.Position = stringBase + meta.Offset;
-                                        strings.Add(mbr.ReadCStringASCII());
+                                        names.Add(mbr.ReadCStringASCII());
                                     }
                                 }
                                 break;
@@ -103,18 +103,18 @@ namespace plugin_valkyria_chronicles.MLX0
                                 _mxtfPacketHeader = br.ReadStruct<PacketHeader>();
                                 _mxtfData = br.ReadBytes(_mxtfPacketHeader.PacketSize);
                                 break;
-                            case "HTSF":
+                            case "HTSF": // GIMs
                                 var htsfPacketHeader = br.ReadStruct<PacketHeader>();
                                 _htsfPacketHeaders.Add(htsfPacketHeader);
                                 var htsfHeader = br.ReadStruct<HtsfHeader>();
                                 _htsfHeaders.Add(htsfHeader);
-                                ImageStreams.Add((new MemoryStream(br.ReadBytes(htsfPacketHeader.PacketSize - Common.PacketHeaderXSize)), strings[index]));
+                                ImageStreams.Add((new MemoryStream(br.ReadBytes(htsfPacketHeader.PacketSize - Common.PacketHeaderXSize)), names[index]));
                                 index++;
                                 break;
                         }
                     }
 
-                // Footers
+                // Footer
                 _izcaFooter = br.ReadStruct<PacketHeader>();
             }
         }
