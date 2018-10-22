@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using Kanvas;
@@ -14,20 +13,35 @@ namespace plugin_sony_images.GIM
 {
     public sealed class RootBlock
     {
+        private GIMChunk _chunkHeader;
         public List<PictureBlock> PictureBlocks = new List<PictureBlock>();
+        public List<FileInfoBlock> FileInfoBlocks = new List<FileInfoBlock>();
+        private long _absoluteBlockPosition;
 
         public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
-                var absoluteBlockPosition = input.Position;
-                var chunkHeader = br.ReadStruct<GIMChunk>();
+                _absoluteBlockPosition = 0;
+                _chunkHeader = br.ReadStruct<GIMChunk>();
 
-                while (input.Position < input.Length)
+                while (input.Position < _absoluteBlockPosition + _chunkHeader.BlockSize && input.Position < input.Length)
                 {
-                    var pb = new PictureBlock();
-                    pb.Load(input);
-                    PictureBlocks.Add(pb);
+                    var blockID = (Blocks)br.PeekChar();
+
+                    switch (blockID)
+                    {
+                        case Blocks.Picture:
+                            var pb = new PictureBlock();
+                            pb.Load(input);
+                            PictureBlocks.Add(pb);
+                            break;
+                        case Blocks.FileInfo:
+                            var fi = new FileInfoBlock();
+                            fi.Load(input);
+                            FileInfoBlocks.Add(fi);
+                            break;
+                    }
                 }
             }
         }
@@ -43,26 +57,32 @@ namespace plugin_sony_images.GIM
             var pb = new PictureBlock();
             pb.Save(output, bmps);
 
+            foreach (var fi in FileInfoBlocks)
+                fi.Save(output);
+
             header.BlockSize = (int)(output.Length - headerOffset);
             output.Position = headerOffset;
 
-            using (var bw = new BinaryWriterX(output, true)) bw.WriteStruct(header);
+            using (var bw = new BinaryWriterX(output, true))
+                bw.WriteStruct(header);
             output.Position = output.Length;
         }
     }
 
     public sealed class PictureBlock
     {
+        private GIMChunk _chunkHeader;
         public List<ImageBlock> ImageBlocks = new List<ImageBlock>();
+        private long _absoluteBlockPosition;
 
         public void Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
-                var absoluteBlockPosition = input.Position;
-                var chunkHeader = br.ReadStruct<GIMChunk>();
+                _absoluteBlockPosition = input.Position;
+                _chunkHeader = br.ReadStruct<GIMChunk>();
 
-                while (input.Position < input.Length)
+                while (input.Position < _absoluteBlockPosition + _chunkHeader.BlockSize && input.Position < input.Length)
                 {
                     var ib = new ImageBlock();
                     ib.Load(input);
@@ -271,6 +291,36 @@ namespace plugin_sony_images.GIM
         }
     }
 
+    public sealed class FileInfoBlock
+    {
+        private GIMChunk _chunkHeader;
+        public List<string> FileInfoData = new List<string>();
+        private byte[] _bytes;
+        private long _absoluteBlockPosition;
+
+        public void Load(Stream input)
+        {
+            using (var br = new BinaryReaderX(input, true))
+            {
+                _absoluteBlockPosition = input.Position;
+                _chunkHeader = br.ReadStruct<GIMChunk>();
+
+                // TODO: Implement support for the FileInfo strings as well as these truncated blocks
+                _bytes = br.ReadBytes(_chunkHeader.BlockSize - _chunkHeader.BlockDataOffset);
+            }
+        }
+
+        public void Save(Stream output)
+        {
+            // TODO: Implement support for the FileInfo strings as well as these truncated blocks
+            using (var bw = new BinaryWriterX(output, true))
+            {
+                bw.WriteStruct(_chunkHeader);
+                bw.Write(_bytes);
+            }
+        }
+    }
+
     public sealed class ImageBlockMeta
     {
         public short MetaLength = 0x30;
@@ -297,6 +347,15 @@ namespace plugin_sony_images.GIM
 
         [FixedLength(0xC)]
         public byte[] Padding = new byte[0xC];
+    }
+
+    public enum Blocks : short
+    {
+        Root = 0x02,
+        Picture = 0x03,
+        Image = 0x04,
+        Palette = 0x05,
+        FileInfo = 0xFF
     }
 
     public enum ImageFormat : short
