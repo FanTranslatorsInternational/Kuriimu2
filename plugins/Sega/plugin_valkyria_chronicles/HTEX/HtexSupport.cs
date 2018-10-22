@@ -11,5 +11,4 @@
         public int Unk6;
         public int Unk7;
     }
-
 }

@@ -41,8 +41,8 @@ namespace plugin_valkyria_chronicles.HTEX
                 var bytes = br.ReadBytes(_htsfPacketHeader.DataSize - Common.PacketHeaderXSize);
                 ImageStream = new MemoryStream(bytes);
 
-                if (input is FileStream stream && !File.Exists(Path.ChangeExtension(stream.Name, "gim")))
-                    File.WriteAllBytes(Path.ChangeExtension(stream.Name, "gim"), bytes);
+                //if (input is FileStream stream && !File.Exists(Path.ChangeExtension(stream.Name, "gim")))
+                //    File.WriteAllBytes(Path.ChangeExtension(stream.Name, "gim"), bytes);
 
                 // Footers
                 _htsfFooter = br.ReadStruct<PacketHeaderX>();
