@@ -81,15 +81,18 @@ namespace plugin_valkyria_chronicles.MLX0
                             case "MXTL": // Image Names~
                                 _mxtlPacketHeader = br.ReadStruct<PacketHeader>();
                                 _mxtlData = br.ReadBytes(_mxtlPacketHeader.PacketSize);
-                                br.ReadInt32(); // Unk1
-                                var stringStart = br.BaseStream.Position;
-                                br.ReadInt32(); // Unk2
-                                var stringCount = br.ReadInt32();
-                                var stringMeta = br.ReadMultiple<MxtlChunk>(stringCount);
-                                foreach (var meta in stringMeta)
+                                using (var mbr = new BinaryReaderX(new MemoryStream(_mxtlData)))
                                 {
-                                    br.BaseStream.Position = stringStart + meta.Offset;
-                                    strings.Add(br.ReadCStringASCII());
+                                    mbr.ReadInt32(); // Unk1
+                                    var stringBase = mbr.BaseStream.Position;
+                                    mbr.ReadInt32(); // Unk2
+                                    var stringCount = mbr.ReadInt32();
+                                    var stringMeta = mbr.ReadMultiple<MxtlChunk>(stringCount);
+                                    foreach (var meta in stringMeta)
+                                    {
+                                        mbr.BaseStream.Position = stringBase + meta.Offset;
+                                        strings.Add(mbr.ReadCStringASCII());
+                                    }
                                 }
                                 break;
                             case "HSPR":
