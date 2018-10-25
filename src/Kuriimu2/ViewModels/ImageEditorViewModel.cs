@@ -35,7 +35,7 @@ namespace Kuriimu2.ViewModels
             set
             {
                 _selectedBitmapInfo = value;
-                SelectedTexture = _selectedBitmapInfo.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+                SelectedTexture = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }
@@ -54,7 +54,7 @@ namespace Kuriimu2.ViewModels
 
         public int ImageBorderThickness => 1;
 
-        public string ImageCount => Bitmaps.Count + (Bitmaps.Count > 1 ? " Bitmaps" : " Bitmap");
+        public string ImageCount => (Bitmaps?.Count  ?? 0) + ((Bitmaps?.Count  ?? 0) != 1 ? " Bitmaps" : " Bitmap");
 
         // Constructor
         public ImageEditorViewModel(KoreFileInfo koreFile)
@@ -64,10 +64,10 @@ namespace Kuriimu2.ViewModels
             DisplayName = KoreFile.DisplayName.Replace("_", "__");
             _adapter = KoreFile.Adapter as IImageAdapter;
 
-            if (_adapter != null)
+            if (_adapter != null && _adapter.BitmapInfos != null)
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
-            SelectedBitmap = Bitmaps.First();
+            SelectedBitmap = Bitmaps?.First();
         }
 
         public void ImageProperties()
