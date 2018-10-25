@@ -27,5 +27,14 @@ namespace Kore
                 return pi != null && pei != null ? $"{pi.Name} ({pei.Extension})|{pei.Extension}" : "";
             }
         }
+
+        public string Extension
+        {
+            get
+            {
+                var pei = (PluginExtensionInfoAttribute)Adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute));
+                return pei != null ? $"{pei.Extension.TrimStart('*')}" : "";
+            }
+        }
     }
 }

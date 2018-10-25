@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using Kontract.Attributes;
 using Kontract.Interfaces;
 
@@ -21,7 +22,11 @@ namespace Kore.SamplePlugins
 
         #region Properties
 
-        public IEnumerable<TextEntry> Entries => _kup?.Entries;
+        public IEnumerable<TextEntry> Entries
+        {
+            get => _kup?.Entries;
+            set => _kup.Entries = value.ToList();
+        }
 
         public string NameFilter => @".*";
         public int NameMaxLength => 0;

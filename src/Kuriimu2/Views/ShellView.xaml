@@ -59,9 +59,16 @@
                     </StackPanel>
                 </Button>
             </ToolBar>
+            <ToolBar Name="TextEditorTools" Visibility="{Binding TextEditorToolsVisible}">
+                <Button Name="TextEditorExportFile">
+                    <StackPanel>
+                        <Image Source="/Images/menu-export-image.png"></Image>
+                    </StackPanel>
+                </Button>
+            </ToolBar>
         </ToolBarTray>
 
-        <TabControl Name="Items" Padding="4" Background="White">
+        <TabControl Name="Items" Padding="4" Background="White" cal:Message.Attach="[Event SelectionChanged] = [Action TabChanged($eventArgs)]">
             <TabControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Margin="0, 0, 0, 0">

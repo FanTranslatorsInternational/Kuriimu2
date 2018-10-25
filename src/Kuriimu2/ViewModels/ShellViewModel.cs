@@ -1,8 +1,12 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
+using Kore.SamplePlugins;
 using Kuriimu2.Interface;
 using Microsoft.Win32;
 
@@ -74,6 +78,39 @@ namespace Kuriimu2.ViewModels
         public void DebugButton()
         {
             _kore.Debug();
+        }
+
+        // Toolbars
+        public Visibility TextEditorToolsVisible => ActiveItem is TextEditor2ViewModel ? Visibility.Visible : Visibility.Hidden;
+
+        public void TextEditorExportFile()
+        {
+            // TODO: Introduce a way to select from a list of ITextAdapter + ICreateFiles.
+            var editor = (IFileEditor)ActiveItem;
+            if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
+
+            var kup = new KupAdapter();
+            kup.Create();
+            kup.Entries = adapter.Entries.Select(entry => new TextEntry
+            {
+                Name = entry.Name,
+                EditedText = entry.EditedText,
+                OriginalText = entry.OriginalText.Length == 0 ? entry.EditedText : entry.OriginalText,
+                MaxLength = entry.MaxLength
+            });
+
+            var kfi = new KoreFileInfo { Adapter = kup };
+
+            var sfd = new SaveFileDialog { FileName = editor.KoreFile.FileInfo.Name + kfi.Extension, Filter = kfi.Filter };
+            if (sfd.ShowDialog() != true) return;
+
+            kup.Save(sfd.FileName);
+        }
+
+        // Tabs
+        public void TabChanged(SelectionChangedEventArgs args)
+        {
+            NotifyOfPropertyChange(() => TextEditorToolsVisible);
         }
 
         public void CloseTab(IScreen tab)
