@@ -90,6 +90,9 @@
     <Compile Include="MXEN\MxenSupport.cs" />
     <Compile Include="MXEN\MXEN.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SFNT\SFNT.cs" />
+    <Compile Include="SFNT\SfntAdapter.cs" />
+    <Compile Include="SFNT\SfntSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
