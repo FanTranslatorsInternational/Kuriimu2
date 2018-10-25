@@ -54,11 +54,13 @@ namespace plugin_valkyria_chronicles.MLX0
             {
                 var gim = new GimAdapter();
                 gim.Load(item.Image);
-                gim.BitmapInfos[0].Name = index + " " + item.Name.Replace("_", "__");
+                foreach (var bi in gim.BitmapInfos)
+                {
+                    bi.Name = index + " " + item.Name.Replace("_", "__");
+                    BitmapInfos.Add(bi);
+                    index++;
+                }
                 _gims.Add(gim);
-                index++;
-
-                BitmapInfos.Add(gim.BitmapInfos[0]);
             }
         }
 
