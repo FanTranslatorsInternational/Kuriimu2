@@ -64,22 +64,23 @@ namespace plugin_valkyria_chronicles.SFNT
                 // Images
                 foreach (var block in _imageBlocks)
                 {
-                    const int bitDepth = 4;
+                    const int bitDepth = 2;
+                    const int pixelsPerByte = 8 / bitDepth;
+                    const int width = 16;
                     switch (block.Header.Magic)
                     {
                         case "MFNT":
-                            // Temporary until we get NibbleOrder in Kanvas
-                            var bmp = new Bitmap(bitDepth * 2, block.Data.Length / bitDepth);
+                            // Temporary until we get support for 2bpp and BitDepthOrder in Kanvas
+                            var bmp = new Bitmap(width, block.Data.Length * pixelsPerByte / width);
                             int x = 0, y = 0;
 
                             foreach (var b in block.Data)
                             {
-                                // HighNibbleFirst
-                                var l = Helper.ChangeBitDepth(b >> 4, 4, 8);
-                                bmp.SetPixel(x, y, Color.FromArgb(255, l, l, l));
-                                l = Helper.ChangeBitDepth(b & 0xF, 4, 8);
-                                bmp.SetPixel(x + 1, y, Color.FromArgb(255, l, l, l));
-                                x += 2;
+                                for (var i = 0; i < pixelsPerByte; i++)
+                                {
+                                    var l = Helper.ChangeBitDepth((b >> 6 - bitDepth * i) & 0x3, bitDepth, 8);
+                                    bmp.SetPixel(x++, y, Color.FromArgb(255, l, l, l));
+                                }
 
                                 if (x != bmp.Width) continue;
                                 x = 0;
