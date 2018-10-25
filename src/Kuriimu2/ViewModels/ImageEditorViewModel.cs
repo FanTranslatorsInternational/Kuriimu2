@@ -134,7 +134,7 @@ namespace Kuriimu2.ViewModels
             {
                 Title = "Export PNG",
                 FileName = KoreFile.FileInfo.Name + ".png",
-                Filter = "Portable Network Graphics (*.png)|.png"
+                Filter = "Portable Network Graphics (*.png)|*.png"
             };
 
             if ((bool)sfd.ShowDialog())
