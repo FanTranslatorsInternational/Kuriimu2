@@ -61,11 +61,6 @@
                 <ToolBarPanel DockPanel.Dock="Top">
                     <ToolBar ToolBarTray.IsLocked="True">
                         <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
-                        <Button Name="AddEntry">
-                            <StackPanel Orientation="Horizontal">
-                                <Image Source="pack://application:,,,/Kuriimu;component/Images/menu-add.png" />
-                            </StackPanel>
-                        </Button>
                     </ToolBar>
                 </ToolBarPanel>
                 <DataGrid ItemsSource="{Binding Entries}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">

@@ -62,7 +62,12 @@
             <ToolBar Name="TextEditorTools" Visibility="{Binding TextEditorToolsVisible}">
                 <Button Name="TextEditorExportFile">
                     <StackPanel>
-                        <Image Source="/Images/menu-export-image.png"></Image>
+                        <Image Source="/Images/export-text.png" Width="16"></Image>
+                    </StackPanel>
+                </Button>
+                <Button Name="TextEditorImportFile">
+                    <StackPanel>
+                        <Image Source="/Images/import-text.png" Width="16"></Image>
                     </StackPanel>
                 </Button>
             </ToolBar>

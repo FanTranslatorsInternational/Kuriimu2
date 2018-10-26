@@ -12,7 +12,7 @@ using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interface;
+using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
 
 namespace Kuriimu2.ViewModels

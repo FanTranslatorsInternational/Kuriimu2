@@ -11,7 +11,7 @@ using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interface;
+using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
 using Microsoft.Win32;
 
@@ -27,7 +27,7 @@ namespace Kuriimu2.ViewModels
         private ImageSource _selectedTexture;
 
         public KoreFileInfo KoreFile { get; }
-        public ObservableCollection<BitmapEntry> Bitmaps { get; private set; }
+        public ObservableCollection<BitmapEntry> Bitmaps { get; }
 
         public BitmapEntry SelectedBitmap
         {
@@ -39,8 +39,6 @@ namespace Kuriimu2.ViewModels
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }
-
-        public override string DisplayName => KoreFile?.DisplayName;
 
         public ImageSource SelectedTexture
         {
@@ -56,15 +54,16 @@ namespace Kuriimu2.ViewModels
 
         public string ImageCount => (Bitmaps?.Count  ?? 0) + ((Bitmaps?.Count  ?? 0) != 1 ? " Bitmaps" : " Bitmap");
 
+        public override string DisplayName => KoreFile?.DisplayName.Replace("_", "__");
+
         // Constructor
         public ImageEditorViewModel(KoreFileInfo koreFile)
         {
             KoreFile = koreFile;
 
-            DisplayName = KoreFile.DisplayName.Replace("_", "__");
             _adapter = KoreFile.Adapter as IImageAdapter;
 
-            if (_adapter != null && _adapter.BitmapInfos != null)
+            if (_adapter?.BitmapInfos != null)
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
             SelectedBitmap = Bitmaps?.First();

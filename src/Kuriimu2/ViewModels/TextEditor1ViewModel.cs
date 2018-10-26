@@ -5,11 +5,11 @@ using System.Linq;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
-using Kuriimu2.Interface;
+using Kuriimu2.Interfaces;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor1ViewModel : Screen, IFileEditor
+    public sealed class TextEditor1ViewModel : Screen, IFileEditor, ITextEditor
     {
         private ITextAdapter _adapter;
 
@@ -55,11 +55,13 @@ namespace Kuriimu2.ViewModels
 
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
+        public override string DisplayName => KoreFile?.DisplayName.Replace("_", "__");
+
         public void AddEntry()
         {
             //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-            NotifyOfPropertyChange(nameof(EntryCount));
-            NotifyOfPropertyChange(nameof(Entries));
+            //NotifyOfPropertyChange(nameof(EntryCount));
+            //NotifyOfPropertyChange(nameof(Entries));
         }
 
         public void Save(string filename = "")
