@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Xml.Serialization;
 
 namespace Kontract.Interfaces
@@ -93,34 +94,78 @@ namespace Kontract.Interfaces
         bool ShowEntryProperties(TextEntry entry);
     }
 
+    /// <inheritdoc />
     /// <summary>
     /// The base text entry class.
     /// </summary>
-    public class TextEntry
+    public class TextEntry : INotifyPropertyChanged
     {
+        /// <inheritdoc />
+        /// <summary>
+        /// The event handler for properties being changed.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private string _name = string.Empty;
+        private string _originalText = string.Empty;
+        private string _editedText = string.Empty;
+        private string _notes = string.Empty;
+
         /// <summary>
         /// The entry's name.
         /// </summary>
         [XmlAttribute("name")]
-        public virtual string Name { get; set; } = string.Empty;
+        public virtual string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                NotifyPropertyChanged(nameof(Name));
+            }
+        }
 
         /// <summary>
         /// Stores the original text for the entry.
         /// </summary>
         [XmlElement("original")]
-        public virtual string OriginalText { get; set; } = string.Empty;
+        public virtual string OriginalText
+        {
+            get => _originalText;
+            set
+            {
+                _originalText = value;
+                NotifyPropertyChanged(nameof(OriginalText));
+            }
+        }
 
         /// <summary>
         /// Stores the edited text for the entry.
         /// </summary>
         [XmlElement("edited")]
-        public virtual string EditedText { get; set; } = string.Empty;
+        public virtual string EditedText
+        {
+            get => _editedText;
+            set
+            {
+                _editedText = value;
+                NotifyPropertyChanged(nameof(EditedText));
+            }
+        }
 
         /// <summary>
         /// Stores the note text for the entry.
         /// </summary>
         [XmlElement("notes")]
-        public virtual string Notes { get; set; } = string.Empty;
+        public virtual string Notes
+        {
+            get => _notes;
+            set
+            {
+                _notes = value;
+                NotifyPropertyChanged(nameof(Notes));
+            }
+        }
 
         /// <summary>
         /// Limits the allowed text length that the entry can contain.
@@ -134,5 +179,14 @@ namespace Kontract.Interfaces
         /// </summary>
         [XmlIgnore]
         public virtual bool CanEdit { get; } = true;
+
+        /// <summary>
+        /// Allows the properties to notify the UI when their values have changed.
+        /// </summary>
+        /// <param name="propName">The name of the property that was changed.</param>
+        public void NotifyPropertyChanged(string propName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+        }
     }
 }
