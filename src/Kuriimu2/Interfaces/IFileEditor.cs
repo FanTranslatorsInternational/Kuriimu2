@@ -1,6 +1,6 @@
 ﻿using Kore;
 
-namespace Kuriimu2.Interface
+namespace Kuriimu2.Interfaces
 {
     /// <summary>
     /// This is the UI editor interface for simplifying usage of editor controls.
