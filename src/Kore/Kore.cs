@@ -139,8 +139,9 @@ namespace Kore
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
+        /// <param name="tempOpen"></param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename)
+        public KoreFileInfo LoadFile(string filename, bool tempOpen = false)
         {
             var adapter = SelectAdapter(filename);
 
@@ -186,7 +187,8 @@ namespace Kore
                 Adapter = adapter
             };
 
-            OpenFiles.Add(kfi);
+            if (!tempOpen)
+                OpenFiles.Add(kfi);
 
             return kfi;
         }
@@ -236,7 +238,7 @@ namespace Kore
         }
 
         /// <summary>
-        /// Provides a complete set of supported file format names and extensions for open file dialogs.
+        /// Provides a complete set of file format names and extensions for open file dialogs.
         /// </summary>
         public string FileFilters
         {
@@ -254,6 +256,27 @@ namespace Kore
 
                 return string.Join("|", allTypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
             }
+        }
+
+        /// <summary>
+        /// Provides a limited set of file format names and extensions for open file dialogs.
+        /// </summary>
+        /// <typeparam name="T">The plugin interface to load extensions for.</typeparam>
+        /// <returns></returns>
+        public string FileFiltersByType<T>(string allSupportedFiles = "", bool includeAllFiles = false)
+        {
+            // Add all of the adapter filters
+            var allTypes = _fileAdapters.Where(x => x is T).Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+
+            // Add the special all supported files filter
+            if (allTypes.Count > 0 && allSupportedFiles.Length > 0)
+                allTypes.Insert(0, new { Name = allSupportedFiles, Extension = string.Join(";", allTypes.Select(x => x.Extension).Distinct()) });
+
+            // Add the special all files filter
+            if (includeAllFiles)
+                allTypes.Add(new { Name = "All Files", Extension = "*.*" });
+
+            return string.Join("|", allTypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
         }
 
         public void Debug()
