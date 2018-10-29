@@ -1,11 +1,11 @@
 ﻿using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kore;
 using Kore.SamplePlugins;
+using Kore.Utilities;
 using Kuriimu2.Interfaces;
 using Microsoft.Win32;
 
@@ -106,7 +106,7 @@ namespace Kuriimu2.ViewModels
             var ofd = new OpenFileDialog { Filter = _kore.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
             if (ofd.ShowDialog() != true) return;
 
-            editor.KoreFile.HasChanges = Kore.Utilities.Text.ImportFile(_kore, adapter, ofd.FileName);
+            editor.KoreFile.HasChanges = _kore.ImportFile(adapter, ofd.FileName);
         }
 
         // Tabs

@@ -31,7 +31,7 @@ namespace Kore.Utilities
         /// <param name="kore">An instance of kore that will be used to load the input file.</param>
         /// <param name="adapter">The adapter that will be imported into.</param>
         /// <param name="inputFileName">The input file to be imported from.</param>
-        public static bool ImportFile(Kore kore, ITextAdapter adapter, string inputFileName)
+        public static bool ImportFile(this Kore kore, ITextAdapter adapter, string inputFileName)
         {
             var result = false;
 
