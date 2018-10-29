@@ -46,8 +46,6 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public override string DisplayName => KoreFile?.DisplayName.Replace("_", "__");
-
         public int SelectedCharacterGlyphX
         {
             get => SelectedCharacter?.GlyphX ?? 0;

@@ -121,7 +121,7 @@ namespace Kontract.Interfaces
             set
             {
                 _name = value;
-                NotifyPropertyChanged(nameof(Name));
+                OnPropertyChanged(nameof(Name));
             }
         }
 
@@ -135,7 +135,7 @@ namespace Kontract.Interfaces
             set
             {
                 _originalText = value;
-                NotifyPropertyChanged(nameof(OriginalText));
+                OnPropertyChanged(nameof(OriginalText));
             }
         }
 
@@ -149,7 +149,7 @@ namespace Kontract.Interfaces
             set
             {
                 _editedText = value;
-                NotifyPropertyChanged(nameof(EditedText));
+                OnPropertyChanged(nameof(EditedText));
             }
         }
 
@@ -163,7 +163,7 @@ namespace Kontract.Interfaces
             set
             {
                 _notes = value;
-                NotifyPropertyChanged(nameof(Notes));
+                OnPropertyChanged(nameof(Notes));
             }
         }
 
@@ -183,10 +183,10 @@ namespace Kontract.Interfaces
         /// <summary>
         /// Allows the properties to notify the UI when their values have changed.
         /// </summary>
-        /// <param name="propName">The name of the property that was changed.</param>
-        public void NotifyPropertyChanged(string propName)
+        /// <param name="propertyName">The name of the property that was changed.</param>
+        public void OnPropertyChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

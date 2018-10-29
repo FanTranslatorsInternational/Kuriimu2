@@ -5,8 +5,6 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Windows;
 using Kontract.Attributes;
 using Kontract.Interfaces;
 
@@ -15,7 +13,7 @@ namespace Kore
     /// <summary>
     /// Kore is the main brain library of Kuriimu. It performs all of the important and UI agnostic functions of Kuriimu.
     /// </summary>
-    public sealed class Kore
+    public sealed class Kore : IDisposable
     {
         /// <summary>
         /// Stores the currently loaded MEF plugins.
@@ -60,17 +58,18 @@ namespace Kore
         /// <summary>
         /// The list of currently open files being tracked by Kore.
         /// </summary>
-        public List<KoreFileInfo> OpenFiles { get; }
+        public List<KoreFileInfo> OpenFiles { get; } = new List<KoreFileInfo>();
 
         /// <summary>
         /// Provides an event that the UI can handle to present a plugin list to the user.
         /// </summary>
         public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
 
+        /// <inheritdoc />
         /// <summary>
         /// Allows the UI to display a list of blind plugins and to return one selected by the user.
         /// </summary>
-        public class IdentificationFailedEventArgs
+        public class IdentificationFailedEventArgs : EventArgs
         {
             public List<ILoadFiles> BlindAdapters;
             public ILoadFiles SelectedAdapter = null;
@@ -82,7 +81,6 @@ namespace Kore
         public Kore()
         {
             ComposePlugins();
-            OpenFiles = new List<KoreFileInfo>();
         }
 
         /// <summary>
@@ -93,7 +91,6 @@ namespace Kore
         {
             _pluginDirectory = pluginDirectory;
             ComposePlugins();
-            OpenFiles = new List<KoreFileInfo>();
         }
 
         /// <summary>
@@ -262,6 +259,8 @@ namespace Kore
         /// Provides a limited set of file format names and extensions for open file dialogs.
         /// </summary>
         /// <typeparam name="T">The plugin interface to load extensions for.</typeparam>
+        /// <param name="allSupportedFiles">Sets the string shown for the combined format filter.</param>
+        /// <param name="includeAllFiles">Determines whether or not to include the "All Files" filter.</param>
         /// <returns></returns>
         public string FileFiltersByType<T>(string allSupportedFiles = "", bool includeAllFiles = false)
         {
@@ -279,28 +278,41 @@ namespace Kore
             return string.Join("|", allTypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
         }
 
-        public void Debug()
+        /// <inheritdoc />
+        /// <summary>
+        /// Shuts down Kore and closes all plugins and open files.
+        /// </summary>
+        public void Dispose()
         {
-            var sb = new StringBuilder();
+            _container?.Dispose();
 
-            foreach (var adapter in _fileAdapters)
-            {
-                var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute)) as PluginInfoAttribute;
-                var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute)) as PluginExtensionInfoAttribute;
+            foreach (var kfi in OpenFiles.Select(f => f))
+                CloseFile(kfi);
+        }
 
-                sb.AppendLine($"ID: {pluginInfo?.ID}");
-                sb.AppendLine($"Name: {pluginInfo?.Name}");
-                sb.AppendLine($"Short Name: {pluginInfo?.ShortName}");
-                sb.AppendLine($"Author: {pluginInfo?.Author}");
-                sb.AppendLine($"About: {pluginInfo?.About}");
-                sb.AppendLine($"Extension(s): {extInfo?.Extension}");
-                sb.AppendLine($"Identify: {adapter is IIdentifyFiles}");
-                sb.AppendLine($"Load: {adapter is ILoadFiles}");
-                sb.AppendLine($"Save: {adapter is ISaveFiles}");
-                sb.AppendLine("");
-            }
+        public List<ILoadFiles> Debug()
+        {
+            return _fileAdapters;
+            //var sb = new StringBuilder();
 
-            MessageBox.Show(sb.ToString(), "Plugin Information");
+            //foreach (var adapter in _fileAdapters)
+            //{
+            //    var pluginInfo = adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute)) as PluginInfoAttribute;
+            //    var extInfo = adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute)) as PluginExtensionInfoAttribute;
+
+            //    sb.AppendLine($"ID: {pluginInfo?.ID}");
+            //    sb.AppendLine($"Name: {pluginInfo?.Name}");
+            //    sb.AppendLine($"Short Name: {pluginInfo?.ShortName}");
+            //    sb.AppendLine($"Author: {pluginInfo?.Author}");
+            //    sb.AppendLine($"About: {pluginInfo?.About}");
+            //    sb.AppendLine($"Extension(s): {extInfo?.Extension}");
+            //    sb.AppendLine($"Identify: {adapter is IIdentifyFiles}");
+            //    sb.AppendLine($"Load: {adapter is ILoadFiles}");
+            //    sb.AppendLine($"Save: {adapter is ISaveFiles}");
+            //    sb.AppendLine("");
+            //}
+
+            //MessageBox.Show(sb.ToString(), "Plugin Information");
         }
     }
 }

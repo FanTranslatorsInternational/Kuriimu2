@@ -78,7 +78,7 @@
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" Margin="0, 0, 0, 0">
                         <Image Source="/Images/text-editor-1.png" Height="16" Width="16" />
-                        <Label Content="{Binding DisplayName}" Margin="2, 0, 2, 0" />
+                        <Label Content="{Binding KoreFile.DisplayName}" Margin="2, 0, 2, 0" />
                         <Button Content="✖" cal:Message.Attach="CloseTab($dataContext)" Foreground="Black" Width="22" Height="22" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"/>
                     </StackPanel>
                 </DataTemplate>

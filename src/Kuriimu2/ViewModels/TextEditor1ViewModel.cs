@@ -18,6 +18,7 @@ namespace Kuriimu2.ViewModels
 
         private TextEntry _selectedEntry;
 
+        // Constructor
         public TextEditor1ViewModel(KoreFileInfo koreFile)
         {
             KoreFile = koreFile;
@@ -54,8 +55,6 @@ namespace Kuriimu2.ViewModels
         }
 
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
-
-        public override string DisplayName => KoreFile?.DisplayName.Replace("_", "__");
 
         public void AddEntry()
         {

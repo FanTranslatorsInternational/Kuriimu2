@@ -76,7 +76,7 @@ namespace Kuriimu2.ViewModels
 
         public void DebugButton()
         {
-            _kore.Debug();
+            //_kore.Debug();
         }
 
         // Toolbars
@@ -88,43 +88,27 @@ namespace Kuriimu2.ViewModels
             var editor = (IFileEditor)ActiveItem;
             if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
 
-            var kup = new KupAdapter();
-            var kfi = new KoreFileInfo { Adapter = kup };
-
-            var sfd = new SaveFileDialog { FileName = editor.KoreFile.FileInfo.Name + kfi.Extension, Filter = kfi.Filter };
+            var sfd = new SaveFileDialog
+            {
+                FileName = editor.KoreFile.FileInfo.Name + Kore.Utilities.Common.GetAdapterExtension<KupAdapter>(),
+                Filter = Kore.Utilities.Common.GetAdapterFilter<KupAdapter>()
+            };
             if (sfd.ShowDialog() != true) return;
 
-            kup.Create();
-            kup.Entries = adapter.Entries.Select(entry => new TextEntry
-            {
-                Name = entry.Name,
-                EditedText = entry.EditedText,
-                OriginalText = entry.OriginalText.Length == 0 ? entry.EditedText : entry.OriginalText,
-                MaxLength = entry.MaxLength
-            });
-            kup.Save(sfd.FileName);
+            Kore.Utilities.Text.ExportKup(adapter, sfd.FileName);
         }
 
         public void TextEditorImportFile()
         {
-            var fEditor = (IFileEditor)ActiveItem;
-            if (!(fEditor.KoreFile.Adapter is ITextAdapter)) return;
+            var editor = (IFileEditor)ActiveItem;
+            if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
 
             var ofd = new OpenFileDialog { Filter = _kore.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
             if (ofd.ShowDialog() != true) return;
 
-            var kfi = _kore.LoadFile(ofd.FileName, true);
-            if (!(kfi.Adapter is ITextAdapter adapter)) return;
-
-            var tEditor = (ITextEditor) ActiveItem;
-            foreach (var entry in adapter.Entries)
-            {
-                var ent = tEditor.Entries.FirstOrDefault(e => e.Name == entry.Name);
-                if (ent != null)
-                    ent.EditedText = entry.EditedText;
-            }
-
-            fEditor.KoreFile.HasChanges = true;
+            if (!Kore.Utilities.Text.ImportFile(_kore, adapter, ofd.FileName)) return;
+            editor.KoreFile.HasChanges = true;
+            editor.Update();
         }
 
         // Tabs

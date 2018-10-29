@@ -54,8 +54,6 @@ namespace Kuriimu2.ViewModels
 
         public string ImageCount => (Bitmaps?.Count  ?? 0) + ((Bitmaps?.Count  ?? 0) != 1 ? " Bitmaps" : " Bitmap");
 
-        public override string DisplayName => KoreFile?.DisplayName.Replace("_", "__");
-
         // Constructor
         public ImageEditorViewModel(KoreFileInfo koreFile)
         {

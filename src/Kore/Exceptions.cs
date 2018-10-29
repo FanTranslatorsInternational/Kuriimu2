@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Kore
 {
+    /// <inheritdoc />
     /// <summary>
     /// Exception thrown by the LoadFile function of Kore.
     /// </summary>
