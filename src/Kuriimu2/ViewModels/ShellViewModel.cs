@@ -106,9 +106,7 @@ namespace Kuriimu2.ViewModels
             var ofd = new OpenFileDialog { Filter = _kore.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
             if (ofd.ShowDialog() != true) return;
 
-            if (!Kore.Utilities.Text.ImportFile(_kore, adapter, ofd.FileName)) return;
-            editor.KoreFile.HasChanges = true;
-            editor.Update();
+            editor.KoreFile.HasChanges = Kore.Utilities.Text.ImportFile(_kore, adapter, ofd.FileName);
         }
 
         // Tabs
