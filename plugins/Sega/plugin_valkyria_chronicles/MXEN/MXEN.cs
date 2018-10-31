@@ -28,7 +28,7 @@ namespace plugin_valkyria_chronicles.MXEN
         private byte _xorKey = 0x00;
 
         private List<Table1Metadata> _table1Metadata;
-        private List<Table1Object> _table1Entries;
+        private List<Table1Object> _table1Objects;
         private List<Table1TextEntry> _textEntries;
         private Dictionary<int, string> _editableTexts;
 
@@ -101,19 +101,19 @@ namespace plugin_valkyria_chronicles.MXEN
 
                 // Table1 Metadata
                 _table1Metadata = bbr.ReadMultiple<Table1Metadata>(_mxecHeader.Table1Count);
-                _table1Entries = new List<Table1Object>();
+                _table1Objects = new List<Table1Object>();
 
                 // Table1
                 foreach (var metadata in _table1Metadata)
                 {
-                    var entry = new Table1Object { Metadata = metadata };
-                    _table1Entries.Add(entry);
+                    var obj = new Table1Object { Metadata = metadata };
+                    _table1Objects.Add(obj);
 
                     bbr.BaseStream.Position = metadata.TypeOffset - Common.PacketHeaderXSize;
-                    entry.Type = bbr.ReadCStringSJIS();
+                    obj.Type = bbr.ReadCStringSJIS();
 
                     bbr.BaseStream.Position = metadata.DataOffset - Common.PacketHeaderXSize;
-                    entry.Data = bbr.ReadBytes(metadata.DataSize);
+                    obj.Data = bbr.ReadBytes(metadata.DataSize);
                 }
 
                 bbr.SeekAlignment();
@@ -138,7 +138,7 @@ namespace plugin_valkyria_chronicles.MXEN
                 bbr.SeekAlignment();
 
                 _editableTexts = new Dictionary<int, string>();
-                foreach (var entry in _table1Entries)
+                foreach (var entry in _table1Objects)
                 {
                     entry.TypeIndex = _textEntries.IndexOf(_textEntries.FirstOrDefault(t => t.Offset == entry.Metadata.TypeOffset - Common.PacketHeaderXSize));
 
@@ -165,15 +165,18 @@ namespace plugin_valkyria_chronicles.MXEN
                     }
                 }
 
+                var id = 1;
                 foreach (var entry in _textEntries)
                 {
-                    if (_editableTexts.ContainsKey(entry.Offset))
-                        Entries.Add(new TextEntry
-                        {
-                            Name = entry.Offset.ToString(),
-                            EditedText = entry.Text,
-                            Notes = _editableTexts[entry.Offset]
-                        });
+                    if (!_editableTexts.ContainsKey(entry.Offset)) continue;
+                    entry.ID = id;
+                    Entries.Add(new TextEntry
+                    {
+                        Name = entry.ID.ToString(),
+                        EditedText = entry.Text,
+                        Notes = _editableTexts[entry.Offset]
+                    });
+                    id++;
                 }
 
                 // Reset Stream
@@ -218,11 +221,11 @@ namespace plugin_valkyria_chronicles.MXEN
                     // Skip Table1Metadata
                     ms.Position += sizeof(int) * 4 * _table1Metadata.Count;
 
-                    // Skip Table1Entries
-                    foreach (var entry in _table1Entries)
+                    // Skip Table1Objects
+                    foreach (var obj in _table1Objects)
                     {
-                        if (entry.Metadata.DataOffset + entry.Data.Length > ms.Position)
-                            ms.Position = entry.Metadata.DataOffset + entry.Data.Length - Common.PacketHeaderXSize;
+                        if (obj.Metadata.DataOffset + obj.Data.Length > ms.Position)
+                            ms.Position = obj.Metadata.DataOffset + obj.Data.Length - Common.PacketHeaderXSize;
                     }
 
                     bbw.WriteAlignment();
@@ -230,7 +233,7 @@ namespace plugin_valkyria_chronicles.MXEN
                     // Write Texts
                     foreach (var entry in _textEntries)
                     {
-                        entry.Text = Entries.FirstOrDefault(e => e.Name == entry.Offset.ToString())?.EditedText ?? entry.Text;
+                        entry.Text = Entries.FirstOrDefault(e => e.Name == entry.ID.ToString())?.EditedText ?? entry.Text;
                         entry.Offset = (int)bbw.BaseStream.Position;
                         bbw.Write(Encoding.GetEncoding("Shift-JIS").GetBytes(entry.Text));
                         bbw.Write((byte)0x0);
@@ -246,7 +249,7 @@ namespace plugin_valkyria_chronicles.MXEN
                     bbw.WriteStruct(_mxecHeader);
 
                     // Update All Text Pointers
-                    foreach (var entry in _table1Entries)
+                    foreach (var entry in _table1Objects)
                     {
                         entry.Metadata.TypeOffset = _textEntries[entry.TypeIndex].Offset + Common.PacketHeaderXSize;
 
@@ -261,11 +264,11 @@ namespace plugin_valkyria_chronicles.MXEN
                     // Write Table1Metadata
                     bbw.WriteMultiple(_table1Metadata);
 
-                    // Write Table1Entries
-                    foreach (var entry in _table1Entries)
+                    // Write Table1Objects
+                    foreach (var obj in _table1Objects)
                     {
-                        bbw.BaseStream.Position = entry.Metadata.DataOffset - Common.PacketHeaderXSize;
-                        bbw.Write(entry.Data);
+                        bbw.Write(obj.Data);
+                        bbw.WriteAlignment();
                     }
 
                     bbw.WriteAlignment();

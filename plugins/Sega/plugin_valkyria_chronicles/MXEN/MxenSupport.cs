@@ -68,6 +68,7 @@ namespace plugin_valkyria_chronicles.MXEN
     
     public sealed class Table1TextEntry
     {
+        public int ID;
         public int Offset;
         public string Text;
 
