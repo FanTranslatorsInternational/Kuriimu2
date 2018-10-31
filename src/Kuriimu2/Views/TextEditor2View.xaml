@@ -21,21 +21,61 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0">
-                    <ToolBarPanel DockPanel.Dock="Top">
-                        <ToolBar ToolBarTray.IsLocked="True">
-                            <Label Content="Preview"></Label>
-                        </ToolBar>
-                    </ToolBarPanel>
-                    <Border BorderThickness="1" BorderBrush="DarkGray">
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="Auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar ToolBarTray.IsLocked="True">
+                                <Label Content="Preview"></Label>
+                            </ToolBar>
+                        </ToolBarPanel>
 
+                        <ToolBarPanel Grid.Column="0">
+                            <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                                <ComboBox ItemsSource="{Binding GameAdapters}" SelectedItem="{Binding SelectedGameAdapter, Mode=TwoWay}" MinWidth="100" MaxHeight="22" Padding="0">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Width="16" Source="{Binding Icon}" Margin="0 0 3 0"></Image>
+                                                <TextBlock Text="{Binding Name}" Margin="0 0 3 0"></TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </ToolBar>
+                        </ToolBarPanel>
+                    </Grid>
+
+                    <!-- Preview -->
+                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
+                        <DockPanel>
+                            <DockPanel.Background>
+                                <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                                    <VisualBrush.Visual>
+                                        <Image Source="/Images/preview-background.png" />
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </DockPanel.Background>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Image Source="{Binding PreviewImage}" RenderOptions.BitmapScalingMode="HighQuality">
+                                        <Image.LayoutTransform>
+                                            <ScaleTransform ScaleX="1" ScaleY="1"></ScaleTransform>
+                                        </Image.LayoutTransform>
+                                    </Image>
+                                </Grid>
+                            </ScrollViewer>
+                        </DockPanel>
                     </Border>
                 </DockPanel>
-                <GridSplitter Grid.Row="1" VerticalAlignment="Stretch" Height="4" />
-                <DockPanel Grid.Row="2">
+                <!--<GridSplitter Grid.Row="1" VerticalAlignment="Stretch" Height="4" />-->
+                <!--<DockPanel Grid.Row="2">
                     <ToolBarPanel DockPanel.Dock="Top">
                         <ToolBar ToolBarTray.IsLocked="True">
                             <Label Content="Screenshots"></Label>
@@ -51,19 +91,37 @@
                             </DataTemplate>
                         </TabControl.ItemTemplate>
                     </TabControl>
-                </DockPanel>
+                </DockPanel>-->
             </Grid>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="4" />
 
             <!-- Entry Edit -->
             <DockPanel Grid.Column="2">
-                <ToolBarPanel DockPanel.Dock="Top">
-                    <ToolBar ToolBarTray.IsLocked="True">
-                        <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
-                    </ToolBar>
-                </ToolBarPanel>
-                <DataGrid ItemsSource="{Binding Entries}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">
+
+                <Grid DockPanel.Dock="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <ToolBarPanel Grid.Column="0">
+                        <ToolBar ToolBarTray.IsLocked="True">
+                            <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
+                        </ToolBar>
+                    </ToolBarPanel>
+
+                    <ToolBarPanel Grid.Column="0">
+                        <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                            <Button Name="FontProperties" ToolTip="Font Properties" Visibility="Hidden">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                </StackPanel>
+                            </Button>
+                        </ToolBar>
+                    </ToolBarPanel>
+                    <Label Grid.Column="1" Content="{Binding CharacterCount}" />
+                </Grid>
+                <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">
                     <DataGrid.Resources>
                         <!--<local:BindingProxy x:Key="Proxy" Data="{Binding}" />-->
                     </DataGrid.Resources>

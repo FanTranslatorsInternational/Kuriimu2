@@ -152,7 +152,7 @@ namespace Kuriimu2.ViewModels
             switch (kfi.Adapter)
             {
                 case ITextAdapter txt2:
-                    ActivateItem(new TextEditor2ViewModel(kfi));
+                    ActivateItem(new TextEditor2ViewModel(_kore, kfi));
                     break;
                 case IImageAdapter img:
                     ActivateItem(new ImageEditorViewModel(kfi));

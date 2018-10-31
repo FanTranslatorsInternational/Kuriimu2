@@ -28,7 +28,7 @@
                     <DockPanel.Background>
                         <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
                             <VisualBrush.Visual>
-                                <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                                <Image Source="/Images/preview-background.png" />
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </DockPanel.Background>

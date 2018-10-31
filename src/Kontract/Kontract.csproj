@@ -60,6 +60,7 @@
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\IFontAdapter.cs" />
     <Compile Include="Interfaces\ILayoutAdapter.cs" />
+    <Compile Include="Interfaces\IGameAdapter.cs" />
     <Compile Include="Interfaces\ITextAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

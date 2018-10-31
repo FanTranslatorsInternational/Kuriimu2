@@ -52,6 +52,9 @@ namespace Kore
         //[ImportMany(typeof(IModelAdapter))]
         //private List<IModelAdapter> _modelAdapters;
 
+        [ImportMany(typeof(IGameAdapter))]
+        private List<IGameAdapter> _gameAdapters;
+
 #pragma warning restore 0649, 0169
         #endregion
 
@@ -130,6 +133,32 @@ namespace Kore
 
             // Fill the imports of this object.
             container.ComposeParts(parent);
+        }
+
+        /// <summary>
+        /// Returns the currently loaded list of T type adapters.
+        /// </summary>
+        /// <typeparam name="T">Adapter type.</typeparam>
+        /// <returns>List of adapters of type T.</returns>
+        public List<T> GetAdapters<T>()
+        {
+            switch (typeof(T).Name)
+            {
+                case nameof(ICreateFiles):
+                    return _createAdapters.Cast<T>().ToList();
+                case nameof(ILoadFiles):
+                    return _fileAdapters.Cast<T>().ToList();
+                case nameof(ITextAdapter):
+                    return _textAdapters.Cast<T>().ToList();
+                case nameof(IImageAdapter):
+                    return _imageAdapters.Cast<T>().ToList();
+                case nameof(IFontAdapter):
+                    return _fontAdapters.Cast<T>().ToList();
+                case nameof(IGameAdapter):
+                    return _gameAdapters.Cast<T>().ToList();
+            }
+
+            return null;
         }
 
         /// <summary>

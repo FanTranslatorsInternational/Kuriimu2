@@ -9,8 +9,6 @@ namespace Kuriimu2.Dialogs.ViewModels
 {
     public sealed class NewFileViewModel : Screen
     {
-        private FontCharacter _character;
-
         public string Title { get; set; } = "Edit Character";
         public BitmapImage Icon { get; private set; }
 
