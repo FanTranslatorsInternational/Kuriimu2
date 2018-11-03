@@ -271,7 +271,7 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var allTypes = _fileAdapters.Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+                var allTypes = _fileAdapters.Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
                 // Add the special all supported files filter
                 if (allTypes.Count > 0)
@@ -294,7 +294,7 @@ namespace Kore
         public string FileFiltersByType<T>(string allSupportedFiles = "", bool includeAllFiles = false)
         {
             // Add all of the adapter filters
-            var allTypes = _fileAdapters.Where(x => x is T).Select(x => new { ((PluginInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginInfoAttribute))).Name, Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+            var allTypes = _fileAdapters.OfType<T>().Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
             // Add the special all supported files filter
             if (allTypes.Count > 0 && allSupportedFiles.Length > 0)
@@ -310,11 +310,11 @@ namespace Kore
         /// <summary>
         /// Provides a limited set of file format extensions for directory file enumeration.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The plugin interface to load extensions for.</typeparam>
         /// <returns></returns>
         public IEnumerable<string> FileExtensionsByType<T>()
         {
-            return _fileAdapters.Where(x => x is T).Select(x => new { Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimStart('*') }).OrderBy(o => o.Extension).Select(x => x.Extension);
+            return _fileAdapters.OfType<T>().Select(x => x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower().TrimStart('*')).OrderBy(o => o);
         }
 
         /// <inheritdoc />
