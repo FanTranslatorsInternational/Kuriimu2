@@ -127,13 +127,13 @@
 
             <Button Name="AddAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
+                    <Image Source="/Images/menu-add.png" Width="16" />
                     <Label>Add</Label>
                 </StackPanel>
             </Button>
             <Button Name="DeleteAdjustedCharacter" IsEnabled="{Binding }" Margin="0 0 8 0">
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
+                    <Image Source="/Images/menu-delete.png" Width="16" />
                     <Label>Delete</Label>
                 </StackPanel>
             </Button>
@@ -244,13 +244,13 @@
 
             <Button Name="LoadProfileButton" MinWidth="75" Margin="0 0 8 0">
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-open.png" Width="16" />
+                    <Image Source="/Images/menu-open.png" Width="16" />
                     <Label>_Load Profile</Label>
                 </StackPanel>
             </Button>
             <Button Name="SaveProfileButton" MinWidth="75" Margin="0 0 8 0">
                 <StackPanel Orientation="Horizontal">
-                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-save.png" Width="16" />
+                    <Image Source="/Images/menu-save.png" Width="16" />
                     <Label>_Save Profile</Label>
                 </StackPanel>
             </Button>

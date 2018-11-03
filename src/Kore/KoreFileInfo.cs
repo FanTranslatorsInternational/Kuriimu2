@@ -46,7 +46,7 @@ namespace Kore
         /// <summary>
         /// 
         /// </summary>
-        public string DisplayName => (FileInfo.Name + (HasChanges ? "*" : string.Empty)).Replace("_", "__");
+        public string DisplayName => (FileInfo.Name + (HasChanges ? "*" : string.Empty));
 
         /// <summary>
         /// 

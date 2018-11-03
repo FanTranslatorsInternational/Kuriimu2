@@ -56,7 +56,7 @@ namespace plugin_valkyria_chronicles.MLX0
                 gim.Load(item.Image);
                 foreach (var bi in gim.BitmapInfos)
                 {
-                    bi.Name = index + " " + item.Name.Replace("_", "__");
+                    bi.Name = index + " " + item.Name;
                     BitmapInfos.Add(bi);
                     index++;
                 }

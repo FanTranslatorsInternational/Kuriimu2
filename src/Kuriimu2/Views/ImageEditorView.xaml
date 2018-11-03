@@ -55,6 +55,7 @@
             <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition Height="1*"></RowDefinition>
                 </Grid.RowDefinitions>
 
@@ -68,22 +69,27 @@
                             <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <Button Name="AddBitmap" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
+                                        <Image Source="/Images/menu-add.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="EditBitmap" IsEnabled="{Binding EditEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-edit.png" Width="16" />
+                                        <Image Source="/Images/menu-edit.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="DeleteBitmap" IsEnabled="{Binding DeleteEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
+                                        <Image Source="/Images/menu-delete.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="ExportPng">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-export-image.png" Width="16" />
+                                        <Image Source="/Images/export-image.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Name="BatchExportPng" ToolTip="Batch Export">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/Images/batch-export-image.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
@@ -92,7 +98,7 @@
                             <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <Button Name="ImageProperties" ToolTip="Image Properties">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                        <Image Source="/Images/menu-properties.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
@@ -121,7 +127,7 @@
                                         <Grid.Background>
                                             <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
                                                 <VisualBrush.Visual>
-                                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                                                    <Image Source="/Images/preview-background.png" />
                                                 </VisualBrush.Visual>
                                             </VisualBrush>
                                         </Grid.Background>
@@ -163,15 +169,18 @@
                                             <Image Source="{Binding ImageSeven}" Visibility="{Binding ImageSevenVisible}" MaxWidth="1" MaxHeight="1" />
                                         </Grid>
                                     </Grid>
-                                    <Label Content="{Binding Name}"></Label>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </DockPanel>
 
-                <DockPanel Grid.Row="1">
+                <Label Grid.Row="1" Height="4"></Label>
+
+                <DockPanel Grid.Row="2">
                     <!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
+                    <TextBlock TextWrapping="Wrap" Text="{Binding StatusText}"></TextBlock>
                 </DockPanel>
             </Grid>
 
@@ -181,7 +190,7 @@
                     <Label Height="16" Content="{Binding ProgressActionName}" Padding="0" />
                 </StatusBarItem>
                 <StatusBarItem HorizontalContentAlignment="Stretch">
-                    <ProgressBar Height="16" Visibility="{Binding ProgressActive}"></ProgressBar>
+                    <ProgressBar Height="16" Visibility="{Binding ProgressActive}" Minimum="0" Maximum="1000" Value="{Binding ProgressValue}"></ProgressBar>
                 </StatusBarItem>
             </StatusBar>
         </Grid>

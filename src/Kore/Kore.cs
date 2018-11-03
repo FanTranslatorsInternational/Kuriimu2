@@ -307,6 +307,16 @@ namespace Kore
             return string.Join("|", allTypes.Select(x => $"{x.Name} ({x.Extension})|{x.Extension}"));
         }
 
+        /// <summary>
+        /// Provides a limited set of file format extensions for directory file enumeration.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public IEnumerable<string> FileExtensionsByType<T>()
+        {
+            return _fileAdapters.Where(x => x is T).Select(x => new { Extension = ((PluginExtensionInfoAttribute)x.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimStart('*') }).OrderBy(o => o.Extension).Select(x => x.Extension);
+        }
+
         /// <inheritdoc />
         /// <summary>
         /// Shuts down Kore and closes all plugins and open files.

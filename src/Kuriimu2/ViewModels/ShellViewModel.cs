@@ -155,7 +155,7 @@ namespace Kuriimu2.ViewModels
                     ActivateItem(new TextEditor2ViewModel(_kore, kfi));
                     break;
                 case IImageAdapter img:
-                    ActivateItem(new ImageEditorViewModel(kfi));
+                    ActivateItem(new ImageEditorViewModel(_kore, kfi));
                     break;
                 case IFontAdapter fnt:
                     ActivateItem(new FontEditorViewModel(kfi));

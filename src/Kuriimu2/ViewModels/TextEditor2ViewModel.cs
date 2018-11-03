@@ -18,12 +18,12 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private ITextAdapter _adapter;
+        private readonly Kore.Kore _kore;
+        private readonly ITextAdapter _adapter;
         private GameAdapter _selectedGameAdapter;
 
         private TextEntry _selectedEntry;
 
-        public Kore.Kore Kore { get; }
         public KoreFileInfo KoreFile { get; }
         public ObservableCollection<TextEntry> Entries { get; private set; }
 
@@ -34,11 +34,11 @@ namespace Kuriimu2.ViewModels
         // Constructor
         public TextEditor2ViewModel(Kore.Kore kore, KoreFileInfo koreFile)
         {
-            Kore = kore;
+            _kore = kore;
             KoreFile = koreFile;
 
             _adapter = KoreFile.Adapter as ITextAdapter;
-            GameAdapters = Kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
+            GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
             SelectedGameAdapter = GameAdapters.First(ga => ga.Adapter is VC3GameAdapter);

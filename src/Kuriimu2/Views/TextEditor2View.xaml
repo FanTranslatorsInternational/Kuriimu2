@@ -114,7 +114,7 @@
                         <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                             <Button Name="FontProperties" ToolTip="Font Properties" Visibility="Hidden">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                    <Image Source="/Images/menu-properties.png" Width="16" />
                                 </StackPanel>
                             </Button>
                         </ToolBar>

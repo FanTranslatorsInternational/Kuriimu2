@@ -38,7 +38,7 @@ namespace Kore.SamplePlugins
 
         public Bitmap GeneratePreview(TextEntry entry)
         {
-            var bgPath = Path.Combine(BasePath, "BG01.png");
+            var bgPath = Path.Combine(BasePath, "BG01.HTX.png");
             if (!File.Exists(bgPath)) return null;
 
             var img = (Bitmap)Image.FromFile(bgPath);
