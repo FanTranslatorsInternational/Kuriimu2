@@ -49,6 +49,8 @@
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Interfaces\IFontAdapter2.cs" />
+    <Compile Include="Interfaces\IFontRenderer.cs" />
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\ICreateFiles.cs" />
