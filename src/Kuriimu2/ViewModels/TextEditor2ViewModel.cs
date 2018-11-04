@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Media;
 using Caliburn.Micro;
+using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kore;
-using Kore.SamplePlugins;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
+using Image = System.Drawing.Image;
 
 namespace Kuriimu2.ViewModels
 {
@@ -41,8 +42,9 @@ namespace Kuriimu2.ViewModels
             GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
-            SelectedGameAdapter = GameAdapters.First(ga => ga.Adapter is VC3GameAdapter);
+            SelectedGameAdapter = GameAdapters.First(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6");
 
+            // Direct entry loading is now dead since GameAdapters have become a thing
             //if (_adapter != null)
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
@@ -66,6 +68,12 @@ namespace Kuriimu2.ViewModels
                 if (_adapter != null)
                     _selectedGameAdapter.Adapter.LoadEntries(_adapter.Entries);
                 Entries = new ObservableCollection<TextEntry>(_selectedGameAdapter.Adapter.Entries);
+                foreach (var entry in Entries)
+                    entry.Edited += (sender, args) =>
+                    {
+                        KoreFile.HasChanges = true;
+                        NotifyOfPropertyChange(() => PreviewImage);
+                    };
                 NotifyOfPropertyChange(() => Entries);
                 NotifyOfPropertyChange(() => PreviewImage);
             }
@@ -93,12 +101,7 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public void AddEntry()
-        {
-            //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-            //NotifyOfPropertyChange(nameof(EntryCount));
-            //NotifyOfPropertyChange(nameof(Entries));
-        }
+        public void AddEntry() { }
 
         public void Save(string filename = "")
         {

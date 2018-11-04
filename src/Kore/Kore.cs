@@ -156,9 +156,9 @@ namespace Kore
                     return _fontAdapters.Cast<T>().ToList();
                 case nameof(IGameAdapter):
                     return _gameAdapters.Cast<T>().ToList();
+                default:
+                    return null;
             }
-
-            return null;
         }
 
         /// <summary>

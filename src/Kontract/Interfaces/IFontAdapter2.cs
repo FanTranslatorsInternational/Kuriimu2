@@ -77,15 +77,15 @@ namespace Kontract.Interfaces
     /// </summary>
     public class FontCharacter2 : ICloneable
     {
-        public virtual uint Character { get; } = 'A';
+        public virtual uint Character { get; set; } = 'A';
 
-        public virtual CharWidthInfo WidthInfo { get; } = null;
+        public virtual CharWidthInfo WidthInfo { get; set; } = null;
 
         public virtual Bitmap Glyph { get; set; } = null;
 
-        public virtual int GlyphWidth { get; } = 0;
+        public virtual int GlyphWidth { get; set; } = 0;
 
-        public virtual int GlyphHeight { get; } = 0;
+        public virtual int GlyphHeight { get; set; } = 0;
 
         public virtual object Clone() => new FontCharacter
         {
