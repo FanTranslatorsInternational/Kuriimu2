@@ -133,11 +133,9 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
-            {
-                KoreFile.HasChanges = true;
-                NotifyOfPropertyChange(() => DisplayName);
-            }
+            if (_wm.ShowDialog(pe) != true) return;
+            KoreFile.HasChanges = true;
+            NotifyOfPropertyChange(() => DisplayName);
         }
 
         #region Bitmap Management
