@@ -21,6 +21,7 @@ namespace Kuriimu2.ViewModels
         private List<IScreen> _windows = new List<IScreen>();
         private readonly Kore.Kore _kore;
         private readonly ITextAdapter _adapter;
+        private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
 
         private TextEntry _selectedEntry;
@@ -49,6 +50,20 @@ namespace Kuriimu2.ViewModels
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
             SelectedEntry = Entries?.First();
+            SelectedZoomLevel = 2;
+        }
+
+        public List<int> ZomeLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
+
+        public int SelectedZoomLevel
+        {
+            get => _selectedZoomLevel;
+            set
+            {
+                if (value == _selectedZoomLevel) return;
+                _selectedZoomLevel = value;
+                NotifyOfPropertyChange(() => SelectedZoomLevel);
+            }
         }
 
         public IList<GameAdapter> GameAdapters { get; }
