@@ -43,8 +43,8 @@ namespace Kuriimu2.ViewModels
             GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
-            SelectedGameAdapter = GameAdapters.First(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6");
-
+            SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6") ?? GameAdapters.First();          
+            
             // Direct entry loading is now dead since GameAdapters have become a thing
             //if (_adapter != null)
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
