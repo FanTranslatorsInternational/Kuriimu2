@@ -76,7 +76,7 @@ namespace plugin_valkyria_chronicles.Game
             var gfx = Graphics.FromImage(img);
             gfx.SmoothingMode = SmoothingMode.None;
             gfx.InterpolationMode = InterpolationMode.NearestNeighbor;
-            gfx.PixelOffsetMode = PixelOffsetMode.None;
+            gfx.PixelOffsetMode = PixelOffsetMode.Half;
 
             // Load Files
             var balloonLokiHard = new Dicer(Path.Combine(BasePath, "BALLOON_LOKI_HARD.HTX.png"));
@@ -98,7 +98,7 @@ namespace plugin_valkyria_chronicles.Game
                     var grid = balloonLokiHard.Slice.UserInt1;
                     var balloonStartX = 16;
                     balloonLokiHard.DrawSlice("BigCorner", gfx, balloonStartX, balloonStartX);
-                    balloonLokiHard.DrawSlice("BigCorner", gfx, balloonStartX + grid * 14, balloonStartX, true);
+                    balloonLokiHard.DrawSlice("BigCorner", gfx, balloonStartX + grid * 14, balloonStartX, true, true);
 
                     balloonLokiHard.DrawSlice("Edge", gfx, balloonStartX + grid * 2, balloonStartX, false, true);
                     balloonLokiHard.DrawSlice("Edge", gfx, balloonStartX + grid * 2, balloonStartX + grid * 5);
@@ -127,7 +127,7 @@ namespace plugin_valkyria_chronicles.Game
 
                     break;
             }
-            
+
             gfx.SmoothingMode = SmoothingMode.HighQuality;
             gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
             gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -175,7 +175,7 @@ namespace plugin_valkyria_chronicles.Game
                     new Point(x + (flipX ? 0 : slice.Width), y + (flipY ? slice.Height : 0)),
                     new Point(x + (flipX ? slice.Width : 0), y + (flipY ? 0 : slice.Height))
                 },
-                new Rectangle(slice.X - (flipX ? 1 : 0), slice.Y, slice.Width, slice.Height),
+                slice.Rect,
                 GraphicsUnit.Pixel
             );
         }
