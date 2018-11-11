@@ -23,7 +23,7 @@ namespace Kuriimu2.ViewModels
         {
             KoreFile = koreFile;
 
-            DisplayName = KoreFile.DisplayName.Replace("_", "__");
+            DisplayName = KoreFile.DisplayName;
             _adapter = KoreFile.Adapter as ITextAdapter;
             
             if (_adapter != null)

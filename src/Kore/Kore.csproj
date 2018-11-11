@@ -52,6 +52,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Batch\BatchExport.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
@@ -73,7 +74,6 @@
     <Compile Include="SamplePlugins\KupAdapter.cs" />
     <Compile Include="SamplePlugins\MtTexSupport.cs" />
     <Compile Include="SamplePlugins\NoGameAdapter.cs" />
-    <Compile Include="SamplePlugins\VC3GameAdapter.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Text.cs" />
     <Compile Include="XF\Compression\Huffman.cs" />
@@ -105,9 +105,7 @@
       <Name>Kontract</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Batch\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

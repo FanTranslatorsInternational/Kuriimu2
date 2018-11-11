@@ -55,6 +55,11 @@ namespace Kontract
         public string Message { get; set; } = string.Empty;
 
         /// <summary>
+        /// Extra data that may be provided by the async task.
+        /// </summary>
+        public object Data { get; set; } = null;
+
+        /// <summary>
         /// Simple check for whether or not there is a message.
         /// </summary>
         public bool HasMessage => !string.IsNullOrWhiteSpace(Message);

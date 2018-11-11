@@ -15,10 +15,10 @@ namespace plugin_valkyria_chronicles.MLX0
     [Export(typeof(IImageAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    //[Export(typeof(ISaveFiles))]
     [PluginInfo("D611A80B-6200-45CB-86CF-3ADE8AF0AD85", "VC-MLX0 Image", "MLX0", "IcySon55", "", "This is the MLX image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.mlx")]
-    public sealed class Mlx0Adapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class Mlx0Adapter : IImageAdapter, IIdentifyFiles, ILoadFiles//, ISaveFiles
     {
         private MLX0 _format;
         private List<GimAdapter> _gims = new List<GimAdapter>();
@@ -50,13 +50,13 @@ namespace plugin_valkyria_chronicles.MLX0
 
             BitmapInfos = new List<BitmapInfo>();
             var index = 0;
-            foreach (var item in _format.ImageStreams)
+            foreach (var (image, name) in _format.ImageStreams)
             {
                 var gim = new GimAdapter();
-                gim.Load(item.Image);
+                gim.Load(image);
                 foreach (var bi in gim.BitmapInfos)
                 {
-                    bi.Name = index + " " + item.Name.Replace("_", "__");
+                    bi.Name = index + (" " + name).Trim();
                     BitmapInfos.Add(bi);
                     index++;
                 }

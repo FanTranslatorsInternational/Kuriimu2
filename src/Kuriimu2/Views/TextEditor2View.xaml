@@ -11,9 +11,9 @@
         <!-- Main Grid -->
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
             <!-- Preview and Screenshots -->
@@ -38,7 +38,15 @@
 
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                                <ComboBox ItemsSource="{Binding GameAdapters}" SelectedItem="{Binding SelectedGameAdapter, Mode=TwoWay}" MinWidth="100" MaxHeight="22" Padding="0">
+                                <TextBlock Text="Zoom: " VerticalAlignment="Center"></TextBlock>
+                                <ComboBox ItemsSource="{Binding ZomeLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Margin="3 0"></TextBlock>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <ComboBox ItemsSource="{Binding GameAdapters}" SelectedItem="{Binding SelectedGameAdapter}" MinWidth="100" Padding="0">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
@@ -64,9 +72,9 @@
                             </DockPanel.Background>
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                                 <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <Image Source="{Binding PreviewImage}" RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image Source="{Binding PreviewImage}" RenderOptions.BitmapScalingMode="NearestNeighbor">
                                         <Image.LayoutTransform>
-                                            <ScaleTransform ScaleX="1" ScaleY="1"></ScaleTransform>
+                                            <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}"></ScaleTransform>
                                         </Image.LayoutTransform>
                                     </Image>
                                 </Grid>
@@ -114,7 +122,7 @@
                         <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                             <Button Name="FontProperties" ToolTip="Font Properties" Visibility="Hidden">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                    <Image Source="/Images/menu-properties.png" Width="16" />
                                 </StackPanel>
                             </Button>
                         </ToolBar>

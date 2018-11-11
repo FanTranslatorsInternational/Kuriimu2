@@ -287,4 +287,13 @@
         <Setter Property="Height" Value="22" />
         <Setter Property="Padding" Value="3" />
     </Style>
+
+    <!-- Images in ToolBar Buttons (Currently affects all Images) -->
+    <Style TargetType="{x:Type Image}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.35"></Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>

@@ -25,6 +25,9 @@ namespace plugin_valkyria_chronicles.MLX0
         private PacketHeader _mxtlPacketHeader; // No Changes
         private byte[] _mxtlData; // No Changes
 
+        private PacketHeaderX _hmdlPacketHeader; // No Changes
+        private byte[] _hmdlData; // No Changes
+
         private PacketHeaderX _hsprPacketHeader; // No Changes
         private byte[] _hsprData; // No Changes
 
@@ -95,6 +98,10 @@ namespace plugin_valkyria_chronicles.MLX0
                                     }
                                 }
                                 break;
+                            case "HMDL":
+                                _hmdlPacketHeader = br.ReadStruct<PacketHeaderX>();
+                                _hmdlData = br.ReadBytes(_hmdlPacketHeader.PacketSize);
+                                break;
                             case "HSPR":
                                 _hsprPacketHeader = br.ReadStruct<PacketHeaderX>();
                                 _hsprData = br.ReadBytes(_hsprPacketHeader.PacketSize);
@@ -103,12 +110,24 @@ namespace plugin_valkyria_chronicles.MLX0
                                 _mxtfPacketHeader = br.ReadStruct<PacketHeader>();
                                 _mxtfData = br.ReadBytes(_mxtfPacketHeader.PacketSize);
                                 break;
+                            case "HTEX": // GIMs
+                                var htexPacketHeader = br.ReadStruct<PacketHeaderX>();
+                                // HTSF
+                                var hhtsfPacketHeader = br.ReadStruct<PacketHeaderX>();
+                                //_htsfPacketHeaders.Add(hhtsfPacketHeader);
+                                var hhtsfHeader = br.ReadStruct<HtsfHeader>();
+                                _htsfHeaders.Add(hhtsfHeader);
+                                ImageStreams.Add((new MemoryStream(br.ReadBytes(hhtsfPacketHeader.PacketSize - Common.PacketHeaderXSize)), index < names.Count ? names[index] : string.Empty));
+                                index++;
+                                // HTEX Footer
+                                var htexFooter = br.ReadStruct<PacketHeaderX>();
+                                break;
                             case "HTSF": // GIMs
                                 var htsfPacketHeader = br.ReadStruct<PacketHeader>();
                                 _htsfPacketHeaders.Add(htsfPacketHeader);
                                 var htsfHeader = br.ReadStruct<HtsfHeader>();
                                 _htsfHeaders.Add(htsfHeader);
-                                ImageStreams.Add((new MemoryStream(br.ReadBytes(htsfPacketHeader.PacketSize - Common.PacketHeaderXSize)), names[index]));
+                                ImageStreams.Add((new MemoryStream(br.ReadBytes(htsfPacketHeader.PacketSize - Common.PacketHeaderXSize)), index < names.Count ? names[index] : string.Empty));
                                 index++;
                                 break;
                         }

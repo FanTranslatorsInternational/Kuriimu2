@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
 
@@ -23,7 +24,7 @@ namespace Kontract.Interfaces
         /// <summary>
         /// The maximum length that entry names can store.
         /// Longer names will be truncated.
-        /// 0 for unlimted.
+        /// 0 for unlimited.
         /// </summary>
         int NameMaxLength { get; }
 
@@ -54,7 +55,7 @@ namespace Kontract.Interfaces
     }
 
     /// <summary>
-    /// This interface allows the text afapter to rename entries through the UI making use of the NameList.
+    /// This interface allows the text adapter to rename entries through the UI making use of the NameList.
     /// </summary>
     public interface IRenameEntries
     {
@@ -94,17 +95,21 @@ namespace Kontract.Interfaces
         bool ShowEntryProperties(TextEntry entry);
     }
 
-    /// <inheritdoc />
     /// <summary>
     /// The base text entry class.
     /// </summary>
-    public class TextEntry : INotifyPropertyChanged
+    public class TextEntry : INotifyPropertyChanged, IEditableObject
     {
         /// <inheritdoc />
         /// <summary>
         /// The event handler for properties being changed.
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// The event handler for this entry getting edited.
+        /// </summary>
+        public event EventHandler Edited;
 
         private string _name = string.Empty;
         private string _originalText = string.Empty;
@@ -187,6 +192,29 @@ namespace Kontract.Interfaces
         public void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// BeginEdit performs no actions.
+        /// </summary>
+        public void BeginEdit() { }
+
+        /// <summary>
+        /// CancelEdit performs no actions.
+        /// </summary>
+        public void CancelEdit() { }
+
+        /// <summary>
+        /// EndEdit raises the Edited event when the entry is edited.
+        /// </summary>
+        public void EndEdit() => OnEdited();
+
+        /// <summary>
+        /// Raises the Edited event.
+        /// </summary>
+        protected virtual void OnEdited()
+        {
+            Edited?.Invoke(this, EventArgs.Empty);
         }
     }
 }

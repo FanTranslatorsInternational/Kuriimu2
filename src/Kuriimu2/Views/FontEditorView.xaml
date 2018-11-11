@@ -22,7 +22,7 @@
                     <DockPanel.Background>
                         <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
                             <VisualBrush.Visual>
-                                <Image Source="pack://application:,,,/Kuriimu2;component/Images/preview-background.png" />
+                                <Image Source="/Images/preview-background.png" />
                             </VisualBrush.Visual>
                         </VisualBrush>
                     </DockPanel.Background>
@@ -56,22 +56,22 @@
                             <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-add.png" Width="16" />
+                                        <Image Source="/Images/menu-add.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="EditCharacter" IsEnabled="{Binding EditEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-edit.png" Width="16" />
+                                        <Image Source="/Images/menu-edit.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="DeleteCharacter" IsEnabled="{Binding DeleteEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-delete.png" Width="16" />
+                                        <Image Source="/Images/menu-delete.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                                 <Button Name="ExportTextures" IsEnabled="{Binding TextureExportEnabled}">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-export-image.png" Width="16" />
+                                        <Image Source="/Images/menu-export-image.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
@@ -80,7 +80,7 @@
                             <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <Button Name="FontProperties" ToolTip="Font Properties">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="pack://application:,,,/Kuriimu2;component/Images/menu-properties.png" Width="16" />
+                                        <Image Source="/Images/menu-properties.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>

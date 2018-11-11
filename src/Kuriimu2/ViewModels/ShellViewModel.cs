@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
@@ -29,26 +30,26 @@ namespace Kuriimu2.ViewModels
                 LoadFile(AppBootstrapper.Args[0]);
         }
 
-        public void OpenButton()
+        public async void OpenButton()
         {
             var ofd = new OpenFileDialog { Filter = _kore.FileFilters, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
-                LoadFile(file);
+                await LoadFile(file);
         }
 
-        public void FileDrop(DragEventArgs e)
+        public async void FileDrop(DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files == null) return;
 
             foreach (var file in files)
-                LoadFile(file);
+                await LoadFile(file);
         }
 
-        public bool SaveButtonsEnabled() => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
+        public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
 
         public void SaveButton()
         {
@@ -113,6 +114,7 @@ namespace Kuriimu2.ViewModels
         public void TabChanged(SelectionChangedEventArgs args)
         {
             NotifyOfPropertyChange(() => TextEditorToolsVisible);
+            NotifyOfPropertyChange(() => SaveButtonsEnabled);
         }
 
         public void CloseTab(IScreen tab)
@@ -134,13 +136,13 @@ namespace Kuriimu2.ViewModels
 
         #region Private Methods
 
-        private void LoadFile(string filename)
+        private async Task LoadFile(string filename)
         {
             KoreFileInfo kfi = null;
 
             try
             {
-                kfi = _kore.LoadFile(filename);
+                await Task.Run(() => { kfi = _kore.LoadFile(filename); });
             }
             catch (LoadFileException ex)
             {
@@ -155,7 +157,7 @@ namespace Kuriimu2.ViewModels
                     ActivateItem(new TextEditor2ViewModel(_kore, kfi));
                     break;
                 case IImageAdapter img:
-                    ActivateItem(new ImageEditorViewModel(kfi));
+                    ActivateItem(new ImageEditorViewModel(_kore, kfi));
                     break;
                 case IFontAdapter fnt:
                     ActivateItem(new FontEditorViewModel(kfi));

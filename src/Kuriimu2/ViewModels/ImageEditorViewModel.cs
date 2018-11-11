@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
+using Kontract;
 using Kontract.Interfaces;
 using Kore;
 using Kuriimu2.Dialogs.ViewModels;
@@ -21,10 +23,15 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private IImageAdapter _adapter;
+        private readonly Kore.Kore _kore;
+        private readonly IImageAdapter _adapter;
 
         private BitmapEntry _selectedBitmapInfo;
         private ImageSource _selectedTexture;
+        private string _statusText;
+        private bool _progressActive;
+        private string _progressActionName;
+        private int _progressValue;
 
         public KoreFileInfo KoreFile { get; }
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
@@ -34,6 +41,7 @@ namespace Kuriimu2.ViewModels
             get => _selectedBitmapInfo;
             set
             {
+                if (value == _selectedBitmapInfo) return;
                 _selectedBitmapInfo = value;
                 SelectedTexture = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedBitmap);
@@ -45,18 +53,64 @@ namespace Kuriimu2.ViewModels
             get => _selectedTexture;
             set
             {
+                if (value == _selectedTexture) return;
                 _selectedTexture = value;
                 NotifyOfPropertyChange(() => SelectedTexture);
             }
         }
 
+        public string StatusText
+        {
+            get => _statusText;
+            set
+            {
+                if (value == _statusText) return;
+                _statusText = value;
+                NotifyOfPropertyChange(() => StatusText);
+            }
+        }
+
+        public string ProgressActionName
+        {
+            get => _progressActionName;
+            set
+            {
+                if (value == _progressActionName) return;
+                _progressActionName = value;
+                NotifyOfPropertyChange(() => ProgressActionName);
+            }
+        }
+
+        public bool ProgressActive
+        {
+            get => _progressActive;
+            set
+            {
+                if (value == _progressActive) return;
+                _progressActive = value;
+                NotifyOfPropertyChange(() => ProgressActive);
+            }
+        }
+
+        public int ProgressValue
+        {
+            get => _progressValue;
+            set
+            {
+                if (value == _progressValue) return;
+                _progressValue = value;
+                NotifyOfPropertyChange(() => ProgressValue);
+            }
+        }
+
         public int ImageBorderThickness => 1;
 
-        public string ImageCount => (Bitmaps?.Count  ?? 0) + ((Bitmaps?.Count  ?? 0) != 1 ? " Bitmaps" : " Bitmap");
+        public string ImageCount => (Bitmaps?.Count ?? 0) + ((Bitmaps?.Count ?? 0) != 1 ? " Bitmaps" : " Bitmap");
 
         // Constructor
-        public ImageEditorViewModel(KoreFileInfo koreFile)
+        public ImageEditorViewModel(Kore.Kore kore, KoreFileInfo koreFile)
         {
+            _kore = kore;
             KoreFile = koreFile;
 
             _adapter = KoreFile.Adapter as IImageAdapter;
@@ -64,7 +118,7 @@ namespace Kuriimu2.ViewModels
             if (_adapter?.BitmapInfos != null)
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
-            SelectedBitmap = Bitmaps?.First();
+            SelectedBitmap = Bitmaps?.FirstOrDefault();
         }
 
         public void ImageProperties()
@@ -79,11 +133,9 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
-            {
-                KoreFile.HasChanges = true;
-                NotifyOfPropertyChange(() => DisplayName);
-            }
+            if (_wm.ShowDialog(pe) != true) return;
+            KoreFile.HasChanges = true;
+            NotifyOfPropertyChange(() => DisplayName);
         }
 
         #region Bitmap Management
@@ -138,6 +190,36 @@ namespace Kuriimu2.ViewModels
             {
                 SelectedBitmap.BitmapInfo.Bitmaps.First().Save(sfd.FileName, ImageFormat.Png);
             }
+        }
+
+        public async Task BatchExportPng()
+        {
+            StatusText = "Starting batch export...";
+
+            var ofd = new OpenFileDialog();
+            if (!(bool)ofd.ShowDialog()) return;
+
+            var batchExport = new Kore.Batch.BatchExport<IImageAdapter> { InputDirectory = Path.GetDirectoryName(ofd.FileName) };
+            ProgressActionName = "Batch Export PNG";
+
+            var progress = new Progress<ProgressReport>(p =>
+            {
+                ProgressValue = (int)Math.Min(p.Percentage * 10, 1000);
+                if (p.HasMessage)
+                {
+                    var lines = StatusText.Split('\n');
+                    if (lines.Length == 10)
+                        StatusText = string.Join("\n", lines.Skip(1).Take(10)) + "\r\n" + p.Message;
+                    else
+                        StatusText += "\r\n" + p.Message;
+                }
+
+                if (p.Data == null) return;
+                var (current, max) = ((int current, int max))p.Data;
+                ProgressActionName = $"Batch Export PNG ({current} / {max})";
+            });
+
+            var result = await batchExport.Export(_kore, progress);
         }
 
         #endregion

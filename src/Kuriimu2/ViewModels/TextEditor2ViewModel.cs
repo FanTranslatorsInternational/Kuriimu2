@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Media;
 using Caliburn.Micro;
+using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kore;
-using Kore.SamplePlugins;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
+using Image = System.Drawing.Image;
 
 namespace Kuriimu2.ViewModels
 {
@@ -18,12 +19,13 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private ITextAdapter _adapter;
+        private readonly Kore.Kore _kore;
+        private readonly ITextAdapter _adapter;
+        private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
 
         private TextEntry _selectedEntry;
 
-        public Kore.Kore Kore { get; }
         public KoreFileInfo KoreFile { get; }
         public ObservableCollection<TextEntry> Entries { get; private set; }
 
@@ -34,19 +36,34 @@ namespace Kuriimu2.ViewModels
         // Constructor
         public TextEditor2ViewModel(Kore.Kore kore, KoreFileInfo koreFile)
         {
-            Kore = kore;
+            _kore = kore;
             KoreFile = koreFile;
 
             _adapter = KoreFile.Adapter as ITextAdapter;
-            GameAdapters = Kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
+            GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
-            SelectedGameAdapter = GameAdapters.First(ga => ga.Adapter is VC3GameAdapter);
+            SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6") ?? GameAdapters.First();
 
+            // Direct entry loading is now dead since GameAdapters have become a thing
             //if (_adapter != null)
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
             SelectedEntry = Entries?.First();
+            SelectedZoomLevel = 2;
+        }
+
+        public List<int> ZomeLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
+
+        public int SelectedZoomLevel
+        {
+            get => _selectedZoomLevel;
+            set
+            {
+                if (value == _selectedZoomLevel) return;
+                _selectedZoomLevel = value;
+                NotifyOfPropertyChange(() => SelectedZoomLevel);
+            }
         }
 
         public IList<GameAdapter> GameAdapters { get; }
@@ -66,6 +83,12 @@ namespace Kuriimu2.ViewModels
                 if (_adapter != null)
                     _selectedGameAdapter.Adapter.LoadEntries(_adapter.Entries);
                 Entries = new ObservableCollection<TextEntry>(_selectedGameAdapter.Adapter.Entries);
+                foreach (var entry in Entries)
+                    entry.Edited += (sender, args) =>
+                    {
+                        KoreFile.HasChanges = true;
+                        NotifyOfPropertyChange(() => PreviewImage);
+                    };
                 NotifyOfPropertyChange(() => Entries);
                 NotifyOfPropertyChange(() => PreviewImage);
             }
@@ -93,12 +116,7 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public void AddEntry()
-        {
-            //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-            //NotifyOfPropertyChange(nameof(EntryCount));
-            //NotifyOfPropertyChange(nameof(Entries));
-        }
+        public void AddEntry() { }
 
         public void Save(string filename = "")
         {

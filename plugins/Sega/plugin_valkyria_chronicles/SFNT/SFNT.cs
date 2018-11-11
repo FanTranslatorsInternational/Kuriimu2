@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using Kanvas.Support;
 using Komponent.IO;
+using Kontract.Interfaces;
 
 namespace plugin_valkyria_chronicles.SFNT
 {
@@ -14,9 +18,14 @@ namespace plugin_valkyria_chronicles.SFNT
         private const int SfntHeaderSize = 0x60;
 
         /// <summary>
-        /// The list of images in the file.
+        /// The list of images in the font.
         /// </summary>
         public List<Bitmap> Images { get; set; } = new List<Bitmap>();
+
+        /// <summary>
+        /// The list of characters in the font.
+        /// </summary>
+        public List<FontCharacter2> Characters { get; set; } = new List<FontCharacter2>();
 
         #region InstanceData
 
@@ -53,7 +62,7 @@ namespace plugin_valkyria_chronicles.SFNT
                             var packetHeaderX = br.ReadStruct<PacketHeaderX>();
                             _imageBlocks.Add((packetHeaderX, br.ReadBytes(packetHeaderX.PacketSize)));
                             break;
-                        case "MFTG":
+                        case "MFGT":
                         case "HFPR":
                             var packetHeader = br.ReadStruct<PacketHeader>();
                             _dataBlocks.Add((packetHeader, br.ReadBytes(packetHeader.PacketSize)));
@@ -62,19 +71,19 @@ namespace plugin_valkyria_chronicles.SFNT
                 }
 
                 // Images
-                foreach (var block in _imageBlocks)
+                foreach (var (header, data) in _imageBlocks)
                 {
                     const int bitDepth = 2;
                     const int pixelsPerByte = 8 / bitDepth;
                     const int width = 16;
-                    switch (block.Header.Magic)
+                    switch (header.Magic)
                     {
                         case "MFNT":
-                            // Temporary until we get support for 2bpp and BitDepthOrder in Kanvas
-                            var bmp = new Bitmap(width, block.Data.Length * pixelsPerByte / width);
+                            // Temporary until we get support for 2bpp and something like BitDepthOrder in Kanvas
+                            var bmp = new Bitmap(width, data.Length * pixelsPerByte / width);
                             int x = 0, y = 0;
 
-                            foreach (var b in block.Data)
+                            foreach (var b in data)
                             {
                                 for (var i = 0; i < pixelsPerByte; i++)
                                 {
@@ -90,12 +99,56 @@ namespace plugin_valkyria_chronicles.SFNT
                             Images.Add(bmp);
                             break;
                         case "MFGT":
-                            // This is some sort of data
+                            // The character list.
                             break;
                         case "HFPR":
-                            // This is some sort of data
+                            // The variable width character data.
                             break;
                     }
+                }
+
+                // Characters
+                List<int> asciiWidths = null;
+
+                using (var hbr = new BinaryReaderX(new MemoryStream(_dataBlocks[1].Data)))
+                {
+                    asciiWidths = hbr.ReadMultiple<byte>((int)hbr.BaseStream.Length).Select(x => (int)x).ToList();
+                }
+
+                //var mfgt = new MemoryStream(_dataBlocks[0].Data);
+
+                // ASCII
+                const int height = 16;
+                for (uint i = 0; i < asciiWidths.Count; i++)
+                {
+                    // Glyph
+                    var width = asciiWidths[(int)i];
+
+                    var glyph = new Bitmap(Math.Max(width, 1), height, PixelFormat.Format32bppArgb);
+                    var gfx = Graphics.FromImage(glyph);
+                    gfx.DrawImage(Images[0],
+                        new[] {
+                            new PointF(0, 0),
+                            new PointF(width, 0),
+                            new PointF(0, height)
+                        },
+                        new RectangleF(0, i * height, width, height),
+                        GraphicsUnit.Pixel);
+
+                    // Character
+                    Characters.Add(new FontCharacter2
+                    {
+                        Character = i + ' ',
+                        WidthInfo = new CharWidthInfo
+                        {
+                            CharWidth = width,
+                            GlyphWidth = width,
+                            Left = 0
+                        },
+                        GlyphWidth = width,
+                        GlyphHeight = height,
+                        Glyph = glyph
+                    });
                 }
 
                 // SFNT Footer
@@ -111,7 +164,7 @@ namespace plugin_valkyria_chronicles.SFNT
         {
             using (var bw = new BinaryWriterX(output))
             {
-
+                throw new NotImplementedException();
             }
         }
     }

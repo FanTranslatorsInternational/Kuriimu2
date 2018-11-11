@@ -12,14 +12,13 @@ using Kontract.Interfaces;
 
 namespace plugin_valkyria_chronicles.SFNT
 {
-    [Export(typeof(SfntAdapter))]
+    [Export(typeof(SfntImageAdapter))]
     [Export(typeof(IImageAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
-    //[Export(typeof(ISaveFiles))]
-    [PluginInfo("A294C965-6BC5-4EC5-8814-D4305115B73A", "VC-SFNT Font", "SFNT", "IcySon55", "", "This is the SFNT image adapter for Kuriimu2.")]
+    [PluginInfo("A294C965-6BC5-4EC5-8814-D4305115B73A", "VC-SFNT Font Image", "SFNT", "IcySon55", "", "This is the SFNT image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.bf1")]
-    public sealed class SfntAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles//, ISaveFiles
+    public sealed class SfntImageAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles
     {
         private SFNT _format;
         private List<BitmapInfo> _bitmapInfos;
