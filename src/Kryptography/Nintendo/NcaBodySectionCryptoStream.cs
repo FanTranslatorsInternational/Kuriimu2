@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Kryptography.NCA
+namespace Kryptography.Nintendo
 {
     public class NcaBodySectionCryptoStream : KryptoStream
     {
@@ -18,34 +18,52 @@ namespace Kryptography.NCA
         private long _offset;
         private Stream _stream;
 
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
-            : this(input, offset, length, cryptoType, keyArea, keyStorage, null) { }
+        private bool _hasRightsId;
 
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage, byte[] section_ctr)
+        public NcaBodySectionCryptoStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
+            : this(input, offset, length, hasRightsId, masterKeyRev, cryptoType, keyArea, keyStorage, null) { }
+
+        public NcaBodySectionCryptoStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage, byte[] section_ctr)
         {
             _stream = input;
             _offset = offset;
             _length = length;
+            _hasRightsId = hasRightsId;
 
-            if (cryptoType < 1 || cryptoType > 4)
-                throw new InvalidDataException($"SectionCrypto {cryptoType} is invalid.");
-            _cryptoType = cryptoType;
-
-            if (keyArea.Length != 0x40)
-                throw new InvalidDataException("KeyArea must be 0x40 bytes.");
-            _keyArea = keyArea;
-
-            _keyStorage = keyStorage;
-
-            switch (cryptoType)
+            if (hasRightsId)
             {
-                case 2:
-                    _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), 512,new byte[16], false);
-                    break;
+                if (keyStorage.TitleKey == null)
+                    throw new InvalidDataException("Title Key is needed.");
 
-                case 3:
-                    _kryptoStream = new CtrStream(input, offset, length, GetKeyAreaKey(1), GenerateCTR(section_ctr, offset),false);
-                    break;
+                var ecb = new EcbStream(keyStorage.TitleKey, keyStorage.TitleKEK[masterKeyRev]);
+                var dec_title_key = new byte[0x10];
+                ecb.Read(dec_title_key, 0, 0x10);
+
+                _kryptoStream = new CtrStream(input, offset, length, dec_title_key, GenerateCTR(section_ctr, offset), false);
+            }
+            else
+            {
+
+                if (cryptoType < 1 || cryptoType > 4)
+                    throw new InvalidDataException($"SectionCrypto {cryptoType} is invalid.");
+                _cryptoType = cryptoType;
+
+                if (keyArea.Length != 0x40)
+                    throw new InvalidDataException("KeyArea must be 0x40 bytes.");
+                _keyArea = keyArea;
+
+                _keyStorage = keyStorage;
+
+                switch (cryptoType)
+                {
+                    case 2:
+                        _kryptoStream = new XtsStream(input, offset, length, GetKeyAreaKey(0), 512, new byte[16], false);
+                        break;
+
+                    case 3:
+                        _kryptoStream = new CtrStream(input, offset, length, GetKeyAreaKey(1), GenerateCTR(section_ctr, offset), false);
+                        break;
+                }
             }
         }
 
@@ -75,19 +93,26 @@ namespace Kryptography.NCA
             if (Position + count > Length)
                 throw new InvalidDataException($"NCA Section is only 0x{Length:X8} bytes. Position was 0x{Position:X8}. It was tried to read 0x{count:X8} bytes");
 
-            switch (_cryptoType)
+            if (_hasRightsId)
             {
-                case 1:
-                    return _stream.Read(buffer, offset, count);
+                return _kryptoStream.Read(buffer, offset, count);
+            }
+            else
+            {
+                switch (_cryptoType)
+                {
+                    case 1:
+                        return _stream.Read(buffer, offset, count);
 
-                case 2: //XTS
-                case 3: //CTR
-                    return _kryptoStream.Read(buffer, offset, count);
+                    case 2: //XTS
+                    case 3: //CTR
+                        return _kryptoStream.Read(buffer, offset, count);
 
-                case 4: //BKTR
-                    throw new InvalidOperationException("BKTR Sections are not supported yet.");
-                default:
-                    throw new InvalidDataException($"SectionCrypto {_cryptoType} is invalid.");
+                    case 4: //BKTR
+                        throw new InvalidOperationException("BKTR Sections are not supported yet.");
+                    default:
+                        throw new InvalidDataException($"SectionCrypto {_cryptoType} is invalid.");
+                }
             }
         }
 
@@ -108,21 +133,28 @@ namespace Kryptography.NCA
             if (Position + count > Length)
                 throw new InvalidDataException($"NCA Section is only 0x{Length:X8} bytes. Position was 0x{Position:X8}. It was tried to read 0x{count:X8} bytes");
 
-            switch (_cryptoType)
+            if (_hasRightsId)
             {
-                case 1:
-                    _stream.Write(buffer, offset, count);
-                    break;
+                 _kryptoStream.Read(buffer, offset, count);
+            }
+            else
+            {
+                switch (_cryptoType)
+                {
+                    case 1:
+                        _stream.Write(buffer, offset, count);
+                        break;
 
-                case 2: //XTS
-                case 3: //CTR
-                    _kryptoStream.Write(buffer, offset, count);
-                    break;
+                    case 2: //XTS
+                    case 3: //CTR
+                        _kryptoStream.Write(buffer, offset, count);
+                        break;
 
-                case 4: //BKTR
-                    throw new InvalidOperationException("BKTR Sections are not supported yet.");
-                default:
-                    throw new InvalidDataException($"SectionCrypto {_cryptoType} is invalid.");
+                    case 4: //BKTR
+                        throw new InvalidOperationException("BKTR Sections are not supported yet.");
+                    default:
+                        throw new InvalidDataException($"SectionCrypto {_cryptoType} is invalid.");
+                }
             }
         }
 

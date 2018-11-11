@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Kryptography.NCA
+namespace Kryptography.Nintendo
 {
     public class NcaKeyStorage
     {
@@ -15,6 +15,8 @@ namespace Kryptography.NCA
         public Dictionary<int, byte[]> KEKApplication { get; private set; }
         public Dictionary<int, byte[]> KEKOcean { get; private set; }
         public Dictionary<int, byte[]> KEKSystem { get; private set; }
+        public Dictionary<int, byte[]> TitleKEK { get; private set; }
+        public byte[] TitleKey { get; private set; }
 
         #endregion Key Storages
 
@@ -46,6 +48,8 @@ namespace Kryptography.NCA
             LoadMasterKeys();
 
             LoadKEKs();
+
+            LoadTitleKey();
         }
 
         private void LoadKeysIntoArray(string keyFile)
@@ -86,10 +90,22 @@ namespace Kryptography.NCA
                 .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_application_", "")), y => y.Value));
             KEKOcean = new Dictionary<int, byte[]>(_keyMaterial
                 .Where(x => Regex.IsMatch(x.Key, "key_area_key_ocean_[\\d]{2}"))
-                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_ocean_", "")), y => y.Value)); ;
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_ocean_", "")), y => y.Value));
             KEKSystem = new Dictionary<int, byte[]>(_keyMaterial
                 .Where(x => Regex.IsMatch(x.Key, "key_area_key_system_[\\d]{2}"))
-                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_system_", "")), y => y.Value)); ;
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("key_area_key_system_", "")), y => y.Value));
+            TitleKEK = new Dictionary<int, byte[]>(_keyMaterial
+                .Where(x => Regex.IsMatch(x.Key, "titlekek_[\\d]{2}"))
+                .ToDictionary(x => Convert.ToInt32(x.Key.Replace("titlekek_", "")), y => y.Value));
+        }
+
+        private void LoadTitleKey()
+        {
+            if (_keyMaterial.ContainsKey("title_key"))
+            {
+                this["title_key"] = _keyMaterial["title_key"];
+                TitleKey = _keyMaterial["title_key"];
+            }
         }
 
         private byte[] GenerateKek(byte[] generationSource, byte[] masterKey, byte[] aesKekGenSource, byte[] aesKeyGenSource)

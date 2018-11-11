@@ -1,4 +1,4 @@
-﻿namespace Kryptography.NCA
+﻿namespace Kryptography.Nintendo
 {
     internal class Common
     {
