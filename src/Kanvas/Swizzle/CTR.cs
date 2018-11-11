@@ -30,7 +30,8 @@ namespace Kanvas.Swizzle
             Height = (toPowerOf2) ? 2 << (int)Math.Log(height - 1, 2) : height;
 
             _transform = transform;
-            _zorder = new MasterSwizzle(transform == Transformation.None ? Width : Height, new Point(0, 0), new[] { (1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4) });
+            //"transform == Transformation.None ? Width : Height" before; Based on some changes to G1T in Kuriimu1; may be subject to change later
+            _zorder = new MasterSwizzle(transform == Transformation.None ? Width : Width, new Point(0, 0), new[] { (1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4) });
         }
 
         public Point Get(Point point)
