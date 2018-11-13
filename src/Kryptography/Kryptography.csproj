@@ -70,6 +70,8 @@
     <Compile Include="Nintendo\NcaHeaderCryptoStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RotStream.cs" />
+    <Compile Include="Sony\BBCipherContext.cs" />
+    <Compile Include="Sony\BBCipherTransform.cs" />
     <Compile Include="Sony\BBMac.cs" />
     <Compile Include="Sony\Kirk.cs" />
     <Compile Include="Sony\PgdCryptoStream.cs" />

@@ -31,11 +31,69 @@ namespace Kryptography.Sony
         }
 
         /// <summary>
+        /// Validate a range of bytes with a given MAC
+        /// </summary>
+        /// <param name="bbmac"></param>
+        /// <param name="macKey"></param>
+        /// <param name="range"></param>
+        public bool Validate(byte[] range, byte[] bbmac, byte[] macKey)
+        {
+            var result = Update(range, range.Length);
+            if (result != 0) return false;
+
+            result = Final(bbmac, macKey);
+            if (result != 0) return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Gets MAC Key from MAC and range of bytes
+        /// </summary>
+        /// <param name="bbmac"></param>
+        /// <returns></returns>
+        public byte[] GetKey(byte[] range, byte[] bbmac)
+        {
+            var result = Update(range, range.Length);
+            if (result != 0) return null;
+
+            var tmp = new byte[0x10];
+            var tmp1 = new byte[0x10];
+
+            var type = _mac_type;
+            var res = PrivateFinal(tmp, null);
+            if (res != 0) return null;
+
+            //decrypt bbmac
+            if (type == 3)
+            {
+                Array.Copy(bbmac, 0, _kirk_buf, 0x14, 0x10);
+                Kirk.DecryptWith0(_kirk_buf, 0x10, 0x63);
+            }
+            else
+            {
+                Array.Copy(bbmac, 0, _kirk_buf, 0, 0x10);
+            }
+
+            Array.Copy(_kirk_buf, 0, tmp1, 0, 0x10);
+            Array.Copy(tmp1, 0, _kirk_buf, 0x14, 0x10);
+
+            var code = type == 2 ? 0x3A : 0x38;
+            Kirk.DecryptWith0(_kirk_buf, 0x10, code);
+
+            var vkey = new byte[0x10];
+            for (int i = 0; i < 0x10; i++)
+                vkey[i] = (byte)(tmp[i] ^ _kirk_buf[i]);
+
+            return vkey;
+        }
+
+        /// <summary>
         /// Updates the BBMac key in the context
         /// </summary>
         /// <param name="buffer">Buffer to update from</param>
         /// <returns></returns>
-        public long Update(byte[] buffer, int size)
+        private long Update(byte[] buffer, int size)
         {
             if (_pad_size > 16)
                 return 0x80510302;
@@ -77,26 +135,13 @@ namespace Kryptography.Sony
             return 0;
         }
 
-        private uint EncryptBuffer(byte[] buffer, int size, byte[] key, int key_type)
-        {
-            for (int i = 0; i < 16; i++)
-                buffer[0x14 + i] ^= key[i];
-
-            var res = Kirk.EncryptWith0(buffer, size, key_type);
-            if (res != 0) return res;
-
-            Array.Copy(buffer, size + 4, key, 0, 0x10);
-
-            return 0;
-        }
-
         /// <summary>
         /// Validates MAC
         /// </summary>
         /// <param name="outBuf"></param>
         /// <param name="vkey"></param>
         /// <returns>0, if MAC is valid</returns>
-        public uint Final(byte[] outBuf, byte[] vkey)
+        private long Final(byte[] outBuf, byte[] vkey)
         {
             var tmp = new byte[0x10];
 
@@ -122,7 +167,7 @@ namespace Kryptography.Sony
             return 0;
         }
 
-        private uint PrivateFinal(byte[] buffer, byte[] vkey)
+        private long PrivateFinal(byte[] buffer, byte[] vkey)
         {
             byte[] tmp = new byte[0x10];
             byte[] tmp1 = new byte[0x10];
@@ -133,7 +178,7 @@ namespace Kryptography.Sony
             var code = (_mac_type == 2) ? 0x3A : 0x38;
 
             Array.Clear(_kirk_buf, 0x14, 0x10);
-            var res = Kirk.EncryptWith0(_kirk_buf, 0x10, code);
+            long res = Kirk.EncryptWith0(_kirk_buf, 0x10, code);
             if (res != 0) return res;
 
             Array.Copy(_kirk_buf, 0x14, tmp, 0, 0x10);
@@ -215,34 +260,15 @@ namespace Kryptography.Sony
             toMult[15] = v2;
         }
 
-        public uint GetKey(byte[] bbmac, byte[] vkey)
+        private long EncryptBuffer(byte[] buffer, int size, byte[] key, int key_type)
         {
-            var tmp = new byte[0x10];
-            var tmp1 = new byte[0x10];
+            for (int i = 0; i < 16; i++)
+                buffer[0x14 + i] ^= key[i];
 
-            var type = _mac_type;
-            var res = PrivateFinal(tmp, null);
+            var res = Kirk.EncryptWith0(buffer, size, key_type);
             if (res != 0) return res;
 
-            //decrypt bbmac
-            if (type == 3)
-            {
-                Array.Copy(bbmac, 0, _kirk_buf, 0x14, 0x10);
-                Kirk.DecryptWith0(_kirk_buf, 0x10, 0x63);
-            }
-            else
-            {
-                Array.Copy(bbmac, 0, _kirk_buf, 0, 0x10);
-            }
-
-            Array.Copy(_kirk_buf, 0, tmp1, 0, 0x10);
-            Array.Copy(tmp1, 0, _kirk_buf, 0x14, 0x10);
-
-            var code = type == 2 ? 0x3A : 0x38;
-            Kirk.DecryptWith0(_kirk_buf, 0x10, code);
-
-            for (int i = 0; i < 0x10; i++)
-                vkey[i] = (byte)(tmp[i] ^ _kirk_buf[i]);
+            Array.Copy(buffer, size + 4, key, 0, 0x10);
 
             return 0;
         }

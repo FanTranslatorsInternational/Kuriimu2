@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,6 +32,9 @@ namespace Kryptography.Sony
         private int _cipher_type;
         private byte[] _vkey;
 
+        private ICryptoTransform _encryptor;
+        private ICryptoTransform _decryptor;
+
         private Stream _stream;
         private long _offset;
         private long _length;
@@ -43,7 +47,6 @@ namespace Kryptography.Sony
         public PgdCryptoStream(Stream input)
         {
             _stream = input;
-
             _length = input.Length;
 
             Initialize();
@@ -56,7 +59,6 @@ namespace Kryptography.Sony
         public PgdCryptoStream(Stream input, long offset, long length)
         {
             _stream = input;
-
             _stream.Position = Math.Max(offset, input.Position);
             _offset = offset;
             _length = length;
@@ -101,19 +103,14 @@ namespace Kryptography.Sony
                     _cipher_type = 2;
                 }
 
-                //Try MAC_80
-                Position = 0;
-                _vkey = new byte[0x10];
-                var bbmac = new BBMac(mac_type);
-                bbmac.Update(br.ReadBytes(0x80), 0x80);
-                bbmac.GetKey(br.ReadBytes(0x10), _vkey);
-
                 //Get vkey for future decryption from MAC_70
                 Position = 0;
-                _vkey = new byte[0x10];
-                bbmac = new BBMac(mac_type);
-                bbmac.Update(br.ReadBytes(0x70), 0x70);
-                bbmac.GetKey(br.ReadBytes(0x10), _vkey);
+                var bbmac = new BBMac(mac_type);
+                _vkey = bbmac.GetKey(br.ReadBytes(0x70), br.ReadBytes(0x10));
+
+                var context = new BBCipherContext(_vkey);
+                _encryptor = context.CreateEncryptor();
+                _decryptor = context.CreateDecryptor();
             }
 
             Position = bkPos;
@@ -139,6 +136,12 @@ namespace Kryptography.Sony
 
         public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
 
+        private long TotalBlocks => GetBlockCount(Length);
+
+        private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
+
+        private long GetCurrentBlock(long input) => input / BlockSizeBytes;
+
         public override void Flush()
         {
             throw new NotImplementedException();
@@ -147,6 +150,11 @@ namespace Kryptography.Sony
         public override int Read(byte[] buffer, int offset, int count)
         {
             ValidateRead(buffer, offset, count);
+
+            if (_fixedLength && Position >= Length)
+                return 0;
+
+            ReadDecrypted(buffer, offset, count);
 
             return 0;
         }
@@ -159,6 +167,42 @@ namespace Kryptography.Sony
                 throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length)
                 throw new InvalidDataException("Buffer too short.");
+        }
+
+        private int ReadDecrypted(byte[] buffer, int offset, int count)
+        {
+            if (_fixedLength && Position >= Length)
+                return 0;
+
+            var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
+            var bytesIntoBlock = Position % BlockSizeBytes;
+
+            var originalPosition = Position;
+
+            count = (int)Math.Min(count, Length - Position);
+            var alignedCount = (int)GetBlockCount(bytesIntoBlock + count) * BlockSizeBytes;
+
+            if (alignedCount == 0) return alignedCount;
+
+            var decData = Decrypt(blockPosition, alignedCount);
+
+            Array.Copy(decData, bytesIntoBlock, buffer, offset, count);
+
+            Seek(originalPosition + count, SeekOrigin.Begin);
+
+            return count;
+        }
+
+        private byte[] Decrypt(long begin, int alignedCount)
+        {
+            _stream.Position = begin + _offset;
+            var readData = new byte[alignedCount];
+            _stream.Read(readData, 0, alignedCount);
+
+            var decData = new byte[alignedCount];
+            _decryptor.TransformBlock(readData, 0, readData.Length, decData, 0);
+
+            return decData;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
