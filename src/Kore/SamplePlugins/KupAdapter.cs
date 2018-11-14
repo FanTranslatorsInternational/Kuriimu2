@@ -16,7 +16,7 @@ namespace Kore.SamplePlugins
     [Export(typeof(ISaveFiles))]
     [PluginInfo("963E7A09-61C4-4A80-94BA-427134F1A5B8", "Kuriimu Text Archive", "KUP", "IcySon55", "", "This is the KUP text adapter for Kuriimu.")]
     [PluginExtensionInfo("*.kup")]
-    public sealed class KupAdapter : ITextAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
+    public sealed class KupAdapter : ITextAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles, IAddEntries
     {
         private KUP _kup;
 
@@ -74,6 +74,17 @@ namespace Kore.SamplePlugins
         public void Save(string filename, int versionIndex = 0)
         {
             _kup.Save(filename);
+        }
+        
+        public TextEntry NewEntry()
+        {
+            return new TextEntry();
+        }
+
+        public bool AddEntry(TextEntry entry)
+        {
+            _kup.Entries.Add(entry);
+            return true;
         }
 
         public void Dispose() { }
