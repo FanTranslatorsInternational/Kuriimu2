@@ -63,13 +63,18 @@
     <Compile Include="AES\XTS\XtsCryptoTransform.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="KryptoStream.cs" />
-    <Compile Include="NCA\Common.cs" />
-    <Compile Include="NCA\KeyStorage.cs" />
-    <Compile Include="NCA\NcaBodySectionCryptoStream.cs" />
-    <Compile Include="NCA\NcaCryptoStream.cs" />
-    <Compile Include="NCA\NcaHeaderCryptoStream.cs" />
+    <Compile Include="Nintendo\Common.cs" />
+    <Compile Include="Nintendo\KeyStorage.cs" />
+    <Compile Include="Nintendo\NcaBodySectionCryptoStream.cs" />
+    <Compile Include="Nintendo\NcaCryptoStream.cs" />
+    <Compile Include="Nintendo\NcaHeaderCryptoStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RotStream.cs" />
+    <Compile Include="Sony\BBCipherContext.cs" />
+    <Compile Include="Sony\BBCipherTransform.cs" />
+    <Compile Include="Sony\BBMac.cs" />
+    <Compile Include="Sony\Kirk.cs" />
+    <Compile Include="Sony\PgdCryptoStream.cs" />
     <Compile Include="XorStream.cs" />
   </ItemGroup>
   <ItemGroup>

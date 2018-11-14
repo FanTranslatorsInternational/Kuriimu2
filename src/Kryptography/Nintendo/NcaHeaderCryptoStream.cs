@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Kryptography.NCA
+namespace Kryptography.Nintendo
 {
     public class NcaHeaderCryptoStream : KryptoStream
     {
@@ -44,6 +44,30 @@ namespace Kryptography.NCA
 
         public override void Flush()
         {
+        }
+
+        public bool HasRightsId
+        {
+            get
+            {
+                var origPos = Position;
+                Position = 0x230;
+
+                byte[] rightsId = new byte[0x10];
+                Read(rightsId, 0, 0x10);
+
+                bool hasRightsID = false;
+                for (int i = 0; i < 0x10; i++)
+                    if (rightsId[i] != 0)
+                    {
+                        hasRightsID = true;
+                        break;
+                    }
+
+                Position = origPos;
+
+                return hasRightsID;
+            }
         }
 
         public int PeekCryptoType()

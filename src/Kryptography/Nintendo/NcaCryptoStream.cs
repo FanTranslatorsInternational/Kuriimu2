@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Kryptography.NCA
+namespace Kryptography.Nintendo
 {
     public class NcaCryptoStream : Stream
     {
@@ -37,6 +37,8 @@ namespace Kryptography.NCA
                         _stream,
                         _bodySections[i].mediaOffset * Common.mediaSize,
                         _bodySections[i].endMediaOffset * Common.mediaSize,
+                        _ncaHeader.HasRightsId,
+                        _ncaHeader.PeekCryptoType(),
                         _ncaHeader.PeekSectionCryptoType(i),
                         keyArea,
                         _ncaKeyStorage,

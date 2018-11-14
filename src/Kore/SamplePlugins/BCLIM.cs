@@ -66,7 +66,7 @@ namespace Kore.SamplePlugins
             public short Width;
             public short Height;
             public byte Format;
-            public byte SwizzleTileMode; // Not used in BCLIM
+            public CTRSwizzle.Transformation SwizzleTileMode; // Not used in BCLIM
             public short Alignment;
             public int DataSize;
         }
