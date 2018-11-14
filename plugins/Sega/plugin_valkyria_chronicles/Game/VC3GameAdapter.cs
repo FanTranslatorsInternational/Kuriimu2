@@ -132,24 +132,25 @@ namespace plugin_valkyria_chronicles.Game
             gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
             gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            foreach (var c in entry.EditedText)
-            {
-                // Handle line break
-                if (c == '\n')
+            if (entry != null)
+                foreach (var c in entry.EditedText)
                 {
-                    x = xR;
-                    y += lineHeight;
-                    continue;
+                    // Handle line break
+                    if (c == '\n')
+                    {
+                        x = xR;
+                        y += lineHeight;
+                        continue;
+                    }
+
+                    if (c >= '0' && c <= '9')
+                        Font.SetColor(cNumber);
+                    else
+                        Font.SetColor(cDefault);
+
+                    Font.Draw(c, gfx, x, y, scaleX, scaleY);
+                    x += (int)(Font.GetCharWidthInfo(c).GlyphWidth * scaleX);
                 }
-
-                if (c >= '0' && c <= '9')
-                    Font.SetColor(cNumber);
-                else
-                    Font.SetColor(cDefault);
-
-                Font.Draw(c, gfx, x, y, scaleX, scaleY);
-                x += (int)(Font.GetCharWidthInfo(c).GlyphWidth * scaleX);
-            }
 
             return img;
         }
