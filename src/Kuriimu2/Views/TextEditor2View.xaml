@@ -26,11 +26,6 @@
 
                 <DockPanel Grid.Row="0">
                     <Grid DockPanel.Dock="Top">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar ToolBarTray.IsLocked="True">
                                 <Label Content="Preview"></Label>
@@ -62,7 +57,7 @@
                     </Grid>
 
                     <!-- Preview -->
-                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
+                    <Border BorderThickness="1" BorderBrush="Gray">
                         <DockPanel>
                             <DockPanel.Background>
                                 <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">

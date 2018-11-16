@@ -7,7 +7,7 @@
              xmlns:xc="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d"
              d:DesignHeight="400" d:DesignWidth="600">
-    <DockPanel Background="White">
+    <DockPanel Name="Root"  Background="White">
 
         <!-- Main Grid -->
         <Grid>
@@ -16,43 +16,66 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="294" />
             </Grid.ColumnDefinitions>
-            
+
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Bitmap View -->
-            <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
-                <DockPanel>
-                    <DockPanel.Background>
-                        <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
-                            <VisualBrush.Visual>
-                                <Image Source="/Images/preview-background.png" />
-                            </VisualBrush.Visual>
-                        </VisualBrush>
-                    </DockPanel.Background>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
-                                </Border.Effect>
-                            </Border>
-                            <Image Source="{Binding SelectedTexture}" RenderOptions.BitmapScalingMode="NearestNeighbor">
-                                <Image.LayoutTransform>
-                                    <ScaleTransform ScaleX="3" ScaleY="3"></ScaleTransform>
-                                </Image.LayoutTransform>
-                            </Image>
-                        </Grid>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
+            <!-- Bitmap -->
+            <DockPanel Grid.Column="0">
+                <Grid DockPanel.Dock="Top">
+                    <ToolBarPanel Grid.Column="0">
+                        <ToolBar ToolBarTray.IsLocked="True">
+                            <Label Content="Bitmap"></Label>
+                        </ToolBar>
+                    </ToolBarPanel>
 
-            <Label Grid.Column="1" Width="4"></Label>
+                    <ToolBarPanel Grid.Column="0">
+                        <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                            <TextBlock Text="Zoom: " VerticalAlignment="Center"></TextBlock>
+                            <ComboBox ItemsSource="{Binding ZoomLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Margin="3 0"></TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </ToolBar>
+                    </ToolBarPanel>
+                </Grid>
+
+                <Border BorderThickness="1" BorderBrush="Gray">
+                    <DockPanel>
+                        <DockPanel.Background>
+                            <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                                <VisualBrush.Visual>
+                                    <Image Source="/Images/preview-background.png" />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </DockPanel.Background>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
+                                    </Border.Effect>
+                                </Border>
+                                <Image Source="{Binding SelectedImage}" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <Image.LayoutTransform>
+                                        <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}"></ScaleTransform>
+                                    </Image.LayoutTransform>
+                                </Image>
+                            </Grid>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+            </DockPanel>
+
+            <Label Grid.Column="1" Grid.Row="0" Width="4"></Label>
 
             <!-- Bitmap Selection and Details -->
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" Grid.Row="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
@@ -185,7 +208,7 @@
             </Grid>
 
             <!-- Status bar -->
-            <StatusBar Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3">
+            <StatusBar Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" >
                 <StatusBarItem>
                     <Label Height="16" Content="{Binding ProgressActionName}" Padding="0" />
                 </StatusBarItem>
