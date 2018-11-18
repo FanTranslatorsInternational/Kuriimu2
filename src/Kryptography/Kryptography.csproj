@@ -74,6 +74,7 @@
     <Compile Include="Sony\BBCipherTransform.cs" />
     <Compile Include="Sony\BBMac.cs" />
     <Compile Include="Sony\Kirk.cs" />
+    <Compile Include="Sony\KirkEngine.cs" />
     <Compile Include="Sony\PgdCryptoStream.cs" />
     <Compile Include="XorStream.cs" />
   </ItemGroup>
