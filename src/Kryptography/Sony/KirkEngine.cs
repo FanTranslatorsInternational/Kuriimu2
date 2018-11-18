@@ -115,9 +115,9 @@ namespace Kryptography.Sony
         private static void CopyingBlocks(byte[] inBuf, int offset, int count, byte[] outBuf, int outOffset, ICryptoTransform transform)
         {
             var pos = 0;
-            for (int i = count; i > 0; i -= 0x800)
+            for (int i = count; i > 0; i -= _bufferSize)
             {
-                var size = Math.Min(0x800, count);
+                var size = Math.Min(_bufferSize, count);
                 transform.TransformBlock(inBuf, offset + pos, size, outBuf, outOffset + pos);
 
                 pos += size;

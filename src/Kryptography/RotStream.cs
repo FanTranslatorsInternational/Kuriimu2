@@ -7,69 +7,58 @@ namespace Kryptography
     public class RotStream : KryptoStream
     {
         public override int BlockSize => 8;
-
         public override int BlockSizeBytes => 1;
+        protected override int BlockAlign => BlockSizeBytes;
 
-        public override List<byte[]> Keys { get; }
-
+        public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
+        public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 
-        public override byte[] IV => throw new NotImplementedException();
-
-        public override bool CanRead => true;
-
-        public override bool CanSeek => true;
-
-        public override bool CanWrite => true;
-
-        public override long Length => _stream.Length;
-
-        public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
-
-        private Stream _stream;
-
-        public RotStream(Stream input, byte n)
+        public RotStream(byte[] input, byte key) : base(input)
         {
-            _stream = input;
+            Initialize(key);
+        }
 
+        public RotStream(Stream input, byte key) : base(input)
+        {
+            Initialize(key);
+        }
+
+        public RotStream(byte[] input, long offset, long length, byte key) : base(input, offset, length)
+        {
+            Initialize(key);
+        }
+
+        public RotStream(Stream input, long offset, long length, byte key) : base(input, offset, length)
+        {
+            Initialize(key);
+        }
+
+        private void Initialize(byte key)
+        {
             Keys = new List<byte[]>();
-            Keys.Add(new byte[] { n });
+            Keys.Add(new byte[] { key });
         }
 
-        public override void Flush()
+        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
         {
+            Position = alignedPosition;
+
+            var readData = new byte[alignedCount];
+            _stream.Read(readData, 0, alignedCount);
+
+            for (int i = 0; i < alignedCount; i++)
+                decryptedData[decOffset + i] = (byte)(readData[i] - Keys[0][0]);
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
+        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
         {
-            if (offset + count >= buffer.Length)
-                throw new InvalidDataException($"Buffer is too small.");
-
-            var length = (int)Math.Max(0, Math.Min(count, Length - Position));
-
-            for (int i = 0; i < length; i++)
-                buffer[offset + i] = (byte)(_stream.ReadByte() - Keys[0][0]);
-
-            return length;
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return _stream.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (offset + count >= buffer.Length)
-                throw new InvalidDataException($"Buffer is too small.");
-
+            var encBuffer = new byte[count];
             for (int i = 0; i < count; i++)
-                _stream.WriteByte((byte)(buffer[offset + i] + Keys[0][0]));
+                encBuffer[i] = (byte)(buffer[offset + i] + Keys[0][0]);
+
+            Position = alignedPosition;
+            _stream.Write(encBuffer, 0, count);
         }
     }
 }
