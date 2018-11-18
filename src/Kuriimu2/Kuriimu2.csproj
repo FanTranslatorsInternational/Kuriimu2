@@ -166,6 +166,7 @@
     <Compile Include="Dialogs\Common\Enumerations.cs" />
     <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\NewFileViewModel.cs" />
+    <Compile Include="Dialogs\ViewModels\AddTextEntryViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\PropertyEditorViewModel.cs" />
     <Compile Include="Dialogs\Common\Common.cs" />
     <Compile Include="Interfaces\IFileEditor.cs" />
@@ -189,6 +190,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\Views\NewFileView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\Views\AddTextEntryView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -335,6 +340,13 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\batch-export-image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\image-export.png" />
+    <Resource Include="Images\image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add-text-entry.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

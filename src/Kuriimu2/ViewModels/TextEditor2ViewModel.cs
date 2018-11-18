@@ -4,11 +4,14 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kore;
+using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
 using Image = System.Drawing.Image;
@@ -49,11 +52,11 @@ namespace Kuriimu2.ViewModels
             //if (_adapter != null)
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
-            SelectedEntry = Entries?.First();
+            SelectedEntry = Entries?.FirstOrDefault();
             SelectedZoomLevel = 2;
         }
 
-        public List<int> ZomeLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
+        public List<int> ZoomLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
 
         public int SelectedZoomLevel
         {
@@ -94,17 +97,6 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public TextEntry SelectedEntry
-        {
-            get => _selectedEntry;
-            set
-            {
-                _selectedEntry = value;
-                NotifyOfPropertyChange(() => SelectedEntry);
-                NotifyOfPropertyChange(() => PreviewImage);
-            }
-        }
-
         public ImageSource PreviewImage
         {
             get
@@ -116,7 +108,54 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public void AddEntry() { }
+        public bool AddButtonEnabled => _adapter is IAddEntries;
+
+        public void AddEntry()
+        {
+            if (!(_adapter is IAddEntries add)) return;
+
+            var entry = add.NewEntry();
+
+            var nte = new AddTextEntryViewModel
+            {
+                Message = "Enter the name of the new text entry.",
+                //TODO: Implement max name length in the add dialog based on the length from the loaded text adapter
+            };
+            _windows.Add(nte);
+
+            nte.ValidationCallback = () => new ValidationResult
+            {
+                CanClose = Regex.IsMatch(nte.Name, _adapter.NameFilter) && _adapter.Entries.All(e => e.Name != nte.Name),
+                ErrorMessage = $"The '{nte.Name}' name is not valid or already exists."
+            };
+
+            if (_wm.ShowDialog(nte) == true && add.AddEntry(entry))
+            {
+                entry.Name = nte.Name;
+                KoreFile.HasChanges = true;
+                _selectedGameAdapter.Adapter.LoadEntries(_adapter.Entries);
+                Entries = new ObservableCollection<TextEntry>(_selectedGameAdapter.Adapter.Entries);
+                foreach (var ent in Entries.Where(e => e.Name == entry.Name))
+                    ent.Edited += (sender, args) =>
+                    {
+                        KoreFile.HasChanges = true;
+                        NotifyOfPropertyChange(() => PreviewImage);
+                    };
+                NotifyOfPropertyChange(() => Entries);
+                SelectedEntry = entry;
+            }
+        }
+
+        public TextEntry SelectedEntry
+        {
+            get => _selectedEntry;
+            set
+            {
+                _selectedEntry = value;
+                NotifyOfPropertyChange(() => SelectedEntry);
+                NotifyOfPropertyChange(() => PreviewImage);
+            }
+        }
 
         public void Save(string filename = "")
         {
@@ -147,6 +186,17 @@ namespace Kuriimu2.ViewModels
             {
                 // Handle on UI gracefully somehow~
             }
+        }
+
+        public override void TryClose(bool? dialogResult = null)
+        {
+            for (var i = _windows.Count - 1; i >= 0; i--)
+            {
+                var scr = _windows[i];
+                scr.TryClose(dialogResult);
+                _windows.Remove(scr);
+            }
+            base.TryClose(dialogResult);
         }
     }
 

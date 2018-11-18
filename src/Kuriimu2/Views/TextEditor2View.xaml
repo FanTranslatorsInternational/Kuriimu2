@@ -16,7 +16,7 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Preview and Screenshots -->
+            <!-- Preview -->
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"></RowDefinition>
@@ -26,10 +26,6 @@
 
                 <DockPanel Grid.Row="0">
                     <Grid DockPanel.Dock="Top">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar ToolBarTray.IsLocked="True">
                                 <Label Content="Preview"></Label>
@@ -39,7 +35,7 @@
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                                 <TextBlock Text="Zoom: " VerticalAlignment="Center"></TextBlock>
-                                <ComboBox ItemsSource="{Binding ZomeLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
+                                <ComboBox ItemsSource="{Binding ZoomLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding}" Margin="3 0"></TextBlock>
@@ -61,7 +57,7 @@
                     </Grid>
 
                     <!-- Preview -->
-                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray">
+                    <Border BorderThickness="1" BorderBrush="Gray">
                         <DockPanel>
                             <DockPanel.Background>
                                 <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
@@ -112,22 +108,20 @@
                         <ColumnDefinition Width="*"></ColumnDefinition>
                         <ColumnDefinition Width="Auto"></ColumnDefinition>
                     </Grid.ColumnDefinitions>
+
                     <ToolBarPanel Grid.Column="0">
                         <ToolBar ToolBarTray.IsLocked="True">
-                            <Label Content="{Binding EntryCount, FallbackValue='1 Entry'}"></Label>
+                            <Button Name="AddEntry" ToolTip="Add Text Entry" IsEnabled="{Binding AddButtonEnabled}">
+                                <Image Source="/Images/menu-add.png" Width="16" />
+                            </Button>
                         </ToolBar>
                     </ToolBarPanel>
 
                     <ToolBarPanel Grid.Column="0">
                         <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                            <Button Name="FontProperties" ToolTip="Font Properties" Visibility="Hidden">
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="/Images/menu-properties.png" Width="16" />
-                                </StackPanel>
-                            </Button>
                         </ToolBar>
                     </ToolBarPanel>
-                    <Label Grid.Column="1" Content="{Binding CharacterCount}" />
+                    <Label Grid.Column="1" Content="{Binding EntryCount, FallbackValue='1 Entry'}" />
                 </Grid>
                 <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">
                     <DataGrid.Resources>
@@ -170,7 +164,25 @@
                                 </Style>
                             </DataGridTextColumn.EditingElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Original" Binding="{Binding OriginalText}" Width="3*" IsReadOnly="{Binding OriginalTextReadOnly, ElementName=Root}" />
+                        <DataGridTextColumn Header="Original" Binding="{Binding OriginalText}" Width="3*" IsReadOnly="{Binding OriginalTextReadOnly, ElementName=Root}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                            <DataGridTextColumn.EditingElementStyle>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                    <Setter Property="AcceptsReturn" Value="True" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Padding">
+                                        <Setter.Value>
+                                            <Thickness Top="0" Bottom="0" Left="0" Right="0"></Thickness>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.EditingElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="3*">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">

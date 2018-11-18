@@ -27,11 +27,12 @@ namespace Kuriimu2.ViewModels
         private readonly IImageAdapter _adapter;
 
         private BitmapEntry _selectedBitmapInfo;
-        private ImageSource _selectedTexture;
+        private ImageSource _selectedImage;
         private string _statusText;
         private bool _progressActive;
         private string _progressActionName;
         private int _progressValue;
+        private int _selectedZoomLevel;
 
         public KoreFileInfo KoreFile { get; }
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
@@ -43,19 +44,19 @@ namespace Kuriimu2.ViewModels
             {
                 if (value == _selectedBitmapInfo) return;
                 _selectedBitmapInfo = value;
-                SelectedTexture = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }
 
-        public ImageSource SelectedTexture
+        public ImageSource SelectedImage
         {
-            get => _selectedTexture;
+            get => _selectedImage;
             set
             {
-                if (value == _selectedTexture) return;
-                _selectedTexture = value;
-                NotifyOfPropertyChange(() => SelectedTexture);
+                if (value == _selectedImage) return;
+                _selectedImage = value;
+                NotifyOfPropertyChange(() => SelectedImage);
             }
         }
 
@@ -119,6 +120,20 @@ namespace Kuriimu2.ViewModels
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
             SelectedBitmap = Bitmaps?.FirstOrDefault();
+            SelectedZoomLevel = 2;
+        }
+
+        public List<int> ZoomLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
+
+        public int SelectedZoomLevel
+        {
+            get => _selectedZoomLevel;
+            set
+            {
+                if (value == _selectedZoomLevel) return;
+                _selectedZoomLevel = value;
+                NotifyOfPropertyChange(() => SelectedZoomLevel);
+            }
         }
 
         public void ImageProperties()
