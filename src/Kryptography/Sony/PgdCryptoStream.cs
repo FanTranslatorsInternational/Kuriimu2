@@ -32,8 +32,11 @@ namespace Kryptography.Sony
         private int _cipher_type;
         private byte[] _vkey;
 
-        private ICryptoTransform _encryptor;
-        private ICryptoTransform _decryptor;
+        private BBCipherTransform _headDecryptor;
+        private BBCipherTransform _headEncryptor;
+
+        private BBCipherTransform _bodyDecryptor;
+        private BBCipherTransform _bodyEncryptor;
 
         private Stream _stream;
         private long _offset;
@@ -103,17 +106,51 @@ namespace Kryptography.Sony
                     _cipher_type = 2;
                 }
 
-                //Get vkey for future decryption from MAC_70
-                Position = 0;
-                var bbmac = new BBMac(mac_type);
-                _vkey = bbmac.GetKey(br.ReadBytes(0x70), br.ReadBytes(0x10));
+                SetVersionKey(br, mac_type);
 
-                var context = new BBCipherContext(_vkey);
-                _encryptor = context.CreateEncryptor();
-                _decryptor = context.CreateDecryptor();
+                byte[] headerKey = new byte[0x10];
+                GetHeaderKey(br, headerKey);
+
+                byte[] bodyKey = new byte[0x10];
+                GetBodyKey(br, headerKey, bodyKey);
+
+                var headContext = new BBCipherContext(headerKey, _vkey, 0, _cipher_type);
+
+                _headDecryptor = (BBCipherTransform)headContext.CreateDecryptor();
+                _headEncryptor = (BBCipherTransform)headContext.CreateEncryptor();
+
+                var bodyContext = new BBCipherContext(bodyKey, _vkey, 0, _cipher_type);
+
+                _bodyDecryptor = (BBCipherTransform)bodyContext.CreateDecryptor();
+                _bodyEncryptor = (BBCipherTransform)bodyContext.CreateEncryptor();
             }
 
             Position = bkPos;
+        }
+
+        private void SetVersionKey(BinaryReader br, int mac_type)
+        {
+            br.BaseStream.Position = 0;
+
+            var bbmac = new BBMac(mac_type);
+            _vkey = bbmac.GetKey(br.ReadBytes(0x70), br.ReadBytes(0x10));
+        }
+
+        private void GetHeaderKey(BinaryReader br, byte[] headerKey)
+        {
+            br.BaseStream.Position = 0x10;
+
+            Array.Copy(br.ReadBytes(0x10), headerKey, 0x10);
+        }
+
+        private void GetBodyKey(BinaryReader br, byte[] headerKey, byte[] bodyKey)
+        {
+            var context = new BBCipherContext(headerKey, _vkey, 0, _cipher_type);
+            var dec = context.CreateDecryptor();
+
+            br.BaseStream.Position = 0x30;
+            var decryptedBuffer = dec.TransformFinalBlock(br.ReadBytes(0x30), 0, 0x30);
+            Array.Copy(decryptedBuffer, bodyKey, 0x10);
         }
 
         public override int BlockSize => 128;
@@ -154,9 +191,7 @@ namespace Kryptography.Sony
             if (_fixedLength && Position >= Length)
                 return 0;
 
-            ReadDecrypted(buffer, offset, count);
-
-            return 0;
+            return ReadDecrypted(buffer, offset, count);
         }
 
         private void ValidateRead(byte[] buffer, int offset, int count)
@@ -195,12 +230,80 @@ namespace Kryptography.Sony
 
         private byte[] Decrypt(long begin, int alignedCount)
         {
-            _stream.Position = begin + _offset;
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
+            var absolutePos = begin + _offset;
+
+            _stream.Position = absolutePos;
 
             var decData = new byte[alignedCount];
-            _decryptor.TransformBlock(readData, 0, readData.Length, decData, 0);
+            var read = 0;
+            if (begin + read < 0x30)
+            {
+                var size = (int)Math.Min(0x30 - (begin + read), alignedCount - read);
+                _stream.Read(decData, read, size);
+
+                if ((read += size) >= alignedCount)
+                    return decData;
+            }
+            if (begin + read < 0x60)
+            {
+                var size = (int)Math.Min(0x60 - (begin + read), alignedCount - read);
+
+                if (begin + read > 0x30)
+                {
+                    var diff = begin + read - 0x30;
+
+                    _stream.Position = _offset + 0x30;
+                    var tmp = new byte[0x30];
+                    _stream.Read(tmp, 0, 0x30);
+
+                    //_headDecryptor.Seed = (int)diff / 0x10 + 1;
+                    _headDecryptor.TransformBlock(tmp, 0, 0x30, tmp, 0);
+
+                    Array.Copy(tmp, diff, decData, read, size);
+                    _stream.Position = absolutePos + diff + size;
+                }
+                else
+                {
+                    _stream.Read(decData, read, size);
+                    _headDecryptor.TransformBlock(decData, read, size, decData, read);
+                }
+
+                if ((read += size) >= alignedCount)
+                    return decData;
+            }
+            if (begin + read < 0x90)
+            {
+                var size = (int)Math.Min(0x90 - (begin + read), alignedCount - read);
+                _stream.Read(decData, read, size);
+
+                if ((read += size) >= alignedCount)
+                    return decData;
+            }
+
+            if ((begin + read - 0x90) % 0x800 > 0)
+            {
+                var diff = (begin + read - 0x90) % 0x800;
+                var size = (int)Math.Min(0x800 - diff, alignedCount - read);
+                _stream.Position -= diff;
+
+                var tmp = new byte[0x800];
+                _stream.Read(tmp, 0, 0x800);
+
+                _bodyDecryptor.Seed = (int)(begin + read - 0x90 - diff) / 0x10 + 1;
+
+                _bodyDecryptor.TransformBlock(tmp, 0, 0x800, tmp, 0);
+                Array.Copy(tmp, diff, decData, read, size);
+
+                _stream.Position -= 0x800 - (diff + size);
+
+                if ((read += size) >= alignedCount)
+                    return decData;
+            }
+
+            _bodyDecryptor.Seed = (int)(begin + read - 0x90) / 0x10 + 1;
+
+            _stream.Read(decData, read, alignedCount - read);
+            _bodyDecryptor.TransformBlock(decData, read, alignedCount - read, decData, read);
 
             return decData;
         }

@@ -10,36 +10,42 @@ namespace Kryptography.Sony
 {
     public class BBCipherContext : SymmetricAlgorithm
     {
-        byte[] _key;
+        byte[] _header_key;
+        byte[] _vkey;
 
-        public BBCipherContext(byte[] key)
+        int _type;
+        int _seed;
+
+        public BBCipherContext(byte[] header_key, byte[] vkey, int seed, int cipher_type)
         {
-            _key = new byte[key.Length];
-            Array.Copy(key, _key, key.Length);
+            _header_key = new byte[header_key.Length];
+            Array.Copy(header_key, _header_key, header_key.Length);
+
+            _vkey = new byte[vkey.Length];
+            Array.Copy(vkey, _vkey, vkey.Length);
+
+            _type = cipher_type;
+            _seed = seed;
+        }
+
+        public override ICryptoTransform CreateDecryptor()
+        {
+            return CreateDecryptor(null, null);
         }
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            ValidateKey(rgbKey);
+            return new BBCipherTransform(_header_key, _vkey, _seed, _type, true);
+        }
 
-            var key = _key ?? rgbKey;
-
-            return new BBCipherTransform(key, true);
+        public override ICryptoTransform CreateEncryptor()
+        {
+            return CreateEncryptor(null, null);
         }
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            ValidateKey(rgbKey);
-
-            var key = _key ?? rgbKey;
-
-            return new BBCipherTransform(key, false);
-        }
-
-        private void ValidateKey(byte[] key)
-        {
-            if (key == null && _key == null)
-                throw new InvalidDataException("Key can't be null.");
+            return new BBCipherTransform(_header_key, _vkey, _seed, _type, false);
         }
 
         public override void GenerateIV()

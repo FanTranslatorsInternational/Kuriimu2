@@ -10,6 +10,8 @@ namespace Kryptography.Sony
 {
     public class Kirk
     {
+        static Aes aes = Aes.Create();
+
         /// <summary>
         /// Kirk CMD4
         /// </summary>
@@ -112,7 +114,6 @@ namespace Kryptography.Sony
             return (uint)(buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) | (buffer[offset + 3] << 24));
         }
 
-        //TODO: Implement CopyRange
         private static int BufferCopyWithRange(byte[] outBuf, int outSize, byte[] inBuf, int inSize, int cmd)
         {
             switch (cmd)
@@ -121,6 +122,10 @@ namespace Kryptography.Sony
                     return Kirk_CMD4(outBuf, inBuf, inSize);
                 case 7:
                     return Kirk_CMD7(outBuf, inBuf, inSize);
+                case 14:
+                    //TODO: Implement random byte filler CMD14
+                    //Array.Clear(outBuf, 0, outSize);
+                    return 0;
                 default:
                     throw new InvalidOperationException($"Invalid Command: {(KirkCmd)cmd}");
             }
@@ -164,7 +169,6 @@ namespace Kryptography.Sony
 
         private static void CBCEncrypt(byte[] outBuf, byte[] inBuf, int size, byte[] key, byte[] iv)
         {
-            var aes = Aes.Create();
             aes.Padding = PaddingMode.None;
             aes.Mode = CipherMode.CBC;
             aes.Key = key;
@@ -197,7 +201,6 @@ namespace Kryptography.Sony
 
         private static void CBCDecrypt(byte[] outBuf, byte[] inBuf, int size, byte[] key, byte[] iv)
         {
-            var aes = Aes.Create();
             aes.Padding = PaddingMode.None;
             aes.Mode = CipherMode.CBC;
             aes.Key = key;
