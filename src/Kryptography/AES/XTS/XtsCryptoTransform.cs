@@ -84,7 +84,7 @@ namespace Kryptography.AES.XTS
             for (int i = 0; i < sectorCount; i++)
             {
                 Array.Copy(tweak, 0, encTweak, i * 16, 16);
-                Increment(tweak, 1);
+                tweak.Increment(1, _littleEndianId);
             }
 
             //Encrypt SectorTweaks
@@ -133,46 +133,6 @@ namespace Kryptography.AES.XTS
             {
                 outputBuffer[outputOffset + j] = (byte)(inputBuffer[inputOffset + j] ^ encryptedTweaks[j]);
             }
-        }
-
-        private void Increment(byte[] id, int count)
-        {
-            if (!_littleEndianId)
-                for (int i = id.Length - 1; i >= 0; i--)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = id[i];
-                    id[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i - off - 1 >= 0 && id[i - off] < check)
-                    {
-                        check = id[i - off - 1];
-                        id[i - off - 1]++;
-                        off++;
-                    }
-                }
-            else
-                for (int i = 0; i < id.Length; i++)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = id[i];
-                    id[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i + off + 1 < id.Length && id[i + off] < check)
-                    {
-                        check = id[i + off + 1];
-                        id[i + off + 1]++;
-                        off++;
-                    }
-                }
         }
 
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)

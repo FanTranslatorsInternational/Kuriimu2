@@ -9,7 +9,6 @@ namespace Kryptography.AES
     {
         private XtsCryptoTransform _encryptor;
         private XtsCryptoTransform _decryptor;
-
         private bool _littleEndianId;
 
         public override int BlockSize => 128;
@@ -97,50 +96,10 @@ namespace Kryptography.AES
             if (alignedPosition >= SectorSize)
             {
                 var count = alignedPosition / SectorSize;
-                Increment(id, (int)count);
+                id.Increment((int)count, _littleEndianId);
             }
 
             return id;
-        }
-
-        private void Increment(byte[] id, int count)
-        {
-            if (!_littleEndianId)
-                for (int i = id.Length - 1; i >= 0; i--)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = id[i];
-                    id[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i - off - 1 >= 0 && id[i - off] < check)
-                    {
-                        check = id[i - off - 1];
-                        id[i - off - 1]++;
-                        off++;
-                    }
-                }
-            else
-                for (int i = 0; i < id.Length; i++)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = id[i];
-                    id[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i + off + 1 < id.Length && id[i + off] < check)
-                    {
-                        check = id[i + off + 1];
-                        id[i + off + 1]++;
-                        off++;
-                    }
-                }
         }
     }
 }

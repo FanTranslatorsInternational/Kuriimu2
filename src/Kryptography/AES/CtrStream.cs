@@ -93,50 +93,10 @@ namespace Kryptography.AES
             if (alignedPosition >= 0x10)
             {
                 var count = alignedPosition / 0x10;
-                IncrementCtr(iv, (int)count);
+                iv.Increment((int)count, _littleEndianCtr);
             }
 
             return iv;
-        }
-
-        private void IncrementCtr(byte[] ctr, int count)
-        {
-            if (!_littleEndianCtr)
-                for (int i = ctr.Length - 1; i >= 0; i--)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = ctr[i];
-                    ctr[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i - off - 1 >= 0 && ctr[i - off] < check)
-                    {
-                        check = ctr[i - off - 1];
-                        ctr[i - off - 1]++;
-                        off++;
-                    }
-                }
-            else
-                for (int i = 0; i < ctr.Length; i++)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = ctr[i];
-                    ctr[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i + off + 1 < ctr.Length && ctr[i + off] < check)
-                    {
-                        check = ctr[i + off + 1];
-                        ctr[i + off + 1]++;
-                        off++;
-                    }
-                }
         }
     }
 }
