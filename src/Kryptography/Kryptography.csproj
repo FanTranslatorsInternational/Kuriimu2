@@ -67,6 +67,7 @@
     <Compile Include="Nintendo\KeyStorage.cs" />
     <Compile Include="Nintendo\NcaBodySectionCryptoStream.cs" />
     <Compile Include="Nintendo\NcaCryptoStream.cs" />
+    <Compile Include="Nintendo\NcaExtensions.cs" />
     <Compile Include="Nintendo\NcaHeaderCryptoStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RotStream.cs" />
