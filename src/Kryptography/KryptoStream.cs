@@ -6,8 +6,11 @@ namespace Kryptography
 {
     public abstract class KryptoStream : Stream
     {
+        private Stream _baseStream;
+
         public abstract int BlockSize { get; }
         public abstract int BlockSizeBytes { get; }
+
         protected abstract int BlockAlign { get; }
 
         public abstract List<byte[]> Keys { get; protected set; }
@@ -19,37 +22,29 @@ namespace Kryptography
         public override bool CanSeek => true;
         public override bool CanWrite => true;
 
-        protected Stream _stream;
-        protected long _offset;
-        protected long _length;
-        protected bool _fixedLength;
-
-        public override long Length { get => _length; }
-        public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
-
-        protected abstract void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset);
-        protected abstract void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition);
-
         public KryptoStream(Stream input)
         {
-            _stream = input;
-            _length = _stream.Length;
+            _baseStream = input;
         }
 
-        public KryptoStream(Stream input, long offset, long length) : this(input)
+        public KryptoStream(Stream input, long offset, long length)
         {
-            _offset = offset;
-            _stream.Position = Math.Max(offset, _stream.Position);
-            _fixedLength = true;
+            _baseStream = new SubStream(input, offset, length);
         }
 
-        public KryptoStream(byte[] input) : this(new MemoryStream(input))
+        public KryptoStream(byte[] input)
         {
+            _baseStream = new MemoryStream(input);
         }
 
-        public KryptoStream(byte[] input, long offset, long length) : this(new MemoryStream(input), offset, length)
+        public KryptoStream(byte[] input, long offset, long length)
         {
+            _baseStream = new SubStream(input, offset, length);
         }
+
+        protected abstract int ProcessRead(long alignedPosition, int alignedCount, byte[] decData, int offset);
+
+        protected abstract int ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition);
 
         #region Overrides
         public override int Read(byte[] buffer, int offset, int count)
@@ -68,7 +63,7 @@ namespace Kryptography
             var originalPosition = Position;
 
             var decData = new byte[alignedCount];
-            ProcessRead(alignPos, alignedCount, decData, 0);
+            ProcessKryptoRead(alignPos, alignedCount, decData, 0);
 
             Array.Copy(decData, bytesIn, buffer, offset, count);
 
@@ -90,7 +85,7 @@ namespace Kryptography
             Array.Copy(buffer, offset, readBuffer, dataStart, count);
 
             var originalPosition = Position;
-            ProcessWrite(readBuffer, 0, readBuffer.Length, _stream.Position - dataStart);
+            ProcessKryptoWrite(readBuffer, 0, readBuffer.Length, _stream.Position - dataStart);
 
             if (originalPosition + count > _length)
                 _length = originalPosition + count;
@@ -98,25 +93,16 @@ namespace Kryptography
             Seek(originalPosition + count, SeekOrigin.Begin);
         }
 
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            if (!CanSeek)
-                throw new NotSupportedException("Seek is not supported.");
-
-            return _stream.Seek(offset + _offset, origin);
-        }
-
-        public override void Flush()
-        {
-        }
+        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
         #endregion
 
         #region Private Methods
+        private int GetAlignedCount(int origCount, int bytesIn)
+        {
+            var minCount = (double)Math.Min(origCount, Length - Position);
+            return (int)Math.Ceiling(minCount / BlockAlign) * BlockAlign;
+        }
+
         private void ValidateRead()
         {
             if (!CanRead)
@@ -135,12 +121,6 @@ namespace Kryptography
                 throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length)
                 throw new InvalidDataException("Buffer too short.");
-        }
-
-        private int GetAlignedCount(int origCount, int bytesIn)
-        {
-            var minCount = (double)Math.Min(origCount, Length - Position);
-            return (int)Math.Ceiling(minCount / BlockAlign) * BlockAlign;
         }
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
@@ -187,7 +167,7 @@ namespace Kryptography
                 long originalPosition = Position;
 
                 var readBuffer = new byte[(int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockAlign];
-                ProcessRead(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockAlign, readBuffer, 0);
+                ProcessKryptoRead(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockAlign, readBuffer, 0);
 
                 Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
 
@@ -198,7 +178,7 @@ namespace Kryptography
 
         public new void Dispose()
         {
-            _stream.Dispose();
+            _baseStream.Dispose();
         }
     }
 }

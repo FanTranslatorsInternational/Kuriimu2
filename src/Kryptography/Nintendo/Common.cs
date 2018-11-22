@@ -16,7 +16,8 @@
 
     public enum NCAVersion : int
     {
-        NCA2,
-        NCA3
+        None = 0,
+        NCA2 = 2,
+        NCA3 = 3
     }
 }

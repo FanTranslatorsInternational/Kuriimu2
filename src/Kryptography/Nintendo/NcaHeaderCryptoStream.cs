@@ -11,9 +11,29 @@ namespace Kryptography.Nintendo
     {
         private NcaKeyStorage _ncaKeyStorage;
 
-        public NcaHeaderCryptoStream(Stream input,NcaKeyStorage keyStorage,)
+        public NcaHeaderCryptoStream(byte[] input, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) : base(input)
+        {
+            Inititalize(keyStorage, ncaVersion);
+        }
+
+        public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) : base(input)
         {
 
+        }
+
+        public NcaHeaderCryptoStream(byte[] input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) : base(input, offset, length)
+        {
+
+        }
+
+        public NcaHeaderCryptoStream(Stream input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) : base(input, offset, length)
+        {
+
+        }
+
+        private void Initialize(NcaKeyStorage keyStorage, NCAVersion ncaVersion)
+        {
+            _ncaKeyStorage = keyStorage;
         }
 
         public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage, NCAVersion ncaVersion, bool shouldEncrypt)

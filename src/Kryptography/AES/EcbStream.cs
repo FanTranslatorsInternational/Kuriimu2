@@ -60,6 +60,11 @@ namespace Kryptography.AES
             _encryptor.Dispose();
         }
 
+        protected override int ProcessRead(long streamPos, byte[] buffer, int offset, int count)
+        {
+            return base.ProcessRead(streamPos, buffer, offset, count);
+        }
+
         protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
         {
             Position = alignedPosition;
