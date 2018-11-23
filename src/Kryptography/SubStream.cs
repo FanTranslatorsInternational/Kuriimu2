@@ -11,8 +11,7 @@ namespace Kryptography
     {
         private Stream _baseStream;
         private readonly long _baseOffset;
-        private long _length;
-        private bool _fixedLength;
+        private readonly long _length;
 
         public override long Position { get; set; }
 
@@ -29,9 +28,7 @@ namespace Kryptography
             ValidateCtor(input, offset, length);
 
             _baseOffset = offset;
-
             _length = length;
-            _fixedLength = true;
 
             Position = Math.Max(input.Position - offset, 0);
         }
@@ -69,16 +66,11 @@ namespace Kryptography
 
             _baseStream.Position = origPosition;
             Position += count;
-
-            if (Position > _length) _length = Position;
         }
 
         public override void SetLength(long value)
         {
-            ValidateSetLength(value);
-
-            _fixedLength = true;
-            _length = value;
+            throw new NotImplementedException();
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -119,8 +111,8 @@ namespace Kryptography
         private void ValidateWrite(byte[] buffer, int offset, int count)
         {
             if (!CanWrite) throw new NotSupportedException("Write is not supported");
-            if (_fixedLength && Position >= _length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
-            if (_fixedLength && _length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
+            if (Position >= _length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
+            if (_length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
 
             ValidateInput(buffer, offset, count);
         }
@@ -130,14 +122,9 @@ namespace Kryptography
             if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
         }
-
-        private void ValidateSetLength(long length)
-        {
-            if (length <= 0) throw new ArgumentException("Length can't be negative or 0");
-        }
         #endregion
 
-        public new void Dispose()
+        public void Dispose()
         {
             _baseStream.Dispose();
         }

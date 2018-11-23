@@ -12,6 +12,7 @@ namespace Kryptography
         public abstract int BlockSizeBytes { get; }
 
         protected abstract int BlockAlign { get; }
+        protected virtual int BufferSize { get; } = 0x10000;
 
         public abstract List<byte[]> Keys { get; protected set; }
         public abstract int KeySize { get; }
@@ -42,41 +43,71 @@ namespace Kryptography
             _baseStream = new SubStream(input, offset, length);
         }
 
-        protected abstract int ProcessRead(long alignedPosition, int alignedCount, byte[] decData, int offset);
+        protected abstract void Decrypt(byte[] buffer, int offset, int count);
 
-        protected abstract int ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition);
+        protected abstract void Encrypt(byte[] buffer, int offset, int count);
 
         #region Overrides
         public override int Read(byte[] buffer, int offset, int count)
         {
-            ValidateRead();
-            ValidateInput(buffer, offset, count);
-
-            if (_fixedLength && Position >= Length)
-                return 0;
+            ValidateRead(buffer, offset, count);
+            if (Position >= Length) return 0;
 
             var alignPos = Position / BlockAlign * BlockAlign;
             var bytesIn = (int)(Position % BlockAlign);
-            var alignedCount = GetAlignedCount(count, bytesIn);
-            if (alignedCount == 0) return alignedCount;
+            var alignedCount = GetAlignedCount((int)Math.Min(count, Length - Position));
+            if (alignedCount == 0) return 0;
 
-            var originalPosition = Position;
+            _baseStream.Position = alignPos;
 
-            var decData = new byte[alignedCount];
-            ProcessKryptoRead(alignPos, alignedCount, decData, 0);
+            var read = 0;
+            var decData = new byte[BufferSize];
+            while (read < alignedCount)
+            {
+                var size = Math.Min(alignedCount - read, BufferSize);
+                read += _baseStream.Read(decData, 0, size);
 
-            Array.Copy(decData, bytesIn, buffer, offset, count);
+                Decrypt(decData, 0, size);
 
-            Seek(originalPosition + count, SeekOrigin.Begin);
+                var copyOffset = (read == size) ? bytesIn : 0;
+                var copySize = (read == size) ? size - bytesIn : size;
+                copySize -= (read >= alignedCount) ? alignedCount - count : 0;
+                Array.Copy(decData, copyOffset, buffer, offset + read, copySize);
+            }
+            Position += read;
 
             return count;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            ValidateWrite();
-            ValidateInput(buffer, offset, count);
+            ValidateWrite(buffer, offset, count);
             if (count == 0) return;
+
+            var alignedPos = Math.Min(Length, Position) / BlockAlign * BlockAlign;
+            var bytesIn = (int)(Position % BlockAlign);
+            var alignedCount = GetAlignedCount((int)(Position - alignedPos + count));
+            if (alignedCount == 0) return;
+
+            _baseStream.Position = alignedPos;
+
+            var preDecData = new byte[Length - alignedPos];
+            PreDecryption(preDecData, 0, (int)(Length - alignedPos));
+
+            var write = 0;
+            var decData = new byte[BufferSize];
+            while (write < alignedCount)
+            {
+                var preSize = Math.Min(Math.Max(0, (int)(Length - alignedPos - write)), BufferSize);
+                var zeroSize = (Position > Length) ? Math.Min(Math.Max(0, Position - Length - Math.Max(0, alignedPos + write - Length)), BufferSize) : 0;
+                //TODO
+                var encSize = (alignedPos + write + BufferSize >= Position) ? Math.Min(alignedCount - (alignedPos + write + BufferSize - Position), BufferSize) : 0;
+
+                var size = Math.Min(alignedCount - write, BufferSize);
+                write += _baseStream.Read(decData, 0, size);
+
+                Decrypt(decData, 0, size);
+            }
 
             var readBuffer = GetInitializedReadBuffer(count, out var dataStart);
 
@@ -93,34 +124,41 @@ namespace Kryptography
             Seek(originalPosition + count, SeekOrigin.Begin);
         }
 
+        private void PreDecryption(byte[] preDecData, int offset, int count)
+        {
+            if (count <= 0) return;
+
+            _baseStream.Read(preDecData, 0, count);
+            Decrypt(preDecData, 0, count);
+        }
+
         public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
         #endregion
 
         #region Private Methods
-        private int GetAlignedCount(int origCount, int bytesIn)
+        private void ValidateRead(byte[] buffer, int offset, int count)
         {
-            var minCount = (double)Math.Min(origCount, Length - Position);
-            return (int)Math.Ceiling(minCount / BlockAlign) * BlockAlign;
+            if (!CanRead) throw new NotSupportedException("Reading is not supported.");
+
+            ValidateInput(buffer, offset, count);
         }
 
-        private void ValidateRead()
+        private void ValidateWrite(byte[] buffer, int offset, int count)
         {
-            if (!CanRead)
-                throw new NotSupportedException("Reading is not supported.");
-        }
+            if (!CanWrite) throw new NotSupportedException("Write is not supported");
 
-        private void ValidateWrite()
-        {
-            if (!CanWrite)
-                throw new NotSupportedException("Write is not supported");
+            ValidateInput(buffer, offset, count);
         }
 
         private void ValidateInput(byte[] buffer, int offset, int count)
         {
-            if (offset < 0 || count < 0)
-                throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
-            if (offset + count > buffer.Length)
-                throw new InvalidDataException("Buffer too short.");
+            if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
+            if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
+        }
+
+        private int GetAlignedCount(int count)
+        {
+            return (int)Math.Ceiling((double)count / BlockAlign) * BlockAlign;
         }
 
         private byte[] GetInitializedReadBuffer(int count, out long dataStart)
