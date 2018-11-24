@@ -95,7 +95,8 @@ namespace plugin_mt_framework.GFDv1
         }
 
         public void Draw(char c, Graphics gfx, float x, float y, float scaleX, float scaleY)
-        {var character = Characters.FirstOrDefault(chr => (char)chr.Character == c) ?? Characters.FirstOrDefault(chr => (char)chr.Character == '?');
+        {
+            var character = Characters.FirstOrDefault(chr => (char)chr.Character == c) ?? Characters.FirstOrDefault(chr => (char)chr.Character == '?');
             var widthInfo = character?.WidthInfo;
 
             if (character == null) return;
@@ -113,7 +114,7 @@ namespace plugin_mt_framework.GFDv1
                     _charAttributes
                 );
         }
-        
+
         #endregion
 
         public bool Identify(string filename)
