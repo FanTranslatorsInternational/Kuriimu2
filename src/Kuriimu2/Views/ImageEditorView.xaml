@@ -55,7 +55,7 @@
                             </VisualBrush>
                         </DockPanel.Background>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" UseLayoutRounding="True">
                                 <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />

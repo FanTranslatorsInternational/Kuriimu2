@@ -67,7 +67,7 @@
                                 </VisualBrush>
                             </DockPanel.Background>
                             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center" UseLayoutRounding="True">
                                     <Image Source="{Binding PreviewImage}" RenderOptions.BitmapScalingMode="NearestNeighbor">
                                         <Image.LayoutTransform>
                                             <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}"></ScaleTransform>
