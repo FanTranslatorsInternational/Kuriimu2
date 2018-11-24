@@ -8,75 +8,55 @@ namespace Kryptography.XOR
     public class XorStream : KryptoStream
     {
         public override int BlockSize => 8;
-
         public override int BlockSizeBytes => 1;
+        protected override int BlockAlign => BlockSizeBytes;
 
-        public override List<byte[]> Keys { get; }
-
+        public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
+        public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 
-        public override byte[] IV => throw new NotImplementedException();
-
-        public override bool CanRead => true;
-
-        public override bool CanSeek => true;
-
-        public override bool CanWrite => true;
-
-        public override long Length => _stream.Length;
-
-        public override long Position { get => _stream.Position; set => Seek(value, SeekOrigin.Begin); }
-
-        private Stream _stream;
-
-        public XorStream(Stream input, string key, Encoding enc) : this(input, enc.GetBytes(key))
+        public XorStream(byte[] input, byte[] key) : base(input)
         {
+            Initialize(key);
         }
 
-        public XorStream(Stream input, byte[] key)
+        public XorStream(Stream input, byte[] key) : base(input)
         {
-            _stream = input;
+            Initialize(key);
+        }
 
+        public XorStream(byte[] input, long offset, long length, byte[] key) : base(input, offset, length)
+        {
+            Initialize(key);
+        }
+
+        public XorStream(Stream input, long offset, long length, byte[] key) : base(input, offset, length)
+        {
+            Initialize(key);
+        }
+
+        private void Initialize(byte[] key)
+        {
             Keys = new List<byte[]>();
             Keys.Add(key);
         }
 
-        public override void Flush()
+        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
         {
-        }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            if (offset + count > buffer.Length)
-                throw new InvalidDataException($"Buffer is too small.");
-
-            var length = (int)Math.Max(0, Math.Min(count, Length - Position));
+            Position = alignedPosition;
 
             var keyPos = Position % KeySize;
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < alignedCount; i++)
             {
-                buffer[offset + i] = (byte)(Keys[0][keyPos++] ^ _stream.ReadByte());
+                decryptedData[decOffset + i] = (byte)(_stream.ReadByte() ^ Keys[0][keyPos++]);
                 if (keyPos >= KeySize)
                     keyPos = 0;
             }
-
-            return length;
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
+        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
         {
-            return _stream.Seek(offset, origin);
-        }
-
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            if (offset + count > buffer.Length)
-                throw new InvalidDataException($"Buffer is too small.");
+            Position = alignedPosition;
 
             var keyPos = Position % KeySize;
             for (int i = 0; i < count; i++)

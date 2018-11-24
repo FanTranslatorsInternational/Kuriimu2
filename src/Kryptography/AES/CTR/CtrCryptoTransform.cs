@@ -51,49 +51,9 @@ namespace Kryptography.AES.CTR
 
             var buffer = new byte[InputBlockSize];
             Array.Copy(IV, 0, buffer, 0, InputBlockSize);
-            IncrementCtr(buffer, increase);
+            buffer.Increment(increase, _littleEndianCtr);
 
             return buffer;
-        }
-
-        private void IncrementCtr(byte[] ctr, int count)
-        {
-            if (!_littleEndianCtr)
-                for (int i = ctr.Length - 1; i >= 0; i--)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = ctr[i];
-                    ctr[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i - off - 1 >= 0 && ctr[i - off] < check)
-                    {
-                        check = ctr[i - off - 1];
-                        ctr[i - off - 1]++;
-                        off++;
-                    }
-                }
-            else
-                for (int i = 0; i < ctr.Length; i++)
-                {
-                    if (count == 0)
-                        break;
-
-                    var check = ctr[i];
-                    ctr[i] += (byte)count;
-                    count >>= 8;
-
-                    int off = 0;
-                    while (i + off + 1 < ctr.Length && ctr[i + off] < check)
-                    {
-                        check = ctr[i + off + 1];
-                        ctr[i + off + 1]++;
-                        off++;
-                    }
-                }
         }
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] iv)
@@ -128,7 +88,7 @@ namespace Kryptography.AES.CTR
             for (int i = 0; i < alignedCount; i += InputBlockSize)
             {
                 Array.Copy(initialIV, 0, ivs, i, InputBlockSize);
-                IncrementCtr(initialIV, 1);
+                initialIV.Increment(1, _littleEndianCtr);
             }
             var encryptedIVs = new byte[alignedCount];
             _cryptor.TransformBlock(ivs, 0, alignedCount, encryptedIVs, 0);

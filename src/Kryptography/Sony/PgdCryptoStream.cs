@@ -1,223 +1,334 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.IO;
+//using System.Linq;
+//using System.Security.Cryptography;
+//using System.Text;
+//using System.Threading.Tasks;
 
-/* MAC validation has to happen outside of the stream
- * Stream only de-/encrypts 0x30-0x60 and 0x90-FileSize, while the rest is read without crypto
- * The stream assumes a PGD file and doesn't do any additional validation (is magic/version correct; are MACs valid);
- * The stream only throws on initialization if the given version or crypto types are unknown/out of range (kinda the only validation that's happening)
- * 
- * Crypto explanation:
- * the header contains of 3 MACs, each validating some part of the file or containing important information
- * the MAC at 0x80 validates range 0x00-0x80 with the fkey; the fkey is obtainable by MAC_80 itself; 
- *          the fkey is one of the 2 preset dnas keys (chosen by the initially given pgd_flags)
- * the MAC at 0x70 validates range 0x00-0x70 with the vkey; the vkey is obtainable by MAC_70 itself
- */
+///* MAC validation has to happen outside of the stream
+// * Stream only de-/encrypts 0x30-0x60 and 0x90-FileSize, while the rest is read without crypto
+// * The stream assumes a PGD file and doesn't do any additional validation (is magic/version correct; are MACs valid);
+// * The stream only throws on initialization if the given version or crypto types are unknown/out of range (kinda the only validation that's happening)
+// * 
+// * Crypto explanation:
+// * the header contains of 3 MACs, each validating some part of the file or containing important information
+// * the MAC at 0x80 validates range 0x00-0x80 with the fkey; the fkey is obtainable by MAC_80 itself; 
+// *          the fkey is one of the 2 preset dnas keys (chosen by the initially given pgd_flags)
+// * the MAC at 0x70 validates range 0x00-0x70 with the vkey; the vkey is obtainable by MAC_70 itself
+// */
 
-namespace Kryptography.Sony
-{
-    /// <summary>
-    /// CryptoStream for PGD files found on Sony consoles. Only supports LE!
-    /// </summary>
-    public class PgdCryptoStream : KryptoStream
-    {
-        //private byte[] _dnas_key1A90 = { 0xED, 0xE2, 0x5D, 0x2D, 0xBB, 0xF8, 0x12, 0xE5, 0x3C, 0x5C, 0x59, 0x32, 0xFA, 0xE3, 0xE2, 0x43 };
-        //private byte[] _dnas_key1AA0 = { 0x27, 0x74, 0xFB, 0xEB, 0xA4, 0xA0, 0x01, 0xD7, 0x02, 0x56, 0x9E, 0x33, 0x8C, 0x19, 0x57, 0x83 };
+//namespace Kryptography.Sony
+//{
+//    /// <summary>
+//    /// CryptoStream for PGD files found on Sony consoles. Only supports LE!
+//    /// </summary>
+//    public class PgdCryptoStream : KryptoStream
+//    {
+//        //private byte[] _dnas_key1A90 = { 0xED, 0xE2, 0x5D, 0x2D, 0xBB, 0xF8, 0x12, 0xE5, 0x3C, 0x5C, 0x59, 0x32, 0xFA, 0xE3, 0xE2, 0x43 };
+//        //private byte[] _dnas_key1AA0 = { 0x27, 0x74, 0xFB, 0xEB, 0xA4, 0xA0, 0x01, 0xD7, 0x02, 0x56, 0x9E, 0x33, 0x8C, 0x19, 0x57, 0x83 };
 
-        private int _pgd_flag;
-        private int _cipher_type;
-        private byte[] _vkey;
+//        private int _pgd_flag;
+//        private int _cipher_type;
+//        private byte[] _vkey;
 
-        private ICryptoTransform _encryptor;
-        private ICryptoTransform _decryptor;
+//        private BBCipherTransform _headDecryptor;
+//        private BBCipherTransform _headEncryptor;
 
-        private Stream _stream;
-        private long _offset;
-        private long _length;
-        private bool _fixedLength;
+//        private BBCipherTransform _bodyDecryptor;
+//        private BBCipherTransform _bodyEncryptor;
 
-        public PgdCryptoStream(byte[] input) : this(new MemoryStream(input))
-        {
-        }
+//        public PgdCryptoStream(byte[] input) : base(input)
+//        {
+//            Initialize();
+//        }
 
-        public PgdCryptoStream(Stream input)
-        {
-            _stream = input;
-            _length = input.Length;
+//        public PgdCryptoStream(Stream input) : base(input)
+//        {
+//            Initialize();
+//        }
 
-            Initialize();
-        }
+//        public PgdCryptoStream(byte[] input, long offset, long length) : base(input, offset, length)
+//        {
+//            Initialize();
+//        }
 
-        public PgdCryptoStream(byte[] input, long offset, long length) : this(new MemoryStream(input), offset, length)
-        {
-        }
+//        public PgdCryptoStream(Stream input, long offset, long length) : base(input, offset, length)
+//        {
+//            Initialize();
+//        }
 
-        public PgdCryptoStream(Stream input, long offset, long length)
-        {
-            _stream = input;
-            _stream.Position = Math.Max(offset, input.Position);
-            _offset = offset;
-            _length = length;
-            _fixedLength = true;
+//        private void Initialize()
+//        {
+//            var bkPos = Position;
 
-            Initialize();
-        }
+//            using (var br = new BinaryReader(_stream, Encoding.ASCII, true))
+//            {
+//                Position = 3;
+//                var version = br.ReadByte();
+//                _pgd_flag = version == 0x40 ? 1 : version == 0x44 ? 2 : throw new InvalidDataException($"Invalid PGD version: 0x{version:X2}");
 
-        private void Initialize()
-        {
-            var bkPos = Position;
+//                //Set key index
+//                Position = 4;
+//                var key_index = br.ReadInt32();
 
-            using (var br = new BinaryReader(_stream, Encoding.ASCII, true))
-            {
-                Position = 3;
-                var version = br.ReadByte();
-                _pgd_flag = version == 0x40 ? 1 : version == 0x44 ? 2 : throw new InvalidDataException($"Invalid PGD version: 0x{version:X2}");
+//                //Set types and definitions
+//                Position = 8;
+//                var drm_type = br.ReadInt32();
 
-                //Set key index
-                Position = 4;
-                var key_index = br.ReadInt32();
+//                int mac_type = 0;
+//                if (drm_type == 1)
+//                {
+//                    mac_type = 1;
+//                    _pgd_flag |= 4;
+//                    if (key_index > 1)
+//                    {
+//                        mac_type = 3;
+//                        _pgd_flag |= 8;
+//                    }
+//                    _cipher_type = 1;
+//                }
+//                else
+//                {
+//                    mac_type = 2;
+//                    _cipher_type = 2;
+//                }
 
-                //Set types and definitions
-                Position = 8;
-                var drm_type = br.ReadInt32();
+//                SetVersionKey(br, mac_type);
 
-                int mac_type = 0;
-                if (drm_type == 1)
-                {
-                    mac_type = 1;
-                    _pgd_flag |= 4;
-                    if (key_index > 1)
-                    {
-                        mac_type = 3;
-                        _pgd_flag |= 8;
-                    }
-                    _cipher_type = 1;
-                }
-                else
-                {
-                    mac_type = 2;
-                    _cipher_type = 2;
-                }
+//                byte[] headerKey = new byte[0x10];
+//                GetHeaderKey(br, headerKey);
 
-                //Get vkey for future decryption from MAC_70
-                Position = 0;
-                var bbmac = new BBMac(mac_type);
-                _vkey = bbmac.GetKey(br.ReadBytes(0x70), br.ReadBytes(0x10));
+//                byte[] bodyKey = new byte[0x10];
+//                GetBodyKey(br, headerKey, bodyKey);
 
-                var context = new BBCipherContext(_vkey);
-                _encryptor = context.CreateEncryptor();
-                _decryptor = context.CreateDecryptor();
-            }
+//                var headContext = new BBCipherContext(headerKey, _vkey, 0, _cipher_type);
 
-            Position = bkPos;
-        }
+//                _headDecryptor = (BBCipherTransform)headContext.CreateDecryptor();
+//                _headEncryptor = (BBCipherTransform)headContext.CreateEncryptor();
 
-        public override int BlockSize => 128;
+//                var bodyContext = new BBCipherContext(bodyKey, _vkey, 0, _cipher_type);
 
-        public override int BlockSizeBytes => 16;
+//                _bodyDecryptor = (BBCipherTransform)bodyContext.CreateDecryptor();
+//                _bodyEncryptor = (BBCipherTransform)bodyContext.CreateEncryptor();
+//            }
 
-        public override List<byte[]> Keys { get; }
+//            Position = bkPos;
+//        }
 
-        public override int KeySize => 16;
+//        private void SetVersionKey(BinaryReader br, int mac_type)
+//        {
+//            br.BaseStream.Position = 0;
 
-        public override byte[] IV => throw new NotImplementedException();
+//            var bbmac = new BBMac(mac_type);
+//            _vkey = bbmac.GetKey(br.ReadBytes(0x70), br.ReadBytes(0x10));
+//        }
 
-        public override bool CanRead => true;
+//        private void GetHeaderKey(BinaryReader br, byte[] headerKey)
+//        {
+//            br.BaseStream.Position = 0x10;
 
-        public override bool CanSeek => true;
+//            Array.Copy(br.ReadBytes(0x10), headerKey, 0x10);
+//        }
 
-        public override bool CanWrite => true;
+//        private void GetBodyKey(BinaryReader br, byte[] headerKey, byte[] bodyKey)
+//        {
+//            var context = new BBCipherContext(headerKey, _vkey, 0, _cipher_type);
+//            var dec = context.CreateDecryptor();
 
-        public override long Length => _length;
+//            br.BaseStream.Position = 0x30;
+//            var decryptedBuffer = dec.TransformFinalBlock(br.ReadBytes(0x30), 0, 0x30);
+//            Array.Copy(decryptedBuffer, bodyKey, 0x10);
+//        }
 
-        public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
+//        public override int BlockSize => 128;
 
-        private long TotalBlocks => GetBlockCount(Length);
+//        public override int BlockSizeBytes => 16;
 
-        private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
+//        protected override int BlockAlign => BlockSizeBytes;
 
-        private long GetCurrentBlock(long input) => input / BlockSizeBytes;
+//        public override List<byte[]> Keys { get; }
 
-        public override void Flush()
-        {
-            throw new NotImplementedException();
-        }
+//        public override int KeySize => 16;
 
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            ValidateRead(buffer, offset, count);
+//        public override byte[] IV => throw new NotImplementedException();
 
-            if (_fixedLength && Position >= Length)
-                return 0;
+//        public override bool CanRead => true;
 
-            ReadDecrypted(buffer, offset, count);
+//        public override bool CanSeek => true;
 
-            return 0;
-        }
+//        public override bool CanWrite => true;
 
-        private void ValidateRead(byte[] buffer, int offset, int count)
-        {
-            if (!CanRead)
-                throw new NotSupportedException("Reading is not supported.");
-            if (offset < 0 || count < 0)
-                throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
-            if (offset + count > buffer.Length)
-                throw new InvalidDataException("Buffer too short.");
-        }
+//        public override long Length => _length;
 
-        private int ReadDecrypted(byte[] buffer, int offset, int count)
-        {
-            if (_fixedLength && Position >= Length)
-                return 0;
+//        public override long Position { get => _stream.Position - _offset; set => Seek(value, SeekOrigin.Begin); }
 
-            var blockPosition = Position / BlockSizeBytes * BlockSizeBytes;
-            var bytesIntoBlock = Position % BlockSizeBytes;
+//        private long TotalBlocks => GetBlockCount(Length);
 
-            var originalPosition = Position;
+//        private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockSizeBytes);
 
-            count = (int)Math.Min(count, Length - Position);
-            var alignedCount = (int)GetBlockCount(bytesIntoBlock + count) * BlockSizeBytes;
+//        private long GetCurrentBlock(long input) => input / BlockSizeBytes;
 
-            if (alignedCount == 0) return alignedCount;
+//        public override void Flush()
+//        {
+//            throw new NotImplementedException();
+//        }
 
-            var decData = Decrypt(blockPosition, alignedCount);
+//        protected override void Decrypt(long alignedPosition, int alignedCount, byte[] decryptedData)
+//        {
+//            var absolutePos = alignedPosition + _offset;
+//            _stream.Position = absolutePos;
 
-            Array.Copy(decData, bytesIntoBlock, buffer, offset, count);
+//            var read = 0;
+//            if (alignedPosition + read < 0x30)
+//            {
+//                var size = (int)Math.Min(0x30 - (alignedPosition + read), alignedCount - read);
+//                _stream.Read(decryptedData, read, size);
 
-            Seek(originalPosition + count, SeekOrigin.Begin);
+//                if ((read += size) >= alignedCount)
+//                    return;
+//            }
+//            if (alignedPosition + read < 0x60)
+//            {
+//                var size = (int)Math.Min(0x60 - (alignedPosition + read), alignedCount - read);
 
-            return count;
-        }
+//                if (alignedPosition + read > 0x30)
+//                {
+//                    var diff = alignedPosition + read - 0x30;
 
-        private byte[] Decrypt(long begin, int alignedCount)
-        {
-            _stream.Position = begin + _offset;
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
+//                    _stream.Position = _offset + 0x30;
+//                    var tmp = new byte[0x30];
+//                    _stream.Read(tmp, 0, 0x30);
 
-            var decData = new byte[alignedCount];
-            _decryptor.TransformBlock(readData, 0, readData.Length, decData, 0);
+//                    _headDecryptor.TransformBlock(tmp, 0, 0x30, tmp, 0);
 
-            return decData;
-        }
+//                    Array.Copy(tmp, diff, decryptedData, read, size);
+//                    _stream.Position = absolutePos + diff + size;
+//                }
+//                else
+//                {
+//                    _stream.Read(decryptedData, read, size);
+//                    _headDecryptor.TransformBlock(decryptedData, read, size, decryptedData, read);
+//                }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return _stream.Seek(offset + _offset, origin);
-        }
+//                if ((read += size) >= alignedCount)
+//                    return;
+//            }
+//            if (alignedPosition + read < 0x90)
+//            {
+//                var size = (int)Math.Min(0x90 - (alignedPosition + read), alignedCount - read);
+//                _stream.Read(decryptedData, read, size);
 
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
+//                if ((read += size) >= alignedCount)
+//                    return;
+//            }
 
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            throw new NotImplementedException();
-        }
-    }
-}
+//            if ((alignedPosition + read - 0x90) % 0x800 > 0)
+//            {
+//                var diff = (alignedPosition + read - 0x90) % 0x800;
+//                var size = (int)Math.Min(0x800 - diff, alignedCount - read);
+//                _stream.Position -= diff;
+
+//                var tmp = new byte[0x800];
+//                _stream.Read(tmp, 0, 0x800);
+
+//                _bodyDecryptor.Seed = (int)(alignedPosition + read - 0x90 - diff) / 0x10 + 1;
+
+//                _bodyDecryptor.TransformBlock(tmp, 0, 0x800, tmp, 0);
+//                Array.Copy(tmp, diff, decryptedData, read, size);
+
+//                _stream.Position -= 0x800 - (diff + size);
+
+//                if ((read += size) >= alignedCount)
+//                    return;
+//            }
+
+//            _bodyDecryptor.Seed = (int)(alignedPosition + read - 0x90) / 0x10 + 1;
+
+//            _stream.Read(decryptedData, read, alignedCount - read);
+//            _bodyDecryptor.TransformBlock(decryptedData, read, alignedCount - read, decryptedData, read);
+//        }
+
+//        //public override void Write(byte[] buffer, int offset, int count)
+//        //{
+//        //    ValidateWrite(buffer, offset, count);
+
+//        //    if (count == 0) return;
+//        //    var readBuffer = GetInitializedReadBuffer(count, out var dataStart);
+
+//        //    PeakOverlappingData(readBuffer, (int)dataStart, count);
+
+//        //    Array.Copy(buffer, offset, readBuffer, dataStart, count);
+
+//        //    var originalPosition = Position;
+
+//        //    Encrypt((int)(_stream.Position - dataStart), readBuffer);
+
+//        //    if (originalPosition + count > _length)
+//        //        _length = originalPosition + count;
+
+//        //    Seek(originalPosition + count, SeekOrigin.Begin);
+//        //}
+
+//        //private void Encrypt(int begin, byte[] readBuffer)
+//        //{
+//        //    var encBuffer = new byte[readBuffer.Length];
+
+//        //    _encryptor.TransformBlock(readBuffer, 0, readBuffer.Length, encBuffer, 0);
+
+//        //    var originalPosition = Position;
+//        //    _stream.Position -= dataStart;
+//        //    _stream.Write(encBuffer, 0, encBuffer.Length);
+//        //}
+
+//        //private void ValidateWrite(byte[] buffer, int offset, int count)
+//        //{
+//        //    if (!CanWrite)
+//        //        throw new NotSupportedException("Write is not supported");
+//        //    if (offset < 0 || count < 0)
+//        //        throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
+//        //    if (offset + count > buffer.Length)
+//        //        throw new InvalidDataException("Buffer too short.");
+//        //}
+
+//        //private long GetBlocksBetween(long position)
+//        //{
+//        //    var offsetBlock = GetCurrentBlock(position);
+//        //    var lengthBlock = GetCurrentBlock(Length);
+//        //    if (Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) > 1)
+//        //        return Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) - 1;
+//        //    else
+//        //        return 0;
+//        //}
+
+//        //private byte[] GetInitializedReadBuffer(int count, out long dataStart)
+//        //{
+//        //    var blocksBetweenLengthPosition = GetBlocksBetween(Position);
+//        //    var bytesIntoBlock = Position % BlockSizeBytes;
+
+//        //    dataStart = bytesIntoBlock;
+
+//        //    var bufferBlocks = GetBlockCount(bytesIntoBlock + count);
+//        //    if (Position >= Length)
+//        //    {
+//        //        bufferBlocks += blocksBetweenLengthPosition;
+//        //        dataStart += blocksBetweenLengthPosition * BlockSizeBytes;
+//        //    }
+
+//        //    var bufferLength = bufferBlocks * BlockSizeBytes;
+
+//        //    return new byte[bufferLength];
+//        //}
+
+//        //private void PeakOverlappingData(byte[] buffer, int offset, int count)
+//        //{
+//        //    if (Position - offset < Length)
+//        //    {
+//        //        long originalPosition = Position;
+//        //        var readBuffer = Decrypt(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockSizeBytes);
+//        //        Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
+//        //        Position = originalPosition;
+//        //    }
+//        //}
+//    }
+//}

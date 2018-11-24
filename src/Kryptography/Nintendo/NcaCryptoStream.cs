@@ -111,25 +111,4 @@ namespace Kryptography.Nintendo
             throw new NotImplementedException();
         }
     }
-
-    internal static class NcaExtensions
-    {
-        public static bool AnyInRange(this IEnumerable<SectionEntry> sections, long position)
-        {
-            foreach (var section in sections)
-                if (position >= section.mediaOffset * Common.mediaSize && position <= section.endMediaOffset * Common.mediaSize)
-                    return true;
-
-            return false;
-        }
-
-        public static int GetInRangeIndex(this List<SectionEntry> sections, long position)
-        {
-            for (int i = 0; i < sections.Count; i++)
-                if (position >= sections[i].mediaOffset * Common.mediaSize && position <= sections[i].endMediaOffset * Common.mediaSize)
-                    return i;
-
-            return -1;
-        }
-    }
 }
