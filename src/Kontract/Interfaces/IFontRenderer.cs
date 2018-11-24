@@ -16,6 +16,6 @@ namespace Kontract.Interfaces
 
         void SetColor(Color color);
 
-        void Draw(char c, Graphics g, float x, float y, float scaleX, float scaleY);
+        void Draw(char c, Graphics gfx, float x, float y, float scaleX, float scaleY);
     }
 }
