@@ -20,23 +20,13 @@ namespace plugin_e.x._troopers.Game
     [PluginInfo("B344166C-F1BE-49B2-9ADC-38771D0A15DA", "E.X. Troopers (PS3)", "EXTGAPS3", "IcySon55")]
     public sealed class EXTGameAdapterPS3 : IGameAdapter, IGenerateGamePreviews
     {
-        private string BasePath => Path.Combine("plugins", ID);
-
-        private readonly Lazy<GFDv1FontAdapter> FontInitializer = new Lazy<GFDv1FontAdapter>(() =>
-        {
-            var fontPath = Path.Combine("plugins", typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "jpn", "font00_jpn.gfd");
-            var gfd = new GFDv1FontAdapter();
-            if (File.Exists(fontPath))
-                gfd.Load(fontPath);
-            return gfd;
-        });
-        private GFDv1FontAdapter Font => FontInitializer.Value;
+        private const string PluginDirectory = "plugins";
 
         public string ID => typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID;
 
         public string Name => typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().Name;
 
-        public string IconPath => Path.Combine("plugins", ID, "icon.png");
+        public string IconPath => Path.Combine(PluginDirectory, ID, "icon.png");
 
         public string Filename { get; set; }
 
@@ -52,23 +42,54 @@ namespace plugin_e.x._troopers.Game
             return Entries;
         }
 
+        #region Resources
+
+        private readonly Lazy<GFDv1FontAdapter> FontInitializer = new Lazy<GFDv1FontAdapter>(() =>
+        {
+            var fontPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "jpn", "font00_jpn.gfd");
+            var gfd = new GFDv1FontAdapter();
+            if (File.Exists(fontPath))
+                gfd.Load(fontPath);
+            return gfd;
+        });
+        private GFDv1FontAdapter Font => FontInitializer.Value;
+
+        private readonly Lazy<Bitmap> BackgroundInit = new Lazy<Bitmap>(() =>
+        {
+            var backgroundPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "background.png");
+            var bg = new Bitmap(backgroundPath);
+            bg.SetResolution(96, 96);
+            return bg;
+        });
+        private Bitmap background => BackgroundInit.Value;
+        
+        private readonly Lazy<Bitmap> TextBoxInit = new Lazy<Bitmap>(() =>
+        {
+            var textBoxPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "textbox.png");
+            var bg = new Bitmap(textBoxPath);
+            bg.SetResolution(96, 96);
+            return bg;
+        });
+        private Bitmap textBox => TextBoxInit.Value;
+
+        private readonly Lazy<Bitmap> CursorInit = new Lazy<Bitmap>(() =>
+        {
+            var cursorPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "cursor.png");
+            var bg = new Bitmap(cursorPath);
+            bg.SetResolution(96, 96);
+            return bg;
+        });
+        private Bitmap cursor => CursorInit.Value;
+
+        #endregion
+
         public Bitmap GeneratePreview(TextEntry entry)
         {
             if (!Font.Characters.Any()) return null;
 
-            // Paths
-            var bgPath = Path.Combine(BasePath, "background.png");
-            var textBoxPath = Path.Combine(BasePath, "textbox.png");
-            var cursorPath = Path.Combine(BasePath, "icon_arrow_talk_ID.png");
-
-            // Setup Bitmaps
-            var background = new Bitmap(bgPath);
-            background.SetResolution(96, 96);
-            var textBox = new Bitmap(textBoxPath);
-            var cursor = new Bitmap(cursorPath);
-
             // Main Kanvas
             var kanvas = new Bitmap(background.Width, background.Height, PixelFormat.Format32bppArgb);
+            kanvas.SetResolution(96, 96);
 
             var lines = 1;
             var fontHeight = Font.Characters.First().GlyphHeight;
