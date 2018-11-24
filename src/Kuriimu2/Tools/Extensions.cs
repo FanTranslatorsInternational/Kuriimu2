@@ -19,7 +19,7 @@ namespace Kuriimu2.Tools
 
             using (var ms = new MemoryStream())
             {
-                bitmap.Save(ms, ImageFormat.Png);
+                bitmap.Save(ms, ImageFormat.Bmp);
                 ms.Position = 0;
                 var bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
@@ -34,7 +34,7 @@ namespace Kuriimu2.Tools
         {
             using (var ms = new MemoryStream())
             {
-                bitmap.Save(ms, ImageFormat.Png);
+                bitmap.Save(ms, ImageFormat.Bmp);
                 ms.Position = 0;
                 var bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
