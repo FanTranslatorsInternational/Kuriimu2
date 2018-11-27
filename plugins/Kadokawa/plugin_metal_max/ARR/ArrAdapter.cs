@@ -14,7 +14,7 @@ namespace plugin_metal_max.ARR
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("B6C58C25-4E1C-4B9C-ABCF-DE905B1BBF51", "MM3-ARR Text", "ARR", "IcySon55, BuddyRoach", "", "This is the Metal Max 3 ARR adapter for Kuriimu2.")]
+    [PluginInfo("B6C58C25-4E1C-4B9C-ABCF-DE905B1BBF51", "Metal Max 3: ARR Credits Text", "ARR", "IcySon55, BuddyRoach", "", "This is the Metal Max 3 ARR credits text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.arr")]
     public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {

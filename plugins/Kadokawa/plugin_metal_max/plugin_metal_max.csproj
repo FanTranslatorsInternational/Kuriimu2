@@ -73,6 +73,9 @@
   <ItemGroup>
     <Compile Include="ARR\ARR.cs" />
     <Compile Include="ARR\ArrAdapter.cs" />
+    <Compile Include="NAM\NAM.cs" />
+    <Compile Include="NAM\NamAdapter.cs" />
+    <Compile Include="NAM\NamSupport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
