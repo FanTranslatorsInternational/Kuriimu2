@@ -60,28 +60,49 @@ namespace Kryptography.AES
             _encryptor.Dispose();
         }
 
-        protected override int ProcessRead(long streamPos, byte[] buffer, int offset, int count)
+        //protected override
+
+        //protected override int ProcessRead(long streamPos, byte[] buffer, int offset, int count)
+        //{
+        //    return base.ProcessRead(streamPos, buffer, offset, count);
+        //}
+
+        //protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        //{
+        //    Position = alignedPosition;
+
+        //    var readData = new byte[alignedCount];
+        //    _stream.Read(readData, 0, alignedCount);
+
+        //    _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
+        //}
+
+        //protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        //{
+        //    var encBuffer = new byte[count];
+        //    _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
+
+        //    Position = alignedPosition;
+        //    _stream.Write(encBuffer, 0, count);
+        //}
+
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            return base.ProcessRead(streamPos, buffer, offset, count);
+            _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            Position = alignedPosition;
-
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
-
-            _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
+            _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        public override void Flush()
         {
-            var encBuffer = new byte[count];
-            _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
+        }
 
-            Position = alignedPosition;
-            _stream.Write(encBuffer, 0, count);
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

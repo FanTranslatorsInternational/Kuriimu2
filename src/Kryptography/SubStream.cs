@@ -124,7 +124,7 @@ namespace Kryptography
         }
         #endregion
 
-        public void Dispose()
+        public new void Dispose()
         {
             _baseStream.Dispose();
         }
