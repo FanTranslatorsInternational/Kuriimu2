@@ -19,6 +19,8 @@ namespace Kryptography.AES
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
 
+        protected override int BufferSize => 0x10;
+
         public EcbStream(byte[] input, byte[] key) : base(input)
         {
             Initialize(key);
@@ -59,32 +61,6 @@ namespace Kryptography.AES
             _decryptor.Dispose();
             _encryptor.Dispose();
         }
-
-        //protected override
-
-        //protected override int ProcessRead(long streamPos, byte[] buffer, int offset, int count)
-        //{
-        //    return base.ProcessRead(streamPos, buffer, offset, count);
-        //}
-
-        //protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
-        //{
-        //    Position = alignedPosition;
-
-        //    var readData = new byte[alignedCount];
-        //    _stream.Read(readData, 0, alignedCount);
-
-        //    _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
-        //}
-
-        //protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
-        //{
-        //    var encBuffer = new byte[count];
-        //    _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
-
-        //    Position = alignedPosition;
-        //    _stream.Write(encBuffer, 0, count);
-        //}
 
         protected override void Decrypt(byte[] buffer, int offset, int count)
         {

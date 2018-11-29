@@ -8,6 +8,9 @@ namespace Kryptography
     {
         protected Stream _baseStream;
 
+        public delegate void ProgressEventHandler(object sender, long done, long total);
+        public event ProgressEventHandler Progress;
+
         public abstract int BlockSize { get; }
         public abstract int BlockSizeBytes { get; }
 
@@ -24,7 +27,7 @@ namespace Kryptography
         public override bool CanWrite => true;
 
         private long _length;
-        public override long Length { get=>_length; }
+        public override long Length { get => _length; }
 
         public override long Position { get; set; }
 
@@ -67,19 +70,26 @@ namespace Kryptography
 
             _baseStream.Position = alignPos;
 
+            Progress?.Invoke(this, 0, count);
+
             var read = 0;
             var decData = new byte[BufferSize];
             while (read < alignedCount)
             {
+                _baseStream.Position = alignPos + read;
+                var preRead = read;
+
                 var size = Math.Min(alignedCount - read, BufferSize);
                 read += _baseStream.Read(decData, 0, size);
 
+                _baseStream.Position = alignPos + preRead;
                 Decrypt(decData, 0, size);
 
                 var copyOffset = (read == size) ? bytesIn : 0;
-                var copySize = (read == size) ? size - bytesIn : size;
-                copySize -= (read >= alignedCount) ? alignedCount - count : 0;
-                Array.Copy(decData, copyOffset, buffer, offset + read, copySize);
+                var copySize = size - (read == size ? bytesIn : 0) - (read >= alignedCount ? alignedCount - count - (read == size ? bytesIn : 0) : 0);
+                Array.Copy(decData, copyOffset, buffer, offset + preRead, copySize);
+
+                Progress?.Invoke(this, Math.Min(read, count), count);
             }
             Position += read;
 
@@ -96,8 +106,7 @@ namespace Kryptography
             var alignedCount = GetAlignedCount((int)(Position - alignedPos + count));
             if (alignedCount == 0) return;
 
-            //var preDecData = new byte[Length - alignedPos];
-            //PreDecryption(preDecData, 0, (int)(Length - alignedPos));
+            Progress?.Invoke(this, 0, count);
 
             var write = 0;
             var encPos = 0;
@@ -144,18 +153,12 @@ namespace Kryptography
                 var size = Math.Min(alignedCount - write, BufferSize);
                 _baseStream.Write(decData, 0, size);
                 write += size;
+
+                Progress?.Invoke(this, Math.Min(write, count), count);
             }
             Position += count;
-            _length = Math.Max(Position, Length);
+            _length = Math.Max(alignedPos + alignedCount, Length);
         }
-
-        //private void PreDecryption(byte[] preDecData, int offset, int count)
-        //{
-        //    if (count <= 0) return;
-
-        //    _baseStream.Read(preDecData, 0, count);
-        //    Decrypt(preDecData, 0, count);
-        //}
 
         public override long Seek(long offset, SeekOrigin origin)
         {
@@ -190,58 +193,6 @@ namespace Kryptography
         {
             return (int)Math.Ceiling((double)count / BlockAlign) * BlockAlign;
         }
-
-        //private byte[] GetInitializedReadBuffer(int count, out long dataStart)
-        //{
-        //    var blocksBetweenLengthPosition = GetBlocksBetween(Position);
-        //    var bytesIntoBlock = Position % BlockAlign;
-
-        //    dataStart = bytesIntoBlock;
-
-        //    var bufferBlocks = GetBlockCount(bytesIntoBlock + count);
-        //    if (Position >= Length)
-        //    {
-        //        bufferBlocks += blocksBetweenLengthPosition;
-        //        dataStart += blocksBetweenLengthPosition * BlockAlign;
-        //    }
-
-        //    var bufferLength = bufferBlocks * BlockAlign;
-
-        //    return new byte[bufferLength];
-        //}
-
-        //private long GetBlocksBetween(long position)
-        //{
-        //    var offsetBlock = GetCurrentBlock(position);
-        //    var lengthBlock = GetCurrentBlock(Length);
-        //    if (Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock) > 1)
-        //    {
-        //        var res = Math.Max(offsetBlock, lengthBlock) - Math.Min(offsetBlock, lengthBlock);
-        //        if (Length % BlockAlign != 0)
-        //            res -= 1;
-        //        return res;
-        //    }
-        //    else
-        //        return 0;
-        //}
-
-        //private long GetCurrentBlock(long input) => input / BlockAlign;
-        //private long GetBlockCount(long input) => (long)Math.Ceiling((double)input / BlockAlign);
-
-        //private void PeakOverlappingData(byte[] buffer, int offset, int count)
-        //{
-        //    if (Position - offset < Length)
-        //    {
-        //        long originalPosition = Position;
-
-        //        var readBuffer = new byte[(int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockAlign];
-        //        ProcessKryptoRead(Position - offset, (int)GetBlockCount(Math.Min(Length - (Position - offset), count)) * BlockAlign, readBuffer, 0);
-
-        //        Array.Copy(readBuffer, 0, buffer, 0, readBuffer.Length);
-
-        //        Position = originalPosition;
-        //    }
-        //}
         #endregion
 
         public new void Dispose()
