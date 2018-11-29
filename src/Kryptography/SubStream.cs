@@ -27,6 +27,7 @@ namespace Kryptography
         {
             ValidateCtor(input, offset, length);
 
+            _baseStream = input;
             _baseOffset = offset;
             _length = length;
 
@@ -124,9 +125,14 @@ namespace Kryptography
         }
         #endregion
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _baseStream.Dispose();
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                _baseStream.Dispose();
+            }
         }
     }
 }
