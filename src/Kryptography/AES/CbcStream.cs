@@ -48,11 +48,14 @@ namespace Kryptography.AES
             _aes.Mode = CipherMode.CBC;
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _aes.Dispose();
+            if (disposing)
+            {
+                _aes.Dispose();
+            }
         }
 
         protected override void Decrypt(byte[] buffer, int offset, int count)

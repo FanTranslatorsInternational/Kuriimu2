@@ -70,12 +70,15 @@ namespace Kryptography.AES
             _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _encryptor.Dispose();
-            _decryptor.Dispose();
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
         }
 
         private void GetIV(byte[] iv)

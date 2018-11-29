@@ -166,6 +166,16 @@ namespace Kryptography
             Position = seeked;
             return seeked;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                _baseStream.Dispose();
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -194,10 +204,5 @@ namespace Kryptography
             return (int)Math.Ceiling((double)count / BlockAlign) * BlockAlign;
         }
         #endregion
-
-        public new void Dispose()
-        {
-            _baseStream.Dispose();
-        }
     }
 }

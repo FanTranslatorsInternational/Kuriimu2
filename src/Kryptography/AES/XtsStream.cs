@@ -55,12 +55,15 @@ namespace Kryptography.AES
             _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _decryptor.Dispose();
-            _encryptor.Dispose();
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
         }
 
         protected override void Decrypt(byte[] buffer, int offset, int count)

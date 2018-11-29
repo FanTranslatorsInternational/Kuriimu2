@@ -54,12 +54,15 @@ namespace Kryptography.AES
             _encryptor = aes.CreateEncryptor(key, null);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _decryptor.Dispose();
-            _encryptor.Dispose();
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
         }
 
         protected override void Decrypt(byte[] buffer, int offset, int count)
