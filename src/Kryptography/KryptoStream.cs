@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace Kryptography
@@ -8,7 +9,7 @@ namespace Kryptography
     {
         protected Stream _baseStream;
 
-        public delegate void ProgressEventHandler(object sender, long done, long total);
+        public delegate void ProgressEventHandler(KryptoStream sender, long done, long total, TimeSpan elapsedTime, bool write);
         public event ProgressEventHandler Progress;
 
         public abstract int BlockSize { get; }
@@ -25,6 +26,8 @@ namespace Kryptography
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
+
+        private bool _write = false;
 
         private long _length;
         public override long Length { get => _length; }
@@ -70,7 +73,13 @@ namespace Kryptography
 
             _baseStream.Position = alignPos;
 
-            Progress?.Invoke(this, 0, count);
+            Stopwatch stopwatch = null;
+            if (!_write)
+            {
+                Progress?.Invoke(this, 0, count, TimeSpan.FromSeconds(0), _write);
+                stopwatch = new Stopwatch();
+                stopwatch.Start();
+            }
 
             var read = 0;
             var decData = new byte[BufferSize];
@@ -89,7 +98,12 @@ namespace Kryptography
                 var copySize = size - (read == size ? bytesIn : 0) - (read >= alignedCount ? alignedCount - count - (read == size ? bytesIn : 0) : 0);
                 Array.Copy(decData, copyOffset, buffer, offset + preRead, copySize);
 
-                Progress?.Invoke(this, Math.Min(read, count), count);
+                if (!_write)
+                {
+                    stopwatch.Stop();
+                    Progress?.Invoke(this, Math.Min(read, count), count, stopwatch.Elapsed, _write);
+                    stopwatch.Start();
+                }
             }
             Position += read;
 
@@ -106,7 +120,10 @@ namespace Kryptography
             var alignedCount = GetAlignedCount((int)(Position - alignedPos + count));
             if (alignedCount == 0) return;
 
-            Progress?.Invoke(this, 0, count);
+            _write = true;
+            Progress?.Invoke(this, 0, count, TimeSpan.FromSeconds(0), _write);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
             var write = 0;
             var encPos = 0;
@@ -154,10 +171,13 @@ namespace Kryptography
                 _baseStream.Write(decData, 0, size);
                 write += size;
 
-                Progress?.Invoke(this, Math.Min(write, count), count);
+                stopwatch.Stop();
+                Progress?.Invoke(this, Math.Min(write, count), count, stopwatch.Elapsed, _write);
+                stopwatch.Start();
             }
             Position += count;
             _length = Math.Max(alignedPos + alignedCount, Length);
+            _write = false;
         }
 
         public override long Seek(long offset, SeekOrigin origin)

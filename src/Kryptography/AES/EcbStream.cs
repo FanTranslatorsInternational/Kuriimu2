@@ -19,8 +19,6 @@ namespace Kryptography.AES
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
 
-        protected override int BufferSize => 0x10;
-
         public EcbStream(byte[] input, byte[] key) : base(input)
         {
             Initialize(key);
