@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kryptography.Sony
 {
     public class BBMac
     {
-        byte[] _kirk_buf = new byte[0x0814];
-        byte[] _loc_1CD4 = new byte[] { 0xE3, 0x50, 0xED, 0x1D, 0x91, 0x0A, 0x1F, 0xD0, 0x29, 0xBB, 0x1C, 0x3E, 0xF3, 0x40, 0x77, 0xFB };
+        private byte[] _kirk_buf = new byte[0x0814];
+        private byte[] _loc_1CD4 = new byte[] { 0xE3, 0x50, 0xED, 0x1D, 0x91, 0x0A, 0x1F, 0xD0, 0x29, 0xBB, 0x1C, 0x3E, 0xF3, 0x40, 0x77, 0xFB };
 
-        int _mac_type;
-        int _pad_size;
+        private int _mac_type;
+        private int _pad_size;
 
-        byte[] _key = new byte[0x10];
-        byte[] _pad = new byte[0x10];
+        private byte[] _key = new byte[0x10];
+        private byte[] _pad = new byte[0x10];
 
         /// <summary>
         /// Initializes the BBMac context

@@ -71,6 +71,7 @@ namespace Kryptography
             var alignedCount = GetAlignedCount((int)Math.Min(count, Length - Position));
             if (alignedCount == 0) return 0;
 
+            var origPos = _baseStream.Position;
             _baseStream.Position = alignPos;
 
             Stopwatch stopwatch = null;
@@ -106,6 +107,8 @@ namespace Kryptography
                 }
             }
             Position += read;
+
+            _baseStream.Position = origPos;
 
             return count;
         }

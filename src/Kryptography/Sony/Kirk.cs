@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kryptography.Sony
 {
     public class Kirk
     {
-        static Aes aes = Aes.Create();
+        private static Aes aes = Aes.Create();
 
         /// <summary>
         /// Kirk CMD4
@@ -109,6 +105,7 @@ namespace Kryptography.Sony
             buffer[offset + 2] = (byte)((value >> 16) & 0xFF);
             buffer[offset + 3] = (byte)((value >> 24) & 0xFF);
         }
+
         private static uint ReadUInt32FromByteArray(byte[] buffer, int offset)
         {
             return (uint)(buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) | (buffer[offset + 3] << 24));
@@ -120,12 +117,15 @@ namespace Kryptography.Sony
             {
                 case 4:
                     return Kirk_CMD4(outBuf, inBuf, inSize);
+
                 case 7:
                     return Kirk_CMD7(outBuf, inBuf, inSize);
+
                 case 14:
                     //TODO: Implement random byte filler CMD14
                     //Array.Clear(outBuf, 0, outSize);
                     return 0;
+
                 default:
                     throw new InvalidOperationException($"Invalid Command: {(KirkCmd)cmd}");
             }

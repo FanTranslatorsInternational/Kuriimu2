@@ -10,10 +10,10 @@
 // * Stream only de-/encrypts 0x30-0x60 and 0x90-FileSize, while the rest is read without crypto
 // * The stream assumes a PGD file and doesn't do any additional validation (is magic/version correct; are MACs valid);
 // * The stream only throws on initialization if the given version or crypto types are unknown/out of range (kinda the only validation that's happening)
-// * 
+// *
 // * Crypto explanation:
 // * the header contains of 3 MACs, each validating some part of the file or containing important information
-// * the MAC at 0x80 validates range 0x00-0x80 with the fkey; the fkey is obtainable by MAC_80 itself; 
+// * the MAC at 0x80 validates range 0x00-0x80 with the fkey; the fkey is obtainable by MAC_80 itself;
 // *          the fkey is one of the 2 preset dnas keys (chosen by the initially given pgd_flags)
 // * the MAC at 0x70 validates range 0x00-0x70 with the vkey; the vkey is obtainable by MAC_70 itself
 // */

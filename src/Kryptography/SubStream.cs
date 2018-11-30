@@ -84,7 +84,7 @@ namespace Kryptography
                 case SeekOrigin.Current: return Position += offset;
                 case SeekOrigin.End: return Position = _length + offset;
             }
-            throw new ArgumentException(nameof(origin));
+            throw new ArgumentException(origin.ToString());
         }
 
         public override void Flush() => _baseStream.Flush();

@@ -1,29 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Cryptography;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace Kryptography.Sony
 {
     public class BBCipherTransform : ICryptoTransform
     {
-        static byte[] loc_1CE4 = { 0x13, 0x5F, 0xA4, 0x7C, 0xAB, 0x39, 0x5B, 0xA4, 0x76, 0xB8, 0xCC, 0xA9, 0x8F, 0x3A, 0x04, 0x45 };
-        static byte[] loc_1CF4 = { 0x67, 0x8D, 0x7F, 0xA3, 0x2A, 0x9C, 0xA0, 0xD1, 0x50, 0x8A, 0xD8, 0x38, 0x5E, 0x4B, 0x01, 0x7E };
+        private static byte[] loc_1CE4 = { 0x13, 0x5F, 0xA4, 0x7C, 0xAB, 0x39, 0x5B, 0xA4, 0x76, 0xB8, 0xCC, 0xA9, 0x8F, 0x3A, 0x04, 0x45 };
+        private static byte[] loc_1CF4 = { 0x67, 0x8D, 0x7F, 0xA3, 0x2A, 0x9C, 0xA0, 0xD1, 0x50, 0x8A, 0xD8, 0x38, 0x5E, 0x4B, 0x01, 0x7E };
 
-        byte[] _kirk_buf = new byte[0x0814];
+        private byte[] _kirk_buf = new byte[0x0814];
 
-        bool _decrypt;
-        int _type;
+        private bool _decrypt;
+        private int _type;
 
-        byte[] _header_key;
-        byte[] _vkey;
+        private byte[] _header_key;
+        private byte[] _vkey;
 
-        byte[] _key = new byte[0x10];
+        private byte[] _key = new byte[0x10];
 
-        int _seed;
+        private int _seed;
         public int Seed { get => _seed; set => _seed = value; }
 
         public BBCipherTransform(byte[] header_key, byte[] vkey, int seed, int type, bool decrypt)
