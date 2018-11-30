@@ -43,12 +43,12 @@ namespace Kryptography
 
         protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            RotData(buffer, offset, count, Keys[0][0]);
+            RotData(buffer, offset, count, (byte)(0xFF - Keys[0][0] + 1));
         }
 
         protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            RotData(buffer, offset, count, (byte)(0xFF - Keys[0][0]));
+            RotData(buffer, offset, count, Keys[0][0]);
         }
 
         private void RotData(byte[] buffer, int offset, int count, byte rotBy)
