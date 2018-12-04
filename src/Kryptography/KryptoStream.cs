@@ -16,6 +16,7 @@ namespace Kryptography
         public abstract int BlockSizeBytes { get; }
 
         protected abstract int BlockAlign { get; }
+        protected abstract int SectorAlign { get; }
         protected virtual int BufferSize { get; } = 0x10000;
 
         public abstract List<byte[]> Keys { get; protected set; }
@@ -26,8 +27,6 @@ namespace Kryptography
         public override bool CanRead => true;
         public override bool CanSeek => true;
         public override bool CanWrite => true;
-
-        private bool _write = false;
 
         private long _length;
         public override long Length { get => _length; }
@@ -66,47 +65,36 @@ namespace Kryptography
             ValidateRead(buffer, offset, count);
             if (Position >= Length) return 0;
 
-            var alignPos = Position / BlockAlign * BlockAlign;
-            var bytesIn = (int)(Position % BlockAlign);
-            var alignedCount = GetAlignedCount((int)Math.Min(count, Length - Position));
+            var alignedPos = Position / SectorAlign * SectorAlign;
+            var bytesIn = (int)(Position % SectorAlign);
+            var alignedCount = GetAlignedCount((int)Math.Min(Position - alignedPos + count, Length - alignedPos));
             if (alignedCount == 0) return 0;
 
             var origPos = _baseStream.Position;
-            _baseStream.Position = alignPos;
-
-            Stopwatch stopwatch = null;
-            if (!_write)
-            {
-                Progress?.Invoke(this, 0, count, TimeSpan.FromSeconds(0), _write);
-                stopwatch = new Stopwatch();
-                stopwatch.Start();
-            }
+            _baseStream.Position = alignedPos;
 
             var read = 0;
             var decData = new byte[BufferSize];
             while (read < alignedCount)
             {
-                _baseStream.Position = alignPos + read;
+                Array.Clear(decData, 0, decData.Length);
+
+                _baseStream.Position = alignedPos + read;
                 var preRead = read;
 
                 var size = Math.Min(alignedCount - read, BufferSize);
                 read += _baseStream.Read(decData, 0, size);
 
-                _baseStream.Position = alignPos + preRead;
+                _baseStream.Position = alignedPos + preRead;
                 Decrypt(decData, 0, size);
 
-                var copyOffset = (read == size) ? bytesIn : 0;
-                var copySize = size - (read == size ? bytesIn : 0) - (read >= alignedCount ? alignedCount - count - (read == size ? bytesIn : 0) : 0);
+                var copyOffset = (read <= size) ? bytesIn : 0;
+                read -= copyOffset;
+                var copySize = size - (read <= size ? bytesIn : 0) - (read >= alignedCount ? alignedCount - count - (read <= size ? bytesIn : 0) : 0);
                 Array.Copy(decData, copyOffset, buffer, offset + preRead, copySize);
-
-                if (!_write)
-                {
-                    stopwatch.Stop();
-                    Progress?.Invoke(this, Math.Min(read, count), count, stopwatch.Elapsed, _write);
-                    stopwatch.Start();
-                }
             }
-            Position += read;
+            Position += count;
+            Position = Math.Min(Length, Position);
 
             _baseStream.Position = origPos;
 
@@ -118,15 +106,10 @@ namespace Kryptography
             ValidateWrite(buffer, offset, count);
             if (count == 0) return;
 
-            var alignedPos = Math.Min(Length, Position) / BlockAlign * BlockAlign;
-            var bytesIn = (int)(Position % BlockAlign);
+            var alignedPos = Math.Min(Length, Position) / SectorAlign * SectorAlign;
+            //var bytesIn = (int)(Position % SectorAlign);
             var alignedCount = GetAlignedCount((int)(Position - alignedPos + count));
             if (alignedCount == 0) return;
-
-            _write = true;
-            Progress?.Invoke(this, 0, count, TimeSpan.FromSeconds(0), _write);
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
 
             var write = 0;
             var encPos = 0;
@@ -160,9 +143,10 @@ namespace Kryptography
                 }
                 if (encSize > 0)
                 {
-                    Array.Copy(buffer, offset + encPos, decData, decPos, encPos + encSize > count ? count - encPos : encSize);
-                    encPos += encSize;
-                    decPos += encSize;
+                    var decSize = encPos + encSize > count ? count - encPos : encSize;
+                    Array.Copy(buffer, offset + encPos, decData, decPos, decSize);
+                    encPos += decSize;
+                    decPos += decSize;
                 }
 
                 //Encrypt data (finally)
@@ -173,14 +157,9 @@ namespace Kryptography
                 var size = Math.Min(alignedCount - write, BufferSize);
                 _baseStream.Write(decData, 0, size);
                 write += size;
-
-                stopwatch.Stop();
-                Progress?.Invoke(this, Math.Min(write, count), count, stopwatch.Elapsed, _write);
-                stopwatch.Start();
             }
             Position += count;
             _length = Math.Max(alignedPos + alignedCount, Length);
-            _write = false;
         }
 
         public override long Seek(long offset, SeekOrigin origin)

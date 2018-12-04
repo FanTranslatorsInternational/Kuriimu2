@@ -5,35 +5,35 @@ using System.Linq;
 
 namespace Kryptography.Nintendo
 {
-    public class NcaCryptoStream : Stream
+    public class NcaStream : Stream
     {
         private NcaKeyStorage _ncaKeyStorage;
         private Stream _stream;
 
-        private NcaHeaderCryptoStream _ncaHeader;
+        private NcaHeaderStream _ncaHeader;
         private List<SectionEntry> _bodySections;
-        private NcaBodySectionCryptoStream[] _ncaBodySections;
+        private NcaBodySectionStream[] _ncaBodySections;
 
         public bool IsHeaderEncrypted => _ncaHeader.IsHeaderEncrypted;
         public NCAVersion NCAVersion => _ncaHeader.NCAVersion;
 
-        public NcaCryptoStream(Stream input) : this(input, @"bin\switch_keys.dat")
+        public NcaStream(Stream input) : this(input, @"bin\switch_keys.dat")
         {
         }
 
-        public NcaCryptoStream(Stream input, string keyFile)
+        public NcaStream(Stream input, string keyFile)
         {
             _stream = input;
             _ncaKeyStorage = new NcaKeyStorage(keyFile);
 
-            _ncaHeader = new NcaHeaderCryptoStream(input, _ncaKeyStorage);
+            _ncaHeader = new NcaHeaderStream(input, _ncaKeyStorage);
             var keyArea = _ncaHeader.PeekDecryptedKeyArea();
 
-            _ncaBodySections = new NcaBodySectionCryptoStream[4];
+            _ncaBodySections = new NcaBodySectionStream[4];
             _bodySections = _ncaHeader.PeekSections();
             for (int i = 0; i < 4; i++)
                 if (_bodySections[i].mediaOffset != 0 && _bodySections[i].endMediaOffset != 0)
-                    _ncaBodySections[i] = new NcaBodySectionCryptoStream(
+                    _ncaBodySections[i] = new NcaBodySectionStream(
                         _stream,
                         _bodySections[i].mediaOffset * Common.MediaSize,
                         _bodySections[i].endMediaOffset * Common.MediaSize,

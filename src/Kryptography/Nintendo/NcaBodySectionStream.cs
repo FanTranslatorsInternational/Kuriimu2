@@ -1,11 +1,12 @@
 ﻿using Kryptography.AES;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
 namespace Kryptography.Nintendo
 {
-    public class NcaBodySectionCryptoStream : Stream
+    public class NcaBodySectionStream : Stream
     {
         private const long _ncaHeaderLength = 0xC00;
 
@@ -16,10 +17,10 @@ namespace Kryptography.Nintendo
 
         private bool _hasRightsId;
 
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
+        public NcaBodySectionStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage)
             : this(input, offset, length, hasRightsId, masterKeyRev, cryptoType, keyArea, keyStorage, null) { }
 
-        public NcaBodySectionCryptoStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage, byte[] section_ctr)
+        public NcaBodySectionStream(Stream input, long offset, long length, bool hasRightsId, int masterKeyRev, int cryptoType, byte[] keyArea, NcaKeyStorage keyStorage, byte[] section_ctr)
         {
             _hasRightsId = hasRightsId;
 
@@ -36,6 +37,7 @@ namespace Kryptography.Nintendo
             }
             else
             {
+
                 if (cryptoType < 1 || cryptoType > 4)
                     throw new InvalidDataException($"SectionCrypto {cryptoType} is invalid.");
                 _cryptoType = cryptoType;

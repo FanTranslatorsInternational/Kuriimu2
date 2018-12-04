@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kryptography
 {
@@ -25,9 +21,10 @@ namespace Kryptography
 
         public SubStream(Stream input, long offset, long length)
         {
+            _baseStream = input;
+
             ValidateCtor(input, offset, length);
 
-            _baseStream = input;
             _baseOffset = offset;
             _length = length;
 
@@ -39,6 +36,7 @@ namespace Kryptography
         }
 
         #region Overrides
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             ValidateRead(buffer, offset, count);
@@ -88,9 +86,11 @@ namespace Kryptography
         }
 
         public override void Flush() => _baseStream.Flush();
-        #endregion
+
+        #endregion Overrides
 
         #region Private methods
+
         private void ValidateCtor(Stream input, long offset, long length)
         {
             if (input == null) throw new ArgumentException("Given Stream is null");
@@ -123,7 +123,8 @@ namespace Kryptography
             if (offset < 0 || count < 0) throw new ArgumentOutOfRangeException("Offset or count can't be negative.");
             if (offset + count > buffer.Length) throw new InvalidDataException("Buffer too short.");
         }
-        #endregion
+
+        #endregion Private methods
 
         protected override void Dispose(bool disposing)
         {

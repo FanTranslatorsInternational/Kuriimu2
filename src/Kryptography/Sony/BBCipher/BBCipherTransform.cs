@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace Kryptography.Sony
+namespace Kryptography.Sony.BBCipher
 {
     public class BBCipherTransform : ICryptoTransform
     {

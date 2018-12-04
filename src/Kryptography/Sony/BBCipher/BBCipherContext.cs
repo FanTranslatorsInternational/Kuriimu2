@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 
-namespace Kryptography.Sony
+namespace Kryptography.Sony.BBCipher
 {
     public class BBCipherContext : SymmetricAlgorithm
     {

@@ -10,6 +10,7 @@ namespace Kryptography
         public override int BlockSize => 8;
         public override int BlockSizeBytes => 1;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;

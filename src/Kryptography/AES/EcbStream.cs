@@ -13,6 +13,7 @@ namespace Kryptography.AES
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 

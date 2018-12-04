@@ -7,14 +7,13 @@ using System.Text;
 
 namespace Kryptography.Nintendo
 {
-    public class NcaHeaderCryptoStream : Stream
+    public class NcaHeaderStream : Stream
     {
         private NcaKeyStorage _ncaKeyStorage;
         private Stream _baseStream;
 
         public NCAVersion NCAVersion { get; private set; }
         public bool IsHeaderEncrypted { get; private set; }
-
         public bool HasRightsId
         {
             get
@@ -39,13 +38,13 @@ namespace Kryptography.Nintendo
             }
         }
 
-        public NcaHeaderCryptoStream(Stream input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None)
+        public NcaHeaderStream(Stream input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None)
         {
             _baseStream = new SubStream(input, offset, length);
             Initialize(keyStorage, ncaVersion);
         }
 
-        public NcaHeaderCryptoStream(byte[] input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) :
+        public NcaHeaderStream(byte[] input, long offset, long length, NcaKeyStorage keyStorage, NCAVersion ncaVersion = NCAVersion.None) :
             this(new MemoryStream(input), offset, length, keyStorage, ncaVersion)
         {
         }
@@ -65,7 +64,7 @@ namespace Kryptography.Nintendo
         //    IsHeaderEncrypted = shouldEncrypt;
         //}
 
-        public NcaHeaderCryptoStream(Stream input, NcaKeyStorage keyStorage)
+        public NcaHeaderStream(Stream input, NcaKeyStorage keyStorage)
         {
             _baseStream = input;
             _ncaKeyStorage = keyStorage;
@@ -99,7 +98,6 @@ namespace Kryptography.Nintendo
         }
 
         #region Overrides
-
         public override bool CanRead => _baseStream.CanRead;
         public override bool CanSeek => _baseStream.CanSeek;
         public override bool CanWrite => _baseStream.CanWrite;
@@ -217,11 +215,9 @@ namespace Kryptography.Nintendo
                 }
             }
         }
-
-        #endregion Overrides
+        #endregion
 
         #region Peeks
-
         public int PeekMasterKeyRev()
         {
             var origPos = Position;
@@ -329,8 +325,7 @@ namespace Kryptography.Nintendo
             Position = origPos;
             return result;
         }
-
-        #endregion Peeks
+        #endregion
 
         public void WriteKeyArea(byte[] plainKeyArea, int cryptoType, int keyIndex)
         {
