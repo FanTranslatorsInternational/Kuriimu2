@@ -178,13 +178,13 @@ namespace Kryptography.Sony
 
         public override void Flush()
         {
-            ;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
             var read = 0;
 
+            //Unencrypted header from 0 to 0x30; Contains headerkey and magic
             if (Position < 0x30)
             {
                 _baseStream.Position = Position;
@@ -195,6 +195,8 @@ namespace Kryptography.Sony
                 Position += size;
             }
 
+            //Encrypted header from 0x30 to 0x60; Contains bodykey and meta information like size
+            //Gets decrypted with BBCipher, headerkey and vkey
             if (Position < 0x60 && read < count)
             {
                 _headerStream.Position = Position - 0x30;
@@ -205,6 +207,8 @@ namespace Kryptography.Sony
                 Position += size;
             }
 
+            //Unencrypted MAC data from 0x60 to 0x90; Contains 3 MACs, each validating data portion from 0 to {position of MAC}
+            //One MAC is 0x10 bytes long
             if (Position < 0x90 && read < count)
             {
                 _baseStream.Position = Position;
@@ -215,6 +219,8 @@ namespace Kryptography.Sony
                 Position += size;
             }
 
+            //Encrypted file data from 0x90 to file end; Contains all file data
+            //Gets decrypted with BBCipher, bodykey and vkey
             if (read < count)
             {
                 _bodyStream.Position = Position - 0x90;
