@@ -74,24 +74,25 @@ namespace Kryptography
             _baseStream.Position = alignedPos;
 
             var read = 0;
+            var bufOffset = offset;
             var decData = new byte[BufferSize];
             while (read < alignedCount)
             {
-                Array.Clear(decData, 0, decData.Length);
+                var size = Math.Min(alignedCount - read, BufferSize);
 
                 _baseStream.Position = alignedPos + read;
-                var preRead = read;
+                var readCurrent = _baseStream.Read(decData, 0, size);
 
-                var size = Math.Min(alignedCount - read, BufferSize);
-                read += _baseStream.Read(decData, 0, size);
-
-                _baseStream.Position = alignedPos + preRead;
+                _baseStream.Position = alignedPos + read;
                 Decrypt(decData, 0, size);
 
-                var copyOffset = (read <= size) ? bytesIn : 0;
-                read -= copyOffset;
-                var copySize = size - (read <= size ? bytesIn : 0) - (read >= alignedCount ? alignedCount - count - (read <= size ? bytesIn : 0) : 0);
-                Array.Copy(decData, copyOffset, buffer, offset + preRead, copySize);
+                read += readCurrent;
+
+                var decOffset = (read <= size) ? bytesIn : 0;
+                var actualReadSize = read - decOffset;
+                var decSize = size - (actualReadSize <= size ? bytesIn : 0) - (actualReadSize >= alignedCount ? alignedCount - count - (actualReadSize > size ? bytesIn : 0) : 0);
+                Array.Copy(decData, decOffset, buffer, bufOffset, decSize);
+                bufOffset += decSize;
             }
             Position += count;
             Position = Math.Min(Length, Position);

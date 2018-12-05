@@ -190,7 +190,7 @@ namespace Kryptography.Sony
                 _baseStream.Position = Position;
 
                 var size = Math.Min(count, 0x30 - (int)Position);
-                read += _baseStream.Read(buffer, read, size);
+                read += _baseStream.Read(buffer, read+offset, size);
 
                 Position += size;
             }
@@ -202,7 +202,7 @@ namespace Kryptography.Sony
                 _headerStream.Position = Position - 0x30;
 
                 var size = Math.Min(count - read, 0x60 - (int)Position);
-                read += _headerStream.Read(buffer, read, size);
+                read += _headerStream.Read(buffer, read + offset, size);
 
                 Position += size;
             }
@@ -214,7 +214,7 @@ namespace Kryptography.Sony
                 _baseStream.Position = Position;
 
                 var size = Math.Min(count - read, 0x90 - (int)Position);
-                read += _baseStream.Read(buffer, read, size);
+                read += _baseStream.Read(buffer, read + offset, size);
 
                 Position += size;
             }
@@ -225,8 +225,8 @@ namespace Kryptography.Sony
             {
                 _bodyStream.Position = Position - 0x90;
 
-                var size = Math.Min(count - read, _baseStream.Length - Position);
-                read += _bodyStream.Read(buffer, read, (int)size);
+                var size = Math.Min(count - read, _bodyStream.Length - Position);
+                read += _bodyStream.Read(buffer, read + offset, (int)size);
 
                 Position += size;
             }
@@ -243,7 +243,7 @@ namespace Kryptography.Sony
                 _baseStream.Position = Position;
 
                 var size = Math.Min(count, 0x30 - (int)Position);
-                _baseStream.Write(buffer, write, size);
+                _baseStream.Write(buffer, write + offset, size);
 
                 Position += size;
                 write += size;
@@ -254,7 +254,7 @@ namespace Kryptography.Sony
                 _headerStream.Position = Position - 0x30;
 
                 var size = Math.Min(count - write, 0x60 - (int)Position);
-                _headerStream.Write(buffer, write, size);
+                _headerStream.Write(buffer, write + offset, size);
 
                 Position += size;
                 write += size;
@@ -265,7 +265,7 @@ namespace Kryptography.Sony
                 _baseStream.Position = Position;
 
                 var size = Math.Min(count - write, 0x90 - (int)Position);
-                _baseStream.Write(buffer, write, size);
+                _baseStream.Write(buffer, write + offset, size);
 
                 Position += size;
                 write += size;
@@ -276,7 +276,7 @@ namespace Kryptography.Sony
                 _bodyStream.Position = Position - 0x90;
 
                 var size = Math.Min(count - write, _baseStream.Length - Position);
-                _bodyStream.Write(buffer, write, (int)size);
+                _bodyStream.Write(buffer, write + offset, (int)size);
 
                 Position += size;
                 write += (int)size;
