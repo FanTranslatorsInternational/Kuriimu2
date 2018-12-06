@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Attributes;
@@ -26,6 +27,7 @@ namespace Kuriimu2.ViewModels
         private readonly ITextAdapter _adapter;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
+        private GameAdapter _gameAdapterInstance;
 
         private TextEntry _selectedEntry;
 
@@ -46,14 +48,22 @@ namespace Kuriimu2.ViewModels
             GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
-            SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6") ?? GameAdapters.First();
+            if (Keyboard.IsKeyDown(Key.LeftShift))
+            {
+                SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6") ?? GameAdapters.First();
+                SelectedZoomLevel = 3;
+            }
+            else
+            {
+                SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "B344166C-F1BE-49B2-9ADC-38771D0A15DA") ?? GameAdapters.First();
+                SelectedZoomLevel = 1;
+            }
 
             // Direct entry loading is now dead since GameAdapters have become a thing
             //if (_adapter != null)
             //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
             SelectedEntry = Entries?.FirstOrDefault();
-            SelectedZoomLevel = 2;
         }
 
         public List<int> ZoomLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
@@ -78,14 +88,16 @@ namespace Kuriimu2.ViewModels
             {
                 // Adapter
                 _selectedGameAdapter = value;
+                // Instantiate a new instance of the adapter.
+                _gameAdapterInstance = new GameAdapter((IGameAdapter)Activator.CreateInstance(_selectedGameAdapter.Adapter.GetType()));
                 NotifyOfPropertyChange(() => SelectedGameAdapter);
                 // TODO: Implement game adapter persistence
 
                 // Entries
-                _selectedGameAdapter.Adapter.Filename = KoreFile.FileInfo.Name;
+                _gameAdapterInstance.Adapter.Filename = KoreFile.FileInfo.Name;
                 if (_adapter != null)
-                    _selectedGameAdapter.Adapter.LoadEntries(_adapter.Entries);
-                Entries = new ObservableCollection<TextEntry>(_selectedGameAdapter.Adapter.Entries);
+                    _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
+                Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
                 foreach (var entry in Entries)
                     entry.Edited += (sender, args) =>
                     {
@@ -101,8 +113,15 @@ namespace Kuriimu2.ViewModels
         {
             get
             {
-                if (_selectedGameAdapter.Adapter is IGenerateGamePreviews generator)
-                    return generator.GeneratePreview(SelectedEntry).ToBitmapImage();
+                try
+                {
+                    if (_gameAdapterInstance.Adapter is IGenerateGamePreviews generator)
+                        return generator.GeneratePreview(SelectedEntry).ToBitmapImage();
+                }
+                catch (Exception ex)
+                {
+                    // ignore
+                }
 
                 return null;
             }
@@ -133,8 +152,8 @@ namespace Kuriimu2.ViewModels
             {
                 entry.Name = nte.Name;
                 KoreFile.HasChanges = true;
-                _selectedGameAdapter.Adapter.LoadEntries(_adapter.Entries);
-                Entries = new ObservableCollection<TextEntry>(_selectedGameAdapter.Adapter.Entries);
+                _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
+                Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
                 foreach (var ent in Entries.Where(e => e.Name == entry.Name))
                     ent.Edited += (sender, args) =>
                     {
@@ -169,7 +188,7 @@ namespace Kuriimu2.ViewModels
                 //}
 
                 // settle...
-                foreach (var entry in _selectedGameAdapter.Adapter.SaveEntries())
+                foreach (var entry in _gameAdapterInstance.Adapter.SaveEntries())
                     _adapter.Entries.First(e => e.Name == entry.Name).EditedText = entry.EditedText;
 
                 if (filename == string.Empty)
@@ -204,7 +223,7 @@ namespace Kuriimu2.ViewModels
     {
         public IGameAdapter Adapter { get; }
 
-        public ImageSource Icon => Adapter != null && File.Exists(Adapter.IconPath) ? Image.FromFile(Adapter.IconPath).ToBitmapImage() : null;
+        public ImageSource Icon => Adapter != null && File.Exists(Adapter.IconPath) ? Image.FromFile(Adapter.IconPath).ToBitmapImage(true) : null;
 
         public string Name => Adapter.Name;
 
