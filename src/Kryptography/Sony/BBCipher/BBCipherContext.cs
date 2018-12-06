@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
-using System.IO;
 
-namespace Kryptography.Sony
+namespace Kryptography.Sony.BBCipher
 {
     public class BBCipherContext : SymmetricAlgorithm
     {
-        byte[] _header_key;
-        byte[] _vkey;
+        private byte[] _header_key;
+        private byte[] _vkey;
 
-        int _type;
-        int _seed;
+        private int _type;
+        private int _seed;
 
         public BBCipherContext(byte[] header_key, byte[] vkey, int seed, int cipher_type)
         {

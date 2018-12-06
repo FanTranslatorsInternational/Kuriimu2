@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Numerics;
 
-namespace Kryptography.XOR
+namespace Kryptography
 {
     public class XorStream : KryptoStream
     {
         public override int BlockSize => 8;
         public override int BlockSizeBytes => 1;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
@@ -41,30 +42,58 @@ namespace Kryptography.XOR
             Keys.Add(key);
         }
 
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            Position = alignedPosition;
+            XORData(buffer, offset, count, Keys[0]);
+        }
 
-            var keyPos = Position % KeySize;
-            for (int i = 0; i < alignedCount; i++)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
+        {
+            XORData(buffer, offset, count, Keys[0]);
+        }
+
+        private void XORData(byte[] buffer, int offset, int count, byte[] key)
+        {
+            var xorBuffer = new byte[count];
+            FillXorBuffer(xorBuffer, _baseStream.Position, key);
+
+            var simdLength = Vector<byte>.Count;
+            var j = 0;
+            for (j = 0; j <= count - simdLength; j += simdLength)
             {
-                decryptedData[decOffset + i] = (byte)(_stream.ReadByte() ^ Keys[0][keyPos++]);
-                if (keyPos >= KeySize)
-                    keyPos = 0;
+                var va = new Vector<byte>(buffer, j + offset);
+                var vb = new Vector<byte>(xorBuffer, j);
+                (va ^ vb).CopyTo(buffer, j + offset);
+            }
+
+            for (; j < count; ++j)
+            {
+                buffer[offset + j] = (byte)(buffer[offset + j] ^ xorBuffer[j]);
             }
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        private void FillXorBuffer(byte[] fill, long pos, byte[] key)
         {
-            Position = alignedPosition;
-
-            var keyPos = Position % KeySize;
-            for (int i = 0; i < count; i++)
+            var written = 0;
+            while (written < fill.Length)
             {
-                _stream.WriteByte((byte)(buffer[offset + i] ^ Keys[0][keyPos++]));
-                if (keyPos >= KeySize)
-                    keyPos = 0;
+                var keyOffset = (int)(pos % key.Length);
+                var size = Math.Min(key.Length - keyOffset, fill.Length - written);
+
+                Array.Copy(key, keyOffset, fill, written, size);
+
+                written += size;
+                pos += size;
             }
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

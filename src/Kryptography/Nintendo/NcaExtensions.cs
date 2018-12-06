@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Kryptography.Nintendo
 {
@@ -11,7 +7,7 @@ namespace Kryptography.Nintendo
         internal static bool AnyInRange(this IEnumerable<SectionEntry> sections, long position)
         {
             foreach (var section in sections)
-                if (position >= section.mediaOffset * Common.mediaSize && position <= section.endMediaOffset * Common.mediaSize)
+                if (position >= section.mediaOffset * Common.MediaSize && position <= section.endMediaOffset * Common.MediaSize)
                     return true;
 
             return false;
@@ -20,7 +16,7 @@ namespace Kryptography.Nintendo
         internal static int GetInRangeIndex(this List<SectionEntry> sections, long position)
         {
             for (int i = 0; i < sections.Count; i++)
-                if (position >= sections[i].mediaOffset * Common.mediaSize && position <= sections[i].endMediaOffset * Common.mediaSize)
+                if (position >= sections[i].mediaOffset * Common.MediaSize && position <= sections[i].endMediaOffset * Common.MediaSize)
                     return i;
 
             return -1;

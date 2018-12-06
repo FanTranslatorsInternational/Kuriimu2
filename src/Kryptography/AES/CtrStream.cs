@@ -14,6 +14,7 @@ namespace Kryptography.AES
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override byte[] IV { get; protected set; }
         public override List<byte[]> Keys { get; protected set; }
@@ -52,51 +53,53 @@ namespace Kryptography.AES
             _encryptor = (CtrCryptoTransform)aes.CreateEncryptor(key, ctr);
         }
 
-        public new void Dispose()
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            base.Dispose();
-
-            _encryptor.Dispose();
-            _decryptor.Dispose();
-        }
-
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
-        {
-            var iv = GetIV(alignedPosition);
-
-            Position = alignedPosition;
-
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
+            var iv = new byte[BlockSizeBytes];
+            GetIV(iv);
 
             _decryptor.IV = iv;
-            _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
+            _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            var iv = GetIV(alignedPosition);
+            var iv = new byte[BlockSizeBytes];
+            GetIV(iv);
 
-            var encBuffer = new byte[count];
             _encryptor.IV = iv;
-            _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
-
-            Position = alignedPosition;
-            _stream.Write(encBuffer, 0, encBuffer.Length);
+            _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        private byte[] GetIV(long alignedPosition)
+        protected override void Dispose(bool disposing)
         {
-            var iv = new byte[0x10];
+            base.Dispose(disposing);
+
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
+        }
+
+        private void GetIV(byte[] iv)
+        {
             Array.Copy(IV, 0, iv, 0, 0x10);
 
-            if (alignedPosition >= 0x10)
+            if (_baseStream.Position >= 0x10)
             {
-                var count = alignedPosition / 0x10;
+                var count = _baseStream.Position / 0x10;
                 iv.Increment((int)count, _littleEndianCtr);
             }
+        }
 
-            return iv;
+        public override void Flush()
+        {
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

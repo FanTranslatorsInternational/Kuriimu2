@@ -14,7 +14,8 @@ namespace Kryptography.AES
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
         public int SectorSize { get; protected set; }
-        protected override int BlockAlign => SectorSize;
+        protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => SectorSize;
 
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
@@ -55,51 +56,53 @@ namespace Kryptography.AES
             _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _decryptor.Dispose();
-            _encryptor.Dispose();
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
         }
 
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            var id = GetId(alignedPosition);
+            var iv = new byte[BlockSizeBytes];
+            GetId(iv);
 
-            Position = alignedPosition;
-
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
-
-            _decryptor.SectorId = id;
-            _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
+            _decryptor.SectorId = iv;
+            _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            var id = GetId(alignedPosition);
+            var iv = new byte[BlockSizeBytes];
+            GetId(iv);
 
-            var encBuffer = new byte[count];
-            _encryptor.SectorId = id;
-            _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
-
-            Position = alignedPosition;
-            _stream.Write(encBuffer, 0, encBuffer.Length);
+            _encryptor.SectorId = iv;
+            _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        private byte[] GetId(long alignedPosition)
+        private void GetId(byte[] id)
         {
-            var id = new byte[0x10];
             Array.Copy(IV, 0, id, 0, 0x10);
 
-            if (alignedPosition >= SectorSize)
+            if (_baseStream.Position >= SectorSize)
             {
-                var count = alignedPosition / SectorSize;
+                var count = _baseStream.Position / SectorSize;
                 id.Increment((int)count, _littleEndianId);
             }
+        }
 
-            return id;
+        public override void Flush()
+        {
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

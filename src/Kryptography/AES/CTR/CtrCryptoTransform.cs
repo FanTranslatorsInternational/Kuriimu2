@@ -29,7 +29,7 @@ namespace Kryptography.AES.CTR
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _cryptor.Dispose();
         }
 
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)

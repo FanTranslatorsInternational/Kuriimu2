@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kryptography.Sony
 {
@@ -13,6 +10,7 @@ namespace Kryptography.Sony
         private static int _bufferSize = 0x800;
 
         private static byte[] _fuse = new byte[0x10];   //Currently unknown
+
         private static Dictionary<int, byte[]> _keys = new Dictionary<int, byte[]>
         {
             [0x03] = new byte[] { 0x98, 0x02, 0xC4, 0xE6, 0xEC, 0x9E, 0x9E, 0x2F, 0xFC, 0x63, 0x4C, 0xE4, 0x2F, 0xBB, 0x46, 0x68 },

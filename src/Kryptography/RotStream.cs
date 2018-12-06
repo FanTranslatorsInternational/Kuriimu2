@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace Kryptography
 {
@@ -9,6 +10,7 @@ namespace Kryptography
         public override int BlockSize => 8;
         public override int BlockSizeBytes => 1;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override List<byte[]> Keys { get; protected set; }
         public override int KeySize => Keys?[0]?.Length ?? 0;
@@ -40,25 +42,65 @@ namespace Kryptography
             Keys.Add(new byte[] { key });
         }
 
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            Position = alignedPosition;
-
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
-
-            for (int i = 0; i < alignedCount; i++)
-                decryptedData[decOffset + i] = (byte)(readData[i] - Keys[0][0]);
+            RotData(buffer, offset, count, (byte)(0xFF - Keys[0][0] + 1));
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            var encBuffer = new byte[count];
-            for (int i = 0; i < count; i++)
-                encBuffer[i] = (byte)(buffer[offset + i] + Keys[0][0]);
-
-            Position = alignedPosition;
-            _stream.Write(encBuffer, 0, count);
+            RotData(buffer, offset, count, Keys[0][0]);
         }
+
+        private void RotData(byte[] buffer, int offset, int count, byte rotBy)
+        {
+            var simdLength = Vector<byte>.Count;
+            var rotBuffer = new byte[simdLength];
+            for (int i = 0; i < simdLength; i++)
+                rotBuffer[i] = rotBy;
+            var vr = new Vector<byte>(rotBuffer);
+
+            var j = 0;
+            for (j = 0; j <= count - simdLength; j += simdLength)
+            {
+                var va = new Vector<byte>(buffer, j + offset);
+                (va + vr).CopyTo(buffer, j + offset);
+            }
+
+            for (; j < count; ++j)
+            {
+                buffer[offset + j] += rotBy;
+            }
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+
+        //protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        //{
+        //    Position = alignedPosition;
+
+        //    var readData = new byte[alignedCount];
+        //    _stream.Read(readData, 0, alignedCount);
+
+        //    for (int i = 0; i < alignedCount; i++)
+        //        decryptedData[decOffset + i] = (byte)(readData[i] - Keys[0][0]);
+        //}
+
+        //protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        //{
+        //    var encBuffer = new byte[count];
+        //    for (int i = 0; i < count; i++)
+        //        encBuffer[i] = (byte)(buffer[offset + i] + Keys[0][0]);
+
+        //    Position = alignedPosition;
+        //    _stream.Write(encBuffer, 0, count);
+        //}
     }
 }

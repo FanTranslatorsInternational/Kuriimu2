@@ -13,6 +13,7 @@ namespace Kryptography.AES
         public override int BlockSize => 128;
         public override int BlockSizeBytes => 16;
         protected override int BlockAlign => BlockSizeBytes;
+        protected override int SectorAlign => BlockSizeBytes;
 
         public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
 
@@ -52,36 +53,34 @@ namespace Kryptography.AES
             _encryptor = aes.CreateEncryptor(key, null);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            base.Dispose();
+            base.Dispose(disposing);
 
-            _decryptor.Dispose();
-            _encryptor.Dispose();
+            if (disposing)
+            {
+                _encryptor.Dispose();
+                _decryptor.Dispose();
+            }
         }
 
-        protected override int ProcessRead(long streamPos, byte[] buffer, int offset, int count)
+        protected override void Decrypt(byte[] buffer, int offset, int count)
         {
-            return base.ProcessRead(streamPos, buffer, offset, count);
+            _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
+        protected override void Encrypt(byte[] buffer, int offset, int count)
         {
-            Position = alignedPosition;
-
-            var readData = new byte[alignedCount];
-            _stream.Read(readData, 0, alignedCount);
-
-            _decryptor.TransformBlock(readData, 0, readData.Length, decryptedData, decOffset);
+            _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
         }
 
-        protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
+        public override void Flush()
         {
-            var encBuffer = new byte[count];
-            _encryptor.TransformBlock(buffer, offset, count, encBuffer, 0);
+        }
 
-            Position = alignedPosition;
-            _stream.Write(encBuffer, 0, count);
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
         }
     }
 }
