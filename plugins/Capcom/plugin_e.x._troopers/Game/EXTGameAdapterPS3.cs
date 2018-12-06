@@ -22,13 +22,17 @@ namespace plugin_e.x._troopers.Game
     {
         private const string PluginDirectory = "plugins";
 
-        public string ID => typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID;
+        public string ID { get; } = typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID;
 
-        public string Name => typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().Name;
+        public static string _ID { get; } = typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID;
 
-        public string IconPath => Path.Combine(PluginDirectory, ID, "icon.png");
+        public string Name { get; } = typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().Name;
+
+        public string IconPath { get; } = Path.Combine(PluginDirectory, _ID, "icon.png");
 
         public string Filename { get; set; }
+
+        #region Text IO
 
         public IEnumerable<TextEntry> Entries { get; private set; }
 
@@ -42,44 +46,71 @@ namespace plugin_e.x._troopers.Game
             return Entries;
         }
 
+        #endregion
+
         #region Resources
 
-        private readonly Lazy<GFDv1FontAdapter> FontInitializer = new Lazy<GFDv1FontAdapter>(() =>
+        private static readonly Lazy<GFDv1FontAdapter> FontInitializer = new Lazy<GFDv1FontAdapter>(() =>
         {
-            var fontPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "jpn", "font00_jpn.gfd");
+            var fontPath = Path.Combine(PluginDirectory, _ID, "jpn", "font00_jpn.gfd");
             var gfd = new GFDv1FontAdapter();
             if (File.Exists(fontPath))
                 gfd.Load(fontPath);
             return gfd;
         });
-        private GFDv1FontAdapter Font => FontInitializer.Value;
 
-        private readonly Lazy<Bitmap> BackgroundInit = new Lazy<Bitmap>(() =>
+        private static GFDv1FontAdapter Font => FontInitializer.Value;
+
+        private static readonly Lazy<GFDv1FontAdapter> PadFontInitializer = new Lazy<GFDv1FontAdapter>(() =>
         {
-            var backgroundPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "background.png");
+            var fontPath = Path.Combine(PluginDirectory, _ID, "jpn", "pad.gfd");
+            var gfd = new GFDv1FontAdapter();
+            if (File.Exists(fontPath))
+                gfd.Load(fontPath);
+            return gfd;
+        });
+
+        private static GFDv1FontAdapter PadFont => PadFontInitializer.Value;
+
+        private static readonly Lazy<Bitmap> BackgroundInit = new Lazy<Bitmap>(() =>
+        {
+            var backgroundPath = Path.Combine(PluginDirectory, _ID, "background.png");
             var bg = new Bitmap(backgroundPath);
             bg.SetResolution(96, 96);
             return bg;
         });
-        private Bitmap background => BackgroundInit.Value;
-        
-        private readonly Lazy<Bitmap> TextBoxInit = new Lazy<Bitmap>(() =>
+
+        private static Bitmap background => BackgroundInit.Value;
+
+        private static readonly Lazy<Bitmap> TutorialInit = new Lazy<Bitmap>(() =>
         {
-            var textBoxPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "textbox.png");
+            var backgroundPath = Path.Combine(PluginDirectory, _ID, "tutorial.png");
+            var bg = new Bitmap(backgroundPath);
+            bg.SetResolution(96, 96);
+            return bg;
+        });
+
+        private static Bitmap tutorial => TutorialInit.Value;
+
+        private static readonly Lazy<Bitmap> TextBoxInit = new Lazy<Bitmap>(() =>
+        {
+            var textBoxPath = Path.Combine(PluginDirectory, _ID, "textbox.png");
             var bg = new Bitmap(textBoxPath);
             bg.SetResolution(96, 96);
             return bg;
         });
-        private Bitmap textBox => TextBoxInit.Value;
 
-        private readonly Lazy<Bitmap> CursorInit = new Lazy<Bitmap>(() =>
+        private static Bitmap textBox => TextBoxInit.Value;
+
+        private static readonly Lazy<Bitmap> CursorInit = new Lazy<Bitmap>(() =>
         {
-            var cursorPath = Path.Combine(PluginDirectory, typeof(EXTGameAdapterPS3).GetCustomAttribute<PluginInfoAttribute>().ID, "cursor.png");
+            var cursorPath = Path.Combine(PluginDirectory, _ID, "cursor.png");
             var bg = new Bitmap(cursorPath);
             bg.SetResolution(96, 96);
             return bg;
         });
-        private Bitmap cursor => CursorInit.Value;
+
+        private static Bitmap cursor => CursorInit.Value;
 
         #endregion
 
@@ -87,19 +118,38 @@ namespace plugin_e.x._troopers.Game
         {
             if (!Font.Characters.Any()) return null;
 
+            // Globals
+            var isTut = Filename.Contains("tutorial_jpn");
+            var pad = new Dictionary<string, char>
+            {
+                ["PAD_ANALOG"] = 'n',
+                ["PAD_AUP"] = 'u',
+                ["PAD_ADOWN"] = 'u',
+                ["PAD_ALR"] = 't',
+                ["PAD_A"] = 'a',
+                ["PAD_B"] = 'b',
+                ["PAD_X"] = 'c',
+                ["PAD_Y"] = 'd',
+                ["PAD_L"] = 'e',
+                ["PAD_R"] = 'f',
+                ["PAD_L2"] = 'y',
+                ["PAD_R2"] = 'z',
+                ["PAD_CLR"] = 'l'
+            };
+
             // Main Kanvas
             var kanvas = new Bitmap(background.Width, background.Height, PixelFormat.Format32bppArgb);
             kanvas.SetResolution(96, 96);
 
             var lines = 1;
             var fontHeight = Font.Characters.First().GlyphHeight;
-            var textBoxOffsetX = 166;
+            var textBoxOffsetX = 166f;
             var textBoxOffsetY = 42;
             var textOffsetX = 66;
             var boxWidth = 400;
             var lineSpacing = 4;
 
-            float x = textBoxOffsetX + textOffsetX, y = 0f;
+            float x = textBoxOffsetX + textOffsetX, y;
             float scaleX = 1.0f, scaleY = 1.0f;
 
             using (var gfx = Graphics.FromImage(kanvas))
@@ -108,48 +158,103 @@ namespace plugin_e.x._troopers.Game
                 gfx.InterpolationMode = InterpolationMode.Bicubic;
                 gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                gfx.DrawImage(background, 0, 0);
-                gfx.DrawImage(textBox, textBoxOffsetX, textBoxOffsetY, textBox.Width * 1.1f, textBox.Height * 1.1f);
+                gfx.DrawImage(isTut ? tutorial : background, 0, 0);
+
+                if (!isTut)
+                    gfx.DrawImage(textBox, textBoxOffsetX, textBoxOffsetY, textBox.Width * 1.1f, textBox.Height * 1.1f);
 
                 // Draw cursor
                 int cursorX = 627, cursorY = 161;
                 var cursorScale = 0.825f;
                 gfx.DrawImage(cursor,
-                    new[] {
+                    new[]
+                    {
                         new PointF(cursorX, cursorY),
-                        new PointF(cursorX + cursor.Width* cursorScale, cursorY),
-                        new PointF(cursorX, cursorY + cursor.Height* cursorScale)
+                        new PointF(cursorX + cursor.Width * cursorScale, cursorY),
+                        new PointF(cursorX, cursorY + cursor.Height * cursorScale)
                     },
                     new RectangleF(0, 0, cursor.Width, cursor.Height), GraphicsUnit.Pixel
                 );
 
+                // Draw template
+                //DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "e8.png")), 0.25f);
+
                 // Cleanup text
-                var str = Regex.Replace(entry.EditedText, @"<.*?>", "");
-                str = str.Replace("\r", "");
-                str = str.Replace("\u000A", "\n");
+                var str = entry.EditedText.Replace("\r", "");
                 Font.SetColor(Color.Black);
 
-                // Wrap text
-                var results = TextWrapper.WrapText(str, Font, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
-                str = results.Text;
-                lines = results.LineCount;
+                if (!isTut)
+                {
+                    // Wrap text
+                    str = Regex.Replace(entry.EditedText, @"<.*?>", "");
+                    var results = TextWrapper.WrapText(str, Font, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
+                    str = results.Text;
+                    lines = results.LineCount;
+                }
+                else
+                    lines = str.Split('\n').Length;
 
-                // Reset
+                if (isTut)
+                {
+                    textBoxOffsetX = 368.5f;
+                    textOffsetX = 0;
+                    textBoxOffsetY = 465;
+
+                    scaleX = 0.792f;
+                    scaleY = 0.792f;
+
+                    lineSpacing = 2;
+                }
+
+                // Set
                 x = textBoxOffsetX + textOffsetX;
-                y = textBoxOffsetY + textBox.Height * 1.1f / 2 - lines * fontHeight / 2 - (lines - 1) * lineSpacing / 2;
+                y = !isTut ? textBoxOffsetY + textBox.Height * 1.1f / 2 - lines * fontHeight / 2 - (lines - 1) * lineSpacing / 2 : textBoxOffsetY;
 
                 // Draw text
-                foreach (var c in str)
+                var size = 22;
+                for (var i = 0; i < str.Length; i++)
                 {
-                    if (c == '\n' || c == '\u000A')
-                    {
-                        x = textBoxOffsetX + textOffsetX;
-                        y += fontHeight + lineSpacing;
-                        continue;
-                    }
+                    var c = str[i];
 
-                    Font.Draw(c, gfx, x, y, scaleX, scaleY);
-                    x += Font.GetCharWidthInfo(c).GlyphWidth * scaleX;
+                    if (c == '<')
+                    {
+                        var tag = Regex.Match(str.Substring(i), @"</?(\w+) ?(.*?)>").Value;
+                        var code = Regex.Match(tag, @"(?<=</?)\w+").Value;
+                        var isCloser = Regex.Match(tag, @"</\w+").Value.StartsWith("</");
+
+                        switch (code)
+                        {
+                            case "COL":
+                                Font.SetColor(isCloser ? Color.Black : ColorTranslator.FromHtml("#" + Regex.Match(tag, @"[0-9A-F]{6}").Value));
+                                break;
+                            case "SIZE":
+                                if (!isCloser)
+                                    size = Convert.ToInt32(Regex.Match(tag, @"(?<= )\d+").Value);
+                                break;
+                            case "ICON":
+                                var icon = Regex.Match(tag, @"(?<= )\w+").Value;
+                                var p = pad[icon];
+                                var scale = size == 22 ? 0.475f : 0.5f;
+
+                                PadFont.Draw(p, gfx, x, y, scale, scale);
+                                x += PadFont.GetCharWidthInfo(p).GlyphWidth * scale;
+                                break;
+                        }
+
+                        i += tag.Length - 1;
+                    }
+                    else
+                    {
+                        if (c == '\n')
+                        {
+                            x = textBoxOffsetX + textOffsetX;
+                            y += fontHeight + lineSpacing;
+                            continue;
+                        }
+
+                        Font.Draw(c, gfx, x, y, scaleX, scaleY);
+                        x += Font.GetCharWidthInfo(c).GlyphWidth * scaleX;
+                    }
                 }
             }
 
@@ -158,7 +263,7 @@ namespace plugin_e.x._troopers.Game
 
         private void DrawTransparentImage(Graphics gfx, Bitmap bitmap, float opacity)
         {
-            var colorMatrix = new ColorMatrix {Matrix33 = opacity};
+            var colorMatrix = new ColorMatrix { Matrix33 = opacity };
             var imgAttribute = new ImageAttributes();
             imgAttribute.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
             gfx.DrawImage(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height), 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, imgAttribute);
