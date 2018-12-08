@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Kontract.Interfaces;
@@ -13,7 +14,7 @@ namespace plugin_e.x._troopers.Game
             public int LineCount { get; set; }
         }
 
-        public static TextWrappingResults WrapText(string text, IFontRenderer font, RectangleF textBox, float scaleX, float xAdjust, string newLine = "\r\n")
+        public static TextWrappingResults WrapText(string text, IFontRenderer font, IFontRenderer padFont, RectangleF textBox, float scaleX, float xAdjust, string newLine = "\r\n")
         {
             if (text.Length == 0) return new TextWrappingResults();
 
@@ -31,12 +32,12 @@ namespace plugin_e.x._troopers.Game
                 var c = text[cursor];
 
                 // New Lines
-                if (c == '\n' || c == '\u000A')
+                if (c == '\n')
                 {
                     // Render the current word
                     if (word.Length > 0)
                     {
-                        if (MeasureText(line + word, font, scaleX, xAdjust) <= textBox.Width)
+                        if (MeasureText(line + word, font, padFont, scaleX, xAdjust) <= textBox.Width)
                             line += word;
                         else // Next line
                         {
@@ -67,12 +68,12 @@ namespace plugin_e.x._troopers.Game
                     if (word.Length > 0)
                     {
                         // Add the word and the space if they fit
-                        if (MeasureText(line + word + c, font, scaleX, xAdjust) <= textBox.Width)
+                        if (MeasureText(line + word + c, font, padFont, scaleX, xAdjust) <= textBox.Width)
                         {
                             line += word + c;
                         }
                         // Add the word if it fits
-                        else if (MeasureText(line + word, font, scaleX, xAdjust) <= textBox.Width)
+                        else if (MeasureText(line + word, font, padFont, scaleX, xAdjust) <= textBox.Width)
                         {
                             line += word + newLine;
                             result += line;
@@ -98,7 +99,7 @@ namespace plugin_e.x._troopers.Game
                     // Render the space
                     else
                     {
-                        if (MeasureText(line + c, font, scaleX, xAdjust) <= textBox.Width)
+                        if (MeasureText(line + c, font, padFont, scaleX, xAdjust) <= textBox.Width)
                             line += c;
                         else
                         {
@@ -111,6 +112,36 @@ namespace plugin_e.x._troopers.Game
                         }
                     }
                 }
+                // Tags
+                else if (c == '<')
+                {
+                    // Render the current word
+                    if (word.Length > 0)
+                    {
+                        // Add the word if it fits
+                        if (MeasureText(line + word, font, padFont, scaleX, xAdjust) <= textBox.Width)
+                            line += word;
+                        // Add a new line if nothing fits
+                        else
+                        {
+                            line += newLine;
+                            result += line;
+
+                            // Reset
+                            lineCount++;
+                            line = word + c;
+                        }
+
+                        wordStart = -1;
+                        word = string.Empty;
+                    }
+
+                    // Deal with the tag
+                    var tag = Regex.Match(text.Substring(cursor), @"</?(\w+) ?(.*?)>").Value;
+                    line += tag;
+                    cursor += tag.Length - 1;
+                    wordStart = -1;
+                }
                 // Words
                 else
                 {
@@ -119,13 +150,13 @@ namespace plugin_e.x._troopers.Game
                     word += c;
 
                     // Single word exceeds line width
-                    if (MeasureText(word, font, scaleX, xAdjust) > textBox.Width)
+                    if (MeasureText(word, font, padFont, scaleX, xAdjust) > textBox.Width)
                     {
                         // Might need to be just >
                         for (var i = cursor; i > wordStart; i--)
                         {
                             word = word.Substring(0, i - wordStart);
-                            if (MeasureText(line + word, font, scaleX, xAdjust) <= textBox.Width)
+                            if (MeasureText(line + word, font, padFont, scaleX, xAdjust) <= textBox.Width)
                             {
                                 cursor = i - 1;
                                 break;
@@ -144,7 +175,7 @@ namespace plugin_e.x._troopers.Game
                     }
 
                     // If the final word doesn't fit at the end of the line
-                    if (cursor == text.Length - 1 && MeasureText(line + word, font, scaleX, xAdjust) > textBox.Width)
+                    if (cursor == text.Length - 1 && MeasureText(line + word, font, padFont, scaleX, xAdjust) > textBox.Width)
                     {
                         line += newLine;
                         result += line;
@@ -169,9 +200,47 @@ namespace plugin_e.x._troopers.Game
             };
         }
 
-        public static float MeasureText(string text, IFontRenderer font, float scaleX, float xAdjust)
+        public static float MeasureText(string text, IFontRenderer font, IFontRenderer padFont, float scaleX, float xAdjust)
         {
-            return text.Sum(c => font.GetCharWidthInfo(c).GlyphWidth * scaleX + xAdjust);
+            var cursor = 0;
+            var length = 0f;
+            var size = 32;
+
+            while (cursor < text.Length)
+            {
+                var c = text[cursor];
+
+                if (c == '<')
+                {
+                    var tag = Regex.Match(text.Substring(cursor), @"</?(\w+) ?(.*?)>").Value;
+                    var code = Regex.Match(tag, @"(?<=</?)\w+").Value;
+                    var isCloser = Regex.Match(tag, @"</\w+").Value.StartsWith("</");
+
+                    switch (code)
+                    {
+                        case "SIZE":
+                            if (isCloser)
+                                size = 46;
+                            else
+                                size = Convert.ToInt32(Regex.Match(tag, @"(?<= )\d+").Value);
+                            break;
+                        case "ICON":
+                            var icon = Regex.Match(tag, @"(?<= )\w+").Value;
+                            var scale = size * 0.02173913043478260869565217391304f;
+
+                            length += padFont.GetCharWidthInfo('a').GlyphWidth * scale;
+                            break;
+                    }
+
+                    cursor += Regex.Match(text.Substring(cursor), @"</?(\w+) ?(.*?)>").Value.Length - 1;
+                }
+                else
+                    length += font.GetCharWidthInfo(c).GlyphWidth * scaleX + xAdjust;
+
+                cursor++;
+            }
+
+            return length;
         }
     }
 }

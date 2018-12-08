@@ -58,7 +58,6 @@ namespace plugin_e.x._troopers.Game
                 gfd.Load(fontPath);
             return gfd;
         });
-
         private static GFDv1FontAdapter Font => FontInitializer.Value;
 
         private static readonly Lazy<GFDv1FontAdapter> PadFontInitializer = new Lazy<GFDv1FontAdapter>(() =>
@@ -69,7 +68,6 @@ namespace plugin_e.x._troopers.Game
                 gfd.Load(fontPath);
             return gfd;
         });
-
         private static GFDv1FontAdapter PadFont => PadFontInitializer.Value;
 
         private static readonly Lazy<Bitmap> BackgroundInit = new Lazy<Bitmap>(() =>
@@ -79,7 +77,6 @@ namespace plugin_e.x._troopers.Game
             bg.SetResolution(96, 96);
             return bg;
         });
-
         private static Bitmap background => BackgroundInit.Value;
 
         private static readonly Lazy<Bitmap> TutorialInit = new Lazy<Bitmap>(() =>
@@ -89,7 +86,6 @@ namespace plugin_e.x._troopers.Game
             bg.SetResolution(96, 96);
             return bg;
         });
-
         private static Bitmap tutorial => TutorialInit.Value;
 
         private static readonly Lazy<Bitmap> TextBoxInit = new Lazy<Bitmap>(() =>
@@ -99,7 +95,6 @@ namespace plugin_e.x._troopers.Game
             bg.SetResolution(96, 96);
             return bg;
         });
-
         private static Bitmap textBox => TextBoxInit.Value;
 
         private static readonly Lazy<Bitmap> CursorInit = new Lazy<Bitmap>(() =>
@@ -109,7 +104,6 @@ namespace plugin_e.x._troopers.Game
             bg.SetResolution(96, 96);
             return bg;
         });
-
         private static Bitmap cursor => CursorInit.Value;
 
         #endregion
@@ -122,19 +116,28 @@ namespace plugin_e.x._troopers.Game
             var isTut = Filename.Contains("tutorial_jpn");
             var pad = new Dictionary<string, char>
             {
-                ["PAD_ANALOG"] = 'n',
-                ["PAD_AUP"] = 'u',
-                ["PAD_ADOWN"] = 'u',
-                ["PAD_ALR"] = 't',
-                ["PAD_A"] = 'a',
-                ["PAD_B"] = 'b',
-                ["PAD_X"] = 'c',
-                ["PAD_Y"] = 'd',
-                ["PAD_L"] = 'e',
-                ["PAD_R"] = 'f',
-                ["PAD_L2"] = 'y',
-                ["PAD_R2"] = 'z',
-                ["PAD_CLR"] = 'l'
+                ["PAD_A"] = 'a', // Circle
+                ["PAD_B"] = 'b', // Cross
+                ["PAD_X"] = 'c', // Triangle
+                ["PAD_Y"] = 'd', // Square
+                ["PAD_L"] = 'e', // L1
+                ["PAD_R"] = 'f', // R1
+                //["PAD_G"] = 'g', // D-Pad
+                //["PAD_H"] = 'h', // D-Pad Up
+                ["PAD_ADOWN"] = 'i', // D-Pad Down
+                //["PAD_J"] = 'j', // D-Pad Left
+                //["PAD_K"] = 'k', // D-Pad Right
+                ["PAD_CLR"] = 'l', // D-Pad Left & Right
+                //["PAD_CUD"] = 'm', // D-Pad Up & Down
+                ["PAD_ANALOG"] = 'n', // Left Analog Stick
+                ["PAD_AUP"] = 'o', // Right Analog Stick
+                ["PAD_ALR"] = 't', // Left/Right Analog Stick
+                //["PAD_U"] = 'u' // Hand Cursor
+                //["PAD_V"] = 'v' // Plus Sign
+                //["PAD_W"] = 'w' // Start
+                //["PAD_X"] = 'x' // Select
+                ["PAD_L2"] = 'y', // L2
+                ["PAD_R2"] = 'z', // R2
             };
 
             // Main Kanvas
@@ -186,8 +189,8 @@ namespace plugin_e.x._troopers.Game
                 if (!isTut)
                 {
                     // Wrap text
-                    str = Regex.Replace(entry.EditedText, @"<.*?>", "");
-                    var results = TextWrapper.WrapText(str, Font, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
+                    //str = Regex.Replace(entry.EditedText, @"<.*?>", "");
+                    var results = TextWrapper.WrapText(str, Font, PadFont, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
                     str = results.Text;
                     lines = results.LineCount;
                 }
@@ -203,6 +206,13 @@ namespace plugin_e.x._troopers.Game
                     scaleX = 0.792f;
                     scaleY = 0.792f;
 
+                    // Default text at 46
+
+                    // tutorial text at 37
+
+                    // 0.475, 22
+                    // 0.69, 32
+
                     lineSpacing = 2;
                 }
 
@@ -211,7 +221,8 @@ namespace plugin_e.x._troopers.Game
                 y = !isTut ? textBoxOffsetY + textBox.Height * 1.1f / 2 - lines * fontHeight / 2 - (lines - 1) * lineSpacing / 2 : textBoxOffsetY;
 
                 // Draw text
-                var size = 22;
+                var size = isTut ? 36 : 46;
+                var magic = 0.02173913043478260869565217391304f; // 0.04166666666666666666666666666667
                 for (var i = 0; i < str.Length; i++)
                 {
                     var c = str[i];
@@ -228,13 +239,15 @@ namespace plugin_e.x._troopers.Game
                                 Font.SetColor(isCloser ? Color.Black : ColorTranslator.FromHtml("#" + Regex.Match(tag, @"[0-9A-F]{6}").Value));
                                 break;
                             case "SIZE":
-                                if (!isCloser)
+                                if (isCloser)
+                                    size = isTut ? 36 : 46;
+                                else
                                     size = Convert.ToInt32(Regex.Match(tag, @"(?<= )\d+").Value);
                                 break;
                             case "ICON":
                                 var icon = Regex.Match(tag, @"(?<= )\w+").Value;
                                 var p = pad[icon];
-                                var scale = size == 22 ? 0.475f : 0.5f;
+                                var scale = size * magic; // Magic scaling value
 
                                 PadFont.Draw(p, gfx, x, y, scale, scale);
                                 x += PadFont.GetCharWidthInfo(p).GlyphWidth * scale;
@@ -252,8 +265,8 @@ namespace plugin_e.x._troopers.Game
                             continue;
                         }
 
-                        Font.Draw(c, gfx, x, y, scaleX, scaleY);
-                        x += Font.GetCharWidthInfo(c).GlyphWidth * scaleX;
+                        Font.Draw(c, gfx, x, y, size * magic, size * magic);
+                        x += Font.GetCharWidthInfo(c).GlyphWidth * size * magic;
                     }
                 }
             }
