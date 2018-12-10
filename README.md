@@ -12,3 +12,6 @@ Kuriimu is a general purpose game translation project manager and toolkit for au
 ### Plugins
 * Plugins currently make use of a dev-side nuget package that contains all five of the main libraries.
   * The libraries will be separated later on down the road.
+
+#### Building the Nuget Packge for Plugin Developement
+* TBD
