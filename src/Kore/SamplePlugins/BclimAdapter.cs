@@ -7,6 +7,8 @@ using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Image;
 
 namespace Kore.SamplePlugins
 {

@@ -7,6 +7,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 
 namespace Kore.SamplePlugins
 {

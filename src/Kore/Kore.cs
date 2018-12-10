@@ -7,6 +7,11 @@ using System.Linq;
 using System.Reflection;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Text;
 
 namespace Kore
 {

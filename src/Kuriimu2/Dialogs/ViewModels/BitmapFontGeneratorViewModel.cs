@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Font;
 using Kore.Generators;
 using Kuriimu2.Tools;
 using Microsoft.Win32;

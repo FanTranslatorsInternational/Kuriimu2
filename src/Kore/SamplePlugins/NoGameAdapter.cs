@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Text;
 
 namespace Kore.SamplePlugins
 {

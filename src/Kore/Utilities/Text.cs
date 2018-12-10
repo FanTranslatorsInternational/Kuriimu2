@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 using Kore.SamplePlugins;
 
 namespace Kore.Utilities

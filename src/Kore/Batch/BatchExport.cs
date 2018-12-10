@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Text;
 using Kore.SamplePlugins;
 
 namespace Kore.Batch

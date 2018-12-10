@@ -7,6 +7,8 @@ using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
 
 namespace Kore.XFont
 {

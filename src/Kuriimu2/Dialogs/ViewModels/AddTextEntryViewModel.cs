@@ -2,6 +2,7 @@
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
 using Kuriimu2.Dialogs.Common;
 
 namespace Kuriimu2.Dialogs.ViewModels

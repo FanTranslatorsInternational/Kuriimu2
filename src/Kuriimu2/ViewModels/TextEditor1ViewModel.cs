@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Text;
 using Kore;
 using Kuriimu2.Interfaces;
 

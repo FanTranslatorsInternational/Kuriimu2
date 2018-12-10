@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.IO;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
 
 namespace Kore
 {

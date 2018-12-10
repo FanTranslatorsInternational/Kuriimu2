@@ -10,6 +10,7 @@ using Kore.XFont.Archive;
 using Kore.XFont.Image;
 using Kore.XFont.Compression;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Font;
 
 namespace Kore.XFont
 {
