@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Attributes;
 
-namespace Kontract.Interfaces.Font
+namespace Kontract.Interfaces
 {
     /// <summary>
     /// This is the font adapter interface for creating font format plugins.

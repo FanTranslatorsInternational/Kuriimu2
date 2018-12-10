@@ -211,7 +211,7 @@ namespace Komponent.IO
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
             else
-                base.Write(DecimalExtensions.GetBytes(value).Reverse().ToArray());
+                base.Write(BitConverterExt.GetBytes(value).Reverse().ToArray());
         }
 
         #endregion
@@ -333,8 +333,7 @@ namespace Komponent.IO
                         case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
 
                     if (enc.GetByteCount((string)obj) != length)
                         throw new FieldLengthMismatchException(enc.GetByteCount((string)obj), length);
@@ -352,8 +351,7 @@ namespace Komponent.IO
                 // Array
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
                     var arr = (obj as Array);
 
                     if (arr.Length != length)
@@ -368,8 +366,7 @@ namespace Komponent.IO
                 // List
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
+                    var length = FixedSize?.Length ?? ((wroteVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)wroteVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
                     var list = (obj as IList);
 
                     if (list.Count != length)

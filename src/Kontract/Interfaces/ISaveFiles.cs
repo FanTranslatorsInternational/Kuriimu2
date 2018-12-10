@@ -1,4 +1,4 @@
-﻿namespace Kontract.Interfaces.Common
+﻿namespace Kontract.Interfaces
 {
     /// <summary>
     /// This interface allows a plugin to save files.

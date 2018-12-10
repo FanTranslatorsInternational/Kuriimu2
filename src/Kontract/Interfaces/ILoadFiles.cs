@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Kontract.Interfaces.Common
+namespace Kontract.Interfaces
 {
     /// <inheritdoc />
     /// <summary>

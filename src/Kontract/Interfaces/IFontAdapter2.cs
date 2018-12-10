@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace Kontract.Interfaces.Font
+namespace Kontract.Interfaces
 {
     /// <summary>
     /// This is the v2 font adapter interface for creating font format plugins.

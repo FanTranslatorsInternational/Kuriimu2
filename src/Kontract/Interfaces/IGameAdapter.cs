@@ -1,8 +1,7 @@
-﻿using Kontract.Interfaces.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace Kontract.Interfaces.Game
+namespace Kontract.Interfaces
 {
     /// <summary>
     /// This is the game adapter interface for creating game formatting plugins.

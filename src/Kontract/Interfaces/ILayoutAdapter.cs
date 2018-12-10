@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Kontract.Interfaces.Layout
+namespace Kontract.Interfaces
 {
     /// <summary>
     /// This is the layout adapter interface for creating layout format plugins.
