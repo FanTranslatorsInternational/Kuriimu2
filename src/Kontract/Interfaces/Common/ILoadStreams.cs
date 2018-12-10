@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Kontract.Interfaces
+namespace Kontract.Interfaces.Common
 {
     /// <inheritdoc />
     /// <summary>

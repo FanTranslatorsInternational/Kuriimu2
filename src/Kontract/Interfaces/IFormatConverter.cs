@@ -6,7 +6,7 @@
     public interface IFormatConverter<in T, out TResult>
     {
         /// <summary>
-        /// Converts a source foramt to the destination format.
+        /// Converts a source format to the destination format.
         /// </summary>
         /// <typeparam name="T">The source type to convert from.</typeparam>
         /// <typeparam name="TResult">The destination type to convert to.</typeparam>

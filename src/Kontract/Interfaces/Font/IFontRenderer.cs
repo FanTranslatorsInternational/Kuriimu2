@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Kontract.Interfaces
+namespace Kontract.Interfaces.Font
 {
     /// <inheritdoc />
     /// <summary>

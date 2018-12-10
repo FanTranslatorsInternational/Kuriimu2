@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Kontract.Interfaces.Text
+{
+    /// <summary>
+    /// This interface allows the text adapter to delete entries through the UI.
+    /// </summary>
+    public interface IDeleteEntries
+    {
+        /// <summary>
+        /// Deletes an entry and allows the plugin to perform any required deletion steps.
+        /// </summary>
+        /// <param name="entry">The entry to be deleted.</param>
+        /// <returns>True if the entry was successfully deleted, False otherwise.</returns>
+        bool DeleteEntry(TextEntry entry);
+    }
+}

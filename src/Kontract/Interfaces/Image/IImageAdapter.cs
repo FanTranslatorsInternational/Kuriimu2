@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Kontract.Interfaces
+namespace Kontract.Interfaces.Image
 {
     /// <summary>
     /// This is the image adapter interface for creating image format plugins.

@@ -44,6 +44,7 @@ namespace Komponent.IO
     {
         public string FieldName { get; }
         public StringEncoding StringEncoding = StringEncoding.ASCII;
+        public int Offset = 0;
 
         public VariableLengthAttribute(string fieldName)
         {

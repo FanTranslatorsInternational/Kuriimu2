@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Kontract.Interfaces
+namespace Kontract.Interfaces.Common
 {
     /// <summary>
     /// This interface allows a plugin to save streams.
