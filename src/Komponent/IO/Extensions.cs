@@ -35,7 +35,7 @@ namespace Komponent.IO
         //}
     }
 
-    public class DecimalExtensions
+    internal class DecimalExtensions
     {
         public static byte[] GetBytes(decimal value)
         {

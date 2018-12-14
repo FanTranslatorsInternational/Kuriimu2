@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Komponent.IO
 {
-    public class BinaryReaderX : BinaryReader
+    public sealed class BinaryReaderX : BinaryReader
     {
         private int _nibble = -1;
         private int _blockSize;
@@ -37,8 +37,8 @@ namespace Komponent.IO
             get => _currentBlockSize;
             set
             {
-                if (value != 8 && value != 16 && value != 32 && value != 64)
-                    throw new Exception("BlockSize can only be 8, 16, 32, or 64.");
+                if (value != 1 && value != 2 && value != 4 && value != 8)
+                    throw new Exception("BlockSize can only be 1, 2, 4, or 8.");
                 _blockSize = value;
                 _currentBlockSize = value;
             }
@@ -46,28 +46,28 @@ namespace Komponent.IO
 
         #region Constructors
 
-        public BinaryReaderX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, Encoding.Unicode)
+        public BinaryReaderX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, Encoding.Unicode, leaveOpen)
+        public BinaryReaderX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode, leaveOpen)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, Encoding encoding, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, encoding)
+        public BinaryReaderX(Stream input, Encoding encoding, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, encoding)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 32) : base(input, encoding, leaveOpen)
+        public BinaryReaderX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
@@ -200,7 +200,7 @@ namespace Komponent.IO
 
         public string ReadString(int length)
         {
-            return Encoding.ASCII.GetString(ReadBytes(length));
+            return ReadString(length, Encoding.ASCII);
         }
 
         public string ReadString(int length, Encoding encoding)
@@ -210,61 +210,34 @@ namespace Komponent.IO
 
         public string PeekString(int length = 4)
         {
-            var bytes = new List<byte>();
-            var startOffset = BaseStream.Position;
-
-            for (var i = 0; i < length; i++)
-                bytes.Add(ReadByte());
-
-            BaseStream.Seek(startOffset, SeekOrigin.Begin);
-
-            return Encoding.ASCII.GetString(bytes.ToArray());
+            return PeekString(0, length, Encoding.ASCII);
         }
 
         public string PeekString(int length, Encoding encoding)
         {
-            var bytes = new List<byte>();
-            var startOffset = BaseStream.Position;
-
-            for (var i = 0; i < length; i++)
-                bytes.Add(ReadByte());
-
-            BaseStream.Seek(startOffset, SeekOrigin.Begin);
-
-            return encoding.GetString(bytes.ToArray());
+            return PeekString(0, length, encoding);
         }
 
         public string PeekString(uint offset, int length = 4)
         {
-            var bytes = new List<byte>();
-            var startOffset = BaseStream.Position;
-
-            BaseStream.Seek(offset, SeekOrigin.Begin);
-            for (var i = 0; i < length; i++)
-                bytes.Add(ReadByte());
-
-            BaseStream.Seek(startOffset, SeekOrigin.Begin);
-
-            return Encoding.ASCII.GetString(bytes.ToArray());
+            return PeekString(offset, length, Encoding.ASCII);
         }
 
         public string PeekString(uint offset, int length, Encoding encoding)
         {
-            var bytes = new List<byte>();
             var startOffset = BaseStream.Position;
 
             BaseStream.Seek(offset, SeekOrigin.Begin);
-            for (var i = 0; i < length; i++)
-                bytes.Add(ReadByte());
+            var bytes = ReadBytes(length);
 
             BaseStream.Seek(startOffset, SeekOrigin.Begin);
 
-            return encoding.GetString(bytes.ToArray());
+            return encoding.GetString(bytes);
         }
 
         #endregion
 
-        #region Alignement Reads
+        #region Alignment Reads
 
         public byte SeekAlignment(int alignment = 16, byte alignmentByte = 0x0)
         {
@@ -282,13 +255,13 @@ namespace Komponent.IO
 
         #region Helpers
 
-        public void ResetBuffer()
+        private void ResetBuffer()
         {
             _bitPosition = 64;
             _buffer = 0;
         }
 
-        public void FillBuffer()
+        private void FillBuffer()
         {
             _currentBlockSize = _blockSize;
             switch (_blockSize)
@@ -343,7 +316,7 @@ namespace Komponent.IO
             var bkBitOrder = BitOrder;
             var bkBlockSize = _blockSize;
 
-            ByteOrder = TypeEndian?.ByteOrder ?? FieldEndian?.ByteOrder ?? ByteOrder;
+            ByteOrder = FieldEndian?.ByteOrder ?? TypeEndian?.ByteOrder ?? ByteOrder;
 
             if (type.IsPrimitive)
             {
@@ -559,7 +532,7 @@ namespace Komponent.IO
         /// <param name="count">The number of elements to read.</param>
         /// <param name="func">The custom expression for reading each value.</param>
         /// <returns></returns>
-        public List<T> ReadMultiple<T>(int count, Func<int, T> func) => Enumerable.Range(0, count).Select(func).ToList();
+        //public List<T> ReadMultiple<T>(int count, Func<int, T> func) => Enumerable.Range(0, count).Select(func).ToList();
 
         #endregion
     }

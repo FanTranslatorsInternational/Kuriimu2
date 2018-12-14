@@ -5,6 +5,7 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
@@ -88,7 +89,7 @@ namespace Kore
         /// </summary>
         public Kore()
         {
-            ComposePlugins();
+            Plugins.ComposePlugins(this, _pluginDirectory);
         }
 
         /// <summary>
@@ -98,30 +99,30 @@ namespace Kore
         public Kore(string pluginDirectory)
         {
             _pluginDirectory = pluginDirectory;
-            ComposePlugins();
+            Plugins.ComposePlugins(this, _pluginDirectory);
         }
 
         /// <summary>
         /// Re/Loads the plugin container.
         /// </summary>
-        private void ComposePlugins()
-        {
-            // An aggregate catalog that combines multiple catalogs.
-            var catalog = new AggregateCatalog();
+        //private void ComposePlugins()
+        //{
+        //    // An aggregate catalog that combines multiple catalogs.
+        //    var catalog = new AggregateCatalog();
 
-            // Adds all the parts found in the same assembly as the Kore class.
-            catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+        //    // Adds all the parts found in the same assembly as the Kore class.
+        //    catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
 
-            if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
-                catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
+        //    if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
+        //        catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
 
-            // Create the CompositionContainer with the parts in the catalog.
-            _container?.Dispose();
-            _container = new CompositionContainer(catalog);
+        //    // Create the CompositionContainer with the parts in the catalog.
+        //    _container?.Dispose();
+        //    _container = new CompositionContainer(catalog);
 
-            // Fill the imports of this object.
-            _container.ComposeParts(this);
-        }
+        //    // Fill the imports of this object.
+        //    _container.ComposeParts(this);
+        //}
 
         // TEMPORARY
         public static void ComposeSamplePlugins(object parent, CompositionContainer container)

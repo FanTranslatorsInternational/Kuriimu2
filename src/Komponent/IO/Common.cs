@@ -20,9 +20,9 @@ namespace Komponent.IO
         HighestAddressFirst
     }
 
-    public enum EffectiveBitOrder : byte
-    {
-        LSBFirst,
-        MSBFirst
-    }
+    //public enum EffectiveBitOrder : byte
+    //{
+    //    LSBFirst,
+    //    MSBFirst
+    //}
 }

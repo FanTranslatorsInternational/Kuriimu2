@@ -14,28 +14,21 @@ namespace Kontract
         /// Re/Loads a plugin container for a given parent object.
         /// </summary>
         /// <param name="parent">The parent object to load plugins for.</param>
-        /// <param name="container">The container to load plugins into.</param>
-        public static void ComposePlugins(object parent, CompositionContainer container, string pluginDirectory = "plugins")
+        /// <param name="pluginDirectory">The directory to load plugins from</param>
+        public static void ComposePlugins(object parent, /*CompositionContainer container,*/ string pluginDirectory = "plugins")
         {
-            try
-            {
-                // An aggregate catalog that combines multiple catalogs.
-                var catalog = new AggregateCatalog();
+            // An aggregate catalog that combines multiple catalogs.
+            var catalog = new AggregateCatalog();
 
-                if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
-                    catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
+            if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
+                catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
 
-                // Create the CompositionContainer with the parts in the catalog.
-                container?.Dispose();
-                container = new CompositionContainer(catalog);
+            // Create the CompositionContainer with the parts in the catalog.
+            //container?.Dispose();
+            var container = new CompositionContainer(catalog);
 
-                // Fill the imports of this object.
-                container.ComposeParts(parent);
-            }
-            catch (Exception ex)
-            {
-
-            }
+            // Fill the imports of this object.
+            container.ComposeParts(parent);
         }
     }
 
