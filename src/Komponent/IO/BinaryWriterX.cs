@@ -78,27 +78,28 @@ namespace Komponent.IO
         public override void Flush()
         {
             FlushBuffer();
+            FlushNibble();
 
             base.Flush();
         }
 
         public override void Write(byte value)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(value);
         }
 
         public override void Write(sbyte value)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(value);
         }
 
         public override void Write(short value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -108,7 +109,7 @@ namespace Komponent.IO
 
         public override void Write(int value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -118,7 +119,7 @@ namespace Komponent.IO
 
         public override void Write(long value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -128,7 +129,7 @@ namespace Komponent.IO
 
         public override void Write(ushort value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -138,7 +139,7 @@ namespace Komponent.IO
 
         public override void Write(uint value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -148,7 +149,7 @@ namespace Komponent.IO
 
         public override void Write(ulong value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -158,28 +159,28 @@ namespace Komponent.IO
 
         public override void Write(bool value)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(value);
         }
 
         public override void Write(char value)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(value);
         }
 
         public override void Write(char[] chars)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(chars);
         }
 
         public override void Write(float value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -189,7 +190,7 @@ namespace Komponent.IO
 
         public override void Write(double value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -199,7 +200,7 @@ namespace Komponent.IO
 
         public override void Write(decimal value)
         {
-            FlushBuffer();
+            Flush();
 
             if (ByteOrder == ByteOrder.LittleEndian)
                 base.Write(value);
@@ -209,28 +210,28 @@ namespace Komponent.IO
 
         public override void Write(byte[] buffer)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(buffer);
         }
 
         public override void Write(byte[] buffer, int index, int count)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(buffer, index, count);
         }
 
         public override void Write(char[] chars, int index, int count)
         {
-            FlushBuffer();
+            Flush();
 
             base.Write(chars, index, count);
         }
 
         public override void Write(string value)
         {
-            FlushBuffer();
+            Flush();
 
             WriteString(value, Encoding.ASCII, true, true);
         }
@@ -278,7 +279,7 @@ namespace Komponent.IO
 
         #region Helpers
 
-        public void FlushBuffer()
+        private void FlushBuffer()
         {
             if (_bitPosition <= 0)
                 return;
@@ -300,6 +301,11 @@ namespace Komponent.IO
                     break;
             }
             _buffer = 0;
+        }
+
+        private void FlushNibble()
+        {
+            _nibble = -1;
         }
 
         private void WritePrimitive(object obj)
@@ -428,7 +434,7 @@ namespace Komponent.IO
                         WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteValsIntern);
                 }
 
-                FlushBuffer();
+                Flush();
             }
             else if (type.IsEnum)
             {
@@ -463,27 +469,33 @@ namespace Komponent.IO
         // Bit Fields
         public void WriteBit(bool value)
         {
+            FlushNibble();
+
             if (EffectiveBitOrder == BitOrder.LSBFirst)
                 _buffer |= ((value) ? 1 : 0) << _bitPosition++;
             else
                 _buffer |= ((value) ? 1 : 0) << (BlockSize - _bitPosition++ - 1);
 
-            FlushBuffer();
+            Flush();
         }
 
         private void WriteBit(bool value, bool writeBuffer)
         {
+            FlushNibble();
+
             if (EffectiveBitOrder == BitOrder.LSBFirst)
                 _buffer |= ((value) ? 1 : 0) << _bitPosition++;
             else
                 _buffer |= ((value) ? 1 : 0) << (BlockSize - _bitPosition++ - 1);
 
             if (writeBuffer)
-                FlushBuffer();
+                Flush();
         }
 
         public void WriteBits(long value, int bitCount)
         {
+            FlushNibble();
+
             if (bitCount > 0)
             {
                 if (EffectiveBitOrder == BitOrder.LSBFirst)

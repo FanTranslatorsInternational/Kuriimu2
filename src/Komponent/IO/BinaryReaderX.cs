@@ -80,100 +80,128 @@ namespace Komponent.IO
 
         public override byte ReadByte()
         {
-            ResetBuffer();
+            Reset();
 
             return base.ReadByte();
         }
 
         public override sbyte ReadSByte()
         {
-            ResetBuffer();
+            Reset();
 
             return base.ReadSByte();
         }
 
         public override short ReadInt16()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadInt16() : BitConverter.ToInt16(ReadBytes(2).Reverse().ToArray(), 0);
         }
 
         public override int ReadInt32()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadInt32() : BitConverter.ToInt32(ReadBytes(4).Reverse().ToArray(), 0);
         }
 
         public override long ReadInt64()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadInt64() : BitConverter.ToInt64(ReadBytes(8).Reverse().ToArray(), 0);
         }
 
         public override ushort ReadUInt16()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadUInt16() : BitConverter.ToUInt16(ReadBytes(2).Reverse().ToArray(), 0);
         }
 
         public override uint ReadUInt32()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadUInt32() : BitConverter.ToUInt32(ReadBytes(4).Reverse().ToArray(), 0);
         }
 
         public override ulong ReadUInt64()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadUInt64() : BitConverter.ToUInt64(ReadBytes(8).Reverse().ToArray(), 0);
         }
 
         public override bool ReadBoolean()
         {
-            ResetBuffer();
+            Reset();
 
             return base.ReadBoolean();
         }
 
         public override char ReadChar()
         {
-            ResetBuffer();
+            Reset();
 
             return base.ReadChar();
         }
 
         public override char[] ReadChars(int count)
         {
-            ResetBuffer();
+            Reset();
 
             return base.ReadChars(count);
         }
 
         public override float ReadSingle()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadSingle() : BitConverter.ToSingle(ReadBytes(4).Reverse().ToArray(), 0);
         }
 
         public override double ReadDouble()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadDouble() : BitConverter.ToDouble(ReadBytes(8).Reverse().ToArray(), 0);
         }
 
         public override decimal ReadDecimal()
         {
-            ResetBuffer();
+            Reset();
 
             return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : DecimalExtensions.ToDecimal(ReadBytes(16).Reverse().ToArray());
+        }
+
+        public override int Read(byte[] buffer, int index, int count)
+        {
+            Reset();
+
+            return base.Read(buffer, index, count);
+        }
+
+        public override int Read(char[] buffer, int index, int count)
+        {
+            Reset();
+
+            return base.Read(buffer, index, count);
+        }
+
+        public override byte[] ReadBytes(int count)
+        {
+            Reset();
+
+            return base.ReadBytes(count);
+        }
+
+        public override string ReadString()
+        {
+            Reset();
+
+            return ReadCStringASCII();
         }
 
         #endregion
@@ -218,16 +246,16 @@ namespace Komponent.IO
             return PeekString(0, length, encoding);
         }
 
-        public string PeekString(uint offset, int length = 4)
+        public string PeekString(long offset, int length = 4)
         {
             return PeekString(offset, length, Encoding.ASCII);
         }
 
-        public string PeekString(uint offset, int length, Encoding encoding)
+        public string PeekString(long offset, int length, Encoding encoding)
         {
             var startOffset = BaseStream.Position;
 
-            BaseStream.Seek(offset, SeekOrigin.Begin);
+            BaseStream.Seek(offset, SeekOrigin.Current);
             var bytes = ReadBytes(length);
 
             BaseStream.Seek(startOffset, SeekOrigin.Begin);
@@ -255,10 +283,21 @@ namespace Komponent.IO
 
         #region Helpers
 
+        private void Reset()
+        {
+            ResetBuffer();
+            ResetNibble();
+        }
+
         private void ResetBuffer()
         {
             _bitPosition = 64;
             _buffer = 0;
+        }
+
+        private void ResetNibble()
+        {
+            _nibble = -1;
         }
 
         private void FillBuffer()
@@ -489,6 +528,8 @@ namespace Komponent.IO
         // Bit Fields
         public bool ReadBit()
         {
+            ResetNibble();
+
             if (_bitPosition >= _currentBlockSize)
                 FillBuffer();
 
