@@ -244,10 +244,10 @@ namespace Komponent.IO
 
         public void WriteString(string value, Encoding encoding, bool leadingCount = true, bool nullTerminator = true)
         {
-            var bytes = encoding.GetBytes(value);
-
             if (nullTerminator)
                 value += "\0";
+
+            var bytes = encoding.GetBytes(value);
 
             if (leadingCount)
                 Write((byte)bytes.Length);
@@ -287,16 +287,16 @@ namespace Komponent.IO
             _bitPosition = 0;
             switch (_blockSize)
             {
-                case 8:
+                case 1:
                     Write((byte)_buffer);
                     break;
-                case 16:
+                case 2:
                     Write((short)_buffer);
                     break;
-                case 32:
+                case 4:
                     Write((int)_buffer);
                     break;
-                case 64:
+                case 8:
                     Write(_buffer);
                     break;
             }
@@ -305,7 +305,12 @@ namespace Komponent.IO
 
         private void FlushNibble()
         {
-            _nibble = -1;
+            if (_nibble != -1)
+            {
+                var value = _nibble;
+                _nibble = -1;
+                Write((byte)value);
+            }
         }
 
         private void WritePrimitive(object obj)
@@ -374,7 +379,7 @@ namespace Komponent.IO
                     if (enc.GetByteCount((string)obj) != length)
                         throw new FieldLengthMismatchException(enc.GetByteCount((string)obj), length);
 
-                    WriteString((string)obj, enc, false);
+                    WriteString((string)obj, enc, false, false);
                 }
             }
             else if (Type.GetTypeCode(type) == TypeCode.Decimal)
@@ -428,7 +433,7 @@ namespace Komponent.IO
                     var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
                     if (bitInfo != null)
                     {
-                        WriteBits((long)field.GetValue(obj), bitInfo.BitLength);
+                        WriteBits(Convert.ToInt64(field.GetValue(obj)), bitInfo.BitLength);
                     }
                     else
                         WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteValsIntern);
@@ -461,8 +466,8 @@ namespace Komponent.IO
                 _nibble = val;
             else
             {
-                Write((byte)(_nibble + 16 * val));
-                _nibble = -1;
+                _nibble += 16 * val;
+                FlushNibble();
             }
         }
 
@@ -474,9 +479,10 @@ namespace Komponent.IO
             if (EffectiveBitOrder == BitOrder.LSBFirst)
                 _buffer |= ((value) ? 1 : 0) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize - _bitPosition++ - 1);
+                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
 
-            Flush();
+            if (_bitPosition >= BlockSize * 8)
+                Flush();
         }
 
         private void WriteBit(bool value, bool writeBuffer)
@@ -486,7 +492,7 @@ namespace Komponent.IO
             if (EffectiveBitOrder == BitOrder.LSBFirst)
                 _buffer |= ((value) ? 1 : 0) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize - _bitPosition++ - 1);
+                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
 
             if (writeBuffer)
                 Flush();

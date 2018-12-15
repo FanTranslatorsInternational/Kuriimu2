@@ -578,30 +578,9 @@ namespace Komponent.IO
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
-        //private object ReadBits(int count, Type type)
-        //{
-        //    if (type != typeof(bool) &&
-        //        type != typeof(sbyte) && type != typeof(byte) &&
-        //        type != typeof(short) && type != typeof(ushort) &&
-        //        type != typeof(int) && type != typeof(uint) &&
-        //        type != typeof(long) && type != typeof(ulong))
-        //        throw new UnsupportedTypeException(type);
-
-        //    var value=ReadBits
-        //}
-
         public T ReadStruct<T>() => (T)ReadObject(typeof(T));
 
         public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadStruct<T>()).ToList();
-
-        /// <summary>
-        /// Read multiple elements using a custom expression.
-        /// </summary>
-        /// <typeparam name="T">Type to be read in.</typeparam>
-        /// <param name="count">The number of elements to read.</param>
-        /// <param name="func">The custom expression for reading each value.</param>
-        /// <returns></returns>
-        //public List<T> ReadMultiple<T>(int count, Func<int, T> func) => Enumerable.Range(0, count).Select(func).ToList();
 
         #endregion
     }
