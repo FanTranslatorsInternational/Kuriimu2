@@ -134,6 +134,7 @@ namespace KomponentUnitTests
         }
 
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
+        [BitFieldInfo(BlockSize = 1)]
         private class TestClass
         {
             public bool exp0;
@@ -146,6 +147,8 @@ namespace KomponentUnitTests
             [VariableLength("exp1", Offset = 2, StringEncoding = StringEncoding.UTF8)]
             public string exp5;
             public TestClass3 exp6;
+            [BitField(6)]
+            public byte exp7;
 
             [BitFieldInfo(BitOrder = BitOrder.LSBFirst, BlockSize = 2)]
             public class TestClass2
@@ -172,9 +175,11 @@ namespace KomponentUnitTests
                 0x01, 0x00, 0x00, 0x00, 0x04, 0xF8, 0x0F, 0x11,
                 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x34, 0x34,
                 0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00,
+                0xFF,
                 0x01, 0x00, 0x00, 0x00, 0x04, 0xF8, 0x1F, 0x11,
                 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x34, 0x34,
-                0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00
+                0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00,
+                0xFF
             };
             var ms = new MemoryStream(input);
 
@@ -196,6 +201,7 @@ namespace KomponentUnitTests
                 Assert.AreEqual(0x22, examp.exp4[3]);
                 Assert.AreEqual("444564", examp.exp5);
                 Assert.AreEqual(0x05, examp.exp6.val1);
+                Assert.AreEqual(0x3F, examp.exp7);
 
                 br.BaseStream.Position = 0;
                 var exampList = br.ReadMultiple<TestClass>(2);
@@ -216,6 +222,7 @@ namespace KomponentUnitTests
                     Assert.AreEqual(0x22, exampEntry.exp4[3]);
                     Assert.AreEqual("444564", exampEntry.exp5);
                     Assert.AreEqual(0x05, exampEntry.exp6.val1);
+                    Assert.AreEqual(0x3F, examp.exp7);
 
                     index++;
                 }

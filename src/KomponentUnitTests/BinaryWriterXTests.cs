@@ -138,6 +138,7 @@ namespace KomponentUnitTests
         }
 
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
+        [BitFieldInfo(BlockSize = 1)]
         private class TestClass
         {
             public bool exp0;
@@ -150,6 +151,8 @@ namespace KomponentUnitTests
             [VariableLength("exp1", Offset = 2, StringEncoding = StringEncoding.UTF8)]
             public string exp5;
             public TestClass3 exp6;
+            [BitField(6)]
+            public byte exp7;
 
             [BitFieldInfo(BitOrder = BitOrder.LSBFirst, BlockSize = 2)]
             public class TestClass2
@@ -170,18 +173,21 @@ namespace KomponentUnitTests
         }
 
         [TestMethod]
-        public void GenericReading()
+        public void GenericWriting()
         {
             var expect = new byte[] {
                 0x01, 0x00, 0x00, 0x00, 0x04, 0xF8, 0x0F, 0x11,
                 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x34, 0x34,
                 0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00,
+                0xFC,
                 0x01, 0x00, 0x00, 0x00, 0x04, 0xF8, 0x10, 0x11,
                 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x34, 0x34,
                 0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00,
+                0xFC,
                 0x01, 0x00, 0x00, 0x00, 0x04, 0xF8, 0x11, 0x11,
                 0x11, 0x11, 0x22, 0x22, 0x22, 0x22, 0x34, 0x34,
-                0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00
+                0x34, 0x35, 0x36, 0x34, 0x05, 0x00, 0x00, 0x00,
+                0xFC
             };
             var ms = new MemoryStream();
 
@@ -203,7 +209,8 @@ namespace KomponentUnitTests
                     exp6 = new TestClass.TestClass3
                     {
                         val1 = 0x05
-                    }
+                    },
+                    exp7 = 0xFF
                 };
 
                 bw.WriteStruct(examp);
@@ -218,7 +225,7 @@ namespace KomponentUnitTests
         }
 
         [TestMethod]
-        public void NibbleReading()
+        public void NibbleWriting()
         {
             var expect = new byte[] {
                 0x84, 0x08
@@ -238,7 +245,7 @@ namespace KomponentUnitTests
         }
 
         [TestMethod]
-        public void SwitchNibbleBitReading()
+        public void SwitchNibbleBitWriting()
         {
             var expect = new byte[] {
                 0x04, 0x00, 0xF8, 0x48
