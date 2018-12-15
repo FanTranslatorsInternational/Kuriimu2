@@ -267,17 +267,16 @@ namespace Komponent.IO
 
         #region Alignment Reads
 
-        public byte SeekAlignment(int alignment = 16, byte alignmentByte = 0x0)
+        public byte SeekAlignment(int alignment = 16)
         {
             var remainder = BaseStream.Position % alignment;
-            if (remainder <= 0) return alignmentByte;
-            alignmentByte = ReadByte();
+            if (remainder <= 0) return 0;
+
+            var alignmentByte = ReadByte();
             BaseStream.Position += alignment - remainder - 1;
 
             return alignmentByte;
         }
-
-        public byte SeekAlignment(byte alignmentByte, int alignment = 16) => SeekAlignment(alignment, alignmentByte);
 
         #endregion
 
