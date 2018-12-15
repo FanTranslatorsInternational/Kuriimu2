@@ -285,17 +285,17 @@ namespace Komponent.IO
 
         private void Reset()
         {
-            ResetBuffer();
-            ResetNibble();
+            ResetBitBuffer();
+            ResetNibbleBuffer();
         }
 
-        private void ResetBuffer()
+        public void ResetBitBuffer()
         {
             _bitPosition = 64;
             _buffer = 0;
         }
 
-        private void ResetNibble()
+        public void ResetNibbleBuffer()
         {
             _nibble = -1;
         }
@@ -305,16 +305,16 @@ namespace Komponent.IO
             _currentBlockSize = _blockSize;
             switch (_blockSize)
             {
-                case 8:
+                case 1:
                     _buffer = ReadByte();
                     break;
-                case 16:
+                case 2:
                     _buffer = ReadInt16();
                     break;
-                case 32:
+                case 4:
                     _buffer = ReadInt32();
                     break;
-                case 64:
+                case 8:
                     _buffer = ReadInt64();
                     break;
             }
@@ -434,6 +434,8 @@ namespace Komponent.IO
                 // Class, Struct
                 BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
                 _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
+                if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
+                    throw new InvalidBitFieldInfoException(_blockSize);
 
                 var readValsIntern = new List<(string, object)>();
                 var item = Activator.CreateInstance(type);
@@ -444,7 +446,7 @@ namespace Komponent.IO
 
                     object val;
                     if (bitInfo != null)
-                        val = ReadBits(bitInfo.BitLength);
+                        val = Convert.ChangeType(ReadBits(bitInfo.BitLength), field.FieldType);
                     else
                         val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readValsIntern);
 
@@ -474,7 +476,7 @@ namespace Komponent.IO
 
         public int ReadNibble()
         {
-            ResetBuffer();
+            ResetBitBuffer();
 
             if (_nibble == -1)
             {
@@ -528,9 +530,9 @@ namespace Komponent.IO
         // Bit Fields
         public bool ReadBit()
         {
-            ResetNibble();
+            ResetNibbleBuffer();
 
-            if (_bitPosition >= _currentBlockSize)
+            if (_bitPosition >= _currentBlockSize * 8)
                 FillBuffer();
 
             switch (EffectiveBitOrder)
@@ -538,13 +540,13 @@ namespace Komponent.IO
                 case BitOrder.LSBFirst:
                     return ((_buffer >> _bitPosition++) & 0x1) == 1;
                 case BitOrder.MSBFirst:
-                    return ((_buffer >> (_currentBlockSize - _bitPosition++ - 1)) & 0x1) == 1;
+                    return ((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1) == 1;
                 default:
                     throw new NotSupportedException("BitOrder not supported.");
             }
         }
 
-        public long ReadBits(int count)
+        public object ReadBits(int count)
         {
             long result = 0;
             for (var i = 0; i < count; i++)
@@ -561,6 +563,32 @@ namespace Komponent.IO
 
             return result;
         }
+
+        public T ReadBits<T>(int count)
+        {
+            if (typeof(T) != typeof(bool) &&
+                typeof(T) != typeof(sbyte) && typeof(T) != typeof(byte) &&
+                typeof(T) != typeof(short) && typeof(T) != typeof(ushort) &&
+                typeof(T) != typeof(int) && typeof(T) != typeof(uint) &&
+                typeof(T) != typeof(long) && typeof(T) != typeof(ulong))
+                throw new UnsupportedTypeException(typeof(T));
+
+            var value = ReadBits(count);
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        //private object ReadBits(int count, Type type)
+        //{
+        //    if (type != typeof(bool) &&
+        //        type != typeof(sbyte) && type != typeof(byte) &&
+        //        type != typeof(short) && type != typeof(ushort) &&
+        //        type != typeof(int) && type != typeof(uint) &&
+        //        type != typeof(long) && type != typeof(ulong))
+        //        throw new UnsupportedTypeException(type);
+
+        //    var value=ReadBits
+        //}
 
         public T ReadStruct<T>() => (T)ReadObject(typeof(T));
 

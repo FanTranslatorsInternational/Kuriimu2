@@ -6,7 +6,7 @@ namespace Komponent.IO
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
     public class BitFieldInfoAttribute : Attribute
     {
-        public int BlockSize = 32;
+        public int BlockSize = 4;
         public BitOrder BitOrder = BitOrder.Inherit;
     }
 
