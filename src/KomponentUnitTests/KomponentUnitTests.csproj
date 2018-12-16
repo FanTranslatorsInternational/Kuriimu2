@@ -52,6 +52,7 @@
     <Compile Include="BinaryReaderXTests.cs" />
     <Compile Include="BinaryWriterXTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="KmpSearcherTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
