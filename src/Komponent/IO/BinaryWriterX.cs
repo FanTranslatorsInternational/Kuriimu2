@@ -424,6 +424,8 @@ namespace Komponent.IO
                 // Class/Struct
                 BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
                 _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
+                if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
+                    throw new InvalidBitFieldInfoException(_blockSize);
 
                 var wroteValsIntern = new List<(string, object)>();
                 foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
