@@ -208,7 +208,9 @@ namespace Kore
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".{Environment.NewLine}{Environment.NewLine}" +
+                    $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
+                    $"{ex.StackTrace}");
             }
 
             // Create a KoreFileInfo to keep track of the now open file.
@@ -232,6 +234,7 @@ namespace Kore
         /// <param name="filename">The optional new name of the file to be saved.</param>
         public void SaveFile(KoreFileInfo kfi, string filename = "")
         {
+            //TODO: throw exception instead of just return?
             if (!OpenFiles.Contains(kfi) || !(kfi.Adapter is ISaveFiles)) return;
 
             var adapter = (ISaveFiles)kfi.Adapter;
@@ -265,8 +268,9 @@ namespace Kore
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(string filename)
         {
-            // Return an adapter that can Identify whose extension matches that of our filename and successfully identifies the file.
-            return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
+            // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
+            return _fileAdapters.Where(adapter => 
+                adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 
         /// <summary>

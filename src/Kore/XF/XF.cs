@@ -31,11 +31,12 @@ namespace Kore.XFont
             }
         }
 
+        //TODO: due to brx and bwx changes, this structure is wrong; CharWidth and CharSizeInfoIndex are the only things that need BlockSize 2
+        [BitFieldInfo(BlockSize = 2)]
         [DebuggerDisplay("[{code_point}] {ColorChannel}:{ImageOffsetX}:{ImageOffsetY}")]
         public class CharacterMap
         {
             public char code_point;
-            [BitFieldInfo(BlockSize = 16)]
             [BitField(6)]
             public long CharWidth;
             [BitField(10)]
