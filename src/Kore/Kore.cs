@@ -171,9 +171,9 @@ namespace Kore
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
-        /// <param name="tempOpen"></param>
+        /// <param name="trackFile">Id the file should be tracked by Kore</param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename, bool tempOpen = false)
+        public KoreFileInfo LoadFile(string filename, bool trackFile = true)
         {
             var adapter = SelectAdapter(filename);
 
@@ -186,16 +186,16 @@ namespace Kore
                 IdentificationFailed?.Invoke(this, args);
 
                 //TODO: Handle this case better?
-                if (args.SelectedAdapter == null)
-                {
-                    return null;
-                }
+                //if (args.SelectedAdapter == null)
+                //{
+                //    return null;
+                //}
 
                 adapter = args.SelectedAdapter;
             }
 
             if (adapter == null)
-                throw new LoadFileException("No plugins were able to ");
+                return null; //throw new LoadFileException("No plugins were able to open the file.");
 
             // Instantiate a new instance of the adapter.
             adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
@@ -221,7 +221,7 @@ namespace Kore
                 Adapter = adapter
             };
 
-            if (!tempOpen)
+            if (trackFile)
                 OpenFiles.Add(kfi);
 
             return kfi;
@@ -239,7 +239,7 @@ namespace Kore
 
             var adapter = (ISaveFiles)kfi.Adapter;
 
-            if (filename == string.Empty)
+            if (string.IsNullOrEmpty(filename))
                 adapter.Save(kfi.FileInfo.FullName);
             else
             {
@@ -269,7 +269,7 @@ namespace Kore
         private ILoadFiles SelectAdapter(string filename)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
-            return _fileAdapters.Where(adapter => 
+            return _fileAdapters.Where(adapter =>
                 adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 

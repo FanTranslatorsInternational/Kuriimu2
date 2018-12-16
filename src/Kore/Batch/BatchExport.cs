@@ -68,7 +68,7 @@ namespace Kore.Batch
                             try
                             {
                                 var outFile = file + Utilities.Common.GetAdapterExtension<KupAdapter>();
-                                Utilities.Text.ExportKup((ITextAdapter)kore.LoadFile(file, true).Adapter, outFile);
+                                Utilities.Text.ExportKup((ITextAdapter)kore.LoadFile(file, false).Adapter, outFile);
                                 current++;
                                 progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max)});
                             }
@@ -92,7 +92,7 @@ namespace Kore.Batch
                             try
                             {
                                 // TODO: Make an image export utility function out of this code
-                                var kfi = kore.LoadFile(file, true);
+                                var kfi = kore.LoadFile(file, false);
                                 var adapter = (IImageAdapter)kfi.Adapter;
 
                                 foreach (var info in adapter.BitmapInfos)
