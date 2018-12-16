@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.IO;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
 
 namespace Kore
 {
@@ -46,7 +47,7 @@ namespace Kore
         /// <summary>
         /// 
         /// </summary>
-        public string DisplayName => (FileInfo.Name + (HasChanges ? " *" : string.Empty));
+        public string DisplayName => FileInfo.Name + (HasChanges ? " *" : string.Empty);
 
         /// <summary>
         /// 

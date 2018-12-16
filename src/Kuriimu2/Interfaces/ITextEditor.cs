@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 
 namespace Kuriimu2.Interfaces
 {

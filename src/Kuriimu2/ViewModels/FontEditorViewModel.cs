@@ -9,6 +9,8 @@ using System.Windows.Media;
 using Caliburn.Micro;
 using Komponent.Tools;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
 using Kore;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Dialogs.ViewModels;

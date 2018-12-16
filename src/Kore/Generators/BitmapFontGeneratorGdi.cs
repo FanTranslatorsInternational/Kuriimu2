@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Font;
 
 namespace Kore.Generators
 {

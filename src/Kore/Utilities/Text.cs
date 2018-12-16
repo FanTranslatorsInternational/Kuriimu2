@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 using Kore.SamplePlugins;
 
 namespace Kore.Utilities
@@ -35,7 +36,7 @@ namespace Kore.Utilities
         {
             var result = false;
 
-            var kfi = kore.LoadFile(inputFileName, true);
+            var kfi = kore.LoadFile(inputFileName, false);
             if (!(kfi.Adapter is ITextAdapter inAdapter)) return false;
 
             foreach (var inEntry in inAdapter.Entries)

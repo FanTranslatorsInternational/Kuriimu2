@@ -5,8 +5,14 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Text;
 
 namespace Kore
 {
@@ -83,7 +89,7 @@ namespace Kore
         /// </summary>
         public Kore()
         {
-            ComposePlugins();
+            Plugins.ComposePlugins(this, _pluginDirectory);
         }
 
         /// <summary>
@@ -93,30 +99,30 @@ namespace Kore
         public Kore(string pluginDirectory)
         {
             _pluginDirectory = pluginDirectory;
-            ComposePlugins();
+            Plugins.ComposePlugins(this, _pluginDirectory);
         }
 
         /// <summary>
         /// Re/Loads the plugin container.
         /// </summary>
-        private void ComposePlugins()
-        {
-            // An aggregate catalog that combines multiple catalogs.
-            var catalog = new AggregateCatalog();
+        //private void ComposePlugins()
+        //{
+        //    // An aggregate catalog that combines multiple catalogs.
+        //    var catalog = new AggregateCatalog();
 
-            // Adds all the parts found in the same assembly as the Kore class.
-            catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+        //    // Adds all the parts found in the same assembly as the Kore class.
+        //    catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
 
-            if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
-                catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
+        //    if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
+        //        catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
 
-            // Create the CompositionContainer with the parts in the catalog.
-            _container?.Dispose();
-            _container = new CompositionContainer(catalog);
+        //    // Create the CompositionContainer with the parts in the catalog.
+        //    _container?.Dispose();
+        //    _container = new CompositionContainer(catalog);
 
-            // Fill the imports of this object.
-            _container.ComposeParts(this);
-        }
+        //    // Fill the imports of this object.
+        //    _container.ComposeParts(this);
+        //}
 
         // TEMPORARY
         public static void ComposeSamplePlugins(object parent, CompositionContainer container)
@@ -176,9 +182,9 @@ namespace Kore
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
-        /// <param name="tempOpen"></param>
+        /// <param name="trackFile">Id the file should be tracked by Kore</param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename, bool tempOpen = false)
+        public KoreFileInfo LoadFile(string filename, bool trackFile = true)
         {
             var adapter = SelectAdapter(filename);
 
@@ -191,16 +197,16 @@ namespace Kore
                 IdentificationFailed?.Invoke(this, args);
 
                 //TODO: Handle this case better?
-                if (args.SelectedAdapter == null)
-                {
-                    return null;
-                }
+                //if (args.SelectedAdapter == null)
+                //{
+                //    return null;
+                //}
 
                 adapter = args.SelectedAdapter;
             }
 
             if (adapter == null)
-                throw new LoadFileException("No plugins were able to ");
+                return null; //throw new LoadFileException("No plugins were able to open the file.");
 
             // Instantiate a new instance of the adapter.
             adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
@@ -213,7 +219,9 @@ namespace Kore
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".{Environment.NewLine}{Environment.NewLine}" +
+                    $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
+                    $"{ex.StackTrace}");
             }
 
             // Create a KoreFileInfo to keep track of the now open file.
@@ -224,7 +232,7 @@ namespace Kore
                 Adapter = adapter
             };
 
-            if (!tempOpen)
+            if (trackFile)
                 OpenFiles.Add(kfi);
 
             return kfi;
@@ -275,11 +283,12 @@ namespace Kore
         /// <param name="filename">The optional new name of the file to be saved.</param>
         public void SaveFile(KoreFileInfo kfi, string filename = "")
         {
+            //TODO: throw exception instead of just return?
             if (!OpenFiles.Contains(kfi) || !(kfi.Adapter is ISaveFiles)) return;
 
             var adapter = (ISaveFiles)kfi.Adapter;
 
-            if (filename == string.Empty)
+            if (string.IsNullOrEmpty(filename))
                 adapter.Save(kfi.FileInfo.FullName);
             else
             {
@@ -308,8 +317,9 @@ namespace Kore
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(string filename)
         {
-            // Return an adapter that can Identify whose extension matches that of our filename and successfully identifies the file.
-            return _fileAdapters.Where(adapter => adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
+            // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
+            return _fileAdapters.Where(adapter =>
+                adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
         }
 
         /// <summary>
@@ -346,7 +356,7 @@ namespace Kore
             var allTypes = _fileAdapters.OfType<T>().Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
             // Add the special all supported files filter
-            if (allTypes.Count > 0 && allSupportedFiles.Length > 0)
+            if (allTypes.Count > 0 && !string.IsNullOrEmpty(allSupportedFiles))
                 allTypes.Insert(0, new { Name = allSupportedFiles, Extension = string.Join(";", allTypes.Select(x => x.Extension).Distinct()) });
 
             // Add the special all files filter
@@ -378,7 +388,7 @@ namespace Kore
                 CloseFile(kfi);
         }
 
-        public List<ILoadFiles> Debug()
+        private List<ILoadFiles> Debug()
         {
             return _fileAdapters;
             //var sb = new StringBuilder();

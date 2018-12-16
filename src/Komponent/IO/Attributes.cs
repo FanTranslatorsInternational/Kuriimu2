@@ -3,10 +3,10 @@ using System.Text;
 
 namespace Komponent.IO
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public class BitFieldInfoAttribute : Attribute
     {
-        public int BlockSize = 32;
+        public int BlockSize = 4;
         public BitOrder BitOrder = BitOrder.Inherit;
     }
 
