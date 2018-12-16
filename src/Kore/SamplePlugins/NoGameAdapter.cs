@@ -9,7 +9,6 @@ namespace Kore.SamplePlugins
 {
     [Export(typeof(NoGameAdapter))]
     [Export(typeof(IGameAdapter))]
-    [Export(typeof(IGenerateGamePreviews))]
     [PluginInfo("68CC696C-E169-456C-AFAC-4DC61C577CD6", "No Game", "NGA", "IcySon55")]
     public sealed class NoGameAdapter : IGameAdapter
     {
