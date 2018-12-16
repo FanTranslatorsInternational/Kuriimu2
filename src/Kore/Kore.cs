@@ -307,7 +307,7 @@ namespace Kore
             var allTypes = _fileAdapters.OfType<T>().Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
             // Add the special all supported files filter
-            if (allTypes.Count > 0 && allSupportedFiles.Length > 0)
+            if (allTypes.Count > 0 && !string.IsNullOrEmpty(allSupportedFiles))
                 allTypes.Insert(0, new { Name = allSupportedFiles, Extension = string.Join(";", allTypes.Select(x => x.Extension).Distinct()) });
 
             // Add the special all files filter
@@ -339,7 +339,7 @@ namespace Kore
                 CloseFile(kfi);
         }
 
-        public List<ILoadFiles> Debug()
+        private List<ILoadFiles> Debug()
         {
             return _fileAdapters;
             //var sb = new StringBuilder();
