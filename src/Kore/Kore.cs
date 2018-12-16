@@ -162,6 +162,17 @@ namespace Kore
         }
 
         /// <summary>
+        /// Returns a list of the plugin interface type names that load files.
+        /// </summary>
+        /// <returns></returns>
+        public List<string> GetFileLoadingAdapterNames() => new List<string>
+        {
+            nameof(ITextAdapter),
+            nameof(IImageAdapter),
+            nameof(IFontAdapter)
+        };
+
+        /// <summary>
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
@@ -215,6 +226,44 @@ namespace Kore
 
             if (!tempOpen)
                 OpenFiles.Add(kfi);
+
+            return kfi;
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="adapter"></param>
+        /// <returns></returns>
+        public KoreFileInfo LoadFile(string filename, ILoadFiles adapter)
+        {
+            if (adapter == null)
+                throw new ArgumentException("The adapter is null.");
+
+            // Instantiate a new instance of the adapter.
+            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+
+            // Load the file(s).
+            try
+            {
+                adapter.Load(filename);
+            }
+            catch (Exception ex)
+            {
+                var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
+            }
+
+            // Create a KoreFileInfo to keep track of the now open file.
+            var kfi = new KoreFileInfo
+            {
+                FileInfo = new FileInfo(filename),
+                HasChanges = false,
+                Adapter = adapter
+            };
+
+            OpenFiles.Add(kfi);
 
             return kfi;
         }
