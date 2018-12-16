@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
 
-namespace Kontract.Interfaces
+namespace Kontract.Interfaces.Text
 {
     /// <summary>
     /// This is the text adapter interface for creating text format plugins.

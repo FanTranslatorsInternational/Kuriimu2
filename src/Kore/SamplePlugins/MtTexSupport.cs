@@ -7,6 +7,7 @@ using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Image;
 
 namespace Kore.SamplePlugins
 {

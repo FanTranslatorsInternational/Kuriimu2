@@ -237,7 +237,7 @@ namespace Kore
 
             return kfi;
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -248,10 +248,8 @@ namespace Kore
         {
             if (adapter == null)
                 throw new ArgumentException("The adapter is null.");
-
             // Instantiate a new instance of the adapter.
             adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
-
             // Load the file(s).
             try
             {
@@ -262,7 +260,6 @@ namespace Kore
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
                 throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
             }
-
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
             {
@@ -270,9 +267,7 @@ namespace Kore
                 HasChanges = false,
                 Adapter = adapter
             };
-
             OpenFiles.Add(kfi);
-
             return kfi;
         }
 

@@ -4,6 +4,10 @@ using System.Linq;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Text;
 using Kuriimu2.Dialogs.Common;
 using Microsoft.Win32;
 

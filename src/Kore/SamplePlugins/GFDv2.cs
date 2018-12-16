@@ -4,10 +4,14 @@ using System.ComponentModel.Composition.Hosting;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Image;
 
 namespace Kore.SamplePlugins
 {
@@ -115,7 +119,7 @@ namespace Kore.SamplePlugins
 
                 // Name
                 bw.Write(Name.Length);
-                bw.WriteASCII(Name);
+                bw.WriteString(Name, Encoding.ASCII, false, false);
                 bw.Write((byte)0);
 
                 // Characters
@@ -165,7 +169,7 @@ namespace Kore.SamplePlugins
         {
             var dName = Path.GetDirectoryName(filename);
             var fName = Name.Split('\\').Last() + "_" + textureIndex.ToString("00");
-            
+
             switch (Header.Suffix)
             {
                 case 0x1:

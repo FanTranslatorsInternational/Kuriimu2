@@ -173,7 +173,7 @@ namespace Komponent.IO
         {
             Reset();
 
-            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : BitConverterExt.ToDecimal(ReadBytes(16).Reverse().ToArray());
+            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : DecimalExtensions.ToDecimal(ReadBytes(16).Reverse().ToArray());
         }
 
         public override int Read(byte[] buffer, int index, int count)
@@ -380,7 +380,8 @@ namespace Komponent.IO
                         case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
+                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
 
                     returnValue = ReadString(length, enc);
                 }
@@ -397,7 +398,8 @@ namespace Komponent.IO
                 // Array
                 if (FixedSize != null || VarSize != null)
                 {
-                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
+                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
                     IList arr = Array.CreateInstance(type.GetElementType(), length);
 
                     for (int i = 0; i < length; i++)
@@ -413,7 +415,8 @@ namespace Komponent.IO
                 // List
                 if (FixedSize != null || VarSize != null)
                 {
-                    var length = FixedSize?.Length ?? ((readVals.Count(v => v.Item1 == VarSize.FieldName) > 0) ? (int)readVals.First(v => v.Item1 == VarSize.FieldName).Item2 : -1);
+                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
+                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
                     var paramType = type.GenericTypeArguments.First();
                     var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(new[] { paramType }));
 
