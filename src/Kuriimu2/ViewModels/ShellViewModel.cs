@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,6 +8,7 @@ using Kontract.Interfaces;
 using Kore;
 using Kore.SamplePlugins;
 using Kore.Utilities;
+using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Microsoft.Win32;
 
@@ -16,6 +18,8 @@ namespace Kuriimu2.ViewModels
     {
         #region Private
 
+        private IWindowManager _wm = new WindowManager();
+        private List<IScreen> _windows = new List<IScreen>();
         private Kore.Kore _kore;
 
         #endregion
@@ -37,6 +41,21 @@ namespace Kuriimu2.ViewModels
 
             foreach (var file in ofd.FileNames)
                 await LoadFile(file);
+        }
+
+        public async void OpenTypeButton()
+        {
+            var pe = new OpenTypeViewModel(_kore)
+            {
+                Title = $"Open File by Type",
+                Message = ""
+            };
+            _windows.Add(pe);
+
+            if (_wm.ShowDialog(pe) == true)
+            {
+                await LoadFile(pe.SelectedFilePath, pe.SelectedFormatType);
+            }
         }
 
         public async void FileDrop(DragEventArgs e)
@@ -149,6 +168,27 @@ namespace Kuriimu2.ViewModels
                 MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+            ActivateTab(kfi);
+        }
+
+        private async Task LoadFile(string filename, ILoadFiles adapter)
+        {
+            KoreFileInfo kfi = null;
+
+            try
+            {
+                await Task.Run(() => { kfi = _kore.LoadFile(filename, adapter); });
+            }
+            catch (LoadFileException ex)
+            {
+                MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            ActivateTab(kfi);
+        }
+
+        private void ActivateTab(KoreFileInfo kfi)
+        {
             if (kfi == null) return;
 
             switch (kfi.Adapter)
@@ -171,5 +211,16 @@ namespace Kuriimu2.ViewModels
         }
 
         #endregion
+
+        public override void TryClose(bool? dialogResult = null)
+        {
+            for (var i = _windows.Count - 1; i >= 0; i--)
+            {
+                var scr = _windows[i];
+                scr.TryClose(dialogResult);
+                _windows.Remove(scr);
+            }
+            base.TryClose(dialogResult);
+        }
     }
 }

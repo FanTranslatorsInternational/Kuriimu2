@@ -32,33 +32,22 @@
         <ToolBarTray DockPanel.Dock="Top" Background="Transparent">
             <ToolBar ToolBarTray.IsLocked="True">
                 <Button Name="NewButton">
-                    <StackPanel>
-                        <Image Source="/Images/menu-new.png" />
-                    </StackPanel>
+                    <Image Source="/Images/menu-new.png" />
                 </Button>
                 <Button Name="OpenButton">
-                    <StackPanel>
-                        <Image Source="/Images/menu-open.png" />
-                    </StackPanel>
+                    <Image Source="/Images/menu-open.png" />
+                </Button>
+                <Button Name="OpenTypeButton">
+                    <Image Source="/Images/menu-open.png" />
                 </Button>
                 <Button Name="SaveButton" IsEnabled="{Binding SaveButtonsEnabled}">
-                    <StackPanel>
-                        <Image Source="/Images/menu-save.png" />
-                    </StackPanel>
+                    <Image Source="/Images/menu-save.png" />
                 </Button>
                 <Button Name="SaveAsButton" IsEnabled="{Binding SaveButtonsEnabled}">
-                    <StackPanel>
-                        <Image Source="/Images/menu-save-as.png" />
-                    </StackPanel>
+                    <Image Source="/Images/menu-save-as.png" />
                 </Button>
             </ToolBar>
-            <ToolBar>
-                <Button Name="DebugButton">
-                    <StackPanel>
-                        <Image Source="/Images/menu-about.png" />
-                    </StackPanel>
-                </Button>
-            </ToolBar>
+
             <ToolBar Name="TextEditorTools" Visibility="{Binding TextEditorToolsVisible}">
                 <Button Name="TextEditorExportFile">
                     <StackPanel>

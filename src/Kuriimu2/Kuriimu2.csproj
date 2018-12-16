@@ -167,6 +167,7 @@
     <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\NewFileViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\AddTextEntryViewModel.cs" />
+    <Compile Include="Dialogs\ViewModels\OpenTypeViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\PropertyEditorViewModel.cs" />
     <Compile Include="Dialogs\Common\Common.cs" />
     <Compile Include="Interfaces\IFileEditor.cs" />
@@ -194,6 +195,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\Views\AddTextEntryView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\Views\OpenTypeView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
