@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Komponent.IO
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public class BitFieldInfoAttribute : Attribute
     {
         public int BlockSize = 4;
