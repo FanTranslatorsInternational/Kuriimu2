@@ -1,4 +1,4 @@
-﻿namespace Kontract.Interfaces
+﻿namespace Kontract.Interfaces.Common
 {
     /// <summary>
     /// This interface allows a plugin to create files.
