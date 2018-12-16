@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kryptography", "src\Kryptog
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KomponentUnitTests", "src\KomponentUnitTests\KomponentUnitTests.csproj", "{3559F9D4-95B8-4DA6-B5C5-91455E637D5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoreUnitTests", "src\KoreUnitTests\KoreUnitTests.csproj", "{3DFF2F4A-22BC-4A73-9343-0CE5137E1815}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{3559F9D4-95B8-4DA6-B5C5-91455E637D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3559F9D4-95B8-4DA6-B5C5-91455E637D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3559F9D4-95B8-4DA6-B5C5-91455E637D5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DFF2F4A-22BC-4A73-9343-0CE5137E1815}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DFF2F4A-22BC-4A73-9343-0CE5137E1815}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DFF2F4A-22BC-4A73-9343-0CE5137E1815}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DFF2F4A-22BC-4A73-9343-0CE5137E1815}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
