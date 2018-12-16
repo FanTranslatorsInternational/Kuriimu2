@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package>
   <metadata>
-    <id>Kuriimu2</id>
+    <id>Kuriimu2.Kore</id>
     <version>$version$</version>
-    <title>Kuriimu2 SDK</title>
+    <title>Kuriimu2 SDK (Kore)</title>
     <authors>IcySon55, onepiecefreak3, Neobeo</authors>
     <owners>IcySon55, onepiecefreak3, Neobeo</owners>
     <projectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</projectUrl>
@@ -11,6 +11,11 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Software Development Kit for the Kuriimu2 Suite for interpreting, manipulating and translating game files.</description>
     <copyright>$copyright$</copyright>
+    <dependencies>
+      <dependency id="Kuriimu2.Kontract" version="2.0.0" />
+      <dependency id="Kuriimu2.Komponent" version="2.0.0" />
+      <dependency id="Kuriimu2.Kanvas" version="2.0.0" />
+    </dependencies>
   </metadata>
   <files>
   </files>
