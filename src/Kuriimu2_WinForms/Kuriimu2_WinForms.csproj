@@ -52,6 +52,18 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormatForms\ArchiveForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FormatForms\ArchiveForm.Designer.cs">
+      <DependentUpon>ArchiveForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FormatForms\ImageForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FormatForms\ImageForm.Designer.cs">
+      <DependentUpon>ImageForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormatForms\TextForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -63,6 +75,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormatForms\ArchiveForm.resx">
+      <DependentUpon>ArchiveForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FormatForms\ImageForm.resx">
+      <DependentUpon>ImageForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormatForms\TextForm.resx">
       <DependentUpon>TextForm.cs</DependentUpon>

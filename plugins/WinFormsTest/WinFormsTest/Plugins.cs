@@ -28,6 +28,8 @@ namespace WinFormsTest
 
         public string LineEndings { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        public int MinimumRequiredFiles => 1;
+
         public void Dispose()
         {
             ;
@@ -41,7 +43,7 @@ namespace WinFormsTest
             }
         }
 
-        public void Load(string filename)
+        public void Load(params StreamInfo[] filename)
         {
             _texts = new List<string> { "Text1", "Text2", "Text3" };
         }

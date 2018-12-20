@@ -74,6 +74,11 @@ namespace Kore
         /// </summary>
         public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
 
+        /// <summary>
+        /// Provides an event that the UI can handle to open more dialogs for additional files, if needed by the plugin
+        /// </summary>
+        public event EventHandler<MultipleFilesNeededEventArgs> MultipleFilesNeeded;
+
         /// <inheritdoc />
         /// <summary>
         /// Allows the UI to display a list of blind plugins and to return one selected by the user.
@@ -82,6 +87,16 @@ namespace Kore
         {
             public List<ILoadFiles> BlindAdapters;
             public ILoadFiles SelectedAdapter = null;
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Allows the UI to get information on opening additional files for a plugin
+        /// </summary>
+        public class MultipleFilesNeededEventArgs : EventArgs
+        {
+            public ILoadFiles SelectedAdapter;
+            public StreamInfo SelectedStreamInfo = null;
         }
 
         /// <summary>
@@ -178,6 +193,40 @@ namespace Kore
             nameof(IFontAdapter)
         };
 
+        public KoreFileInfo LoadFile(StreamInfo file, bool trackFile = true)
+        {
+            // Select adapter automatically
+            var adapter = SelectAdapter(file.FileName);
+
+            // Ask the user to select a plugin directly.
+            adapter = adapter ?? SelectAdapterManually();
+
+            // Return null if no adapter was chosen
+            if (adapter == null) return null; //throw new LoadFileException("No plugins were able to open the file.");
+
+            // Instantiate a new instance of the adapter.
+            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+
+            // Prepare additional StreamInfos, if more files are needed
+            if (adapter.MinimumRequiredFiles > 1)
+                PrepareAdditionalStreamInfo(adapter);
+        }
+
+        private IEnumerable<StreamInfo> PrepareAdditionalStreamInfo(ILoadFiles adapter)
+        {
+            var streamInfos = new List<StreamInfo>();
+            for (int i = 1; i < adapter.MinimumRequiredFiles; i++)
+            {
+                var args = new MultipleFilesNeededEventArgs { SelectedAdapter = adapter };
+                MultipleFilesNeeded?.Invoke(this, args);
+
+                if (args.SelectedStreamInfo == null)
+                    throw new InvalidOperationException($"Too less files given. Minimum required files are {adapter.MinimumRequiredFiles}");
+            }
+
+            return streamInfos;
+        }
+
         /// <summary>
         /// Loads a file into the tracking list.
         /// </summary>
@@ -186,35 +235,24 @@ namespace Kore
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
         public KoreFileInfo LoadFile(string filename, bool trackFile = true)
         {
-            var adapter = SelectAdapter(filename);
+            if (!File.Exists(filename))
+                throw new FileNotFoundException(filename);
 
-            // Ask the user to select a plugin directly.
-            if (adapter == null)
+            LoadFile(new StreamInfo { FileData = File.Open(filename, FileMode.Open), FileName = filename }, trackFile);
+
+            if (!File.Exists(filename))
+                throw new FileLoadException(filename);
+
+            var initialStreamInfo = new StreamInfo
             {
-                var blindAdapters = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
-
-                var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters };
-                IdentificationFailed?.Invoke(this, args);
-
-                //TODO: Handle this case better?
-                //if (args.SelectedAdapter == null)
-                //{
-                //    return null;
-                //}
-
-                adapter = args.SelectedAdapter;
-            }
-
-            if (adapter == null)
-                return null; //throw new LoadFileException("No plugins were able to open the file.");
-
-            // Instantiate a new instance of the adapter.
-            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+                FileData = File.Open(filename, FileMode.Open),
+                FileName = filename
+            };
 
             // Load the file(s).
             try
             {
-                adapter.Load(filename);
+                adapter.Load(streamInfos.ToArray());
             }
             catch (Exception ex)
             {
@@ -250,10 +288,34 @@ namespace Kore
                 throw new ArgumentException("The adapter is null.");
             // Instantiate a new instance of the adapter.
             adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+
+            // Prepare the StreamInfos
+            if (!File.Exists(filename))
+                throw new FileLoadException(filename);
+
+            var initialStreamInfo = new StreamInfo
+            {
+                FileData = File.Open(filename, FileMode.Open),
+                FileName = filename
+            };
+
+            var streamInfos = new List<StreamInfo> { initialStreamInfo };
+            if (adapter.MinimumRequiredFiles > 1)
+            {
+                for (int i = 1; i < adapter.MinimumRequiredFiles; i++)
+                {
+                    var args = new MultipleFilesNeededEventArgs { SelectedAdapter = adapter };
+                    MultipleFilesNeeded?.Invoke(this, args);
+
+                    if (string.IsNullOrEmpty(args.SelectedFile))
+                        throw new InvalidOperationException($"Too less files given. Minimum required files are {adapter.MinimumRequiredFiles}");
+                }
+            }
+
             // Load the file(s).
             try
             {
-                adapter.Load(filename);
+                adapter.Load(streamInfos.ToArray());
             }
             catch (Exception ex)
             {
@@ -315,6 +377,22 @@ namespace Kore
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return _fileAdapters.Where(adapter =>
                 adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
+        }
+
+        private ILoadFiles SelectAdapterManually()
+        {
+            var blindAdapters = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
+
+            var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters };
+            IdentificationFailed?.Invoke(this, args);
+
+            //TODO: Handle this case better?
+            //if (args.SelectedAdapter == null)
+            //{
+            //    return null;
+            //}
+
+            return args.SelectedAdapter;
         }
 
         /// <summary>

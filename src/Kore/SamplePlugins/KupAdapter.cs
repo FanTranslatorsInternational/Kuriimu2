@@ -14,11 +14,11 @@ namespace Kore.SamplePlugins
     [Export(typeof(ITextAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ICreateFiles))]
-    [Export(typeof(ILoadFiles))]
+    //[Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
     [PluginInfo("963E7A09-61C4-4A80-94BA-427134F1A5B8", "Kuriimu Text Archive", "KUP", "IcySon55", "", "This is the KUP text adapter for Kuriimu.")]
     [PluginExtensionInfo("*.kup")]
-    public sealed class KupAdapter : ITextAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles, IAddEntries
+    public sealed class KupAdapter : ITextAdapter, IIdentifyFiles, ICreateFiles, /*ILoadFiles,*/ ISaveFiles, IAddEntries
     {
         private KUP _kup;
 

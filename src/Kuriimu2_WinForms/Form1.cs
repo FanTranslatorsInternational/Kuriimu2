@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Kuriimu2_WinForms.FormatForms;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Archive;
 
 namespace Kuriimu2_WinForms
 {
@@ -49,10 +50,10 @@ namespace Kuriimu2_WinForms
 
             if (kfi.Adapter is ITextAdapter)
                 tabPage.Controls.Add(new TextForm(kfi));
-            //else if (kfi.Adapter is IImageAdapter)
-            //    tabPage.Controls.Add(new ImageForm(kfi));
-            //else if (kfi.Adapter is IArchiveAdapter)
-            //    tabPage.Controls.Add(new ArchiveForm(kfi));
+            else if (kfi.Adapter is IImageAdapter)
+                tabPage.Controls.Add(new ImageForm(kfi));
+            else if (kfi.Adapter is IArchiveAdapter)
+                tabPage.Controls.Add(new ArchiveForm(kfi));
 
             openFiles.TabPages.Add(tabPage);
         }

@@ -97,7 +97,8 @@ namespace Kore.SamplePlugins
                 {
                     var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
                     if (texAdapter == null) continue;
-                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    //TODO
+                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
                     Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0]);
                 }
             }
@@ -152,7 +153,8 @@ namespace Kore.SamplePlugins
                 {
                     var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
                     if (texAdapter == null) continue;
-                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    //TODO
+                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
                     ((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0] = Textures[i];
                     ((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
                 }
