@@ -13,7 +13,7 @@ namespace Kontract.Interfaces.Common
         /// Loads the given file.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
-        void Load(params StreamInfo[] filename);
+        void Load(StreamInfo filename);
     }
 
     public class StreamInfo
