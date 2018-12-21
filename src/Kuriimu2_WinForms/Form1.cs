@@ -12,6 +12,7 @@ using Kuriimu2_WinForms.FormatForms;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
 
 namespace Kuriimu2_WinForms
 {
@@ -22,10 +23,25 @@ namespace Kuriimu2_WinForms
         public Form1()
         {
             InitializeComponent();
+
             _kore = new Kore.Kore();
         }
 
         #region Events
+        /// <summary>
+        /// When a file gets loaded, this event ensures possible file requests by the plugin are handled
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void _kore_RequestFile(object sender, RequestFileEventArgs e)
+        {
+            e.SelectedStreamInfo = new StreamInfo
+            {
+                FileData = File.Open(e.FileName, FileMode.Open),
+                FileName = e.FileName
+            };
+        }
+
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
@@ -40,6 +56,7 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
+            _kore.RequestFile += _kore_RequestFile;
             var kfi = _kore.LoadFile(filename);
             AddTabPage(kfi);
         }

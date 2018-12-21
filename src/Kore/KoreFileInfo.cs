@@ -11,6 +11,12 @@ namespace Kore
     /// </summary>
     public class KoreFileInfo : INotifyPropertyChanged
     {
+        public bool CanRequestFiles => Adapter is IRequestFiles;
+
+        public bool CanSave => Adapter is ISaveFiles;
+
+        public bool CanCreate => Adapter is ICreateFiles;
+
         /// <inheritdoc />
         /// <summary>
         /// The event handler for properties being changed.

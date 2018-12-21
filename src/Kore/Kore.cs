@@ -8,6 +8,7 @@ using System.Reflection;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Game;
@@ -46,8 +47,8 @@ namespace Kore
         [ImportMany(typeof(IImageAdapter))]
         private List<IImageAdapter> _imageAdapters;
 
-        //[ImportMany(typeof(IArchiveAdapter))]
-        //private List<IArchiveAdapter> _archiveAdapters;
+        [ImportMany(typeof(IArchiveAdapter))]
+        private List<IArchiveAdapter> _archiveAdapters;
 
         [ImportMany(typeof(IFontAdapter))]
         private List<IFontAdapter> _fontAdapters;
@@ -75,9 +76,9 @@ namespace Kore
         public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
 
         /// <summary>
-        /// Provides an event that the UI can handle to open more dialogs for additional files, if needed by the plugin
+        /// Provides an event that the UI can handle to load additional files in its own context
         /// </summary>
-        public event EventHandler<MultipleFilesNeededEventArgs> MultipleFilesNeeded;
+        public event EventHandler<RequestFileEventArgs> RequestFile;
 
         /// <inheritdoc />
         /// <summary>
@@ -87,16 +88,6 @@ namespace Kore
         {
             public List<ILoadFiles> BlindAdapters;
             public ILoadFiles SelectedAdapter = null;
-        }
-
-        /// <inheritdoc />
-        /// <summary>
-        /// Allows the UI to get information on opening additional files for a plugin
-        /// </summary>
-        public class MultipleFilesNeededEventArgs : EventArgs
-        {
-            public ILoadFiles SelectedAdapter;
-            public StreamInfo SelectedStreamInfo = null;
         }
 
         /// <summary>
@@ -116,28 +107,6 @@ namespace Kore
             _pluginDirectory = pluginDirectory;
             Plugins.ComposePlugins(this, _pluginDirectory);
         }
-
-        /// <summary>
-        /// Re/Loads the plugin container.
-        /// </summary>
-        //private void ComposePlugins()
-        //{
-        //    // An aggregate catalog that combines multiple catalogs.
-        //    var catalog = new AggregateCatalog();
-
-        //    // Adds all the parts found in the same assembly as the Kore class.
-        //    catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
-
-        //    if (Directory.Exists(_pluginDirectory) && Directory.GetFiles(_pluginDirectory, "*.dll").Length > 0)
-        //        catalog.Catalogs.Add(new DirectoryCatalog(_pluginDirectory));
-
-        //    // Create the CompositionContainer with the parts in the catalog.
-        //    _container?.Dispose();
-        //    _container = new CompositionContainer(catalog);
-
-        //    // Fill the imports of this object.
-        //    _container.ComposeParts(this);
-        //}
 
         // TEMPORARY
         public static void ComposeSamplePlugins(object parent, CompositionContainer container)
@@ -190,42 +159,9 @@ namespace Kore
         {
             nameof(ITextAdapter),
             nameof(IImageAdapter),
+            nameof(IArchiveAdapter),
             nameof(IFontAdapter)
         };
-
-        public KoreFileInfo LoadFile(StreamInfo file, bool trackFile = true)
-        {
-            // Select adapter automatically
-            var adapter = SelectAdapter(file.FileName);
-
-            // Ask the user to select a plugin directly.
-            adapter = adapter ?? SelectAdapterManually();
-
-            // Return null if no adapter was chosen
-            if (adapter == null) return null; //throw new LoadFileException("No plugins were able to open the file.");
-
-            // Instantiate a new instance of the adapter.
-            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
-
-            // Prepare additional StreamInfos, if more files are needed
-            if (adapter.MinimumRequiredFiles > 1)
-                PrepareAdditionalStreamInfo(adapter);
-        }
-
-        private IEnumerable<StreamInfo> PrepareAdditionalStreamInfo(ILoadFiles adapter)
-        {
-            var streamInfos = new List<StreamInfo>();
-            for (int i = 1; i < adapter.MinimumRequiredFiles; i++)
-            {
-                var args = new MultipleFilesNeededEventArgs { SelectedAdapter = adapter };
-                MultipleFilesNeeded?.Invoke(this, args);
-
-                if (args.SelectedStreamInfo == null)
-                    throw new InvalidOperationException($"Too less files given. Minimum required files are {adapter.MinimumRequiredFiles}");
-            }
-
-            return streamInfos;
-        }
 
         /// <summary>
         /// Loads a file into the tracking list.
@@ -238,10 +174,43 @@ namespace Kore
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
 
-            LoadFile(new StreamInfo { FileData = File.Open(filename, FileMode.Open), FileName = filename }, trackFile);
+            var initialStreamInfo = new StreamInfo
+            {
+                FileData = File.Open(filename, FileMode.Open),
+                FileName = filename
+            };
 
+            return LoadFile(initialStreamInfo, trackFile);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="trackFile"></param>
+        /// <returns></returns>
+        public KoreFileInfo LoadFile(StreamInfo file, bool trackFile = true)
+        {
+            // Select adapter automatically
+            var adapter = SelectAdapter(file.FileName);
+
+            // Ask the user to select a plugin directly.
+            adapter = adapter ?? SelectAdapterManually();
+
+            return LoadFile(file, adapter, trackFile);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="adapter"></param>
+        /// <param name="trackFile"></param>
+        /// <returns></returns>
+        public KoreFileInfo LoadFile(string filename, ILoadFiles adapter, bool trackFile = true)
+        {
             if (!File.Exists(filename))
-                throw new FileLoadException(filename);
+                throw new FileNotFoundException(filename);
 
             var initialStreamInfo = new StreamInfo
             {
@@ -249,15 +218,32 @@ namespace Kore
                 FileName = filename
             };
 
-            // Load the file(s).
+            return LoadFile(initialStreamInfo, adapter, trackFile);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="adapter"></param>
+        /// <returns></returns>
+        public KoreFileInfo LoadFile(StreamInfo file, ILoadFiles adapter, bool trackFile = true)
+        {
+            if (adapter == null) return null;
+
+            // Instantiate a new instance of the adapter.
+            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+
+            // Load files(s)
             try
             {
-                adapter.Load(streamInfos.ToArray());
+                (adapter as IRequestFiles).RequestFile += Kore_RequestFile;
+                adapter.Load(file);
             }
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".{Environment.NewLine}{Environment.NewLine}" +
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(file.FileName)}\".{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.StackTrace}");
             }
@@ -265,7 +251,7 @@ namespace Kore
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
             {
-                FileInfo = new FileInfo(filename),
+                FileInfo = new FileInfo(file.FileName),
                 HasChanges = false,
                 Adapter = adapter
             };
@@ -276,61 +262,9 @@ namespace Kore
             return kfi;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <param name="adapter"></param>
-        /// <returns></returns>
-        public KoreFileInfo LoadFile(string filename, ILoadFiles adapter)
+        private void Kore_RequestFile(object sender, RequestFileEventArgs e)
         {
-            if (adapter == null)
-                throw new ArgumentException("The adapter is null.");
-            // Instantiate a new instance of the adapter.
-            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
-
-            // Prepare the StreamInfos
-            if (!File.Exists(filename))
-                throw new FileLoadException(filename);
-
-            var initialStreamInfo = new StreamInfo
-            {
-                FileData = File.Open(filename, FileMode.Open),
-                FileName = filename
-            };
-
-            var streamInfos = new List<StreamInfo> { initialStreamInfo };
-            if (adapter.MinimumRequiredFiles > 1)
-            {
-                for (int i = 1; i < adapter.MinimumRequiredFiles; i++)
-                {
-                    var args = new MultipleFilesNeededEventArgs { SelectedAdapter = adapter };
-                    MultipleFilesNeeded?.Invoke(this, args);
-
-                    if (string.IsNullOrEmpty(args.SelectedFile))
-                        throw new InvalidOperationException($"Too less files given. Minimum required files are {adapter.MinimumRequiredFiles}");
-                }
-            }
-
-            // Load the file(s).
-            try
-            {
-                adapter.Load(streamInfos.ToArray());
-            }
-            catch (Exception ex)
-            {
-                var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".\r\n\r\n{ex.Message}\r\n\r\n{ex.StackTrace}");
-            }
-            // Create a KoreFileInfo to keep track of the now open file.
-            var kfi = new KoreFileInfo
-            {
-                FileInfo = new FileInfo(filename),
-                HasChanges = false,
-                Adapter = adapter
-            };
-            OpenFiles.Add(kfi);
-            return kfi;
+            RequestFile?.Invoke(sender, e);
         }
 
         /// <summary>
