@@ -8,12 +8,22 @@ namespace Kontract.Interfaces.Common
 {
     public interface IRequestFiles
     {
-        event EventHandler<RequestFileEventArgs> RequestFile;
+        event EventHandler<RequestFileEventArgs> RequestFiles;
     }
 
+    /// <summary>
+    /// Allows the event handler to open files with a matching pattern automatically
+    /// </summary>
     public class RequestFileEventArgs : EventArgs
     {
-        public string FileName;
-        public StreamInfo SelectedStreamInfo = null;
+        /// <summary>
+        /// FilePathPattern allows for any Regular Expression to open files matching it, based on the directory of the initial file
+        /// </summary>
+        public string FilePathPattern;
+
+        /// <summary>
+        /// All StreamInfos opened based on the given pattern
+        /// </summary>
+        public StreamInfo[] OpenedStreamInfos = null;
     }
 }

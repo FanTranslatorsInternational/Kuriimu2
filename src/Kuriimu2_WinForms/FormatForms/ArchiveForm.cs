@@ -34,11 +34,11 @@ namespace Kuriimu2_WinForms.FormatForms
         private void _kore_RequestFile(object sender, RequestFileEventArgs e)
         {
             //TODO: Rewrite for archive needs
-            e.SelectedStreamInfo = new StreamInfo
-            {
-                FileData = File.Open(e.FileName, FileMode.Open),
-                FileName = e.FileName
-            };
+            //e.SelectedStreamInfo = new StreamInfo
+            //{
+            //    FileData = File.Open(e.FileName, FileMode.Open),
+            //    FileName = e.FileName
+            //};
         }
         #endregion
     }

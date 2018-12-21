@@ -14,12 +14,12 @@ namespace Kore.XFont
 {
     [Export(typeof(XfAdapter))]
     [Export(typeof(IFontAdapter))]
-    [Export(typeof(IIdentifyFiles))]
+    //[Export(typeof(IIdentifyFiles))]
     //[Export(typeof(ILoadFiles))]
     //[Export(typeof(ISaveFiles))]
     [PluginInfo("33B42E7E-FFA6-4F8D-B30A-D0334910BC45", "Level 5 Font", "XF", "onepiecefreak", "", "This is the XF font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.xf")]
-    public sealed class XfAdapter : IFontAdapter, IIdentifyFiles, /*ILoadFiles,*/ IAddCharacters, IDeleteCharacters
+    public sealed class XfAdapter : IFontAdapter, /*IIdentifyFiles, ILoadFiles,*/ IAddCharacters, IDeleteCharacters
     {
         private XF _xf;
 

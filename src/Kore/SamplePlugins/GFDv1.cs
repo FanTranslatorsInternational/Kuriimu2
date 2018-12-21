@@ -95,7 +95,8 @@ namespace Kore.SamplePlugins
                 Textures = new List<Bitmap>();
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    //TODO
+                    IMtFrameworkTextureAdapter texAdapter = null;//_texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
                     if (texAdapter == null) continue;
                     //TODO
                     //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
@@ -151,7 +152,8 @@ namespace Kore.SamplePlugins
                 // Textures
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    //TODO
+                    IMtFrameworkTextureAdapter texAdapter = null;//_texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
                     if (texAdapter == null) continue;
                     //TODO
                     //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));

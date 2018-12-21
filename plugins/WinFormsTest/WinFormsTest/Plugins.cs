@@ -22,7 +22,7 @@ namespace WinFormsTest
 
         private IEnumerable<string> _texts;
 
-        public event EventHandler<RequestFileEventArgs> RequestFile;
+        public event EventHandler<RequestFileEventArgs> RequestFiles;
 
         public string NameFilter => throw new NotImplementedException();
 
@@ -35,9 +35,9 @@ namespace WinFormsTest
             ;
         }
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo file)
         {
-            using (var br = new BinaryReader(File.OpenRead(filename)))
+            using (var br = new BinaryReader(file.FileData))
             {
                 return br.ReadUInt32() == 0x16161616;
             }
@@ -48,10 +48,11 @@ namespace WinFormsTest
         public void Load(StreamInfo file)
         {
             // Maybe open more files if needed by the format
-            var args = new RequestFileEventArgs { FileName = Path.Combine(Path.GetDirectoryName(file.FileName), Path.GetFileNameWithoutExtension(file.FileName) + ".text2") };
-            RequestFile(this, args);
+            var args = new RequestFileEventArgs { FilePathPattern = "*.text2" };
+            RequestFiles(this, args);
 
-            _files = new List<StreamInfo> { file, args.SelectedStreamInfo };
+            _files = new List<StreamInfo> { file };
+            _files.AddRange(args.OpenedStreamInfos);
 
             // Here a format class can get initialized and all opened files passed in
             var buffer = new byte[5];

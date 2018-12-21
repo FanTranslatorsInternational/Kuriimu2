@@ -13,14 +13,16 @@ using Kontract.Interfaces.Text;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
+using System.Text.RegularExpressions;
 
 namespace Kuriimu2_WinForms
 {
-    public partial class Form1 : Form
+    public partial class Kuriimu2 : Form
     {
         private Kore.Kore _kore;
+        private string _tempOpenDir;
 
-        public Form1()
+        public Kuriimu2()
         {
             InitializeComponent();
 
@@ -35,11 +37,16 @@ namespace Kuriimu2_WinForms
         /// <param name="e"></param>
         private void _kore_RequestFile(object sender, RequestFileEventArgs e)
         {
-            e.SelectedStreamInfo = new StreamInfo
+            var allFiles = EnumerateAllFiles(_tempOpenDir);
+
+            var reg = new Regex(Path.Combine(_tempOpenDir, e.FilePathPattern).Replace("\\", "\\\\"));
+            var matches = allFiles.Where(x => reg.IsMatch(x));
+
+            e.OpenedStreamInfos = matches.Select(x => new StreamInfo
             {
-                FileData = File.Open(e.FileName, FileMode.Open),
-                FileName = e.FileName
-            };
+                FileData = File.Open(x, FileMode.Open),
+                FileName = x
+            }).ToArray();
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -56,7 +63,8 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            _kore.RequestFile += _kore_RequestFile;
+            _kore.RequestFiles += _kore_RequestFile;
+            _tempOpenDir = Path.GetDirectoryName(filename);
             var kfi = _kore.LoadFile(filename);
             AddTabPage(kfi);
         }
@@ -73,6 +81,15 @@ namespace Kuriimu2_WinForms
                 tabPage.Controls.Add(new ArchiveForm(kfi));
 
             openFiles.TabPages.Add(tabPage);
+        }
+
+        private IEnumerable<string> EnumerateAllFiles(string rootDir)
+        {
+            var files = Directory.EnumerateFiles(rootDir).ToList(); ;
+            var dirs = Directory.EnumerateDirectories(rootDir);
+            foreach (var dir in dirs)
+                files.AddRange(EnumerateAllFiles(dir));
+            return files;
         }
         #endregion
     }

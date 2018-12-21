@@ -78,7 +78,7 @@ namespace Kore
         /// <summary>
         /// Provides an event that the UI can handle to load additional files in its own context
         /// </summary>
-        public event EventHandler<RequestFileEventArgs> RequestFile;
+        public event EventHandler<RequestFileEventArgs> RequestFiles;
 
         /// <inheritdoc />
         /// <summary>
@@ -192,7 +192,7 @@ namespace Kore
         public KoreFileInfo LoadFile(StreamInfo file, bool trackFile = true)
         {
             // Select adapter automatically
-            var adapter = SelectAdapter(file.FileName);
+            var adapter = SelectAdapter(file);
 
             // Ask the user to select a plugin directly.
             adapter = adapter ?? SelectAdapterManually();
@@ -237,7 +237,7 @@ namespace Kore
             // Load files(s)
             try
             {
-                (adapter as IRequestFiles).RequestFile += Kore_RequestFile;
+                (adapter as IRequestFiles).RequestFiles += Kore_RequestFile;
                 adapter.Load(file);
             }
             catch (Exception ex)
@@ -264,7 +264,7 @@ namespace Kore
 
         private void Kore_RequestFile(object sender, RequestFileEventArgs e)
         {
-            RequestFile?.Invoke(sender, e);
+            RequestFiles?.Invoke(sender, e);
         }
 
         /// <summary>
@@ -275,7 +275,7 @@ namespace Kore
         public void SaveFile(KoreFileInfo kfi, string filename = "")
         {
             //TODO: throw exception instead of just return?
-            if (!OpenFiles.Contains(kfi) || !(kfi.Adapter is ISaveFiles)) return;
+            if (!OpenFiles.Contains(kfi) || !kfi.CanSave) return;
 
             var adapter = (ISaveFiles)kfi.Adapter;
 
@@ -304,13 +304,24 @@ namespace Kore
         /// <summary>
         /// Attempts to select a compatible adapter that is capable of identifying files.
         /// </summary>
-        /// <param name="filename">The file to be selected against.</param>
+        /// <param name="file">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
-        private ILoadFiles SelectAdapter(string filename)
+        private ILoadFiles SelectAdapter(StreamInfo file)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return _fileAdapters.Where(adapter =>
-                adapter is IIdentifyFiles && ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).Extension.ToLower().TrimEnd(';').Split(';').Any(s => filename.ToLower().EndsWith(s.TrimStart('*')))).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(filename));
+                    adapter is IIdentifyFiles &&
+                    ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).
+                    Extension.ToLower().TrimEnd(';').Split(';').
+                    Any(s => file.FileName.ToLower().EndsWith(s.TrimStart('*')))
+                ).FirstOrDefault(adapter =>
+                {
+                    var res = ((IIdentifyFiles)adapter).Identify(file);
+                    if (!file.FileData.CanRead)
+                        file.FileData = File.Open(file.FileName, FileMode.Open);
+                    file.FileData.Position = 0;
+                    return res;
+                });
         }
 
         private ILoadFiles SelectAdapterManually()

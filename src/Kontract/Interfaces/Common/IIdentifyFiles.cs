@@ -11,6 +11,6 @@
         /// </summary>
         /// <param name="filename">The file to be identified.</param>
         /// <returns>True or False</returns>
-        bool Identify(string filename);
+        bool Identify(StreamInfo file);
     }
 }
