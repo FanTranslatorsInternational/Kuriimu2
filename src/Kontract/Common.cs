@@ -15,7 +15,7 @@ namespace Kontract
         /// </summary>
         /// <param name="parent">The parent object to load plugins for.</param>
         /// <param name="pluginDirectory">The directory to load plugins from</param>
-        public static void ComposePlugins(object parent, string pluginDirectory = "plugins")
+        public static void ComposePlugins(object parent, string pluginDirectory)
         {
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
@@ -35,7 +35,7 @@ namespace Kontract
         /// </summary>
         /// <param name="parent">The parent object to load plugins for.</param>
         /// <param name="pluginDirectory">The directory to load plugins from</param>
-        public static void ComposePlugins(object parent, CompositionContainer container, string pluginDirectory = "plugins")
+        public static void ComposePlugins(object parent, CompositionContainer container, string pluginDirectory)
         {
             // An aggregate catalog that combines multiple catalogs.
             //var catalog = new AggregateCatalog();

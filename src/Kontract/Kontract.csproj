@@ -67,6 +67,7 @@
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
+    <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
