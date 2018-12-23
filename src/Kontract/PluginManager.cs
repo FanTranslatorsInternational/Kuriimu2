@@ -16,10 +16,10 @@ using System.Threading.Tasks;
 
 namespace Kontract
 {
-    public class PluginManager
+    public class PluginLoader
     {
-        private static Lazy<PluginManager> _lazy = new Lazy<PluginManager>(() => new PluginManager("plugins"));
-        public static PluginManager Global => _lazy.Value;
+        private static Lazy<PluginLoader> _lazy = new Lazy<PluginLoader>(() => new PluginLoader("plugins"));
+        public static PluginLoader Global => _lazy.Value;
 
         #region Imports
 #pragma warning disable 0649, 0169
@@ -56,7 +56,7 @@ namespace Kontract
 
         private string _pluginFolder;
 
-        public PluginManager(string pluginFolder)
+        public PluginLoader(string pluginFolder)
         {
             _pluginFolder = pluginFolder;
 

@@ -25,7 +25,7 @@ namespace Kore
         /// <summary>
         /// The plugin manager for this Kore instance
         /// </summary>
-        private PluginManager _manager;
+        private PluginLoader _manager;
 
         /// <summary>
         /// Stores the plugin directory that was set at construction time.
@@ -62,7 +62,7 @@ namespace Kore
         /// </summary>
         public Kore()
         {
-            _manager = PluginManager.Global;
+            _manager = PluginLoader.Global;
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Kore
         public Kore(string pluginDirectory)
         {
             _pluginDirectory = pluginDirectory;
-            _manager = new PluginManager(pluginDirectory);
+            _manager = new PluginLoader(pluginDirectory);
         }
 
         // TEMPORARY
