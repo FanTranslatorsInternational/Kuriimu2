@@ -3,6 +3,7 @@ using System.Threading;
 using Kontract.Interfaces.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Kontract.Attributes;
 
 namespace KoreUnitTests
 {

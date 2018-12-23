@@ -45,7 +45,8 @@ namespace Kore.SamplePlugins
             Characters = new List<GFDv1Character>();
             Textures = new List<Bitmap>();
 
-            Plugins.ComposePlugins(this, _container);
+            //TODO
+            //Plugins.ComposePlugins(this, _container);
             Kore.ComposeSamplePlugins(this, _container);
         }
 
@@ -53,7 +54,8 @@ namespace Kore.SamplePlugins
         {
             _sourceFile = input.Name;
 
-            Plugins.ComposePlugins(this, _container);
+            //TODO
+            //Plugins.ComposePlugins(this, _container);
             Kore.ComposeSamplePlugins(this, _container);
 
             using (var br = new BinaryReaderX(input))

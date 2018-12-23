@@ -26,13 +26,13 @@ namespace KoreUnitTests
             ;
         }
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo file)
         {
-            using (var br = new BinaryReader(File.OpenRead(filename)))
+            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, true))
                 return br.ReadUInt32() == 0x16161616;
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo filename)
         {
             Communication = new List<string>() { "string1", "string2" };
         }

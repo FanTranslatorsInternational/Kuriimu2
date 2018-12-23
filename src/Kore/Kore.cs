@@ -23,47 +23,14 @@ namespace Kore
     public sealed class Kore : IDisposable
     {
         /// <summary>
-        /// Stores the currently loaded MEF plugins.
+        /// The plugin manager for this Kore instance
         /// </summary>
-        private CompositionContainer _container;
+        private PluginManager _manager;
 
         /// <summary>
         /// Stores the plugin directory that was set at construction time.
         /// </summary>
         private readonly string _pluginDirectory = "plugins";
-
-        #region Plugins
-#pragma warning disable 0649, 0169
-
-        [ImportMany(typeof(ICreateFiles))]
-        private List<ICreateFiles> _createAdapters;
-
-        [ImportMany(typeof(ILoadFiles))]
-        private List<ILoadFiles> _fileAdapters;
-
-        [ImportMany(typeof(ITextAdapter))]
-        private List<ITextAdapter> _textAdapters;
-
-        [ImportMany(typeof(IImageAdapter))]
-        private List<IImageAdapter> _imageAdapters;
-
-        [ImportMany(typeof(IArchiveAdapter))]
-        private List<IArchiveAdapter> _archiveAdapters;
-
-        [ImportMany(typeof(IFontAdapter))]
-        private List<IFontAdapter> _fontAdapters;
-
-        //[ImportMany(typeof(IAudioAdapter))]
-        //private List<IAudioAdapter> _audioAdapters;
-
-        //[ImportMany(typeof(IModelAdapter))]
-        //private List<IModelAdapter> _modelAdapters;
-
-        [ImportMany(typeof(IGameAdapter))]
-        private List<IGameAdapter> _gameAdapters;
-
-#pragma warning restore 0649, 0169
-        #endregion
 
         /// <summary>
         /// The list of currently open files being tracked by Kore.
@@ -95,7 +62,7 @@ namespace Kore
         /// </summary>
         public Kore()
         {
-            Plugins.ComposePlugins(this, _pluginDirectory);
+            _manager = PluginManager.Global;
         }
 
         /// <summary>
@@ -105,7 +72,7 @@ namespace Kore
         public Kore(string pluginDirectory)
         {
             _pluginDirectory = pluginDirectory;
-            Plugins.ComposePlugins(this, _pluginDirectory);
+            _manager = new PluginManager(pluginDirectory);
         }
 
         // TEMPORARY
@@ -130,26 +97,7 @@ namespace Kore
         /// </summary>
         /// <typeparam name="T">Adapter type.</typeparam>
         /// <returns>List of adapters of type T.</returns>
-        public List<T> GetAdapters<T>()
-        {
-            switch (typeof(T).Name)
-            {
-                case nameof(ICreateFiles):
-                    return _createAdapters.Cast<T>().ToList();
-                case nameof(ILoadFiles):
-                    return _fileAdapters.Cast<T>().ToList();
-                case nameof(ITextAdapter):
-                    return _textAdapters.Cast<T>().ToList();
-                case nameof(IImageAdapter):
-                    return _imageAdapters.Cast<T>().ToList();
-                case nameof(IFontAdapter):
-                    return _fontAdapters.Cast<T>().ToList();
-                case nameof(IGameAdapter):
-                    return _gameAdapters.Cast<T>().ToList();
-                default:
-                    return null;
-            }
-        }
+        public List<T> GetAdapters<T>() => _manager.GetAdapters<T>();
 
         /// <summary>
         /// Returns a list of the plugin interface type names that load files.
@@ -174,30 +122,13 @@ namespace Kore
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
 
-            var initialStreamInfo = new StreamInfo
-            {
-                FileData = File.Open(filename, FileMode.Open),
-                FileName = filename
-            };
-
-            return LoadFile(initialStreamInfo, trackFile);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="file"></param>
-        /// <param name="trackFile"></param>
-        /// <returns></returns>
-        public KoreFileInfo LoadFile(StreamInfo file, bool trackFile = true)
-        {
             // Select adapter automatically
-            var adapter = SelectAdapter(file);
+            var adapter = SelectAdapter(filename);
 
             // Ask the user to select a plugin directly.
             adapter = adapter ?? SelectAdapterManually();
 
-            return LoadFile(file, adapter, trackFile);
+            return LoadFile(filename, adapter, trackFile);
         }
 
         /// <summary>
@@ -212,38 +143,20 @@ namespace Kore
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
 
-            var initialStreamInfo = new StreamInfo
-            {
-                FileData = File.Open(filename, FileMode.Open),
-                FileName = filename
-            };
-
-            return LoadFile(initialStreamInfo, adapter, trackFile);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="filename"></param>
-        /// <param name="adapter"></param>
-        /// <returns></returns>
-        public KoreFileInfo LoadFile(StreamInfo file, ILoadFiles adapter, bool trackFile = true)
-        {
-            if (adapter == null) return null;
-
-            // Instantiate a new instance of the adapter.
-            adapter = (ILoadFiles)Activator.CreateInstance(adapter.GetType());
+            // Instantiate a new instance of the adapter
+            adapter = _manager.CreateAdapter<ILoadFiles>(_manager.GetMetadata<PluginInfoAttribute>(adapter).ID);
 
             // Load files(s)
             try
             {
-                (adapter as IRequestFiles).RequestFiles += Kore_RequestFile;
-                adapter.Load(file);
+                if (adapter is IRequestFiles reqAdapter)
+                    reqAdapter.RequestFiles += Kore_RequestFile;
+                adapter.Load(new StreamInfo { FileData = File.OpenRead(filename), FileName = filename });
             }
             catch (Exception ex)
             {
                 var pi = (PluginInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginInfoAttribute));
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(file.FileName)}\".{Environment.NewLine}{Environment.NewLine}" +
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(filename)}\".{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.StackTrace}");
             }
@@ -251,7 +164,7 @@ namespace Kore
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
             {
-                FileInfo = new FileInfo(file.FileName),
+                FileInfo = new FileInfo(filename),
                 HasChanges = false,
                 Adapter = adapter
             };
@@ -306,27 +219,26 @@ namespace Kore
         /// </summary>
         /// <param name="file">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
-        private ILoadFiles SelectAdapter(StreamInfo file)
+        private ILoadFiles SelectAdapter(string file)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
-            return _fileAdapters.Where(adapter =>
-                    adapter is IIdentifyFiles &&
-                    ((PluginExtensionInfoAttribute)adapter.GetType().GetCustomAttribute(typeof(PluginExtensionInfoAttribute))).
-                    Extension.ToLower().TrimEnd(';').Split(';').
-                    Any(s => file.FileName.ToLower().EndsWith(s.TrimStart('*')))
-                ).FirstOrDefault(adapter =>
-                {
-                    var res = ((IIdentifyFiles)adapter).Identify(file);
-                    if (!file.FileData.CanRead)
-                        file.FileData = File.Open(file.FileName, FileMode.Open);
-                    file.FileData.Position = 0;
-                    return res;
-                });
+            return _manager.GetAdapters<ILoadFiles>().
+                Where(x => _manager.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
+                    ToLower().TrimEnd(';').Split(';').
+                    Any(s => file.ToLower().EndsWith(s.TrimStart('*')))
+                    ).
+                FirstOrDefault(adapter =>
+                    {
+                        var info = new StreamInfo { FileData = File.OpenRead(file), FileName = file };
+
+                        var res = ((IIdentifyFiles)adapter).Identify(info);
+                        return res;
+                    });
         }
 
         private ILoadFiles SelectAdapterManually()
         {
-            var blindAdapters = _fileAdapters.Where(a => !(a is IIdentifyFiles)).ToList();
+            var blindAdapters = _manager.GetAdapters<ILoadFiles>().Where(a => !(a is IIdentifyFiles)).ToList();
 
             var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters };
             IdentificationFailed?.Invoke(this, args);
@@ -348,7 +260,7 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var allTypes = _fileAdapters.Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+                var allTypes = _manager.GetAdapters<ILoadFiles>().Select(x => new { _manager.GetMetadata<PluginInfoAttribute>(x).Name, Extension = _manager.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
                 // Add the special all supported files filter
                 if (allTypes.Count > 0)
@@ -371,7 +283,7 @@ namespace Kore
         public string FileFiltersByType<T>(string allSupportedFiles = "", bool includeAllFiles = false)
         {
             // Add all of the adapter filters
-            var allTypes = _fileAdapters.OfType<T>().Select(x => new { x.GetType().GetCustomAttribute<PluginInfoAttribute>().Name, Extension = x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+            var allTypes = _manager.GetAdapters<T>().Select(x => new { _manager.GetMetadata<PluginInfoAttribute>(x).Name, Extension = _manager.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
             // Add the special all supported files filter
             if (allTypes.Count > 0 && !string.IsNullOrEmpty(allSupportedFiles))
@@ -391,7 +303,7 @@ namespace Kore
         /// <returns></returns>
         public IEnumerable<string> FileExtensionsByType<T>()
         {
-            return _fileAdapters.OfType<T>().Select(x => x.GetType().GetCustomAttribute<PluginExtensionInfoAttribute>().Extension.ToLower().TrimStart('*')).OrderBy(o => o);
+            return _manager.GetAdapters<T>().Select(x => _manager.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower().TrimStart('*')).OrderBy(o => o);
         }
 
         /// <inheritdoc />
@@ -400,7 +312,7 @@ namespace Kore
         /// </summary>
         public void Dispose()
         {
-            _container?.Dispose();
+            //_container?.Dispose();
 
             foreach (var kfi in OpenFiles.Select(f => f))
                 CloseFile(kfi);
@@ -408,7 +320,7 @@ namespace Kore
 
         private List<ILoadFiles> Debug()
         {
-            return _fileAdapters;
+            return _manager.GetAdapters<ILoadFiles>();
             //var sb = new StringBuilder();
 
             //foreach (var adapter in _fileAdapters)

@@ -64,10 +64,11 @@
     <Compile Include="Interfaces\Common\ISaveFiles.cs" />
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
+    <Compile Include="Interfaces\IPluginMetadata.cs" />
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
-    <Compile Include="PluginLoader.cs" />
+    <Compile Include="PluginManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

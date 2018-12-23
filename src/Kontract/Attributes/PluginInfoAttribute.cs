@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kontract.Interfaces;
+using System;
 using System.ComponentModel.Composition;
 
 namespace Kontract.Attributes
@@ -7,8 +8,7 @@ namespace Kontract.Attributes
     /// <summary>
     /// This attribute is used to define general information about a plugin.
     /// </summary>
-    [MetadataAttribute]
-    public class PluginInfoAttribute : Attribute
+    public class PluginInfoAttribute : Attribute, IPluginMetadata
     {
         // TODO: Determine how to handle plugin selection when two plugins have the same ID.
         /// <summary>
