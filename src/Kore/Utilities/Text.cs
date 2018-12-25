@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Text;
+using Kontract.Interfaces.VirtualFS;
 using Kore.SamplePlugins;
 
 namespace Kore.Utilities
@@ -36,6 +37,7 @@ namespace Kore.Utilities
         {
             var result = false;
 
+            //TODO
             var kfi = kore.LoadFile(inputFileName, false);
             if (!(kfi.Adapter is ITextAdapter inAdapter)) return false;
 

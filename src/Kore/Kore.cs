@@ -14,6 +14,7 @@ using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
+using Kontract.Interfaces.VirtualFS;
 
 namespace Kore
 {
@@ -41,11 +42,6 @@ namespace Kore
         /// Provides an event that the UI can handle to present a plugin list to the user.
         /// </summary>
         public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
-
-        /// <summary>
-        /// Provides an event that the UI can handle to load additional files in its own context
-        /// </summary>
-        public event EventHandler<RequestFileEventArgs> RequestFiles;
 
         /// <inheritdoc />
         /// <summary>
@@ -111,24 +107,38 @@ namespace Kore
             nameof(IFontAdapter)
         };
 
+        public KoreFileInfo LoadFile(string filename, IVirtualFSRoot fs = null)
+        {
+            if (!File.Exists(filename))
+                throw new FileNotFoundException(filename);
+
+            // Select adapter automatically
+            var adapter = SelectAdapter(filename, fs);
+
+            // Ask the user to select a plugin directly.
+            adapter = adapter ?? SelectAdapterManually();
+
+            return LoadFile(filename, adapter, true, fs);
+        }
+
         /// <summary>
         /// Loads a file into the tracking list.
         /// </summary>
         /// <param name="filename">The file to be loaded.</param>
         /// <param name="trackFile">Id the file should be tracked by Kore</param>
         /// <returns>Returns a KoreFileInfo for the opened file.</returns>
-        public KoreFileInfo LoadFile(string filename, bool trackFile = true)
+        public KoreFileInfo LoadFile(string filename, bool trackFile = true, IVirtualFSRoot fs = null)
         {
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
 
             // Select adapter automatically
-            var adapter = SelectAdapter(filename);
+            var adapter = SelectAdapter(filename, fs);
 
             // Ask the user to select a plugin directly.
             adapter = adapter ?? SelectAdapterManually();
 
-            return LoadFile(filename, adapter, trackFile);
+            return LoadFile(filename, adapter, trackFile, fs);
         }
 
         /// <summary>
@@ -138,7 +148,7 @@ namespace Kore
         /// <param name="adapter"></param>
         /// <param name="trackFile"></param>
         /// <returns></returns>
-        public KoreFileInfo LoadFile(string filename, ILoadFiles adapter, bool trackFile = true)
+        public KoreFileInfo LoadFile(string filename, ILoadFiles adapter, bool trackFile = true, IVirtualFSRoot fs = null)
         {
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
@@ -149,8 +159,8 @@ namespace Kore
             // Load files(s)
             try
             {
-                if (adapter is IRequestFiles reqAdapter)
-                    reqAdapter.RequestFiles += Kore_RequestFile;
+                if (adapter is IMultipleFiles mulAdapter)
+                    mulAdapter.FileSystem = fs;
                 adapter.Load(new StreamInfo { FileData = File.OpenRead(filename), FileName = filename });
             }
             catch (Exception ex)
@@ -173,11 +183,6 @@ namespace Kore
                 OpenFiles.Add(kfi);
 
             return kfi;
-        }
-
-        private void Kore_RequestFile(object sender, RequestFileEventArgs e)
-        {
-            RequestFiles?.Invoke(sender, e);
         }
 
         /// <summary>
@@ -219,7 +224,7 @@ namespace Kore
         /// </summary>
         /// <param name="file">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
-        private ILoadFiles SelectAdapter(string file)
+        private ILoadFiles SelectAdapter(string file, IVirtualFSRoot fs)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return _manager.GetAdapters<ILoadFiles>().
@@ -227,13 +232,23 @@ namespace Kore
                     ToLower().TrimEnd(';').Split(';').
                     Any(s => file.ToLower().EndsWith(s.TrimStart('*')))
                     ).
-                FirstOrDefault(adapter =>
-                    {
-                        var info = new StreamInfo { FileData = File.OpenRead(file), FileName = file };
+                Select(x =>
+                {
+                    if (x is IMultipleFiles y)
+                        y.FileSystem = fs;
+                    return x;
+                }).
+                FirstOrDefault(adapter => CheckAdapter(adapter, file));
+        }
 
-                        var res = ((IIdentifyFiles)adapter).Identify(info);
-                        return res;
-                    });
+        private bool CheckAdapter(ILoadFiles adapter, string file)
+        {
+            var openFile = File.OpenRead(file);
+            var info = new StreamInfo { FileData = openFile, FileName = file };
+
+            var res = ((IIdentifyFiles)adapter).Identify(info);
+            openFile.Close();
+            return res;
         }
 
         private ILoadFiles SelectAdapterManually()

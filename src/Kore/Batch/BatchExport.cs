@@ -8,6 +8,7 @@ using Kontract;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
+using Kontract.Interfaces.VirtualFS;
 using Kore.SamplePlugins;
 
 namespace Kore.Batch
@@ -68,9 +69,10 @@ namespace Kore.Batch
                             try
                             {
                                 var outFile = file + Utilities.Common.GetAdapterExtension<KupAdapter>();
+                                //TODO
                                 Utilities.Text.ExportKup((ITextAdapter)kore.LoadFile(file, false).Adapter, outFile);
                                 current++;
-                                progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max)});
+                                progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
                             }
                             catch (Exception e)
                             {
@@ -92,6 +94,7 @@ namespace Kore.Batch
                             try
                             {
                                 // TODO: Make an image export utility function out of this code
+                                //TODO
                                 var kfi = kore.LoadFile(file, false);
                                 var adapter = (IImageAdapter)kfi.Adapter;
 

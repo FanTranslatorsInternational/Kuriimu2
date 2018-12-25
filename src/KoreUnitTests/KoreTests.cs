@@ -4,6 +4,9 @@ using Kontract.Interfaces.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using Kontract.Attributes;
+using Kontract.Interfaces.VirtualFS;
+using System.IO;
+using Kontract.FileSystem;
 
 namespace KoreUnitTests
 {
@@ -15,7 +18,7 @@ namespace KoreUnitTests
         {
             var kore = new Kore.Kore(".");
 
-            var kfi = kore.LoadFile(@"..\..\TestFiles\file.test");
+            var kfi = kore.LoadFile(@"..\..\TestFiles\file.test", new PhysicalFileSystem(Path.GetFullPath(@"..\..\TestFiles\")));
             Assert.IsNotNull(kfi);
             Assert.IsTrue(kfi.Adapter is ITest);
             Assert.IsTrue((kfi.Adapter as ITest).Communication.Contains("string1"));

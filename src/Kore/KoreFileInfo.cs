@@ -11,7 +11,7 @@ namespace Kore
     /// </summary>
     public class KoreFileInfo : INotifyPropertyChanged
     {
-        public bool CanRequestFiles => Adapter is IRequestFiles;
+        public bool CanRequestFiles => Adapter is IMultipleFiles;
 
         public bool CanSave => Adapter is ISaveFiles;
 
