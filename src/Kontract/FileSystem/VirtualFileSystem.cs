@@ -107,6 +107,15 @@ namespace Kontract.FileSystem
 
         public FileStream OpenFile(string filename, FileMode mode)
         {
+            ExtractFile(filename);
+
+            // Open file with given FileMode
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+            return File.Open(Path.Combine(_tempFolder, resolvedFilepath), mode);
+        }
+
+        public void ExtractFile(string filename)
+        {
             var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
 
             // Try getting file to open
@@ -128,9 +137,6 @@ namespace Kontract.FileSystem
             afi.FileData.Position = bk;
 
             file.Close();
-
-            // Open file with given FileMode
-            return File.Open(Path.Combine(_tempFolder, resolvedFilepath), mode);
         }
 
         private string[] SplitPath(string path)
