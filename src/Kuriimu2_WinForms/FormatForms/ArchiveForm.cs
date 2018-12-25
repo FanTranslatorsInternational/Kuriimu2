@@ -11,35 +11,64 @@ using Kuriimu2_WinForms.Interfaces;
 using Kore;
 using Kontract.Interfaces.Common;
 using System.IO;
+using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Text;
+using Kontract.FileSystem;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
     public partial class ArchiveForm : UserControl, IKuriimuForm
     {
-        public ArchiveForm(KoreFileInfo kfi)
+        private Kore.Kore _kore;
+        private TabControl _tabControl;
+        private string _tempFolder;
+        private string _subFolder;
+
+        public ArchiveForm(KoreFileInfo kfi, TabControl tabControl, string tempFolder, string subFolder)
         {
             InitializeComponent();
 
             Kfi = kfi;
+            _kore = new Kore.Kore();
+            _tabControl = tabControl;
+            _tempFolder = tempFolder;
+            _subFolder = subFolder;
         }
 
         public KoreFileInfo Kfi { get; set; }
 
-        #region Events
-        /// <summary>
-        /// When a file from the archive gets loaded, this event ensures possible file requests by the plugin are handled in the context of the archives FS
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void _kore_RequestFile(object sender, RequestFileEventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-            //TODO: Rewrite for archive needs
-            //e.SelectedStreamInfo = new StreamInfo
-            //{
-            //    FileData = File.Open(e.FileName, FileMode.Open),
-            //    FileName = e.FileName
-            //};
+            var files = (Kfi.Adapter as IArchiveAdapter).Files;
+
+            MessageBox.Show(files.Aggregate("", (a, b) => a + Environment.NewLine + b.FileName), "Files", MessageBoxButtons.OK);
         }
-        #endregion
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            var files = (Kfi.Adapter as IArchiveAdapter).Files;
+            var vfs = new VirtualFileSystem(Kfi.Adapter as IArchiveAdapter, Path.Combine(_tempFolder, _subFolder));
+
+            vfs.ExtractFile(files[3].FileName);
+
+            var kfi = _kore.LoadFile(Path.Combine(_tempFolder, _subFolder, Path.GetFileName(files[3].FileName)), vfs);
+            AddTabPage(kfi);
+        }
+
+        private void AddTabPage(KoreFileInfo kfi)
+        {
+            var tabPage = new TabPage();
+
+            if (kfi.Adapter is ITextAdapter)
+                tabPage.Controls.Add(new TextForm(kfi));
+            else if (kfi.Adapter is IImageAdapter)
+                tabPage.Controls.Add(new ImageForm(kfi));
+            else if (kfi.Adapter is IArchiveAdapter)
+                tabPage.Controls.Add(new ArchiveForm(kfi, _tabControl, _tempFolder, Guid.NewGuid().ToString()));
+
+            _tabControl.TabPages.Add(tabPage);
+        }
     }
 }

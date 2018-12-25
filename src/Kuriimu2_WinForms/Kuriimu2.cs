@@ -14,13 +14,15 @@ using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using System.Text.RegularExpressions;
+using Kontract.Interfaces.VirtualFS;
+using Kontract.FileSystem;
 
 namespace Kuriimu2_WinForms
 {
     public partial class Kuriimu2 : Form
     {
         private Kore.Kore _kore;
-        private string _tempOpenDir;
+        private string _tempFolder = "temp";
 
         public Kuriimu2()
         {
@@ -30,25 +32,6 @@ namespace Kuriimu2_WinForms
         }
 
         #region Events
-        /// <summary>
-        /// When a file gets loaded, this event ensures possible file requests by the plugin are handled
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void _kore_RequestFile(object sender, RequestFileEventArgs e)
-        {
-            var allFiles = EnumerateAllFiles(_tempOpenDir);
-
-            var reg = new Regex(Path.Combine(_tempOpenDir, e.FilePathPattern).Replace("\\", "\\\\"));
-            var matches = allFiles.Where(x => reg.IsMatch(x));
-
-            e.OpenedStreamInfos = matches.Select(x => new StreamInfo
-            {
-                FileData = File.Open(x, FileMode.Open),
-                FileName = x
-            }).ToArray();
-        }
-
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
@@ -63,9 +46,7 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            _kore.RequestFiles += _kore_RequestFile;
-            _tempOpenDir = Path.GetDirectoryName(filename);
-            var kfi = _kore.LoadFile(filename);
+            var kfi = _kore.LoadFile(filename, new PhysicalFileSystem(Path.GetDirectoryName(filename)));
             AddTabPage(kfi);
         }
 
@@ -78,7 +59,7 @@ namespace Kuriimu2_WinForms
             else if (kfi.Adapter is IImageAdapter)
                 tabPage.Controls.Add(new ImageForm(kfi));
             else if (kfi.Adapter is IArchiveAdapter)
-                tabPage.Controls.Add(new ArchiveForm(kfi));
+                tabPage.Controls.Add(new ArchiveForm(kfi, openFiles, _tempFolder, Guid.NewGuid().ToString()));
 
             openFiles.TabPages.Add(tabPage);
         }
