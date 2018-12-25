@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoreUnitTests", "src\KoreUn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Kuriimu2_WinForms\Kuriimu2_WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KontractUnitTests", "src\KontractUnitTests\KontractUnitTests.csproj", "{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,10 @@ Global
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
