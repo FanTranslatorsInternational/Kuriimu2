@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kontract.Interfaces.VirtualFS;
+using System;
 using System.IO;
 
 namespace Kontract.Interfaces.Common
@@ -12,8 +13,8 @@ namespace Kontract.Interfaces.Common
         /// <summary>
         /// Loads the given file.
         /// </summary>
-        /// <param name="filename">The file to be loaded.</param>
-        void Load(StreamInfo filename);
+        /// <param name="file">The file to be loaded.</param>
+        void Load(StreamInfo file);
     }
 
     public class StreamInfo

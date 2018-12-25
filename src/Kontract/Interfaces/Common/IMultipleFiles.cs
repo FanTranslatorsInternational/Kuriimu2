@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kontract.Interfaces.VirtualFS;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Common
 {
-    public interface IRequestFiles
+    public interface IMultipleFiles
     {
-        event EventHandler<RequestFileEventArgs> RequestFiles;
+        IVirtualFSRoot FileSystem { get; set; }
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Archive
 {
+    [DebuggerDisplay("{FileName}")]
     public class ArchiveFileInfo
     {
         protected Stream _fileData = null;

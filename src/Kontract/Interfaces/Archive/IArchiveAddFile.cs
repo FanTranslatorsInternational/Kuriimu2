@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveAdapter
+    public interface IArchiveAddFile
     {
-        List<ArchiveFileInfo> Files { get; }
+        void AddFile(ArchiveFileInfo afi);
     }
 }

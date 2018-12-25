@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveAdapter
+    public interface IArchiveDeleteFile
     {
-        List<ArchiveFileInfo> Files { get; }
+        void DeleteFile(ArchiveFileInfo afi);
     }
 }

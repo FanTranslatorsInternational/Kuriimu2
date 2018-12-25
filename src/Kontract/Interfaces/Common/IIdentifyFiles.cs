@@ -1,4 +1,6 @@
-﻿namespace Kontract.Interfaces.Common
+﻿using Kontract.Interfaces.VirtualFS;
+
+namespace Kontract.Interfaces.Common
 {
     /// <summary>
     /// This interface allows a plugin to participate in automatic file identification.

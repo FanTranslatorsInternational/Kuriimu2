@@ -36,6 +36,9 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -51,7 +54,9 @@
     <Compile Include="Exceptions.cs" />
     <Compile Include="Interfaces\Archive\ArchiveFileInfo.cs" />
     <Compile Include="Interfaces\Archive\IArchiveAdapter.cs" />
-    <Compile Include="Interfaces\Common\IRequestFiles.cs" />
+    <Compile Include="Interfaces\Archive\IArchiveAddFile.cs" />
+    <Compile Include="Interfaces\Archive\IArchiveDeleteFile.cs" />
+    <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter2.cs" />
     <Compile Include="Interfaces\Font\IFontRenderer.cs" />
     <Compile Include="Interfaces\IFormatConverter.cs" />
@@ -68,11 +73,15 @@
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
-    <Compile Include="PluginManager.cs" />
+    <Compile Include="Interfaces\VirtualFS\IVirtualFSRoot.cs" />
+    <Compile Include="FileSystem\PhysicalFileSystem.cs" />
+    <Compile Include="FileSystem\VirtualFileSystem.cs" />
+    <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Kontract.nuspec" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
