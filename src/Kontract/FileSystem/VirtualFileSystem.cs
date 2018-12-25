@@ -16,7 +16,6 @@ namespace Kontract.FileSystem
 
         private IArchiveAdapter _adapter;
         private List<ArchiveFileInfo> _files;
-        private List<(string, ArchiveFileInfo)> _openedFiles;
 
         public string RootDir { get; private set; }
 
@@ -68,11 +67,11 @@ namespace Kontract.FileSystem
         public IEnumerable<string> EnumerateDirectories()
         {
             var rootParts = SplitPath(RootDir).Count();
-            var dirs = _files.
-                Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDir)).
-                Where(x => SplitPath(x.FileName).Length >= rootParts + 2).
-                Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray())).
-                Distinct();
+            var dirs = _files
+                .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDir))
+                .Where(x => SplitPath(x.FileName).Length >= rootParts + 2)
+                .Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray()))
+                .Distinct();
 
             return dirs;
         }
@@ -80,10 +79,10 @@ namespace Kontract.FileSystem
         public IEnumerable<string> EnumerateFiles()
         {
             var rootParts = SplitPath(RootDir).Count();
-            var files = _files.
-                Where(x => SplitPath(x.FileName).Count() == rootParts + 1).
-                Where(x => Path.GetDirectoryName(x.FileName) == RootDir).
-                Select(x => UnifyPathDelimiters(x.FileName));
+            var files = _files
+                .Where(x => SplitPath(x.FileName).Count() == rootParts + 1)
+                .Where(x => Path.GetDirectoryName(x.FileName) == RootDir)
+                .Select(x => UnifyPathDelimiters(x.FileName));
 
             return files;
         }
@@ -96,11 +95,11 @@ namespace Kontract.FileSystem
                 throw new DirectoryNotFoundException(path);
 
             var rootParts = SplitPath(relativePath).Count();
-            var dirs = _files.
-                Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(relativePath)).
-                Where(x => SplitPath(x.FileName).Length == rootParts + 1).
-                Select(x => Path.GetDirectoryName(x.FileName)).
-                Distinct();
+            var dirs = _files
+                .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(relativePath))
+                .Where(x => SplitPath(x.FileName).Length == rootParts + 1)
+                .Select(x => Path.GetDirectoryName(x.FileName))
+                .Distinct();
 
             return new VirtualFileSystem(_files, _tempFolder, dirs.FirstOrDefault(x => x == path));
         }
