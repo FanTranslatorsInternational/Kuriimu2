@@ -1,6 +1,7 @@
 ﻿using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
+using Kontract.Interfaces.VirtualFS;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -16,7 +17,7 @@ namespace WinFormsTest
     [Export(typeof(IIdentifyFiles))]
     [PluginExtensionInfo("*.text")]
     [PluginInfo("Test-Text-Id")]
-    public class TestTextPlugin : ITextAdapter, ILoadFiles, IIdentifyFiles, IRequestFiles
+    public class TestTextPlugin : ITextAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles
     {
         public IEnumerable<TextEntry> Entries => _texts.Select(x => new TextEntry { OriginalText = x });
 
@@ -29,6 +30,8 @@ namespace WinFormsTest
         public int NameMaxLength => throw new NotImplementedException();
 
         public string LineEndings { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public IVirtualFSRoot FileSystem { get; set; }
 
         public void Dispose()
         {
