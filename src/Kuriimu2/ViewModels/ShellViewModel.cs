@@ -165,7 +165,7 @@ namespace Kuriimu2.ViewModels
 
             try
             {
-                await Task.Run(() => { kfi = _kore.LoadFile(filename); });
+                await Task.Run(() => { kfi = _kore.LoadFile(filename, true); });
             }
             catch (LoadFileException ex)
             {
