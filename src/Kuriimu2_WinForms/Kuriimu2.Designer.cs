@@ -41,7 +41,7 @@
             this.fileToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(788, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(957, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -65,17 +65,17 @@
             this.openFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.openFiles.Location = new System.Drawing.Point(12, 28);
+            this.openFiles.Location = new System.Drawing.Point(1, 28);
             this.openFiles.Name = "openFiles";
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(764, 442);
+            this.openFiles.Size = new System.Drawing.Size(957, 529);
             this.openFiles.TabIndex = 1;
             // 
             // Kuriimu2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(788, 482);
+            this.ClientSize = new System.Drawing.Size(957, 557);
             this.Controls.Add(this.openFiles);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;

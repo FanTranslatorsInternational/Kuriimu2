@@ -95,6 +95,16 @@ namespace Kore
         /// <returns>List of adapters of type T.</returns>
         public List<T> GetAdapters<T>() => _manager.GetAdapters<T>();
 
+        //TODO: Do we need that?
+        /// <summary>
+        /// Retrieves the PluginLoader of this Kore instance
+        /// </summary>
+        /// <returns></returns>
+        public PluginLoader GetPluginLoader()
+        {
+            return _manager;
+        }
+
         /// <summary>
         /// Returns a list of the plugin interface type names that load files.
         /// </summary>

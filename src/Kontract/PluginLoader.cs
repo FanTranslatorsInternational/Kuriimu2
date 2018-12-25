@@ -126,6 +126,9 @@ namespace Kontract
                 case nameof(IImageAdapter):
                     return GetAdapters<IImageAdapter, T>(_imageAdapters);
 
+                case nameof(IArchiveAdapter):
+                    return GetAdapters<IArchiveAdapter, T>(_archiveAdapters);
+
                 case nameof(IFontAdapter):
                     return GetAdapters<IFontAdapter, T>(_fontAdapters);
 
