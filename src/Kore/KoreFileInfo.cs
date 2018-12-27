@@ -28,7 +28,7 @@ namespace Kore
         /// <summary>
         /// 
         /// </summary>
-        public FileInfo FileInfo { get; set; }
+        public StreamInfo StreamFileInfo { get; set; }
 
         /// <summary>
         /// 
@@ -53,7 +53,7 @@ namespace Kore
         /// <summary>
         /// 
         /// </summary>
-        public string DisplayName => FileInfo.Name + (HasChanges ? " *" : string.Empty);
+        public string DisplayName => StreamFileInfo + (HasChanges ? " *" : string.Empty);
 
         /// <summary>
         /// 

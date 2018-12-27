@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.VirtualFS;
@@ -38,7 +39,7 @@ namespace Kore.Utilities
             var result = false;
 
             //TODO
-            var kfi = kore.LoadFile(inputFileName, false);
+            var kfi = kore.LoadFile(new KoreLoadInfo(File.Open(inputFileName, FileMode.Open), inputFileName) { TrackFile = false });
             if (!(kfi.Adapter is ITextAdapter inAdapter)) return false;
 
             foreach (var inEntry in inAdapter.Entries)
