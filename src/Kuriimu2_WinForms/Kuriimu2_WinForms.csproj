@@ -46,16 +46,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FormatForms\Archive\Utilities.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Kuriimu2.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Kuriimu2.Designer.cs">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormatForms\ArchiveForm.cs">
+    <Compile Include="FormatForms\Archive\ArchiveForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="FormatForms\ArchiveForm.Designer.cs">
+    <Compile Include="FormatForms\Archive\ArchiveForm.Designer.cs">
       <DependentUpon>ArchiveForm.cs</DependentUpon>
     </Compile>
     <Compile Include="FormatForms\ImageForm.cs">
@@ -77,7 +80,7 @@
     <EmbeddedResource Include="Kuriimu2.resx">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormatForms\ArchiveForm.resx">
+    <EmbeddedResource Include="FormatForms\Archive\ArchiveForm.resx">
       <DependentUpon>ArchiveForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormatForms\ImageForm.resx">
@@ -94,6 +97,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -118,5 +122,69 @@
       <Name>Kore</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-batch-archive.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-batch-extract.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-find.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-properties.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-save-as.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-directory-open.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-archive-file.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-archive-file-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-directory.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-directory-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-image-file.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-image-file-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-text-file.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\tree-text-file-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-delete.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-export.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-field-properties.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-import.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-add.png" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

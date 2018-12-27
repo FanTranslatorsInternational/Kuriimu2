@@ -16,6 +16,8 @@ using Kontract.Interfaces.Common;
 using System.Text.RegularExpressions;
 using Kontract.Interfaces.VirtualFS;
 using Kontract.FileSystem;
+using Kuriimu2_WinForms.Interfaces;
+using Kuriimu2_WinForms.FormatForms.Archive;
 
 namespace Kuriimu2_WinForms
 {
@@ -46,7 +48,7 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            var kfi = _kore.LoadFile(filename, new PhysicalFileSystem(Path.GetDirectoryName(filename)));
+            var kfi = _kore.LoadFile(new Kore.KoreLoadInfo(File.Open(filename, FileMode.Open), filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
             AddTabPage(kfi);
         }
 
@@ -54,24 +56,39 @@ namespace Kuriimu2_WinForms
         {
             var tabPage = new TabPage();
 
+            IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
-                tabPage.Controls.Add(new TextForm(kfi));
+                tabControl = new TextForm(kfi);
             else if (kfi.Adapter is IImageAdapter)
-                tabPage.Controls.Add(new ImageForm(kfi));
+                tabControl = new ImageForm(kfi);
             else if (kfi.Adapter is IArchiveAdapter)
-                tabPage.Controls.Add(new ArchiveForm(kfi, openFiles, _tempFolder, Guid.NewGuid().ToString()));
+                tabControl = new ArchiveForm(kfi, openFiles, _tempFolder, Guid.NewGuid().ToString(), false);
+
+            tabPage.Controls.Add(tabControl as UserControl);
+            tabPage.Controls[tabPage.Controls.Count - 1].Text = Path.GetFileName(kfi.StreamFileInfo.FileName);
 
             openFiles.TabPages.Add(tabPage);
         }
-
-        private IEnumerable<string> EnumerateAllFiles(string rootDir)
-        {
-            var files = Directory.EnumerateFiles(rootDir).ToList(); ;
-            var dirs = Directory.EnumerateDirectories(rootDir);
-            foreach (var dir in dirs)
-                files.AddRange(EnumerateAllFiles(dir));
-            return files;
-        }
         #endregion
+
+        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 15, e.Bounds.Top + 4);
+            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, Brushes.Black, e.Bounds.Left + 12, e.Bounds.Top + 4);
+            e.DrawFocusRectangle();
+        }
+
+        private void openFiles_MouseUp(object sender, MouseEventArgs e)
+        {
+            Rectangle r = openFiles.GetTabRect(openFiles.SelectedIndex);
+            Rectangle closeButton = new Rectangle(r.Right - 15, r.Top + 4, 9, 7);
+            if (closeButton.Contains(e.Location))
+            {
+                foreach (Control control in openFiles.SelectedTab.Controls)
+                    if (control is IKuriimuForm kuriimuTab)
+                        kuriimuTab.Close();
+                openFiles.TabPages.Remove(openFiles.SelectedTab);
+            }
+        }
     }
 }
