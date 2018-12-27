@@ -24,6 +24,14 @@ namespace WinFormsTest
 
         public IVirtualFSRoot FileSystem { get; set; }
 
+        public bool CanRenameFiles => false;
+
+        public bool CanReplaceFiles => false;
+
+        public bool FileHasExtendedProperties => false;
+
+        public bool LeaveOpen { get; set; }
+
         public void Dispose()
         {
             ;
@@ -31,7 +39,7 @@ namespace WinFormsTest
 
         public bool Identify(StreamInfo file)
         {
-            using (var br = new BinaryReader(file.FileData))
+            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, LeaveOpen))
                 return br.ReadUInt32() == 0x16161617;
         }
 

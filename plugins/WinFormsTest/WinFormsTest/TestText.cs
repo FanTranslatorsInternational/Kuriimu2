@@ -32,6 +32,7 @@ namespace WinFormsTest
         public string LineEndings { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public IVirtualFSRoot FileSystem { get; set; }
+        public bool LeaveOpen { get; set; }
 
         public void Dispose()
         {
