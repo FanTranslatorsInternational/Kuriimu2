@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.VirtualFS
 {
-    public interface IVirtualFSRoot
+    public interface IVirtualFSRoot : IDisposable
     {
         bool CanCreateDirectories { get; }
         bool CanCreateFiles { get; }

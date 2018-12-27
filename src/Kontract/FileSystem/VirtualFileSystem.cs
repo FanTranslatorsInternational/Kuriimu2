@@ -173,5 +173,11 @@ namespace Kontract.FileSystem
 
             return Path.Combine(result.ToArray());
         }
+
+        //TODO: Implement Dispose
+        public void Dispose()
+        {
+
+        }
     }
 }

@@ -12,6 +12,8 @@ namespace Kontract.FileSystem
 {
     public class PhysicalFileSystem : IVirtualFSRoot
     {
+        private List<FileStream> _openedFiles;
+
         public string RootDir { get; private set; }
 
         public bool CanCreateDirectories => CheckWritePermission();
@@ -25,6 +27,8 @@ namespace Kontract.FileSystem
         public PhysicalFileSystem(string root)
         {
             RootDir = Path.GetFullPath(root);
+
+            _openedFiles = new List<FileStream>();
         }
 
         public IEnumerable<string> EnumerateDirectories()
@@ -44,7 +48,12 @@ namespace Kontract.FileSystem
 
         public FileStream OpenFile(string filename, FileMode mode)
         {
-            return File.Open(Path.Combine(RootDir, filename), mode);
+            var openedFile = File.Open(Path.Combine(RootDir, filename), mode);
+
+            CleanOpenedFiles();
+            _openedFiles.Add(openedFile);
+
+            return openedFile;
         }
 
         private bool CheckWritePermission()
@@ -58,6 +67,26 @@ namespace Kontract.FileSystem
             {
                 return false;
             }
+        }
+
+        private void CleanOpenedFiles()
+        {
+            List<int> toDelete = new List<int>();
+            for (int i = 0; i < _openedFiles.Count; i++)
+                if (!_openedFiles[i].CanRead)
+                    toDelete.Add(i);
+
+            foreach (var toClose in toDelete.OrderByDescending(x => x))
+            {
+                _openedFiles[toClose].Close();
+                _openedFiles.RemoveAt(toClose);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (var openFile in _openedFiles)
+                openFile.Close();
         }
     }
 }

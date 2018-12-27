@@ -10,6 +10,8 @@ namespace Kontract.Interfaces.Common
     /// </summary>
     public interface ILoadFiles : IDisposable
     {
+        bool LeaveOpen { get; set; }
+
         /// <summary>
         /// Loads the given file.
         /// </summary>
