@@ -91,7 +91,7 @@ namespace Kontract.FileSystem
         {
             var relativePath = ResolvePath(Path.Combine(RootDir, UnifyPathDelimiters(path)));
 
-            if (!_files.Any(x => UnifyPathDelimiters(x.FileName).StartsWith(relativePath)))
+            if (!_files.Any(x => Path.GetDirectoryName(UnifyPathDelimiters(x.FileName)) == relativePath))
                 throw new DirectoryNotFoundException(path);
 
             var rootParts = SplitPath(relativePath).Count();
@@ -104,13 +104,20 @@ namespace Kontract.FileSystem
             return new VirtualFileSystem(_files, _tempFolder, dirs.FirstOrDefault(x => x == path));
         }
 
-        public FileStream OpenFile(string filename, FileMode mode)
+        public Stream OpenFile(string filename/*, FileMode mode*/)
         {
-            ExtractFile(filename);
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+
+            // Try getting file to open
+            var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
+
+            return afi.FileData;
+
+            //ExtractFile(filename);
 
             // Open file with given FileMode
-            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
-            return File.Open(Path.Combine(_tempFolder, resolvedFilepath), mode);
+            //var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+            //return File.Open(Path.Combine(_tempFolder, resolvedFilepath), FileMode.Open);
         }
 
         public void ExtractFile(string filename)

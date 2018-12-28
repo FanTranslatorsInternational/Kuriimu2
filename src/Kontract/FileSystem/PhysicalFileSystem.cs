@@ -46,9 +46,9 @@ namespace Kontract.FileSystem
             return new PhysicalFileSystem(Path.GetFullPath(Path.Combine(RootDir, path)));
         }
 
-        public FileStream OpenFile(string filename, FileMode mode)
+        public Stream OpenFile(string filename/*, FileMode mode*/)
         {
-            var openedFile = File.Open(Path.Combine(RootDir, filename), mode);
+            var openedFile = File.Open(Path.Combine(RootDir, filename), FileMode.Open);
 
             CleanOpenedFiles();
             _openedFiles.Add(openedFile);

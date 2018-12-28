@@ -20,6 +20,6 @@ namespace Kontract.Interfaces.VirtualFS
         IEnumerable<string> EnumerateDirectories();
 
         IVirtualFSRoot GetDirectory(string path);
-        FileStream OpenFile(string filename, FileMode mode);
+        Stream OpenFile(string filename/*, FileMode mode*/);
     }
 }
