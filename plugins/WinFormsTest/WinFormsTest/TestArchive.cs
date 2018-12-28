@@ -16,7 +16,7 @@ namespace WinFormsTest
     [Export(typeof(ILoadFiles))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(IMultipleFiles))]
-    [PluginExtensionInfo("*.archive")]
+    [PluginExtensionInfo("*.archiveinfo")]
     [PluginInfo("Test-Archive-Id")]
     public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles
     {
@@ -39,36 +39,45 @@ namespace WinFormsTest
 
         public bool Identify(StreamInfo file)
         {
-            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, LeaveOpen))
-                return br.ReadUInt32() == 0x16161617;
+            return true;
         }
 
         public void Load(StreamInfo file)
         {
-            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, true))
+            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, LeaveOpen))
             {
-                br.BaseStream.Position = 4;
+                var fileCount = br.ReadInt32();
+                br.BaseStream.Position = 0x10;
 
-                var fileCount = br.ReadInt16();
-                Files = new List<ArchiveFileInfo>();
-                for (int i = 0; i < fileCount; i++)
+                // Get archive data file
+                var archiveData = FileSystem.OpenFile(Path.GetFileNameWithoutExtension(file.FileName) + ".archive");
+
+                using (var archiveBr = new BinaryReader(archiveData, Encoding.ASCII, LeaveOpen))
                 {
-                    var length = br.ReadInt32();
-                    Files.Add(new ArchiveFileInfo
+                    Files = new List<ArchiveFileInfo>();
+                    for (int i = 0; i < fileCount; i++)
                     {
-                        State = ArchiveFileState.Archived,
-                        FileName = Encoding.ASCII.GetString(br.ReadBytes(0x20)).TrimEnd('\0'),
-                        FileData = new MemoryStream(br.ReadBytes(length))
-                    });
+                        var offset = br.ReadInt32();
+                        var length = br.ReadInt32();
+                        var name = Encoding.ASCII.GetString(br.ReadBytes(0x18)).TrimEnd('\0');
+
+                        archiveBr.BaseStream.Position = offset;
+                        Files.Add(new ArchiveFileInfo
+                        {
+                            FileData = new MemoryStream(archiveBr.ReadBytes(length)),
+                            State = ArchiveFileState.Archived,
+                            FileName = name
+                        });
+                    }
                 }
 
-                if (fileCount == 3)
-                {
-                    var otherFile = FileSystem.GetDirectory("thesecondfolder").OpenFile("other.bin", FileMode.Open);
-                    using (var br1 = new BinaryReader(otherFile))
-                        if (br1.ReadByte() != 0x22)
-                            throw new InvalidOperationException("other.bin failed check");
-                }
+                //if (fileCount == 3)
+                //{
+                //    var otherFile = FileSystem.GetDirectory("thesecondfolder2").OpenFile("other.bin");
+                //    using (var br1 = new BinaryReader(otherFile))
+                //        if (br1.ReadByte() != 0x22)
+                //            throw new InvalidOperationException("other.bin failed check");
+                //}
             }
         }
     }
