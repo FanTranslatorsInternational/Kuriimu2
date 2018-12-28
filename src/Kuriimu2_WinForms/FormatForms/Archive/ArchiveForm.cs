@@ -47,6 +47,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private bool _canRenameFiles;
         private bool _canDeleteFiles;
 
+        private List<TabPage> _openedTabs;
+
         public ArchiveForm(KoreFileInfo kfi, TabControl tabControl, string tempFolder, string subFolder, bool openedAsSubStream)
         {
             InitializeComponent();
@@ -78,6 +80,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             _subFolder = subFolder;
             _archiveAdapter = kfi.Adapter as IArchiveAdapter;
             _openedAsSubStream = openedAsSubStream;
+            _openedTabs = new List<TabPage>();
 
             if (!Directory.Exists(Path.Combine(tempFolder, subFolder)))
                 Directory.CreateDirectory(Path.Combine(tempFolder, subFolder));

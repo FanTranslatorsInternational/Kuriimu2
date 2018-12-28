@@ -3,6 +3,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
 using Kuriimu2_WinForms.Tools;
 using System;
@@ -146,6 +147,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 tabPage.Controls.Add(new ArchiveForm(kfi, _tabControl, _tempFolder, Guid.NewGuid().ToString(), _openedAsSubStream));
 
             _tabControl.TabPages.Add(tabPage);
+            _openedTabs.Add(tabPage);
         }
         #endregion
 
@@ -215,6 +217,10 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         public void Close()
         {
+            foreach (var page in _openedTabs)
+                if (page is IKuriimuForm kuriimuForm && kuriimuForm.HasChanges)
+                    kuriimuForm.Save();
+
             _kore.CloseFile(Kfi, _openedAsSubStream);
         }
 
