@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kontract", "..\..\src\Kontr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "..\..\src\Kuriimu2_WinForms\Kuriimu2_WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kore", "..\..\src\Kore\Kore.csproj", "{013E1380-0D62-4018-8F55-9129275FDE85}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

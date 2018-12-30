@@ -52,7 +52,7 @@ namespace KontractUnitTests
             Assert.IsTrue(fs2.EnumerateDirectories().Count() == 0);
             Assert.IsTrue(fs2.EnumerateFiles().Contains(Path.Combine(fs2.RootDir, "Class4.cs")));
 
-            var file = fs2.OpenFile("Class4.cs", FileMode.Open);
+            var file = fs2.OpenFile("Class4.cs");
 
             Assert.IsTrue(file.CanRead);
 

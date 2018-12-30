@@ -25,7 +25,7 @@ namespace Kore.Batch
 
         public bool OverwriteDestinationFiles { get; set; } = true;
 
-        public async Task<bool> Export(Kore kore, IProgress<ProgressReport> progress)
+        public async Task<bool> Export(KoreManager kore, IProgress<ProgressReport> progress)
         {
             if (kore == null)
             {

@@ -20,7 +20,7 @@ namespace Kore.SamplePlugins
     [Export(typeof(ISaveFiles))]
     [PluginInfo("FAD19315-1A30-44A3-B0D4-0E6A8E71A39F", "NW4C BCLIM Image", "BCLIM", "IcySon55", "", "This is the BCLIM image adapter for Kuriimu.")]
     [PluginExtensionInfo("*.bclim")]
-    public sealed class BclimAdapter : IImageAdapter, /*IIdentifyFiles,*/ ICreateFiles, /*ILoadFiles,*/ ISaveFiles
+    public sealed class BclimAdapter : IImageAdapter, /*IIdentifyFiles,*/ ICreateFiles/*, ILoadFiles,*/ /*ISaveFiles*/
     {
         private BCLIM _format;
         private List<BitmapInfo> _bitmapInfos;

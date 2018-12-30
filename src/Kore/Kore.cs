@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Kontract;
 using Kontract.Attributes;
+using Kontract.FileSystem;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
@@ -21,7 +22,7 @@ namespace Kore
     /// <summary>
     /// Kore is the main brain library of Kuriimu. It performs all of the important and UI agnostic functions of Kuriimu.
     /// </summary>
-    public sealed class Kore : IDisposable
+    public sealed class KoreManager : IDisposable
     {
         /// <summary>
         /// The plugin manager for this Kore instance
@@ -56,7 +57,7 @@ namespace Kore
         /// <summary>
         /// Initializes a new Kore instance.
         /// </summary>
-        public Kore()
+        public KoreManager()
         {
             _manager = PluginLoader.Global;
         }
@@ -65,7 +66,7 @@ namespace Kore
         /// Initializes a new Kore instance with the given plugin directory.
         /// </summary>
         /// <param name="pluginDirectory"></param>
-        public Kore(string pluginDirectory)
+        public KoreManager(string pluginDirectory)
         {
             _pluginDirectory = pluginDirectory;
             _manager = new PluginLoader(pluginDirectory);
@@ -78,7 +79,7 @@ namespace Kore
             var catalog = new AggregateCatalog();
 
             // Adds all the parts found in the same assembly as the Kore class.
-            catalog.Catalogs.Add(new AssemblyCatalog(typeof(Kore).Assembly));
+            catalog.Catalogs.Add(new AssemblyCatalog(typeof(KoreManager).Assembly));
 
             // Create the CompositionContainer with the parts in the catalog if it doesn't exist.
             if (container == null)
@@ -143,6 +144,7 @@ namespace Kore
             klf.Adapter = _manager.CreateAdapter<ILoadFiles>(_manager.GetMetadata<PluginInfoAttribute>(klf.Adapter).ID);
 
             // Load files(s)
+            klf.FileData.Position = 0;
             var streaminfo = new StreamInfo { FileData = klf.FileData, FileName = klf.FileName };
             try
             {
@@ -177,27 +179,120 @@ namespace Kore
             return kfi;
         }
 
+        public void SaveFile(KoreFileInfo kfi, string tempFolder, int version = 0)
+        {
+            // Execute SaveFile down the child tree
+            if (kfi.ChildKfi != null)
+                foreach (var child in kfi.ChildKfi)
+                    SaveFile(child, tempFolder);
+
+            // Save data with the adapter
+            var guid = Guid.NewGuid().ToString();
+            var fs = new PhysicalFileSystem(Path.Combine(tempFolder, guid));
+            if (kfi.Adapter is IMultipleFiles multFileAdapter)
+                multFileAdapter.FileSystem = fs;
+            kfi.Adapter.LeaveOpen = false;
+            var streaminfo = new StreamInfo { FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)), FileName = Path.GetFileName(kfi.StreamFileInfo.FileName) };
+            (kfi.Adapter as ISaveFiles).Save(streaminfo, version);
+
+            // Replace files in adapter
+            if (kfi.ParentKfi != null)
+            {
+                var parentArchiveAdapter = kfi.ParentKfi.Adapter as IArchiveAdapter;
+                RecursiveUpdate(parentArchiveAdapter, fs, Path.Combine(Path.GetFullPath(tempFolder), guid));
+            }
+            else
+            {
+                // TODO: Implement save if no parent is given
+            }
+
+            // Update archive file states in this level
+            if (kfi.Adapter is IArchiveAdapter archiveAdapter)
+                foreach (var afi in archiveAdapter.Files)
+                    afi.State = ArchiveFileState.Archived;
+
+            // Update archive file states up the parent tree
+            if (kfi.ParentKfi != null)
+                kfi.UpdateState(ArchiveFileState.Replaced);
+        }
+
+        private void RecursiveUpdate(IArchiveAdapter parentAdapter, IVirtualFSRoot physicalFS, string root)
+        {
+            // Loop through all directories
+            foreach (var dir in physicalFS.EnumerateDirectories(true))
+                RecursiveUpdate(parentAdapter, physicalFS.GetDirectory(dir), root);
+
+            // Update files of this directory
+            foreach (var file in physicalFS.EnumerateFiles())
+            {
+                var openedFile = physicalFS.OpenFile(file.Remove(0, root.Length + 1));
+                var afi = parentAdapter.Files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == UnifyPathDelimiters(file.Remove(0, root.Length + 1)));
+                if (afi != null)
+                {
+                    afi.FileData.Dispose();
+                    afi.FileData = openedFile;
+                    afi.State = ArchiveFileState.Replaced;
+                }
+            }
+        }
+
+        private string UnifyPathDelimiters(string path)
+        {
+            return path.Replace(Path.DirectorySeparatorChar == '/' ? '\\' : '/', Path.DirectorySeparatorChar);
+        }
+
         //TODO: Redefine SaveFile
         /// <summary>
         /// Saves an open file. Optionally to a new name.
         /// </summary>
         /// <param name="kfi">The KoreFileInfo to be saved.</param>
         /// <param name="filename">The optional new name of the file to be saved.</param>
-        public void SaveFile(KoreFileInfo kfi, string filename = "")
-        {
-            //TODO: throw exception instead of just return?
-            //if (!OpenFiles.Contains(kfi) || !kfi.CanSave) return;
+        //public void SaveFile(KoreFileInfo kfi, KoreSaveInfo ksi)
+        //{
+        // All files created or updated by the plugin will be put into this FileSystem
+        //if (kfi.Adapter is IMultipleFiles multFilesAdapter)
+        //    multFilesAdapter.FileSystem = new PhysicalFileSystem(ksi.TempFolder);
 
-            //var adapter = (ISaveFiles)kfi.Adapter;
+        //if (ksi.InPlaceSave)
+        //    SaveInPlace(kfi, ksi);
+        //else
+        //    SaveNew(kfi, ksi);
 
-            //if (string.IsNullOrEmpty(filename))
-            //    adapter.Save(kfi.FileInfo.FullName);
-            //else
-            //{
-            //    adapter.Save(filename);
-            //    kfi.FileName = filename;
-            //}
-        }
+        //TODO: throw exception instead of just return?
+        //if (!OpenFiles.Contains(kfi) || !kfi.CanSave) return;
+
+        //var adapter = (ISaveFiles)kfi.Adapter;
+
+        //if (string.IsNullOrEmpty(filename))
+        //    adapter.Save(kfi.FileInfo.FullName);
+        //else
+        //{
+        //    adapter.Save(filename);
+        //    kfi.FileName = filename;
+        //}
+        //}
+
+        //private void SaveInPlace(KoreFileInfo kfi, KoreSaveInfo ksi)
+        //{
+        //    var streamInfo = kfi.StreamFileInfo;
+
+        //    streamInfo.FileData.Position = 0;
+        //    (kfi.Adapter as ISaveFiles).Save(streamInfo, ksi.Version);
+        //}
+
+        //private void SaveNew(KoreFileInfo kfi, KoreSaveInfo ksi)
+        //{
+        //    if (string.IsNullOrEmpty(ksi.TempFolder))
+        //        throw new InvalidOperationException("Temp Folder can't be null or empty for saving to a new location.");
+
+        //    var streamInfo = new StreamInfo
+        //    {
+        //        FileData = File.Open(Path.Combine(ksi.TempFolder, Path.GetFileName(kfi.StreamFileInfo.FileName)), FileMode.Create),
+        //        FileName = Path.GetFileName(kfi.StreamFileInfo.FileName)
+        //    };
+
+        //    (kfi.Adapter as ISaveFiles).Save(streamInfo, ksi.Version);
+        //}
 
         /// <summary>
         /// Closes an open file.
@@ -210,7 +305,7 @@ namespace Kore
                 OpenFiles.Remove(kfi);
 
             kfi.Adapter.Dispose();
-            if (leaveFileStreamOpen)
+            if (!leaveFileStreamOpen)
                 kfi.StreamFileInfo.FileData.Close();
             if (kfi.Adapter is IMultipleFiles multFileAdapter)
                 multFileAdapter.FileSystem.Dispose();

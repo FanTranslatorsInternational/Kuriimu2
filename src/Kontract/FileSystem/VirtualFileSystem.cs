@@ -64,27 +64,37 @@ namespace Kontract.FileSystem
                 Directory.CreateDirectory(_tempFolder);
         }
 
-        public IEnumerable<string> EnumerateDirectories()
+        public IEnumerable<string> EnumerateDirectories(bool relative = false)
         {
-            var rootParts = SplitPath(RootDir).Count();
-            var dirs = _files
-                .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDir))
-                .Where(x => SplitPath(x.FileName).Length >= rootParts + 2)
-                .Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray()))
-                .Distinct();
+            if (!relative)
+            {
+                var rootParts = SplitPath(RootDir).Count();
+                var dirs = _files
+                    .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDir))
+                    .Where(x => SplitPath(x.FileName).Length >= rootParts + 2)
+                    .Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray()))
+                    .Distinct();
 
-            return dirs;
+                return dirs;
+            }
+
+            return null;
         }
 
-        public IEnumerable<string> EnumerateFiles()
+        public IEnumerable<string> EnumerateFiles(bool relative = false)
         {
-            var rootParts = SplitPath(RootDir).Count();
-            var files = _files
-                .Where(x => SplitPath(x.FileName).Count() == rootParts + 1)
-                .Where(x => Path.GetDirectoryName(x.FileName) == RootDir)
-                .Select(x => UnifyPathDelimiters(x.FileName));
+            if (!relative)
+            {
+                var rootParts = SplitPath(RootDir).Count();
+                var files = _files
+                    .Where(x => SplitPath(x.FileName).Count() == rootParts + 1)
+                    .Where(x => Path.GetDirectoryName(x.FileName) == RootDir)
+                    .Select(x => UnifyPathDelimiters(x.FileName));
 
-            return files;
+                return files;
+            }
+
+            return null;
         }
 
         public IVirtualFSRoot GetDirectory(string path)
@@ -185,6 +195,19 @@ namespace Kontract.FileSystem
         public void Dispose()
         {
 
+        }
+
+        public Stream CreateFile(string filename)
+        {
+            if (!CanCreateFiles)
+                throw new InvalidOperationException("Can't create files");
+
+            var createdFile = File.Create(Path.Combine(_tempFolder, RootDir, filename));
+
+            var afi = new ArchiveFileInfo { FileData = createdFile, FileName = Path.Combine(RootDir, filename), State = ArchiveFileState.Added };
+            (_adapter as IArchiveAddFile).AddFile(afi);
+
+            return createdFile;
         }
     }
 }

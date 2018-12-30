@@ -31,13 +31,14 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         public bool HasChanges { get; set; }
 
-        private Kore.Kore _kore;
-        private TabControl _tabControl;
+        private KoreManager _kore;
+        private TabPage _tabPage;
+        private TabPage _parentTabPage;
         private string _tempFolder;
         private string _subFolder;
-        private IArchiveAdapter _archiveAdapter;
 
-        private bool _openedAsSubStream;
+        private IArchiveAdapter _archiveAdapter { get => Kfi.Adapter as IArchiveAdapter; }
+        private IArchiveAdapter _parentAdapter;
 
         private bool _canExtractDirectories;
         private bool _canReplaceDirectories;
@@ -49,7 +50,9 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         private List<TabPage> _openedTabs;
 
-        public ArchiveForm(KoreFileInfo kfi, TabControl tabControl, string tempFolder, string subFolder, bool openedAsSubStream)
+        public event EventHandler<CreateTabEventArgs> CreateTab;
+
+        public ArchiveForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, string tempFolder)
         {
             InitializeComponent();
 
@@ -73,20 +76,28 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             lstFiles.LargeImageList = imlFilesLarge;
 
             Kfi = kfi;
+            Kfi.PropertyChanged += Kfi_PropertyChanged;
 
-            _kore = new Kore.Kore();
-            _tabControl = tabControl;
+            _tabPage = tabPage;
+            _parentTabPage = parentTabPage;
+            _parentAdapter = parentAdapter;
+
+            _kore = new KoreManager();
             _tempFolder = tempFolder;
-            _subFolder = subFolder;
-            _archiveAdapter = kfi.Adapter as IArchiveAdapter;
-            _openedAsSubStream = openedAsSubStream;
+            _subFolder = Guid.NewGuid().ToString();
             _openedTabs = new List<TabPage>();
 
-            if (!Directory.Exists(Path.Combine(tempFolder, subFolder)))
-                Directory.CreateDirectory(Path.Combine(tempFolder, subFolder));
+            if (!Directory.Exists(Path.Combine(tempFolder, _subFolder)))
+                Directory.CreateDirectory(Path.Combine(tempFolder, _subFolder));
 
             LoadDirectories();
             UpdateForm();
+        }
+
+        private void Kfi_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(KoreFileInfo.DisplayName))
+                _tabPage.Text = Kfi.DisplayName;
         }
 
         private void ArchiveForm_Load(object sender, EventArgs e)
@@ -99,6 +110,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private void tsbSave_Click(object sender, EventArgs e)
         {
             Save();
+
+            UpdateForm2();
         }
 
         private void tsbSaveAs_Click(object sender, EventArgs e)
@@ -294,16 +307,19 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             var menuItem = sender as ToolStripMenuItem;
             var afi = menuItem.Tag as ArchiveFileInfo;
 
-            var bk = afi.FileData.Position;
-            afi.FileData.Position = 0;
-            var extractFile = File.Create(Path.Combine(_tempFolder, _subFolder, Path.GetFileName(afi.FileName)));
-            afi.FileData.CopyTo(extractFile);
-            extractFile.Close();
-            afi.FileData.Position = bk;
+            //var bk = afi.FileData.Position;
+            //afi.FileData.Position = 0;
+            //var extractFile = File.Create(Path.Combine(_tempFolder, _subFolder, Path.GetFileName(afi.FileName)));
+            //afi.FileData.CopyTo(extractFile);
+            //extractFile.Close();
+            //afi.FileData.Position = bk;
 
-            var kfi = _kore.LoadFile(new KoreLoadInfo(afi.FileData, afi.FileName) { FileSystem = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder)) });
+            var kfi = _kore.LoadFile(new KoreLoadInfo(afi.FileData, afi.FileName) { FileSystem = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder)), LeaveOpen = true });
+            kfi.ParentKfi = Kfi;
+            if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
+            Kfi.ChildKfi.Add(kfi);
 
-            AddTabPage(kfi);
+            CreateTab(this, new CreateTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
         }
         #endregion
 
@@ -311,6 +327,33 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private void lstFiles_SelectedIndexChanged(object sender, EventArgs e)
         {
             UpdateForm();
+        }
+
+        private void lstFiles_DoubleClick(object sender, EventArgs e)
+        {
+            var menuItem = lstFiles.SelectedItems[0];
+            var afi = menuItem.Tag as ArchiveFileInfo;
+
+            var ext = Path.GetExtension(afi?.FileName);
+
+            var kuriimuVisible = ext?.Length > 0 && _kore.GetAdapters<ITextAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && _kore.GetAdapters<IImageAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && _kore.GetAdapters<IArchiveAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+
+            if (kuriimuVisible || kukkiiVisible || karameruVisible)
+            {
+                var kfi = _kore.LoadFile(new KoreLoadInfo(afi.FileData, afi.FileName) { FileSystem = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder)), LeaveOpen = true });
+                kfi.AFI = afi;
+                kfi.ParentKfi = Kfi;
+                if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
+                Kfi.ChildKfi.Add(kfi);
+
+                CreateTab(this, new CreateTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
+            }
+            else
+            {
+                MessageBox.Show("This file is not supported by any plugin.", "Not supported", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
         #endregion
     }

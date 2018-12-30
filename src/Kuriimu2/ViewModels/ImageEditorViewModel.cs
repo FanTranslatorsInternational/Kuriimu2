@@ -25,7 +25,7 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly Kore.Kore _kore;
+        private readonly Kore.KoreManager _kore;
         private readonly IImageAdapter _adapter;
 
         private BitmapEntry _selectedBitmapInfo;
@@ -111,7 +111,7 @@ namespace Kuriimu2.ViewModels
         public string ImageCount => (Bitmaps?.Count ?? 0) + ((Bitmaps?.Count ?? 0) != 1 ? " Bitmaps" : " Bitmap");
 
         // Constructor
-        public ImageEditorViewModel(Kore.Kore kore, KoreFileInfo koreFile)
+        public ImageEditorViewModel(Kore.KoreManager kore, KoreFileInfo koreFile)
         {
             _kore = kore;
             KoreFile = koreFile;

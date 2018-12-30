@@ -15,7 +15,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 {
     public sealed class OpenTypeViewModel : Screen
     {
-        private readonly Kore.Kore _kore;
+        private readonly Kore.KoreManager _kore;
 
         private string _selectedPluginType;
         private ILoadFiles _selectedFormatType;
@@ -29,7 +29,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public OpenTypeViewModel(Kore.Kore kore)
+        public OpenTypeViewModel(Kore.KoreManager kore)
         {
             _kore = kore;
 

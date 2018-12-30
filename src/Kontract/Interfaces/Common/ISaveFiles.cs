@@ -8,8 +8,8 @@
         /// <summary>
         /// Allows a plugin to save files.
         /// </summary>
-        /// <param name="filename">The file to be saved.</param>
+        /// <param name="initialFile">The file to be saved.</param>
         /// <param name="versionIndex">The version index that the user selected.</param>
-        void Save(string filename, int versionIndex = 0);
+        void Save(StreamInfo initialFile, int versionIndex = 0);
     }
 }

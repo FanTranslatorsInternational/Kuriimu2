@@ -24,14 +24,14 @@ namespace Kuriimu2.ViewModels
 
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private Kore.Kore _kore;
+        private Kore.KoreManager _kore;
 
         #endregion
 
         public ShellViewModel()
         {
             DisplayName = "Kuriimu2";
-            _kore = new Kore.Kore();
+            _kore = new Kore.KoreManager();
 
             // Load passed-in file
             if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))

@@ -18,7 +18,7 @@ namespace WinFormsTest
     [Export(typeof(IMultipleFiles))]
     [PluginExtensionInfo("*.archiveinfo")]
     [PluginInfo("Test-Archive-Id")]
-    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles
+    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles
     {
         public List<ArchiveFileInfo> Files { get; private set; }
 
@@ -26,7 +26,7 @@ namespace WinFormsTest
 
         public bool CanRenameFiles => false;
 
-        public bool CanReplaceFiles => false;
+        public bool CanReplaceFiles => true;
 
         public bool FileHasExtendedProperties => false;
 
@@ -78,6 +78,25 @@ namespace WinFormsTest
                 //        if (br1.ReadByte() != 0x22)
                 //            throw new InvalidOperationException("other.bin failed check");
                 //}
+            }
+        }
+
+        public void Save(StreamInfo initialFile, int versionIndex = 0)
+        {
+            using (var bw = new BinaryWriter(initialFile.FileData, Encoding.ASCII, LeaveOpen))
+            using (var bwData = new BinaryWriter(FileSystem.CreateFile(Path.GetFileNameWithoutExtension(initialFile.FileName) + ".archive"), Encoding.ASCII, LeaveOpen))
+            {
+                foreach (var file in Files)
+                {
+                    bw.Write((int)bwData.BaseStream.Position);
+                    bw.Write((int)file.FileSize);
+                    bw.Write(Encoding.ASCII.GetBytes(file.FileName));
+                    while (bw.BaseStream.Position % 0x20 != 0)
+                        bw.Write((byte)0);
+
+                    file.FileData.Position = 0;
+                    file.FileData.CopyTo(bwData.BaseStream);
+                }
             }
         }
     }

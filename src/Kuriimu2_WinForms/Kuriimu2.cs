@@ -18,19 +18,20 @@ using Kontract.Interfaces.VirtualFS;
 using Kontract.FileSystem;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.FormatForms.Archive;
+using Kore;
 
 namespace Kuriimu2_WinForms
 {
     public partial class Kuriimu2 : Form
     {
-        private Kore.Kore _kore;
+        private KoreManager _kore;
         private string _tempFolder = "temp";
 
         public Kuriimu2()
         {
             InitializeComponent();
 
-            _kore = new Kore.Kore();
+            _kore = new KoreManager();
         }
 
         #region Events
@@ -48,26 +49,31 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            var kfi = _kore.LoadFile(new Kore.KoreLoadInfo(File.Open(filename, FileMode.Open), filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
+            var kfi = _kore.LoadFile(new KoreLoadInfo(File.Open(filename, FileMode.Open), filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
             AddTabPage(kfi);
         }
 
-        private void AddTabPage(Kore.KoreFileInfo kfi)
+        private void AddTabPage(KoreFileInfo kfi, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
         {
             var tabPage = new TabPage();
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
-                tabControl = new TextForm(kfi);
+                tabControl = new TextForm(kfi, tabPage, parentAdapter, parentTabPage);
             else if (kfi.Adapter is IImageAdapter)
-                tabControl = new ImageForm(kfi);
+                tabControl = new ImageForm(kfi, tabPage, parentAdapter, parentTabPage);
             else if (kfi.Adapter is IArchiveAdapter)
-                tabControl = new ArchiveForm(kfi, openFiles, _tempFolder, Guid.NewGuid().ToString(), false);
+                tabControl = new ArchiveForm(kfi, tabPage, parentAdapter, parentTabPage, _tempFolder);
+            tabControl.CreateTab += Kuriimu2_CreateTab;
 
             tabPage.Controls.Add(tabControl as UserControl);
-            tabPage.Controls[tabPage.Controls.Count - 1].Text = Path.GetFileName(kfi.StreamFileInfo.FileName);
 
             openFiles.TabPages.Add(tabPage);
+        }
+
+        private void Kuriimu2_CreateTab(object sender, CreateTabEventArgs e)
+        {
+            AddTabPage(e.Kfi, e.ParentAdapter, e.ParentTabPage);
         }
         #endregion
 

@@ -16,7 +16,7 @@ namespace KoreUnitTests
         [TestMethod]
         public void LoadSaveClose()
         {
-            var kore = new Kore.Kore(".");
+            var kore = new Kore.KoreManager(".");
 
             var kfi = kore.LoadFile(@"..\..\TestFiles\file.test", new PhysicalFileSystem(Path.GetFullPath(@"..\..\TestFiles\")));
             Assert.IsNotNull(kfi);
@@ -36,7 +36,7 @@ namespace KoreUnitTests
         [TestMethod]
         public void GetAdapters()
         {
-            var kore = new Kore.Kore(".");
+            var kore = new Kore.KoreManager(".");
 
             var list = kore.GetAdapters<ILoadFiles>().Where(x => x is ITest);
             Assert.IsTrue(list.Any());
@@ -45,7 +45,7 @@ namespace KoreUnitTests
         [TestMethod]
         public void FileExtensionsByType()
         {
-            var kore = new Kore.Kore(".");
+            var kore = new Kore.KoreManager(".");
 
             var exts = kore.FileExtensionsByType<ILoadFiles>();
 
@@ -55,7 +55,7 @@ namespace KoreUnitTests
         [TestMethod]
         public void FileFiltersByType()
         {
-            var kore = new Kore.Kore(".");
+            var kore = new Kore.KoreManager(".");
 
             var filters = kore.FileFiltersByType<ILoadFiles>();
 

@@ -1,4 +1,5 @@
-﻿using Kore;
+﻿using Kontract.Interfaces.Archive;
+using Kore;
 using Kuriimu2_WinForms.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -14,18 +15,26 @@ namespace Kuriimu2_WinForms.FormatForms
 {
     public partial class TextForm : UserControl, IKuriimuForm
     {
-        public TextForm(KoreFileInfo kfi)
+        private TabPage _tabPage;
+        private TabPage _parentTabPage;
+        private IArchiveAdapter _parentAdapter;
+
+        public TextForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage)
         {
             InitializeComponent();
 
             Kfi = kfi;
+
+            _tabPage = tabPage;
+            _parentTabPage = parentTabPage;
+            _parentAdapter = parentAdapter;
         }
 
-        public KoreFileInfo Kfi { get; set; }
+        public KoreFileInfo Kfi { get; private set; }
 
         public bool HasChanges => throw new NotImplementedException();
 
-        public event EventHandler<EventArgs> HasChangesHandler;
+        public event EventHandler<CreateTabEventArgs> CreateTab;
 
         public void Close()
         {
@@ -33,6 +42,11 @@ namespace Kuriimu2_WinForms.FormatForms
         }
 
         public void Save(string filename = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateForm2()
         {
             throw new NotImplementedException();
         }

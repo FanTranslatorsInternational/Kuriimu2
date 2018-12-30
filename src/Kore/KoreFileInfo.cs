@@ -1,6 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 
 namespace Kore
@@ -11,6 +13,12 @@ namespace Kore
     /// </summary>
     public class KoreFileInfo : INotifyPropertyChanged
     {
+        public KoreFileInfo ParentKfi { get; set; }
+
+        public List<KoreFileInfo> ChildKfi { get; set; }
+
+        public ArchiveFileInfo AFI { get; set; }
+
         public bool CanRequestFiles => Adapter is IMultipleFiles;
 
         public bool CanSave => Adapter is ISaveFiles;
@@ -53,7 +61,7 @@ namespace Kore
         /// <summary>
         /// 
         /// </summary>
-        public string DisplayName => StreamFileInfo + (HasChanges ? " *" : string.Empty);
+        public string DisplayName => Path.GetFileName(StreamFileInfo.FileName) + (HasChanges ? " *" : string.Empty);
 
         /// <summary>
         /// 
@@ -69,9 +77,19 @@ namespace Kore
         /// Allows the properties to notify the UI when their values have changed.
         /// </summary>
         /// <param name="propertyName">The name of the property that was changed.</param>
-        public void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void UpdateState(ArchiveFileState state)
+        {
+            if (AFI != null)
+                AFI.State = state;
+            if (ParentKfi != null)
+                ParentKfi.UpdateState(state);
+
+            HasChanges = false;
         }
     }
 }

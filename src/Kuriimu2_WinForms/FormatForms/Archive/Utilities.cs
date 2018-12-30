@@ -134,25 +134,12 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
             return result;
         }
-
-        private void AddTabPage(KoreFileInfo kfi)
-        {
-            var tabPage = new TabPage();
-
-            if (kfi.Adapter is ITextAdapter)
-                tabPage.Controls.Add(new TextForm(kfi));
-            else if (kfi.Adapter is IImageAdapter)
-                tabPage.Controls.Add(new ImageForm(kfi));
-            else if (kfi.Adapter is IArchiveAdapter)
-                tabPage.Controls.Add(new ArchiveForm(kfi, _tabControl, _tempFolder, Guid.NewGuid().ToString(), _openedAsSubStream));
-
-            _tabControl.TabPages.Add(tabPage);
-            _openedTabs.Add(tabPage);
-        }
         #endregion
 
         private void UpdateForm()
         {
+            _tabPage.Text = Kfi.DisplayName;
+
             //Text = $"{Settings.Default.ApplicationName} v{FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion}" + (FileName() != string.Empty ? " - " + FileName() : string.Empty) + (_hasChanges ? "*" : string.Empty) + (_archiveManager != null ? " - " + _archiveManager.Description + " Manager (" + _archiveManager.Name + ")" : string.Empty);
 
             //openToolStripMenuItem.Enabled = _archiveManagers.Count > 0;
@@ -180,7 +167,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             //saveToolStripMenuItem.Enabled = _fileOpen && (bool)_archiveManager?.CanSave;
             tsbSave.Enabled = _archiveAdapter is ISaveFiles;
             //saveAsToolStripMenuItem.Enabled = _fileOpen && (bool)_archiveManager?.CanSave;
-            tsbSaveAs.Enabled = _archiveAdapter is ISaveFiles;
+            tsbSaveAs.Enabled = _archiveAdapter is ISaveFiles && _parentAdapter == null;
             //closeToolStripMenuItem.Enabled = _fileOpen;
             //findToolStripMenuItem.Enabled = _fileOpen;
             //tsbFind.Enabled = _fileOpen;
@@ -207,12 +194,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         public void Save(string filename = "")
         {
-            var savename = string.IsNullOrEmpty(filename) ? Kfi.StreamFileInfo.FileName : filename;
-
-            (_archiveAdapter as ISaveFiles).Save(savename);
-
-            HasChanges = false;
-            (this as Control).Text = Path.GetFileName(Kfi.StreamFileInfo.FileName);
+            _kore.SaveFile(Kfi, _tempFolder);
         }
 
         public void Close()
@@ -221,7 +203,16 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 if (page is IKuriimuForm kuriimuForm && kuriimuForm.HasChanges)
                     kuriimuForm.Save();
 
-            _kore.CloseFile(Kfi, _openedAsSubStream);
+            _kore.CloseFile(Kfi, _parentAdapter != null);
+        }
+
+        public void UpdateForm2()
+        {
+            LoadDirectories();
+            LoadFiles();
+
+            if (_parentTabPage != null)
+                (_parentTabPage.Controls[0] as IKuriimuForm).UpdateForm2();
         }
 
         private void Stub()

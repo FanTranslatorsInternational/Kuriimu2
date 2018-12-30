@@ -61,6 +61,7 @@
     <Compile Include="Kore.cs" />
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="KoreLoadInfo.cs" />
+    <Compile Include="KoreSaveInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SamplePlugins\BCLIM.cs" />
     <Compile Include="SamplePlugins\GFDv1.cs" />

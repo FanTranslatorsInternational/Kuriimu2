@@ -26,7 +26,7 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly Kore.Kore _kore;
+        private readonly Kore.KoreManager _kore;
         private readonly ITextAdapter _adapter;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
@@ -42,7 +42,7 @@ namespace Kuriimu2.ViewModels
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         // Constructor
-        public TextEditor2ViewModel(Kore.Kore kore, KoreFileInfo koreFile)
+        public TextEditor2ViewModel(Kore.KoreManager kore, KoreFileInfo koreFile)
         {
             _kore = kore;
             KoreFile = koreFile;

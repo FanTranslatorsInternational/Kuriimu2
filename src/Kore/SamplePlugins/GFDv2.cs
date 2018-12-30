@@ -47,7 +47,7 @@ namespace Kore.SamplePlugins
 
             //TODO
             //Plugins.ComposePlugins(this, _container);
-            Kore.ComposeSamplePlugins(this, _container);
+            KoreManager.ComposeSamplePlugins(this, _container);
         }
 
         public GFDv2(FileStream input)
@@ -56,7 +56,7 @@ namespace Kore.SamplePlugins
 
             //TODO
             //Plugins.ComposePlugins(this, _container);
-            Kore.ComposeSamplePlugins(this, _container);
+            KoreManager.ComposeSamplePlugins(this, _container);
 
             using (var br = new BinaryReaderX(input))
             {
@@ -164,7 +164,7 @@ namespace Kore.SamplePlugins
                     //TODO
                     //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
                     ((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0] = Textures[i];
-                    ((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
+                    //((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
                 }
 
                 _sourceFile = output.Name;

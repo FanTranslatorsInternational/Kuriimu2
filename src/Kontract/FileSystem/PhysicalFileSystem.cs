@@ -28,17 +28,26 @@ namespace Kontract.FileSystem
         {
             RootDir = Path.GetFullPath(root);
 
+            if (!Directory.Exists(RootDir))
+                Directory.CreateDirectory(RootDir);
+
             _openedFiles = new List<FileStream>();
         }
 
-        public IEnumerable<string> EnumerateDirectories()
+        public IEnumerable<string> EnumerateDirectories(bool relative = false)
         {
-            return Directory.EnumerateDirectories(RootDir);
+            if (!relative)
+                return Directory.EnumerateDirectories(RootDir);
+
+            return Directory.EnumerateDirectories(RootDir).Select(x => x.Remove(0, RootDir.Length + 1));
         }
 
-        public IEnumerable<string> EnumerateFiles()
+        public IEnumerable<string> EnumerateFiles(bool relative = false)
         {
-            return Directory.EnumerateFiles(RootDir);
+            if (!relative)
+                return Directory.EnumerateFiles(RootDir);
+
+            return Directory.EnumerateFiles(RootDir).Select(x => x.Remove(0, RootDir.Length + 1));
         }
 
         public IVirtualFSRoot GetDirectory(string path)
@@ -46,7 +55,7 @@ namespace Kontract.FileSystem
             return new PhysicalFileSystem(Path.GetFullPath(Path.Combine(RootDir, path)));
         }
 
-        public Stream OpenFile(string filename/*, FileMode mode*/)
+        public Stream OpenFile(string filename)
         {
             var openedFile = File.Open(Path.Combine(RootDir, filename), FileMode.Open);
 
@@ -78,7 +87,7 @@ namespace Kontract.FileSystem
 
             foreach (var toClose in toDelete.OrderByDescending(x => x))
             {
-                _openedFiles[toClose].Close();
+                _openedFiles[toClose].Dispose();
                 _openedFiles.RemoveAt(toClose);
             }
         }
@@ -86,7 +95,20 @@ namespace Kontract.FileSystem
         public void Dispose()
         {
             foreach (var openFile in _openedFiles)
-                openFile.Close();
+                openFile.Dispose();
+        }
+
+        public Stream CreateFile(string filename)
+        {
+            if (!CanCreateFiles)
+                throw new InvalidOperationException("Can't create files");
+
+            var createdFile = File.Create(Path.Combine(RootDir, filename));
+
+            CleanOpenedFiles();
+            _openedFiles.Add(createdFile);
+
+            return createdFile;
         }
     }
 }
