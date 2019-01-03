@@ -34,7 +34,11 @@ namespace Kuriimu2_WinForms.FormatForms
 
         public bool HasChanges => throw new NotImplementedException();
 
-        public event EventHandler<CreateTabEventArgs> CreateTab;
+        public Color TabColor { get; set; }
+        
+        public event EventHandler<OpenTabEventArgs> OpenTab;
+        public event EventHandler<SaveTabEventArgs> SaveTab;
+        public event EventHandler<CloseTabEventArgs> CloseTab;
 
         public void Close()
         {
