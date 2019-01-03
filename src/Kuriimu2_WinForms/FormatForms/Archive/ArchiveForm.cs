@@ -309,19 +309,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             var menuItem = sender as ToolStripMenuItem;
             var afi = menuItem.Tag as ArchiveFileInfo;
 
-            //var bk = afi.FileData.Position;
-            //afi.FileData.Position = 0;
-            //var extractFile = File.Create(Path.Combine(_tempFolder, _subFolder, Path.GetFileName(afi.FileName)));
-            //afi.FileData.CopyTo(extractFile);
-            //extractFile.Close();
-            //afi.FileData.Position = bk;
-
-            var kfi = _kore.LoadFile(new KoreLoadInfo(afi.FileData, afi.FileName) { FileSystem = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder)), LeaveOpen = true });
-            kfi.ParentKfi = Kfi;
-            if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
-            Kfi.ChildKfi.Add(kfi);
-
-            OpenTab?.Invoke(this, new OpenTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
+            OpenAfi(afi);
         }
         #endregion
 
@@ -343,20 +331,29 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             var karameruVisible = ext?.Length > 0 && _kore.GetAdapters<IArchiveAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             if (kuriimuVisible || kukkiiVisible || karameruVisible)
-            {
-                var kfi = _kore.LoadFile(new KoreLoadInfo(afi.FileData, afi.FileName) { FileSystem = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder)), LeaveOpen = true });
-                kfi.AFI = afi;
-                kfi.ParentKfi = Kfi;
-                if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
-                Kfi.ChildKfi.Add(kfi);
-
-                OpenTab?.Invoke(this, new OpenTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
-            }
+                OpenAfi(afi);
             else
-            {
                 MessageBox.Show("This file is not supported by any plugin.", "Not supported", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
         }
         #endregion
+
+        private void OpenAfi(ArchiveFileInfo afi)
+        {
+            var streamInfo = new StreamInfo() { FileData = afi.FileData, FileName = afi.FileName };
+            var fs = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
+
+            var args = new OpenTabEventArgs(streamInfo, fs) { LeaveOpen = true, ParentKfi = Kfi, ParentTabPage = _tabPage };
+
+            OpenTab?.Invoke(this, args);
+
+            if (args.NewKfi != null)
+            {
+                args.NewKfi.AFI = afi;
+                args.NewKfi.ParentKfi = Kfi;
+
+                if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
+                Kfi.ChildKfi.Add(args.NewKfi);
+            }
+        }
     }
 }
