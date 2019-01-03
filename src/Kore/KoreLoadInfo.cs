@@ -11,8 +11,8 @@ namespace Kore
 {
     public class KoreLoadInfo
     {
-        public string FileName { get; set; }
-        public Stream FileData { get; set; }
+        public string FileName { get; }
+        public Stream FileData { get; }
 
         public ILoadFiles Adapter { get; set; }
 
