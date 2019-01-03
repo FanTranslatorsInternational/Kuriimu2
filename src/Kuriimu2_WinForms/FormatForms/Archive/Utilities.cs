@@ -199,7 +199,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         public void Close()
         {
-            CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi) { LeaveOpen = Kfi.ParentKfi != null });
+            CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi, _parentTabPage) { LeaveOpen = Kfi.ParentKfi != null });
         }
 
         public void UpdateForm2()
@@ -209,6 +209,12 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
             if (_parentTabPage != null)
                 (_parentTabPage.Controls[0] as IKuriimuForm).UpdateForm2();
+        }
+
+        public void RemoveChildTab(ArchiveForm form)
+        {
+            var toRemove = _openedTabs.FirstOrDefault(x => (x.Controls[0] as ArchiveForm) == form);
+            if (toRemove != null) _openedTabs.Remove(toRemove);
         }
 
         private void Stub()
