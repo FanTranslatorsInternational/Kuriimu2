@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
@@ -13,16 +14,35 @@ namespace Kore
     /// </summary>
     public class KoreFileInfo : INotifyPropertyChanged
     {
+        /// <summary>
+        /// If the file was opened from an archive, this property is set to the parent Archive KFI
+        /// </summary>
         public KoreFileInfo ParentKfi { get; set; }
 
+        /// <summary>
+        /// If this file is an archive, it will track the KFIs that get opened from it
+        /// </summary>
         public List<KoreFileInfo> ChildKfi { get; set; }
 
+        //TODO: AFI in KoreFileInfo subject ot remove?
+        /// <summary>
+        /// This files ArchiveFileInfo to get access to parent states
+        /// </summary>
         public ArchiveFileInfo AFI { get; set; }
 
+        /// <summary>
+        /// If the plugin, the file was loaded with, can open more files than the one in this KoreFileInfo
+        /// </summary>
         public bool CanRequestFiles => Adapter is IMultipleFiles;
 
+        /// <summary>
+        /// If the plugin, the file was loaded with, can save
+        /// </summary>
         public bool CanSave => Adapter is ISaveFiles;
 
+        /// <summary>
+        /// If the plugin, the file was loaded with, can create a new file from scratch
+        /// </summary>
         public bool CanCreate => Adapter is ICreateFiles;
 
         /// <inheritdoc />
@@ -43,7 +63,7 @@ namespace Kore
         /// </summary>
         public bool HasChanges
         {
-            get => _hasChanges;
+            get => _hasChanges || (ChildKfi?.Any(x => x.HasChanges) ?? false);
             set
             {
                 if (value == _hasChanges) return;
@@ -57,6 +77,11 @@ namespace Kore
         /// 
         /// </summary>
         public ILoadFiles Adapter { get; set; }
+
+        /// <summary>
+        /// The full path of the opened file, cascaded through its parents, if opened through one or several archives
+        /// </summary>
+        public string FullPath => Path.Combine(ParentKfi?.FullPath ?? "", StreamFileInfo.FileName);
 
         /// <summary>
         /// 
