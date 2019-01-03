@@ -9,6 +9,7 @@ using Kontract.Interfaces.Text;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -54,13 +55,13 @@ namespace Kontract
 #pragma warning restore 0649, 0169
         #endregion
 
-        private string _pluginFolder;
+        public string PluginFolder { get; private set; }
 
         public PluginLoader(string pluginFolder)
         {
-            _pluginFolder = pluginFolder;
+            PluginFolder = Path.GetFullPath(pluginFolder);
 
-            Plugins.ComposePlugins(this, _pluginFolder);
+            Plugins.ComposePlugins(this, PluginFolder);
         }
 
         /// <summary>
