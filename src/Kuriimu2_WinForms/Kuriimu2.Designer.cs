@@ -28,10 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFiles = new System.Windows.Forms.TabControl();
+            this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,17 +67,23 @@
             this.openFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.openFiles.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
+            this.openFiles.ImageList = this.tabCloseButtons;
             this.openFiles.Location = new System.Drawing.Point(1, 28);
             this.openFiles.Name = "openFiles";
             this.openFiles.SelectedIndex = 0;
             this.openFiles.Size = new System.Drawing.Size(957, 529);
             this.openFiles.TabIndex = 1;
-            this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
+            // 
+            // tabCloseButtons
+            // 
+            this.tabCloseButtons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
+            this.tabCloseButtons.ImageSize = new System.Drawing.Size(16, 16);
+            this.tabCloseButtons.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // Kuriimu2
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(957, 557);
@@ -84,6 +92,8 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Kuriimu2";
             this.Text = "Kuriimu2";
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragEnter);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -97,6 +107,7 @@
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.TabControl openFiles;
+        private System.Windows.Forms.ImageList tabCloseButtons;
     }
 }
 

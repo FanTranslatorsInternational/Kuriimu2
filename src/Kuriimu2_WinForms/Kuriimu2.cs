@@ -19,11 +19,13 @@ using Kontract.FileSystem;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.FormatForms.Archive;
 using Kore;
+using Kuriimu2_WinForms.Properties;
 
 namespace Kuriimu2_WinForms
 {
     public partial class Kuriimu2 : Form
     {
+        private Random _rand = new Random();
         private KoreManager _kore;
         private string _tempFolder = "temp";
 
@@ -32,6 +34,9 @@ namespace Kuriimu2_WinForms
             InitializeComponent();
 
             _kore = new KoreManager();
+
+            tabCloseButtons.Images.Add(Resources.menu_delete);
+            tabCloseButtons.Images.SetKeyName(0, "close-button");
         }
 
         #region Events
@@ -49,11 +54,19 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            var kfi = _kore.LoadFile(new KoreLoadInfo(File.Open(filename, FileMode.Open), filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
-            AddTabPage(kfi);
+            var openFile = File.Open(filename, FileMode.Open);
+            var kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
+            if (kfi == null)
+            {
+                MessageBox.Show($"No plugin supports \"{filename}\".");
+                openFile.Dispose();
+                return;
+            }
+
+            AddTabPage(kfi, Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256)));
         }
 
-        private void AddTabPage(KoreFileInfo kfi, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
+        private void AddTabPage(KoreFileInfo kfi, Color tabColor, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
         {
             var tabPage = new TabPage();
 
@@ -64,37 +77,109 @@ namespace Kuriimu2_WinForms
                 tabControl = new ImageForm(kfi, tabPage, parentAdapter, parentTabPage);
             else if (kfi.Adapter is IArchiveAdapter)
                 tabControl = new ArchiveForm(kfi, tabPage, parentAdapter, parentTabPage, _tempFolder);
-            tabControl.CreateTab += Kuriimu2_CreateTab;
+            tabControl.TabColor = tabColor;
+
+            tabControl.OpenTab += Kuriimu2_OpenTab;
+            tabControl.SaveTab += TabControl_SaveTab;
+            tabControl.CloseTab += TabControl_CloseTab;
 
             tabPage.Controls.Add(tabControl as UserControl);
 
             openFiles.TabPages.Add(tabPage);
+            tabPage.ImageKey = "close-button";  // setting ImageKey before adding, makes the image not working
+            openFiles.SelectedTab = tabPage;
         }
 
-        private void Kuriimu2_CreateTab(object sender, CreateTabEventArgs e)
+        private void TabControl_SaveTab(object sender, SaveTabEventArgs e)
         {
-            AddTabPage(e.Kfi, e.ParentAdapter, e.ParentTabPage);
+            if (e.Kfi.HasChanges)
+                _kore.SaveFile(new KoreSaveInfo(e.Kfi, _tempFolder) { Version = e.Version });
+        }
+
+        private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
+        {
+            // Security question, so the user knows that every sub file will be closed
+            if (e.Kfi.ChildKfi != null && e.Kfi.ChildKfi.Count > 0)
+            {
+                var result = MessageBox.Show("Every file opened from this one and below will be closed too. Continue?", "Dependant files", MessageBoxButtons.YesNo);
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        break;
+                    case DialogResult.No:
+                    default:
+                        return;
+                }
+            }
+
+            // Save unchanged saves, if wanted
+            if (e.Kfi.HasChanges)
+            {
+                var result = MessageBox.Show($"Changes were made to \"{e.Kfi.FullPath}\" or its opened sub files. Do you want to save those changes?", "Unsaved changes", MessageBoxButtons.YesNoCancel);
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        TabControl_SaveTab(sender, new SaveTabEventArgs(e.Kfi));
+                        break;
+                    case DialogResult.No:
+                        break;
+                    case DialogResult.Cancel:
+                    default:
+                        return;
+                }
+            }
+
+            // Remove all tabs related to KFIs
+            CloseOpenTabs(e.Kfi);
+
+            // Close all KFIs
+            _kore.CloseFile(e.Kfi, e.LeaveOpen);
+        }
+
+        private void CloseOpenTabs(KoreFileInfo kfi)
+        {
+            if (kfi.ChildKfi != null)
+                foreach (var child in kfi.ChildKfi)
+                    CloseOpenTabs(child);
+
+            List<TabPage> toRemove = new List<TabPage>();
+            foreach (TabPage page in openFiles.TabPages)
+                foreach (IKuriimuForm kuriimuForm in page.Controls)
+                    if (kuriimuForm.Kfi == kfi)
+                        toRemove.Add(page);
+            foreach (var toRemoveElement in toRemove)
+                openFiles.TabPages.Remove(toRemoveElement);
+        }
+
+        private void Kuriimu2_OpenTab(object sender, OpenTabEventArgs e)
+        {
+            AddTabPage(e.Kfi, (sender as IKuriimuForm).TabColor, e.ParentAdapter, e.ParentTabPage);
         }
         #endregion
-
-        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            e.Graphics.DrawString("x", e.Font, Brushes.Black, e.Bounds.Right - 15, e.Bounds.Top + 4);
-            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, Brushes.Black, e.Bounds.Left + 12, e.Bounds.Top + 4);
-            e.DrawFocusRectangle();
-        }
 
         private void openFiles_MouseUp(object sender, MouseEventArgs e)
         {
             Rectangle r = openFiles.GetTabRect(openFiles.SelectedIndex);
-            Rectangle closeButton = new Rectangle(r.Right - 15, r.Top + 4, 9, 7);
+            Rectangle closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
             if (closeButton.Contains(e.Location))
             {
                 foreach (Control control in openFiles.SelectedTab.Controls)
                     if (control is IKuriimuForm kuriimuTab)
                         kuriimuTab.Close();
-                openFiles.TabPages.Remove(openFiles.SelectedTab);
             }
+        }
+
+        private void Kuriimu2_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            foreach (var file in files)
+                if (File.Exists(file))
+                    OpenFile(file);
+        }
+
+        private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
         }
     }
 }
