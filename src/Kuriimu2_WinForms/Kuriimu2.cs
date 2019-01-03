@@ -144,9 +144,6 @@ namespace Kuriimu2_WinForms
 
             // Close all KFIs
             _kore.CloseFile(e.Kfi, e.LeaveOpen);
-            //TODO: Can this be adopted into Kore.CloseFile?
-            if (e.Kfi.ParentKfi != null)
-                e.Kfi.ParentKfi.ChildKfi.Remove(e.Kfi);
         }
 
         private void CloseOpenTabs(KoreFileInfo kfi)

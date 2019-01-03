@@ -283,9 +283,14 @@ namespace Kore
         /// <returns>True if file was closed, False otherwise.</returns>
         public bool CloseFile(KoreFileInfo kfi, bool leaveFileStreamOpen = false)
         {
+            return CloseFile(kfi, leaveFileStreamOpen, true);
+        }
+
+        private bool CloseFile(KoreFileInfo kfi, bool leaveFileStreamOpen, bool firstIteration)
+        {
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0)
                 foreach (var child in kfi.ChildKfi)
-                    CloseFile(child, false);
+                    CloseFile(child, false, false);
 
             if (OpenFiles.Contains(kfi))
                 OpenFiles.Remove(kfi);
@@ -295,6 +300,10 @@ namespace Kore
                 kfi.StreamFileInfo.FileData.Close();
             if (kfi.Adapter is IMultipleFiles multFileAdapter)
                 multFileAdapter.FileSystem.Dispose();
+
+            if (firstIteration)
+                if (kfi.ParentKfi != null)
+                    kfi.ParentKfi.ChildKfi.Remove(kfi);
 
             return true;
         }
