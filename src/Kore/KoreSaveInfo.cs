@@ -10,11 +10,15 @@ namespace Kore
 {
     public class KoreSaveInfo
     {
-        public IArchiveAdapter ParentAdapter { get; set; }
-        public string TempFolder { get; set; }
+        public KoreSaveInfo(KoreFileInfo kfi, string tempFolder)
+        {
+            Kfi = kfi;
+            TempFolder = tempFolder;
+        }
 
-        public string NewSaveLocation { get; set; }
-
+        public KoreFileInfo Kfi { get; }
         public int Version { get; set; }
+        public string NewSaveLocation { get; set; }
+        public string TempFolder { get; }
     }
 }
