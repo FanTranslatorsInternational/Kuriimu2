@@ -188,7 +188,6 @@
             // 
             // treDirectories
             // 
-            this.treDirectories.AllowDrop = true;
             this.treDirectories.ContextMenuStrip = this.mnuDirectories;
             this.treDirectories.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treDirectories.FullRowSelect = true;

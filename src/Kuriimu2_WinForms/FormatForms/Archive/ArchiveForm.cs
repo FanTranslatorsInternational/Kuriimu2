@@ -29,8 +29,6 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
     {
         public KoreFileInfo Kfi { get; private set; }
 
-        public bool HasChanges { get; set; }
-
         private KoreManager _kore;
         private TabPage _tabPage;
         private TabPage _parentTabPage;
@@ -38,6 +36,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private string _subFolder;
 
         private IArchiveAdapter _archiveAdapter { get => Kfi.Adapter as IArchiveAdapter; }
+        public Color TabColor { get; set; }
+
         private IArchiveAdapter _parentAdapter;
 
         private bool _canExtractDirectories;
@@ -50,7 +50,9 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         private List<TabPage> _openedTabs;
 
-        public event EventHandler<CreateTabEventArgs> CreateTab;
+        public event EventHandler<CloseTabEventArgs> CloseTab;
+        public event EventHandler<OpenTabEventArgs> OpenTab;
+        public event EventHandler<SaveTabEventArgs> SaveTab;
 
         public ArchiveForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, string tempFolder)
         {
@@ -319,7 +321,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
             Kfi.ChildKfi.Add(kfi);
 
-            CreateTab(this, new CreateTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
+            OpenTab?.Invoke(this, new OpenTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
         }
         #endregion
 
@@ -348,7 +350,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
                 Kfi.ChildKfi.Add(kfi);
 
-                CreateTab(this, new CreateTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
+                OpenTab?.Invoke(this, new OpenTabEventArgs { Kfi = kfi, ParentAdapter = _archiveAdapter, ParentTabPage = _tabPage });
             }
             else
             {

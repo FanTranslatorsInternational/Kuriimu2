@@ -194,16 +194,12 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         public void Save(string filename = "")
         {
-            _kore.SaveFile(Kfi, _tempFolder);
+            SaveTab?.Invoke(this, new SaveTabEventArgs(Kfi) { NewSaveLocation = filename });
         }
 
         public void Close()
         {
-            foreach (var page in _openedTabs)
-                if (page is IKuriimuForm kuriimuForm && kuriimuForm.HasChanges)
-                    kuriimuForm.Save();
-
-            _kore.CloseFile(Kfi, _parentAdapter != null);
+            CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi) { LeaveOpen = Kfi.ParentKfi != null });
         }
 
         public void UpdateForm2()
@@ -385,8 +381,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 }
             }
 
-            HasChanges = true;
-            (this as Control).Text = Path.GetFileName(Kfi.StreamFileInfo.FileName) + " *";
+            Kfi.HasChanges = true;
+            (this as Control).Text = Kfi.DisplayName;
 
             UpdateForm();
             LoadFiles();
