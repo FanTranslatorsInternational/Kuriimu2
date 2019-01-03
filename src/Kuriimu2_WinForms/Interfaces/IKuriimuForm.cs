@@ -1,4 +1,6 @@
 ﻿using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.VirtualFS;
 using Kore;
 using System;
 using System.Collections.Generic;
@@ -26,9 +28,19 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class OpenTabEventArgs : EventArgs
     {
-        public KoreFileInfo Kfi { get; set; }
-        public IArchiveAdapter ParentAdapter { get; set; }
+        public OpenTabEventArgs(StreamInfo info, IVirtualFSRoot fs)
+        {
+            StreamInfo = info;
+            FileSystem = fs;
+        }
+
+        public StreamInfo StreamInfo { get; }
+        public IVirtualFSRoot FileSystem { get; }
+        public bool LeaveOpen { get; set; }
+        public KoreFileInfo ParentKfi { get; set; }
         public TabPage ParentTabPage { get; set; }
+
+        public KoreFileInfo NewKfi { get; set; }
     }
 
     public class SaveTabEventArgs : EventArgs
@@ -45,12 +57,14 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class CloseTabEventArgs : EventArgs
     {
-        public CloseTabEventArgs(KoreFileInfo kfi)
+        public CloseTabEventArgs(KoreFileInfo kfi, TabPage parentTabPage)
         {
             Kfi = kfi;
+            ParentTabPage = parentTabPage;
         }
 
         public KoreFileInfo Kfi { get; }
+        public TabPage ParentTabPage { get; }
         public bool LeaveOpen { get; set; }
     }
 }

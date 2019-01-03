@@ -54,16 +54,22 @@ namespace Kuriimu2_WinForms
             if (!File.Exists(filename))
                 throw new FileLoadException(filename);
 
-            var openFile = File.Open(filename, FileMode.Open);
-            var kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
-            if (kfi == null)
+            var openedTabPage = GetTabPageForFullPath(filename);
+            if (openedTabPage != null)
+                openFiles.SelectedTab = openedTabPage;
+            else
             {
-                MessageBox.Show($"No plugin supports \"{filename}\".");
-                openFile.Dispose();
-                return;
-            }
+                var openFile = File.Open(filename, FileMode.Open);
+                var kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
+                if (kfi == null)
+                {
+                    MessageBox.Show($"No plugin supports \"{filename}\".");
+                    openFile.Dispose();
+                    return;
+                }
 
-            AddTabPage(kfi, Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256)));
+                AddTabPage(kfi, Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256)));
+            }
         }
 
         private void AddTabPage(KoreFileInfo kfi, Color tabColor, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
@@ -132,8 +138,15 @@ namespace Kuriimu2_WinForms
             // Remove all tabs related to KFIs
             CloseOpenTabs(e.Kfi);
 
+            // Update parent, if existent
+            if (e.Kfi.ParentKfi != null)
+                (e.ParentTabPage.Controls[0] as ArchiveForm).RemoveChildTab(sender as ArchiveForm);
+
             // Close all KFIs
             _kore.CloseFile(e.Kfi, e.LeaveOpen);
+            //TODO: Can this be adopted into Kore.CloseFile?
+            if (e.Kfi.ParentKfi != null)
+                e.Kfi.ParentKfi.ChildKfi.Remove(e.Kfi);
         }
 
         private void CloseOpenTabs(KoreFileInfo kfi)
@@ -153,7 +166,28 @@ namespace Kuriimu2_WinForms
 
         private void Kuriimu2_OpenTab(object sender, OpenTabEventArgs e)
         {
-            AddTabPage(e.Kfi, (sender as IKuriimuForm).TabColor, e.ParentAdapter, e.ParentTabPage);
+            var openedTabPage = GetTabPageForFullPath(Path.Combine(e.ParentKfi.FullPath, e.StreamInfo.FileName));
+            if (openedTabPage == null)
+            {
+                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.StreamInfo.FileData, e.StreamInfo.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
+                e.NewKfi = newKfi;
+            }
+            else
+                openFiles.SelectedTab = openedTabPage;
+        }
+
+        private TabPage GetTabPageForFullPath(string fullPath)
+        {
+            var openedKfi = _kore.GetOpenedFile(fullPath);
+            if (openedKfi == null) return null;
+
+            foreach (TabPage page in openFiles.TabPages)
+                foreach (IKuriimuForm kuriimuForm in page.Controls)
+                    if (kuriimuForm.Kfi == openedKfi)
+                        return page;
+
+            return null;
         }
         #endregion
 
