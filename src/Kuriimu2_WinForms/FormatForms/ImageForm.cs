@@ -30,11 +30,11 @@ namespace Kuriimu2_WinForms.FormatForms
             _parentAdapter = parentAdapter;
         }
 
-        public KoreFileInfo Kfi { get; private set; }
+        public KoreFileInfo Kfi { get; set; }
 
         public bool HasChanges { get; private set; }
         public Color TabColor { get; set; }
-        
+
         public event EventHandler<OpenTabEventArgs> OpenTab;
         public event EventHandler<SaveTabEventArgs> SaveTab;
         public event EventHandler<CloseTabEventArgs> CloseTab;
@@ -49,7 +49,7 @@ namespace Kuriimu2_WinForms.FormatForms
             throw new NotImplementedException();
         }
 
-        public void UpdateForm2()
+        public void UpdateForm()
         {
             throw new NotImplementedException();
         }

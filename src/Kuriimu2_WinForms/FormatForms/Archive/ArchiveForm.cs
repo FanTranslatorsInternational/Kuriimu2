@@ -22,14 +22,14 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Kontract.Attributes;
+using Kontract;
 
 namespace Kuriimu2_WinForms.FormatForms.Archive
 {
     public partial class ArchiveForm : UserControl, IKuriimuForm
     {
-        public KoreFileInfo Kfi { get; private set; }
+        public KoreFileInfo Kfi { get; set; }
 
-        private KoreManager _kore;
         private TabPage _tabPage;
         private TabPage _parentTabPage;
         private string _tempFolder;
@@ -38,7 +38,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private IArchiveAdapter _archiveAdapter { get => Kfi.Adapter as IArchiveAdapter; }
         public Color TabColor { get; set; }
 
-        private IArchiveAdapter _parentAdapter;
+        //private IArchiveAdapter _parentAdapter;
 
         private bool _canExtractDirectories;
         private bool _canReplaceDirectories;
@@ -82,9 +82,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
             _tabPage = tabPage;
             _parentTabPage = parentTabPage;
-            _parentAdapter = parentAdapter;
+            //_parentAdapter = parentAdapter;
 
-            _kore = new KoreManager();
             _tempFolder = tempFolder;
             _subFolder = Guid.NewGuid().ToString();
             _openedTabs = new List<TabPage>();
@@ -113,7 +112,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         {
             Save();
 
-            UpdateForm2();
+            UpdateForm();
         }
 
         private void tsbSaveAs_Click(object sender, EventArgs e)
@@ -123,6 +122,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 Save(sfd.FileName);
             else
                 MessageBox.Show("Something failed while choosing a save file", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            UpdateForm();
         }
 
         private void tsbFind_Click(object sender, EventArgs e)
@@ -256,9 +257,9 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             deleteFileToolStripMenuItem.Tag = afi;
 
             // Generate supported application menu items
-            var kuriimuVisible = ext?.Length > 0 && _kore.GetAdapters<ITextAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && _kore.GetAdapters<IImageAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && _kore.GetAdapters<IArchiveAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             openFileToolStripMenuItem.Enabled = kuriimuVisible || kukkiiVisible || karameruVisible;
             openFileToolStripMenuItem.Text = openFileToolStripMenuItem.Enabled ? "Open" : "No plugins support this file";
@@ -326,9 +327,9 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
             var ext = Path.GetExtension(afi?.FileName);
 
-            var kuriimuVisible = ext?.Length > 0 && _kore.GetAdapters<ITextAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && _kore.GetAdapters<IImageAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && _kore.GetAdapters<IArchiveAdapter>().Select(x => _kore.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             if (kuriimuVisible || kukkiiVisible || karameruVisible)
                 OpenAfi(afi);
@@ -353,6 +354,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
                 if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
                 Kfi.ChildKfi.Add(args.NewKfi);
+
+                _openedTabs.Add(args.NewTabPage);
             }
         }
     }

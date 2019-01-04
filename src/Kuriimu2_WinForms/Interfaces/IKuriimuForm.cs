@@ -18,12 +18,12 @@ namespace Kuriimu2_WinForms.Interfaces
         event EventHandler<SaveTabEventArgs> SaveTab;
         event EventHandler<CloseTabEventArgs> CloseTab;
 
-        KoreFileInfo Kfi { get; }
+        KoreFileInfo Kfi { get; set; }
         Color TabColor { get; set; }
 
         void Save(string filename = "");
         void Close();
-        void UpdateForm2();
+        void UpdateForm();
     }
 
     public class OpenTabEventArgs : EventArgs
@@ -41,6 +41,7 @@ namespace Kuriimu2_WinForms.Interfaces
         public TabPage ParentTabPage { get; set; }
 
         public KoreFileInfo NewKfi { get; set; }
+        public TabPage NewTabPage { get; set; }
     }
 
     public class SaveTabEventArgs : EventArgs

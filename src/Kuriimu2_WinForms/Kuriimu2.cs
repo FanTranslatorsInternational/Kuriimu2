@@ -72,7 +72,7 @@ namespace Kuriimu2_WinForms
             }
         }
 
-        private void AddTabPage(KoreFileInfo kfi, Color tabColor, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
+        private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
         {
             var tabPage = new TabPage();
 
@@ -94,12 +94,26 @@ namespace Kuriimu2_WinForms
             openFiles.TabPages.Add(tabPage);
             tabPage.ImageKey = "close-button";  // setting ImageKey before adding, makes the image not working
             openFiles.SelectedTab = tabPage;
+
+            return tabPage;
         }
 
         private void TabControl_SaveTab(object sender, SaveTabEventArgs e)
         {
             if (e.Kfi.HasChanges)
-                _kore.SaveFile(new KoreSaveInfo(e.Kfi, _tempFolder) { Version = e.Version });
+            {
+                // Save files
+                var ksi = new KoreSaveInfo(e.Kfi, _tempFolder) { Version = e.Version, NewSaveLocation = e.NewSaveLocation };
+                _kore.SaveFile2(ksi);
+
+                // Update current tab and its childs if possible
+                (sender as IKuriimuForm).Kfi = ksi.SavedKfi;
+                if (sender is ArchiveForm archiveForm)
+                    archiveForm.UpdateChildTabs(ksi.SavedKfi);
+
+                // Update current and parent tabs
+                (sender as IKuriimuForm).UpdateForm();
+            }
         }
 
         private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
@@ -167,8 +181,10 @@ namespace Kuriimu2_WinForms
             if (openedTabPage == null)
             {
                 var newKfi = _kore.LoadFile(new KoreLoadInfo(e.StreamInfo.FileData, e.StreamInfo.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
-                AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
+                var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
+
                 e.NewKfi = newKfi;
+                e.NewTabPage = newTabPage;
             }
             else
                 openFiles.SelectedTab = openedTabPage;

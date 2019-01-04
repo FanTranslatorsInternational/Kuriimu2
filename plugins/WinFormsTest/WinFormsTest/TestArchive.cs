@@ -86,12 +86,16 @@ namespace WinFormsTest
             using (var bw = new BinaryWriter(initialFile.FileData, Encoding.ASCII, LeaveOpen))
             using (var bwData = new BinaryWriter(FileSystem.CreateFile(Path.GetFileNameWithoutExtension(initialFile.FileName) + ".archive"), Encoding.ASCII, LeaveOpen))
             {
+                bw.Write(Files.Count);
+                while (bw.BaseStream.Position % 0x10 != 0)
+                    bw.Write((byte)0);
+
                 foreach (var file in Files)
                 {
                     bw.Write((int)bwData.BaseStream.Position);
                     bw.Write((int)file.FileSize);
                     bw.Write(Encoding.ASCII.GetBytes(file.FileName));
-                    while (bw.BaseStream.Position % 0x20 != 0)
+                    while ((bw.BaseStream.Position - 0x10) % 0x20 != 0)
                         bw.Write((byte)0);
 
                     file.FileData.Position = 0;

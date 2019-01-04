@@ -171,74 +171,115 @@ namespace Kore
             return kfi;
         }
 
-        public void SaveFile(KoreSaveInfo ksi)
+        /* - 1. Create filename tree
+2. Save all files from child to parent
+- 3. Close all KFI Streams
+- 4. Reset KFI.StreamFileInfo
+- 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
+- 6. Reopen dependant files from parent to child
+*/
+        public void SaveFile2(KoreSaveInfo ksi)
+        {
+            SaveFile2(ksi, true);
+        }
+
+        private void SaveFile2(KoreSaveInfo ksi, bool firstIteration)
         {
             var kfi = ksi.Kfi;
             var tempFolder = ksi.TempFolder;
+            var guid = Guid.NewGuid().ToString();
+
+            // Get FullPath tree
+            FullPathNode fullPathTree = null;
+            if (firstIteration)
+                fullPathTree = CreateFullPathTree(ksi.Kfi);
 
             // Save all childs first, if existent
+            SaveChilds(ksi);
+
+            // Save data with the adapter
+            var fs = new PhysicalFileSystem(Path.Combine(Path.GetFullPath(ksi.TempFolder), guid));
+            SaveWithAdapter(ksi, fs);
+
+            // Close KFIs
+            CloseFile(kfi, kfi.ParentKfi != null, firstIteration);
+
+            // Replace data in parent KFI or physical folder
+            if (kfi.ParentKfi != null)
+                ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootDir);
+            else
+            {
+                var newSaveDir = string.IsNullOrEmpty(ksi.NewSaveLocation) ? Path.GetDirectoryName(kfi.FullPath) : Path.GetDirectoryName(ksi.NewSaveLocation);
+
+                ReplaceFilesInFolder(newSaveDir, fs, fs.RootDir);
+                UpdateFullPathTree(fullPathTree, Path.GetDirectoryName(kfi.FullPath), newSaveDir);
+            }
+
+            // Reopen files recursively from parent to child
+            if (firstIteration)
+                ksi.SavedKfi = ReopenFiles(kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
+        }
+
+        private FullPathNode CreateFullPathTree(KoreFileInfo kfi)
+        {
+            var newNode = new FullPathNode(kfi.FullPath);
+            if (kfi.ChildKfi != null)
+                foreach (var child in kfi.ChildKfi)
+                    newNode.Nodes.Add(CreateFullPathTree(child));
+            return newNode;
+        }
+
+        private void UpdateFullPathTree(FullPathNode fullPathTree, string oldSaveLocation, string newSaveLocation)
+        {
+            fullPathTree.FullPath = fullPathTree.FullPath.Replace(oldSaveLocation, newSaveLocation);
+
+            foreach (var child in fullPathTree.Nodes)
+                UpdateFullPathTree(child, oldSaveLocation, newSaveLocation);
+        }
+
+        private class FullPathNode
+        {
+            public FullPathNode(string fullPath)
+            {
+                FullPath = fullPath;
+                Nodes = new List<FullPathNode>();
+            }
+
+            public string FullPath { get; set; }
+            public List<FullPathNode> Nodes { get; }
+        }
+
+        private void SaveChilds(KoreSaveInfo ksi)
+        {
+            var kfi = ksi.Kfi;
+
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0 && kfi.HasChanges)
                 foreach (var child in kfi.ChildKfi)
                     if (child.HasChanges)
-                        SaveFile(new KoreSaveInfo(child, tempFolder) { Version = ksi.Version });
+                        SaveFile2(new KoreSaveInfo(child, ksi.TempFolder) { Version = ksi.Version }, false);
+        }
 
-            // Save data with the adapter
-            var guid = Guid.NewGuid().ToString();
-            var fs = new PhysicalFileSystem(Path.Combine(tempFolder, guid));
+        private void SaveWithAdapter(KoreSaveInfo ksi, IVirtualFSRoot fs)
+        {
+            var kfi = ksi.Kfi;
+
             if (kfi.Adapter is IMultipleFiles multFileAdapter)
                 multFileAdapter.FileSystem = fs;
             kfi.Adapter.LeaveOpen = false;
-            var streaminfo = new StreamInfo { FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)), FileName = Path.GetFileName(kfi.StreamFileInfo.FileName) };
+
+            var streaminfo = new StreamInfo
+            {
+                FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)),
+                FileName = Path.GetFileName(kfi.StreamFileInfo.FileName)
+            };
             (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
-
-            // Replace files in adapter
-            if (kfi.ParentKfi != null)
-            {
-                var parentArchiveAdapter = kfi.ParentKfi.Adapter as IArchiveAdapter;
-                RecursiveUpdate(parentArchiveAdapter, fs, Path.Combine(Path.GetFullPath(tempFolder), guid));
-            }
-            else
-            {
-                // TODO: Implement save if no parent is given
-                // Get intial directory
-                var initialDir = Path.GetDirectoryName(ksi.Kfi.FullPath);
-
-                // Close current initial file
-                ksi.Kfi.StreamFileInfo.FileData.Close();
-
-                // Close current FileSystem, if set
-                if (ksi.Kfi is IMultipleFiles multFileAdapter2 && multFileAdapter2.FileSystem != null)
-                    multFileAdapter2.FileSystem.Dispose();
-
-                // All open filestreams of the initial file should be closed by now
-                if (string.IsNullOrEmpty(ksi.NewSaveLocation))
-                {
-                    // Move saved files to intial location
-                    SaveFileSystem(fs, initialDir);
-                }
-                else
-                {
-
-                }
-
-                // Reopen
-            }
-
-            // Update archive file states in this level
-            if (kfi.Adapter is IArchiveAdapter archiveAdapter)
-                foreach (var afi in archiveAdapter.Files)
-                    afi.State = ArchiveFileState.Archived;
-
-            // Update archive file states up the parent tree
-            if (kfi.ParentKfi != null)
-                kfi.UpdateState(ArchiveFileState.Replaced);
         }
 
-        private void RecursiveUpdate(IArchiveAdapter parentAdapter, IVirtualFSRoot physicalFS, string root)
+        private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, IVirtualFSRoot physicalFS, string root)
         {
             // Loop through all directories
             foreach (var dir in physicalFS.EnumerateDirectories(true))
-                RecursiveUpdate(parentAdapter, physicalFS.GetDirectory(dir), root);
+                ReplaceFilesInAdapter(parentAdapter, physicalFS.GetDirectory(dir), root);
 
             // Update files of this directory
             foreach (var file in physicalFS.EnumerateFiles())
@@ -254,10 +295,121 @@ namespace Kore
             }
         }
 
+        private void ReplaceFilesInFolder(string newSaveLocation, IVirtualFSRoot physicalFS, string root)
+        {
+            // Loop through all directories
+            foreach (var dir in physicalFS.EnumerateDirectories(true))
+                ReplaceFilesInFolder(newSaveLocation, physicalFS.GetDirectory(dir), root);
+
+            // Update files of this directory
+            foreach (var file in physicalFS.EnumerateFiles())
+            {
+                var relativeFileName = file.Remove(0, root.Length + 1);
+                var openedFile = physicalFS.OpenFile(relativeFileName);
+
+                if (!Directory.Exists(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName))))
+                    Directory.CreateDirectory(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName)));
+
+                var createdFile = File.Create(Path.Combine(newSaveLocation, relativeFileName));
+                openedFile.CopyTo(createdFile);
+
+                createdFile.Close();
+                openedFile.Close();
+            }
+        }
+
         private string UnifyPathDelimiters(string path)
         {
             return path.Replace(Path.DirectorySeparatorChar == '/' ? '\\' : '/', Path.DirectorySeparatorChar);
         }
+
+        private KoreFileInfo ReopenFiles(KoreFileInfo kfi, FullPathNode fullPathTree, string tempFolder, bool isChild)
+        {
+            var guid = Guid.NewGuid().ToString();
+
+            // Open this file
+            KoreFileInfo newKfi = null;
+            if (isChild)
+            {
+                var parentFiles = (kfi.Adapter as IArchiveAdapter).Files;
+                var foundAfi = parentFiles.FirstOrDefault(x => x.FileName == fullPathTree.FullPath.Remove(0, kfi.FullPath.Length + 1));
+                if (foundAfi == null)
+                    throw new InvalidOperationException($"While reopening files, the ArchiveFileInfo with FullPath \"{fullPathTree.FullPath}\" couldn't be found.");
+
+                newKfi = LoadFile(new KoreLoadInfo(foundAfi.FileData, foundAfi.FileName) { LeaveOpen = true, Adapter = kfi.Adapter, FileSystem = new VirtualFileSystem(kfi.Adapter as IArchiveAdapter, tempFolder) });
+
+                newKfi.ParentKfi = kfi;
+                newKfi.ChildKfi = new List<KoreFileInfo>();
+            }
+            else
+            {
+                var openedFile = File.Open(fullPathTree.FullPath, FileMode.Open);
+
+                newKfi = LoadFile(new KoreLoadInfo(openedFile, fullPathTree.FullPath) { LeaveOpen = true, Adapter = kfi.Adapter, FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(fullPathTree.FullPath)) });
+
+                newKfi.ChildKfi = new List<KoreFileInfo>();
+            }
+
+            // Open Childs
+            foreach (var child in fullPathTree.Nodes)
+                newKfi.ChildKfi.Add(ReopenFiles(newKfi, child, tempFolder, true));
+
+            return newKfi;
+        }
+
+        //public void SaveFile(KoreSaveInfo ksi)
+        //{
+        //    // Save data with the adapter
+        //    var guid = Guid.NewGuid().ToString();
+        //    var fs = new PhysicalFileSystem(Path.Combine(tempFolder, guid));
+        //    if (kfi.Adapter is IMultipleFiles multFileAdapter)
+        //        multFileAdapter.FileSystem = fs;
+        //    kfi.Adapter.LeaveOpen = false;
+        //    var streaminfo = new StreamInfo { FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)), FileName = Path.GetFileName(kfi.StreamFileInfo.FileName) };
+        //    (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
+
+        //    // Replace files in adapter
+        //    if (kfi.ParentKfi != null)
+        //    {
+        //        var parentArchiveAdapter = kfi.ParentKfi.Adapter as IArchiveAdapter;
+        //        RecursiveUpdate(parentArchiveAdapter, fs, Path.Combine(Path.GetFullPath(tempFolder), guid));
+        //    }
+        //    else
+        //    {
+        //        // TODO: Implement save if no parent is given
+        //        // Get intial directory
+        //        var initialDir = Path.GetDirectoryName(ksi.Kfi.FullPath);
+
+        //        // Close current initial file
+        //        ksi.Kfi.StreamFileInfo.FileData.Close();
+
+        //        // Close current FileSystem, if set
+        //        if (ksi.Kfi is IMultipleFiles multFileAdapter2 && multFileAdapter2.FileSystem != null)
+        //            multFileAdapter2.FileSystem.Dispose();
+
+        //        // All open filestreams of the initial file should be closed by now
+        //        if (string.IsNullOrEmpty(ksi.NewSaveLocation))
+        //        {
+        //            // Move saved files to intial location
+        //            SaveFileSystem(fs, initialDir);
+        //        }
+        //        else
+        //        {
+
+        //        }
+
+        //        // Reopen
+        //    }
+
+        //    // Update archive file states in this level
+        //    if (kfi.Adapter is IArchiveAdapter archiveAdapter)
+        //        foreach (var afi in archiveAdapter.Files)
+        //            afi.State = ArchiveFileState.Archived;
+
+        //    // Update archive file states up the parent tree
+        //    if (kfi.ParentKfi != null)
+        //        kfi.UpdateState(ArchiveFileState.Replaced);
+        //}
 
         //TODO: SaveFileSystem
         private void SaveFileSystem(IVirtualFSRoot fs, string folder)
@@ -298,8 +450,8 @@ namespace Kore
             kfi.Adapter.Dispose();
             if (!leaveFileStreamOpen)
                 kfi.StreamFileInfo.FileData.Close();
-            if (kfi.Adapter is IMultipleFiles multFileAdapter)
-                multFileAdapter.FileSystem.Dispose();
+            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
+            //    multFileAdapter.FileSystem.Dispose();
 
             if (firstIteration)
                 if (kfi.ParentKfi != null)

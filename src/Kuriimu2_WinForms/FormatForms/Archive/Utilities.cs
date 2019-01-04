@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.Archive;
+﻿using Kontract;
+using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
@@ -62,9 +63,10 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                     // Get the items from the file system, and add each of them to the ListView,
                     // complete with their corresponding name and icon indices.
                     var ext = Path.GetExtension(file.FileName).ToLower();
-                    var textFile = ext.Length > 0 && _kore.FileExtensionsByType<ITextAdapter>().Contains(ext);
-                    var imageFile = ext.Length > 0 && _kore.FileExtensionsByType<IImageAdapter>().Contains(ext);
-                    var archiveFile = ext.Length > 0 && _kore.FileExtensionsByType<IArchiveAdapter>().Contains(ext);
+                    //TODO
+                    //var textFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<ITextAdapter>().Contains(ext);
+                    //var imageFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IImageAdapter>().Contains(ext);
+                    //var archiveFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IArchiveAdapter>().Contains(ext);
 
                     var shfi = new Win32.SHFILEINFO();
                     try
@@ -94,9 +96,10 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                             Win32.DestroyIcon(shfi.hIcon);
                     }
 
-                    if (textFile) ext = "tree-text-file";
-                    if (imageFile) ext = "tree-image-file";
-                    if (archiveFile) ext = "tree-archive-file";
+                    //TODO
+                    if (false) ext = "tree-text-file";
+                    if (false) ext = "tree-image-file";
+                    if (false) ext = "tree-archive-file";
 
                     var sb = new StringBuilder(16);
                     Win32.StrFormatByteSize((long)file.FileSize, sb, 16);
@@ -136,7 +139,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         }
         #endregion
 
-        private void UpdateForm()
+        public void UpdateForm()
         {
             _tabPage.Text = Kfi.DisplayName;
 
@@ -167,7 +170,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             //saveToolStripMenuItem.Enabled = _fileOpen && (bool)_archiveManager?.CanSave;
             tsbSave.Enabled = _archiveAdapter is ISaveFiles;
             //saveAsToolStripMenuItem.Enabled = _fileOpen && (bool)_archiveManager?.CanSave;
-            tsbSaveAs.Enabled = _archiveAdapter is ISaveFiles && _parentAdapter == null;
+            tsbSaveAs.Enabled = _archiveAdapter is ISaveFiles && Kfi.ParentKfi == null;
             //closeToolStripMenuItem.Enabled = _fileOpen;
             //findToolStripMenuItem.Enabled = _fileOpen;
             //tsbFind.Enabled = _fileOpen;
@@ -190,11 +193,15 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             // Shortcuts
             //tsbKuriimu.Enabled = File.Exists(Path.Combine(Application.StartupPath, "kuriimu.exe"));
             //tsbKukkii.Enabled = File.Exists(Path.Combine(Application.StartupPath, "kukkii.exe"));
+
+            if (_parentTabPage != null)
+                (_parentTabPage.Controls[0] as IKuriimuForm).UpdateForm();
         }
 
         public void Save(string filename = "")
         {
             SaveTab?.Invoke(this, new SaveTabEventArgs(Kfi) { NewSaveLocation = filename });
+            UpdateForm();
         }
 
         public void Close()
@@ -202,19 +209,23 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi, _parentTabPage) { LeaveOpen = Kfi.ParentKfi != null });
         }
 
-        public void UpdateForm2()
-        {
-            LoadDirectories();
-            LoadFiles();
-
-            if (_parentTabPage != null)
-                (_parentTabPage.Controls[0] as IKuriimuForm).UpdateForm2();
-        }
-
         public void RemoveChildTab(ArchiveForm form)
         {
             var toRemove = _openedTabs.FirstOrDefault(x => (x.Controls[0] as ArchiveForm) == form);
             if (toRemove != null) _openedTabs.Remove(toRemove);
+        }
+
+        public void UpdateChildTabs(KoreFileInfo kfi)
+        {
+            if (kfi.ChildKfi != null)
+                foreach (var child in kfi.ChildKfi.Zip(_openedTabs, (x, y) => new { Kfi = x, Tab = y }))
+                {
+                    (child.Tab.Controls[0] as IKuriimuForm).Kfi = child.Kfi;
+                    if (child.Tab.Controls[0] is ArchiveForm archiveForm) archiveForm.UpdateChildTabs(child.Kfi);
+                }
+
+            LoadDirectories();
+            UpdateForm();
         }
 
         private void Stub()
