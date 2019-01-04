@@ -67,12 +67,14 @@
             this.openFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.openFiles.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             this.openFiles.ImageList = this.tabCloseButtons;
             this.openFiles.Location = new System.Drawing.Point(1, 28);
             this.openFiles.Name = "openFiles";
             this.openFiles.SelectedIndex = 0;
             this.openFiles.Size = new System.Drawing.Size(957, 529);
             this.openFiles.TabIndex = 1;
+            this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
             // 
             // tabCloseButtons
@@ -92,6 +94,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Kuriimu2";
             this.Text = "Kuriimu2";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Kuriimu2_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragEnter);
             this.menuStrip1.ResumeLayout(false);

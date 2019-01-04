@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveAdapter
+    public interface IArchiveReplaceFiles
     {
-        List<ArchiveFileInfo> Files { get; }
-        
-        bool FileHasExtendedProperties { get; }
     }
 }

@@ -16,12 +16,15 @@ namespace Kontract.Interfaces.VirtualFS
 
         string RootDir { get; }
 
-        IEnumerable<string> EnumerateFiles(bool relative=false);
+        IEnumerable<string> EnumerateFiles(bool relative = false);
         IEnumerable<string> EnumerateDirectories(bool relative = false);
 
         IVirtualFSRoot GetDirectory(string path);
 
         Stream OpenFile(string filename);
         Stream CreateFile(string filename);
+        void DeleteFile(string filename);
+
+        bool FileExists(string filename);
     }
 }

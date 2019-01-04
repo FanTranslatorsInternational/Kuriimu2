@@ -400,6 +400,7 @@
             this.tsbFileExtract.Name = "tsbFileExtract";
             this.tsbFileExtract.Size = new System.Drawing.Size(23, 22);
             this.tsbFileExtract.Text = "Extract File";
+            this.tsbFileExtract.Click += new System.EventHandler(this.tsbFileExtract_Click);
             // 
             // tsbFileReplace
             // 
@@ -410,6 +411,7 @@
             this.tsbFileReplace.Name = "tsbFileReplace";
             this.tsbFileReplace.Size = new System.Drawing.Size(23, 22);
             this.tsbFileReplace.Text = "Replace File";
+            this.tsbFileReplace.Click += new System.EventHandler(this.tsbFileReplace_Click);
             // 
             // tsbFileRename
             // 
@@ -420,6 +422,7 @@
             this.tsbFileRename.Name = "tsbFileRename";
             this.tsbFileRename.Size = new System.Drawing.Size(23, 22);
             this.tsbFileRename.Text = "Rename File";
+            this.tsbFileRename.Click += new System.EventHandler(this.tsbFileRename_Click);
             // 
             // tsbFileDelete
             // 
@@ -430,6 +433,7 @@
             this.tsbFileDelete.Name = "tsbFileDelete";
             this.tsbFileDelete.Size = new System.Drawing.Size(23, 22);
             this.tsbFileDelete.Text = "Delete File";
+            this.tsbFileDelete.Click += new System.EventHandler(this.tsbFileDelete_Click);
             // 
             // tsbFileProperties
             // 

@@ -160,8 +160,8 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
             _canAddFiles = _archiveAdapter is IArchiveAddFile;
             _canExtractFiles = itemSelected && (bool)afi?.FileSize.HasValue;
-            _canReplaceFiles = itemSelected && _archiveAdapter.CanReplaceFiles;
-            _canRenameFiles = itemSelected && _archiveAdapter.CanRenameFiles;
+            _canReplaceFiles = itemSelected && _archiveAdapter is IArchiveReplaceFiles;
+            _canRenameFiles = itemSelected && _archiveAdapter is IArchiveRenameFiles;
             _canDeleteFiles = itemSelected && _archiveAdapter is IArchiveDeleteFile;
 
             //splMain.Enabled = _fileOpen;

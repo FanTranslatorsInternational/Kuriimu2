@@ -18,7 +18,7 @@ namespace WinFormsTest
     [Export(typeof(IMultipleFiles))]
     [PluginExtensionInfo("*.archiveinfo")]
     [PluginInfo("Test-Archive-Id")]
-    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles
+    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles, IArchiveRenameFiles,IArchiveReplaceFiles
     {
         public List<ArchiveFileInfo> Files { get; private set; }
 
@@ -79,6 +79,11 @@ namespace WinFormsTest
                 //            throw new InvalidOperationException("other.bin failed check");
                 //}
             }
+        }
+
+        public void RenameFile(ArchiveFileInfo afi, string newFilename)
+        {
+            ;
         }
 
         public void Save(StreamInfo initialFile, int versionIndex = 0)

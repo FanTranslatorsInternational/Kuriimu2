@@ -12,7 +12,7 @@ namespace Kontract.FileSystem
 {
     public class PhysicalFileSystem : IVirtualFSRoot
     {
-        private List<FileStream> _openedFiles;
+        private List<Stream> _openedFiles;
 
         public string RootDir { get; private set; }
 
@@ -31,7 +31,7 @@ namespace Kontract.FileSystem
             if (!Directory.Exists(RootDir))
                 Directory.CreateDirectory(RootDir);
 
-            _openedFiles = new List<FileStream>();
+            _openedFiles = new List<Stream>();
         }
 
         public IEnumerable<string> EnumerateDirectories(bool relative = false)
@@ -58,11 +58,45 @@ namespace Kontract.FileSystem
         public Stream OpenFile(string filename)
         {
             var openedFile = File.Open(Path.Combine(RootDir, filename), FileMode.Open);
+            var fsFileStream = new FsFileStream(openedFile);
+            fsFileStream.CloseStream += FsFileStream_CloseStream;
 
-            CleanOpenedFiles();
             _openedFiles.Add(openedFile);
 
-            return openedFile;
+            return fsFileStream;
+        }
+
+        public Stream CreateFile(string filename)
+        {
+            if (!CanCreateFiles)
+                throw new InvalidOperationException("Can't create files.");
+
+            var createdFile = File.Create(Path.Combine(RootDir, filename));
+            var fsFileStream = new FsFileStream(createdFile);
+            fsFileStream.CloseStream += FsFileStream_CloseStream;
+
+            _openedFiles.Add(createdFile);
+
+            return fsFileStream;
+        }
+
+        public void DeleteFile(string filename)
+        {
+            if (!CanDeleteFiles)
+                throw new InvalidOperationException("Can't delete files.");
+
+            File.Delete(Path.Combine(RootDir, filename));
+        }
+
+        public bool FileExists(string filename)
+        {
+            return File.Exists(Path.Combine(RootDir, filename));
+        }
+
+        public void Dispose()
+        {
+            foreach (var openFile in _openedFiles)
+                openFile.Dispose();
         }
 
         private bool CheckWritePermission()
@@ -78,37 +112,9 @@ namespace Kontract.FileSystem
             }
         }
 
-        private void CleanOpenedFiles()
+        private void FsFileStream_CloseStream(object sender, CloseStreamEventArgs e)
         {
-            List<int> toDelete = new List<int>();
-            for (int i = 0; i < _openedFiles.Count; i++)
-                if (!_openedFiles[i].CanRead)
-                    toDelete.Add(i);
-
-            foreach (var toClose in toDelete.OrderByDescending(x => x))
-            {
-                _openedFiles[toClose].Dispose();
-                _openedFiles.RemoveAt(toClose);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (var openFile in _openedFiles)
-                openFile.Dispose();
-        }
-
-        public Stream CreateFile(string filename)
-        {
-            if (!CanCreateFiles)
-                throw new InvalidOperationException("Can't create files");
-
-            var createdFile = File.Create(Path.Combine(RootDir, filename));
-
-            CleanOpenedFiles();
-            _openedFiles.Add(createdFile);
-
-            return createdFile;
+            _openedFiles.Remove(e.BaseStream);
         }
     }
 }

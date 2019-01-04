@@ -38,8 +38,6 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
         private IArchiveAdapter _archiveAdapter { get => Kfi.Adapter as IArchiveAdapter; }
         public Color TabColor { get; set; }
 
-        //private IArchiveAdapter _parentAdapter;
-
         private bool _canExtractDirectories;
         private bool _canReplaceDirectories;
         private bool _canAddFiles;
@@ -295,14 +293,27 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
 
         private void renameFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UpdateForm();
-            Stub();
+            var menuItem = sender as ToolStripMenuItem;
+            var afi = menuItem.Tag as ArchiveFileInfo;
+
+            var input = new InputBox("Select a new filename", "Rename file", Path.GetFileNameWithoutExtension(afi.FileName));
+            if (input.ShowDialog() == DialogResult.Cancel)
+            {
+                MessageBox.Show("No input was given.", "Missing input", MessageBoxButtons.OK);
+                return;
+            }
+
+            (afi as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
         }
 
         private void deleteFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            List<ArchiveFileInfo> afis = new List<ArchiveFileInfo>();
+            foreach (ListViewItem selectedfile in lstFiles.SelectedItems)
+                afis.Add(selectedfile.Tag as ArchiveFileInfo);
+            DeleteFiles(afis);
+
             UpdateForm();
-            Stub();
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -350,13 +361,52 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             if (args.NewKfi != null)
             {
                 args.NewKfi.AFI = afi;
-                args.NewKfi.ParentKfi = Kfi;
 
                 if (Kfi.ChildKfi == null) Kfi.ChildKfi = new List<KoreFileInfo>();
                 Kfi.ChildKfi.Add(args.NewKfi);
 
                 _openedTabs.Add(args.NewTabPage);
             }
+        }
+
+        private void tsbFileExtract_Click(object sender, EventArgs e)
+        {
+            var afi = lstFiles.SelectedItems[0].Tag as ArchiveFileInfo;
+
+            // TODO: Implement multi-selection of files
+            ExtractFiles(new List<ArchiveFileInfo> { afi });
+        }
+
+        private void tsbFileReplace_Click(object sender, EventArgs e)
+        {
+            var afi = lstFiles.SelectedItems[0].Tag as ArchiveFileInfo;
+
+            ReplaceFiles(new List<ArchiveFileInfo> { afi });
+        }
+
+        private void tsbFileRename_Click(object sender, EventArgs e)
+        {
+            var afi = lstFiles.SelectedItems[0].Tag as ArchiveFileInfo;
+
+            var input = new InputBox("Select a new filename", "Rename file", Path.GetFileNameWithoutExtension(afi.FileName));
+            if (input.ShowDialog() == DialogResult.Cancel)
+            {
+                MessageBox.Show("No input was given.", "Missing input", MessageBoxButtons.OK);
+                return;
+            }
+
+            (afi as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
+        }
+
+        private void tsbFileDelete_Click(object sender, EventArgs e)
+        {
+            List<ArchiveFileInfo> afis = new List<ArchiveFileInfo>();
+            foreach (ListViewItem selectedfile in lstFiles.SelectedItems)
+                afis.Add(selectedfile.Tag as ArchiveFileInfo);
+
+            DeleteFiles(afis);
+
+            UpdateForm();
         }
     }
 }

@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveAdapter
+    public interface IArchiveRenameFiles
     {
-        List<ArchiveFileInfo> Files { get; }
-        
-        bool FileHasExtendedProperties { get; }
+        void RenameFile(ArchiveFileInfo afi, string newFilename);
     }
 }

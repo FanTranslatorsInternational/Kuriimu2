@@ -56,6 +56,8 @@
     <Compile Include="Interfaces\Archive\IArchiveAdapter.cs" />
     <Compile Include="Interfaces\Archive\IArchiveAddFile.cs" />
     <Compile Include="Interfaces\Archive\IArchiveDeleteFile.cs" />
+    <Compile Include="Interfaces\Archive\IArchiveRenameFiles.cs" />
+    <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter2.cs" />
     <Compile Include="Interfaces\Font\IFontRenderer.cs" />
@@ -73,6 +75,7 @@
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
+    <Compile Include="Interfaces\VirtualFS\FsFileStream.cs" />
     <Compile Include="Interfaces\VirtualFS\IVirtualFSRoot.cs" />
     <Compile Include="FileSystem\PhysicalFileSystem.cs" />
     <Compile Include="FileSystem\VirtualFileSystem.cs" />

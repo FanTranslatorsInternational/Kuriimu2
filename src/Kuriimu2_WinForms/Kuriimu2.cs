@@ -120,8 +120,13 @@ namespace Kuriimu2_WinForms
 
         private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
         {
+            CloseTab(e.Kfi, sender as IKuriimuForm, false, e.LeaveOpen, e.ParentTabPage);
+        }
+
+        private bool CloseTab(KoreFileInfo kfi, IKuriimuForm form, bool ignoreChildWarning, bool leaveOpen = false, TabPage parentTabPage = null)
+        {
             // Security question, so the user knows that every sub file will be closed
-            if (e.Kfi.ChildKfi != null && e.Kfi.ChildKfi.Count > 0)
+            if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0 && !ignoreChildWarning)
             {
                 var result = MessageBox.Show("Every file opened from this one and below will be closed too. Continue?", "Dependant files", MessageBoxButtons.YesNo);
                 switch (result)
@@ -130,36 +135,38 @@ namespace Kuriimu2_WinForms
                         break;
                     case DialogResult.No:
                     default:
-                        return;
+                        return false;
                 }
             }
 
             // Save unchanged saves, if wanted
-            if (e.Kfi.HasChanges)
+            if (kfi.HasChanges)
             {
-                var result = MessageBox.Show($"Changes were made to \"{e.Kfi.FullPath}\" or its opened sub files. Do you want to save those changes?", "Unsaved changes", MessageBoxButtons.YesNoCancel);
+                var result = MessageBox.Show($"Changes were made to \"{kfi.FullPath}\" or its opened sub files. Do you want to save those changes?", "Unsaved changes", MessageBoxButtons.YesNoCancel);
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        TabControl_SaveTab(sender, new SaveTabEventArgs(e.Kfi));
+                        TabControl_SaveTab(form, new SaveTabEventArgs(kfi));
                         break;
                     case DialogResult.No:
                         break;
                     case DialogResult.Cancel:
                     default:
-                        return;
+                        return false;
                 }
             }
 
             // Remove all tabs related to KFIs
-            CloseOpenTabs(e.Kfi);
+            CloseOpenTabs(kfi);
 
             // Update parent, if existent
-            if (e.Kfi.ParentKfi != null)
-                (e.ParentTabPage.Controls[0] as ArchiveForm).RemoveChildTab(sender as ArchiveForm);
+            if (kfi.ParentKfi != null)
+                (parentTabPage.Controls[0] as ArchiveForm).RemoveChildTab(form as ArchiveForm);
 
             // Close all KFIs
-            _kore.CloseFile(e.Kfi, e.LeaveOpen);
+            _kore.CloseFile(kfi, leaveOpen);
+
+            return true;
         }
 
         private void CloseOpenTabs(KoreFileInfo kfi)
@@ -183,6 +190,7 @@ namespace Kuriimu2_WinForms
             if (openedTabPage == null)
             {
                 var newKfi = _kore.LoadFile(new KoreLoadInfo(e.StreamInfo.FileData, e.StreamInfo.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                newKfi.ParentKfi = e.ParentKfi;
                 var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
 
                 e.NewKfi = newKfi;
@@ -229,6 +237,37 @@ namespace Kuriimu2_WinForms
         private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
         {
             e.Effect = DragDropEffects.Copy;
+        }
+
+        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            var tabColor = (openFiles.TabPages[e.Index].Controls[0] as IKuriimuForm).TabColor;
+            var textColor = (tabColor.GetBrightness() <= 0.5) ? Color.White : Color.Black;
+
+            // Color the Tab Header
+            e.Graphics.FillRectangle(new SolidBrush(tabColor), e.Bounds);
+
+            // Format String
+            var drawFormat = new StringFormat();
+            drawFormat.Alignment = StringAlignment.Far;
+            drawFormat.LineAlignment = StringAlignment.Center;
+
+            // Draw Header Text
+            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
+
+            //Draw image
+            var drawPoint = (openFiles.SelectedIndex == e.Index) ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
+            e.Graphics.DrawImage(tabCloseButtons.Images["close-button"], drawPoint);
+        }
+
+        private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            while (openFiles.TabPages.Count > 0)
+                if (!CloseTab((openFiles.TabPages[0].Controls[0] as IKuriimuForm).Kfi, openFiles.TabPages[0].Controls[0] as IKuriimuForm, true))
+                {
+                    e.Cancel = true;
+                    return;
+                }
         }
     }
 }

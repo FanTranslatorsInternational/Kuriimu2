@@ -78,6 +78,7 @@ namespace Kontract.FileSystem
                 return dirs;
             }
 
+            //TODO: Relative enumerate
             return null;
         }
 
@@ -94,6 +95,7 @@ namespace Kontract.FileSystem
                 return files;
             }
 
+            //TODO: Relative enumerate
             return null;
         }
 
@@ -114,23 +116,7 @@ namespace Kontract.FileSystem
             return new VirtualFileSystem(_files, _tempFolder, dirs.FirstOrDefault(x => x == path));
         }
 
-        public Stream OpenFile(string filename/*, FileMode mode*/)
-        {
-            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
-
-            // Try getting file to open
-            var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
-
-            return afi.FileData;
-
-            //ExtractFile(filename);
-
-            // Open file with given FileMode
-            //var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
-            //return File.Open(Path.Combine(_tempFolder, resolvedFilepath), FileMode.Open);
-        }
-
-        public void ExtractFile(string filename)
+        public Stream OpenFile(string filename)
         {
             var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
 
@@ -139,21 +125,35 @@ namespace Kontract.FileSystem
             if (afi == null)
                 throw new FileNotFoundException(resolvedFilepath);
 
-            // Check if temporary directoy exists
-            var tempPath = Path.Combine(_tempFolder, Path.GetDirectoryName(resolvedFilepath));
-            if (!Directory.Exists(tempPath))
-                Directory.CreateDirectory(tempPath);
+            var fsFileStream = new FsFileStream(afi.FileData);
 
-            // Extract file to temporary path
-            var file = File.Create(Path.Combine(_tempFolder, resolvedFilepath));
-
-            var bk = afi.FileData.Position;
-            afi.FileData.Position = 0;
-            afi.FileData.CopyTo(file);
-            afi.FileData.Position = bk;
-
-            file.Close();
+            return fsFileStream;
         }
+
+        //public void ExtractFile(string filename)
+        //{
+        //    var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+
+        //    // Try getting file to open
+        //    var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
+        //    if (afi == null)
+        //        throw new FileNotFoundException(resolvedFilepath);
+
+        //    // Check if temporary directoy exists
+        //    var tempPath = Path.Combine(_tempFolder, Path.GetDirectoryName(resolvedFilepath));
+        //    if (!Directory.Exists(tempPath))
+        //        Directory.CreateDirectory(tempPath);
+
+        //    // Extract file to temporary path
+        //    var file = File.Create(Path.Combine(_tempFolder, resolvedFilepath));
+
+        //    var bk = afi.FileData.Position;
+        //    afi.FileData.Position = 0;
+        //    afi.FileData.CopyTo(file);
+        //    afi.FileData.Position = bk;
+
+        //    file.Close();
+        //}
 
         private string[] SplitPath(string path)
         {
@@ -191,10 +191,10 @@ namespace Kontract.FileSystem
             return Path.Combine(result.ToArray());
         }
 
-        //TODO: Implement Dispose
         public void Dispose()
         {
-
+            _adapter = null;
+            _files = null;
         }
 
         public Stream CreateFile(string filename)
@@ -208,6 +208,31 @@ namespace Kontract.FileSystem
             (_adapter as IArchiveAddFile).AddFile(afi);
 
             return createdFile;
+        }
+
+        public void DeleteFile(string filename)
+        {
+            if (!CanDeleteFiles)
+                throw new InvalidOperationException("Can't delete files");
+
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+
+            // Try getting file to delete
+            var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
+            if (afi == null)
+                throw new FileNotFoundException(resolvedFilepath);
+
+            (_adapter as IArchiveDeleteFile).DeleteFile(afi);
+        }
+
+        public bool FileExists(string filename)
+        {
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+
+            // Try getting file
+            var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
+
+            return afi != null;
         }
     }
 }
