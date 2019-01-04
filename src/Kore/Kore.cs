@@ -217,7 +217,7 @@ namespace Kore
 
             // Reopen files recursively from parent to child
             if (firstIteration)
-                ksi.SavedKfi = ReopenFiles(kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
+                ksi.SavedKfi = ReopenFiles(kfi.ParentKfi != null ? kfi.ParentKfi : kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
         }
 
         private FullPathNode CreateFullPathTree(KoreFileInfo kfi)

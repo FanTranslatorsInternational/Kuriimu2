@@ -105,6 +105,8 @@ namespace Kuriimu2_WinForms
                 // Save files
                 var ksi = new KoreSaveInfo(e.Kfi, _tempFolder) { Version = e.Version, NewSaveLocation = e.NewSaveLocation };
                 _kore.SaveFile2(ksi);
+                if (ksi.SavedKfi.ParentKfi != null)
+                    ksi.SavedKfi.ParentKfi.HasChanges = true;
 
                 // Update current tab and its childs if possible
                 (sender as IKuriimuForm).Kfi = ksi.SavedKfi;
