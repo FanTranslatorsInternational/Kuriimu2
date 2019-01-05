@@ -17,7 +17,6 @@ using System.Text.RegularExpressions;
 using Kontract.Interfaces.VirtualFS;
 using Kontract.FileSystem;
 using Kuriimu2_WinForms.Interfaces;
-using Kuriimu2_WinForms.FormatForms.Archive;
 using Kore;
 using Kuriimu2_WinForms.Properties;
 
@@ -188,18 +187,23 @@ namespace Kuriimu2_WinForms
 
         private void Kuriimu2_OpenTab(object sender, OpenTabEventArgs e)
         {
-            var openedTabPage = GetTabPageForFullPath(Path.Combine(e.ParentKfi.FullPath, e.StreamInfo.FileName));
+            var openedTabPage = GetTabPageForFullPath(Path.Combine(e.ParentKfi.FullPath, e.AFI.FileName));
             if (openedTabPage == null)
             {
-                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.StreamInfo.FileData, e.StreamInfo.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.AFI.FileData, e.AFI.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                if (newKfi == null)
+                    return;
+
                 newKfi.ParentKfi = e.ParentKfi;
                 var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
 
-                e.NewKfi = newKfi;
                 e.NewTabPage = newTabPage;
+                e.NewKfi.AFI = e.AFI;
             }
             else
                 openFiles.SelectedTab = openedTabPage;
+
+            e.EventResult = true;
         }
 
         private TabPage GetTabPageForFullPath(string fullPath)

@@ -1,4 +1,4 @@
-﻿namespace Kuriimu2_WinForms.FormatForms.Archive
+﻿namespace Kuriimu2_WinForms.FormatForms
 {
     partial class ArchiveForm
     {
@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ArchiveForm));
             this.tlsMain = new System.Windows.Forms.ToolStrip();
             this.tsbSave = new System.Windows.Forms.ToolStripButton();
             this.tsbSaveAs = new System.Windows.Forms.ToolStripButton();
@@ -68,6 +69,7 @@
             this.tsbFileProperties = new System.Windows.Forms.ToolStripButton();
             this.imlFiles = new System.Windows.Forms.ImageList(this.components);
             this.imlFilesLarge = new System.Windows.Forms.ImageList(this.components);
+            this.tsbFileOpen = new System.Windows.Forms.ToolStripButton();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -193,8 +195,11 @@
             this.treDirectories.FullRowSelect = true;
             this.treDirectories.HideSelection = false;
             this.treDirectories.HotTracking = true;
+            this.treDirectories.ImageIndex = 0;
+            this.treDirectories.ImageList = this.imlFiles;
             this.treDirectories.Location = new System.Drawing.Point(0, 25);
             this.treDirectories.Name = "treDirectories";
+            this.treDirectories.SelectedImageIndex = 0;
             this.treDirectories.ShowLines = false;
             this.treDirectories.Size = new System.Drawing.Size(262, 421);
             this.treDirectories.TabIndex = 1;
@@ -273,12 +278,14 @@
             this.lstFiles.ContextMenuStrip = this.mnuFiles;
             this.lstFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lstFiles.FullRowSelect = true;
+            this.lstFiles.LargeImageList = this.imlFilesLarge;
             this.lstFiles.Location = new System.Drawing.Point(0, 25);
             this.lstFiles.MultiSelect = false;
             this.lstFiles.Name = "lstFiles";
             this.lstFiles.ShowGroups = false;
             this.lstFiles.ShowItemToolTips = true;
             this.lstFiles.Size = new System.Drawing.Size(523, 396);
+            this.lstFiles.SmallImageList = this.imlFiles;
             this.lstFiles.TabIndex = 3;
             this.lstFiles.UseCompatibleStateImageBehavior = false;
             this.lstFiles.View = System.Windows.Forms.View.Details;
@@ -385,6 +392,7 @@
             this.tsbFileReplace,
             this.tsbFileRename,
             this.tsbFileDelete,
+            this.tsbFileOpen,
             this.tsbFileProperties});
             this.tlsPreview.Location = new System.Drawing.Point(0, 0);
             this.tlsPreview.Name = "tlsPreview";
@@ -444,6 +452,7 @@
             this.tsbFileProperties.Name = "tsbFileProperties";
             this.tsbFileProperties.Size = new System.Drawing.Size(23, 22);
             this.tsbFileProperties.Text = "File Properties";
+            this.tsbFileProperties.Click += new System.EventHandler(this.tsbFileProperties_Click);
             // 
             // imlFiles
             // 
@@ -456,6 +465,17 @@
             this.imlFilesLarge.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
             this.imlFilesLarge.ImageSize = new System.Drawing.Size(16, 16);
             this.imlFilesLarge.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // tsbFileOpen
+            // 
+            this.tsbFileOpen.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbFileOpen.Enabled = false;
+            this.tsbFileOpen.Image = ((System.Drawing.Image)(resources.GetObject("tsbFileOpen.Image")));
+            this.tsbFileOpen.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbFileOpen.Name = "tsbFileOpen";
+            this.tsbFileOpen.Size = new System.Drawing.Size(23, 22);
+            this.tsbFileOpen.Text = "Open File";
+            this.tsbFileOpen.Click += new System.EventHandler(this.tsbFileOpen_Click);
             // 
             // ArchiveForm
             // 
@@ -529,5 +549,6 @@
         private System.Windows.Forms.ToolStripMenuItem deleteFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem openFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripButton tsbFileOpen;
     }
 }

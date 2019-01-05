@@ -46,9 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FormatForms\Archive\Utilities.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
     <Compile Include="InputBox.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -62,10 +59,10 @@
     <Compile Include="Kuriimu2.Designer.cs">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </Compile>
-    <Compile Include="FormatForms\Archive\ArchiveForm.cs">
+    <Compile Include="FormatForms\ArchiveForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="FormatForms\Archive\ArchiveForm.Designer.cs">
+    <Compile Include="FormatForms\ArchiveForm.Designer.cs">
       <DependentUpon>ArchiveForm.cs</DependentUpon>
     </Compile>
     <Compile Include="FormatForms\ImageForm.cs">
@@ -90,7 +87,7 @@
     <EmbeddedResource Include="Kuriimu2.resx">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="FormatForms\Archive\ArchiveForm.resx">
+    <EmbeddedResource Include="FormatForms\ArchiveForm.resx">
       <DependentUpon>ArchiveForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormatForms\ImageForm.resx">

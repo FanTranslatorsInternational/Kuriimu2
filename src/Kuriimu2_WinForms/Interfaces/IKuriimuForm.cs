@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace Kuriimu2_WinForms.Interfaces
 {
-    internal interface IKuriimuForm
+    public interface IKuriimuForm
     {
         event EventHandler<SaveTabEventArgs> SaveTab;
         event EventHandler<CloseTabEventArgs> CloseTab;
@@ -23,24 +23,6 @@ namespace Kuriimu2_WinForms.Interfaces
         void Save(string filename = "");
         void Close();
         void UpdateForm();
-    }
-
-    public class OpenTabEventArgs : EventArgs
-    {
-        public OpenTabEventArgs(StreamInfo info, IVirtualFSRoot fs)
-        {
-            StreamInfo = info;
-            FileSystem = fs;
-        }
-
-        public StreamInfo StreamInfo { get; }
-        public IVirtualFSRoot FileSystem { get; }
-        public bool LeaveOpen { get; set; }
-        public KoreFileInfo ParentKfi { get; set; }
-        public TabPage ParentTabPage { get; set; }
-
-        public KoreFileInfo NewKfi { get; set; }
-        public TabPage NewTabPage { get; set; }
     }
 
     public class SaveTabEventArgs : EventArgs
