@@ -18,7 +18,7 @@ namespace WinFormsTest
     [Export(typeof(IMultipleFiles))]
     [PluginExtensionInfo("*.archiveinfo")]
     [PluginInfo("Test-Archive-Id")]
-    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles, IArchiveRenameFiles,IArchiveReplaceFiles
+    public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles, IArchiveRenameFiles, IArchiveReplaceFiles
     {
         public List<ArchiveFileInfo> Files { get; private set; }
 
@@ -83,7 +83,7 @@ namespace WinFormsTest
 
         public void RenameFile(ArchiveFileInfo afi, string newFilename)
         {
-            ;
+            afi.FileName = afi.FileName.Replace(Path.GetFileName(afi.FileName), newFilename + Path.GetExtension(afi.FileName));
         }
 
         public void Save(StreamInfo initialFile, int versionIndex = 0)

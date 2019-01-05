@@ -55,6 +55,7 @@
     <Compile Include="InputBox.Designer.cs">
       <DependentUpon>InputBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="Interfaces\IArchiveForm.cs" />
     <Compile Include="Kuriimu2.cs">
       <SubType>Form</SubType>
     </Compile>

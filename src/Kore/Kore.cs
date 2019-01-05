@@ -450,8 +450,8 @@ namespace Kore
             kfi.Adapter.Dispose();
             if (!leaveFileStreamOpen)
                 kfi.StreamFileInfo.FileData.Close();
-            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
-            //    multFileAdapter.FileSystem.Dispose();
+            if (kfi.Adapter is IMultipleFiles multFileAdapter)
+                multFileAdapter.FileSystem.Dispose();
 
             if (firstIteration)
                 if (kfi.ParentKfi != null)

@@ -82,10 +82,12 @@ namespace Kuriimu2_WinForms
             else if (kfi.Adapter is IImageAdapter)
                 tabControl = new ImageForm(kfi, tabPage, parentAdapter, parentTabPage);
             else if (kfi.Adapter is IArchiveAdapter)
+            {
                 tabControl = new ArchiveForm(kfi, tabPage, parentAdapter, parentTabPage, _tempFolder);
+                (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
+            }
             tabControl.TabColor = tabColor;
 
-            tabControl.OpenTab += Kuriimu2_OpenTab;
             tabControl.SaveTab += TabControl_SaveTab;
             tabControl.CloseTab += TabControl_CloseTab;
 

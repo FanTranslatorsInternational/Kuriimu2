@@ -31,11 +31,15 @@ namespace Kuriimu2_WinForms
         private void textBox_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)
+            {
+                DialogResult = DialogResult.OK;
                 Close();
+            }
         }
 
         private void btnOk_Click(object sender, EventArgs e)
         {
+            DialogResult = DialogResult.OK;
             Close();
         }
     }

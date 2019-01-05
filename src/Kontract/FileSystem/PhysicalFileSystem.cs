@@ -115,6 +115,7 @@ namespace Kontract.FileSystem
         private void FsFileStream_CloseStream(object sender, CloseStreamEventArgs e)
         {
             _openedFiles.Remove(e.BaseStream);
+            e.BaseStream.Close();
         }
     }
 }

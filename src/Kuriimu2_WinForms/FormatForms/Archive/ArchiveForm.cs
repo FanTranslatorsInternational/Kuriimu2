@@ -26,7 +26,7 @@ using Kontract;
 
 namespace Kuriimu2_WinForms.FormatForms.Archive
 {
-    public partial class ArchiveForm : UserControl, IKuriimuForm
+    public partial class ArchiveForm : UserControl, IArchiveForm
     {
         public KoreFileInfo Kfi { get; set; }
 
@@ -303,7 +303,11 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 return;
             }
 
-            (afi as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
+            (_archiveAdapter as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
+            Kfi.HasChanges = true;
+
+            LoadFiles();
+            UpdateParent();
         }
 
         private void deleteFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -395,7 +399,11 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
                 return;
             }
 
-            (afi as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
+            (_archiveAdapter as IArchiveRenameFiles).RenameFile(afi, Path.GetFileName(input.InputText));
+            Kfi.HasChanges = true;
+
+            LoadFiles();
+            UpdateParent();
         }
 
         private void tsbFileDelete_Click(object sender, EventArgs e)

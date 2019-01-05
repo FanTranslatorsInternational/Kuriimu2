@@ -14,7 +14,6 @@ namespace Kuriimu2_WinForms.Interfaces
 {
     internal interface IKuriimuForm
     {
-        event EventHandler<OpenTabEventArgs> OpenTab;
         event EventHandler<SaveTabEventArgs> SaveTab;
         event EventHandler<CloseTabEventArgs> CloseTab;
 

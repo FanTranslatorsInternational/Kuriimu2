@@ -193,9 +193,14 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             // Shortcuts
             //tsbKuriimu.Enabled = File.Exists(Path.Combine(Application.StartupPath, "kuriimu.exe"));
             //tsbKukkii.Enabled = File.Exists(Path.Combine(Application.StartupPath, "kukkii.exe"));
+        }
 
+        public void UpdateParent()
+        {
             if (_parentTabPage != null)
-                (_parentTabPage.Controls[0] as IKuriimuForm).UpdateForm();
+                (_parentTabPage.Controls[0] as IArchiveForm).UpdateParent();
+
+            UpdateForm();
         }
 
         public void Save(string filename = "")
@@ -402,6 +407,7 @@ namespace Kuriimu2_WinForms.FormatForms.Archive
             (this as Control).Text = Kfi.DisplayName;
 
             UpdateForm();
+            UpdateParent();
             LoadFiles();
         }
 
