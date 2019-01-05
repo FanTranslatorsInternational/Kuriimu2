@@ -12,9 +12,9 @@
     <description>Software Development Kit for the Kuriimu2 Suite for interpreting, manipulating and translating game files.</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="Kuriimu2.Kontract" version="2.0.0" />
-      <dependency id="Kuriimu2.Komponent" version="2.0.0" />
-      <dependency id="Kuriimu2.Kanvas" version="2.0.0" />
+      <dependency id="Kuriimu2.Kontract" version="$version$" />
+      <dependency id="Kuriimu2.Komponent" version="$version$" />
+      <dependency id="Kuriimu2.Kanvas" version="$version$" />
     </dependencies>
   </metadata>
   <files>
