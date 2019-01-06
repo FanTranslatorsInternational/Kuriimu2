@@ -24,8 +24,8 @@ namespace Kuriimu2_WinForms
 {
     public partial class Kuriimu2 : Form
     {
-        private Random _rand = new Random();
         private KoreManager _kore;
+        private Random _rand = new Random();
         private string _tempFolder = "temp";
 
         public Kuriimu2()
@@ -39,6 +39,70 @@ namespace Kuriimu2_WinForms
         }
 
         #region Events
+
+        private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            while (openFiles.TabPages.Count > 0)
+            {
+                var firstForm = openFiles.TabPages[0].Controls[0] as IKuriimuForm;
+                if (!CloseFile(firstForm.Kfi, false, true))
+                {
+                    e.Cancel = true;
+                    break;
+                }
+            }
+        }
+
+        #region Tab Item
+        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            var tabColor = (openFiles.TabPages[e.Index].Controls[0] as IKuriimuForm).TabColor;
+            var textColor = (tabColor.GetBrightness() <= 0.49) ? Color.White : Color.Black;
+
+            // Color the Tab Header
+            e.Graphics.FillRectangle(new SolidBrush(tabColor), e.Bounds);
+
+            // Format String
+            var drawFormat = new StringFormat();
+            drawFormat.Alignment = StringAlignment.Far;
+            drawFormat.LineAlignment = StringAlignment.Center;
+
+            // Draw Header Text
+            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
+
+            //Draw image
+            var drawPoint = (openFiles.SelectedIndex == e.Index) ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
+            e.Graphics.DrawImage(tabCloseButtons.Images["close-button"], drawPoint);
+        }
+
+        private void openFiles_MouseUp(object sender, MouseEventArgs e)
+        {
+            Rectangle r = openFiles.GetTabRect(openFiles.SelectedIndex);
+            Rectangle closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
+            if (closeButton.Contains(e.Location))
+            {
+                foreach (Control control in openFiles.SelectedTab.Controls)
+                    if (control is IKuriimuForm kuriimuTab)
+                        kuriimuTab.Close();
+            }
+        }
+        #endregion
+
+        #region DragDrop
+        private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
+        }
+
+        private void Kuriimu2_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            foreach (var file in files)
+                OpenFile(file);
+        }
+        #endregion
+
+        #region mainMenuStrip
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
@@ -47,13 +111,53 @@ namespace Kuriimu2_WinForms
         }
         #endregion
 
-        #region Methods
+        #region Kuriimu Form
+        private void Kuriimu2_OpenTab(object sender, OpenTabEventArgs e)
+        {
+            var openedTabPage = GetTabPageForKfi(GetKfiForFullPath(Path.Combine(e.Kfi.FullPath, e.Afi.FileName)));
+            if (openedTabPage == null)
+            {
+                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.Afi.FileData, e.Afi.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                if (newKfi == null)
+                    return;
+
+                newKfi.ParentKfi = e.Kfi;
+                var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.Kfi);
+
+                e.OpenedTabPage = newTabPage;
+            }
+            else
+                openFiles.SelectedTab = openedTabPage;
+
+            e.EventResult = true;
+        }
+
+        private void TabControl_SaveTab(object sender, SaveTabEventArgs e)
+        {
+            SaveFile(e.Kfi, e.NewSaveLocation, e.Version);
+        }
+
+        private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
+        {
+            e.EventResult = CloseFile(e.Kfi, e.LeaveOpen);
+        }
+        #endregion
+
+        #endregion
+
+        #region Utilities
+
+        #region Open File
+        /// <summary>
+        /// Opens a file with KoreManager and opens a corresponding tab
+        /// </summary>
+        /// <param name="filename"></param>
         private void OpenFile(string filename)
         {
             if (!File.Exists(filename))
-                throw new FileLoadException(filename);
+                throw new FileNotFoundException(filename);
 
-            var openedTabPage = GetTabPageForFullPath(filename);
+            var openedTabPage = GetTabPageForKfi(GetKfiForFullPath(filename));
             if (openedTabPage != null)
                 openFiles.SelectedTab = openedTabPage;
             else
@@ -67,22 +171,23 @@ namespace Kuriimu2_WinForms
                     return;
                 }
 
-                AddTabPage(kfi, Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256)));
+                var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
+                AddTabPage(kfi, tabColor);
             }
         }
 
-        private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, IArchiveAdapter parentAdapter = null, TabPage parentTabPage = null)
+        private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, KoreFileInfo parentKfi = null)
         {
             var tabPage = new TabPage();
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
-                tabControl = new TextForm(kfi, tabPage, parentAdapter, parentTabPage);
+                tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
             else if (kfi.Adapter is IImageAdapter)
-                tabControl = new ImageForm(kfi, tabPage, parentAdapter, parentTabPage);
+                tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
             else if (kfi.Adapter is IArchiveAdapter)
             {
-                tabControl = new ArchiveForm(kfi, tabPage, parentAdapter, parentTabPage, _tempFolder);
+                tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder);
                 (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
             }
             tabControl.TabColor = tabColor;
@@ -98,33 +203,45 @@ namespace Kuriimu2_WinForms
 
             return tabPage;
         }
+        #endregion
 
-        private void TabControl_SaveTab(object sender, SaveTabEventArgs e)
+        #region Save File
+        /// <summary>
+        /// Saves a Kfi
+        /// </summary>
+        private void SaveFile(KoreFileInfo kfi, string newSaveLocation = "", int version = 0)
         {
-            if (e.Kfi.HasChanges)
+            if (!kfi.HasChanges)
+                return;
+
+            // Save files
+            var ksi = new KoreSaveInfo(kfi, _tempFolder) { Version = version, NewSaveLocation = newSaveLocation };
+            _kore.SaveFile2(ksi);
+
+            if (ksi.SavedKfi.ParentKfi != null)
+                ksi.SavedKfi.ParentKfi.HasChanges = true;
+
+            // Update all corresponsing tabs
+            var kuriimuForm = GetTabPageForKfi(kfi).Controls[0] as IKuriimuForm;
+
+            kuriimuForm.Kfi = ksi.SavedKfi;
+            if (kuriimuForm is IArchiveForm archiveForm)
             {
-                // Save files
-                var ksi = new KoreSaveInfo(e.Kfi, _tempFolder) { Version = e.Version, NewSaveLocation = e.NewSaveLocation };
-                _kore.SaveFile2(ksi);
-                if (ksi.SavedKfi.ParentKfi != null)
-                    ksi.SavedKfi.ParentKfi.HasChanges = true;
-
-                // Update current tab and its childs if possible
-                (sender as IKuriimuForm).Kfi = ksi.SavedKfi;
-                if (sender is ArchiveForm archiveForm)
-                    archiveForm.UpdateChildTabs(ksi.SavedKfi);
-
-                // Update current and parent tabs
-                (sender as IKuriimuForm).UpdateForm();
+                archiveForm.UpdateChildTabs(ksi.SavedKfi);
+                archiveForm.UpdateParent();
             }
+            kuriimuForm.UpdateForm();
         }
+        #endregion
 
-        private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
-        {
-            CloseTab(e.Kfi, sender as IKuriimuForm, false, e.LeaveOpen, e.ParentTabPage);
-        }
-
-        private bool CloseTab(KoreFileInfo kfi, IKuriimuForm form, bool ignoreChildWarning, bool leaveOpen = false, TabPage parentTabPage = null)
+        #region Close File
+        /// <summary>
+        /// Close a Kfi and its corresponding tabs
+        /// </summary>
+        /// <param name="kfi">The initial Kfi to close</param>
+        /// <param name="ignoreChildWarning">Ignore showing child close warning</param>
+        /// <returns>If the closing was successful</returns>
+        private bool CloseFile(KoreFileInfo kfi, bool leaveOpen = false, bool ignoreChildWarning = false)
         {
             // Security question, so the user knows that every sub file will be closed
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0 && !ignoreChildWarning)
@@ -147,7 +264,7 @@ namespace Kuriimu2_WinForms
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        TabControl_SaveTab(form, new SaveTabEventArgs(kfi));
+                        TabControl_SaveTab(this, new SaveTabEventArgs(kfi));
                         break;
                     case DialogResult.No:
                         break;
@@ -162,12 +279,13 @@ namespace Kuriimu2_WinForms
 
             // Update parent, if existent
             if (kfi.ParentKfi != null)
-                (parentTabPage.Controls[0] as ArchiveForm).RemoveChildTab(form as ArchiveForm);
+            {
+                var parentTab = GetTabPageForKfi(kfi.ParentKfi);
+                (parentTab.Controls[0] as IArchiveForm).RemoveChildTab(GetTabPageForKfi(kfi));
+            }
 
             // Close all KFIs
-            _kore.CloseFile(kfi, leaveOpen);
-
-            return true;
+            return _kore.CloseFile(kfi, leaveOpen);
         }
 
         private void CloseOpenTabs(KoreFileInfo kfi)
@@ -176,104 +294,36 @@ namespace Kuriimu2_WinForms
                 foreach (var child in kfi.ChildKfi)
                     CloseOpenTabs(child);
 
-            List<TabPage> toRemove = new List<TabPage>();
             foreach (TabPage page in openFiles.TabPages)
-                foreach (IKuriimuForm kuriimuForm in page.Controls)
+                if (page.Controls[0] is IKuriimuForm kuriimuForm)
                     if (kuriimuForm.Kfi == kfi)
-                        toRemove.Add(page);
-            foreach (var toRemoveElement in toRemove)
-                openFiles.TabPages.Remove(toRemoveElement);
+                    {
+                        openFiles.TabPages.Remove(page);
+                        break;
+                    }
+        }
+        #endregion
+
+        #region Getter
+        private KoreFileInfo GetKfiForFullPath(string fullPath)
+        {
+            return _kore.GetOpenedFile(fullPath);
         }
 
-        private void Kuriimu2_OpenTab(object sender, OpenTabEventArgs e)
+        private TabPage GetTabPageForKfi(KoreFileInfo kfi)
         {
-            var openedTabPage = GetTabPageForFullPath(Path.Combine(e.ParentKfi.FullPath, e.AFI.FileName));
-            if (openedTabPage == null)
-            {
-                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.AFI.FileData, e.AFI.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
-                if (newKfi == null)
-                    return;
-
-                newKfi.ParentKfi = e.ParentKfi;
-                var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.ParentKfi.Adapter as IArchiveAdapter, e.ParentTabPage);
-
-                e.NewTabPage = newTabPage;
-                e.NewKfi.AFI = e.AFI;
-            }
-            else
-                openFiles.SelectedTab = openedTabPage;
-
-            e.EventResult = true;
-        }
-
-        private TabPage GetTabPageForFullPath(string fullPath)
-        {
-            var openedKfi = _kore.GetOpenedFile(fullPath);
-            if (openedKfi == null) return null;
+            if (kfi == null)
+                return null;
 
             foreach (TabPage page in openFiles.TabPages)
-                foreach (IKuriimuForm kuriimuForm in page.Controls)
-                    if (kuriimuForm.Kfi == openedKfi)
+                if (page.Controls[0] is IKuriimuForm kuriimuForm)
+                    if (kuriimuForm.Kfi == kfi)
                         return page;
 
             return null;
         }
         #endregion
 
-        private void openFiles_MouseUp(object sender, MouseEventArgs e)
-        {
-            Rectangle r = openFiles.GetTabRect(openFiles.SelectedIndex);
-            Rectangle closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
-            if (closeButton.Contains(e.Location))
-            {
-                foreach (Control control in openFiles.SelectedTab.Controls)
-                    if (control is IKuriimuForm kuriimuTab)
-                        kuriimuTab.Close();
-            }
-        }
-
-        private void Kuriimu2_DragDrop(object sender, DragEventArgs e)
-        {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            foreach (var file in files)
-                if (File.Exists(file))
-                    OpenFile(file);
-        }
-
-        private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = DragDropEffects.Copy;
-        }
-
-        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            var tabColor = (openFiles.TabPages[e.Index].Controls[0] as IKuriimuForm).TabColor;
-            var textColor = (tabColor.GetBrightness() <= 0.5) ? Color.White : Color.Black;
-
-            // Color the Tab Header
-            e.Graphics.FillRectangle(new SolidBrush(tabColor), e.Bounds);
-
-            // Format String
-            var drawFormat = new StringFormat();
-            drawFormat.Alignment = StringAlignment.Far;
-            drawFormat.LineAlignment = StringAlignment.Center;
-
-            // Draw Header Text
-            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
-
-            //Draw image
-            var drawPoint = (openFiles.SelectedIndex == e.Index) ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
-            e.Graphics.DrawImage(tabCloseButtons.Images["close-button"], drawPoint);
-        }
-
-        private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            while (openFiles.TabPages.Count > 0)
-                if (!CloseTab((openFiles.TabPages[0].Controls[0] as IKuriimuForm).Kfi, openFiles.TabPages[0].Controls[0] as IKuriimuForm, true))
-                {
-                    e.Cancel = true;
-                    return;
-                }
-        }
+        #endregion
     }
 }

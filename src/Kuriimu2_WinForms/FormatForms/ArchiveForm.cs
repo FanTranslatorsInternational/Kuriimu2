@@ -487,6 +487,8 @@ namespace Kuriimu2_WinForms.FormatForms
         #region Updates
         public void UpdateForm()
         {
+            _currentTab.Text = Kfi.DisplayName;
+
             var selectedItem = lstFiles.SelectedItems.Count > 0 ? lstFiles.SelectedItems[0] : null;
             var afi = selectedItem?.Tag as ArchiveFileInfo;
 
@@ -534,11 +536,10 @@ namespace Kuriimu2_WinForms.FormatForms
         #endregion
 
         #region Child Tabs
-        public void RemoveChildTab(IArchiveForm form)
+        public void RemoveChildTab(TabPage tabPage)
         {
-            var toRemove = _childTabs.FirstOrDefault(x => (x.Controls[0] as IArchiveForm) == form);
-            if (toRemove != null)
-                _childTabs.Remove(toRemove);
+            if (_childTabs.Contains(tabPage))
+                _childTabs.Remove(tabPage);
         }
 
         public void UpdateChildTabs(KoreFileInfo kfi)
@@ -840,16 +841,16 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             var fs = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
 
-            var args = new OpenTabEventArgs(afi, fs, _currentTab) { LeaveOpen = true };
+            var args = new OpenTabEventArgs(afi, Kfi, fs) { LeaveOpen = true };
             OpenTab?.Invoke(this, args);
 
-            if (args.EventResult && args.NewTabPage != null)
+            if (args.EventResult && args.OpenedTabPage != null)
             {
                 if (Kfi.ChildKfi == null)
                     Kfi.ChildKfi = new List<KoreFileInfo>();
-                Kfi.ChildKfi.Add(args.NewKfi);
+                Kfi.ChildKfi.Add((args.OpenedTabPage.Controls[0] as IKuriimuForm).Kfi);
 
-                _childTabs.Add(args.NewTabPage);
+                _childTabs.Add(args.OpenedTabPage);
             }
 
             return args.EventResult;
@@ -901,7 +902,7 @@ namespace Kuriimu2_WinForms.FormatForms
         #region Close
         public void Close()
         {
-            CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi, _parentTab) { LeaveOpen = Kfi.ParentKfi != null });
+            CloseTab?.Invoke(this, new CloseTabEventArgs(Kfi) { LeaveOpen = Kfi.ParentKfi != null });
         }
         #endregion
 

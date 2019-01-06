@@ -16,27 +16,26 @@ namespace Kuriimu2_WinForms.Interfaces
         event EventHandler<OpenTabEventArgs> OpenTab;
 
         void UpdateParent();
-
         void UpdateChildTabs(KoreFileInfo kfi);
+
+        void RemoveChildTab(TabPage tabPage);
     }
 
     public class OpenTabEventArgs : EventArgs
     {
-        public OpenTabEventArgs(ArchiveFileInfo afi, IVirtualFSRoot fs, TabPage parentTab)
+        public OpenTabEventArgs(ArchiveFileInfo afi, KoreFileInfo kfi, IVirtualFSRoot fs)
         {
-            AFI = afi;
+            Afi = afi;
+            Kfi = kfi;
             FileSystem = fs;
-            ParentTabPage = parentTab;
         }
 
-        public ArchiveFileInfo AFI { get; }
+        public ArchiveFileInfo Afi { get; }
+        public KoreFileInfo Kfi { get; }
         public IVirtualFSRoot FileSystem { get; }
-        public TabPage ParentTabPage { get; }
-        public KoreFileInfo ParentKfi { get => (ParentTabPage.Controls[0] as IKuriimuForm).Kfi; }
         public bool LeaveOpen { get; set; }
 
         public bool EventResult { get; set; }
-        public TabPage NewTabPage { get; set; }
-        public KoreFileInfo NewKfi { get => (NewTabPage.Controls[0] as IKuriimuForm).Kfi; }
+        public TabPage OpenedTabPage { get; set; }
     }
 }

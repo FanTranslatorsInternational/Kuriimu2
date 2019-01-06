@@ -17,9 +17,9 @@ namespace Kore
         }
 
         public KoreFileInfo Kfi { get; }
-        public int Version { get; set; }
-        public string NewSaveLocation { get; set; }
         public string TempFolder { get; }
+        public string NewSaveLocation { get; set; }
+        public int Version { get; set; }
 
         public KoreFileInfo SavedKfi { get; set; }
     }

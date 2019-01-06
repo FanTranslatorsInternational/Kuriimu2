@@ -39,14 +39,14 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class CloseTabEventArgs : EventArgs
     {
-        public CloseTabEventArgs(KoreFileInfo kfi, TabPage parentTabPage)
+        public CloseTabEventArgs(KoreFileInfo kfi)
         {
             Kfi = kfi;
-            ParentTabPage = parentTabPage;
         }
 
         public KoreFileInfo Kfi { get; }
-        public TabPage ParentTabPage { get; }
         public bool LeaveOpen { get; set; }
+
+        public bool EventResult { get; set; }
     }
 }

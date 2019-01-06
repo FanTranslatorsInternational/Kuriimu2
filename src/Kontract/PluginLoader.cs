@@ -157,19 +157,5 @@ namespace Kontract
         {
             return adapter.GetType().GetCustomAttribute<TMeta>();
         }
-
-        //private TMeta GetMetadata<T, TMeta>(List<T> adapters, string pluginId) where TMeta : Attribute, IPluginMetadata
-        //{
-        //    return adapters.FirstOrDefault(x => x.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == pluginId)?.GetType().GetCustomAttribute<TMeta>();
-        //}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="adapter"></param>
-        /// <returns></returns>
-        //public bool AdapterInheritsFrom<T>(object adapter)
-        //    => adapter is T;
     }
 }
