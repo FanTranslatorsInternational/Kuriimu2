@@ -34,6 +34,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -43,10 +44,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestArchive.cs" />
+    <Compile Include="TestImage.cs" />
     <Compile Include="TestText.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Kanvas\Kanvas.csproj">
+      <Project>{810cefcf-6900-43ff-8939-ef2d52236882}</Project>
+      <Name>Kanvas</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\Komponent\Komponent.csproj">
+      <Project>{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}</Project>
+      <Name>Komponent</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\src\Kontract\Kontract.csproj">
       <Project>{a43ecc92-dc90-4f79-9871-49e02a11adad}</Project>
       <Name>Kontract</Name>

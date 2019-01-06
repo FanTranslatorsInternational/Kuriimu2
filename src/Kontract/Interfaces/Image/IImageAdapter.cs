@@ -22,7 +22,7 @@ namespace Kontract.Interfaces.Image
         /// </summary>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
-        Task<bool> Encode(IProgress<ProgressReport> progress);
+        Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress);
     }
 
     /// <summary>

@@ -10,14 +10,15 @@ using System.Windows.Forms;
 using Kuriimu2_WinForms.Interfaces;
 using Kore;
 using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Image;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
     public partial class ImageForm : UserControl, IKuriimuForm
     {
-        private TabPage _tabPage;
-        private TabPage _parentTabPage;
         private IArchiveAdapter _parentAdapter;
+        private TabPage _currentTab;
+        private TabPage _parentTab;
 
         public ImageForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage)
         {
@@ -25,33 +26,40 @@ namespace Kuriimu2_WinForms.FormatForms
 
             Kfi = kfi;
 
-            _tabPage = tabPage;
-            _parentTabPage = parentTabPage;
+            _currentTab = tabPage;
+            _parentTab = parentTabPage;
             _parentAdapter = parentAdapter;
+
+            pictureBox1.Image = (kfi.Adapter as IImageAdapter).BitmapInfos[0].Bitmaps[0];
+
+            UpdateForm();
         }
 
         public KoreFileInfo Kfi { get; set; }
-
-        public bool HasChanges { get; private set; }
         public Color TabColor { get; set; }
 
-        public event EventHandler<OpenTabEventArgs> OpenTab;
         public event EventHandler<SaveTabEventArgs> SaveTab;
         public event EventHandler<CloseTabEventArgs> CloseTab;
 
         public void Close()
         {
-            throw new NotImplementedException();
+            ;
         }
 
         public void Save(string filename = "")
         {
-            throw new NotImplementedException();
+            ;
         }
 
         public void UpdateForm()
         {
-            throw new NotImplementedException();
+            _currentTab.Text = Kfi.DisplayName;
+        }
+
+        private void ImageForm_Load(object sender, EventArgs e)
+        {
+            Dock = DockStyle.Fill;
+            Padding = new Padding(3);
         }
     }
 }
