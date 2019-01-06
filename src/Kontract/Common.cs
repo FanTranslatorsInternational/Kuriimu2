@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
+using System.Reflection;
 
 namespace Kontract
 {
@@ -22,6 +23,9 @@ namespace Kontract
 
             if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
                 catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
+
+            // TODO: TEMPORARY SamplePlugin Loading
+            catalog.Catalogs.Add(new AssemblyCatalog("Kore.dll"));
 
             // Create the CompositionContainer with the parts in the catalog.
             var container = new CompositionContainer(catalog);
