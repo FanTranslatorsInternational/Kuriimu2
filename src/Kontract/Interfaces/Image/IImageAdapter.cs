@@ -18,6 +18,11 @@ namespace Kontract.Interfaces.Image
         IList<BitmapInfo> BitmapInfos { get; }
 
         /// <summary>
+        /// The list of formats provided by the image adapter to change encoding
+        /// </summary>
+        IList<FormatInfo> FormatInfos { get; }
+
+        /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.
         /// </summary>
         /// <param name="progress">The progress object to report progress through.</param>
@@ -31,30 +36,57 @@ namespace Kontract.Interfaces.Image
     public class BitmapInfo
     {
         /// <summary>
-        /// The bitmap data.
+        /// The main image data.
         /// </summary>
         [Browsable(false)]
-        public List<Bitmap> Bitmaps { get; set; }
+        public Bitmap MainImage { get; set; }
+
+        /// <summary>
+        /// The list of all mipmap data.
+        /// </summary>
+        [Browsable(false)]
+        public List<Bitmap> MipMaps { get; set; }
 
         /// <summary>
         /// The number of mipmaps that this BitmapInfo has.
         /// </summary>
         [Category("Properties")]
         [ReadOnly(true)]
-        public virtual int MipMapCount => Bitmaps?.Count ?? 0;
+        public virtual int MipMapCount => MipMaps?.Count ?? 0;
 
         /// <summary>
-        /// The name of the bitmap.
+        /// The name of the main image.
         /// </summary>
         [Category("Properties")]
         [ReadOnly(true)]
         public string Name { get; set; }
 
         /// <summary>
-        /// Returns the dimensions of the bitmap.
+        /// Returns the dimensions of the main iamge.
         /// </summary>
         [Category("Properties")]
         [Description("The dimensions of the image.")]
-        public Size Size => Bitmaps.FirstOrDefault()?.Size ?? new Size();
+        public Size Size => MainImage?.Size ?? new Size();
+
+        /// <summary>
+        /// The image format information for encoding and decoding purposes
+        /// </summary>
+        public FormatInfo FormatInfo { get; set; }
+    }
+
+    /// <summary>
+    /// The base class for format information
+    /// </summary>
+    public class FormatInfo
+    {
+        /// <summary>
+        /// The unique index into a format list, specific to the adapter
+        /// </summary>
+        public int FormatIndex { get; }
+
+        /// <summary>
+        /// The name of the format used; Doesn't need to be unique
+        /// </summary>
+        public string FormatName { get; }
     }
 }

@@ -30,7 +30,7 @@ namespace Kuriimu2_WinForms.FormatForms
             _parentTab = parentTabPage;
             _parentAdapter = parentAdapter;
 
-            pictureBox1.Image = (kfi.Adapter as IImageAdapter).BitmapInfos[0].Bitmaps[0];
+            pictureBox1.Image = (kfi.Adapter as IImageAdapter).BitmapInfos[0].MainImage;
 
             UpdateForm();
         }
