@@ -7,7 +7,8 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
 
 namespace plugin_valkyria_chronicles.SFNT
 {

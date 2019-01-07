@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Text;
 using plugin_valkyria_chronicles.SFNT;
 
 namespace plugin_valkyria_chronicles.Game

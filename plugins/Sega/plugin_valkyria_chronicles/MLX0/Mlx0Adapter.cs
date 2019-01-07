@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Image;
 using plugin_sony_images.GIM;
 
 namespace plugin_valkyria_chronicles.MLX0
