@@ -7,18 +7,20 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
 
 namespace plugin_mt_framework.GFDv1
 {
     [Export(typeof(GFDv1FontAdapter))]
+    [Export(typeof(IFontAdapter2))]
     [Export(typeof(IFontRenderer))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
     [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font v1", "GFDv1", "IcySon55", "", "This is the GFDv1 font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
-    public sealed class GFDv1FontAdapter : IFontRenderer, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class GFDv1FontAdapter : IFontAdapter2, IFontRenderer, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private GFDv1 _gfd;
 

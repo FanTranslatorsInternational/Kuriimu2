@@ -6,10 +6,13 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Image;
 using plugin_mt_framework.TEX;
 
 namespace plugin_mt_framework.GFDv1
@@ -44,14 +47,16 @@ namespace plugin_mt_framework.GFDv1
             Characters = new List<GFDv1Character>();
             Textures = new List<Bitmap>();
 
-            Plugins.ComposePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                Plugins.ComposePlugins(this, _container);
         }
 
         public GFDv1(FileStream input)
         {
             _sourceFile = input.Name;
 
-            Plugins.ComposePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                Plugins.ComposePlugins(this, _container);
 
             using (var br = new BinaryReaderX(input))
             {
@@ -140,8 +145,7 @@ namespace plugin_mt_framework.GFDv1
 
                 // Name
                 bw.Write(Name.Length);
-                bw.WriteASCII(Name);
-                bw.Write((byte)0);
+                bw.WriteString(Name, Encoding.ASCII, false);
 
                 // Characters
                 bw.WriteMultiple(Characters.Select(ci => new CharacterInfo
@@ -252,7 +256,7 @@ namespace plugin_mt_framework.GFDv1
             public Block3 Block3;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block1
         {
             [BitField(12)]
@@ -263,7 +267,7 @@ namespace plugin_mt_framework.GFDv1
             public long TextureIndex;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block2
         {
             [BitField(12)]
@@ -274,7 +278,7 @@ namespace plugin_mt_framework.GFDv1
             public long XAdjust;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block3
         {
             [BitField(14)]

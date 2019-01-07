@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Font;
 
 namespace plugin_e.x._troopers.Game
 {

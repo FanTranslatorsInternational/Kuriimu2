@@ -9,7 +9,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Text;
 using plugin_mt_framework.GFDv1;
 
 namespace plugin_e.x._troopers.Game
@@ -167,17 +168,20 @@ namespace plugin_e.x._troopers.Game
                     gfx.DrawImage(textBox, textBoxOffsetX, textBoxOffsetY, textBox.Width * 1.1f, textBox.Height * 1.1f);
 
                 // Draw cursor
-                int cursorX = 627, cursorY = 161;
-                var cursorScale = 0.825f;
-                gfx.DrawImage(cursor,
-                    new[]
-                    {
-                        new PointF(cursorX, cursorY),
-                        new PointF(cursorX + cursor.Width * cursorScale, cursorY),
-                        new PointF(cursorX, cursorY + cursor.Height * cursorScale)
-                    },
-                    new RectangleF(0, 0, cursor.Width, cursor.Height), GraphicsUnit.Pixel
-                );
+                if (!isTut)
+                {
+                    int cursorX = 627, cursorY = 161;
+                    var cursorScale = 0.825f;
+                    gfx.DrawImage(cursor,
+                        new[]
+                        {
+                            new PointF(cursorX, cursorY),
+                            new PointF(cursorX + cursor.Width * cursorScale, cursorY),
+                            new PointF(cursorX, cursorY + cursor.Height * cursorScale)
+                        },
+                        new RectangleF(0, 0, cursor.Width, cursor.Height), GraphicsUnit.Pixel
+                    );
+                }
 
                 // Draw template
                 //DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "e8.png")), 0.25f);
@@ -251,6 +255,9 @@ namespace plugin_e.x._troopers.Game
 
                                 PadFont.Draw(p, gfx, x, y, scale, scale);
                                 x += PadFont.GetCharWidthInfo(p).GlyphWidth * scale;
+                                break;
+                            case "WIZP":
+                                Font.SetColor(isCloser ? Color.Black : Color.Red);
                                 break;
                         }
 
