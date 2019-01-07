@@ -48,7 +48,17 @@ namespace plugin_valkyria_chronicles.SFNT
 
         public float MeasureString(string text, char stopChar, float scale = 1)
         {
-            throw new NotImplementedException();
+            if (text.Length == 0) return 0;
+
+            var width = 0f;
+            foreach (var c in text)
+            {
+                width += GetCharWidthInfo(c).GlyphWidth * scale;
+                if (c == stopChar)
+                    break;
+            }
+
+            return width;
         }
 
         public void SetColor(Color color)
