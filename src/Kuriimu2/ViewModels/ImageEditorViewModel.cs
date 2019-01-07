@@ -46,7 +46,7 @@ namespace Kuriimu2.ViewModels
             {
                 if (value == _selectedBitmapInfo) return;
                 _selectedBitmapInfo = value;
-                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage(true);
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }
@@ -279,24 +279,24 @@ namespace Kuriimu2.ViewModels
 
         public string Name => BitmapInfo?.Name;
 
-        public BitmapImage ImageOne => BitmapInfo?.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageOne => BitmapInfo?.Bitmaps.FirstOrDefault()?.ToBitmapImage(true);
 
-        public BitmapImage ImageTwo => BitmapInfo?.Bitmaps.Skip(1).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageTwo => BitmapInfo?.Bitmaps.Skip(1).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageTwoVisible => BitmapInfo?.Bitmaps.Count > 1 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageThree => BitmapInfo?.Bitmaps.Skip(2).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageThree => BitmapInfo?.Bitmaps.Skip(2).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageThreeVisible => BitmapInfo?.Bitmaps.Count > 2 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageFour => BitmapInfo?.Bitmaps.Skip(3).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageFour => BitmapInfo?.Bitmaps.Skip(3).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageFourVisible => BitmapInfo?.Bitmaps.Count > 3 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageFive => BitmapInfo?.Bitmaps.Skip(4).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageFive => BitmapInfo?.Bitmaps.Skip(4).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageFiveVisible => BitmapInfo?.Bitmaps.Count > 4 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageSix => BitmapInfo?.Bitmaps.Skip(5).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageSix => BitmapInfo?.Bitmaps.Skip(5).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageSixVisible => BitmapInfo?.Bitmaps.Count > 5 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageSeven => BitmapInfo?.Bitmaps.Skip(6).FirstOrDefault()?.ToBitmapImage();
+        public BitmapImage ImageSeven => BitmapInfo?.Bitmaps.Skip(6).FirstOrDefault()?.ToBitmapImage(true);
         public Visibility ImageSevenVisible => BitmapInfo?.Bitmaps.Count > 6 ? Visibility.Visible : Visibility.Hidden;
 
         public BitmapEntry(BitmapInfo bitmapInfo)
