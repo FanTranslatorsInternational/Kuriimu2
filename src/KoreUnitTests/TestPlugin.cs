@@ -23,6 +23,8 @@ namespace KoreUnitTests
     {
         public List<string> Communication { get; set; }
 
+        public bool LeaveOpen { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public void Dispose()
         {
             ;
@@ -43,6 +45,11 @@ namespace KoreUnitTests
         {
             Communication.Add("string3");
         }
+
+        public void Save(StreamInfo initialFile, int versionIndex = 0)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     [Export(typeof(IArchiveAdapter))]
@@ -53,6 +60,10 @@ namespace KoreUnitTests
     public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles
     {
         public List<ArchiveFileInfo> Files { get; private set; }
+
+        public bool FileHasExtendedProperties => throw new NotImplementedException();
+
+        public bool LeaveOpen { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void Dispose()
         {

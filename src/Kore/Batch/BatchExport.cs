@@ -101,10 +101,10 @@ namespace Kore.Batch
                                 foreach (var info in adapter.BitmapInfos)
                                 {
                                     if (info.MipMapCount <= 1)
-                                        info.Bitmaps.First().Save(file + $".{info.Name.Replace(" ", "_")}.{adapter.BitmapInfos.IndexOf(info)}.png", ImageFormat.Png);
+                                        info.Image.Save(file + $".{info.Name.Replace(" ", "_")}.{adapter.BitmapInfos.IndexOf(info)}.png", ImageFormat.Png);
                                     else
-                                        foreach (var bitmap in info.Bitmaps)
-                                            bitmap.Save(file + $".{info.Name.Replace(" ", "_")}.{adapter.BitmapInfos.IndexOf(info)}.{info.Bitmaps.IndexOf(bitmap)}.png", ImageFormat.Png);
+                                        foreach (var bitmap in info.MipMaps)
+                                            bitmap.Save(file + $".{info.Name.Replace(" ", "_")}.{adapter.BitmapInfos.IndexOf(info)}.{info.MipMaps.IndexOf(bitmap)}.png", ImageFormat.Png);
                                 }
                                 current++;
                                 progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(file)}.png...", Percentage = current / max * 100, Data = ((int)current, (int)max) });

@@ -30,6 +30,8 @@ namespace Kore.SamplePlugins
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
+        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+
         #endregion
 
         public bool Identify(string filename)
@@ -65,7 +67,7 @@ namespace Kore.SamplePlugins
             if (File.Exists(filename))
             {
                 _format = new BCLIM(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = new List<System.Drawing.Bitmap> { _format.Texture }, Name = "0" } };
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Image = _format.Texture, Name = "0" } };
             }
         }
 

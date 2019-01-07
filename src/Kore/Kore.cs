@@ -483,16 +483,13 @@ namespace Kore
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return PluginLoader.GetAdapters<ILoadFiles>().
                 Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
-                    ToLower().TrimEnd(';').Split(';').
-                    Any(s => klf.FileName.ToLower().EndsWith(s.TrimStart('*')))
-                    ).
-                Select(x =>
+                    ToLower().TrimEnd(';').Split(';').Any(s => klf.FileName.ToLower().EndsWith(s.TrimStart('*')))
+                ).Select(x =>
                 {
                     if (x is IMultipleFiles y)
                         y.FileSystem = klf.FileSystem;
                     return x;
-                }).
-                FirstOrDefault(adapter => CheckAdapter(adapter, klf));
+                }).FirstOrDefault(adapter => CheckAdapter(adapter, klf));
         }
 
         /// <summary>

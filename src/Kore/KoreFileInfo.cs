@@ -24,7 +24,7 @@ namespace Kore
         /// </summary>
         public List<KoreFileInfo> ChildKfi { get; set; }
 
-        //TODO: AFI in KoreFileInfo subject ot remove?
+        //TODO: AFI in KoreFileInfo subject to remove?
         /// <summary>
         /// This files ArchiveFileInfo to get access to parent states
         /// </summary>

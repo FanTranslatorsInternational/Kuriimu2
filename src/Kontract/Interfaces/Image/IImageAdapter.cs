@@ -39,7 +39,7 @@ namespace Kontract.Interfaces.Image
         /// The main image data.
         /// </summary>
         [Browsable(false)]
-        public Bitmap MainImage { get; set; }
+        public Bitmap Image { get; set; }
 
         /// <summary>
         /// The list of all mipmap data.
@@ -66,7 +66,7 @@ namespace Kontract.Interfaces.Image
         /// </summary>
         [Category("Properties")]
         [Description("The dimensions of the image.")]
-        public Size Size => MainImage?.Size ?? new Size();
+        public Size Size => Image?.Size ?? new Size();
 
         /// <summary>
         /// The image format information for encoding and decoding purposes

@@ -7,6 +7,7 @@ using Kontract.Attributes;
 using Kontract.Interfaces.VirtualFS;
 using System.IO;
 using Kontract.FileSystem;
+using Kore;
 
 namespace KoreUnitTests
 {

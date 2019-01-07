@@ -46,7 +46,7 @@ namespace Kuriimu2.ViewModels
             {
                 if (value == _selectedBitmapInfo) return;
                 _selectedBitmapInfo = value;
-                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Bitmaps.FirstOrDefault()?.ToBitmapImage();
+                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Image.ToBitmapImage();
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }

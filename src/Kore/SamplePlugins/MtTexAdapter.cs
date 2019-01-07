@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
@@ -30,6 +31,8 @@ namespace Kore.SamplePlugins
 
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
+
+        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
 
         #endregion
 
@@ -64,7 +67,7 @@ namespace Kore.SamplePlugins
             if (File.Exists(filename))
             {
                 _format = new MTTEX(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = _format.Bitmaps, Name = "0" } };
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Image = _format.Bitmaps.FirstOrDefault(), MipMaps = _format.Bitmaps.Skip(1).ToList(), Name = "0" } };
             }
         }
 
