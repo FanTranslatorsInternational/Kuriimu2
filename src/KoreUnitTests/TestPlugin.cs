@@ -8,7 +8,7 @@ using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using System.IO;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Archive;
 
 namespace KoreUnitTests

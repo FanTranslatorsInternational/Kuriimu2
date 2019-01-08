@@ -1,5 +1,5 @@
 ﻿using System;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using System.IO;
@@ -40,7 +40,7 @@ namespace KontractUnitTests
             Assert.ThrowsException<InvalidOperationException>(new Action(() => fs.GetDirectory("folder2\\subfolder1_2\\../../..")));
         }
 
-        private void FSTest(IVirtualFSRoot fs)
+        private void FSTest(IFileSystem fs)
         {
             Assert.IsTrue(fs.EnumerateFiles().Contains(Path.Combine(fs.RootDir, "Class6.cs")));
 

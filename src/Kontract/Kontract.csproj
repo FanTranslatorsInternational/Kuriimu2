@@ -75,8 +75,8 @@
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
-    <Compile Include="Interfaces\VirtualFS\FsFileStream.cs" />
-    <Compile Include="Interfaces\VirtualFS\IVirtualFSRoot.cs" />
+    <Compile Include="FileSystem\FileSystemStream.cs" />
+    <Compile Include="Interfaces\FileSystem\IFileSystem.cs" />
     <Compile Include="FileSystem\PhysicalFileSystem.cs" />
     <Compile Include="FileSystem\VirtualFileSystem.cs" />
     <Compile Include="PluginLoader.cs" />

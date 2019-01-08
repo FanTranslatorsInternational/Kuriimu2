@@ -2,7 +2,7 @@
 using System.Linq;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Text;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kore.SamplePlugins;
 
 namespace Kore.Utilities

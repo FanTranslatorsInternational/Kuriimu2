@@ -13,7 +13,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 
 namespace Kore
 {
@@ -183,12 +183,12 @@ namespace Kore
 - 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
 - 6. Reopen dependant files from parent to child
 */
-        public void SaveFile2(KoreSaveInfo ksi)
+        public void SaveFile(KoreSaveInfo ksi)
         {
-            SaveFile2(ksi, true);
+            SaveFile(ksi, true);
         }
 
-        private void SaveFile2(KoreSaveInfo ksi, bool firstIteration)
+        private void SaveFile(KoreSaveInfo ksi, bool firstIteration)
         {
             var kfi = ksi.Kfi;
             var tempFolder = ksi.TempFolder;
@@ -200,7 +200,7 @@ namespace Kore
                 fullPathTree = CreateFullPathTree(ksi.Kfi);
 
             // Save all childs first, if existent
-            SaveChilds(ksi);
+            SaveChildren(ksi);
 
             // Save data with the adapter
             var fs = new PhysicalFileSystem(Path.Combine(Path.GetFullPath(ksi.TempFolder), guid));
@@ -254,17 +254,17 @@ namespace Kore
             public List<FullPathNode> Nodes { get; }
         }
 
-        private void SaveChilds(KoreSaveInfo ksi)
+        private void SaveChildren(KoreSaveInfo ksi)
         {
             var kfi = ksi.Kfi;
 
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0 && kfi.HasChanges)
                 foreach (var child in kfi.ChildKfi)
                     if (child.HasChanges)
-                        SaveFile2(new KoreSaveInfo(child, ksi.TempFolder) { Version = ksi.Version }, false);
+                        SaveFile(new KoreSaveInfo(child, ksi.TempFolder) { Version = ksi.Version }, false);
         }
 
-        private void SaveWithAdapter(KoreSaveInfo ksi, IVirtualFSRoot fs)
+        private void SaveWithAdapter(KoreSaveInfo ksi, IFileSystem fs)
         {
             var kfi = ksi.Kfi;
 
@@ -280,7 +280,7 @@ namespace Kore
             (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
         }
 
-        private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, IVirtualFSRoot physicalFS, string root)
+        private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, IFileSystem physicalFS, string root)
         {
             // Loop through all directories
             foreach (var dir in physicalFS.EnumerateDirectories(true))
@@ -300,7 +300,7 @@ namespace Kore
             }
         }
 
-        private void ReplaceFilesInFolder(string newSaveLocation, IVirtualFSRoot physicalFS, string root)
+        private void ReplaceFilesInFolder(string newSaveLocation, IFileSystem physicalFS, string root)
         {
             // Loop through all directories
             foreach (var dir in physicalFS.EnumerateDirectories(true))
@@ -416,23 +416,6 @@ namespace Kore
         //        kfi.UpdateState(ArchiveFileState.Replaced);
         //}
 
-        //TODO: SaveFileSystem
-        private void SaveFileSystem(IVirtualFSRoot fs, string folder)
-        {
-            foreach (var dir in fs.EnumerateDirectories(true))
-            {
-                if (!Directory.Exists(Path.Combine(folder, dir)))
-                    Directory.CreateDirectory(Path.Combine(folder, dir));
-
-                SaveFileSystem(fs.GetDirectory(dir), Path.Combine(folder, dir));
-            }
-
-            foreach (var file in fs.EnumerateFiles())
-            {
-
-            }
-        }
-
         /// <summary>
         /// Closes an open file.
         /// </summary>
@@ -443,6 +426,13 @@ namespace Kore
             return CloseFile(kfi, leaveFileStreamOpen, true);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="kfi"></param>
+        /// <param name="leaveFileStreamOpen"></param>
+        /// <param name="firstIteration"></param>
+        /// <returns></returns>
         private bool CloseFile(KoreFileInfo kfi, bool leaveFileStreamOpen, bool firstIteration)
         {
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0)
@@ -483,38 +473,38 @@ namespace Kore
         /// </summary>
         /// <param name="file">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
-        private ILoadFiles SelectAdapter(KoreLoadInfo klf)
+        private ILoadFiles SelectAdapter(KoreLoadInfo kli)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return PluginLoader.GetAdapters<ILoadFiles>().
                 Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
-                    ToLower().TrimEnd(';').Split(';').Any(s => klf.FileName.ToLower().EndsWith(s.TrimStart('*')))
+                    ToLower().TrimEnd(';').Split(';').Any(s => kli.FileName.ToLower().EndsWith(s.TrimStart('*')))
                 ).Select(x =>
                 {
                     if (x is IMultipleFiles y)
-                        y.FileSystem = klf.FileSystem;
+                        y.FileSystem = kli.FileSystem;
                     return x;
-                }).FirstOrDefault(adapter => CheckAdapter(adapter, klf));
+                }).FirstOrDefault(adapter => CheckAdapter(adapter, kli));
         }
 
         /// <summary>
-        /// Does the actual identification with IIdentifyFiles and checks the availablity of the date stream.
+        /// Does the actual identification with IIdentifyFiles and checks the availablity of the data stream.
         /// </summary>
         /// <param name="adapter">Adapter to identify with.</param>
-        /// <param name="klf">Kore information for identification.</param>
+        /// <param name="kli">Kore information for identification.</param>
         /// <returns>Returns if the adapter was capable of identifying the file.</returns>
-        private bool CheckAdapter(ILoadFiles adapter, KoreLoadInfo klf)
+        private bool CheckAdapter(ILoadFiles adapter, KoreLoadInfo kli)
         {
             if (!(adapter is IIdentifyFiles))
                 return false;
             adapter.LeaveOpen = true;
 
-            klf.FileData.Position = 0;
-            var info = new StreamInfo { FileData = klf.FileData, FileName = klf.FileName };
+            kli.FileData.Position = 0;
+            var info = new StreamInfo { FileData = kli.FileData, FileName = kli.FileName };
             var res = ((IIdentifyFiles)adapter).Identify(info);
 
-            if (!klf.FileData.CanRead)
-                throw new InvalidOperationException($"Plugin with ID {PluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID} closed the streams while identifying the file.");
+            if (!kli.FileData.CanRead)
+                throw new InvalidOperationException($"Plugin with ID '{PluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID}' closed the stream(s) while identifying the file(s).");
 
             return res;
         }

@@ -14,7 +14,7 @@ using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using System.Text.RegularExpressions;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kontract.FileSystem;
 using Kuriimu2_WinForms.Interfaces;
 using Kore;
@@ -216,7 +216,7 @@ namespace Kuriimu2_WinForms
 
             // Save files
             var ksi = new KoreSaveInfo(kfi, _tempFolder) { Version = version, NewSaveLocation = newSaveLocation };
-            _kore.SaveFile2(ksi);
+            _kore.SaveFile(ksi);
 
             if (ksi.SavedKfi.ParentKfi != null)
                 ksi.SavedKfi.ParentKfi.HasChanges = true;

@@ -1,14 +1,11 @@
-﻿using Kontract.Attributes;
-using Kontract.Interfaces.Archive;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.VirtualFS;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Kontract.Attributes;
+using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.FileSystem;
 
 namespace WinFormsTest
 {
@@ -22,7 +19,7 @@ namespace WinFormsTest
     {
         public List<ArchiveFileInfo> Files { get; private set; }
 
-        public IVirtualFSRoot FileSystem { get; set; }
+        public IFileSystem FileSystem { get; set; }
 
         public bool CanRenameFiles => false;
 

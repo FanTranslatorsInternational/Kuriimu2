@@ -1,4 +1,4 @@
-﻿using Kontract.Interfaces.VirtualFS;
+﻿using Kontract.Interfaces.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.FileSystem
 {
-    public class PhysicalFileSystem : IVirtualFSRoot
+    public class PhysicalFileSystem : IFileSystem
     {
         private List<Stream> _openedFiles;
 
@@ -50,7 +50,7 @@ namespace Kontract.FileSystem
             return Directory.EnumerateFiles(RootDir).Select(x => x.Remove(0, RootDir.Length + 1));
         }
 
-        public IVirtualFSRoot GetDirectory(string path)
+        public IFileSystem GetDirectory(string path)
         {
             return new PhysicalFileSystem(Path.GetFullPath(Path.Combine(RootDir, path)));
         }
@@ -58,7 +58,7 @@ namespace Kontract.FileSystem
         public Stream OpenFile(string filename)
         {
             var openedFile = File.Open(Path.Combine(RootDir, filename), FileMode.Open);
-            var fsFileStream = new FsFileStream(openedFile);
+            var fsFileStream = new FileSystemStream(openedFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
             _openedFiles.Add(openedFile);
@@ -72,7 +72,7 @@ namespace Kontract.FileSystem
                 throw new InvalidOperationException("Can't create files.");
 
             var createdFile = File.Create(Path.Combine(RootDir, filename));
-            var fsFileStream = new FsFileStream(createdFile);
+            var fsFileStream = new FileSystemStream(createdFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
             _openedFiles.Add(createdFile);

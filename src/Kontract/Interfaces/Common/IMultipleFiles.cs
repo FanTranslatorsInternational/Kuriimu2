@@ -1,4 +1,4 @@
-﻿using Kontract.Interfaces.VirtualFS;
+﻿using Kontract.Interfaces.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ namespace Kontract.Interfaces.Common
 {
     public interface IMultipleFiles
     {
-        IVirtualFSRoot FileSystem { get; set; }
+        IFileSystem FileSystem { get; set; }
     }
 
     /// <summary>

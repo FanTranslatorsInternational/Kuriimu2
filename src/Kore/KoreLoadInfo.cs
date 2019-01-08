@@ -1,5 +1,5 @@
 ﻿using Kontract.Interfaces.Common;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,7 +16,7 @@ namespace Kore
 
         public ILoadFiles Adapter { get; set; }
 
-        public IVirtualFSRoot FileSystem { get; set; }
+        public IFileSystem FileSystem { get; set; }
         public bool LeaveOpen { get; set; }
         public bool TrackFile { get; set; } = true;
 

@@ -4,7 +4,7 @@ using Kontract.Interfaces.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using Kontract.Attributes;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using System.IO;
 using Kontract.FileSystem;
 using Kore;

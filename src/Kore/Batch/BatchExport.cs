@@ -8,7 +8,7 @@ using Kontract;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kore.SamplePlugins;
 
 namespace Kore.Batch

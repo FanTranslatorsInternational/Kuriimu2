@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kontract.Interfaces.VirtualFS
+namespace Kontract.FileSystem
 {
-    public class FsFileStream : Stream
+    public class FileSystemStream : Stream
     {
         private Stream _baseStream;
 
@@ -21,7 +21,7 @@ namespace Kontract.Interfaces.VirtualFS
 
         public override long Position { get => _baseStream.Position; set => _baseStream.Position = value; }
 
-        public FsFileStream(Stream input)
+        public FileSystemStream(Stream input)
         {
             _baseStream = input;
         }
@@ -51,11 +51,11 @@ namespace Kontract.Interfaces.VirtualFS
 
     public class CloseStreamEventArgs
     {
+        public Stream BaseStream { get; }
+
         public CloseStreamEventArgs(Stream baseStream)
         {
             BaseStream = baseStream;
         }
-
-        public Stream BaseStream { get; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kore;
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class OpenTabEventArgs : EventArgs
     {
-        public OpenTabEventArgs(ArchiveFileInfo afi, KoreFileInfo kfi, IVirtualFSRoot fs)
+        public OpenTabEventArgs(ArchiveFileInfo afi, KoreFileInfo kfi, IFileSystem fs)
         {
             Afi = afi;
             Kfi = kfi;
@@ -32,7 +32,7 @@ namespace Kuriimu2_WinForms.Interfaces
 
         public ArchiveFileInfo Afi { get; }
         public KoreFileInfo Kfi { get; }
-        public IVirtualFSRoot FileSystem { get; }
+        public IFileSystem FileSystem { get; }
         public bool LeaveOpen { get; set; }
 
         public bool EventResult { get; set; }

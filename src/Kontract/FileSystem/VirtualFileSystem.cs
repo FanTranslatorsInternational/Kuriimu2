@@ -1,5 +1,5 @@
 ﻿using Kontract.Interfaces.Archive;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.FileSystem
 {
-    public class VirtualFileSystem : IVirtualFSRoot
+    public class VirtualFileSystem : IFileSystem
     {
         private char pathDelimiter = Path.DirectorySeparatorChar;
 
@@ -99,7 +99,7 @@ namespace Kontract.FileSystem
             return null;
         }
 
-        public IVirtualFSRoot GetDirectory(string path)
+        public IFileSystem GetDirectory(string path)
         {
             var relativePath = ResolvePath(Path.Combine(RootDir, UnifyPathDelimiters(path)));
 
@@ -125,7 +125,7 @@ namespace Kontract.FileSystem
             if (afi == null)
                 throw new FileNotFoundException(resolvedFilepath);
 
-            var fsFileStream = new FsFileStream(afi.FileData);
+            var fsFileStream = new FileSystemStream(afi.FileData);
 
             return fsFileStream;
         }

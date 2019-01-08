@@ -1,5 +1,5 @@
 ﻿using Kontract.Interfaces.Archive;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;

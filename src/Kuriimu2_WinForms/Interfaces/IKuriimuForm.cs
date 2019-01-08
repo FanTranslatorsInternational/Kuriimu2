@@ -1,6 +1,6 @@
 ﻿using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
-using Kontract.Interfaces.VirtualFS;
+using Kontract.Interfaces.FileSystem;
 using Kore;
 using System;
 using System.Collections.Generic;

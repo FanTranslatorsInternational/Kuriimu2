@@ -11,6 +11,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Layout;
 using Kontract.Interfaces.Text;
 
 namespace Kontract
@@ -18,12 +19,12 @@ namespace Kontract
     public class PluginLoader
     {
         /// <summary>
-        /// 
+        /// Lazy loads the PluginLoader singleton instance.
         /// </summary>
         private static Lazy<PluginLoader> _pluginLoaderInitializer = new Lazy<PluginLoader>(() => new PluginLoader("plugins"));
 
         /// <summary>
-        /// 
+        /// Provides access to the PluginLoader singleton instance.
         /// </summary>
         public static PluginLoader Instance => _pluginLoaderInitializer.Value;
 
@@ -47,6 +48,9 @@ namespace Kontract
 
         [ImportMany(typeof(IFontAdapter))]
         private List<IFontAdapter> _fontAdapters;
+
+        [ImportMany(typeof(ILayoutAdapter))]
+        private List<ILayoutAdapter> _layoutAdapters;
 
         //[ImportMany(typeof(IAudioAdapter))]
         //private List<Lazy<IAudioAdapter, IPluginMetadata>> _audioAdapters;
@@ -104,6 +108,9 @@ namespace Kontract
                 case nameof(IFontAdapter):
                     return CreateAdapter<IFontAdapter, T>(_fontAdapters, pluginID);
 
+                case nameof(ILayoutAdapter):
+                    return CreateAdapter<ILayoutAdapter, T>(_layoutAdapters, pluginID);
+
                 case nameof(IGameAdapter):
                     return CreateAdapter<IGameAdapter, T>(_gameAdapters, pluginID);
 
@@ -150,6 +157,9 @@ namespace Kontract
                 case nameof(IFontAdapter):
                     return GetAdapters<IFontAdapter, TResult>(_fontAdapters.Where(x => x is TResult).ToList());
 
+                case nameof(ILayoutAdapter):
+                    return GetAdapters<ILayoutAdapter, TResult>(_layoutAdapters.Where(x => x is TResult).ToList());
+
                 case nameof(IGameAdapter):
                     return GetAdapters<IGameAdapter, TResult>(_gameAdapters.Where(x => x is TResult).ToList());
 
@@ -184,6 +194,9 @@ namespace Kontract
 
                 case nameof(IFontAdapter):
                     return GetAdapters<IFontAdapter, T>(_fontAdapters);
+
+                case nameof(ILayoutAdapter):
+                    return GetAdapters<ILayoutAdapter, T>(_layoutAdapters);
 
                 case nameof(IGameAdapter):
                     return GetAdapters<IGameAdapter, T>(_gameAdapters);

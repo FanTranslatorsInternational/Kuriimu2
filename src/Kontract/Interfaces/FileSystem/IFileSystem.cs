@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kontract.Interfaces.VirtualFS
+namespace Kontract.Interfaces.FileSystem
 {
-    public interface IVirtualFSRoot : IDisposable
+    public interface IFileSystem : IDisposable
     {
         bool CanCreateDirectories { get; }
         bool CanCreateFiles { get; }
@@ -19,7 +19,7 @@ namespace Kontract.Interfaces.VirtualFS
         IEnumerable<string> EnumerateFiles(bool relative = false);
         IEnumerable<string> EnumerateDirectories(bool relative = false);
 
-        IVirtualFSRoot GetDirectory(string path);
+        IFileSystem GetDirectory(string path);
 
         Stream OpenFile(string filename);
         Stream CreateFile(string filename);
