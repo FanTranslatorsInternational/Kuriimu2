@@ -4,7 +4,8 @@ using System.ComponentModel.Composition;
 using System.IO;
 using Komponent.IO;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Text;
 
 namespace plugin_valkyria_chronicles.MXEN
 {

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Image;
 
 namespace plugin_mt_framework.TEX
 {
