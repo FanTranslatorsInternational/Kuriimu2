@@ -8,7 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Game;
+using Kontract.Interfaces.Text;
 using plugin_valkyria_chronicles.SFNT;
 
 namespace plugin_valkyria_chronicles.Game
@@ -73,9 +74,9 @@ namespace plugin_valkyria_chronicles.Game
             var mtpSql = $"Data Source={Path.Combine(BasePath, "mtp.sqlite")};Version=3;";
             var mxeSql = $"Data Source={Path.Combine(BasePath, "mxec.sqlite")};Version=3;";
 
-            if (Filename.Contains("MTP"))
+            if (Filename.ToUpper().Contains("MTP"))
                 SQLiteDB.ConnectionString = mtpSql;
-            else if (Filename.Contains("MXE"))
+            else if (Filename.ToUpper().Contains("MXE"))
                 SQLiteDB.ConnectionString = mxeSql;
 
             // Main Kanvas
@@ -95,26 +96,31 @@ namespace plugin_valkyria_chronicles.Game
 
             // Scene Variables
             var scene = 1; // Make an enum
-            int x = 0, y = 0, xR = 0;
+            float x = 0, y = 0, xR = 0;
             float scaleX = 0.75f, scaleY = 0.75f;
             var lineHeight = OdinFont.Characters.First().GlyphHeight + 3;
-
-            var template = new Bitmap(Path.Combine(BasePath, "ULJM05781_00044.png"));
 
             // Render Scene
             switch (scene)
             {
                 case 1:
+                    // Settings
                     OdinFont.SetColor(cDefault);
+                    var lines = entry.EditedText.Split('\n').Length;
+                    scaleX = 0.875f;
+                    scaleY = 0.875f;
 
+                    // Background
                     gfx.DrawImage(background, 0, 0);
 
-                    var lines = entry.EditedText.Split('\n').Length;
+                    // Speech Balloon
+                    var balloonX = 169;
+                    var balloonY = 160;
 
-                    var balloonX = 86;
-                    var balloonY = 127;
-                    DrawBalloon(gfx, balloonLokiHard, new Point(balloonX, balloonY), lines);
+                    var widest = entry.EditedText.Split('\n').Max(l => OdinFont.MeasureString(l, '\0', scaleX));
+                    DrawSpeechBalloon(gfx, balloonLokiHard, new Point(balloonX, balloonY), lines, (int)widest + 10);
 
+                    // Text
                     var textX = balloonX + 5;
                     var textY = balloonY;
 
@@ -123,22 +129,19 @@ namespace plugin_valkyria_chronicles.Game
                         case 1:
                             textY += OdinFont.Characters.First().GlyphHeight / 2 + 1;
                             break;
+                        case 2:
+                            textY += OdinFont.Characters.First().GlyphHeight;
+                            break;
                         case 3:
                             textY += OdinFont.Characters.First().GlyphHeight / 2 - 2;
                             break;
-                        case 2:
                         case 4:
-
                             break;
                     }
 
                     // Set text box
                     x = xR = textX;
                     y = textY;
-                    scaleX = 0.93f;
-                    scaleY = 0.875f;
-
-                    //DrawTransparentImage(gfx, template, 0.5f);
 
                     break;
             }
@@ -166,25 +169,25 @@ namespace plugin_valkyria_chronicles.Game
                     //    OdinFont.SetColor(cDefault);
 
                     OdinFont.Draw(c, gfx, x, y, scaleX, scaleY);
-                    x += (int)(OdinFont.GetCharWidthInfo(c).GlyphWidth * scaleX);
+                    x += OdinFont.GetCharWidthInfo(c).GlyphWidth * scaleX;
                 }
 
             return kanvas;
         }
 
-        private void DrawBalloon(Graphics gfx, Dicer dicer, Point location, int lines)
+        private void DrawSpeechBalloon(Graphics gfx, Dicer dicer, Point location, int lines, int width)
         {
             var grid = dicer.Slice.UserInt1;
             var corner = lines == 1 ? "SmallCorner" : "BigCorner";
             var height = lines == 1 ? 2 : 4;
 
             dicer.DrawSlice(corner, gfx, location.X - 4 * grid, location.Y - 2 * grid);
-            dicer.DrawSlice(corner, gfx, location.X - 4 * grid + grid * 17, location.Y - 2 * grid, true, true);
+            dicer.DrawSlice(corner, gfx, location.X + width, location.Y - 2 * grid, true, true);
 
-            dicer.DrawSlice("Edge", gfx, location.X, location.Y - grid, false, true, grid * 13);
-            dicer.DrawSlice("Edge", gfx, location.X, location.Y + grid * height, false, false, grid * 13);
-            
-            dicer.DrawSlice("Fill", gfx, location.X, location.Y, false, false, grid * 13, grid * height);
+            dicer.DrawSlice("Edge", gfx, location.X, location.Y - grid, false, true, width);
+            dicer.DrawSlice("Edge", gfx, location.X, location.Y + grid * height, false, false, width);
+
+            dicer.DrawSlice("Fill", gfx, location.X, location.Y, false, false, width, grid * height);
         }
 
         private void DrawTransparentImage(Graphics gfx, Bitmap bitmap, float opacity)

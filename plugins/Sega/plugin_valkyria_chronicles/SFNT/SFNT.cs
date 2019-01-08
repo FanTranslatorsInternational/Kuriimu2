@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using Kanvas.Support;
 using Komponent.IO;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Font;
 
 namespace plugin_valkyria_chronicles.SFNT
 {

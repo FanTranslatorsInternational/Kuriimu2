@@ -6,7 +6,7 @@ using Kanvas.Format;
 using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Image;
 
 namespace plugin_mt_framework.TEX
 {
