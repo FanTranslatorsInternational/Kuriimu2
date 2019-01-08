@@ -128,6 +128,36 @@ namespace Kontract
             return (TResult)Activator.CreateInstance(adapter.GetType());
         }
 
+        public List<TResult> GetAdapters<T, TResult>()
+        {
+            switch (typeof(T).Name)
+            {
+                case nameof(ICreateFiles):
+                    return GetAdapters<ICreateFiles, TResult>(_createAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(ILoadFiles):
+                    return GetAdapters<ILoadFiles, TResult>(_loadAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(ITextAdapter):
+                    return GetAdapters<ITextAdapter, TResult>(_textAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(IImageAdapter):
+                    return GetAdapters<IImageAdapter, TResult>(_imageAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(IArchiveAdapter):
+                    return GetAdapters<IArchiveAdapter, TResult>(_archiveAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(IFontAdapter):
+                    return GetAdapters<IFontAdapter, TResult>(_fontAdapters.Where(x => x is TResult).ToList());
+
+                case nameof(IGameAdapter):
+                    return GetAdapters<IGameAdapter, TResult>(_gameAdapters.Where(x => x is TResult).ToList());
+
+                default:
+                    return null;
+            }
+        }
+
         /// <summary>
         /// Returns the currently loaded list of T type adapters.
         /// </summary>
