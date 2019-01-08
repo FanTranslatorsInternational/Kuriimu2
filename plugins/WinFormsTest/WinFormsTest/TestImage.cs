@@ -30,6 +30,8 @@ namespace WinFormsTest
 
         public IList<BitmapInfo> BitmapInfos { get; private set; }
 
+        public IList<FormatInfo> FormatInfos { get; private set; }
+
         public Dictionary<int, IImageFormat> Formats = new Dictionary<int, IImageFormat>
         {
             [0] = new RGBA(4, 4, 4, 4),
@@ -56,7 +58,7 @@ namespace WinFormsTest
                     var data = br.ReadBytes(dataSize);
 
                     var settings = new ImageSettings { Width = width, Height = height, Format = Formats[format] };
-                    BitmapInfos.Add(new BitmapInfoInternal { Bitmaps = new List<Bitmap> { Common.Load(data, settings) } });
+                    BitmapInfos.Add(new BitmapInfoInternal { Image = Common.Load(data, settings) });
                     InternalImageInfo.Add((data, settings));
 
                     br.BaseStream.Position += 0x10 - br.BaseStream.Position % 0x10;
@@ -76,21 +78,17 @@ namespace WinFormsTest
 
         public Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress)
         {
-            if (bitmapInfo.Bitmaps?.Count <= 0)
+            if (bitmapInfo.Image == null || bitmapInfo.MipMapCount <= 0)
                 return Task.Factory.StartNew(() => false);
 
             return Task.Factory.StartNew(() =>
             {
-                int index = 0;
-                foreach (var image in bitmapInfo.Bitmaps)
-                {
                     var internalIndex = BitmapInfos.IndexOf(bitmapInfo);
-                    var newSettings = new ImageSettings { Width = image.Width, Height = image.Height, Format = Formats[(bitmapInfo as BitmapInfoInternal).FormatIndex] };
-                    var encoded = Common.Save(image, newSettings);
+                    var newSettings = new ImageSettings { Width = bitmapInfo.Image.Width, Height = bitmapInfo.Image.Height, Format = Formats[(bitmapInfo as BitmapInfoInternal).FormatIndex] };
+                    var encoded = Common.Save(bitmapInfo.Image, newSettings);
                     InternalImageInfo[internalIndex] = (encoded, newSettings);
 
-                    BitmapInfos[internalIndex].Bitmaps[index++] = Common.Load(encoded, newSettings);
-                }
+                    BitmapInfos[internalIndex].Image = Common.Load(encoded, newSettings);
 
                 return true;
             });
