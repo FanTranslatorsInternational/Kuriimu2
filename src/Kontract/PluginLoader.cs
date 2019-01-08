@@ -1,4 +1,10 @@
-﻿using Kontract.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
@@ -6,21 +12,20 @@ using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract
 {
     public class PluginLoader
     {
-        private static Lazy<PluginLoader> _lazy = new Lazy<PluginLoader>(() => new PluginLoader("plugins"));
-        public static PluginLoader Global => _lazy.Value;
+        /// <summary>
+        /// 
+        /// </summary>
+        private static Lazy<PluginLoader> _pluginLoaderInitializer = new Lazy<PluginLoader>(() => new PluginLoader("plugins"));
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static PluginLoader Instance => _pluginLoaderInitializer.Value;
 
         #region Imports
 #pragma warning disable 0649, 0169
@@ -55,8 +60,15 @@ namespace Kontract
 #pragma warning restore 0649, 0169
         #endregion
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string PluginFolder { get; private set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="pluginFolder"></param>
         public PluginLoader(string pluginFolder)
         {
             PluginFolder = Path.GetFullPath(pluginFolder);
@@ -68,43 +80,52 @@ namespace Kontract
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="pluginId"></param>
+        /// <param name="pluginID"></param>
         /// <returns></returns>
-        public T CreateAdapter<T>(string pluginId)
+        public T CreateAdapter<T>(string pluginID)
         {
             switch (typeof(T).Name)
             {
                 case nameof(ICreateFiles):
-                    return CreateAdapter<ICreateFiles, T>(_createAdapters, pluginId);
+                    return CreateAdapter<ICreateFiles, T>(_createAdapters, pluginID);
+
                 case nameof(ILoadFiles):
-                    return CreateAdapter<ILoadFiles, T>(_loadAdapters, pluginId);
+                    return CreateAdapter<ILoadFiles, T>(_loadAdapters, pluginID);
 
                 case nameof(ITextAdapter):
-                    return CreateAdapter<ITextAdapter, T>(_textAdapters, pluginId);
+                    return CreateAdapter<ITextAdapter, T>(_textAdapters, pluginID);
 
                 case nameof(IImageAdapter):
-                    return CreateAdapter<IImageAdapter, T>(_imageAdapters, pluginId);
+                    return CreateAdapter<IImageAdapter, T>(_imageAdapters, pluginID);
 
                 case nameof(IArchiveAdapter):
-                    return CreateAdapter<IArchiveAdapter, T>(_archiveAdapters, pluginId);
+                    return CreateAdapter<IArchiveAdapter, T>(_archiveAdapters, pluginID);
 
                 case nameof(IFontAdapter):
-                    return CreateAdapter<IFontAdapter, T>(_fontAdapters, pluginId);
+                    return CreateAdapter<IFontAdapter, T>(_fontAdapters, pluginID);
 
                 case nameof(IGameAdapter):
-                    return CreateAdapter<IGameAdapter, T>(_gameAdapters, pluginId);
+                    return CreateAdapter<IGameAdapter, T>(_gameAdapters, pluginID);
 
                 default:
                     return default(T);
             }
         }
 
-        private TOut CreateAdapter<T, TOut>(List<T> adapters, string pluginId)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="adapters"></param>
+        /// <param name="pluginID"></param>
+        /// <returns></returns>
+        private TResult CreateAdapter<T, TResult>(List<T> adapters, string pluginID)
         {
-            var adapter = adapters.FirstOrDefault(x => x.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == pluginId);
-            if (adapter == null) return default(TOut);
+            var adapter = adapters.FirstOrDefault(x => x.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == pluginID);
+            if (adapter == null) return default(TResult);
 
-            return (TOut)Activator.CreateInstance(adapter.GetType());
+            return (TResult)Activator.CreateInstance(adapter.GetType());
         }
 
         /// <summary>
@@ -118,6 +139,7 @@ namespace Kontract
             {
                 case nameof(ICreateFiles):
                     return GetAdapters<ICreateFiles, T>(_createAdapters);
+
                 case nameof(ILoadFiles):
                     return GetAdapters<ILoadFiles, T>(_loadAdapters);
 
@@ -141,21 +163,27 @@ namespace Kontract
             }
         }
 
-        private List<TOut> GetAdapters<T, TOut>(List<T> adapters)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="adapters"></param>
+        /// <returns></returns>
+        private List<TResult> GetAdapters<T, TResult>(List<T> adapters)
         {
-            return adapters.Cast<TOut>().ToList();
+            return adapters.Cast<TResult>().ToList();
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TMeta"></typeparam>
-        /// <param name="pluginId"></param>
+        /// <param name="pluginID"></param>
         /// <returns></returns>
-        public TMeta GetMetadata<TMeta>(object adapter) where TMeta : Attribute, IPluginMetadata
+        public T GetMetadata<T>(object adapter) where T : Attribute, IPluginMetadata
         {
-            return adapter.GetType().GetCustomAttribute<TMeta>();
+            return adapter.GetType().GetCustomAttribute<T>();
         }
     }
 }

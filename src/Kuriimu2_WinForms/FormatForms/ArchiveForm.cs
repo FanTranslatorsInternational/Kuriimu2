@@ -177,9 +177,9 @@ namespace Kuriimu2_WinForms.FormatForms
             deleteFileToolStripMenuItem.Tag = afi;
 
             // Generate supported application menu items
-            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             openFileToolStripMenuItem.Enabled = kuriimuVisible || kukkiiVisible || karameruVisible;
             openFileToolStripMenuItem.Text = openFileToolStripMenuItem.Enabled ? "Open" : "No plugins support this file";
@@ -322,9 +322,9 @@ namespace Kuriimu2_WinForms.FormatForms
             var afi = menuItem.Tag as ArchiveFileInfo;
             var ext = Path.GetExtension(afi?.FileName);
 
-            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             if (kuriimuVisible || kukkiiVisible || karameruVisible)
             {
@@ -507,9 +507,9 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var ext = Path.GetExtension(afi?.FileName);
 
-            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && PluginLoader.Global.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Global.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             // Menu
             tsbSave.Enabled = _archiveAdapter is ISaveFiles;

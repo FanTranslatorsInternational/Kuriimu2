@@ -4,7 +4,6 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
@@ -12,7 +11,6 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
-using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.VirtualFS;
@@ -25,15 +23,15 @@ namespace Kore
     public sealed class KoreManager : IDisposable
     {
         /// <summary>
+        /// Stores the plugin directory that was set at construction time.
+        /// </summary>
+        private readonly string _pluginDirectory;
+
+        /// <summary>
         /// Retrieves the PluginLoader of this Kore instance
         /// </summary>
         /// <returns></returns>
         public PluginLoader PluginLoader { get; }
-
-        /// <summary>
-        /// Stores the plugin directory that was set at construction time.
-        /// </summary>
-        private readonly string _pluginDirectory;
 
         /// <summary>
         /// The list of currently open files being tracked by Kore.
@@ -60,7 +58,7 @@ namespace Kore
         /// </summary>
         public KoreManager()
         {
-            PluginLoader = PluginLoader.Global;
+            PluginLoader = PluginLoader.Instance;
             _pluginDirectory = PluginLoader.PluginFolder;
         }
 
@@ -117,55 +115,62 @@ namespace Kore
             nameof(IArchiveAdapter),
             nameof(IFontAdapter)
         };
+        // TODO: We want to somehow reflect these names and also possibly return a class holding the Type and a DisplayName vs. the plain interface name.
 
-        public KoreFileInfo LoadFile(KoreLoadInfo klf)
+        /// <summary>
+        /// Load a file using Kore.
+        /// </summary>
+        /// <param name="kli"></param>
+        /// <returns></returns>
+        public KoreFileInfo LoadFile(KoreLoadInfo kli)
         {
-            if (klf.Adapter == null)
+            if (kli.Adapter == null)
             {
                 // Select adapter automatically
-                var adapter = SelectAdapter(klf);
+                var adapter = SelectAdapter(kli);
 
                 // Ask the user to select a plugin directly.
                 adapter = adapter ?? SelectAdapterManually();
 
                 if (adapter == null) return null;
-                klf.Adapter = adapter;
+                kli.Adapter = adapter;
             }
 
             // Instantiate a new instance of the adapter
-            klf.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(klf.Adapter).ID);
+            kli.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID);
 
             // Load files(s)
-            klf.FileData.Position = 0;
-            var streaminfo = new StreamInfo { FileData = klf.FileData, FileName = klf.FileName };
+            kli.FileData.Position = 0;
+            var streamInfo = new StreamInfo { FileData = kli.FileData, FileName = kli.FileName };
+
             try
             {
-                if (klf.Adapter is IMultipleFiles multFileAdapter) multFileAdapter.FileSystem = klf.FileSystem;
+                if (kli.Adapter is IMultipleFiles multiFileAdapter) multiFileAdapter.FileSystem = kli.FileSystem;
 
-                klf.Adapter.LeaveOpen = klf.LeaveOpen;
-                klf.Adapter.Load(streaminfo);
+                kli.Adapter.LeaveOpen = kli.LeaveOpen;
+                kli.Adapter.Load(streamInfo);
             }
             catch (Exception ex)
             {
-                var pi = PluginLoader.GetMetadata<PluginInfoAttribute>(klf.Adapter);
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(klf.FileName)}\".{Environment.NewLine}{Environment.NewLine}" +
+                var pi = PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter);
+                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(kli.FileName)}\".{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
                     $"{ex.StackTrace}");
             }
 
             // Check if the stream still follows the LeaveOpen restriction
-            if (!klf.FileData.CanRead && klf.LeaveOpen)
-                throw new InvalidOperationException($"Plugin with ID {PluginLoader.GetMetadata<PluginInfoAttribute>(klf.Adapter).ID} closed the streams whole loading the file.");
+            if (!kli.FileData.CanRead && kli.LeaveOpen)
+                throw new InvalidOperationException($"Plugin with ID {PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID} closed the streams while loading the file.");
 
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
             {
-                StreamFileInfo = streaminfo,
+                StreamFileInfo = streamInfo,
                 HasChanges = false,
-                Adapter = klf.Adapter
+                Adapter = kli.Adapter
             };
 
-            if (klf.TrackFile)
+            if (kli.TrackFile)
                 OpenFiles.Add(kfi);
 
             return kfi;
