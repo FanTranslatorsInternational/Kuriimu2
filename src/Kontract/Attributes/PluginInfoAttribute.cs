@@ -1,6 +1,5 @@
-﻿using Kontract.Interfaces;
-using System;
-using System.ComponentModel.Composition;
+﻿using System;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Attributes
 {
