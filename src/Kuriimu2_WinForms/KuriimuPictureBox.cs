@@ -23,7 +23,25 @@ namespace Kuriimu2_WinForms
 
         public virtual int GridSize { get; set; } = 15;
 
-        public virtual double ZoomLevel { get; set; } = 1.0;
+        private double _zoomLevel = 1.0;
+        public virtual double ZoomLevel
+        {
+            get
+            {
+                return _zoomLevel;
+            }
+            set
+            {
+                if (value < MinZoomLevel || value > MaxZoomLevel)
+                    throw new ArgumentOutOfRangeException(nameof(ZoomLevel));
+
+                _zoomLevel = value;
+            }
+        }
+
+        public virtual double MaxZoomLevel => 60.0;
+
+        public virtual double MinZoomLevel => 0.125;
 
         public event EventHandler<EventArgs> ZoomChanged;
 
@@ -47,7 +65,6 @@ namespace Kuriimu2_WinForms
         {
             OnPaintBackground(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
             pe.Graphics.DrawImage(ZoomedImage ?? Image, new PointF(0, 0));
-            //base.OnPaint(pe);
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -55,7 +72,7 @@ namespace Kuriimu2_WinForms
             if (e.Delta == 0)
                 return;
 
-            var newZoomLevel = Math.Min(30.0, Math.Max(0.125, (e.Delta < 0) ? ZoomLevel / 2 : ZoomLevel * 2));
+            var newZoomLevel = Math.Min(MaxZoomLevel, Math.Max(MinZoomLevel, (e.Delta < 0) ? ZoomLevel / 2 : ZoomLevel * 2));
             if (newZoomLevel == ZoomLevel)
                 return;
 
@@ -97,7 +114,7 @@ namespace Kuriimu2_WinForms
             {
                 graphics.CompositingMode = CompositingMode.SourceCopy;
                 graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
                 graphics.SmoothingMode = SmoothingMode.HighQuality;
                 graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
