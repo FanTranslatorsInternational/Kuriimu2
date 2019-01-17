@@ -43,6 +43,22 @@ namespace Kuriimu2_WinForms
 
         public virtual double MinZoomLevel => 0.125;
 
+        private Image _image;
+        public new Image Image
+        {
+            get
+            {
+                return _image;
+            }
+            set
+            {
+                _image = value;
+                ZoomLevel = 1.0;
+                ZoomedImage?.Dispose();
+                ImagePosition = new Point(0,0);
+            }
+        }
+
         public event EventHandler<EventArgs> ZoomChanged;
 
         protected virtual Image ZoomedImage { get; set; }
@@ -64,7 +80,8 @@ namespace Kuriimu2_WinForms
         protected override void OnPaint(PaintEventArgs pe)
         {
             OnPaintBackground(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
-            pe.Graphics.DrawImage(ZoomedImage ?? Image, ImagePosition);
+            var img = ZoomedImage ?? Image;
+            pe.Graphics.DrawImage(img, new Point(Width / 2 - img.Width / 2 + ImagePosition.X, Height / 2 - img.Height / 2 + ImagePosition.Y));
         }
 
         private bool _mouseDown = false;
@@ -92,6 +109,8 @@ namespace Kuriimu2_WinForms
                 ImagePosition = new Point(ImagePosition.X + deltaLocation.X, ImagePosition.Y + deltaLocation.Y);
 
                 OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+
+                _previousMouseLocation = e.Location;
             }
         }
 
@@ -109,6 +128,7 @@ namespace Kuriimu2_WinForms
 
             ZoomedImage?.Dispose();
             ZoomedImage = ResizeImage(Image, (int)(Image.Width * ZoomLevel), (int)(Image.Height * ZoomLevel));
+
             OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
 
             base.OnMouseWheel(e);
