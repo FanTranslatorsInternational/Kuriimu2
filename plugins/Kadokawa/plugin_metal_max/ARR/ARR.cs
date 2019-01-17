@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 
 namespace plugin_metal_max.ARR
 {
@@ -52,7 +52,7 @@ namespace plugin_metal_max.ARR
 
                     var str = Encoding.Unicode.GetString(chars.ToArray());
 
-                    Entries.Add(new TextEntry { Name = i.ToString(), EditedText = str.TrimEnd('\0') });
+                    Entries.Add(new TextEntry { Name = (i + 1).ToString(), EditedText = str.TrimEnd('\0') });
                 }
             }
         }
@@ -65,7 +65,13 @@ namespace plugin_metal_max.ARR
         {
             using (var bw = new BinaryWriterX(output))
             {
-                var pointerGroupCount = Entries.Count / 6;
+                const int pointerGroupSize = 6;
+                var missingPointers = pointerGroupSize - (Entries.Count % pointerGroupSize == 0 ? pointerGroupSize : Entries.Count % pointerGroupSize);
+
+                for (var i = 0; i < missingPointers; i++)
+                    Entries.Add(new TextEntry { Name = (Entries.Count + 1).ToString() });
+
+                var pointerGroupCount = Entries.Count / pointerGroupSize;
                 var textStartOffset = pointerGroupCount * 14 + 4;
 
                 var pointerList = new List<short>();
@@ -91,9 +97,7 @@ namespace plugin_metal_max.ARR
                             pointerList.Add(strings.First(s => s.Text == entry.EditedText).Pointer);
                     }
                     else
-                    {
                         pointerList.Add((short)(textStartOffset - 2));
-                    }
                 }
 
                 bw.BaseStream.Position = 0;
@@ -102,7 +106,7 @@ namespace plugin_metal_max.ARR
 
                 for (var i = 0; i < pointerList.Count; i++)
                 {
-                    if (i != 0 && i % 6 == 0)
+                    if (i != 0 && i % pointerGroupSize == 0)
                         bw.Write((short)0);
                     bw.Write(pointerList[i]);
                 }

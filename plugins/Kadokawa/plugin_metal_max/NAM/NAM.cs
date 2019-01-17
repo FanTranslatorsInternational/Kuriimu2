@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Text;
 
 namespace plugin_metal_max.NAM
 {
