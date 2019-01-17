@@ -4,8 +4,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Kuriimu2_WinForms
@@ -39,6 +37,8 @@ namespace Kuriimu2_WinForms
             }
         }
 
+        protected virtual Point ImagePosition { get; set; } = new Point(0, 0);
+
         public virtual double MaxZoomLevel => 60.0;
 
         public virtual double MinZoomLevel => 0.125;
@@ -64,7 +64,35 @@ namespace Kuriimu2_WinForms
         protected override void OnPaint(PaintEventArgs pe)
         {
             OnPaintBackground(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
-            pe.Graphics.DrawImage(ZoomedImage ?? Image, new PointF(0, 0));
+            pe.Graphics.DrawImage(ZoomedImage ?? Image, ImagePosition);
+        }
+
+        private bool _mouseDown = false;
+        private Point _previousMouseLocation = new Point(0, 0);
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            _previousMouseLocation = e.Location;
+            if (!_mouseDown)
+                _mouseDown = true;
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            _previousMouseLocation = e.Location;
+            if (_mouseDown)
+                _mouseDown = false;
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (_mouseDown && !_previousMouseLocation.Equals(e.Location))
+            {
+                var deltaLocation = new Point(e.X - _previousMouseLocation.X, e.Y - _previousMouseLocation.Y);
+                ImagePosition = new Point(ImagePosition.X + deltaLocation.X, ImagePosition.Y + deltaLocation.Y);
+
+                OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+            }
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
