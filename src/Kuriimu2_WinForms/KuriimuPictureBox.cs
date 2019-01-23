@@ -10,6 +10,11 @@ namespace Kuriimu2_WinForms
 {
     public class ZoomChangedEventArgs : EventArgs
     {
+        public ZoomChangedEventArgs(double newZoomLevel)
+        {
+            NewZoomLevel = newZoomLevel;
+        }
+
         public double NewZoomLevel { get; set; }
     }
 
@@ -21,8 +26,8 @@ namespace Kuriimu2_WinForms
 
         public virtual int GridSize { get; set; } = 15;
 
-        private double _zoomLevel = 1.0;
-        public virtual double ZoomLevel
+        private float _zoomLevel = 1.0f;
+        public virtual float ZoomLevel
         {
             get
             {
@@ -34,12 +39,13 @@ namespace Kuriimu2_WinForms
                     throw new ArgumentOutOfRangeException(nameof(ZoomLevel));
 
                 _zoomLevel = value;
+                ZoomChanged?.Invoke(this, new ZoomChangedEventArgs(value));
             }
         }
 
-        protected virtual Point ImagePosition { get; set; } = new Point(0, 0);
+        protected virtual PointF ImagePosition { get; set; } = new PointF(0, 0);
 
-        public virtual double MaxZoomLevel => 60.0;
+        public virtual double MaxZoomLevel => 64.0;
 
         public virtual double MinZoomLevel => 0.125;
 
@@ -53,17 +59,19 @@ namespace Kuriimu2_WinForms
             set
             {
                 _image = value;
-                ZoomLevel = 1.0;
+                ZoomLevel = 1.0f;
                 ZoomedImage?.Dispose();
-                ImagePosition = new Point(0,0);
+                ImagePosition = new PointF(0, 0);
             }
         }
 
-        public event EventHandler<EventArgs> ZoomChanged;
+        public event EventHandler<ZoomChangedEventArgs> ZoomChanged;
 
         protected virtual Image ZoomedImage { get; set; }
 
         protected override bool DoubleBuffered { get; set; } = true;
+
+        private PointF GetTopLeftImageCorner(Image img) => new PointF(Width / 2 - img.Width / 2 + ImagePosition.X * ZoomLevel, Height / 2 - img.Height / 2 + ImagePosition.Y * ZoomLevel);
 
         protected override void OnPaintBackground(PaintEventArgs pevent)
         {
@@ -81,7 +89,7 @@ namespace Kuriimu2_WinForms
         {
             OnPaintBackground(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
             var img = ZoomedImage ?? Image;
-            pe.Graphics.DrawImage(img, new Point(Width / 2 - img.Width / 2 + ImagePosition.X, Height / 2 - img.Height / 2 + ImagePosition.Y));
+            pe.Graphics.DrawImage(img, GetTopLeftImageCorner(img));
         }
 
         private bool _mouseDown = false;
@@ -103,10 +111,10 @@ namespace Kuriimu2_WinForms
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (_mouseDown && !_previousMouseLocation.Equals(e.Location))
+            if (_mouseDown && !_previousMouseLocation.Equals(e.Location) && LocationInImage(e.Location))
             {
                 var deltaLocation = new Point(e.X - _previousMouseLocation.X, e.Y - _previousMouseLocation.Y);
-                ImagePosition = new Point(ImagePosition.X + deltaLocation.X, ImagePosition.Y + deltaLocation.Y);
+                ImagePosition = new PointF(ImagePosition.X + deltaLocation.X / ZoomLevel, ImagePosition.Y + deltaLocation.Y / ZoomLevel);
 
                 OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
 
@@ -114,24 +122,37 @@ namespace Kuriimu2_WinForms
             }
         }
 
+        private bool LocationInImage(Point location)
+        {
+            var img = ZoomedImage ?? Image;
+            var topLeftPoint = GetTopLeftImageCorner(img);
+            var imageRect = new RectangleF(topLeftPoint, new SizeF(img.Width, img.Height));
+            return imageRect.Contains(location);
+        }
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             if (e.Delta == 0)
                 return;
 
-            var newZoomLevel = Math.Min(MaxZoomLevel, Math.Max(MinZoomLevel, (e.Delta < 0) ? ZoomLevel / 2 : ZoomLevel * 2));
-            if (newZoomLevel == ZoomLevel)
-                return;
-
-            ZoomChanged?.Invoke(this, new ZoomChangedEventArgs { NewZoomLevel = newZoomLevel });
+            float newZoomLevel = (float)Math.Min(MaxZoomLevel, Math.Max(MinZoomLevel, (e.Delta < 0) ? ZoomLevel / 2 : ZoomLevel * 2));
+            if (newZoomLevel == ZoomLevel) return;
             ZoomLevel = newZoomLevel;
 
-            ZoomedImage?.Dispose();
-            ZoomedImage = ResizeImage(Image, (int)(Image.Width * ZoomLevel), (int)(Image.Height * ZoomLevel));
+            ZoomImage();
+
+            // Calculate mouse dependant zoomed position
+            //var topLeft = GetTopLeftImageCorner(ZoomedImage);
+            //var deltaPosToMouse = new PointF(topLeft.X - e.X, topLeft.Y - e.Y);
+            //ImagePosition = new PointF(ImagePosition.X + ((e.Delta < 0) ? deltaPosToMouse.X / 2 : deltaPosToMouse.X * 2), ImagePosition.Y + ((e.Delta < 0) ? deltaPosToMouse.Y / 2 : deltaPosToMouse.Y * 2));
 
             OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+        }
 
-            base.OnMouseWheel(e);
+        private void ZoomImage()
+        {
+            ZoomedImage?.Dispose();
+            ZoomedImage = ResizeImage(Image, (int)(Image.Width * ZoomLevel), (int)(Image.Height * ZoomLevel));
         }
 
         private IEnumerable<RectangleF> GetGridRectangles(Func<int, int> getWidthGridStart)
