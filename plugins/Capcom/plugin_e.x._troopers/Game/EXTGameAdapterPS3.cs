@@ -89,6 +89,15 @@ namespace plugin_e.x._troopers.Game
         });
         private static Bitmap tutorial => TutorialInit.Value;
 
+        private static readonly Lazy<Bitmap> WizpediaInit = new Lazy<Bitmap>(() =>
+        {
+            var backgroundPath = Path.Combine(PluginDirectory, _ID, "wizpedia.png");
+            var bg = new Bitmap(backgroundPath);
+            bg.SetResolution(96, 96);
+            return bg;
+        });
+        private static Bitmap wizpedia => WizpediaInit.Value;
+
         private static readonly Lazy<Bitmap> TextBoxInit = new Lazy<Bitmap>(() =>
         {
             var textBoxPath = Path.Combine(PluginDirectory, _ID, "textbox.png");
@@ -109,12 +118,22 @@ namespace plugin_e.x._troopers.Game
 
         #endregion
 
+        private enum Scene
+        {
+            General,
+            Tutorial,
+            Wizpedia
+        }
+
         public Bitmap GeneratePreview(TextEntry entry)
         {
             if (!Font.Characters.Any()) return null;
 
             // Globals
-            var isTut = Filename.Contains("tutorial_jpn");
+            var scene = Scene.General;
+            if (Filename.Contains("tutorial_jpn")) scene = Scene.Tutorial;
+            if (Filename.Contains("wizpedia_jpn")) scene = Scene.Wizpedia;
+
             var pad = new Dictionary<string, char>
             {
                 ["PAD_A"] = 'a', // Circle
@@ -141,6 +160,10 @@ namespace plugin_e.x._troopers.Game
                 ["PAD_R2"] = 'z', // R2
             };
 
+            var genSize = 46f;
+            var tutSize = 36f;
+            var wizSize = 32.25f;
+
             // Main Kanvas
             var kanvas = new Bitmap(background.Width, background.Height, PixelFormat.Format32bppArgb);
             kanvas.SetResolution(96, 96);
@@ -151,9 +174,12 @@ namespace plugin_e.x._troopers.Game
             var textBoxOffsetY = 42;
             var textOffsetX = 66;
             var boxWidth = 400;
-            var lineSpacing = 4;
+            var lineSpacing = 4f;
+            var size = genSize;
 
-            float x = textBoxOffsetX + textOffsetX, y;
+            var magic = 0.02173913043478260869565217391304f; // 0.04166666666666666666666666666667
+
+            float x = textBoxOffsetX + textOffsetX, y = 0;
             float scaleX = 1.0f, scaleY = 1.0f;
 
             using (var gfx = Graphics.FromImage(kanvas))
@@ -162,71 +188,74 @@ namespace plugin_e.x._troopers.Game
                 gfx.InterpolationMode = InterpolationMode.Bicubic;
                 gfx.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-                gfx.DrawImage(isTut ? tutorial : background, 0, 0);
-
-                if (!isTut)
-                    gfx.DrawImage(textBox, textBoxOffsetX, textBoxOffsetY, textBox.Width * 1.1f, textBox.Height * 1.1f);
-
-                // Draw cursor
-                if (!isTut)
-                {
-                    int cursorX = 627, cursorY = 161;
-                    var cursorScale = 0.825f;
-                    gfx.DrawImage(cursor,
-                        new[]
-                        {
-                            new PointF(cursorX, cursorY),
-                            new PointF(cursorX + cursor.Width * cursorScale, cursorY),
-                            new PointF(cursorX, cursorY + cursor.Height * cursorScale)
-                        },
-                        new RectangleF(0, 0, cursor.Width, cursor.Height), GraphicsUnit.Pixel
-                    );
-                }
-
-                // Draw template
-                //DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "e8.png")), 0.25f);
-
                 // Cleanup text
                 var str = entry.EditedText.Replace("\r", "");
                 Font.SetColor(Color.Black);
 
-                if (!isTut)
+                switch (scene)
                 {
-                    // Wrap text
-                    //str = Regex.Replace(entry.EditedText, @"<.*?>", "");
-                    var results = TextWrapper.WrapText(str, Font, PadFont, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
-                    str = results.Text;
-                    lines = results.LineCount;
+                    case Scene.General:
+                        gfx.DrawImage(background, 0, 0);
+                        gfx.DrawImage(textBox, textBoxOffsetX, textBoxOffsetY, textBox.Width * 1.1f, textBox.Height * 1.1f);
+
+                        // Cursor
+                        int cursorX = 627, cursorY = 161;
+                        var cursorScale = 0.825f;
+                        gfx.DrawImage(cursor,
+                            new[]
+                            {
+                                new PointF(cursorX, cursorY),
+                                new PointF(cursorX + cursor.Width * cursorScale, cursorY),
+                                new PointF(cursorX, cursorY + cursor.Height * cursorScale)
+                            },
+                            new RectangleF(0, 0, cursor.Width, cursor.Height), GraphicsUnit.Pixel
+                        );
+
+                        // Wrap text
+                        var results = TextWrapper.WrapText(str, Font, PadFont, new RectangleF(textBoxOffsetX + textOffsetX, textBoxOffsetY, boxWidth, textBox.Height), scaleX, 0, "\n");
+                        str = results.Text;
+                        lines = results.LineCount;
+                        size = genSize;
+
+                        // Set
+                        x = textBoxOffsetX + textOffsetX;
+                        y = textBoxOffsetY + textBox.Height * 1.1f / 2 - lines * fontHeight / 2 - (lines - 1) * lineSpacing / 2;
+
+                        break;
+                    case Scene.Tutorial:
+                        gfx.DrawImage(tutorial, 0, 0);
+                        
+                        // Configure
+                        textBoxOffsetX = 368.5f;
+                        textOffsetX = 0;
+                        textBoxOffsetY = 465;
+                        lineSpacing = 2;
+                        size = tutSize;
+
+                        // Set
+                        x = textBoxOffsetX + textOffsetX;
+                        y = textBoxOffsetY;
+                        break;
+                    case Scene.Wizpedia:
+                        gfx.DrawImage(wizpedia, 0, 0);
+
+                        // Template
+                        DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "wizpedia_template.png")), 0.25f);
+
+                        // Configure
+                        textBoxOffsetX = 695f;
+                        textOffsetX = 0;
+                        textBoxOffsetY = 302;
+                        lineSpacing = -1.25f;
+                        size = wizSize;
+
+                        // Set
+                        x = textBoxOffsetX + textOffsetX;
+                        y = textBoxOffsetY;
+                        break;
                 }
-                else
-                    lines = str.Split('\n').Length;
-
-                if (isTut)
-                {
-                    textBoxOffsetX = 368.5f;
-                    textOffsetX = 0;
-                    textBoxOffsetY = 465;
-
-                    scaleX = 0.792f;
-                    scaleY = 0.792f;
-
-                    // Default text at 46
-
-                    // tutorial text at 37
-
-                    // 0.475, 22
-                    // 0.69, 32
-
-                    lineSpacing = 2;
-                }
-
-                // Set
-                x = textBoxOffsetX + textOffsetX;
-                y = !isTut ? textBoxOffsetY + textBox.Height * 1.1f / 2 - lines * fontHeight / 2 - (lines - 1) * lineSpacing / 2 : textBoxOffsetY;
 
                 // Draw text
-                var size = isTut ? 36 : 46;
-                var magic = 0.02173913043478260869565217391304f; // 0.04166666666666666666666666666667
                 for (var i = 0; i < str.Length; i++)
                 {
                     var c = str[i];
@@ -244,7 +273,14 @@ namespace plugin_e.x._troopers.Game
                                 break;
                             case "SIZE":
                                 if (isCloser)
-                                    size = isTut ? 36 : 46;
+                                {
+                                    if (scene == Scene.General)
+                                        size = genSize;
+                                    else if (scene == Scene.Tutorial)
+                                        size = tutSize;
+                                    else if (scene == Scene.Wizpedia)
+                                        size = wizSize;
+                                }
                                 else
                                     size = Convert.ToInt32(Regex.Match(tag, @"(?<= )\d+").Value);
                                 break;
@@ -273,7 +309,7 @@ namespace plugin_e.x._troopers.Game
                         }
 
                         Font.Draw(c, gfx, x, y, size * magic, size * magic);
-                        x += Font.GetCharWidthInfo(c).GlyphWidth * size * magic;
+                        x += Font.GetCharWidthInfo(c).GlyphWidth * (size * magic);
                     }
                 }
             }
