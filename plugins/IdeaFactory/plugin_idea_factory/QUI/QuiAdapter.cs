@@ -17,7 +17,7 @@ namespace plugin_idea_factory.QUI
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
-    [PluginInfo("EEE98617-3F27-41EC-AD9A-1831419F8783", "IF-QUI Text", "QUI", "IcySon55", "", "This is the QUI text adapter for Kuriimu2.")]
+    [PluginInfo("EEE98617-3F27-41EC-AD9A-1831419F8783", "IdeaFactory-QUI Text", "QUI", "IcySon55", "", "This is the QUI text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.qui")]
     public sealed class QuiAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
@@ -43,7 +43,14 @@ namespace plugin_idea_factory.QUI
             try
             {
                 using (var sr = new StreamReader(File.OpenRead(filename)))
-                    return Regex.IsMatch(sr.ReadLine(), @"^\(function \w+ \(\)$");
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        if (Regex.IsMatch(sr.ReadLine() ?? string.Empty, @"^\(function \w+ \(\)$"))
+                            return true;
+                    }
+                    return false;
+                }
             }
             catch (Exception)
             {

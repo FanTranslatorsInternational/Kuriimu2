@@ -10,6 +10,7 @@ namespace plugin_idea_factory.QUI
         EmptyLine,
         Function,
         EndFunction,
+        Name,
         Message,
         Comment
     }
@@ -22,7 +23,7 @@ namespace plugin_idea_factory.QUI
         /// <summary>
         /// The command for this entry.
         /// </summary>
-        public string Text { get; set; }
+        public string Content { get; set; }
 
         /// <summary>
         /// The command type of this QUI entry.
@@ -33,5 +34,11 @@ namespace plugin_idea_factory.QUI
         /// Stores the comment at the end of the line.
         /// </summary>
         public string Comment { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() => Content;
     }
 }

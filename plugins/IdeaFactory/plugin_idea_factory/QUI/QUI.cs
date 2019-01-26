@@ -11,17 +11,20 @@ namespace plugin_idea_factory.QUI
     /// </summary>
     public class QUI
     {
+        private const string MatchMessage = "^\\s*\\(message (.+?) (.+?)(?: |$)";
+        private const string MatchSingleMessage = "^\\s*\\(message (.+?) (.+?) (.+?)\\)$";
+
         /// <summary>
         /// Stores all of the entries.
         /// </summary>
-        private List<QuiTextEntry> _allEntries;
+        private readonly List<QuiTextEntry> _allEntries;
 
         /// <summary>
         /// Stores the editable text entries.
         /// </summary>
         public List<QuiTextEntry> Entries
         {
-            get => _allEntries.Where(e => e.Type == QuiEntryType.Message).ToList();
+            get => _allEntries.Where(e => e.Type == QuiEntryType.Name || e.Type == QuiEntryType.Message).ToList();
         }
 
         /// <summary>
@@ -35,82 +38,126 @@ namespace plugin_idea_factory.QUI
                 _allEntries = new List<QuiTextEntry>();
                 var index = 1;
 
-                while (!sr.EndOfStream)
+                // Content
+                const string matchText = "^\\s*\"(.+)\"";
+                const string matchEndText = "^\\s*\"(.+)\"\\)";
+                const string matchComment = "^\\s*\".+\"\\)(;.+)$";
+
+                do
                 {
-                    var entry = new QuiTextEntry();
-                    var line = sr.ReadLine();
+                    var line = sr.ReadLine() ?? string.Empty;
+                    var type = IdentifyLine(line);
 
-                    entry.Text = line;
-
-                    IdentifyLine(entry);
-                    _allEntries.Add(entry);
-
-                    if (entry.Type == QuiEntryType.Function)
+                    switch (type)
                     {
-                        if (Regex.IsMatch(line, @"^\s*\(message"))
-                        {
-                            var matchText = "^\\s*\"(.+)\"";
-                            var matchEnd = "^\\s*\"(.+)\"\\)";
-                            var matchComment = "^\\s*\".+\"\\)(;.+)$";
-
-                            entry.Type = QuiEntryType.Message;
-                            entry.Notes = line.TrimStart('\t');
-
-                            line = sr.ReadLine();
-                            var text = string.Empty;
-                            while (line.Length > 0 && !sr.EndOfStream)
+                        case QuiEntryType.EmptyLine:
+                        case QuiEntryType.Comment:
+                        case QuiEntryType.EndFunction:
+                            _allEntries.Add(new QuiTextEntry { Content = line, Type = type });
+                            break;
+                        case QuiEntryType.Function:
+                            // Now the fun begins
+                            if (Regex.IsMatch(line, MatchMessage))
                             {
-                                if (Regex.IsMatch(line, matchEnd))
+                                // Name
+                                var name = Regex.Match(line, MatchMessage).Groups[1].Value;
+                                if (name != "nil")
+                                    _allEntries.Add(new QuiTextEntry
+                                    {
+                                        Content = line,
+                                        Type = QuiEntryType.Name,
+                                        Name = $"Name{index.ToString()}",
+                                        EditedText = name.Trim('"'),
+                                        OriginalText = name.Trim('"')
+                                    });
+
+                                // Single line message
+                                if (Regex.IsMatch(line, MatchSingleMessage))
                                 {
-                                    text += Regex.Match(line, matchEnd).Groups[1].Value.Replace("\\n", "\r\n");
-                                    entry.Comment = Regex.Match(line, matchComment).Groups[1].Value;
-                                    break;
+                                    var singleMessage = Regex.Match(line, MatchSingleMessage).Groups[3].Value;
+                                    _allEntries.Add(new QuiTextEntry
+                                    {
+                                        Content = line,
+                                        Type = QuiEntryType.Message,
+                                        Name = $"Message{index.ToString()}",
+                                        EditedText = singleMessage.Trim('"'),
+                                        OriginalText = singleMessage.Trim('"')
+                                    });
+                                    index++;
                                 }
-                                else if (Regex.IsMatch(line, matchText))
-                                    text += Regex.Match(line, matchText).Groups[1].Value.Replace("\\n", "\r\n");
                                 else
                                 {
-                                    var nextEntry = new QuiTextEntry { Text = line };
-                                    IdentifyLine(nextEntry);
-                                    _allEntries.Add(nextEntry);
+                                    // Multi-line message
+                                    var lines = new List<string>();
+
+                                    while (!sr.EndOfStream)
+                                    {
+                                        var inline = sr.ReadLine() ?? string.Empty;
+                                        lines.Add(inline);
+
+                                        if (Regex.IsMatch(inline, matchEndText))
+                                            break;
+                                    }
+
+                                    var text = string.Empty;
+                                    foreach (var inline in lines)
+                                    {
+                                        // Is this line a comment?
+                                        if (IdentifyLine(inline) == QuiEntryType.Comment)
+                                        {
+                                            _allEntries.Add(new QuiTextEntry
+                                            {
+                                                Content = inline,
+                                                Type = QuiEntryType.Comment
+                                            });
+                                            continue;
+                                        }
+
+                                        text += Regex.Match(inline, matchText).Groups[1].Value.Replace("\\n", "\r\n");
+                                    }
+                                    var comment = Regex.Match(lines.Last(), matchComment).Groups[1].Value;
+
+                                    _allEntries.Add(new QuiTextEntry
+                                    {
+                                        Content = line,
+                                        Comment = comment,
+                                        Type = QuiEntryType.Message,
+                                        Name = $"Message{index.ToString()}",
+                                        EditedText = text,
+                                        OriginalText = text
+                                    });
+                                    index++;
                                 }
-                                line = sr.ReadLine();
                             }
-                            entry.Name = index.ToString();
-                            entry.EditedText = text;
-                            entry.OriginalText = text;
-                            index++;
+                            else
+                                _allEntries.Add(new QuiTextEntry { Content = line, Type = type });
 
-                            if (line.Length == 0)
-                            {
-                                var nextEntry = new QuiTextEntry { Text = line };
-                                IdentifyLine(nextEntry);
-                                _allEntries.Add(nextEntry);
-                            }
-                        }
+                            break;
                     }
-                }
+                } while (!sr.EndOfStream);
 
-                var final = new QuiTextEntry { Text = string.Empty };
-                IdentifyLine(final);
-                _allEntries.Add(final);
+                //var final = new QuiTextEntry { Content = string.Empty };
+                //IdentifyLine(final);
+                //_allEntries.Add(final);
             }
         }
 
         /// <summary>
-        /// Idnetifies the entry type.
+        /// Identifies the content type.
         /// </summary>
         /// <param name="entry"></param>
-        private void IdentifyLine(QuiTextEntry entry)
+        private QuiEntryType IdentifyLine(string content)
         {
-            if (entry.Text.Length == 0)
-                entry.Type = QuiEntryType.EmptyLine;
-            else if (Regex.IsMatch(entry.Text, @"^\s*\("))
-                entry.Type = QuiEntryType.Function;
-            else if (Regex.IsMatch(entry.Text, @"^\s*\)"))
-                entry.Type = QuiEntryType.EndFunction;
-            else if (Regex.IsMatch(entry.Text, @"^\s*\;"))
-                entry.Type = QuiEntryType.Comment;
+            if (content.Length == 0)
+                return QuiEntryType.EmptyLine;
+            if (Regex.IsMatch(content, @"^\s*\("))
+                return QuiEntryType.Function;
+            if (Regex.IsMatch(content, @"^\s*\)"))
+                return QuiEntryType.EndFunction;
+            if (Regex.IsMatch(content, @"^\s*\;"))
+                return QuiEntryType.Comment;
+
+            return QuiEntryType.EmptyLine;
         }
 
         /// <summary>
@@ -121,32 +168,71 @@ namespace plugin_idea_factory.QUI
         {
             using (var sw = new StreamWriter(output, Encoding.UTF8))
             {
+                var hasName = false;
+
                 foreach (var entry in _allEntries)
                 {
+                    var tabs = Regex.Match(entry.Content, @"(\s+)").Groups[1].Value;
+
                     switch (entry.Type)
                     {
                         case QuiEntryType.Function:
                         case QuiEntryType.EndFunction:
                         case QuiEntryType.Comment:
                         case QuiEntryType.EmptyLine:
-                            if (entry != _allEntries.Last())
-                                sw.WriteLine(entry.Text);
+                            sw.WriteLine(entry.Content);
+                            break;
+                        case QuiEntryType.Name:
+                            var name = entry.EditedText.StartsWith("(") && entry.EditedText.EndsWith(")") || entry.EditedText.StartsWith("'") ? entry.EditedText : $"\"{entry.EditedText}\"";
+                            var other = Regex.Match(entry.Content, MatchMessage).Groups[2].Value;
+                            var nameMessage = $"{tabs}(message {name} {other}";
+
+                            if (Regex.IsMatch(entry.Content, MatchSingleMessage))
+                                sw.Write(nameMessage);
+                            else
+                                sw.WriteLine(nameMessage);
+
+                            hasName = true;
                             break;
                         case QuiEntryType.Message:
                             {
-                                sw.WriteLine(entry.Text);
-                                var tabs = Regex.Match(entry.Text, @"(\s+)").Groups[1].Value;
                                 var lines = entry.EditedText.Split('\r');
 
-                                for (int i = 0; i < lines.Length; i++)
+                                if (!hasName)
                                 {
-                                    string line = lines[i];
-                                    sw.Write(tabs + "\t\t\"" + line.Replace("\n", string.Empty));
-                                    if (i != lines.Length - 1)
-                                        sw.WriteLine("\\n\"");
+                                    var match = Regex.Match(entry.Content, MatchMessage);
+                                    var message = $"{tabs}(message {match.Groups[1].Value} {match.Groups[2].Value}";
+
+                                    if (Regex.IsMatch(entry.Content, MatchSingleMessage))
+                                        sw.Write(message);
                                     else
-                                        sw.WriteLine("\")" + entry.Comment);
+                                        sw.WriteLine(message);
                                 }
+
+                                if (lines.Length == 1)
+                                {
+                                    var inText = lines[0];
+                                    var text = inText.StartsWith("(") && inText.EndsWith(")") ? inText : $"\"{inText}\"";
+
+                                    if (Regex.IsMatch(entry.Content, MatchSingleMessage))
+                                        sw.WriteLine(" " + text.Replace("\n", string.Empty) + ")" + entry.Comment);
+                                    else
+                                        sw.WriteLine(tabs + "\t\t" + text.Replace("\n", string.Empty) + ")" + entry.Comment);
+                                }
+                                else
+                                {
+                                    for (var i = 0; i < lines.Length; i++)
+                                    {
+                                        var line = lines[i];
+                                        sw.Write(tabs + "\t\t\"" + line.Replace("\n", string.Empty));
+                                        if (i != lines.Length - 1)
+                                            sw.WriteLine("\\n\"");
+                                        else
+                                            sw.WriteLine("\")" + entry.Comment);
+                                    }
+                                }
+
+                                hasName = false;
                             }
                             break;
                     }
