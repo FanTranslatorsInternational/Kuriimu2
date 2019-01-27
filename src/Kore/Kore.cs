@@ -278,6 +278,9 @@ namespace Kore
                 FileName = Path.GetFileName(kfi.StreamFileInfo.FileName)
             };
             (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
+
+            if (streaminfo.FileData.CanRead)
+                streaminfo.FileData.Dispose();
         }
 
         private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, IFileSystem physicalFS, string root)

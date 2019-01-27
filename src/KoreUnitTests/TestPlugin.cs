@@ -23,7 +23,7 @@ namespace KoreUnitTests
     {
         public List<string> Communication { get; set; }
 
-        public bool LeaveOpen { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool LeaveOpen { get; set; }
 
         public void Dispose()
         {
@@ -32,7 +32,7 @@ namespace KoreUnitTests
 
         public bool Identify(StreamInfo file)
         {
-            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, true))
+            using (var br = new BinaryReader(file.FileData, Encoding.ASCII, LeaveOpen))
                 return br.ReadUInt32() == 0x16161616;
         }
 
@@ -41,14 +41,11 @@ namespace KoreUnitTests
             Communication = new List<string>() { "string1", "string2" };
         }
 
-        public void Save(string filename, int versionIndex = 0)
-        {
-            Communication.Add("string3");
-        }
-
         public void Save(StreamInfo initialFile, int versionIndex = 0)
         {
-            throw new NotImplementedException();
+            using (var bw = new BinaryWriter(initialFile.FileData, Encoding.ASCII, LeaveOpen))
+                bw.Write(0x16161616);
+            Communication.Add("string3");
         }
     }
 
@@ -63,7 +60,7 @@ namespace KoreUnitTests
 
         public bool FileHasExtendedProperties => throw new NotImplementedException();
 
-        public bool LeaveOpen { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool LeaveOpen { get; set; }
 
         public void Dispose()
         {
