@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Attributes;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
@@ -51,12 +50,15 @@ namespace Kuriimu2.ViewModels
             GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
+            SelectedGameAdapter = GameAdapters.First();
+            SelectedZoomLevel = 1;
+
             if (Keyboard.IsKeyDown(Key.LeftShift))
             {
                 SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "84D2BD62-7AC6-459B-B3BB-3A65855135F6") ?? GameAdapters.First();
-                SelectedZoomLevel = 3;
+                SelectedZoomLevel = 2;
             }
-            else
+            else if (Keyboard.IsKeyDown(Key.LeftAlt))
             {
                 SelectedGameAdapter = GameAdapters.FirstOrDefault(ga => ga.Adapter.GetType().GetCustomAttribute<PluginInfoAttribute>().ID == "B344166C-F1BE-49B2-9ADC-38771D0A15DA") ?? GameAdapters.First();
                 SelectedZoomLevel = 1;
@@ -137,23 +139,34 @@ namespace Kuriimu2.ViewModels
             if (!(_adapter is IAddEntries add)) return;
 
             var entry = add.NewEntry();
+            var added = false;
 
-            var nte = new AddTextEntryViewModel
+            if (_adapter is IRenameEntries ren)
             {
-                Message = "Enter the name of the new text entry.",
-                //TODO: Implement max name length in the add dialog based on the length from the loaded text adapter
-            };
-            _windows.Add(nte);
+                var nte = new AddTextEntryViewModel
+                {
+                    Message = "Enter the name of the new text entry.",
+                    //TODO: Implement max name length in the add dialog based on the length from the loaded text adapter
+                };
+                _windows.Add(nte);
 
-            nte.ValidationCallback = () => new ValidationResult
-            {
-                CanClose = Regex.IsMatch(nte.Name, _adapter.NameFilter) && _adapter.Entries.All(e => e.Name != nte.Name),
-                ErrorMessage = $"The '{nte.Name}' name is not valid or already exists."
-            };
+                nte.ValidationCallback = () => new ValidationResult
+                {
+                    CanClose = Regex.IsMatch(nte.Name, _adapter.NameFilter) && _adapter.Entries.All(e => e.Name != nte.Name),
+                    ErrorMessage = $"The '{nte.Name}' name is not valid or already exists."
+                };
 
-            if (_wm.ShowDialog(nte) == true && add.AddEntry(entry))
+                if (_wm.ShowDialog(nte) == true && add.AddEntry(entry))
+                {
+                    entry.Name = nte.Name;
+                    added = true;
+                }
+            }
+            else if (add.AddEntry(entry))
+                added = true;
+
+            if (added)
             {
-                entry.Name = nte.Name;
                 KoreFile.HasChanges = true;
                 _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
                 Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
@@ -164,6 +177,7 @@ namespace Kuriimu2.ViewModels
                         NotifyOfPropertyChange(() => PreviewImage);
                     };
                 NotifyOfPropertyChange(() => Entries);
+                NotifyOfPropertyChange(() => EntryCount);
                 SelectedEntry = entry;
             }
         }

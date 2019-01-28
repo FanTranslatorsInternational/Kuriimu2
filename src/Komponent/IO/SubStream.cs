@@ -26,9 +26,11 @@ namespace Komponent.IO
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            var restore = _baseStream.Position;
             _baseStream.Position = _baseOffset + offset + Position;
             var read = _baseStream.Read(buffer, offset, (int)Math.Min(count, _length - Position));
             Position += read;
+            _baseStream.Position = restore;
             return read;
         }
 
