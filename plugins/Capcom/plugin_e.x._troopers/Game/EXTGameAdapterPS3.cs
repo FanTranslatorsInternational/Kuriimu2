@@ -240,7 +240,7 @@ namespace plugin_e.x._troopers.Game
                         gfx.DrawImage(wizpedia, 0, 0);
 
                         // Template
-                        DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "wizpedia_template.png")), 0.25f);
+                        //DrawTransparentImage(gfx, new Bitmap(Path.Combine(PluginDirectory, _ID, "wizpedia_template.png")), 0.25f);
 
                         // Configure
                         textBoxOffsetX = 695f;

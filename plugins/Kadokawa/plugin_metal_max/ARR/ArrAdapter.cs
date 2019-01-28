@@ -5,18 +5,19 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Text;
 
 namespace plugin_metal_max.ARR
 {
-    [Export(typeof(ITextAdapter))]
+    [Export(typeof(ArrAdapter))]
     [Export(typeof(ITextAdapter))]
     [Export(typeof(IIdentifyFiles))]
     [Export(typeof(ILoadFiles))]
     [Export(typeof(ISaveFiles))]
     [PluginInfo("B6C58C25-4E1C-4B9C-ABCF-DE905B1BBF51", "Metal Max 3: ARR Credits Text", "ARR", "IcySon55, BuddyRoach", "", "This is the Metal Max 3 ARR credits text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.arr")]
-    public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddEntries
     {
         private ARR _format;
 
@@ -55,7 +56,7 @@ namespace plugin_metal_max.ARR
                         }
                     }
 
-                    return pointers.Last() < br.BaseStream.Length && pointers.Last() >= br.BaseStream.Length - 64;
+                    return pointers.Max() < br.BaseStream.Length && pointers.Max() >= br.BaseStream.Length - 64;
                 }
             }
             catch (Exception)
@@ -76,5 +77,17 @@ namespace plugin_metal_max.ARR
         }
 
         public void Dispose() { }
+
+        // IAddEntries
+        public TextEntry NewEntry()
+        {
+            return new TextEntry { Name = (_format.Entries.Count + 1).ToString() };
+        }
+
+        public bool AddEntry(TextEntry entry)
+        {
+            _format.Entries.Add(entry);
+            return true;
+        }
     }
 }
