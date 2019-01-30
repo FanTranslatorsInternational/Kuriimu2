@@ -30,15 +30,15 @@ namespace plugin_criware.CRILAYLA
         public override int Read(byte[] buffer, int offset, int count)
         {
             Position -= count;
-            var read = _baseStream.Read(buffer, offset - count, (int)Math.Min(count, _baseStream.Length - Position));
-            Position -= read;
+            var read = _baseStream.Read(buffer, offset, (int)Math.Min(count, _baseStream.Length - Position));
+            Position -= count;
             return read;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
             Position -= count;
-            _baseStream.Write(buffer, offset - count, count);
+            _baseStream.Write(buffer, offset, count);
             Position -= count;
         }
 
