@@ -42,15 +42,6 @@ namespace plugin_criware.CRILAYLA
             Position -= count;
         }
 
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            switch (origin)
-            {
-                case SeekOrigin.Begin: return Position = offset;
-                case SeekOrigin.Current: return Position += offset;
-                case SeekOrigin.End: return Position = _baseStream.Length - offset;
-            }
-            throw new ArgumentException("origin is invalid");
-        }
+        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
     }
 }
