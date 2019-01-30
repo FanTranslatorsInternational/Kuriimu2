@@ -97,7 +97,7 @@ namespace plugin_criware.CPK
         /// Dump method for LinqPad.
         /// </summary>
         /// <returns>The value's string representation.</returns>
-        private object ToDump() => Value.ToString();
+        private object ToDump() => $"{Value} ({Type.ToString()})";
     }
 
     /// <summary>

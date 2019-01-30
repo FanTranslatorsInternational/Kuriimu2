@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="CPK\CPK.cs" />
     <Compile Include="CPK\CpkAdapter.cs" />
+    <Compile Include="CRILAYLA\BitReader.cs" />
+    <Compile Include="CRILAYLA\CRILAYLA.cs" />
     <Compile Include="CPK\CpkSupport.cs" />
     <Compile Include="CPK\CpkTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

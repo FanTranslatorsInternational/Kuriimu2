@@ -20,6 +20,11 @@ namespace plugin_criware.CPK
         public CpkTable TocTable { get; }
 
         /// <summary>
+        /// The relative offset from which file offsets are based.
+        /// </summary>
+        public long FileOffsetBase { get; }
+
+        /// <summary>
         /// Instantiates a new <see cref="CPK"/> from an input <see cref="Stream"/>.
         /// </summary>
         /// <param name="input"></param>
@@ -30,11 +35,14 @@ namespace plugin_criware.CPK
                 // Read in the CPK table.
                 HeaderTable = new CpkTable(input);
 
-                var tocOffset = (ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
-                var contentOffset = HeaderTable.Rows.First().Values["ContentOffset"].Value;
+                // Retrieve the offset for the TOC table.
+                var tocOffset = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
+
+                // Set the file offset base value
+                FileOffsetBase = tocOffset;
 
                 // Read in the TOC table.
-                input.Position = (long)tocOffset;
+                input.Position = tocOffset;
                 TocTable = new CpkTable(input);
             }
         }
