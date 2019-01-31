@@ -60,7 +60,6 @@
     <Compile Include="CRILAYLA\ReverseStream.cs" />
     <Compile Include="CPK\CpkSupport.cs" />
     <Compile Include="CPK\CpkTable.cs" />
-    <Compile Include="CRILAYLA\ReverseStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
