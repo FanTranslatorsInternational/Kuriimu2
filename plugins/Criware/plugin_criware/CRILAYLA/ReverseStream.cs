@@ -29,6 +29,9 @@ namespace plugin_criware.CRILAYLA
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (Position - count < 0)
+                throw new BeginningOfStreamException();
+
             Position -= count;
             var read = _baseStream.Read(buffer, offset, (int)Math.Min(count, _baseStream.Length - Position));
             Position -= count;
@@ -37,6 +40,9 @@ namespace plugin_criware.CRILAYLA
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            if (Position - count < 0)
+                throw new BeginningOfStreamException();
+
             Position -= count;
             _baseStream.Write(buffer, offset, count);
             Position -= count;
