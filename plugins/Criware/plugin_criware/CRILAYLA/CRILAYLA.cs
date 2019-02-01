@@ -7,6 +7,7 @@ namespace plugin_criware.CRILAYLA
     /// <summary>
     /// The basic CRILAYLA header.
     /// </summary>
+    [Endianness(ByteOrder = ByteOrder.LittleEndian)]
     public class CrilaylaHeader
     {
         [FixedLength(8)]
@@ -20,8 +21,8 @@ namespace plugin_criware.CRILAYLA
     /// </summary>
     public class CRILAYLA
     {
-        private const int HeaderLength = 16;
-        private const int UncompressedDataLength = 256;
+        private const int HeaderLength = 0x10;
+        private const int UncompressedDataLength = 0x100;
 
         /// <summary>
         /// Compress a file using the CRILAYLA compression.
@@ -40,104 +41,97 @@ namespace plugin_criware.CRILAYLA
         /// <returns></returns>
         public static byte[] Decompress(Stream input)
         {
-            using (var brx = new BinaryReaderX(input, true))
+            byte[] dest;
+
+            // Reset incoming stream
+            input.Position = 0;
+
+            using (var br = new BinaryReaderX(input, true, ByteOrder.BigEndian, BitOrder.LSBFirst))
             {
-                // Read in the CRILAYLA header.
-                var header = brx.ReadStruct<CrilaylaHeader>();
+                var header = br.ReadStruct<CrilaylaHeader>();
 
-                // Make sure the data isn't bogus.
-                if (header.Magic != "CRILAYLA" && header.Magic != "\0\0\0\0\0\0\0\0")
-                    throw new FormatException("The stream provided does not appear to be a CRILAYLA compressed stream.");
+                if (header.Magic != "CRILAYLA" || header.Magic == "\0\0\0\0\0\0\0\0")
+                    throw new InvalidOperationException();
 
-                // Uncompressed data
-                var dest = new byte[header.UncompressedSize];
+                var lengthNeeded = UncompressedDataLength + header.UncompressedSize;
+                dest = new byte[lengthNeeded];
 
-                // Read uncompressed file portion
-                brx.BaseStream.Position = brx.BaseStream.Length - UncompressedDataLength;
-                var ufp = brx.ReadBytes(UncompressedDataLength);
-                Array.Copy(ufp, 0, dest, 0, UncompressedDataLength);
+                br.BaseStream.Position = br.BaseStream.Length - UncompressedDataLength;
+                br.ReadBytes(UncompressedDataLength).CopyTo(dest, 0);
+            }
 
-                // Initialize our 
-                brx.BaseStream.Position = HeaderLength;
-                var source = brx.ReadBytes(header.CompressedSize);
-                Array.Copy(source, 0, dest, UncompressedDataLength, header.CompressedSize);
+            using (var br = new BinaryReaderX(new ReverseStream(input), true))
+            {
+                // Actual decompression inits
+                br.BaseStream.Position = br.BaseStream.Length - UncompressedDataLength;
+                var destPos = dest.Length;
 
-                // BitReader
-                var br = new BitReader(source);
-                var destPos = (uint)dest.Length;
-
-                void BackwardsCascadingCopy(uint sourcePos, uint length)
+                void BackwardCascadingCopy(int sourceIndex, int count)
                 {
-                    var d = destPos + length;
-                    var s = sourcePos + length;
+                    var d = destPos + count;
+                    var s = sourceIndex + count;
 
-                    while (length-- > 0)
+                    while (count-- > 0)
                         dest[--d] = dest[--s];
                 }
 
-                while (destPos > 256)
+                // Actual decompression
+                while (destPos > UncompressedDataLength)
                 {
-                    var isBackref = br.ReadBit();
-                    if (isBackref)
+                    if (br.ReadBit())
                     {
-                        var initialOffset = br.Read(13);
+                        var initialOffset = br.ReadBits<short>(13);
                         var offset = destPos + initialOffset;
                         destPos -= 3;
 
-                        uint ReadOffset(uint bits)
-                        {
-                            uint value = 0; br.Read(bits);
-                            destPos -= value;
-                            offset -= value;
-                            return value;
-                        }
+                        int ReadOffset(int bits) { var value = br.ReadBits<int>(bits); destPos -= value; offset -= value; return value; };
 
-                        uint more;
+                        int more;
                         if (initialOffset >= 3)
                         {
                             // No overlap between the two possible, combine.
                             more = ReadOffset(2);
-                            //memmove(dest.ptr + dest_pos, dest.ptr + offset, 3 + more);
+                            Array.Copy(dest, offset, dest, destPos, 3 + more);
                         }
                         else
                         {
                             // Two copies, for overlap (but internal overlap of these two is not possible.)
-                            //memmove(dest.ptr + dest_pos, dest.ptr + offset, 3);
+                            Array.Copy(dest, offset, dest, destPos, 3);
                             more = ReadOffset(2);
-                            //memmove(dest.ptr + dest_pos, dest.ptr + offset, more);
+                            Array.Copy(dest, offset, dest, destPos, more);
                         }
 
                         if (more == 3)
                         {
                             more = ReadOffset(3);
                             // Note any value > 3 could cause a cascade for the below.
-                            BackwardsCascadingCopy(offset, more);
+                            BackwardCascadingCopy(offset, more);
 
                             if (more == 7)
                             {
                                 more = ReadOffset(5);
-                                BackwardsCascadingCopy(offset, more);
+                                BackwardCascadingCopy(offset, more);
 
                                 if (more == 31)
                                 {
                                     do
                                     {
                                         more = ReadOffset(8);
-                                        BackwardsCascadingCopy(offset, more);
-                                    } while (more == 255);
-
+                                        BackwardCascadingCopy(offset, more);
+                                    }
+                                    while (more == 255);
                                 }
                             }
                         }
                     }
                     else
                     {
-                        dest[--destPos] = (byte)br.ReadByte();
+                        dest[--destPos] = br.ReadBits<byte>(8);
                     }
                 }
-
-                return dest;
             }
+
+            return dest;
         }
     }
 }

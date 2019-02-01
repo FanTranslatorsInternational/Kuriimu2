@@ -1,16 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace plugin_criware.CRILAYLA
 {
+    /// <inheritdoc />
+    /// <summary>
+    /// Represents an error that occurs when you try to read beyond the beginning of the stream.
+    /// </summary>
     public class BeginningOfStreamException : Exception
     {
-        public BeginningOfStreamException() : base("Reached the beginning of the reversed stream")
-        {
-
-        }
+        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BeginningOfStreamException" /> class with a specified error message.
+        /// </summary>
+        public BeginningOfStreamException() : base("Reached the beginning of the reversed stream") { }
     }
 }

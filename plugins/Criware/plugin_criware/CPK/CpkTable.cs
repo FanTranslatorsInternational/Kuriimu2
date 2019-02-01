@@ -76,9 +76,9 @@ namespace plugin_criware.CPK
 
                 // Make sure the data isn't bogus.
                 if (Header.PacketSize - 8 != Header.TableSize)
-                    throw new FormatException("The packet size doesn't match the table size. The file might be corrupt or encrypted or not a CPK.");
+                    throw new FormatException("The packet size doesn't match the table size. The file might be corrupt, encrypted or it is not a CPK.");
                 if (Header.PacketSize > 100 * 1024 * 1024)
-                    throw new FormatException("The packet size is too big. The file might be corrupt or encrypted or not a CPK.");
+                    throw new FormatException("The packet size is too big. The file might be corrupt, encrypted or it is not a CPK.");
 
                 // Switch to Big Endian to read the table info.
                 br.ByteOrder = ByteOrder.BigEndian;
@@ -129,6 +129,15 @@ namespace plugin_criware.CPK
                     Rows.Add(row);
                 }
             }
+        }
+
+        /// <summary>
+        /// Writes the current <see cref="CpkTable"/> data to the output <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="output"></param>
+        public void Save(Stream output)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

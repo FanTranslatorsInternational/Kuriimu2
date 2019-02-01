@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Komponent.IO;
 
@@ -10,14 +11,14 @@ namespace plugin_criware.CPK
     public class CPK
     {
         /// <summary>
-        /// The table that stores the header data.
+        /// The table that stores the CPK header data.
         /// </summary>
         public CpkTable HeaderTable { get; }
 
         /// <summary>
-        /// The table that stores the TOC data.
+        /// Gets and sets the alignment value to be used when saving the <see cref="CPK"/>.
         /// </summary>
-        public CpkTable TocTable { get; }
+        public short Alignment { get; set; }
 
         /// <summary>
         /// The relative offset from which file offsets are based.
@@ -25,7 +26,17 @@ namespace plugin_criware.CPK
         public long FileOffsetBase { get; }
 
         /// <summary>
-        /// Instantiates a new <see cref="CPK"/> from an input <see cref="Stream"/>.
+        /// The table that stores the TOC data.
+        /// </summary>
+        public CpkTable TocTable { get; }
+
+        /// <summary>
+        /// The table that stored extended TOC data.
+        /// </summary>
+        public CpkTable ETocTable { get; }
+
+        /// <summary>
+        /// Instantiates a new <see cref="CPK"/> from an input <see cref="Stream"/>.    
         /// </summary>
         /// <param name="input"></param>
         public CPK(Stream input)
@@ -34,16 +45,28 @@ namespace plugin_criware.CPK
             {
                 // Read in the CPK table.
                 HeaderTable = new CpkTable(input);
+                Alignment = (short)(ushort)HeaderTable.Rows.First().Values["Align"].Value;
 
-                // Retrieve the offset for the TOC table.
+                // Retrieve the offsets for the other tables.
                 var tocOffset = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
+                var etocOffset = (long)(ulong)HeaderTable.Rows.First().Values["EtocOffset"].Value;
 
                 // Set the file offset base value
                 FileOffsetBase = tocOffset;
 
                 // Read in the TOC table.
-                input.Position = tocOffset;
-                TocTable = new CpkTable(input);
+                if (tocOffset > 0)
+                {
+                    input.Position = tocOffset;
+                    TocTable = new CpkTable(input);
+                }
+
+                // Read in the ETOC table.
+                if (etocOffset > 0)
+                {
+                    input.Position = etocOffset;
+                    ETocTable = new CpkTable(input);
+                }
             }
         }
 
@@ -54,8 +77,7 @@ namespace plugin_criware.CPK
         /// <returns></returns>
         public bool Save(Stream output)
         {
-
-            return false;
+            throw new NotImplementedException();
         }
     }
 }
