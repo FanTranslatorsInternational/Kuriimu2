@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Komponent.IO;
+using System.Linq;
 
 namespace plugin_criware.CRILAYLA
 {
@@ -24,6 +25,68 @@ namespace plugin_criware.CRILAYLA
         private const int HeaderLength = 0x10;
         private const int UncompressedDataLength = 0x100;
 
+        private static (byte[] backref, int backrefPos) LongestMatch(int needle_len, byte[] haystack)
+        {
+            byte[] needle = new byte[needle_len];
+            Array.Copy(haystack, 0, needle, 0, needle_len);
+            byte[] longest_so_far = null;
+            int longest_so_far_pos = 0;
+
+            void ConsiderPossibleMatch(int starting_index)
+            {
+                var haystack_index = starting_index;
+                for (int j = needle.Length - 1; j >= 0; j--)
+                {
+                    if (haystack[--haystack_index] != needle[j])
+                        break;
+                }
+
+                var len = starting_index - haystack_index;
+
+                if (len > (longest_so_far?.Length ?? 0))
+                {
+                    longest_so_far = new byte[len];
+                    Array.Copy(haystack, haystack_index + 1, longest_so_far, 0, len);
+                    longest_so_far_pos = haystack_index + 1;
+                }
+            }
+
+            byte starting_byte = needle[needle.Length - 1];
+
+            // Three bytes including the match, so 2 ahead.
+            int minimum = needle_len + 2;
+            int i = minimum;
+            while (i < haystack.Length)
+            {
+                var index = Array.IndexOf(haystack, starting_byte, i, haystack.Length - i);
+                if (index < 0)
+                    break;
+
+                i = index;
+                ConsiderPossibleMatch(i);
+                ++i;
+            }
+
+            return (longest_so_far, longest_so_far_pos);
+
+            /*
+    // Three bytes including the match, so 2 ahead.
+    size_t minimum = needle_len + 2;
+    size_t i = minimum;
+    while (i < haystack.length)
+    {
+        auto p = cast(ubyte*)memchr(haystack.ptr + i, starting_byte, haystack.length - i);
+        if (p == null)
+            break;
+
+        i = cast(size_t)(p - haystack.ptr);
+        consider_possible_match(i);
+        ++i;
+    }
+
+    return longest_so_far;*/
+        }
+
         /// <summary>
         /// Compress a file using the CRILAYLA compression.
         /// </summary>
@@ -31,7 +94,93 @@ namespace plugin_criware.CRILAYLA
         /// <returns></returns>
         public static byte[] Compress(Stream input)
         {
-            throw new NotImplementedException();
+            if (input.Length <= 0x100)
+                throw new ArgumentException("Input needs to be longer than 256 bytes");
+
+            byte[] uncompressedData;
+            using (var br = new BinaryReaderX(input))
+            {
+                uncompressedData = br.ReadBytes(0x100);
+                var inputSize = (int)input.Length - 0x100;
+
+                var header = new CrilaylaHeader() { UncompressedSize = inputSize };
+                var compData = new MemoryStream();
+                using (var bw = new BinaryWriterX(compData, true))
+                {
+                    int done_so_far = 0;
+                    void WriteRaw() { bw.WriteBit(false); br.BaseStream.Position = br.BaseStream.Length - ++done_so_far; bw.WriteBits(br.ReadByte(), 8); };
+
+                    void WriteBackref(byte[] backref, int backrefPos)
+                    {
+                        if (backref.Length < 3) throw new ArgumentException("Backref too short");
+
+                        var end_backref = backrefPos + backref.Length;
+                        var end_source = inputSize;
+
+                        var offset = done_so_far - (end_source - end_backref) - 3;
+
+                        int this_chunk = 0;
+                        int leftover = backref.Length;
+                        leftover -= 3;
+
+                        bw.WriteBit(true);
+                        bw.WriteBits(offset, 13);
+
+                        int bits_max, bits = 2;
+                        int[] next_bits = new[] { 0, 0, 3, 5, 0, 8, 0, 0, 8 };
+                        do
+                        {
+                            bits_max = (1 << bits) - 1;
+
+                            this_chunk = (leftover > bits_max) ? bits_max : leftover;
+                            leftover -= this_chunk;
+
+                            bw.WriteBits(this_chunk, bits);
+
+                            bits = next_bits[bits];
+                        } while (this_chunk == bits_max);
+
+                        done_so_far += backref.Length;
+                    }
+
+                    // Must do first 3 bytes raw
+                    for (done_so_far = 0; done_so_far < 3 && done_so_far < inputSize;)
+                        WriteRaw();
+
+                    int sliding_window_size = 0x2000 + 2;
+                    while (done_so_far < inputSize)
+                    {
+                        var needle_len = inputSize - done_so_far;
+                        var backref_max = (done_so_far > sliding_window_size) ? sliding_window_size : done_so_far;
+
+                        br.BaseStream.Position = 0x100;
+                        var backrefInfo = LongestMatch(needle_len, br.ReadBytes(needle_len + backref_max));
+
+                        if ((backrefInfo.backref?.Length ?? 0) < 3)
+                            WriteRaw();
+                        else
+                            WriteBackref(backrefInfo.backref, backrefInfo.backrefPos);
+                    }
+
+                    bw.Flush();
+                }
+
+                // Compressed size excludes first 0x100 bytes
+                header.CompressedSize = (int)compData.Length;
+
+                var dest = new MemoryStream();
+                using (var bw = new BinaryWriterX(dest, true))
+                {
+                    bw.WriteStruct(header);
+                    compData.Position = 0;
+                    var compDataRev = new BinaryReaderX(compData).ReadMultiple<int>((int)compData.Length / 4);
+                    compDataRev.Reverse();
+                    bw.WriteMultiple(compDataRev);
+                    bw.Write(uncompressedData);
+                }
+
+                return dest.ToArray();
+            }
         }
 
         /// <summary>
@@ -46,7 +195,7 @@ namespace plugin_criware.CRILAYLA
             // Reset incoming stream
             input.Position = 0;
 
-            using (var br = new BinaryReaderX(input, true, ByteOrder.BigEndian, BitOrder.LSBFirst))
+            using (var br = new BinaryReaderX(input, true))
             {
                 var header = br.ReadStruct<CrilaylaHeader>();
 
