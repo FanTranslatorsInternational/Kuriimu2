@@ -13,10 +13,6 @@ namespace plugin_criware.CPK
         public int Const1 = 0xFF;
         public int PacketSize;
         public int Null1;
-        [FixedLength(4)]
-        public string Utf = "@UTF";
-        [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public int TableSize;
     }
 
     /// <summary>
@@ -24,6 +20,10 @@ namespace plugin_criware.CPK
     /// </summary>
     public class CpkTableInfo
     {
+        [FixedLength(4)]
+        public string Utf = "@UTF";
+        [Endianness(ByteOrder = ByteOrder.BigEndian)]
+        public int TableSize;
         public int ValuesOffset;
         public int StringsOffset;
         public int BinaryOffset;

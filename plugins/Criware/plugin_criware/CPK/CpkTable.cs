@@ -52,9 +52,9 @@ namespace plugin_criware.CPK
         public List<CpkRow> Rows { get; }
 
         /// <summary>
-        /// 
+        /// Gets or Sets a value dictating if the UTF tables are obfuscated.
         /// </summary>
-        public bool UTFEncryption { get; set; }
+        public bool UtfObfuscation { get; set; }
 
         #region Properties
 
@@ -75,33 +75,43 @@ namespace plugin_criware.CPK
             {
                 // Read in the table header.
                 Header = br.ReadStruct<CpkTableHeader>();
+                br.ByteOrder = ByteOrder.BigEndian;
 
-                // Handle encrypted UTF table
-                if (Header.Utf != "@UTF")
+                // Handle obfuscated UTF table
+                if (br.PeekString() != "@UTF")
                 {
-                    UTFEncryption = true;
-                    br.BaseStream.Position -= 8;
+                    UtfObfuscation = true;
+
+                    // Decrypt the UTF table
                     _tableStream = new BinaryReaderX(new MemoryStream(XorUtf(br.ReadBytes(Header.PacketSize))), true, ByteOrder.BigEndian);
-                    Header.Utf = _tableStream.ReadString(4);
-                    Header.TableSize = _tableStream.ReadInt32();
-                    _tableStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, 0x8, Header.TableSize), true, ByteOrder.BigEndian);
+
+                    // Read the table info.
+                    TableInfo = _tableStream.ReadStruct<CpkTableInfo>();
+
+                    // Replace the stream with a new SubStream into the decrypted data.
+                    _tableStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, 0x8, TableInfo.TableSize), true, ByteOrder.BigEndian);
                 }
                 else
+                {
+                    // Read the table info.
+                    TableInfo = br.ReadStruct<CpkTableInfo>();
+
                     // Create a sub stream of the entire table.
-                    _tableStream = new BinaryReaderX(new SubStream(br.BaseStream, br.BaseStream.Position, Header.TableSize), true, ByteOrder.BigEndian);
+                    _tableStream = new BinaryReaderX(new SubStream(br.BaseStream, 0x18, TableInfo.TableSize), true, ByteOrder.BigEndian);
+                }
+
+                // Move forward to right after TableInfo
+                _tableStream.BaseStream.Position += 0x18;
 
                 // Make sure the data isn't bogus.
-                if (Header.PacketSize - 8 != Header.TableSize)
+                if (Header.PacketSize - 0x8 != TableInfo.TableSize)
                     throw new FormatException("The packet size doesn't match the table size. The file might be corrupt, encrypted or it is not a CPK.");
                 if (Header.PacketSize > 100 * 1024 * 1024)
                     throw new FormatException("The packet size is too big. The file might be corrupt, encrypted or it is not a CPK.");
 
-                // Read the table info.
-                TableInfo = _tableStream.ReadStruct<CpkTableInfo>();
-
                 // Create sub streams for the string data and binary data.
-                _stringStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, TableInfo.StringsOffset, Header.TableSize - TableInfo.StringsOffset), true, ByteOrder.BigEndian);
-                _binaryStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, TableInfo.BinaryOffset, Header.TableSize - TableInfo.BinaryOffset), true, ByteOrder.BigEndian);
+                _stringStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, TableInfo.StringsOffset, TableInfo.TableSize - TableInfo.StringsOffset), true, ByteOrder.BigEndian);
+                _binaryStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, TableInfo.BinaryOffset, TableInfo.TableSize - TableInfo.BinaryOffset), true, ByteOrder.BigEndian);
 
                 // Read in the table name.
                 Name = ReadString(TableInfo.NameOffset);
@@ -152,7 +162,10 @@ namespace plugin_criware.CPK
         /// <param name="output"></param>
         public void Save(Stream output)
         {
-            throw new NotImplementedException();
+            using (var bw = new BinaryWriterX(output, ByteOrder.BigEndian))
+            {
+
+            }
         }
 
         /// <summary>

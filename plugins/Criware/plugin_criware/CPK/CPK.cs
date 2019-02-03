@@ -45,7 +45,7 @@ namespace plugin_criware.CPK
         /// <summary>
         /// The files available in the CPK.
         /// </summary>
-        public List<ArchiveFileInfo> Files { get; }
+        public List<ArchiveFileInfo> Files { get; } = new List<ArchiveFileInfo>();
 
         /// <summary>
         /// Instantiates a new <see cref="CPK"/> from an input <see cref="Stream"/>.
@@ -56,32 +56,41 @@ namespace plugin_criware.CPK
             using (var br = new BinaryReaderX(input, true))
             {
                 // Read in the CPK table.
-                HeaderTable = new CpkTable(input);
+                HeaderTable = new CpkTable(br.BaseStream);
+
+                // Check the Magic
+                if (HeaderTable.Header.Magic != "CPK ")
+                    throw new FormatException("The loaded file is not a CPK archive.");
+
                 Alignment = (short)(ushort)HeaderTable.Rows.First().Values["Align"].Value;
 
                 // Retrieve the offsets for the other tables.
                 var tocOffset = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
-                var etocOffset = (long)(ulong)HeaderTable.Rows.First().Values["EtocOffset"].Value;
-                var itocOffset = (long)(ulong)HeaderTable.Rows.First().Values["ItocOffset"].Value;
+                var tocSize = (long)(ulong)HeaderTable.Rows.First().Values["TocSize"].Value;
 
-                // Set the file offset base value
-                FileOffsetBase = tocOffset;
+                var etocOffset = (long)(ulong)HeaderTable.Rows.First().Values["EtocOffset"].Value;
+                var etocSize = (long)(ulong)HeaderTable.Rows.First().Values["EtocSize"].Value;
+
+                var itocOffset = (long)(ulong)HeaderTable.Rows.First().Values["ItocOffset"].Value;
+                var itocSize = (long)(ulong)HeaderTable.Rows.First().Values["ItocSize"].Value;
 
                 // Read in the TOC table.
                 if (tocOffset > 0)
                 {
-                    input.Position = tocOffset;
-                    TocTable = new CpkTable(input);
+                    // Set the file offset base value
+                    FileOffsetBase = tocOffset;
+
+                    br.BaseStream.Position = tocOffset;
+                    TocTable = new CpkTable(new SubStream(br.BaseStream, tocOffset, tocSize));
 
                     // Read in the ETOC table.
                     if (etocOffset > 0)
                     {
-                        input.Position = etocOffset;
-                        ETocTable = new CpkTable(input);
+                        br.BaseStream.Position = etocOffset;
+                        ETocTable = new CpkTable(new SubStream(br.BaseStream, etocOffset, etocSize));
                     }
 
                     // Populate files
-                    Files = new List<ArchiveFileInfo>();
                     foreach (var row in TocTable.Rows)
                     {
                         var dir = ((string)row["DirName"].Value).Replace("/", "\\");
@@ -90,7 +99,7 @@ namespace plugin_criware.CPK
                         var compressedSize = Convert.ToInt32(row["FileSize"].Value);
                         var fileSize = Convert.ToInt32(row["ExtractSize"].Value);
 
-                        Files.Add(new CpkFileInfo(new SubStream(input, offset, compressedSize), TocTable.UTFEncryption, fileSize, compressedSize)
+                        Files.Add(new CpkFileInfo(new SubStream(br.BaseStream, offset, compressedSize), TocTable.UtfObfuscation, fileSize, compressedSize)
                         {
                             FileName = Path.Combine(dir, name),
                             State = ArchiveFileState.Archived
@@ -100,8 +109,11 @@ namespace plugin_criware.CPK
                 // Read in the ITOC table.
                 else if (itocOffset > 0)
                 {
-                    input.Position = itocOffset;
-                    ITocTable = new CpkTable(input);
+                    // Set the file offset base value
+                    FileOffsetBase = itocOffset;
+
+                    br.BaseStream.Position = itocOffset;
+                    ITocTable = new CpkTable(new SubStream(br.BaseStream, itocOffset, itocSize));
                 }
             }
         }
