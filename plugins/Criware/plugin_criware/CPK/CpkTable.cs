@@ -51,6 +51,11 @@ namespace plugin_criware.CPK
         /// </summary>
         public List<CpkRow> Rows { get; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool UTFEncryption { get; set; }
+
         #region Properties
 
         /// <summary>
@@ -71,8 +76,19 @@ namespace plugin_criware.CPK
                 // Read in the table header.
                 Header = br.ReadStruct<CpkTableHeader>();
 
-                // Create a sub stream of the entire table.
-                _tableStream = new BinaryReaderX(new SubStream(br.BaseStream, br.BaseStream.Position, Header.TableSize), true, ByteOrder.BigEndian);
+                // Handle encrypted UTF table
+                if (Header.Utf != "@UTF")
+                {
+                    UTFEncryption = true;
+                    br.BaseStream.Position -= 8;
+                    _tableStream = new BinaryReaderX(new MemoryStream(XorUtf(br.ReadBytes(Header.PacketSize))), true, ByteOrder.BigEndian);
+                    Header.Utf = _tableStream.ReadString(4);
+                    Header.TableSize = _tableStream.ReadInt32();
+                    _tableStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, 0x8, Header.TableSize), true, ByteOrder.BigEndian);
+                }
+                else
+                    // Create a sub stream of the entire table.
+                    _tableStream = new BinaryReaderX(new SubStream(br.BaseStream, br.BaseStream.Position, Header.TableSize), true, ByteOrder.BigEndian);
 
                 // Make sure the data isn't bogus.
                 if (Header.PacketSize - 8 != Header.TableSize)
@@ -80,8 +96,7 @@ namespace plugin_criware.CPK
                 if (Header.PacketSize > 100 * 1024 * 1024)
                     throw new FormatException("The packet size is too big. The file might be corrupt, encrypted or it is not a CPK.");
 
-                // Switch to Big Endian to read the table info.
-                br.ByteOrder = ByteOrder.BigEndian;
+                // Read the table info.
                 TableInfo = _tableStream.ReadStruct<CpkTableInfo>();
 
                 // Create sub streams for the string data and binary data.
@@ -233,6 +248,23 @@ namespace plugin_criware.CPK
                 default:
                     return new CpkValue();
             }
+        }
+
+        /// <summary>
+        /// De/Obfuscates a UTF table.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private static byte[] XorUtf(IEnumerable<byte> input)
+        {
+            int x = 0x655F, y = 0x4115;
+
+            return input.Select(b =>
+            {
+                var z = (byte)(b ^ (byte)(x & 0xFF));
+                x *= y;
+                return z;
+            }).ToArray();
         }
     }
 }
