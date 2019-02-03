@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Text
 {
     /// <summary>
     /// This is the text adapter interface for creating text format plugins.
     /// </summary>
-    public interface ITextAdapter
+    public interface ITextAdapter : IPlugin
     {
         /// <summary>
         /// The list of entries provided by the text adapter to the UI.

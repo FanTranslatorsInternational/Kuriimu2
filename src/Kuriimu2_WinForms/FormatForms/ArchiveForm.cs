@@ -1,4 +1,13 @@
-﻿using Kontract;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
@@ -8,18 +17,6 @@ using Kontract.Interfaces.Text;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
-using Kuriimu2_WinForms.Tools;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
@@ -42,8 +39,8 @@ namespace Kuriimu2_WinForms.FormatForms
             InitializeComponent();
 
             // Overwrite window themes
-            Win32.SetWindowTheme(treDirectories.Handle, "explorer", null);
-            Win32.SetWindowTheme(lstFiles.Handle, "explorer", null);
+            //Win32.SetWindowTheme(treDirectories.Handle, "explorer", null);
+            //Win32.SetWindowTheme(lstFiles.Handle, "explorer", null);
 
             // Populate image list
             imlFiles.Images.Add("tree-directory", Resources.tree_directory);
@@ -87,12 +84,6 @@ namespace Kuriimu2_WinForms.FormatForms
         private IArchiveAdapter _archiveAdapter { get => Kfi.Adapter as IArchiveAdapter; }
 
         #region Events
-        private void ArchiveForm_Load(object sender, EventArgs e)
-        {
-            Dock = DockStyle.Fill;
-            Padding = new Padding(3);
-        }
-
         private void Kfi_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(KoreFileInfo.DisplayName))
@@ -403,52 +394,26 @@ namespace Kuriimu2_WinForms.FormatForms
 
             if (treDirectories.SelectedNode?.Tag is IEnumerable<ArchiveFileInfo> files)
             {
+                imlFiles.Images.Add("0", Resources.menu_new);
+
                 foreach (var file in files)
                 {
                     // Get the items from the file system, and add each of them to the ListView,
                     // complete with their corresponding name and icon indices.
-                    var ext = Path.GetExtension(file.FileName).ToLower();
+                    //var ext = Path.GetExtension(file.FileName).ToLower();
                     //TODO
                     //var textFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<ITextAdapter>().Contains(ext);
                     //var imageFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IImageAdapter>().Contains(ext);
                     //var archiveFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IArchiveAdapter>().Contains(ext);
 
-                    var shfi = new Win32.SHFILEINFO();
-                    try
-                    {
-                        if (!imlFiles.Images.ContainsKey(ext) && !string.IsNullOrEmpty(ext))
-                        {
-                            Win32.SHGetFileInfo(ext, 0, out shfi, Marshal.SizeOf(shfi), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_USEFILEATTRIBUTES);
-                            imlFiles.Images.Add(ext, Icon.FromHandle(shfi.hIcon));
-                        }
-                    }
-                    finally
-                    {
-                        if (shfi.hIcon != IntPtr.Zero)
-                            Win32.DestroyIcon(shfi.hIcon);
-                    }
-                    try
-                    {
-                        if (!imlFilesLarge.Images.ContainsKey(ext) && !string.IsNullOrEmpty(ext))
-                        {
-                            Win32.SHGetFileInfo(ext, 0, out shfi, Marshal.SizeOf(shfi), Win32.SHGFI_ICON | Win32.SHGFI_LARGEICON | Win32.SHGFI_USEFILEATTRIBUTES);
-                            imlFilesLarge.Images.Add(ext, Icon.FromHandle(shfi.hIcon));
-                        }
-                    }
-                    finally
-                    {
-                        if (shfi.hIcon != IntPtr.Zero)
-                            Win32.DestroyIcon(shfi.hIcon);
-                    }
+                    ////TODO
+                    //if (false) ext = "tree-text-file";
+                    //if (false) ext = "tree-image-file";
+                    //if (false) ext = "tree-archive-file";
 
-                    //TODO
-                    if (false) ext = "tree-text-file";
-                    if (false) ext = "tree-image-file";
-                    if (false) ext = "tree-archive-file";
-
-                    var sb = new StringBuilder(16);
-                    Win32.StrFormatByteSize((long)file.FileSize, sb, 16);
-                    lstFiles.Items.Add(new ListViewItem(new[] { Path.GetFileName(file.FileName), sb.ToString(), file.State.ToString() }, ext, StateToColor(file.State), Color.Transparent, lstFiles.Font) { Tag = file });
+                    //var sb = new StringBuilder(16);
+                    //Win32.StrFormatByteSize((long)file.FileSize, sb, 16);
+                    lstFiles.Items.Add(new ListViewItem(new[] { Path.GetFileName(file.FileName), file.FileSize.ToString(), file.State.ToString() }, "0", StateToColor(file.State), Color.Transparent, lstFiles.Font) { Tag = file });
                 }
 
                 tslFileCount.Text = $"Files: {files.Count()}";

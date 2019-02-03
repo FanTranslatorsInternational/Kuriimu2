@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveAdapter
+    public interface IArchiveAdapter : IPlugin
     {
         List<ArchiveFileInfo> Files { get; }
         

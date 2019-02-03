@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Serialization;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Layout
 {
     /// <summary>
     /// This is the layout adapter interface for creating layout format plugins.
     /// </summary>
-    public interface ILayoutAdapter
+    public interface ILayoutAdapter : IPlugin
     {
         /// <summary>
         /// The list of items provided by the layout adapter to the UI.

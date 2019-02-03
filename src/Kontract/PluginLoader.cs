@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.Attributes;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
@@ -30,6 +29,9 @@ namespace Kontract
 
         #region Imports
 #pragma warning disable 0649, 0169
+
+        [ImportMany(typeof(IPlugin))]
+        private List<IPlugin> _plugins;
 
         [ImportMany(typeof(ICreateFiles))]
         private List<ICreateFiles> _createAdapters;
@@ -204,6 +206,17 @@ namespace Kontract
                 default:
                     return null;
             }
+        }
+
+        // TODO: Solidify these later in KORE.
+        public List<T> GetAdapters2<T>() where T : IPlugin, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
+        {
+            return _plugins.Where(p => p is T).Cast<T>().ToList();
+        }
+
+        public List<TType> GetTypeAdapters<T, TType>() where T : IPlugin where TType : IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
+        {
+            return _plugins.Where(p => p is T && p is TType).Cast<TType>().ToList();
         }
 
         /// <summary>

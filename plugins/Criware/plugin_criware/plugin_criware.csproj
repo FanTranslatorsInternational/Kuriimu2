@@ -31,11 +31,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Komponent, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Komponent.2.0.2\lib\net461\Komponent.dll</HintPath>
+    <Reference Include="Komponent, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Komponent.2.0.3\lib\net461\Komponent.dll</HintPath>
     </Reference>
-    <Reference Include="Kontract, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kontract.2.0.2\lib\net461\Kontract.dll</HintPath>
+    <Reference Include="Kontract, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Kontract.2.0.3\lib\net461\Kontract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="CPK\CPK.cs" />
     <Compile Include="CPK\CpkAdapter.cs" />
+    <Compile Include="CPK\CpkFileInfo.cs" />
     <Compile Include="CRILAYLA\BeginningOfStreamException.cs" />
     <Compile Include="CRILAYLA\CRILAYLA.cs" />
     <Compile Include="CRILAYLA\ReverseStream.cs" />
@@ -66,6 +67,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
-copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
+copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins\$(TargetFileName)"
+
+mkdir "$(SolutionDir)..\..\src\Kuriimu2_WinForms\bin\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
+copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2_WinForms\bin\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

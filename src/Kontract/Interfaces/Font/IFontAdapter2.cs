@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Font
 {
     /// <summary>
     /// This is the v2 font adapter interface for creating font format plugins.
     /// </summary>
-    public interface IFontAdapter2
+    public interface IFontAdapter2 : IPlugin
     {
         /// <summary>
         /// The list of characters provided by the font adapter to the UI.

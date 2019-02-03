@@ -1,43 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Komponent.IO;
+using Kontract.Attributes;
+using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 
 namespace plugin_criware.CPK
 {
     [Export(typeof(CpkAdapter))]
-    public sealed class CpkAdapter : IIdentifyFiles, ILoadFiles, ISaveFiles //IArchiveAdapter
+    [Export(typeof(IPlugin))]
+    [Export(typeof(IArchiveAdapter))]
+    [Export(typeof(IIdentifyFiles))]
+    [Export(typeof(ILoadFiles))]
+    [Export(typeof(ISaveFiles))]
+    [PluginInfo("AE94898C-6FE4-415F-A34C-1154FC40FB28", "CriPak", "CPK", "IcySon55, onepiecefreak, unknownbrackets", "", "")]
+    [PluginExtensionInfo("*.cpk")]
+    public sealed class CpkAdapter : IPlugin, IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private CPK _format;
 
         #region Properties
 
         // Files
+        public List<ArchiveFileInfo> Files => _format?.Files;
 
+        public bool FileHasExtendedProperties => false;
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo fileInfo)
         {
-            throw new NotImplementedException();
+            try
+            {
+                return new BinaryReaderX(fileInfo.FileData, LeaveOpen).ReadString(4) == "CPK ";
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
-        void ILoadFiles.Load(string filename)
+        void ILoadFiles.Load(StreamInfo fileInfo)
         {
-            throw new NotImplementedException();
+            _format = new CPK(fileInfo.FileData);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo primaryFile, int versionIndex = 0)
         {
             throw new NotImplementedException();
         }
 
         void IDisposable.Dispose()
         {
-            throw new NotImplementedException();
+            _format = null;
         }
     }
 }
