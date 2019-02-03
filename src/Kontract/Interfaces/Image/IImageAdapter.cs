@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Image
 {
     /// <summary>
     /// This is the image adapter interface for creating image format plugins.
     /// </summary>
-    public interface IImageAdapter
+    public interface IImageAdapter : IPlugin
     {
         /// <summary>
         /// The list of images provided by the image adapter to the UI.
