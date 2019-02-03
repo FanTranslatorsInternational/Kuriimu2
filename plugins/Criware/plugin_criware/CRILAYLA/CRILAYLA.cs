@@ -22,8 +22,7 @@ namespace plugin_criware.CRILAYLA
     /// </summary>
     public class CRILAYLA
     {
-        private const int HeaderLength = 0x10;
-        private const int UncompressedDataLength = 0x100;
+        private const int RawDataSize = 0x100;
 
         private static (byte[] backref, int backrefPos) LongestMatch(int needle_len, byte[] haystack)
         {
@@ -77,14 +76,14 @@ namespace plugin_criware.CRILAYLA
         /// <returns></returns>
         public static byte[] Compress(Stream input)
         {
-            if (input.Length <= 0x100)
+            if (input.Length <= RawDataSize)
                 throw new ArgumentException("Input needs to be longer than 256 bytes");
 
             byte[] uncompressedData;
             using (var br = new BinaryReaderX(input))
             {
-                uncompressedData = br.ReadBytes(0x100);
-                var inputSize = (int)input.Length - 0x100;
+                uncompressedData = br.ReadBytes(RawDataSize);
+                var inputSize = (int)input.Length - RawDataSize;
 
                 var header = new CrilaylaHeader() { UncompressedSize = inputSize };
                 var compData = new MemoryStream();
@@ -136,7 +135,7 @@ namespace plugin_criware.CRILAYLA
                         var needle_len = inputSize - done_so_far;
                         var backref_max = (done_so_far > sliding_window_size) ? sliding_window_size : done_so_far;
 
-                        br.BaseStream.Position = 0x100;
+                        br.BaseStream.Position = RawDataSize;
                         var backrefInfo = LongestMatch(needle_len, br.ReadBytes(needle_len + backref_max));
 
                         if ((backrefInfo.backref?.Length ?? 0) < 3)
@@ -187,17 +186,17 @@ namespace plugin_criware.CRILAYLA
                 if (header.Magic != "CRILAYLA" || header.Magic == "\0\0\0\0\0\0\0\0")
                     throw new InvalidOperationException();
 
-                var lengthNeeded = UncompressedDataLength + header.UncompressedSize;
+                var lengthNeeded = RawDataSize + header.UncompressedSize;
                 dest = new byte[lengthNeeded];
 
-                br.BaseStream.Position = br.BaseStream.Length - UncompressedDataLength;
-                br.ReadBytes(UncompressedDataLength).CopyTo(dest, 0);
+                br.BaseStream.Position = br.BaseStream.Length - RawDataSize;
+                br.ReadBytes(RawDataSize).CopyTo(dest, 0);
             }
 
             using (var br = new BinaryReaderX(new ReverseStream(input), true))
             {
                 // Actual decompression inits
-                br.BaseStream.Position = br.BaseStream.Length - UncompressedDataLength;
+                br.BaseStream.Position = br.BaseStream.Length - RawDataSize;
                 var destPos = dest.Length;
 
                 void BackwardCascadingCopy(int sourceIndex, int count)
@@ -210,7 +209,7 @@ namespace plugin_criware.CRILAYLA
                 }
 
                 // Actual decompression
-                while (destPos > UncompressedDataLength)
+                while (destPos > RawDataSize)
                 {
                     if (br.ReadBit())
                     {

@@ -31,9 +31,14 @@ namespace plugin_criware.CPK
         public CpkTable TocTable { get; }
 
         /// <summary>
-        /// The table that stored extended TOC data.
+        /// The table that stores extended TOC data.
         /// </summary>
         public CpkTable ETocTable { get; }
+
+        /// <summary>
+        /// The table that stores file index data.
+        /// </summary>
+        public CpkTable ITocTable { get; }
 
         /// <summary>
         /// Instantiates a new <see cref="CPK"/> from an input <see cref="Stream"/>.    
@@ -50,6 +55,7 @@ namespace plugin_criware.CPK
                 // Retrieve the offsets for the other tables.
                 var tocOffset = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
                 var etocOffset = (long)(ulong)HeaderTable.Rows.First().Values["EtocOffset"].Value;
+                var itocOffset = (long)(ulong)HeaderTable.Rows.First().Values["ItocOffset"].Value;
 
                 // Set the file offset base value
                 FileOffsetBase = tocOffset;
@@ -66,6 +72,13 @@ namespace plugin_criware.CPK
                 {
                     input.Position = etocOffset;
                     ETocTable = new CpkTable(input);
+                }
+
+                // Read in the ITOC table.
+                if (itocOffset > 0)
+                {
+                    input.Position = itocOffset;
+                    ITocTable = new CpkTable(input);
                 }
             }
         }
