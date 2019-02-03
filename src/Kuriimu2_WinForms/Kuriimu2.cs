@@ -192,6 +192,9 @@ namespace Kuriimu2_WinForms
             }
             tabControl.TabColor = tabColor;
 
+            if (tabControl is UserControl uc)
+                uc.Dock = DockStyle.Fill;
+
             tabControl.SaveTab += TabControl_SaveTab;
             tabControl.CloseTab += TabControl_CloseTab;
 
