@@ -57,13 +57,11 @@ namespace plugin_criware.CRILAYLA
             int i = minimum;
             while (i < haystack.Length)
             {
-                var index = Array.IndexOf(haystack, starting_byte, i, haystack.Length - i);
-                if (index < 0)
+                i = Array.IndexOf(haystack, starting_byte, i, haystack.Length - i);
+                if (i < 0)
                     break;
 
-                i = index;
-                ConsiderPossibleMatch(i);
-                ++i;
+                ConsiderPossibleMatch(i++);
             }
 
             return (longest_so_far, longest_so_far_pos);
@@ -79,27 +77,33 @@ namespace plugin_criware.CRILAYLA
             if (input.Length <= RawDataSize)
                 throw new ArgumentException("Input needs to be longer than 256 bytes");
 
-            byte[] uncompressedData;
             using (var br = new BinaryReaderX(input))
             {
-                uncompressedData = br.ReadBytes(RawDataSize);
+                var uncompressedData = br.ReadBytes(RawDataSize);
+
                 var inputSize = (int)input.Length - RawDataSize;
 
                 var header = new CrilaylaHeader() { UncompressedSize = inputSize };
-                var compData = new MemoryStream();
-                using (var bw = new BinaryWriterX(compData, true))
+                var maxCompLength = input.Length + inputSize / 8 + ((inputSize % 8 > 0) ? 1 : 0);
+
+                var dest = new MemoryStream() { Position = 0x10 + maxCompLength };
+                using (var bw = new BinaryWriterX(new ReverseStream(dest), true))
                 {
                     int done_so_far = 0;
-                    void WriteRaw() { bw.WriteBit(false); br.BaseStream.Position = br.BaseStream.Length - ++done_so_far; bw.WriteBits(br.ReadByte(), 8); };
 
+                    void WriteRaw()
+                    {
+                        bw.WriteBit(false);
+                        br.BaseStream.Position = br.BaseStream.Length - ++done_so_far;
+                        bw.WriteBits(br.ReadByte(), 8);
+                    };
                     void WriteBackref(byte[] backref, int backrefPos)
                     {
                         if (backref.Length < 3) throw new ArgumentException("Backref too short");
 
                         var end_backref = backrefPos + backref.Length;
-                        var end_source = inputSize;
 
-                        var offset = done_so_far - (end_source - end_backref) - 3;
+                        var offset = done_so_far - (inputSize - end_backref) - 3;
 
                         long this_chunk = 0;
                         long leftover = backref.Length;
@@ -114,7 +118,7 @@ namespace plugin_criware.CRILAYLA
                         {
                             bits_max = (1 << bits) - 1;
 
-                            this_chunk = (leftover > bits_max) ? bits_max : leftover;
+                            this_chunk = Math.Min(leftover, bits_max);
                             leftover -= this_chunk;
 
                             bw.WriteBits(this_chunk, bits);
@@ -133,7 +137,7 @@ namespace plugin_criware.CRILAYLA
                     while (done_so_far < inputSize)
                     {
                         var needle_len = inputSize - done_so_far;
-                        var backref_max = (done_so_far > sliding_window_size) ? sliding_window_size : done_so_far;
+                        var backref_max = Math.Min(sliding_window_size, done_so_far);
 
                         br.BaseStream.Position = RawDataSize;
                         var backrefInfo = LongestMatch(needle_len, br.ReadBytes(needle_len + backref_max));
@@ -141,29 +145,24 @@ namespace plugin_criware.CRILAYLA
                         if ((backrefInfo.backref?.Length ?? 0) < 3)
                             WriteRaw();
                         else
-                        {
                             WriteBackref(backrefInfo.backref, backrefInfo.backrefPos);
-                        }
                     }
 
                     bw.Flush();
                 }
 
-                // Compressed size excludes first 0x100 bytes
-                header.CompressedSize = (int)compData.Length;
+                header.CompressedSize = (int)(dest.Length - dest.Position);
 
-                var dest = new MemoryStream();
+                var destStart = dest.Position -= 0x10;
                 using (var bw = new BinaryWriterX(dest, true))
                 {
                     bw.WriteStruct(header);
-                    compData.Position = 0;
-                    var compDataRev = new BinaryReaderX(compData).ReadMultiple<int>((int)compData.Length / 4);
-                    compDataRev.Reverse();
-                    bw.WriteMultiple(compDataRev);
+                    bw.BaseStream.Position += header.CompressedSize;
                     bw.Write(uncompressedData);
                 }
 
-                return dest.ToArray();
+                dest.Position = destStart;
+                return new BinaryReaderX(dest).ReadBytes((int)(dest.Length - destStart));
             }
         }
 
@@ -178,7 +177,6 @@ namespace plugin_criware.CRILAYLA
 
             // Reset incoming stream
             input.Position = 0;
-
             using (var br = new BinaryReaderX(input, true))
             {
                 var header = br.ReadStruct<CrilaylaHeader>();
@@ -197,7 +195,7 @@ namespace plugin_criware.CRILAYLA
             {
                 // Actual decompression inits
                 br.BaseStream.Position = br.BaseStream.Length - RawDataSize;
-                var destPos = dest.Length;
+                int destPos = dest.Length;
 
                 void BackwardCascadingCopy(int sourceIndex, int count)
                 {
@@ -217,7 +215,13 @@ namespace plugin_criware.CRILAYLA
                         var offset = destPos + initialOffset;
                         destPos -= 3;
 
-                        int ReadOffset(int bits) { var value = br.ReadBits<int>(bits); destPos -= value; offset -= value; return value; };
+                        int ReadOffset(int bits)
+                        {
+                            var value = br.ReadBits<int>(bits);
+                            destPos -= value;
+                            offset -= value;
+                            return value;
+                        };
 
                         int more;
                         if (initialOffset >= 3)
