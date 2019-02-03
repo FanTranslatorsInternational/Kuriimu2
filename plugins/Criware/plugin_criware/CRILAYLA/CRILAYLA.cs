@@ -35,7 +35,7 @@ namespace plugin_criware.CRILAYLA
             void ConsiderPossibleMatch(int starting_index)
             {
                 var haystack_index = starting_index;
-                for (int j = needle.Length - 1; j >= 0; j--)
+                for (int j = needle.Length - 2; j >= 0; j--)
                 {
                     if (haystack[--haystack_index] != needle[j])
                         break;
@@ -68,23 +68,6 @@ namespace plugin_criware.CRILAYLA
             }
 
             return (longest_so_far, longest_so_far_pos);
-
-            /*
-    // Three bytes including the match, so 2 ahead.
-    size_t minimum = needle_len + 2;
-    size_t i = minimum;
-    while (i < haystack.length)
-    {
-        auto p = cast(ubyte*)memchr(haystack.ptr + i, starting_byte, haystack.length - i);
-        if (p == null)
-            break;
-
-        i = cast(size_t)(p - haystack.ptr);
-        consider_possible_match(i);
-        ++i;
-    }
-
-    return longest_so_far;*/
         }
 
         /// <summary>
@@ -119,15 +102,15 @@ namespace plugin_criware.CRILAYLA
 
                         var offset = done_so_far - (end_source - end_backref) - 3;
 
-                        int this_chunk = 0;
-                        int leftover = backref.Length;
+                        long this_chunk = 0;
+                        long leftover = backref.Length;
                         leftover -= 3;
 
                         bw.WriteBit(true);
                         bw.WriteBits(offset, 13);
 
                         int bits_max, bits = 2;
-                        int[] next_bits = new[] { 0, 0, 3, 5, 0, 8, 0, 0, 8 };
+                        int[] next_bits = new int[] { 0, 0, 3, 5, 0, 8, 0, 0, 8 };
                         do
                         {
                             bits_max = (1 << bits) - 1;
@@ -159,7 +142,9 @@ namespace plugin_criware.CRILAYLA
                         if ((backrefInfo.backref?.Length ?? 0) < 3)
                             WriteRaw();
                         else
+                        {
                             WriteBackref(backrefInfo.backref, backrefInfo.backrefPos);
+                        }
                     }
 
                     bw.Flush();
