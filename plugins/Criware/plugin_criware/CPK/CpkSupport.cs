@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Komponent.IO;
 
 namespace plugin_criware.CPK
@@ -127,5 +128,28 @@ namespace plugin_criware.CPK
         Zero = 0x10,
         Const = 0x30,
         Row = 0x50,
+    }
+
+    /// <summary>
+    /// UTF tools class.
+    /// </summary>
+    public static class UtfTools
+    {
+        /// <summary>
+        /// De/Obfuscates a UTF table.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static byte[] XorUtf(IEnumerable<byte> input)
+        {
+            int x = 0x655F, y = 0x4115;
+
+            return input.Select(b =>
+            {
+                var z = (byte)(b ^ (byte)(x & 0xFF));
+                x *= y;
+                return z;
+            }).ToArray();
+        }
     }
 }

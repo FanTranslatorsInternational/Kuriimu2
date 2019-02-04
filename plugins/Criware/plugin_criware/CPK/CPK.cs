@@ -18,14 +18,9 @@ namespace plugin_criware.CPK
         public CpkTable HeaderTable { get; }
 
         /// <summary>
-        /// Gets and sets the alignment value to be used when saving the <see cref="CPK"/>.
+        /// 
         /// </summary>
-        public short Alignment { get; set; }
-
-        /// <summary>
-        /// The relative offset from which file offsets are based.
-        /// </summary>
-        public long FileOffsetBase { get; }
+        private byte[] _unknownPostHeaderData;
 
         /// <summary>
         /// The table that stores the TOC data.
@@ -41,6 +36,16 @@ namespace plugin_criware.CPK
         /// The table that stores file index data.
         /// </summary>
         public CpkTable ITocTable { get; }
+
+        /// <summary>
+        /// Gets and sets the alignment value to be used when saving the <see cref="CPK"/>.
+        /// </summary>
+        public short Alignment { get; set; }
+
+        /// <summary>
+        /// The relative offset from which file offsets are based.
+        /// </summary>
+        public long FileOffsetBase { get; }
 
         /// <summary>
         /// The files available in the CPK.
@@ -77,6 +82,10 @@ namespace plugin_criware.CPK
                 // Read in the TOC table.
                 if (tocOffset > 0)
                 {
+                    // Fluff
+                    br.BaseStream.Position = HeaderTable.Header.PacketSize + 0x10;
+                    _unknownPostHeaderData = HeaderTable.UtfObfuscation ? UtfTools.XorUtf(br.ReadBytes((int)tocOffset - (int)br.BaseStream.Position)) : br.ReadBytes((int)tocOffset - (int)br.BaseStream.Position);
+
                     // Set the file offset base value
                     FileOffsetBase = tocOffset;
 
@@ -109,6 +118,10 @@ namespace plugin_criware.CPK
                 // Read in the ITOC table.
                 else if (itocOffset > 0)
                 {
+                    // Fluff
+                    br.BaseStream.Position = HeaderTable.Header.PacketSize + 0x10;
+                    _unknownPostHeaderData = HeaderTable.UtfObfuscation ? UtfTools.XorUtf(br.ReadBytes((int)itocOffset - (int)br.BaseStream.Position)) : br.ReadBytes((int)itocOffset - (int)br.BaseStream.Position);
+
                     // Set the file offset base value
                     FileOffsetBase = itocOffset;
 
@@ -125,7 +138,29 @@ namespace plugin_criware.CPK
         /// <returns></returns>
         public bool Save(Stream output)
         {
-            throw new NotImplementedException();
+            using (var bw = new BinaryWriterX(output, true))
+            {
+                HeaderTable.UtfObfuscation = false;
+                HeaderTable.Save(bw.BaseStream);
+
+                if (TocTable != null)
+                {
+                    bw.Write(_unknownPostHeaderData);
+
+                    //output.Position = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
+                    TocTable.UtfObfuscation = false;
+                    TocTable.Save(bw.BaseStream);
+                }
+                else if (ITocTable != null)
+                {
+                    bw.Write(_unknownPostHeaderData);
+
+                    ITocTable.UtfObfuscation = false;
+                    ITocTable.Save(bw.BaseStream);
+                }
+            }
+
+            return true;
         }
     }
 }

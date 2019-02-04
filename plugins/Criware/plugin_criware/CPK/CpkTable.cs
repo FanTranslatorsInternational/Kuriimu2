@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Komponent.IO;
 
 namespace plugin_criware.CPK
@@ -12,7 +13,7 @@ namespace plugin_criware.CPK
     public class CpkTable
     {
         /// <summary>
-        /// A stream of the entire table (minus the header).
+        /// A stream of the entire table (minus the table header).
         /// </summary>
         private readonly BinaryReaderX _tableStream = null;
 
@@ -83,7 +84,7 @@ namespace plugin_criware.CPK
                     UtfObfuscation = true;
 
                     // Decrypt the UTF table
-                    _tableStream = new BinaryReaderX(new MemoryStream(XorUtf(br.ReadBytes(Header.PacketSize))), true, ByteOrder.BigEndian);
+                    _tableStream = new BinaryReaderX(new MemoryStream(UtfTools.XorUtf(br.ReadBytes(Header.PacketSize))), true, ByteOrder.BigEndian);
 
                     // Read the table info.
                     TableInfo = _tableStream.ReadStruct<CpkTableInfo>();
@@ -121,18 +122,18 @@ namespace plugin_criware.CPK
                 for (var i = 0; i < TableInfo.ColumnCount; i++)
                 {
                     var flags = _tableStream.ReadByte();
-                    var col = new CpkColumnInfo
+                    var column = new CpkColumnInfo
                     {
                         Name = ReadString(_tableStream.ReadInt32()),
                         Storage = (CpkColumnStorage)(flags & 0xF0),
                         Type = (CpkDataType)(flags & 0x0F)
                     };
-                    columns.Add(col);
+                    columns.Add(column);
 
-                    if (col.Storage == CpkColumnStorage.Const)
-                        col.Value = ReadValue(col.Type);
-                    if (col.Storage == CpkColumnStorage.Zero)
-                        col.Value = ZeroValue(col.Type);
+                    if (column.Storage == CpkColumnStorage.Const)
+                        column.Value = ReadValue(column.Type);
+                    if (column.Storage == CpkColumnStorage.Zero)
+                        column.Value = ZeroValue(column.Type);
                 }
                 Columns = columns;
 
@@ -143,12 +144,12 @@ namespace plugin_criware.CPK
                 {
                     var row = new CpkRow(Columns);
 
-                    foreach (var col in Columns)
+                    foreach (var column in Columns)
                     {
-                        if (col.Storage == CpkColumnStorage.Const || col.Storage == CpkColumnStorage.Zero)
-                            row[col.Name].Value = col.Value.Value;
-                        else if (col.Storage == CpkColumnStorage.Row)
-                            row[col.Name].Value = ReadValue(col.Type).Value;
+                        if (column.Storage == CpkColumnStorage.Const || column.Storage == CpkColumnStorage.Zero)
+                            row[column.Name].Value = column.Value.Value;
+                        else if (column.Storage == CpkColumnStorage.Row)
+                            row[column.Name].Value = ReadValue(column.Type).Value;
                     }
 
                     Rows.Add(row);
@@ -162,11 +163,129 @@ namespace plugin_criware.CPK
         /// <param name="output"></param>
         public void Save(Stream output)
         {
-            using (var bw = new BinaryWriterX(output, ByteOrder.BigEndian))
+            using (var bw = new BinaryWriterX(output, true))
             {
+                var valuesOffset = 0;
+                var binaryOffset = 0;
+                var nameOffset = 0;
 
+                // Write the main header
+                bw.WriteStruct(Header);
+
+                // Switch to BE
+                bw.ByteOrder = ByteOrder.BigEndian;
+
+                // Write the table info
+                bw.WriteStruct(TableInfo);
+
+                #region Strings
+
+                var strings = new Dictionary<string, int>();
+                var stringStream = new BinaryWriterX(new MemoryStream());
+
+                void AddString(string str)
+                {
+                    if (strings.ContainsKey(str)) return;
+                    strings.Add(str, (int)stringStream.BaseStream.Position);
+                    stringStream.WriteString(str, Encoding.ASCII, false);
+                }
+
+                // NULL
+                AddString("<NULL>");
+
+                // Table name
+                AddString(Name);
+
+                // Column names and constant value strings
+                foreach (var column in Columns)
+                {
+                    AddString(column.Name);
+                    if (column.Storage == CpkColumnStorage.Const && column.Type == CpkDataType.String)
+                        AddString((string)column.Value.Value);
+                }
+
+                // Row column value strings
+                foreach (var row in Rows)
+                    foreach (var column in Columns)
+                        if (column.Storage == CpkColumnStorage.Row && column.Type == CpkDataType.String)
+                            AddString((string)row[column.Name].Value);
+
+                // Reset string stream position
+                stringStream.BaseStream.Position = 0;
+
+                #endregion
+
+                #region Data
+
+                // TODO: Handle saving binary data columns
+
+                #endregion
+
+                // Write out columns
+                foreach (var column in Columns)
+                {
+                    var flags = (byte)((int)column.Storage ^ (int)column.Type);
+                    bw.Write(flags);
+                    bw.Write(strings[column.Name]);
+                    switch (column.Storage)
+                    {
+                        case CpkColumnStorage.Const:
+                            WriteValue(bw, column.Value, column, strings);
+                            break;
+                    }
+                }
+
+                // Write out rows
+                foreach (var row in Rows)
+                    foreach (var column in Columns)
+                        if (column.Storage == CpkColumnStorage.Row)
+                        {
+                            WriteValue(bw, row[column.Name], column, strings);
+                        }
+
+                // Update Strings Offset and write out the stings
+                TableInfo.StringsOffset = (int)bw.BaseStream.Position - 0x18;
+                stringStream.BaseStream.CopyTo(bw.BaseStream);
+                stringStream.Close();
+
+                // Align to nearest 8 bytes
+                bw.WriteAlignment(8);
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        private int ValueSize(CpkDataType type)
+        {
+            switch (type)
+            {
+                case CpkDataType.UInt8:
+                case CpkDataType.SInt8:
+                    return 1;
+                case CpkDataType.UInt16:
+                case CpkDataType.SInt16:
+                    return 2;
+                case CpkDataType.UInt32:
+                case CpkDataType.SInt32:
+                    return 4;
+                case CpkDataType.UInt64:
+                case CpkDataType.SInt64:
+                    return 8;
+                case CpkDataType.Float:
+                    return 4;
+                case CpkDataType.String:
+                    return 4;
+                case CpkDataType.Data:
+                    return 8;
+                default:
+                    return 0;
+            }
+        }
+
+        // Reading
 
         /// <summary>
         /// Reads a string from the given offset.
@@ -263,21 +382,46 @@ namespace plugin_criware.CPK
             }
         }
 
-        /// <summary>
-        /// De/Obfuscates a UTF table.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        private static byte[] XorUtf(IEnumerable<byte> input)
+        //// Writing
+        private void WriteValue(BinaryWriterX bw, CpkValue val, CpkColumnInfo col, Dictionary<string, int> strings = null, Dictionary<int, int> data = null)
         {
-            int x = 0x655F, y = 0x4115;
-
-            return input.Select(b =>
+            switch (val.Type)
             {
-                var z = (byte)(b ^ (byte)(x & 0xFF));
-                x *= y;
-                return z;
-            }).ToArray();
+                case CpkDataType.UInt8:
+                    bw.Write((byte)val.Value);
+                    break;
+                case CpkDataType.SInt8:
+                    bw.Write((sbyte)val.Value);
+                    break;
+                case CpkDataType.UInt16:
+                    bw.Write((ushort)val.Value);
+                    break;
+                case CpkDataType.SInt16:
+                    bw.Write((short)val.Value);
+                    break;
+                case CpkDataType.UInt32:
+                    bw.Write((uint)val.Value);
+                    break;
+                case CpkDataType.SInt32:
+                    bw.Write((int)val.Value);
+                    break;
+                case CpkDataType.UInt64:
+                    bw.Write((ulong)val.Value);
+                    break;
+                case CpkDataType.SInt64:
+                    bw.Write((long)val.Value);
+                    break;
+                case CpkDataType.Float:
+                    bw.Write((float)val.Value);
+                    break;
+                case CpkDataType.String:
+                    bw.Write(strings[(string)val.Value]);
+                    break;
+                case CpkDataType.Data:
+                    bw.Write((int)val.Value);
+                    bw.Write(data[(int)val.Value]);
+                    break;
+            }
         }
     }
 }

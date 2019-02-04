@@ -50,7 +50,7 @@ namespace plugin_criware.CPK
 
         public void Save(StreamInfo primaryFile, int versionIndex = 0)
         {
-            throw new NotImplementedException();
+            _format.Save(primaryFile.FileData);
         }
 
         void IDisposable.Dispose()
