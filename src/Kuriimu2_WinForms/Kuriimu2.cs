@@ -214,7 +214,7 @@ namespace Kuriimu2_WinForms
         /// </summary>
         private void SaveFile(KoreFileInfo kfi, string newSaveLocation = "", int version = 0)
         {
-            if (!kfi.HasChanges)
+            if (!kfi.HasChanges && newSaveLocation == string.Empty)
                 return;
 
             // Save files
