@@ -108,12 +108,15 @@ namespace plugin_criware.CPK
                         var compressedSize = Convert.ToInt32(row["FileSize"].Value);
                         var fileSize = Convert.ToInt32(row["ExtractSize"].Value);
 
-                        Files.Add(new CpkFileInfo(new SubStream(br.BaseStream, offset, compressedSize), TocTable.UtfObfuscation, fileSize, compressedSize)
+                        Files.Add(new CpkFileInfo(new SubStream(br.BaseStream, offset, compressedSize), row, TocTable.UtfObfuscation, fileSize, compressedSize)
                         {
                             FileName = Path.Combine(dir, name),
                             State = ArchiveFileState.Archived
                         });
                     }
+
+                    // Sort files by offset
+                    Files.Sort((a, b) => Convert.ToInt32(((CpkFileInfo)a).Row["FileOffset"].Value).CompareTo(Convert.ToInt32(((CpkFileInfo)b).Row["FileOffset"].Value)));
                 }
                 // Read in the ITOC table.
                 else if (itocOffset > 0)
@@ -132,7 +135,7 @@ namespace plugin_criware.CPK
         }
 
         /// <summary>
-        /// 
+        /// Writes the <see cref="CPK"/> data to the output stream.
         /// </summary>
         /// <param name="output"></param>
         /// <returns></returns>
@@ -140,16 +143,44 @@ namespace plugin_criware.CPK
         {
             using (var bw = new BinaryWriterX(output, true))
             {
-                HeaderTable.UtfObfuscation = false;
-                HeaderTable.Save(bw.BaseStream);
-
+                // TOC
                 if (TocTable != null)
                 {
-                    bw.Write(_unknownPostHeaderData);
+                    // Files
+                    var contentOffset = Convert.ToInt64(HeaderTable.Rows.First()["ContentOffset"].Value);
+                    bw.BaseStream.Position = contentOffset;
+                    foreach (var afi in Files)
+                    {
+                        var cfi = (CpkFileInfo)afi;
 
-                    //output.Position = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
+                        // Update the file offset.
+                        cfi.Row["FileOffset"].Value = (ulong)(bw.BaseStream.Position - FileOffsetBase);
+
+                        // Save the file.
+                        cfi.SaveFile(bw.BaseStream);
+
+                        // Update the sizes.
+                        cfi.Row["FileSize"].Value = (uint)cfi.CompressedLength; 
+                        cfi.Row["ExtractSize"].Value = (uint)cfi.FileLength;
+
+                        // Align for the next file (except on the last file).
+                        if (afi != Files.Last())
+                            bw.WriteAlignment(Alignment);
+                    }
+
+                    // Update content size
+                    var remainder = Alignment - bw.BaseStream.Position % Alignment;
+                    HeaderTable.Rows.First()["ContentSize"].Value = (ulong)(bw.BaseStream.Position + remainder - contentOffset);
+
+                    // TOC
+                    bw.BaseStream.Position = (long)(ulong)HeaderTable.Rows.First().Values["TocOffset"].Value;
                     TocTable.UtfObfuscation = false;
                     TocTable.Save(bw.BaseStream);
+
+                    if (ETocTable != null)
+                    {
+                        // TODO: Support for ETOC saving.
+                    }
                 }
                 else if (ITocTable != null)
                 {
@@ -158,6 +189,15 @@ namespace plugin_criware.CPK
                     ITocTable.UtfObfuscation = false;
                     ITocTable.Save(bw.BaseStream);
                 }
+
+                // Header
+                bw.BaseStream.Position = 0;
+                HeaderTable.UtfObfuscation = false;
+                HeaderTable.Save(bw.BaseStream);
+
+                // Unknown block
+                // TODO: Figure out how to handle this block as some files obfuscate almost the whole thing
+                bw.Write(_unknownPostHeaderData);
             }
 
             return true;

@@ -16,7 +16,7 @@ namespace plugin_criware.CPK
     [Export(typeof(ISaveFiles))]
     [PluginInfo("AE94898C-6FE4-415F-A34C-1154FC40FB28", "CriPak", "CPK", "IcySon55, onepiecefreak, unknownbrackets", "", "")]
     [PluginExtensionInfo("*.cpk")]
-    public sealed class CpkAdapter : IPlugin, IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class CpkAdapter : IPlugin, IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IArchiveReplaceFiles
     {
         private CPK _format;
 

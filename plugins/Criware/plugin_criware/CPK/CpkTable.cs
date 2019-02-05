@@ -382,7 +382,16 @@ namespace plugin_criware.CPK
             }
         }
 
-        //// Writing
+        //// Writing - TODO: This needs a rewrite since the "Data" type isn't properly supported.
+
+        /// <summary>
+        /// Writes a value based on the given <see cref="CpkValue"/> and <see cref="CpkColumnInfo"/>.
+        /// </summary>
+        /// <param name="bw"></param>
+        /// <param name="val"></param>
+        /// <param name="col"></param>
+        /// <param name="strings"></param>
+        /// <param name="data"></param>
         private void WriteValue(BinaryWriterX bw, CpkValue val, CpkColumnInfo col, Dictionary<string, int> strings = null, Dictionary<int, int> data = null)
         {
             switch (val.Type)
