@@ -11,8 +11,8 @@ namespace plugin_idea_factory.QUI
     /// </summary>
     public class QUI
     {
-        private const string MatchMessage = "^\\s*\\(message (.+?) (.+?)(?: |$)";
-        private const string MatchSingleMessage = "^\\s*\\(message (.+?) (.+?) (.+?)\\)$";
+        private const string MatchMessage = "^\\s*\\(message (.+) (.+?)(?: |$)";
+        private const string MatchSingleMessage = "^\\s*\\(message (.+) (.+?) (.+?)\\)$";
 
         /// <summary>
         /// Stores all of the entries.
@@ -212,7 +212,7 @@ namespace plugin_idea_factory.QUI
                                 if (lines.Length == 1)
                                 {
                                     var inText = lines[0];
-                                    var text = (inText.StartsWith("(") && inText.EndsWith(")") && entry.Type == QuiEntryType.Name) || inText.StartsWith("(str-append") ? inText : $"\"{inText}\"";
+                                    var text = inText.StartsWith("(") && inText.EndsWith(")") && entry.Type == QuiEntryType.Name || inText.StartsWith("(str-append") ? inText : $"\"{inText}\"";
 
                                     if (Regex.IsMatch(entry.Content, MatchSingleMessage))
                                         sw.WriteLine(" " + text.Replace("\n", string.Empty) + ")" + entry.Comment);
