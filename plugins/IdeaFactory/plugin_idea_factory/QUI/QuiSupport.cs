@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.Text;
+﻿using System.Collections.Generic;
+using Kontract.Interfaces.Text;
 
 namespace plugin_idea_factory.QUI
 {
@@ -31,12 +32,17 @@ namespace plugin_idea_factory.QUI
         public QuiEntryType Type { get; set; }
 
         /// <summary>
+        /// Stores extra content parts that are not strings
+        /// </summary>
+        public List<string> Extras { get; } = new List<string>();
+
+        /// <summary>
         /// Stores the comment at the end of the line.
         /// </summary>
         public string Comment { get; set; }
 
         /// <summary>
-        /// 
+        /// Dump the content to string.
         /// </summary>
         /// <returns></returns>
         public override string ToString() => Content;
