@@ -11,9 +11,6 @@ namespace plugin_idea_factory.QUI
     /// </summary>
     public class QUI
     {
-        private const string MatchMessage = "^\\s*\\(message (.+) (.+?)(?: |$)";
-        private const string MatchSingleMessage = "^\\s*\\(message (.+) (.+?) (.+?)\\)$";
-
         /// <summary>
         /// Stores all of the entries.
         /// </summary>
@@ -52,12 +49,12 @@ namespace plugin_idea_factory.QUI
                             _allEntries.Add(new QuiTextEntry { Content = line, Type = type });
                             break;
                         case QuiEntryType.Function:
-                            var isMessage = line.Trim().StartsWith("(message ");
+                            var isMessage = Regex.IsMatch(line, "^\\s*\\(message(?:-kw)?\\s+(.+)$");
+                            var isKwMessage = Regex.IsMatch(line, "^\\s*\\(message-kw?\\s+(.+)$");
 
                             if (isMessage)
                             {
-                                //var tabs = Regex.Match(line, @"(\s+)").Value;
-                                var lin = Regex.Match(line, "^\\s*\\(message (.+)$").Groups[1].Value;
+                                var lin = Regex.Match(line, "^\\s*\\(message(?:-kw)?\\s+(.+)$").Groups[1].Value;
                                 var parts = new List<string>();
                                 var content = line;
                                 var messageContent = "";
@@ -99,7 +96,8 @@ namespace plugin_idea_factory.QUI
                                     // Move to next line when the current one doesn't close the function
                                     if (position > lin.Length - 1 && functionCount > 0)
                                     {
-                                        NewPart(part);
+                                        if (part.Trim() != string.Empty)
+                                            NewPart(part);
                                         NextLine();
                                     }
 
@@ -134,8 +132,39 @@ namespace plugin_idea_factory.QUI
                                             }
                                             part += chr;
                                             break;
-                                        case ' ': // End parameter if not in a string and sub count is 0
+                                        case ';': // Gobble up the comment
                                             if (subCount == 0 && !inString)
+                                            {
+                                                while (position < lin.Length)
+                                                {
+                                                    comment += lin[position];
+                                                    position++;
+                                                }
+                                            }
+                                            break;
+                                        case ' ': // End parameter if not in a string and sub count is 0
+                                        case '\t':
+                                            while ((chr == ' ' || chr == '\t') && position < lin.Length - 1) // Gobble whitespace
+                                            {
+                                                position++;
+                                                chr = lin[position];
+                                            }
+                                            if (chr == ';') // Gobble up the comment after the whitespace
+                                            {
+                                                while (position < lin.Length)
+                                                {
+                                                    comment += lin[position];
+                                                    position++;
+                                                }
+                                                break;
+                                            }
+                                            // If we've hit the end of the line with whitespace, break;
+                                            if (position == lin.Length - 1)
+                                                break;
+                                            // Go back one character if it wasn't a comment
+                                            position--;
+                                            chr = lin[position];
+                                            if (subCount == 0 && !inString && parts.Count < 2)
                                                 NewPart(part);
                                             else
                                                 part += chr;
@@ -146,30 +175,28 @@ namespace plugin_idea_factory.QUI
                                     }
 
                                     position++;
+                                    if (!ended) continue;
 
-                                    if (ended)
+                                    // Read possible comment
+                                    while (position < lin.Length)
                                     {
-                                        // Read possible comment
-                                        while (position < lin.Length)
-                                        {
-                                            comment += lin[position];
-                                            position++;
-                                        }
-                                        break;
+                                        comment += lin[position];
+                                        position++;
                                     }
+                                    break;
                                 } while (functionCount > 0);
 
                                 // Add Name
-                                if (parts[0] != "nil")
-                                    _allEntries.Add(new QuiTextEntry
-                                    {
-                                        Content = content,
-                                        Comment = parts[1], // Store the second part in Comment
-                                        Type = QuiEntryType.Name,
-                                        Name = $"Name{index.ToString()}",
-                                        EditedText = parts[0],
-                                        OriginalText = parts[0]
-                                    });
+                                _allEntries.Add(new QuiTextEntry
+                                {
+                                    Content = content,
+                                    SecondParameter = parts[1], // Store the second part in Comment
+                                    Type = QuiEntryType.Name,
+                                    Name = $"Name{index.ToString()}",
+                                    EditedText = parts[0],
+                                    OriginalText = parts[0],
+                                    IsKwMessage = isKwMessage
+                                });
 
                                 // Add Message
                                 var message = new QuiTextEntry
@@ -177,25 +204,25 @@ namespace plugin_idea_factory.QUI
                                     Content = messageContent,
                                     Comment = comment,
                                     Type = QuiEntryType.Message,
-                                    Name = $"Message{index.ToString()}"
+                                    Name = $"Message{index.ToString()}",
+                                    IsLiteral = parts.Skip(2).Any(pa => pa.Contains("(") || pa.Contains(")") || Regex.IsMatch(pa, @" (r|g|b|n)+( |$)"))
                                 };
 
                                 var text = "";
                                 foreach (var p in parts.Skip(2))
                                 {
-                                    // Spin extras off
-                                    switch (p)
-                                    {
-                                        case "extra":
-                                            message.Extras.Add(p);
-                                            break;
-                                        default:
-                                            text += p.Replace("\\n", "\r\n").Trim('"');
-                                            break;
-                                    }
+                                    if (p.EndsWith("scene-param"))
+                                        message.Extras.Add("scene-param");
+
+                                    var fp = p.Replace(" scene-param", string.Empty);
+
+                                    if (message.IsLiteral)
+                                        text += fp.TrimEnd(' ') + "\r\n";
+                                    else
+                                        text += fp.Replace("\\n", "\r\n").Trim('"');
                                 }
-                                message.EditedText = text;
-                                message.OriginalText = text;
+                                message.EditedText = text.TrimStart(' ').TrimEnd('\r', '\n');
+                                message.OriginalText = text.TrimStart(' ').TrimEnd('\r', '\n');
 
                                 // Add the message
                                 _allEntries.Add(message);
@@ -239,12 +266,10 @@ namespace plugin_idea_factory.QUI
         {
             using (var sw = new StreamWriter(output, Encoding.UTF8))
             {
-                var hasName = false;
+                var tabs = string.Empty;
 
                 foreach (var entry in _allEntries)
                 {
-                    var tabs = Regex.Match(entry.Content, @"(\s+)").Groups[1].Value;
-
                     switch (entry.Type)
                     {
                         case QuiEntryType.Function:
@@ -254,56 +279,37 @@ namespace plugin_idea_factory.QUI
                             sw.WriteLine(entry.Content);
                             break;
                         case QuiEntryType.Name:
-                            var name = entry.EditedText.StartsWith("(") && entry.EditedText.EndsWith(")") || entry.EditedText.StartsWith("'") ? entry.EditedText : $"\"{entry.EditedText}\"";
-                            var other = Regex.Match(entry.Content, MatchMessage).Groups[2].Value;
-                            var nameMessage = $"{tabs}(message {name} {other}";
-
-                            if (Regex.IsMatch(entry.Content, MatchSingleMessage))
-                                sw.Write(nameMessage);
-                            else
-                                sw.WriteLine(nameMessage);
-
-                            hasName = true;
+                            tabs = Regex.Match(entry.Content, @"(\s+)").Groups[1].Value;
+                            sw.WriteLine($"{tabs}(message{(entry.IsKwMessage ? "-kw" : "")} {entry.EditedText} {entry.SecondParameter}");
                             break;
                         case QuiEntryType.Message:
                             {
                                 var lines = entry.EditedText.Split('\r');
+                                var extras = (entry.Extras.Count > 0 ? " " : "") + string.Join(" ", entry.Extras);
 
-                                if (!hasName)
+                                for (var i = 0; i < lines.Length; i++)
                                 {
-                                    var match = Regex.Match(entry.Content, MatchMessage);
-                                    var message = $"{tabs}(message {match.Groups[1].Value} {match.Groups[2].Value}";
+                                    var line = lines[i];
+                                    var startQuote = !line.StartsWith("(") && !line.StartsWith("\"");
+                                    var endQuote = !line.EndsWith(")") && !line.EndsWith("\"") && startQuote;
 
-                                    if (Regex.IsMatch(entry.Content, MatchSingleMessage))
-                                        sw.Write(message);
-                                    else
-                                        sw.WriteLine(message);
-                                }
-
-                                if (lines.Length == 1)
-                                {
-                                    var inText = lines[0];
-                                    var text = inText.StartsWith("(") && inText.EndsWith(")") && entry.Type == QuiEntryType.Name || inText.StartsWith("(str-append") ? inText : $"\"{inText}\"";
-
-                                    if (Regex.IsMatch(entry.Content, MatchSingleMessage))
-                                        sw.WriteLine(" " + text.Replace("\n", string.Empty) + ")" + entry.Comment);
-                                    else
-                                        sw.WriteLine(tabs + "\t\t" + text.Replace("\n", string.Empty) + ")" + entry.Comment);
-                                }
-                                else
-                                {
-                                    for (var i = 0; i < lines.Length; i++)
+                                    if (entry.IsLiteral)
                                     {
-                                        var line = lines[i];
-                                        sw.Write(tabs + "\t\t\"" + line.Replace("\n", string.Empty));
-                                        if (i != lines.Length - 1)
-                                            sw.WriteLine("\\n\"");
+                                        if (i < lines.Length - 1)
+                                            sw.WriteLine(tabs + "\t\t" + line.Replace("\n", string.Empty));
                                         else
-                                            sw.WriteLine("\")" + entry.Comment);
+                                            sw.WriteLine(tabs + "\t\t" + line.Replace("\n", string.Empty) + extras + ")" + entry.Comment);
+                                    }
+                                    else
+                                    {
+                                        sw.Write(tabs + "\t\t" + (startQuote ? "\"" : "") + line.Replace("\n", string.Empty));
+
+                                        if (i < lines.Length - 1)
+                                            sw.WriteLine(endQuote ? "\\n\"" : "");
+                                        else
+                                            sw.WriteLine((endQuote ? "\"" : "") + extras + ")" + entry.Comment);
                                     }
                                 }
-
-                                hasName = false;
                             }
                             break;
                     }
