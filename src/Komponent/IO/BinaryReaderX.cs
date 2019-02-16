@@ -20,6 +20,8 @@ namespace Komponent.IO
         public BitOrder BitOrder { get; set; }
         public bool IsFirstNibble { get => _nibble == -1; }
 
+        private Encoding _encoding = Encoding.UTF8;
+
         public BitOrder EffectiveBitOrder
         {
             get
@@ -46,14 +48,14 @@ namespace Komponent.IO
 
         #region Constructors
 
-        public BinaryReaderX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode)
+        public BinaryReaderX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode, leaveOpen)
+        public BinaryReaderX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
@@ -65,6 +67,7 @@ namespace Komponent.IO
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+            _encoding = encoding;
         }
 
         public BinaryReaderX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, encoding, leaveOpen)
@@ -72,6 +75,7 @@ namespace Komponent.IO
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+            _encoding = encoding;
         }
 
         #endregion
@@ -199,9 +203,8 @@ namespace Komponent.IO
 
         public override string ReadString()
         {
-            Reset();
-
-            return ReadCStringASCII();
+            var length = ReadByte();
+            return ReadString(length);
         }
 
         #endregion
@@ -228,7 +231,7 @@ namespace Komponent.IO
 
         public string ReadString(int length)
         {
-            return ReadString(length, Encoding.ASCII);
+            return ReadString(length, _encoding);
         }
 
         public string ReadString(int length, Encoding encoding)
@@ -238,7 +241,7 @@ namespace Komponent.IO
 
         public string PeekString(int length = 4)
         {
-            return PeekString(0, length, Encoding.ASCII);
+            return PeekString(0, length, _encoding);
         }
 
         public string PeekString(int length, Encoding encoding)
@@ -248,7 +251,7 @@ namespace Komponent.IO
 
         public string PeekString(long offset, int length = 4)
         {
-            return PeekString(offset, length, Encoding.ASCII);
+            return PeekString(offset, length, _encoding);
         }
 
         public string PeekString(long offset, int length, Encoding encoding)

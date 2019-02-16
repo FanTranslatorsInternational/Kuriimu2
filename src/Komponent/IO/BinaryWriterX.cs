@@ -244,8 +244,6 @@ namespace Komponent.IO
 
         #region String Writes
 
-        //public void WriteStringASCII(string value) => base.Write(Encoding.ASCII.GetBytes(value));
-
         public void WriteString(string value, Encoding encoding, bool leadingCount = true, bool nullTerminator = true)
         {
             if (nullTerminator)
