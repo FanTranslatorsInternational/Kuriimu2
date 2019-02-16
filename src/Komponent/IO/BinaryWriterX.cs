@@ -18,6 +18,8 @@ namespace Komponent.IO
         public ByteOrder ByteOrder { get; set; }
         public BitOrder BitOrder { get; set; }
 
+        private Encoding _encoding = Encoding.UTF8;
+
         public BitOrder EffectiveBitOrder
         {
             get
@@ -43,14 +45,14 @@ namespace Komponent.IO
 
         #region Constructors
 
-        public BinaryWriterX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode)
+        public BinaryWriterX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryWriterX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.Unicode, leaveOpen)
+        public BinaryWriterX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
@@ -62,6 +64,7 @@ namespace Komponent.IO
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+            _encoding = encoding;
         }
 
         public BinaryWriterX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MSBFirst, int blockSize = 4) : base(input, encoding, leaveOpen)
@@ -69,6 +72,7 @@ namespace Komponent.IO
             ByteOrder = byteOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+            _encoding = encoding;
         }
 
         #endregion
@@ -233,7 +237,7 @@ namespace Komponent.IO
         {
             Flush();
 
-            WriteString(value, Encoding.ASCII, true, true);
+            WriteString(value, _encoding, true, false);
         }
 
         #endregion
