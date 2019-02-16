@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
@@ -45,7 +46,7 @@ namespace Kore.SamplePlugins
                     if (br.BaseStream.Length < 0x28) return false;
 
                     br.BaseStream.Position = br.BaseStream.Length - 0x28;
-                    if (br.ReadString(4) != "CLIM")
+                    if (br.ReadString(4,Encoding.ASCII) != "CLIM")
                         result = false;
                 }
             }

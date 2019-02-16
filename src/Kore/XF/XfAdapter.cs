@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -69,7 +70,7 @@ namespace Kore.XFont
         {
             using (var br = new BinaryReaderX(File.OpenRead(filename)))
             {
-                var magic = br.ReadString(4);
+                var magic = br.ReadString(4, Encoding.ASCII);
                 return magic == "XPCK";
             }
         }

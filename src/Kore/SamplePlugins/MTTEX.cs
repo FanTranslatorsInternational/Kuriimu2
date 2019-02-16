@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Kanvas;
 using Kanvas.Swizzle;
 using Komponent.IO;
@@ -34,7 +35,7 @@ namespace Kore.SamplePlugins
             using (var br = new BinaryReaderX(input))
             {
                 // Set endianess
-                if (br.PeekString(4) == "\0XET")
+                if (br.PeekString(4, Encoding.ASCII) == "\0XET")
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
 
                 // Header

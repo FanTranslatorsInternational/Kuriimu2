@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -94,13 +95,13 @@ namespace Kore.SamplePlugins
 
                     if (result)
                     {
-                        if (br.PeekString() == "\0DFG")
+                        if (br.PeekString(4, Encoding.ASCII) == "\0DFG")
                         {
                             br.ByteOrder = ByteOrder.BigEndian;
                             br.BitOrder = BitOrder.LSBFirst;
                         }
 
-                        var magic = br.ReadString(4);
+                        var magic = br.ReadString(4, Encoding.ASCII);
                         if (!magic.StartsWith("GFD\0") && !magic.StartsWith("\0DFG"))
                             result = false;
 

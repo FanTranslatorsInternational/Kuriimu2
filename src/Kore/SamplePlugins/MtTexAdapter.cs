@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
@@ -44,7 +45,7 @@ namespace Kore.SamplePlugins
             {
                 using (var br = new BinaryReaderX(File.OpenRead(filename)))
                 {
-                    var magic = br.ReadString(4);
+                    var magic = br.ReadString(4, Encoding.ASCII);
                     if (magic != "TEX\0" && magic != "\0XET")
                         result = false;
                 }

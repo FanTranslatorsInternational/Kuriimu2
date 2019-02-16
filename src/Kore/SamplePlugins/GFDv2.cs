@@ -61,7 +61,7 @@ namespace Kore.SamplePlugins
             using (var br = new BinaryReaderX(input))
             {
                 // Set endianess
-                if (br.PeekString() == "\0DFG")
+                if (br.PeekString(4, Encoding.ASCII) == "\0DFG")
                 {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
                     br.BitOrder = BitOrder = BitOrder.LSBFirst;

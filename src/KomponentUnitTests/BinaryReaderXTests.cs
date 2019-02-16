@@ -48,9 +48,9 @@ namespace KomponentUnitTests
         public void CharStringReads()
         {
             var input = new byte[] {
-                0x33, 0x00, 0x34, 0x00, 0x34, 0x00, 0x33, 0x34,
-                0x00, 0x33, 0x34, 0x00, 0x34, 0x00, 0x34, 0x00,
-                0x00, 0x00, 0x34, 0x00, 0x34, 0x34, 0x34, 0x34,
+                0x33, 0x34, 0x34, 0x33, 0x34, 0x00, 0x33, 0x34,
+                0x00, 0x34, 0x00, 0x34, 0x00, 0x00, 0x00, 0x01,
+                0x34, 0x34, 0x34, 0x34, 0x00, 0x34, 0x00,
                 0x35, 0x35, 0x35, 0x35, 0x35, 0x36, 0x36
             };
             var ms = new MemoryStream(input);
@@ -58,7 +58,7 @@ namespace KomponentUnitTests
             using (var br = new BinaryReaderX(ms))
             {
                 Assert.AreEqual('3', br.ReadChar());
-                Assert.AreEqual("44", br.ReadChars(2).Aggregate("", (a, b) => a + b));
+                Assert.AreEqual("44", string.Join("", br.ReadChars(2).ToArray()));
 
                 Assert.AreEqual("34", br.ReadCStringASCII());
                 Assert.AreEqual("34", br.ReadCStringSJIS());
@@ -66,14 +66,16 @@ namespace KomponentUnitTests
 
                 Assert.AreEqual("4", br.ReadString());
                 Assert.AreEqual("44", br.ReadString(2));
-                Assert.AreEqual("44", br.ReadString(2, Encoding.UTF8));
+                Assert.AreEqual("44", br.ReadString(4, Encoding.Unicode));
 
                 Assert.AreEqual("5555", br.PeekString());
                 Assert.AreEqual("55555", br.PeekString(5));
-                Assert.AreEqual("555", br.PeekString(3, Encoding.UTF8));
+                Assert.AreEqual("555", br.PeekString(3, Encoding.ASCII));
                 Assert.AreEqual("5566", br.PeekString(3L));
                 Assert.AreEqual("556", br.PeekString(3L, 3));
-                Assert.AreEqual("556", br.PeekString(3L, 3, Encoding.UTF8));
+                Assert.AreEqual("556", br.PeekString(3L, 3, Encoding.ASCII));
+
+                Assert.AreEqual("55555", br.ReadASCIIStringUntil(0x36));
             }
         }
 
