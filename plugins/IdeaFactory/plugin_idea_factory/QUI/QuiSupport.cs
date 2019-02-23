@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
+using Kontract.Attributes;
 using Kontract.Interfaces.Text;
 
 namespace plugin_idea_factory.QUI
@@ -49,6 +51,7 @@ namespace plugin_idea_factory.QUI
         /// <summary>
         /// Stores extra content parts that are not strings
         /// </summary>
+        [FormFieldIgnore]
         public List<string> Extras { get; } = new List<string>();
 
         /// <summary>

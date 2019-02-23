@@ -290,8 +290,6 @@ namespace plugin_idea_factory.QUI
                                 for (var i = 0; i < lines.Length; i++)
                                 {
                                     var line = lines[i];
-                                    var startQuote = !line.StartsWith("(") && !line.StartsWith("\"");
-                                    var endQuote = !line.EndsWith(")") && !line.EndsWith("\"") && startQuote;
 
                                     if (entry.IsLiteral)
                                     {
@@ -302,12 +300,12 @@ namespace plugin_idea_factory.QUI
                                     }
                                     else
                                     {
-                                        sw.Write(tabs + "\t\t" + (startQuote ? "\"" : "") + line.Replace("\n", string.Empty));
+                                        sw.Write(tabs + "\t\t\"" + line.Replace("\n", string.Empty));
 
                                         if (i < lines.Length - 1)
-                                            sw.WriteLine(endQuote ? "\\n\"" : "");
+                                            sw.WriteLine("\\n\"");
                                         else
-                                            sw.WriteLine((endQuote ? "\"" : "") + extras + ")" + entry.Comment);
+                                            sw.WriteLine("\"" + extras + ")" + entry.Comment);
                                     }
                                 }
                             }
