@@ -7,6 +7,7 @@ using System.IO;
 using System.Drawing;
 
 using Komponent.IO;
+using Komponent.IO.Attributes;
 
 namespace Kanvas.Support.ASTC
 {

@@ -1,3 +1,4 @@
+using Komponent.IO.Attributes;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -343,7 +344,7 @@ namespace Komponent.IO
             }
         }
 
-        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string, object)> readVals = null)
+        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string, object)> readVals = null, string currentNest = "")
         {
             object returnValue;
 
@@ -352,6 +353,7 @@ namespace Komponent.IO
             var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
             var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
             var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
+            var Alignment = type.GetCustomAttribute<AlignmentAttribute>();
 
             var bkByteOrder = ByteOrder;
             var bkBitOrder = BitOrder;
@@ -383,8 +385,8 @@ namespace Komponent.IO
                         case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
+                    var matchingVals = readVals?.Where(v =>  v.Item1 == VarSize?.FieldName);
+                    var length = FixedSize?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
 
                     returnValue = ReadString(length, enc);
                 }
@@ -401,14 +403,20 @@ namespace Komponent.IO
                 // Array
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-                    IList arr = Array.CreateInstance(type.GetElementType(), length);
+                    var matchingVal = readVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
+                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
 
-                    for (int i = 0; i < length; i++)
-                        arr[i] = ReadObject(type.GetElementType());
+                    if (length <= -1)
+                        returnValue = null;
+                    else
+                    {
+                        IList arr = Array.CreateInstance(type.GetElementType(), length);
 
-                    returnValue = arr;
+                        for (int i = 0; i < length; i++)
+                            arr[i] = ReadObject(type.GetElementType());
+
+                        returnValue = arr;
+                    }
                 }
                 else
                     returnValue = null;
@@ -418,15 +426,21 @@ namespace Komponent.IO
                 // List
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = readVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-                    var paramType = type.GenericTypeArguments.First();
-                    var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(new[] { paramType }));
+                    var matchingVal = readVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
+                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
 
-                    for (int i = 0; i < length; i++)
-                        list.GetType().GetMethod("Add").Invoke(list, new[] { ReadObject(paramType) });
+                    if (length <= -1)
+                        returnValue = null;
+                    else
+                    {
+                        var paramType = type.GenericTypeArguments.First();
+                        var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(new[] { paramType }));
 
-                    returnValue = list;
+                        for (int i = 0; i < length; i++)
+                            list.GetType().GetMethod("Add").Invoke(list, new[] { ReadObject(paramType) });
+
+                        returnValue = list;
+                    }
                 }
                 else
                     returnValue = null;
@@ -439,21 +453,33 @@ namespace Komponent.IO
                 if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
                     throw new InvalidBitFieldInfoException(_blockSize);
 
-                var readValsIntern = new List<(string, object)>();
                 var item = Activator.CreateInstance(type);
 
                 foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                 {
                     var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
 
+                    var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
                     object val;
                     if (bitInfo != null)
                         val = Convert.ChangeType(ReadBits(bitInfo.BitLength), field.FieldType);
                     else
-                        val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readValsIntern);
+                    {
+                        val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readVals, fieldName);
+                    }
 
-                    readValsIntern.Add((field.Name, val));
+                    if (readVals == null)
+                        readVals = new List<(string, object)>();
+
+                    readVals.Add((fieldName, val));
                     field.SetValue(item, val);
+                }
+
+                // Apply alignment
+                if (Alignment != null)
+                {
+                    Reset();
+                    BaseStream.Position += Alignment.Alignment - BaseStream.Position % Alignment.Alignment;
                 }
 
                 returnValue = item;

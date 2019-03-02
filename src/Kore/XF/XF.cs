@@ -11,6 +11,7 @@ using Kore.XFont.Image;
 using Kore.XFont.Compression;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Font;
+using Komponent.IO.Attributes;
 
 namespace Kore.XFont
 {

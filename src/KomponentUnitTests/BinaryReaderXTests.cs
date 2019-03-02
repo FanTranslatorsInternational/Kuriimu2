@@ -5,6 +5,7 @@ using Komponent.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using Komponent.IO.Attributes;
 
 namespace KomponentUnitTests
 {
@@ -260,6 +261,75 @@ namespace KomponentUnitTests
                 Assert.AreEqual(0x1F, br.ReadBits<int>(5));
                 Assert.AreEqual(0, br.ReadNibble());
                 Assert.AreEqual(8, br.ReadNibble());
+            }
+        }
+
+        [Alignment(16)]
+        private class TestClass1
+        {
+            public int var0;
+            public int var1;
+            public byte var2;
+        }
+
+        [TestMethod]
+        public void AlignmentAttributeRead()
+        {
+            var input = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms))
+            {
+                var rs = br.ReadStruct<TestClass1>();
+
+                Assert.AreEqual(0x10, br.BaseStream.Position);
+            }
+        }
+
+        private class TestClass2
+        {
+            public int var0;
+            public TestClass2_2 var1;
+            [VariableLength("var1.var2")]
+            public byte[] var3;
+            public TestClass2_3 var4;
+
+            public class TestClass2_2
+            {
+                public byte var2;
+            }
+
+            public class TestClass2_3
+            {
+                public byte var0;
+                [VariableLength("var0")]    // field names go from root of readstruct
+                public byte[] var5;
+            }
+        }
+
+        [TestMethod]
+        public void VariableLengthNestedFields()
+        {
+            var input = new byte[] {
+                0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+                0x04, 0x03, 0x00, 0x00, 0x00
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms))
+            {
+                var rs = br.ReadStruct<TestClass2>();
+
+                Assert.AreEqual(2, rs.var0);
+                Assert.AreEqual(3, rs.var1.var2);
+                Assert.AreEqual(3, rs.var3.Length);
+                Assert.AreEqual(4, rs.var4.var0);
+                Assert.AreEqual(2, rs.var4.var5.Length);
+                Assert.AreEqual(3, rs.var4.var5[0]);
+                Assert.AreEqual(0, rs.var4.var5[1]);
             }
         }
     }

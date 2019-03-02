@@ -1,4 +1,5 @@
 ﻿using Komponent.IO;
+using Komponent.IO.Attributes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -258,6 +259,79 @@ namespace KomponentUnitTests
                 bw.WriteBits(0x1F, 5);
                 bw.WriteNibble(0x08);
                 bw.WriteNibble(0x04);
+
+                Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
+            }
+        }
+
+        [Alignment(8)]
+        private class TestClass1
+        {
+            public int var0;
+        }
+
+        [TestMethod]
+        public void AlignmentAttributeWrite()
+        {
+            var expect = new byte[] { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            var ms = new MemoryStream();
+
+            using (var bw = new BinaryWriterX(ms))
+            {
+                var tc1 = new TestClass1 { var0 = 1 };
+                bw.WriteStruct(tc1);
+
+                Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
+            }
+        }
+
+        private class TestClass2
+        {
+            public int var0;
+            public TestClass2_2 var1;
+            [VariableLength("var1.var2")]
+            public byte[] var3;
+            public TestClass2_3 var4;
+
+            public class TestClass2_2
+            {
+                public byte var2;
+            }
+
+            public class TestClass2_3
+            {
+                public byte var0;
+                [VariableLength("var0")]    // field names go from root of readstruct
+                public byte[] var5;
+            }
+        }
+
+        [TestMethod]
+        public void VariableLengthNestedFields()
+        {
+            var expect = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x03,
+                0x00
+            };
+            var ms = new MemoryStream();
+
+            using (var bw = new BinaryWriterX(ms))
+            {
+                var tc2 = new TestClass2
+                {
+                    var0 = 1,
+                    var1 = new TestClass2.TestClass2_2
+                    {
+                        var2 = 2
+                    },
+                    var3 = new byte[2],
+                    var4 = new TestClass2.TestClass2_3
+                    {
+                        var0 = 3,
+                        var5 = new byte[1]
+                    }
+                };
+                bw.WriteStruct(tc2);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }

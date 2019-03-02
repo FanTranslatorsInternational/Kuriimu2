@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces;

@@ -51,7 +51,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IO\Attributes.cs" />
+    <Compile Include="IO\Attributes\AlignmentAttribute.cs" />
+    <Compile Include="IO\Attributes\BitFieldAttribute.cs" />
+    <Compile Include="IO\Attributes\BitFieldInfoAttribute.cs" />
+    <Compile Include="IO\Attributes\EndiannessAttribute.cs" />
+    <Compile Include="IO\Attributes\FixedLengthAttribute.cs" />
+    <Compile Include="IO\Attributes\VariableLengthAttribute.cs" />
     <Compile Include="IO\BinaryReaderX.cs" />
     <Compile Include="IO\BinaryWriterX.cs" />
     <Compile Include="IO\Exceptions.cs" />

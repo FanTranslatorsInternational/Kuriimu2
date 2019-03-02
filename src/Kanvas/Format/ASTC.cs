@@ -8,6 +8,7 @@ using System.Drawing;
 using Komponent.IO;
 using System.IO;
 using Kanvas.Support.ASTC;
+using Komponent.IO.Attributes;
 
 namespace Kanvas.Format
 {

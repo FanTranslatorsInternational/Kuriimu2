@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using Komponent.IO;
 using Kore.XFont.Interface;
+using Komponent.IO.Attributes;
 
 namespace Kore.XFont.Archive
 {

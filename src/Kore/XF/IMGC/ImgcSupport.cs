@@ -9,6 +9,7 @@ using Komponent.IO;
 using Kanvas.Interface;
 using Kanvas.Format;
 using Kanvas.Swizzle;
+using Komponent.IO.Attributes;
 
 namespace Kore.XFont.Image
 {

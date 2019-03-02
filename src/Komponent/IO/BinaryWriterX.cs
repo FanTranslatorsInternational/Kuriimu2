@@ -5,6 +5,7 @@ using System.Text;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
+using Komponent.IO.Attributes;
 
 namespace Komponent.IO
 {
@@ -335,7 +336,7 @@ namespace Komponent.IO
             }
         }
 
-        private void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string, object)> wroteVals = null)
+        private void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string, object)> wroteVals = null, string currentNest = "")
         {
             var type = obj.GetType();
 
@@ -344,6 +345,7 @@ namespace Komponent.IO
             var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
             var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
             var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
+            var Alignment = type.GetCustomAttribute<AlignmentAttribute>();
 
             var bkByteOrder = ByteOrder;
             var bkBitOrder = BitOrder;
@@ -375,8 +377,8 @@ namespace Komponent.IO
                         case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
+                    var matchingVals = wroteVals?.Where(v => v.Item1 == VarSize?.FieldName);
+                    var length = FixedSize?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
 
                     if (enc.GetByteCount((string)obj) != length)
                         throw new FieldLengthMismatchException(enc.GetByteCount((string)obj), length);
@@ -394,9 +396,9 @@ namespace Komponent.IO
                 // Array
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-                    var arr = (obj as Array);
+                    var matchingVal = wroteVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
+                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
+                    var arr = obj as Array;
 
                     if (arr.Length != length)
                         throw new FieldLengthMismatchException(arr.Length, length);
@@ -410,9 +412,9 @@ namespace Komponent.IO
                 // List
                 if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVals = wroteVals.Where(v => v.Item1 == VarSize.FieldName);
-                    var length = FixedSize?.Length ?? (matchingVals.Any() ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-                    var list = (obj as IList);
+                    var matchingVal = wroteVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
+                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
+                    var list = obj as IList;
 
                     if (list.Count != length)
                         throw new FieldLengthMismatchException(list.Count, length);
@@ -429,10 +431,13 @@ namespace Komponent.IO
                 if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
                     throw new InvalidBitFieldInfoException(_blockSize);
 
-                var wroteValsIntern = new List<(string, object)>();
+                if (wroteVals == null)
+                    wroteVals = new List<(string, object)>();
+
                 foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                 {
-                    wroteValsIntern.Add((field.Name, field.GetValue(obj)));
+                    var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
+                    wroteVals.Add((fieldName, field.GetValue(obj)));
 
                     var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
                     if (bitInfo != null)
@@ -440,10 +445,14 @@ namespace Komponent.IO
                         WriteBits(Convert.ToInt64(field.GetValue(obj)), bitInfo.BitLength);
                     }
                     else
-                        WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteValsIntern);
+                        WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteVals, fieldName);
                 }
 
                 Flush();
+
+                // Apply alignment
+                if (Alignment != null)
+                    Write(new byte[Alignment.Alignment - BaseStream.Position % Alignment.Alignment]);
             }
             else if (type.IsEnum)
             {

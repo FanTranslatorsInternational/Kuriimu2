@@ -6,6 +6,7 @@ using Kanvas.Format;
 using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Image;
 
