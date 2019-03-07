@@ -340,6 +340,9 @@ namespace Komponent.IO
         {
             var type = obj.GetType();
 
+            if (wroteVals == null)
+                wroteVals = new List<(string, object)>();
+
             var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
             var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
             var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
@@ -430,9 +433,6 @@ namespace Komponent.IO
                 _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
                 if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
                     throw new InvalidBitFieldInfoException(_blockSize);
-
-                if (wroteVals == null)
-                    wroteVals = new List<(string, object)>();
 
                 foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
                 {

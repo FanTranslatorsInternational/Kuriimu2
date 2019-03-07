@@ -348,6 +348,9 @@ namespace Komponent.IO
         {
             object returnValue;
 
+            if (readVals == null)
+                readVals = new List<(string, object)>();
+
             var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
             var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
             var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
@@ -467,9 +470,6 @@ namespace Komponent.IO
                     {
                         val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readVals, fieldName);
                     }
-
-                    if (readVals == null)
-                        readVals = new List<(string, object)>();
 
                     readVals.Add((fieldName, val));
                     field.SetValue(item, val);
