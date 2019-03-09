@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="BinaryReaderXTests.cs" />
     <Compile Include="BinaryWriterXTests.cs" />
-    <Compile Include="ExtensionTests.cs" />
+    <Compile Include="ToolsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="KmpSearcherTest.cs" />
   </ItemGroup>

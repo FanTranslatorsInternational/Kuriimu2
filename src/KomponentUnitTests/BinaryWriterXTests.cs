@@ -336,5 +336,44 @@ namespace KomponentUnitTests
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }
         }
+
+        private class TestClass3
+        {
+            public TestClass31 var0;
+            [VariableLength("var0.var1")]
+            public byte[] var1;
+
+            public class TestClass31
+            {
+                public int var0;
+                public int var1;
+            }
+        }
+
+        [TestMethod]
+        public void ClassFirstNestedIssue()
+        {
+            var expect = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                0x02, 0x02
+            };
+            var ms = new MemoryStream();
+
+            using (var br = new BinaryWriterX(ms))
+            {
+                var tc3 = new TestClass3
+                {
+                    var0 = new TestClass3.TestClass31
+                    {
+                        var0 = 1,
+                        var1 = 2
+                    },
+                    var1 = new byte[] { 2, 2 }
+                };
+                br.WriteStruct(tc3);
+
+                Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
+            }
+        }
     }
 }

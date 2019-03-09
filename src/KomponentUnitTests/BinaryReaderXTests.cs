@@ -332,5 +332,40 @@ namespace KomponentUnitTests
                 Assert.AreEqual(0, rs.var4.var5[1]);
             }
         }
+
+        private class TestClass3
+        {
+            public TestClass31 var0;
+            [VariableLength("var0.var1")]
+            public byte[] var1;
+
+            public class TestClass31
+            {
+                public int var0;
+                public int var1;
+            }
+        }
+
+        [TestMethod]
+        public void ClassFirstNestedIssue()
+        {
+            var input = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                0x02, 0x02
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms))
+            {
+                var rs = br.ReadStruct<TestClass3>();
+
+                Assert.AreEqual(1, rs.var0.var0);
+                Assert.AreEqual(2, rs.var0.var1);
+                Assert.AreNotEqual(null, rs.var1);
+                Assert.AreEqual(2, rs.var1.Length);
+                Assert.AreEqual(2, rs.var1[0]);
+                Assert.AreEqual(2, rs.var1[1]);
+            }
+        }
     }
 }

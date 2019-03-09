@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace KomponentUnitTests
 {
     [TestClass]
-    public class ExtensionTests
+    public class ToolsTests
     {
         private class Test1
         {
@@ -31,7 +31,7 @@ namespace KomponentUnitTests
         [TestMethod]
         public void BaseMeasure()
         {
-            Assert.AreEqual(59, IOExtensions.MeasureStruct<Test1>());
+            Assert.AreEqual(59, Tools.MeasureType(typeof(Test1)));
         }
 
         private class Test2
@@ -44,7 +44,7 @@ namespace KomponentUnitTests
         [TestMethod]
         public void NestedClassMeasure()
         {
-            Assert.AreEqual(59 * 2 + 1, IOExtensions.MeasureStruct<Test2>());
+            Assert.AreEqual(59 * 2 + 1, Tools.MeasureType(typeof(Test2)));
         }
 
         private class StringTest1
@@ -76,11 +76,11 @@ namespace KomponentUnitTests
         [TestMethod]
         public void StringMeasure()
         {
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<StringTest1>());
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<StringTest2>());
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<StringTest3>());
-            Assert.AreEqual(3, IOExtensions.MeasureStruct<StringTest4>());
-            Assert.AreEqual(12, IOExtensions.MeasureStruct<StringTest5>());
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(StringTest1)));
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(StringTest2)));
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(StringTest3)));
+            Assert.AreEqual(3, Tools.MeasureType(typeof(StringTest4)));
+            Assert.AreEqual(12, Tools.MeasureType(typeof(StringTest5)));
         }
 
         private class ListTest1
@@ -117,12 +117,12 @@ namespace KomponentUnitTests
         [TestMethod]
         public void ListMeasure()
         {
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<ListTest1>());
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<ListTest2>());
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<ListTest3>());
-            Assert.ThrowsException<InvalidOperationException>(() => IOExtensions.MeasureStruct<ListTest4>());
-            Assert.AreEqual(3, IOExtensions.MeasureStruct<ListTest5>());
-            Assert.AreEqual(3, IOExtensions.MeasureStruct<ListTest6>());
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest1)));
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest2)));
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest3)));
+            Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest4)));
+            Assert.AreEqual(3, Tools.MeasureType(typeof(ListTest5)));
+            Assert.AreEqual(3, Tools.MeasureType(typeof(ListTest6)));
         }
 
         private enum TestEnum : int
@@ -139,7 +139,26 @@ namespace KomponentUnitTests
         [TestMethod]
         public void EnumMeasure()
         {
-            Assert.AreEqual(8, IOExtensions.MeasureStruct<EnumTest1>());
+            Assert.AreEqual(8, Tools.MeasureType(typeof(EnumTest1)));
+        }
+
+        private class LimitedTest1
+        {
+            public int var0;
+            public LimitedTest2 var1;
+            public int var2;
+        }
+        private class LimitedTest2
+        {
+            public int var0;
+            public int var1;
+            public int var2;
+        }
+
+        [TestMethod]
+        public void LimitedMeasure()
+        {
+            Assert.AreEqual(12,Tools.MeasureTypeUntil(typeof(LimitedTest1),"var1.var2"));
         }
     }
 }
