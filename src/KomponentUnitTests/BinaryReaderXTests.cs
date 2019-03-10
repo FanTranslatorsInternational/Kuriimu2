@@ -367,5 +367,104 @@ namespace KomponentUnitTests
                 Assert.AreEqual(2, rs.var1[1]);
             }
         }
+
+        private class TestClass4
+        {
+            public int flag;
+
+            [TypeChoice("flag", TypeChoiceComparer.Equal, 0x00000001, typeof(int))]
+            [TypeChoice("flag", TypeChoiceComparer.GEqual, 0x00000002, typeof(long))]
+            public object value;
+
+            [TypeChoice("flag", TypeChoiceComparer.SEqual, 0x00000001, typeof(float))]
+            [TypeChoice("flag", TypeChoiceComparer.Greater, 0x00000001, typeof(double))]
+            public object value2;
+
+            [TypeChoice("flag", TypeChoiceComparer.Smaller, 0x00000002, typeof(decimal))]
+            [TypeChoice("flag", TypeChoiceComparer.Equal, 0x00000002, typeof(bool))]
+            public object value3;
+        }
+
+        [TestMethod]
+        public void TypeChoiceRead()
+        {
+            var input = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0xc0, 0x3f, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms))
+            {
+                var tc4 = br.ReadStruct<TestClass4>();
+
+                Assert.AreEqual(typeof(int), tc4.value.GetType());
+                Assert.AreEqual(2, tc4.value);
+                Assert.AreEqual(typeof(float), tc4.value2.GetType());
+                Assert.AreEqual(1.5f, tc4.value2);
+                Assert.AreEqual(typeof(decimal), tc4.value3.GetType());
+                Assert.AreEqual((decimal)0.0, tc4.value3);
+
+                ms.Position = 0;
+                ms.Write(new byte[] { 0x02 }, 0, 1);
+                ms.Position = 0;
+
+                tc4 = br.ReadStruct<TestClass4>();
+
+                Assert.AreEqual(typeof(long), tc4.value.GetType());
+                Assert.AreEqual(0x3fc0000000000002, tc4.value);
+                Assert.AreEqual(typeof(double), tc4.value2.GetType());
+                Assert.AreEqual(0.0, tc4.value2);
+                Assert.AreEqual(typeof(bool), tc4.value3.GetType());
+                Assert.AreEqual(false, tc4.value3);
+            }
+        }
+
+        private class TestClass5
+        {
+            public int flag;
+
+            [TypeChoice("flag", TypeChoiceComparer.Equal, 0x00000001, typeof(TestClass51))]
+            [TypeChoice("flag", TypeChoiceComparer.Equal, 0x00000002, typeof(TestClass52))]
+            public IChoiceInherit inherit;
+        }
+        private interface IChoiceInherit { }
+        private class TestClass51 : IChoiceInherit
+        {
+            public int value51;
+        }
+        private class TestClass52: IChoiceInherit
+        {
+            public long value52;
+        }
+
+        [TestMethod]
+        public void TypeChoiceInheritanceRead()
+        {
+            var input = new byte[] {
+                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+                0x03, 0x00, 0x00, 0x00
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms))
+            {
+                var tc5 = br.ReadStruct<TestClass5>();
+
+                Assert.AreEqual(typeof(TestClass51), tc5.inherit.GetType());
+                Assert.AreEqual(2, (tc5.inherit as TestClass51).value51);
+
+                ms.Position = 0;
+                ms.Write(new byte[] { 0x02 }, 0, 1);
+                ms.Position = 0;
+
+                tc5 = br.ReadStruct<TestClass5>();
+
+                Assert.AreEqual(typeof(TestClass52), tc5.inherit.GetType());
+                Assert.AreEqual(0x0000000300000002, (tc5.inherit as TestClass52).value52);
+            }
+        }
     }
 }

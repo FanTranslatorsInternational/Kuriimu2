@@ -344,7 +344,7 @@ namespace Komponent.IO
             }
         }
 
-        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string, object)> readVals = null, string currentNest = "")
+        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string name, object value)> readVals = null, string currentNest = "", bool isTypeChosen = false)
         {
             object returnValue;
 
@@ -357,6 +357,7 @@ namespace Komponent.IO
             var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
             var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
             var Alignment = type.GetCustomAttribute<AlignmentAttribute>();
+            var TypeChoices = fieldInfo?.GetCustomAttributes<TypeChoiceAttribute>();
 
             var bkByteOrder = ByteOrder;
             var bkBitOrder = BitOrder;
@@ -364,7 +365,54 @@ namespace Komponent.IO
 
             ByteOrder = FieldEndian?.ByteOrder ?? TypeEndian?.ByteOrder ?? ByteOrder;
 
-            if (type.IsPrimitive)
+            if (TypeChoices != null && TypeChoices.Any() && !isTypeChosen)
+            {
+                if (type != typeof(object) && TypeChoices.Any(x => !type.IsAssignableFrom(x.InjectionType)))
+                    throw new InvalidOperationException($"Not all type choices are injectable to {type.Name}");
+
+                Type chosenType = null;
+                foreach (var choice in TypeChoices)
+                {
+                    var value = readVals.FirstOrDefault(x => x.name == choice.FieldName).value;
+                    if (value == null)
+                        throw new InvalidOperationException($"Field {choice.FieldName} could not be found");
+
+                    switch (choice.Comparer)
+                    {
+                        case TypeChoiceComparer.Equal:
+                            if (Convert.ToUInt64(value) == Convert.ToUInt64(choice.Value))
+                                chosenType = choice.InjectionType;
+                            break;
+                        case TypeChoiceComparer.Greater:
+                            if (Convert.ToUInt64(value) > Convert.ToUInt64(choice.Value))
+                                chosenType = choice.InjectionType;
+                            break;
+                        case TypeChoiceComparer.Smaller:
+                            if (Convert.ToUInt64(value) < Convert.ToUInt64(choice.Value))
+                                chosenType = choice.InjectionType;
+                            break;
+                        case TypeChoiceComparer.GEqual:
+                            if (Convert.ToUInt64(value) >= Convert.ToUInt64(choice.Value))
+                                chosenType = choice.InjectionType;
+                            break;
+                        case TypeChoiceComparer.SEqual:
+                            if (Convert.ToUInt64(value) <= Convert.ToUInt64(choice.Value))
+                                chosenType = choice.InjectionType;
+                            break;
+                        default:
+                            throw new InvalidOperationException($"Unknown comparer {choice.Comparer}");
+                    }
+
+                    if (chosenType != null)
+                        break;
+                }
+
+                if (chosenType == null)
+                    throw new InvalidOperationException($"No choice matched the criteria for injection");
+
+                returnValue = ReadObject(chosenType, fieldInfo, readVals, currentNest, true);
+            }
+            else if (type.IsPrimitive)
             {
                 //Primitive
                 returnValue = ReadPrimitive(type);
@@ -388,7 +436,7 @@ namespace Komponent.IO
                         case StringEncoding.UTF8: enc = Encoding.UTF8; break;
                     }
 
-                    var matchingVals = readVals?.Where(v =>  v.Item1 == VarSize?.FieldName);
+                    var matchingVals = readVals?.Where(v => v.Item1 == VarSize?.FieldName);
                     var length = FixedSize?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
 
                     returnValue = ReadString(length, enc);

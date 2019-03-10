@@ -336,7 +336,7 @@ namespace Komponent.IO
             }
         }
 
-        private void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string, object)> wroteVals = null, string currentNest = "")
+        private void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string name, object value)> wroteVals = null, string currentNest = "", bool isTypeChosen=false)
         {
             var type = obj.GetType();
 
