@@ -102,7 +102,7 @@ namespace Kanvas.Support.ASTC
             using (var br = new BinaryReaderX(_stream, true, _byteOrder))
             {
                 br.BaseStream.Position = 0;
-                _header = br.ReadStruct<KTXHeader>();
+                _header = br.ReadType<KTXHeader>();
             }
         }
 

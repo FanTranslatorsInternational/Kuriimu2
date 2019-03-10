@@ -26,7 +26,7 @@ namespace Kore.XFont.Image
             using (var br = new BinaryReaderX(input, true))
             {
                 //Header
-                header = br.ReadStruct<IMGCHeader>();
+                header = br.ReadType<IMGCHeader>();
                 if (header.imageFormat == 28 && header.bitDepth == 8)
                 {
                     editMode = true;
@@ -145,7 +145,7 @@ namespace Kore.XFont.Image
 
                 //Header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(header);
+                bw.WriteType(header);
             }
         }
 

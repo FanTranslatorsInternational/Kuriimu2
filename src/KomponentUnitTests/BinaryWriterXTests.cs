@@ -214,12 +214,12 @@ namespace KomponentUnitTests
                     exp7 = 0xFF
                 };
 
-                bw.WriteStruct(examp);
+                bw.WriteType(examp);
 
                 examp.exp2.val1++;
-                bw.WriteStruct(examp);
+                bw.WriteType(examp);
                 examp.exp2.val1++;
-                bw.WriteStruct(examp);
+                bw.WriteType(examp);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }
@@ -279,7 +279,7 @@ namespace KomponentUnitTests
             using (var bw = new BinaryWriterX(ms))
             {
                 var tc1 = new TestClass1 { var0 = 1 };
-                bw.WriteStruct(tc1);
+                bw.WriteType(tc1);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }
@@ -331,7 +331,7 @@ namespace KomponentUnitTests
                         var5 = new byte[1]
                     }
                 };
-                bw.WriteStruct(tc2);
+                bw.WriteType(tc2);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }
@@ -370,7 +370,7 @@ namespace KomponentUnitTests
                     },
                     var1 = new byte[] { 2, 2 }
                 };
-                br.WriteStruct(tc3);
+                br.WriteType(tc3);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }

@@ -39,7 +39,7 @@ namespace Kore.SamplePlugins
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
 
                 // Header
-                Header = br.ReadStruct<FileHeader>();
+                Header = br.ReadType<FileHeader>();
                 HeaderInfo = new FileHeaderInfo
                 {
                     // Block 1
@@ -149,7 +149,7 @@ namespace Kore.SamplePlugins
                 Header.Block1 = (uint)((int)HeaderInfo.Version | (HeaderInfo.Unknown1 << 12) | (HeaderInfo.Unused1 << 24) | ((int)HeaderInfo.AlphaChannelFlags << 28));
                 Header.Block2 = (uint)(HeaderInfo.MipMapCount | (HeaderInfo.Width << 6) | (HeaderInfo.Height << 19));
                 Header.Block3 = (uint)(HeaderInfo.Unknown2 | ((int)HeaderInfo.Format << 8) | (HeaderInfo.Unknown3 << 16));
-                bw.WriteStruct(Header);
+                bw.WriteType(Header);
                 if (HeaderInfo.Version == Version._Switchv1 && SwitchUnknownData != null)
                     bw.Write(SwitchUnknownData);
 

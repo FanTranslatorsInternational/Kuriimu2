@@ -113,7 +113,7 @@ namespace Kore.XFont
                 var smallChars = new List<CharacterMap>();
                 using (var fntR = new BinaryReaderX(xpck.Files[1].FileData, true))
                 {
-                    Header = fntR.ReadStruct<XFHeader>();
+                    Header = fntR.ReadType<XFHeader>();
 
                     fntR.BaseStream.Position = Header.table0Offset << 2;
                     t0Comp = (Level5.Method)(fntR.ReadInt32() & 0x7);
@@ -260,7 +260,7 @@ namespace Kore.XFont
             var ms = new MemoryStream();
             using (var bwIntern = new BinaryWriterX(ms, true))
                 foreach (var t in list)
-                    bwIntern.WriteStruct(t);
+                    bwIntern.WriteType(t);
             bw.Write(Level5.Compress(ms, comp));
         }
     }

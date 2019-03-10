@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Komponent.IO
@@ -62,6 +63,31 @@ namespace Komponent.IO
         //    }
         //}
 
+        internal static bool IsList(Type type)
+        {
+            return typeof(IList).IsAssignableFrom(type);
+        }
+
+        internal static bool IsStruct(Type type)
+        {
+            return type.IsValueType && !type.IsEnum;
+        }
+
+        internal static Encoding RetrieveEncoding(StringEncoding strEnc)
+        {
+            switch (strEnc)
+            {
+                default:
+                case StringEncoding.ASCII: return Encoding.ASCII;
+                case StringEncoding.SJIS: return Encoding.GetEncoding("SJIS");
+                case StringEncoding.Unicode: return Encoding.Unicode;
+                case StringEncoding.UTF16: return Encoding.Unicode;
+                case StringEncoding.UTF32: return Encoding.UTF32;
+                case StringEncoding.UTF7: return Encoding.UTF7;
+                case StringEncoding.UTF8: return Encoding.UTF8;
+            }
+        }
+
         public static int MeasureType(Type type)
         {
             return MeasureType(type, null, null);
@@ -77,6 +103,9 @@ namespace Komponent.IO
             var typeAttributes = new MemberAttributeInfo(type);
             MemberAttributeInfo fieldAttributes = null;
             if (field != null) fieldAttributes = new MemberAttributeInfo(field);
+
+            if (fieldAttributes?.TypeChoiceAttributes.Any() ?? false)
+                throw new InvalidOperationException($"Type choice attributes are not supported for static measurement");
 
             if (type.IsPrimitive)
             {
@@ -104,16 +133,6 @@ namespace Komponent.IO
             }
             else
                 throw new UnsupportedTypeException(type);
-        }
-
-        private static bool IsList(Type type)
-        {
-            return typeof(IList).IsAssignableFrom(type);
-        }
-
-        private static bool IsStruct(Type type)
-        {
-            return type.IsValueType && !type.IsEnum;
         }
 
         private static int MeasurePrimitive(Type type)

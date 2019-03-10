@@ -316,154 +316,156 @@ namespace Komponent.IO
             }
         }
 
-        private void WritePrimitive(object obj)
+        #endregion
+
+        #region Generic type writing
+
+        public void WriteType<T>(T obj) => WriteType(obj, null, null);
+
+        public void WriteMultiple<T>(IEnumerable<T> list)
         {
-            switch (Type.GetTypeCode(obj.GetType()))
-            {
-                case TypeCode.Boolean: Write((bool)obj); break;
-                case TypeCode.Byte: Write((byte)obj); break;
-                case TypeCode.SByte: Write((sbyte)obj); break;
-                case TypeCode.Int16: Write((short)obj); break;
-                case TypeCode.UInt16: Write((ushort)obj); break;
-                case TypeCode.Char: Write((char)obj); break;
-                case TypeCode.Int32: Write((int)obj); break;
-                case TypeCode.UInt32: Write((uint)obj); break;
-                case TypeCode.Int64: Write((long)obj); break;
-                case TypeCode.UInt64: Write((ulong)obj); break;
-                case TypeCode.Single: Write((float)obj); break;
-                case TypeCode.Double: Write((double)obj); break;
-                default: throw new NotSupportedException("Unsupported Primitive");
-            }
+            foreach (var element in list)
+                WriteType(element);
         }
 
-        private void WriteObject(object obj, MemberInfo fieldInfo = null, List<(string name, object value)> wroteVals = null, string currentNest = "", bool isTypeChosen=false)
+        private void WriteType(object data, MemberInfo fieldInfo, List<(string name, object value)> wroteVals, string currentNest = "", bool isTypeChosen = false)
         {
-            var type = obj.GetType();
+            var type = data.GetType();
 
             if (wroteVals == null)
                 wroteVals = new List<(string, object)>();
 
-            var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
-            var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
-            var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
-            var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
-            var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
-            var Alignment = type.GetCustomAttribute<AlignmentAttribute>();
+            var typeAttributes = new MemberAttributeInfo(type);
+            MemberAttributeInfo fieldAttributes = null;
+            if (fieldInfo != null) fieldAttributes = new MemberAttributeInfo(fieldInfo);
 
             var bkByteOrder = ByteOrder;
             var bkBitOrder = BitOrder;
             var bkBlockSize = _blockSize;
 
-            ByteOrder = FieldEndian?.ByteOrder ?? TypeEndian?.ByteOrder ?? ByteOrder;
+            ByteOrder = fieldAttributes?.EndiannessAttribute?.ByteOrder ?? typeAttributes.EndiannessAttribute?.ByteOrder ?? ByteOrder;
 
             if (type.IsPrimitive)
             {
-                //Primitive
-                WritePrimitive(obj);
+                WritePrimitive(data);
             }
-            else if (Type.GetTypeCode(type) == TypeCode.String)
+            else if (type == typeof(string))
             {
-                // String
-                if (FixedSize != null || VarSize != null)
-                {
-                    var strEnc = FixedSize?.StringEncoding ?? VarSize.StringEncoding;
-                    Encoding enc;
-                    switch (strEnc)
-                    {
-                        default:
-                        case StringEncoding.ASCII: enc = Encoding.ASCII; break;
-                        case StringEncoding.SJIS: enc = Encoding.GetEncoding("SJIS"); break;
-                        case StringEncoding.Unicode: enc = Encoding.Unicode; break;
-                        case StringEncoding.UTF16: enc = Encoding.Unicode; break;
-                        case StringEncoding.UTF32: enc = Encoding.UTF32; break;
-                        case StringEncoding.UTF7: enc = Encoding.UTF7; break;
-                        case StringEncoding.UTF8: enc = Encoding.UTF8; break;
-                    }
-
-                    var matchingVals = wroteVals?.Where(v => v.Item1 == VarSize?.FieldName);
-                    var length = FixedSize?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-
-                    if (enc.GetByteCount((string)obj) != length)
-                        throw new FieldLengthMismatchException(enc.GetByteCount((string)obj), length);
-
-                    WriteString((string)obj, enc, false, false);
-                }
+                WriteTypeString(data, fieldAttributes, wroteVals);
             }
-            else if (Type.GetTypeCode(type) == TypeCode.Decimal)
+            else if (type == typeof(decimal))
             {
-                // Decimal
-                Write((decimal)obj);
+                Write((decimal)data);
             }
-            else if (type.IsArray)
+            else if (Tools.IsList(type))
             {
-                // Array
-                if (FixedSize != null || VarSize != null)
-                {
-                    var matchingVal = wroteVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
-                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
-                    var arr = obj as Array;
-
-                    if (arr.Length != length)
-                        throw new FieldLengthMismatchException(arr.Length, length);
-
-                    foreach (var element in arr)
-                        WriteObject(element);
-                }
+                WriteList(data, fieldAttributes, wroteVals);
             }
-            else if (type.IsGenericType && type.Name.Contains("List"))
+            else if (type.IsClass || Tools.IsStruct(type))
             {
-                // List
-                if (FixedSize != null || VarSize != null)
-                {
-                    var matchingVal = wroteVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
-                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
-                    var list = obj as IList;
-
-                    if (list.Count != length)
-                        throw new FieldLengthMismatchException(list.Count, length);
-
-                    foreach (var element in list)
-                        WriteObject(element);
-                }
-            }
-            else if (type.IsClass || (type.IsValueType && !type.IsEnum))
-            {
-                // Class/Struct
-                BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
-                _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
-                if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
-                    throw new InvalidBitFieldInfoException(_blockSize);
-
-                foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                {
-                    var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
-                    wroteVals.Add((fieldName, field.GetValue(obj)));
-
-                    var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
-                    if (bitInfo != null)
-                    {
-                        WriteBits(Convert.ToInt64(field.GetValue(obj)), bitInfo.BitLength);
-                    }
-                    else
-                        WriteObject(field.GetValue(obj), field.CustomAttributes.Any() ? field : null, wroteVals, fieldName);
-                }
-
-                Flush();
-
-                // Apply alignment
-                if (Alignment != null)
-                    Write(new byte[Alignment.Alignment - BaseStream.Position % Alignment.Alignment]);
+                WriteObject(data, fieldInfo, wroteVals, currentNest);
             }
             else if (type.IsEnum)
             {
-                // Enum
-                WriteObject((type as TypeInfo)?.DeclaredFields.ToList()[0].GetValue(obj));
+                WriteType((type as TypeInfo)?.DeclaredFields.ToList()[0].GetValue(data));
             }
             else throw new UnsupportedTypeException(type);
 
             ByteOrder = bkByteOrder;
             BitOrder = bkBitOrder;
             _blockSize = bkBlockSize;
+        }
+
+        private void WritePrimitive(object data)
+        {
+            switch (Type.GetTypeCode(data.GetType()))
+            {
+                case TypeCode.Boolean: Write((bool)data); break;
+                case TypeCode.Byte: Write((byte)data); break;
+                case TypeCode.SByte: Write((sbyte)data); break;
+                case TypeCode.Int16: Write((short)data); break;
+                case TypeCode.UInt16: Write((ushort)data); break;
+                case TypeCode.Char: Write((char)data); break;
+                case TypeCode.Int32: Write((int)data); break;
+                case TypeCode.UInt32: Write((uint)data); break;
+                case TypeCode.Int64: Write((long)data); break;
+                case TypeCode.UInt64: Write((ulong)data); break;
+                case TypeCode.Single: Write((float)data); break;
+                case TypeCode.Double: Write((double)data); break;
+                default: throw new NotSupportedException("Unsupported Primitive");
+            }
+        }
+
+        private void WriteTypeString(object data, MemberAttributeInfo fieldAttributes, List<(string name, object value)> wroteVals)
+        {
+            var fixedSizeAttribute = fieldAttributes?.FixedLengthAttribute;
+            var variableSizeAttribute = fieldAttributes?.VariableLengthAttribute;
+
+            if (fixedSizeAttribute == null && variableSizeAttribute == null)
+                return;
+
+            var enc = Tools.RetrieveEncoding(fixedSizeAttribute?.StringEncoding ?? variableSizeAttribute.StringEncoding);
+
+            var matchingVals = wroteVals?.Where(v => v.Item1 == variableSizeAttribute?.FieldName);
+            var length = fixedSizeAttribute?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + variableSizeAttribute.Offset : -1);
+
+            if (enc.GetByteCount((string)data) != length)
+                throw new FieldLengthMismatchException(enc.GetByteCount((string)data), length);
+
+            WriteString((string)data, enc, false, false);
+        }
+
+        private void WriteList(object data, MemberAttributeInfo fieldAttributes, List<(string name, object value)> wroteVals)
+        {
+            var fixedSizeAttribute = fieldAttributes?.FixedLengthAttribute;
+            var variableSizeAttribute = fieldAttributes?.VariableLengthAttribute;
+
+            if (fixedSizeAttribute == null && variableSizeAttribute == null)
+                return;
+
+            var matchingVal = wroteVals?.FirstOrDefault(v => v.Item1 == variableSizeAttribute?.FieldName).Item2;
+            var length = fixedSizeAttribute?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + variableSizeAttribute.Offset : -1);
+
+            var list = (IList)data;
+
+            if (list.Count != length)
+                throw new FieldLengthMismatchException(list.Count, length);
+
+            foreach (var element in list)
+                WriteType(element);
+        }
+
+        private void WriteObject(object data, MemberInfo fieldInfo, List<(string name, object value)> wroteVals, string currentNest)
+        {
+            var typeAttributes = new MemberAttributeInfo(data.GetType());
+
+            var bitFieldInfoAttribute = typeAttributes.BitFieldInfoAttribute;
+            var alignmentAttribute = typeAttributes.AlignmentAttribute;
+
+            BitOrder = (bitFieldInfoAttribute?.BitOrder != BitOrder.Inherit ? bitFieldInfoAttribute?.BitOrder : BitOrder) ?? BitOrder;
+            _blockSize = bitFieldInfoAttribute?.BlockSize ?? _blockSize;
+            if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
+                throw new InvalidBitFieldInfoException(_blockSize);
+
+            foreach (var field in data.GetType().GetFields().OrderBy(fi => fi.MetadataToken))
+            {
+                var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
+                wroteVals.Add((fieldName, field.GetValue(data)));
+
+                var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
+                if (bitInfo != null)
+                {
+                    WriteBits(Convert.ToInt64(field.GetValue(data)), bitInfo.BitLength);
+                }
+                else
+                    WriteType(field.GetValue(data), field.CustomAttributes.Any() ? field : null, wroteVals, fieldName);
+            }
+
+            Flush();
+
+            // Apply alignment
+            if (alignmentAttribute != null)
+                Write(new byte[alignmentAttribute.Alignment - BaseStream.Position % alignmentAttribute.Alignment]);
         }
 
         #endregion
@@ -537,14 +539,6 @@ namespace Komponent.IO
             {
                 throw new Exception("BitCount needs to be greater than 0");
             }
-        }
-
-        public void WriteStruct<T>(T obj) => WriteObject(obj);
-
-        public void WriteMultiple<T>(IEnumerable<T> list)
-        {
-            foreach (var element in list)
-                WriteStruct(element);
         }
 
         #endregion

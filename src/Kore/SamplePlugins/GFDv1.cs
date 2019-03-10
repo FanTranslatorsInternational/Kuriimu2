@@ -69,7 +69,7 @@ namespace Kore.SamplePlugins
                 }
 
                 // Header
-                Header = br.ReadStruct<FileHeader>();
+                Header = br.ReadType<FileHeader>();
                 HeaderF = br.ReadMultiple<float>(Header.FCount);
 
                 // Name
@@ -116,7 +116,7 @@ namespace Kore.SamplePlugins
                 Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD\0" : "\0DFG";
                 Header.CharacterCount = Characters.Count;
                 Header.FontTexCount = Textures.Count;
-                bw.WriteStruct(Header);
+                bw.WriteType(Header);
                 foreach (var f in HeaderF)
                     bw.Write(f);
 

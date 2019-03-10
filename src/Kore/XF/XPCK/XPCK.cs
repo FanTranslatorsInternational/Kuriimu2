@@ -22,7 +22,7 @@ namespace Kore.XFont.Archive
             using (var br = new BinaryReaderX(input, true))
             {
                 //Header
-                header = br.ReadStruct<XPCKHeader>();
+                header = br.ReadType<XPCKHeader>();
 
                 //Entries
                 br.BaseStream.Position = header.fileInfoOffset;
@@ -66,7 +66,7 @@ namespace Kore.XFont.Archive
                 //Entries
                 bw.BaseStream.Position = 0x14;
                 foreach (var file in Files)
-                    bw.WriteStruct(file.Entry);
+                    bw.WriteType(file.Entry);
 
                 //Namelist
                 bw.Write(compNameTable);
@@ -74,7 +74,7 @@ namespace Kore.XFont.Archive
                 //Header
                 header.tmp6 = (uint)(bw.BaseStream.Length - absDataOffset) >> 2;
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(header);
+                bw.WriteType(header);
             }
         }
 

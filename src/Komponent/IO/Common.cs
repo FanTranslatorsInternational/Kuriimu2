@@ -1,5 +1,6 @@
 ﻿using Komponent.IO.Attributes;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -36,5 +37,6 @@ namespace Komponent.IO
         public VariableLengthAttribute VariableLengthAttribute => _member.GetCustomAttribute<VariableLengthAttribute>();
         public BitFieldInfoAttribute BitFieldInfoAttribute => _member.GetCustomAttribute<BitFieldInfoAttribute>();
         public AlignmentAttribute AlignmentAttribute => _member.GetCustomAttribute<AlignmentAttribute>();
+        public IEnumerable<TypeChoiceAttribute> TypeChoiceAttributes => _member.GetCustomAttributes<TypeChoiceAttribute>();
     }
 }

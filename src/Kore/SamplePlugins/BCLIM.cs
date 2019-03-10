@@ -26,9 +26,9 @@ namespace Kore.SamplePlugins
             {
                 var texture = br.ReadBytes((int)br.BaseStream.Length - 0x28);
 
-                FileHeader = br.ReadStruct<NW4CHeader>();
+                FileHeader = br.ReadType<NW4CHeader>();
                 br.ByteOrder = FileHeader.ByteOrder;
-                TextureHeader = br.ReadStruct<ImageHeader>();
+                TextureHeader = br.ReadType<ImageHeader>();
 
                 Settings = new ImageSettings
                 {

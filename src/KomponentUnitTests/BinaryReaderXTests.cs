@@ -188,7 +188,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var examp = br.ReadStruct<TestClass>();
+                var examp = br.ReadType<TestClass>();
 
                 Assert.AreEqual(true, examp.exp0);
                 Assert.AreEqual(0x04, examp.exp1);
@@ -283,7 +283,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var rs = br.ReadStruct<TestClass1>();
+                var rs = br.ReadType<TestClass1>();
 
                 Assert.AreEqual(0x10, br.BaseStream.Position);
             }
@@ -321,7 +321,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var rs = br.ReadStruct<TestClass2>();
+                var rs = br.ReadType<TestClass2>();
 
                 Assert.AreEqual(2, rs.var0);
                 Assert.AreEqual(3, rs.var1.var2);
@@ -357,7 +357,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var rs = br.ReadStruct<TestClass3>();
+                var rs = br.ReadType<TestClass3>();
 
                 Assert.AreEqual(1, rs.var0.var0);
                 Assert.AreEqual(2, rs.var0.var1);
@@ -398,7 +398,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var tc4 = br.ReadStruct<TestClass4>();
+                var tc4 = br.ReadType<TestClass4>();
 
                 Assert.AreEqual(typeof(int), tc4.value.GetType());
                 Assert.AreEqual(2, tc4.value);
@@ -411,7 +411,7 @@ namespace KomponentUnitTests
                 ms.Write(new byte[] { 0x02 }, 0, 1);
                 ms.Position = 0;
 
-                tc4 = br.ReadStruct<TestClass4>();
+                tc4 = br.ReadType<TestClass4>();
 
                 Assert.AreEqual(typeof(long), tc4.value.GetType());
                 Assert.AreEqual(0x3fc0000000000002, tc4.value);
@@ -451,7 +451,7 @@ namespace KomponentUnitTests
 
             using (var br = new BinaryReaderX(ms))
             {
-                var tc5 = br.ReadStruct<TestClass5>();
+                var tc5 = br.ReadType<TestClass5>();
 
                 Assert.AreEqual(typeof(TestClass51), tc5.inherit.GetType());
                 Assert.AreEqual(2, (tc5.inherit as TestClass51).value51);
@@ -460,7 +460,7 @@ namespace KomponentUnitTests
                 ms.Write(new byte[] { 0x02 }, 0, 1);
                 ms.Position = 0;
 
-                tc5 = br.ReadStruct<TestClass5>();
+                tc5 = br.ReadType<TestClass5>();
 
                 Assert.AreEqual(typeof(TestClass52), tc5.inherit.GetType());
                 Assert.AreEqual(0x0000000300000002, (tc5.inherit as TestClass52).value52);

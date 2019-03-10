@@ -99,7 +99,7 @@ namespace Kanvas.Format
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true))
             {
-                bw.WriteStruct(header);
+                bw.WriteType(header);
                 bw.Write(texData);
             }
 
@@ -128,7 +128,7 @@ namespace Kanvas.Format
             byte[] encodedData = null;
             using (var br = new BinaryReaderX(File.OpenRead("tmp.astc")))
             {
-                br.ReadStruct<ASTCFileHeader>();
+                br.ReadType<ASTCFileHeader>();
                 encodedData = br.ReadBytes((int)(br.BaseStream.Length - br.BaseStream.Position));
             }
             File.Delete("tmp.astc");

@@ -324,6 +324,124 @@ namespace Komponent.IO
             _bitPosition = 0;
         }
 
+        #endregion
+
+        #region Read generic type
+
+        public T ReadType<T>() => (T)ReadType(typeof(T));
+
+        public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadType<T>()).ToList();
+
+        private object ReadType(Type type, MemberInfo fieldInfo = null, List<(string name, object value)> readVals = null, string currentNest = "", bool isTypeChosen = false)
+        {
+            object returnValue;
+
+            if (readVals == null)
+                readVals = new List<(string, object)>();
+
+            var typeAttributes = new MemberAttributeInfo(type);
+            MemberAttributeInfo fieldAttributes = null;
+            if (fieldInfo != null) fieldAttributes = new MemberAttributeInfo(fieldInfo);
+
+            var bkByteOrder = ByteOrder;
+            var bkBitOrder = BitOrder;
+            var bkBlockSize = _blockSize;
+
+            ByteOrder = fieldAttributes?.EndiannessAttribute?.ByteOrder ?? typeAttributes.EndiannessAttribute?.ByteOrder ?? ByteOrder;
+
+            if (IsTypeChoice(fieldAttributes) && !isTypeChosen)
+            {
+                returnValue = ReadTypeChoice(type, fieldInfo, readVals, currentNest);
+            }
+            else if (type.IsPrimitive)
+            {
+                returnValue = ReadPrimitive(type);
+            }
+            else if (type == typeof(string))
+            {
+                returnValue = ReadTypeString(fieldAttributes, readVals);
+            }
+            else if (type == typeof(decimal))
+            {
+                returnValue = ReadDecimal();
+            }
+            else if (Tools.IsList(type))
+            {
+                returnValue = ReadList(type, fieldInfo, readVals, currentNest);
+            }
+            else if (type.IsClass || Tools.IsStruct(type))
+            {
+                returnValue = ReadObject(type, fieldInfo, readVals, currentNest);
+            }
+            else if (type.IsEnum)
+            {
+                returnValue = ReadType(type.GetEnumUnderlyingType());
+            }
+            else throw new UnsupportedTypeException(type);
+
+            ByteOrder = bkByteOrder;
+            BitOrder = bkBitOrder;
+            _blockSize = bkBlockSize;
+
+            return returnValue;
+        }
+
+        private bool IsTypeChoice(MemberAttributeInfo fieldAttributes)
+        {
+            return fieldAttributes?.TypeChoiceAttributes != null && fieldAttributes.TypeChoiceAttributes.Any();
+        }
+
+        private object ReadTypeChoice(Type type, MemberInfo fieldInfo, List<(string name, object value)> readVals, string currentNest)
+        {
+            var fieldAttributes = new MemberAttributeInfo(fieldInfo);
+            var typeChoices = fieldAttributes.TypeChoiceAttributes;
+
+            if (type != typeof(object) && typeChoices.Any(x => !type.IsAssignableFrom(x.InjectionType)))
+                throw new InvalidOperationException($"Not all type choices are injectable to {type.Name}");
+
+            Type chosenType = null;
+            foreach (var choice in fieldAttributes.TypeChoiceAttributes)
+            {
+                var value = readVals.FirstOrDefault(x => x.name == choice.FieldName).value;
+                if (value == null)
+                    throw new InvalidOperationException($"Field {choice.FieldName} could not be found");
+
+                switch (choice.Comparer)
+                {
+                    case TypeChoiceComparer.Equal:
+                        if (Convert.ToUInt64(value) == Convert.ToUInt64(choice.Value))
+                            chosenType = choice.InjectionType;
+                        break;
+                    case TypeChoiceComparer.Greater:
+                        if (Convert.ToUInt64(value) > Convert.ToUInt64(choice.Value))
+                            chosenType = choice.InjectionType;
+                        break;
+                    case TypeChoiceComparer.Smaller:
+                        if (Convert.ToUInt64(value) < Convert.ToUInt64(choice.Value))
+                            chosenType = choice.InjectionType;
+                        break;
+                    case TypeChoiceComparer.GEqual:
+                        if (Convert.ToUInt64(value) >= Convert.ToUInt64(choice.Value))
+                            chosenType = choice.InjectionType;
+                        break;
+                    case TypeChoiceComparer.SEqual:
+                        if (Convert.ToUInt64(value) <= Convert.ToUInt64(choice.Value))
+                            chosenType = choice.InjectionType;
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unknown comparer {choice.Comparer}");
+                }
+
+                if (chosenType != null)
+                    break;
+            }
+
+            if (chosenType == null)
+                throw new InvalidOperationException($"No choice matched the criteria for injection");
+
+            return ReadType(chosenType, fieldInfo, readVals, currentNest, true);
+        }
+
         private object ReadPrimitive(Type type)
         {
             switch (Type.GetTypeCode(type))
@@ -344,206 +462,99 @@ namespace Komponent.IO
             }
         }
 
-        private object ReadObject(Type type, MemberInfo fieldInfo = null, List<(string name, object value)> readVals = null, string currentNest = "", bool isTypeChosen = false)
+        private string ReadTypeString(MemberAttributeInfo fieldAttributes, List<(string name, object value)> readVals)
         {
-            object returnValue;
+            var fixedLengthAttribute = fieldAttributes?.FixedLengthAttribute;
+            var variableLengthAttribute = fieldAttributes?.VariableLengthAttribute;
 
-            if (readVals == null)
-                readVals = new List<(string, object)>();
+            if (fixedLengthAttribute == null && variableLengthAttribute == null)
+                return null;
 
-            var TypeEndian = type.GetCustomAttribute<EndiannessAttribute>();
-            var FieldEndian = fieldInfo?.GetCustomAttribute<EndiannessAttribute>();
-            var FixedSize = fieldInfo?.GetCustomAttribute<FixedLengthAttribute>();
-            var VarSize = fieldInfo?.GetCustomAttribute<VariableLengthAttribute>();
-            var BitFieldInfo = type.GetCustomAttribute<BitFieldInfoAttribute>();
-            var Alignment = type.GetCustomAttribute<AlignmentAttribute>();
-            var TypeChoices = fieldInfo?.GetCustomAttributes<TypeChoiceAttribute>();
+            var enc = Tools.RetrieveEncoding(fixedLengthAttribute?.StringEncoding ?? variableLengthAttribute.StringEncoding);
 
-            var bkByteOrder = ByteOrder;
-            var bkBitOrder = BitOrder;
-            var bkBlockSize = _blockSize;
+            var matchingVals = readVals?.Where(v => v.Item1 == variableLengthAttribute?.FieldName);
+            var length = fixedLengthAttribute?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + variableLengthAttribute.Offset : -1);
 
-            ByteOrder = FieldEndian?.ByteOrder ?? TypeEndian?.ByteOrder ?? ByteOrder;
+            return ReadString(length, enc);
+        }
 
-            if (TypeChoices != null && TypeChoices.Any() && !isTypeChosen)
+        private object ReadList(Type type, MemberInfo fieldInfo, List<(string name, object value)> readVals, string currentNest)
+        {
+            MemberAttributeInfo fieldAttributes = null;
+            if (fieldInfo != null) fieldAttributes = new MemberAttributeInfo(fieldInfo);
+
+            var fixedLengthAttribute = fieldAttributes?.FixedLengthAttribute;
+            var variableLengthAttribute = fieldAttributes?.VariableLengthAttribute;
+
+            var matchingVal = readVals?.FirstOrDefault(v => v.Item1 == variableLengthAttribute?.FieldName).Item2;
+            var length = fixedLengthAttribute?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + variableLengthAttribute.Offset : -1);
+            if (length <= -1)
+                return null;
+
+            IList list;
+            Type elementType;
+            if (type.IsArray)
             {
-                if (type != typeof(object) && TypeChoices.Any(x => !type.IsAssignableFrom(x.InjectionType)))
-                    throw new InvalidOperationException($"Not all type choices are injectable to {type.Name}");
-
-                Type chosenType = null;
-                foreach (var choice in TypeChoices)
-                {
-                    var value = readVals.FirstOrDefault(x => x.name == choice.FieldName).value;
-                    if (value == null)
-                        throw new InvalidOperationException($"Field {choice.FieldName} could not be found");
-
-                    switch (choice.Comparer)
-                    {
-                        case TypeChoiceComparer.Equal:
-                            if (Convert.ToUInt64(value) == Convert.ToUInt64(choice.Value))
-                                chosenType = choice.InjectionType;
-                            break;
-                        case TypeChoiceComparer.Greater:
-                            if (Convert.ToUInt64(value) > Convert.ToUInt64(choice.Value))
-                                chosenType = choice.InjectionType;
-                            break;
-                        case TypeChoiceComparer.Smaller:
-                            if (Convert.ToUInt64(value) < Convert.ToUInt64(choice.Value))
-                                chosenType = choice.InjectionType;
-                            break;
-                        case TypeChoiceComparer.GEqual:
-                            if (Convert.ToUInt64(value) >= Convert.ToUInt64(choice.Value))
-                                chosenType = choice.InjectionType;
-                            break;
-                        case TypeChoiceComparer.SEqual:
-                            if (Convert.ToUInt64(value) <= Convert.ToUInt64(choice.Value))
-                                chosenType = choice.InjectionType;
-                            break;
-                        default:
-                            throw new InvalidOperationException($"Unknown comparer {choice.Comparer}");
-                    }
-
-                    if (chosenType != null)
-                        break;
-                }
-
-                if (chosenType == null)
-                    throw new InvalidOperationException($"No choice matched the criteria for injection");
-
-                returnValue = ReadObject(chosenType, fieldInfo, readVals, currentNest, true);
+                elementType = type.GetElementType();
+                list = Array.CreateInstance(elementType, length);
             }
-            else if (type.IsPrimitive)
+            else
             {
-                //Primitive
-                returnValue = ReadPrimitive(type);
+                elementType = type.GetGenericArguments()[0];
+                list = (IList)Activator.CreateInstance(type);
             }
-            else if (Type.GetTypeCode(type) == TypeCode.String)
+
+            for (int i = 0; i < length; i++)
             {
-                // String
-                if (FixedSize != null || VarSize != null)
-                {
-                    var strEnc = FixedSize?.StringEncoding ?? VarSize.StringEncoding;
-                    Encoding enc;
-                    switch (strEnc)
-                    {
-                        default:
-                        case StringEncoding.ASCII: enc = Encoding.ASCII; break;
-                        case StringEncoding.SJIS: enc = Encoding.GetEncoding("SJIS"); break;
-                        case StringEncoding.Unicode: enc = Encoding.Unicode; break;
-                        case StringEncoding.UTF16: enc = Encoding.Unicode; break;
-                        case StringEncoding.UTF32: enc = Encoding.UTF32; break;
-                        case StringEncoding.UTF7: enc = Encoding.UTF7; break;
-                        case StringEncoding.UTF8: enc = Encoding.UTF8; break;
-                    }
-
-                    var matchingVals = readVals?.Where(v => v.Item1 == VarSize?.FieldName);
-                    var length = FixedSize?.Length ?? ((matchingVals?.Any() ?? false) ? Convert.ToInt32(matchingVals.First().Item2) + VarSize.Offset : -1);
-
-                    returnValue = ReadString(length, enc);
-                }
+                var elementValue = ReadType(elementType, null, readVals, currentNest, false);
+                if (list.IsFixedSize)
+                    list[i] = elementValue;
                 else
-                    returnValue = null;
+                    list.Add(elementValue);
             }
-            else if (Type.GetTypeCode(type) == TypeCode.Decimal)
+
+            return list;
+        }
+
+        private object ReadObject(Type type, MemberInfo fieldInfo, List<(string name, object value)> readVals, string currentNest)
+        {
+            var typeAttributes = new MemberAttributeInfo(type);
+
+            var bitFieldInfoAttribute = typeAttributes.BitFieldInfoAttribute;
+            var alignmentAttribute = typeAttributes.AlignmentAttribute;
+
+            BitOrder = (bitFieldInfoAttribute?.BitOrder != BitOrder.Inherit ? bitFieldInfoAttribute?.BitOrder : BitOrder) ?? BitOrder;
+            _blockSize = bitFieldInfoAttribute?.BlockSize ?? _blockSize;
+            if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
+                throw new InvalidBitFieldInfoException(_blockSize);
+
+            var item = Activator.CreateInstance(type);
+
+            foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
             {
-                // Decimal
-                returnValue = ReadDecimal();
-            }
-            else if (type.IsArray)
-            {
-                // Array
-                if (FixedSize != null || VarSize != null)
-                {
-                    var matchingVal = readVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
-                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
+                var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
 
-                    if (length <= -1)
-                        returnValue = null;
-                    else
-                    {
-                        IList arr = Array.CreateInstance(type.GetElementType(), length);
-
-                        for (int i = 0; i < length; i++)
-                            arr[i] = ReadObject(type.GetElementType());
-
-                        returnValue = arr;
-                    }
-                }
+                var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
+                object val;
+                if (bitInfo != null)
+                    val = Convert.ChangeType(ReadBits(bitInfo.BitLength), field.FieldType);
                 else
-                    returnValue = null;
-            }
-            else if (type.IsGenericType && type.Name.Contains("List"))
-            {
-                // List
-                if (FixedSize != null || VarSize != null)
                 {
-                    var matchingVal = readVals?.FirstOrDefault(v => v.Item1 == VarSize?.FieldName).Item2;
-                    var length = FixedSize?.Length ?? ((matchingVal != null) ? Convert.ToInt32(matchingVal) + VarSize.Offset : -1);
-
-                    if (length <= -1)
-                        returnValue = null;
-                    else
-                    {
-                        var paramType = type.GenericTypeArguments.First();
-                        var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(new[] { paramType }));
-
-                        for (int i = 0; i < length; i++)
-                            list.GetType().GetMethod("Add").Invoke(list, new[] { ReadObject(paramType) });
-
-                        returnValue = list;
-                    }
-                }
-                else
-                    returnValue = null;
-            }
-            else if (type.IsClass || type.IsValueType && !type.IsEnum)
-            {
-                // Class, Struct
-                BitOrder = (BitFieldInfo?.BitOrder != BitOrder.Inherit ? BitFieldInfo?.BitOrder : BitOrder) ?? BitOrder;
-                _blockSize = BitFieldInfo?.BlockSize ?? _blockSize;
-                if (_blockSize != 8 && _blockSize != 4 && _blockSize != 2 && _blockSize != 1)
-                    throw new InvalidBitFieldInfoException(_blockSize);
-
-                var item = Activator.CreateInstance(type);
-
-                foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
-                {
-                    var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
-
-                    var fieldName = string.IsNullOrEmpty(currentNest) ? field.Name : string.Join(".", currentNest, field.Name);
-                    object val;
-                    if (bitInfo != null)
-                        val = Convert.ChangeType(ReadBits(bitInfo.BitLength), field.FieldType);
-                    else
-                    {
-                        val = ReadObject(field.FieldType, field.CustomAttributes.Any() ? field : null, readVals, fieldName);
-                    }
-
-                    readVals.Add((fieldName, val));
-                    field.SetValue(item, val);
+                    val = ReadType(field.FieldType, field.CustomAttributes.Any() ? field : null, readVals, fieldName);
                 }
 
-                // Apply alignment
-                if (Alignment != null)
-                {
-                    Reset();
-                    BaseStream.Position += Alignment.Alignment - BaseStream.Position % Alignment.Alignment;
-                }
-
-                returnValue = item;
+                readVals.Add((fieldName, val));
+                field.SetValue(item, val);
             }
-            else if (type.IsEnum)
+
+            // Apply alignment
+            if (alignmentAttribute != null)
             {
-                // Enum
-                returnValue = ReadObject(type.GetEnumUnderlyingType());
+                Reset();
+                BaseStream.Position += alignmentAttribute.Alignment - BaseStream.Position % alignmentAttribute.Alignment;
             }
-            else throw new UnsupportedTypeException(type);
 
-            ByteOrder = bkByteOrder;
-            BitOrder = bkBitOrder;
-            _blockSize = bkBlockSize;
-
-            return returnValue;
+            return item;
         }
 
         #endregion
@@ -653,10 +664,6 @@ namespace Komponent.IO
 
             return (T)Convert.ChangeType(value, typeof(T));
         }
-
-        public T ReadStruct<T>() => (T)ReadObject(typeof(T));
-
-        public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadStruct<T>()).ToList();
 
         #endregion
     }
