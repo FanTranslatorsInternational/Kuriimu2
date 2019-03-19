@@ -8,7 +8,7 @@ namespace Kontract.FileSystem
 {
     public class PhysicalFileSystem : IFileSystem
     {
-        private readonly List<Stream> _openedFiles;
+        private List<(string filename, Stream stream)> _openedFiles;
 
         public string RootDirectory { get; }
 
@@ -27,7 +27,7 @@ namespace Kontract.FileSystem
             if (!Directory.Exists(RootDirectory))
                 Directory.CreateDirectory(RootDirectory);
 
-            _openedFiles = new List<Stream>();
+            _openedFiles = new List<(string, Stream)>();
         }
 
         public IEnumerable<string> EnumerateDirectories(bool relative = false)
@@ -44,11 +44,15 @@ namespace Kontract.FileSystem
 
         public Stream OpenFile(string filename)
         {
-            var openedFile = File.Open(Path.Combine(RootDirectory, filename), FileMode.Open);
+            var combinedPath = Path.Combine(RootDirectory, filename);
+            if (_openedFiles.Any(x => x.filename == combinedPath))
+                return _openedFiles.First(x => x.filename == combinedPath).stream;
+
+            var openedFile = File.Open(combinedPath, FileMode.Open);
             var fsFileStream = new FileSystemStream(openedFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
-            _openedFiles.Add(openedFile);
+            _openedFiles.Add((combinedPath, openedFile));
 
             return fsFileStream;
         }
@@ -62,7 +66,7 @@ namespace Kontract.FileSystem
             var fsFileStream = new FileSystemStream(createdFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
-            _openedFiles.Add(createdFile);
+            _openedFiles.Add((Path.Combine(RootDirectory, filename), createdFile));
 
             return fsFileStream;
         }
@@ -83,7 +87,8 @@ namespace Kontract.FileSystem
         public void Dispose()
         {
             foreach (var openFile in _openedFiles)
-                openFile.Dispose();
+                openFile.stream.Close();
+            _openedFiles = null;
         }
 
         private bool CheckWritePermission()
@@ -101,7 +106,8 @@ namespace Kontract.FileSystem
 
         private void FsFileStream_CloseStream(object sender, CloseStreamEventArgs e)
         {
-            _openedFiles.Remove(e.BaseStream);
+            var id = _openedFiles.FindIndex(x => x.stream == e.BaseStream);
+            _openedFiles.RemoveAt(id);
             e.BaseStream.Close();
         }
     }

@@ -19,32 +19,49 @@ namespace KoreUnitTests
     [Export(typeof(ITest))]
     [PluginExtensionInfo("*.test")]
     [PluginInfo("TestTextId", "TestPlugin", "Test", "onepiecefreak", "github.com", "A test plugin for UnitTests")]
-    public class TestPlugin : IIdentifyFiles, ILoadFiles, ISaveFiles, ITest
+    public class TestPlugin : IIdentifyFiles, ILoadFiles, ISaveFiles, ITest, IMultipleFiles
     {
         public List<string> Communication { get; set; }
 
         public bool LeaveOpen { get; set; }
+        public IFileSystem FileSystem { get; set; }
 
         public void Dispose()
         {
-            ;
+            Communication = null;
         }
 
         public bool Identify(StreamInfo file)
         {
+            bool result = true;
             using (var br = new BinaryReader(file.FileData, Encoding.ASCII, LeaveOpen))
-                return br.ReadUInt32() == 0x16161616;
+                result &= br.ReadUInt32() == 0x16161616;
+            using (var br = new BinaryReader(FileSystem.OpenFile("meta.bin"), Encoding.ASCII, LeaveOpen))
+                result &= br.ReadUInt32() == 0x44332211;
+
+            return result;
         }
 
         public void Load(StreamInfo filename)
         {
+            var meta = FileSystem.OpenFile("meta.bin");
+            if (!LeaveOpen)
+                meta.Close();
             Communication = new List<string>() { "string1", "string2" };
         }
 
         public void Save(StreamInfo initialFile, int versionIndex = 0)
         {
             using (var bw = new BinaryWriter(initialFile.FileData, Encoding.ASCII, LeaveOpen))
+            {
                 bw.Write(0x16161616);
+                bw.Write((short)0x3232);
+            }
+            using (var bw = new BinaryWriter(FileSystem.CreateFile("meta.bin"), Encoding.ASCII, LeaveOpen))
+            {
+                bw.Write(0x44332211);
+                bw.Write((short)0x6655);
+            }
             Communication.Add("string3");
         }
     }

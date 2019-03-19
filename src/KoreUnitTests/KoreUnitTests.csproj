@@ -59,6 +59,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="TestFiles\file.test" />
+    <None Include="TestFiles\meta.bin" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kontract\Kontract.csproj">

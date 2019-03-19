@@ -218,19 +218,19 @@ namespace Kuriimu2_WinForms
                 return;
 
             // Save files
-            var ksi = new KoreSaveInfo(kfi, _tempFolder) { Version = version, NewSaveLocation = newSaveLocation };
-            _kore.SaveFile(ksi);
+            var ksi = new KoreSaveInfo(kfi, _tempFolder) { Version = version, NewSaveFile = newSaveLocation };
+            var savedKfi = _kore.SaveFile(ksi);
 
-            if (ksi.SavedKfi.ParentKfi != null)
-                ksi.SavedKfi.ParentKfi.HasChanges = true;
+            if (savedKfi.ParentKfi != null)
+                savedKfi.ParentKfi.HasChanges = true;
 
             // Update all corresponsing tabs
             var kuriimuForm = GetTabPageForKfi(kfi).Controls[0] as IKuriimuForm;
 
-            kuriimuForm.Kfi = ksi.SavedKfi;
+            kuriimuForm.Kfi = savedKfi;
             if (kuriimuForm is IArchiveForm archiveForm)
             {
-                archiveForm.UpdateChildTabs(ksi.SavedKfi);
+                archiveForm.UpdateChildTabs(savedKfi);
                 archiveForm.UpdateParent();
             }
             kuriimuForm.UpdateForm();

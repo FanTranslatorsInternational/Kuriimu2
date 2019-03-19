@@ -137,7 +137,7 @@ namespace Kore
             }
 
             // Instantiate a new instance of the adapter
-            kli.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID);
+            //kli.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID);
 
             // Load files(s)
             kli.FileData.Position = 0;
@@ -183,15 +183,17 @@ namespace Kore
            - 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
            - 6. Reopen dependent files from parent to child
         */
-        public void SaveFile(KoreSaveInfo ksi)
+        public KoreFileInfo SaveFile(KoreSaveInfo ksi)
         {
-            SaveFile(ksi, true);
+            return SaveFile(ksi, true);
         }
 
-        private void SaveFile(KoreSaveInfo ksi, bool firstIteration)
+        private KoreFileInfo SaveFile(KoreSaveInfo ksi, bool firstIteration)
         {
             var kfi = ksi.Kfi;
             var tempFolder = ksi.TempFolder;
+            if (!string.IsNullOrEmpty(ksi.NewSaveFile) && File.GetAttributes(ksi.NewSaveFile).HasFlag(FileAttributes.Directory))
+                throw new InvalidOperationException($"{nameof(ksi.NewSaveFile)} needs to be a file path.");
             var guid = Guid.NewGuid().ToString();
 
             // Get FullPath tree
@@ -210,19 +212,23 @@ namespace Kore
             CloseFile(kfi, kfi.ParentKfi != null, firstIteration);
 
             // Replace data in parent KFI or physical folder
+            fs = new PhysicalFileSystem(Path.Combine(Path.GetFullPath(ksi.TempFolder), guid));
             if (kfi.ParentKfi != null)
                 ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootDirectory);
             else
             {
-                var newSaveDir = string.IsNullOrEmpty(ksi.NewSaveLocation) ? Path.GetDirectoryName(kfi.FullPath) : Path.GetDirectoryName(ksi.NewSaveLocation);
+                var newLocation = string.IsNullOrEmpty(ksi.NewSaveFile) ? kfi.FullPath : ksi.NewSaveFile;
+                var newSaveDir = Path.GetDirectoryName(newLocation);
 
                 ReplaceFilesInFolder(newSaveDir, fs, fs.RootDirectory);
-                UpdateFullPathTree(fullPathTree, Path.GetDirectoryName(kfi.FullPath), newSaveDir);
+                UpdateFullPathTree(fullPathTree, newSaveDir, newSaveDir);
             }
 
             // Reopen files recursively from parent to child
             if (firstIteration)
-                ksi.SavedKfi = ReopenFiles(kfi.ParentKfi != null ? kfi.ParentKfi : kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
+                return ReopenFiles(kfi.ParentKfi != null ? kfi.ParentKfi : kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
+
+            return null;
         }
 
         private FullPathNode CreateFullPathTree(KoreFileInfo kfi)
@@ -272,10 +278,11 @@ namespace Kore
                 multFileAdapter.FileSystem = fs;
             kfi.Adapter.LeaveOpen = false;
 
+            var newFilename = string.IsNullOrEmpty(ksi.NewSaveFile) ? Path.GetFileName(kfi.StreamFileInfo.FileName) : Path.GetFileName(ksi.NewSaveFile);
             var streaminfo = new StreamInfo
             {
-                FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)),
-                FileName = Path.GetFileName(kfi.StreamFileInfo.FileName)
+                FileData = fs.CreateFile(newFilename),
+                FileName = newFilename
             };
             (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
 
