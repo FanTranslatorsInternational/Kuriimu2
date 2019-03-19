@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.FileSystem
 {
+    /// <inheritdoc />
     public class FileSystemStream : Stream
     {
-        private Stream _baseStream;
+        private readonly Stream _baseStream;
 
         public override bool CanRead => _baseStream.CanRead;
 
@@ -19,7 +16,11 @@ namespace Kontract.FileSystem
 
         public override long Length => _baseStream.Length;
 
-        public override long Position { get => _baseStream.Position; set => _baseStream.Position = value; }
+        public override long Position
+        {
+            get => _baseStream.Position;
+            set => _baseStream.Position = value;
+        }
 
         public FileSystemStream(Stream input)
         {
@@ -28,17 +29,13 @@ namespace Kontract.FileSystem
 
         public override void Flush() => _baseStream.Flush();
 
-        public override int Read(byte[] buffer, int offset, int count)
-            => _baseStream.Read(buffer, offset, count);
+        public override int Read(byte[] buffer, int offset, int count) => _baseStream.Read(buffer, offset, count);
 
-        public override long Seek(long offset, SeekOrigin origin)
-            => _baseStream.Seek(offset, origin);
+        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
 
-        public override void SetLength(long value)
-            => _baseStream.SetLength(value);
+        public override void SetLength(long value) => _baseStream.SetLength(value);
 
-        public override void Write(byte[] buffer, int offset, int count)
-            => _baseStream.Write(buffer, offset, count);
+        public override void Write(byte[] buffer, int offset, int count) => _baseStream.Write(buffer, offset, count);
 
         public event EventHandler<CloseStreamEventArgs> CloseStream;
 
@@ -49,7 +46,8 @@ namespace Kontract.FileSystem
         }
     }
 
-    public class CloseStreamEventArgs
+    /// <inheritdoc />
+    public class CloseStreamEventArgs : EventArgs
     {
         public Stream BaseStream { get; }
 

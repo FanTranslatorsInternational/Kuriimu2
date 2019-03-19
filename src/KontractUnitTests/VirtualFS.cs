@@ -42,15 +42,15 @@ namespace KontractUnitTests
 
         private void FSTest(IFileSystem fs)
         {
-            Assert.IsTrue(fs.EnumerateFiles().Contains(Path.Combine(fs.RootDir, "Class6.cs")));
+            Assert.IsTrue(fs.EnumerateFiles().Contains(Path.Combine(fs.RootDirectory, "Class6.cs")));
 
             Assert.IsTrue(fs.EnumerateDirectories().Count() == 3);
-            Assert.IsTrue(fs.EnumerateDirectories().Contains(Path.Combine(fs.RootDir, "folder1")));
+            Assert.IsTrue(fs.EnumerateDirectories().Contains(Path.Combine(fs.RootDirectory, "folder1")));
 
             var fs2 = fs.GetDirectory("folder2\\subfolder1_2");
 
             Assert.IsTrue(fs2.EnumerateDirectories().Count() == 0);
-            Assert.IsTrue(fs2.EnumerateFiles().Contains(Path.Combine(fs2.RootDir, "Class4.cs")));
+            Assert.IsTrue(fs2.EnumerateFiles().Contains(Path.Combine(fs2.RootDirectory, "Class4.cs")));
 
             var file = fs2.OpenFile("Class4.cs");
 

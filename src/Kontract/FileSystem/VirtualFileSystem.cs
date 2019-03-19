@@ -4,46 +4,38 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.FileSystem
 {
     public class VirtualFileSystem : IFileSystem
     {
-        private char pathDelimiter = Path.DirectorySeparatorChar;
+        private readonly char _pathDelimiter = Path.DirectorySeparatorChar;
 
         private IArchiveAdapter _adapter;
+
         private List<ArchiveFileInfo> _files;
 
-        public string RootDir { get; private set; }
+        public string RootDirectory { get; }
 
         public bool CanCreateDirectories => false;
 
-        public bool CanCreateFiles
-        {
-            get { if (_adapter == null) return false; return _adapter is IArchiveAddFile; }
-        }
+        public bool CanCreateFiles => _adapter is IArchiveAddFile;
 
-        public bool CanDeleteDirectories
-        {
-            get { if (_adapter == null) return false; return _adapter is IArchiveDeleteFile; }
-        }
+        public bool CanDeleteDirectories => _adapter is IArchiveDeleteFile;
 
-        public bool CanDeleteFiles { get { if (_adapter == null) return false; return _adapter is IArchiveDeleteFile; } }
+        public bool CanDeleteFiles => _adapter is IArchiveDeleteFile;
 
-        private string _tempFolder;
+        private readonly string _tempFolder;
 
         public VirtualFileSystem(IArchiveAdapter adapter, string tempFolder, string root = "")
         {
-            if (string.IsNullOrEmpty(tempFolder)) throw new InvalidOperationException("Temporary Folder path was not given");
-            if (root == null) throw new ArgumentNullException("Root directory was null");
+            if (string.IsNullOrEmpty(tempFolder)) throw new InvalidOperationException("Temporary Folder path was not given.");
+            if (root == null) throw new ArgumentNullException("Root directory was null.");
 
-            _adapter = adapter ?? throw new ArgumentNullException("Adapter was null");
+            _adapter = adapter ?? throw new ArgumentNullException("Archive Adapter was null.");
             _files = adapter.Files;
 
-            RootDir = UnifyPathDelimiters(root);
+            RootDirectory = UnifyPathDelimiters(root);
             _tempFolder = Path.GetFullPath(tempFolder);
 
             if (!Directory.Exists(_tempFolder))
@@ -52,12 +44,12 @@ namespace Kontract.FileSystem
 
         public VirtualFileSystem(List<ArchiveFileInfo> files, string tempFolder, string root = "")
         {
-            if (string.IsNullOrEmpty(tempFolder)) throw new InvalidOperationException("Temporary Folder path was not given");
-            if (root == null) throw new ArgumentNullException("Root directory was null");
+            if (string.IsNullOrEmpty(tempFolder)) throw new InvalidOperationException("Temporary Folder path was not given.");
+            if (root == null) throw new ArgumentNullException("Root directory was null.");
 
             _files = files;
 
-            RootDir = UnifyPathDelimiters(root);
+            RootDirectory = UnifyPathDelimiters(root);
             _tempFolder = Path.GetFullPath(tempFolder);
 
             if (!Directory.Exists(_tempFolder))
@@ -66,44 +58,38 @@ namespace Kontract.FileSystem
 
         public IEnumerable<string> EnumerateDirectories(bool relative = false)
         {
-            if (!relative)
-            {
-                var rootParts = SplitPath(RootDir).Count();
-                var dirs = _files
-                    .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDir))
-                    .Where(x => SplitPath(x.FileName).Length >= rootParts + 2)
-                    .Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray()))
-                    .Distinct();
-
-                return dirs;
-            }
-
+            if (relative) return null;
             //TODO: Relative enumerate
-            return null;
+
+            var rootParts = SplitPath(RootDirectory).Count();
+            var dirs = _files
+                .Where(x => UnifyPathDelimiters(Path.GetDirectoryName(x.FileName)).StartsWith(RootDirectory))
+                .Where(x => SplitPath(x.FileName).Length >= rootParts + 2)
+                .Select(x => Path.Combine(SplitPath(x.FileName).Where((y, i) => i <= rootParts).ToArray()))
+                .Distinct();
+
+            return dirs;
         }
 
         public IEnumerable<string> EnumerateFiles(bool relative = false)
         {
-            if (!relative)
-            {
-                var rootParts = SplitPath(RootDir).Count();
-                var files = _files
-                    .Where(x => SplitPath(x.FileName).Count() == rootParts + 1)
-                    .Where(x => Path.GetDirectoryName(x.FileName) == RootDir)
-                    .Select(x => UnifyPathDelimiters(x.FileName));
-
-                return files;
-            }
-
+            if (relative) return null;
             //TODO: Relative enumerate
-            return null;
+
+            var rootParts = SplitPath(RootDirectory).Count();
+            var files = _files
+                .Where(x => SplitPath(x.FileName).Count() == rootParts + 1)
+                .Where(x => Path.GetDirectoryName(x.FileName) == RootDirectory)
+                .Select(x => UnifyPathDelimiters(x.FileName));
+
+            return files;
         }
 
         public IFileSystem GetDirectory(string path)
         {
-            var relativePath = ResolvePath(Path.Combine(RootDir, UnifyPathDelimiters(path)));
+            var relativePath = ResolvePath(Path.Combine(RootDirectory, UnifyPathDelimiters(path)));
 
-            if (!_files.Any(x => Path.GetDirectoryName(UnifyPathDelimiters(x.FileName)) == relativePath))
+            if (_files.All(x => Path.GetDirectoryName(UnifyPathDelimiters(x.FileName)) != relativePath))
                 throw new DirectoryNotFoundException(path);
 
             var rootParts = SplitPath(relativePath).Count();
@@ -118,7 +104,7 @@ namespace Kontract.FileSystem
 
         public Stream OpenFile(string filename)
         {
-            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDirectory, filename));
 
             // Try getting file to open
             var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
@@ -155,28 +141,22 @@ namespace Kontract.FileSystem
         //    file.Close();
         //}
 
-        private string[] SplitPath(string path)
-        {
-            return UnifyPathDelimiters(path).Split(new[] { pathDelimiter }, StringSplitOptions.RemoveEmptyEntries);
-        }
+        private string[] SplitPath(string path) => UnifyPathDelimiters(path).Split(new[] { _pathDelimiter }, StringSplitOptions.RemoveEmptyEntries);
 
-        private string UnifyPathDelimiters(string path)
-        {
-            return path.Replace(pathDelimiter == '/' ? '\\' : '/', pathDelimiter);
-        }
+        private string UnifyPathDelimiters(string path) => path.Replace(_pathDelimiter == '/' ? '\\' : '/', _pathDelimiter);
 
         private string ResolvePath(string path)
         {
-            var splitted = SplitPath(path);
+            var parts = SplitPath(path);
 
             var result = new List<string>();
-            foreach (var part in splitted)
+            foreach (var part in parts)
             {
                 switch (part)
                 {
                     case "..":
                         if (result.Count <= 0)
-                            throw new InvalidOperationException("Path out of virtual root");
+                            throw new InvalidOperationException("Path out of virtual root.");
                         else
                             result.RemoveAt(result.Count - 1);
                         break;
@@ -200,11 +180,11 @@ namespace Kontract.FileSystem
         public Stream CreateFile(string filename)
         {
             if (!CanCreateFiles)
-                throw new InvalidOperationException("Can't create files");
+                throw new InvalidOperationException("Can't create files.");
 
-            var createdFile = File.Create(Path.Combine(_tempFolder, RootDir, filename));
+            var createdFile = File.Create(Path.Combine(_tempFolder, RootDirectory, filename));
 
-            var afi = new ArchiveFileInfo { FileData = createdFile, FileName = Path.Combine(RootDir, filename), State = ArchiveFileState.Added };
+            var afi = new ArchiveFileInfo { FileData = createdFile, FileName = Path.Combine(RootDirectory, filename), State = ArchiveFileState.Added };
             (_adapter as IArchiveAddFile).AddFile(afi);
 
             return createdFile;
@@ -213,9 +193,9 @@ namespace Kontract.FileSystem
         public void DeleteFile(string filename)
         {
             if (!CanDeleteFiles)
-                throw new InvalidOperationException("Can't delete files");
+                throw new InvalidOperationException("Can't delete files.");
 
-            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDirectory, filename));
 
             // Try getting file to delete
             var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
@@ -227,7 +207,7 @@ namespace Kontract.FileSystem
 
         public bool FileExists(string filename)
         {
-            var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+            var resolvedFilepath = ResolvePath(Path.Combine(RootDirectory, filename));
 
             // Try getting file
             var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);

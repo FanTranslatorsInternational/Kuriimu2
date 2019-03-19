@@ -3,18 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.FileSystem
 {
     public class PhysicalFileSystem : IFileSystem
     {
-        private List<Stream> _openedFiles;
+        private readonly List<Stream> _openedFiles;
 
-        public string RootDir { get; private set; }
+        public string RootDirectory { get; }
 
         public bool CanCreateDirectories => CheckWritePermission();
 
@@ -26,38 +22,29 @@ namespace Kontract.FileSystem
 
         public PhysicalFileSystem(string root)
         {
-            RootDir = Path.GetFullPath(root);
+            RootDirectory = Path.GetFullPath(root);
 
-            if (!Directory.Exists(RootDir))
-                Directory.CreateDirectory(RootDir);
+            if (!Directory.Exists(RootDirectory))
+                Directory.CreateDirectory(RootDirectory);
 
             _openedFiles = new List<Stream>();
         }
 
         public IEnumerable<string> EnumerateDirectories(bool relative = false)
         {
-            if (!relative)
-                return Directory.EnumerateDirectories(RootDir);
-
-            return Directory.EnumerateDirectories(RootDir).Select(x => x.Remove(0, RootDir.Length + 1));
+            return !relative ? Directory.EnumerateDirectories(RootDirectory) : Directory.EnumerateDirectories(RootDirectory).Select(x => x.Remove(0, RootDirectory.Length + 1));
         }
 
         public IEnumerable<string> EnumerateFiles(bool relative = false)
         {
-            if (!relative)
-                return Directory.EnumerateFiles(RootDir);
-
-            return Directory.EnumerateFiles(RootDir).Select(x => x.Remove(0, RootDir.Length + 1));
+            return !relative ? Directory.EnumerateFiles(RootDirectory) : Directory.EnumerateFiles(RootDirectory).Select(x => x.Remove(0, RootDirectory.Length + 1));
         }
 
-        public IFileSystem GetDirectory(string path)
-        {
-            return new PhysicalFileSystem(Path.GetFullPath(Path.Combine(RootDir, path)));
-        }
+        public IFileSystem GetDirectory(string path) => new PhysicalFileSystem(Path.GetFullPath(Path.Combine(RootDirectory, path)));
 
         public Stream OpenFile(string filename)
         {
-            var openedFile = File.Open(Path.Combine(RootDir, filename), FileMode.Open);
+            var openedFile = File.Open(Path.Combine(RootDirectory, filename), FileMode.Open);
             var fsFileStream = new FileSystemStream(openedFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
@@ -71,7 +58,7 @@ namespace Kontract.FileSystem
             if (!CanCreateFiles)
                 throw new InvalidOperationException("Can't create files.");
 
-            var createdFile = File.Create(Path.Combine(RootDir, filename));
+            var createdFile = File.Create(Path.Combine(RootDirectory, filename));
             var fsFileStream = new FileSystemStream(createdFile);
             fsFileStream.CloseStream += FsFileStream_CloseStream;
 
@@ -85,12 +72,12 @@ namespace Kontract.FileSystem
             if (!CanDeleteFiles)
                 throw new InvalidOperationException("Can't delete files.");
 
-            File.Delete(Path.Combine(RootDir, filename));
+            File.Delete(Path.Combine(RootDirectory, filename));
         }
 
         public bool FileExists(string filename)
         {
-            return File.Exists(Path.Combine(RootDir, filename));
+            return File.Exists(Path.Combine(RootDirectory, filename));
         }
 
         public void Dispose()
@@ -103,7 +90,7 @@ namespace Kontract.FileSystem
         {
             try
             {
-                var permissions = Directory.GetAccessControl(RootDir);
+                Directory.GetAccessControl(RootDirectory);
                 return true;
             }
             catch

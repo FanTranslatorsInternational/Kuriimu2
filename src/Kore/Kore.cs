@@ -177,12 +177,12 @@ namespace Kore
         }
 
         /* - 1. Create filename tree
-2. Save all files from child to parent
-- 3. Close all KFI Streams
-- 4. Reset KFI.StreamFileInfo
-- 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
-- 6. Reopen dependant files from parent to child
-*/
+           - 2. Save all files from child to parent
+           - 3. Close all KFI Streams
+           - 4. Reset KFI.StreamFileInfo
+           - 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
+           - 6. Reopen dependent files from parent to child
+        */
         public void SaveFile(KoreSaveInfo ksi)
         {
             SaveFile(ksi, true);
@@ -211,12 +211,12 @@ namespace Kore
 
             // Replace data in parent KFI or physical folder
             if (kfi.ParentKfi != null)
-                ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootDir);
+                ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootDirectory);
             else
             {
                 var newSaveDir = string.IsNullOrEmpty(ksi.NewSaveLocation) ? Path.GetDirectoryName(kfi.FullPath) : Path.GetDirectoryName(ksi.NewSaveLocation);
 
-                ReplaceFilesInFolder(newSaveDir, fs, fs.RootDir);
+                ReplaceFilesInFolder(newSaveDir, fs, fs.RootDirectory);
                 UpdateFullPathTree(fullPathTree, Path.GetDirectoryName(kfi.FullPath), newSaveDir);
             }
 
