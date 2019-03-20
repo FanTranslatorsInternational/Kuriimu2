@@ -137,7 +137,7 @@ namespace Kore
             }
 
             // Instantiate a new instance of the adapter
-            //kli.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID);
+            kli.Adapter = PluginLoader.CreateAdapter<ILoadFiles>(PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID);
 
             // Load files(s)
             kli.FileData.Position = 0;

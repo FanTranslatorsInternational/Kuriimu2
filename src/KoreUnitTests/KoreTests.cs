@@ -45,7 +45,7 @@ namespace KoreUnitTests
             Assert.IsTrue((kfi.Adapter as ITest).Communication.Contains("string2"));
 
             var savedKfi = kore.SaveFile(new KoreSaveInfo(kfi, @"..\..\temp\"));
-            Assert.IsFalse((kfi.Adapter as ITest).Communication.Contains("string3"));
+            Assert.IsFalse((savedKfi.Adapter as ITest).Communication.Contains("string3"));
 
             var closeResult = kore.CloseFile(savedKfi);
 
@@ -77,7 +77,7 @@ namespace KoreUnitTests
             Assert.IsTrue((kfi.Adapter as ITest).Communication.Contains("string2"));
 
             var savedKfi = kore.SaveFile(new KoreSaveInfo(kfi, @"..\..\temp\") { NewSaveFile = @"..\..\TestFiles\SaveAsLocation\newmain.test" });
-            Assert.IsFalse((kfi.Adapter as ITest).Communication.Contains("string3"));
+            Assert.IsFalse((savedKfi.Adapter as ITest).Communication.Contains("string3"));
 
             var closeResult = kore.CloseFile(savedKfi);
 
@@ -86,6 +86,38 @@ namespace KoreUnitTests
             Assert.IsFalse(kore.OpenFiles.Contains(savedKfi));
             Assert.AreEqual(4, new FileInfo(_testFile).Length);
             Assert.AreEqual(4, new FileInfo(_metaFile).Length);
+        }
+
+        [TestMethod]
+        public void SaveAsSameDirectory()
+        {
+            var kore = new KoreManager(".");
+
+            var kfi = kore.LoadFile(new KoreLoadInfo(File.Open(_testFile, FileMode.Open), _testFile) { FileSystem = new PhysicalFileSystem(Path.GetFullPath(@"..\..\TestFiles\")) });
+            Assert.IsNotNull(kfi);
+            Assert.IsTrue(kfi.Adapter is ITest);
+            Assert.IsTrue((kfi.Adapter as ITest).Communication.Contains("string1"));
+            Assert.IsTrue((kfi.Adapter as ITest).Communication.Contains("string2"));
+
+            var savedKfi = kore.SaveFile(new KoreSaveInfo(kfi, @"..\..\temp\") { NewSaveFile = _testFile });
+            Assert.IsFalse((savedKfi.Adapter as ITest).Communication.Contains("string3"));
+
+            var closeResult = kore.CloseFile(savedKfi);
+
+            Assert.IsTrue(closeResult);
+            Assert.IsFalse(kore.OpenFiles.Contains(kfi));
+            Assert.IsFalse(kore.OpenFiles.Contains(savedKfi));
+            Assert.AreEqual(6, new FileInfo(_testFile).Length);
+            Assert.AreEqual(6, new FileInfo(_metaFile).Length);
+
+            var t = File.OpenRead(_testFile);
+            var m = File.OpenRead(_metaFile);
+            Assert.IsTrue(new BinaryReader(t).ReadBytes(6).SequenceEqual(new byte[] { 0x16, 0x16, 0x16, 0x16, 0x32, 0x32 }));
+            Assert.IsTrue(new BinaryReader(m).ReadBytes(6).SequenceEqual(new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66 }));
+            t.Close();
+            m.Close();
+
+            RestoreTestFile();
         }
 
         [TestMethod]
