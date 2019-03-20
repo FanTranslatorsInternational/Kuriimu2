@@ -11,9 +11,7 @@ using Kontract.Interfaces.Text;
 
 namespace WinFormsTest
 {
-    [Export(typeof(ITextAdapter))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(IIdentifyFiles))]
+    [Export(typeof(IPlugin))]
     [PluginExtensionInfo("*.text")]
     [PluginInfo("Test-Text-Id")]
     public class TestTextPlugin : ITextAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles

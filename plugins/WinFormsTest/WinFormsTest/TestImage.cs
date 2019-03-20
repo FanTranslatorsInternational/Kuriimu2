@@ -1,25 +1,21 @@
-﻿using Kanvas;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using Kanvas;
 using Kanvas.Format;
 using Kanvas.Interface;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Composition;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WinFormsTest
 {
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(IImageAdapter))]
+    [Export(typeof(IPlugin))]
     [PluginExtensionInfo("*.image")]
     [PluginInfo("Test-Image-Id")]
     public class TestImage : IIdentifyFiles, ILoadFiles, IImageAdapter
