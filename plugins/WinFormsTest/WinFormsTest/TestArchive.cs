@@ -9,10 +9,8 @@ using Kontract.Interfaces.FileSystem;
 
 namespace WinFormsTest
 {
-    [Export(typeof(IArchiveAdapter))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(IMultipleFiles))]
+    [Export(typeof(IPlugin))]
+    [Export(typeof(TestArchive))]
     [PluginExtensionInfo("*.archiveinfo")]
     [PluginInfo("Test-Archive-Id")]
     public class TestArchive : IArchiveAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles, ISaveFiles, IArchiveRenameFiles, IArchiveReplaceFiles
