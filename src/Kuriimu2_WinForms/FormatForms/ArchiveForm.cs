@@ -537,7 +537,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
         public void Save(string filename = "")
         {
-            SaveTab?.Invoke(this, new SaveTabEventArgs(Kfi) { NewSaveLocation = filename });
+            SaveTab?.Invoke(this, new SaveTabEventArgs(Kfi) { NewSaveFile = filename });
 
             UpdateParent();
             UpdateForm();

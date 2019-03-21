@@ -134,7 +134,7 @@ namespace Kuriimu2_WinForms
 
         private void TabControl_SaveTab(object sender, SaveTabEventArgs e)
         {
-            SaveFile(e.Kfi, e.NewSaveLocation, e.Version);
+            SaveFile(e.Kfi, e.NewSaveFile, e.Version);
         }
 
         private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
@@ -162,7 +162,17 @@ namespace Kuriimu2_WinForms
                 openFiles.SelectedTab = openedTabPage;
             else
             {
-                var openFile = File.Open(filename, FileMode.Open);
+                FileStream openFile = null;
+                try
+                {
+                    openFile = File.Open(filename, FileMode.Open);
+                }
+                catch (IOException ioe)
+                {
+                    MessageBox.Show($"File {filename} couldn't be opened. Is it open somehwere?", "File locked", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 var kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
                 if (kfi == null)
                 {

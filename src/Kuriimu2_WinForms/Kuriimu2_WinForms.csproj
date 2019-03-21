@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cyotek.Windows.Forms.ImageBox, Version=1.2.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CyotekImageBox.1.2.1\lib\net20\Cyotek.Windows.Forms.ImageBox.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -79,7 +82,6 @@
       <DependentUpon>TextForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\IKuriimuForm.cs" />
-    <Compile Include="KuriimuPictureBox.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="InputBox.resx">
@@ -107,6 +109,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -197,6 +200,30 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Tools\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\image-export.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\import-import.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-batch-export.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-batch-import.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-border-drop-shadow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-border-glow-shadow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-border-none.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="images\menu-border-simple.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

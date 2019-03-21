@@ -5,5 +5,23 @@
     <Setting Name="LastDirectory" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="GridColor1" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)">Silver</Value>
+    </Setting>
+    <Setting Name="GridColor2" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)">White</Value>
+    </Setting>
+    <Setting Name="ImageBorderStyle" Type="Cyotek.Windows.Forms.ImageBoxBorderStyle" Scope="User">
+      <Value Profile="(Default)">None</Value>
+    </Setting>
+    <Setting Name="ImageBorderColor" Type="System.Drawing.Color" Scope="User">
+      <Value Profile="(Default)">Black</Value>
+    </Setting>
+    <Setting Name="ThumbnailHeight" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">64</Value>
+    </Setting>
+    <Setting Name="ThumbnailWidth" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">96</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

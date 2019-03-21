@@ -33,7 +33,7 @@ namespace Kuriimu2_WinForms.Interfaces
         }
 
         public KoreFileInfo Kfi { get; }
-        public string NewSaveLocation { get; set; }
+        public string NewSaveFile { get; set; }
         public int Version { get; set; }
     }
 
