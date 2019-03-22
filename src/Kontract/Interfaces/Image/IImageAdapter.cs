@@ -25,9 +25,11 @@ namespace Kontract.Interfaces.Image
         /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.
         /// </summary>
+        /// <param name="bitmapInfo">The BitmapInfo to re-encode</param>
+        /// <param name="formatInfo">The FormatInfo to encode into</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
-        Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress);
+        Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress);
     }
 
     /// <summary>
@@ -35,6 +37,12 @@ namespace Kontract.Interfaces.Image
     /// </summary>
     public class BitmapInfo
     {
+        public BitmapInfo(Bitmap image, FormatInfo formatInfo)
+        {
+            Image = image;
+            FormatInfo = formatInfo;
+        }
+
         /// <summary>
         /// The main image data.
         /// </summary>
@@ -71,6 +79,7 @@ namespace Kontract.Interfaces.Image
         /// <summary>
         /// The image format information for encoding and decoding purposes
         /// </summary>
+        [Browsable(false)]
         public FormatInfo FormatInfo { get; set; }
     }
 
@@ -79,6 +88,12 @@ namespace Kontract.Interfaces.Image
     /// </summary>
     public class FormatInfo
     {
+        public FormatInfo(int formatIndex, string formatName)
+        {
+            FormatIndex = formatIndex;
+            FormatName = formatName;
+        }
+
         /// <summary>
         /// The unique index into a format list, specific to the adapter
         /// </summary>

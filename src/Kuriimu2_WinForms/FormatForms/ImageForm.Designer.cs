@@ -49,6 +49,9 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tlsTools = new System.Windows.Forms.ToolStrip();
             this.tslZoom = new System.Windows.Forms.ToolStripLabel();
             this.tslTool = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.tslFormat = new System.Windows.Forms.ToolStripLabel();
+            this.tsbFormat = new System.Windows.Forms.ToolStripDropDownButton();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.treBitmaps = new System.Windows.Forms.TreeView();
             this.imlBitmaps = new System.Windows.Forms.ImageList(this.components);
@@ -56,6 +59,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tlsProperties = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
+            this.pbEncoding = new Kuriimu2_WinForms.InfoProgressBar();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -193,6 +197,7 @@ namespace Kuriimu2_WinForms.FormatForms
             // splMain.Panel1
             // 
             this.splMain.Panel1.Controls.Add(this.imbPreview);
+            this.splMain.Panel1.Controls.Add(this.pbEncoding);
             this.splMain.Panel1.Controls.Add(this.tlsTools);
             // 
             // splMain.Panel2
@@ -215,7 +220,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.imbPreview.Location = new System.Drawing.Point(0, 0);
             this.imbPreview.Name = "imbPreview";
             this.imbPreview.SelectionMode = Cyotek.Windows.Forms.ImageBoxSelectionMode.Zoom;
-            this.imbPreview.Size = new System.Drawing.Size(570, 421);
+            this.imbPreview.Size = new System.Drawing.Size(570, 398);
             this.imbPreview.TabIndex = 0;
             this.imbPreview.TabStop = false;
             this.imbPreview.Zoomed += new System.EventHandler<Cyotek.Windows.Forms.ImageBoxZoomEventArgs>(this.imbPreview_Zoomed);
@@ -238,7 +243,10 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tlsTools.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.tlsTools.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tslZoom,
-            this.tslTool});
+            this.tslTool,
+            this.toolStripSeparator3,
+            this.tslFormat,
+            this.tsbFormat});
             this.tlsTools.Location = new System.Drawing.Point(0, 421);
             this.tlsTools.Name = "tlsTools";
             this.tlsTools.Size = new System.Drawing.Size(570, 25);
@@ -258,6 +266,25 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tslTool.Name = "tslTool";
             this.tslTool.Size = new System.Drawing.Size(68, 22);
             this.tslTool.Text = "Tool: Zoom";
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tslFormat
+            // 
+            this.tslFormat.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tslFormat.Name = "tslFormat";
+            this.tslFormat.Size = new System.Drawing.Size(48, 22);
+            this.tslFormat.Text = "Format:";
+            // 
+            // tsbFormat
+            // 
+            this.tsbFormat.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbFormat.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbFormat.Name = "tsbFormat";
+            this.tsbFormat.Size = new System.Drawing.Size(13, 22);
             // 
             // splProperties
             // 
@@ -330,6 +357,17 @@ namespace Kuriimu2_WinForms.FormatForms
             this.toolStripLabel1.Size = new System.Drawing.Size(60, 22);
             this.toolStripLabel1.Text = "Properties";
             // 
+            // pbEncoding
+            // 
+            this.pbEncoding.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pbEncoding.Location = new System.Drawing.Point(0, 398);
+            this.pbEncoding.Name = "pbEncoding";
+            this.pbEncoding.ProgressColor = System.Drawing.Color.ForestGreen;
+            this.pbEncoding.Size = new System.Drawing.Size(570, 23);
+            this.pbEncoding.TabIndex = 4;
+            this.pbEncoding.Text = null;
+            this.pbEncoding.TextColor = System.Drawing.Color.Black;
+            // 
             // ImageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -385,5 +423,9 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStrip tlsTools;
         private ToolStripLabel tslZoom;
         private ToolStripLabel tslTool;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripLabel tslFormat;
+        private ToolStripDropDownButton tsbFormat;
+        private InfoProgressBar pbEncoding;
     }
 }

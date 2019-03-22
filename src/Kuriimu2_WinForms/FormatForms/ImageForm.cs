@@ -29,6 +29,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private IImageAdapter _imageAdapter => (IImageAdapter)Kfi.Adapter;
         private int _selectedImageIndex = 0;
+        private BitmapInfo _selectedBitmapInfo => _imageAdapter.BitmapInfos[_selectedImageIndex];
         private Bitmap _thumbnailBackground;
 
         Dictionary<string, string> _stylesText = new Dictionary<string, string>
@@ -58,6 +59,10 @@ namespace Kuriimu2_WinForms.FormatForms
             _parentAdapter = parentAdapter;
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
+            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(x => new ToolStripMenuItem { Text = x.FormatName, Tag = x }).ToArray());
+            if (tsbFormat.DropDownItems.Count > 0)
+                foreach (var tsb in tsbFormat.DropDownItems)
+                    ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
 
             tsbImageBorderStyle.DropDownItems.AddRange(Enum.GetNames(typeof(ImageBoxBorderStyle)).Select(s => new ToolStripMenuItem { Image = (Image)Resources.ResourceManager.GetObject(_stylesImages[s]), Text = _stylesText[s], Tag = s }).ToArray());
             foreach (var tsb in tsbImageBorderStyle.DropDownItems)
@@ -66,6 +71,13 @@ namespace Kuriimu2_WinForms.FormatForms
             UpdateForm();
             UpdatePreview();
             UpdateImageList();
+        }
+
+        private void tsbFormat_Click(object sender, EventArgs e)
+        {
+            var tsb = (ToolStripMenuItem)sender;
+
+            ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
         }
 
         public KoreFileInfo Kfi { get; set; }
@@ -111,7 +123,7 @@ namespace Kuriimu2_WinForms.FormatForms
             };
 
             if (sfd.ShowDialog() == DialogResult.OK)
-                _imageAdapter.BitmapInfos[_selectedImageIndex].Image.Save(sfd.FileName, ImageFormat.Png);
+                _selectedBitmapInfo.Image.Save(sfd.FileName, ImageFormat.Png);
         }
 
         private void ImportPng()
@@ -131,18 +143,49 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             try
             {
-                _imageAdapter.BitmapInfos[_selectedImageIndex].Image = new Bitmap(filename);
-                // TODO: Use progress report on UI
-                _imageAdapter.Encode(_imageAdapter.BitmapInfos[_selectedImageIndex], new Progress<ProgressReport>());
+                _selectedBitmapInfo.Image = new Bitmap(filename);
+                ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
 
-                UpdatePreview();
-                UpdateImageList();
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private async void ImageEncode(BitmapInfo bitmapInfo, FormatInfo formatInfo)
+        {
+            if (!tsbFormat.Enabled)
+                return;
+
+            tsbFormat.Enabled = false;
+
+            pbEncoding.Maximum = 100;
+            pbEncoding.Step = 1;
+            pbEncoding.Value = 0;
+
+            var report = new Progress<ProgressReport>();
+            report.ProgressChanged += Report_ProgressChanged;
+            var result = await _imageAdapter.Encode(bitmapInfo, formatInfo, report);
+            if (!result)
+            {
+                MessageBox.Show("Encoding was not successful.", "Encoding unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tsbFormat.Enabled = true;
+                return;
+            }
+            bitmapInfo.FormatInfo = formatInfo;
+
+            UpdatePreview();
+            UpdateImageList();
+
+            tsbFormat.Enabled = true;
+        }
+
+        private void Report_ProgressChanged(object sender, ProgressReport e)
+        {
+            pbEncoding.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            pbEncoding.Value = Convert.ToInt32(e.Percentage);
         }
 
         public void UpdateParent()
@@ -161,6 +204,15 @@ namespace Kuriimu2_WinForms.FormatForms
 
             tsbSave.Enabled = _imageAdapter is ISaveFiles;
             tsbSaveAs.Enabled = _imageAdapter is ISaveFiles && Kfi.ParentKfi == null;
+
+            try
+            {
+                tsbFormat.Enabled = _imageAdapter.FormatInfos?.Any() ?? false;
+            }
+            catch
+            {
+                tsbFormat.Enabled = false;
+            }
         }
 
         private void ImageForm_Load(object sender, EventArgs e)
@@ -232,8 +284,8 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             if (_imageAdapter.BitmapInfos.Count > 0)
             {
-                imbPreview.Image = _imageAdapter.BitmapInfos[_selectedImageIndex].Image;
-                pptImageProperties.SelectedObject = _imageAdapter.BitmapInfos[_selectedImageIndex];
+                imbPreview.Image = _selectedBitmapInfo.Image;
+                pptImageProperties.SelectedObject = _selectedBitmapInfo;
             }
 
             // Grid Color 1
@@ -261,6 +313,10 @@ namespace Kuriimu2_WinForms.FormatForms
             gfx = Graphics.FromImage(ibcBitmap);
             gfx.FillRectangle(new SolidBrush(Settings.Default.ImageBorderColor), 0, 0, 16, 16);
             tsbImageBorderColor.Image = ibcBitmap;
+
+            // Format Dropdown
+            tsbFormat.Text = _selectedBitmapInfo.FormatInfo.FormatName;
+            tsbFormat.Tag = _selectedBitmapInfo.FormatInfo.FormatIndex;
         }
 
         private void GenerateThumbnailBackground()

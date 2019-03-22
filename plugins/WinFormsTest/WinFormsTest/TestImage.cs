@@ -12,6 +12,8 @@ using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
+using System.Linq;
+using System.Threading;
 
 namespace WinFormsTest
 {
@@ -26,7 +28,7 @@ namespace WinFormsTest
 
         public IList<BitmapInfo> BitmapInfos { get; private set; }
 
-        public IList<FormatInfo> FormatInfos { get; private set; }
+        public IList<FormatInfo> FormatInfos => Formats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
 
         public Dictionary<int, IImageFormat> Formats = new Dictionary<int, IImageFormat>
         {
@@ -54,7 +56,7 @@ namespace WinFormsTest
                     var data = br.ReadBytes(dataSize);
 
                     var settings = new ImageSettings { Width = width, Height = height, Format = Formats[format] };
-                    BitmapInfos.Add(new BitmapInfoInternal { Image = Common.Load(data, settings) });
+                    BitmapInfos.Add(new BitmapInfo(Common.Load(data, settings), new FormatInfo(format, Formats[format].FormatName)));
                     InternalImageInfo.Add((data, settings));
 
                     br.BaseStream.Position += 0x10 - br.BaseStream.Position % 0x10;
@@ -72,29 +74,31 @@ namespace WinFormsTest
             return true;
         }
 
-        public Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress)
+        public Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            if (bitmapInfo.Image == null || bitmapInfo.MipMapCount <= 0)
+            if (bitmapInfo.Image == null || bitmapInfo.FormatInfo.FormatIndex == formatInfo.FormatIndex)
                 return Task.Factory.StartNew(() => false);
 
             return Task.Factory.StartNew(() =>
             {
-                    var internalIndex = BitmapInfos.IndexOf(bitmapInfo);
-                    var newSettings = new ImageSettings { Width = bitmapInfo.Image.Width, Height = bitmapInfo.Image.Height, Format = Formats[(bitmapInfo as BitmapInfoInternal).FormatIndex] };
-                    var encoded = Common.Save(bitmapInfo.Image, newSettings);
-                    InternalImageInfo[internalIndex] = (encoded, newSettings);
+                progress.Report(new ProgressReport { Percentage = 0, Message = "Begin of encoding" });
 
-                    BitmapInfos[internalIndex].Image = Common.Load(encoded, newSettings);
+                Thread.Sleep(1000);
+
+                var internalIndex = BitmapInfos.IndexOf(bitmapInfo);
+                var newSettings = new ImageSettings { Width = bitmapInfo.Image.Width, Height = bitmapInfo.Image.Height, Format = Formats[formatInfo.FormatIndex] };
+                var encoded = Common.Save(bitmapInfo.Image, newSettings);
+                InternalImageInfo[internalIndex] = (encoded, newSettings);
+
+                progress.Report(new ProgressReport { Percentage = 50, Message = "Re-encoding finished" });
+                Thread.Sleep(1000);
+
+                BitmapInfos[internalIndex].Image = Common.Load(encoded, newSettings);
+
+                progress.Report(new ProgressReport { Percentage = 100, Message = "Reload of image finished" });
 
                 return true;
             });
-        }
-
-        private class BitmapInfoInternal : BitmapInfo
-        {
-            [Category("Properties")]
-            [ReadOnly(true)]
-            public int FormatIndex;
         }
     }
 }

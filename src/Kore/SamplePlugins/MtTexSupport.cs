@@ -92,13 +92,6 @@ namespace Kore.SamplePlugins
             public int Unknown3;
         }
 
-        public sealed class MTTexBitmapInfo : BitmapInfo
-        {
-            [Category("Properties")]
-            [ReadOnly(true)]
-            public string Format { get; set; }
-        }
-
         public static Dictionary<byte, IImageFormat> Formats = new Dictionary<byte, IImageFormat>
         {
             [1] = new RGBA(4, 4, 4, 4),

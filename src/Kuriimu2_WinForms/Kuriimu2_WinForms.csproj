@@ -50,6 +50,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InfoProgressBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="InputBox.cs">
       <SubType>Form</SubType>
     </Compile>

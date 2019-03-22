@@ -33,7 +33,9 @@ namespace Kore.SamplePlugins
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+        public IList<FormatInfo> FormatInfos => _format.HeaderInfo.Version == MTTEX.Version._Switchv1 ?
+            MTTEX.SwitchFormats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList()
+            : MTTEX.Formats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
 
         #endregion
 
@@ -68,11 +70,14 @@ namespace Kore.SamplePlugins
             if (File.Exists(filename))
             {
                 _format = new MTTEX(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Image = _format.Bitmaps.FirstOrDefault(), MipMaps = _format.Bitmaps.Skip(1).ToList(), Name = "0" } };
+                var formatInfo = new FormatInfo(_format.HeaderInfo.Format, _format.HeaderInfo.Version == MTTEX.Version._Switchv1 ?
+                        MTTEX.SwitchFormats[_format.HeaderInfo.Format].FormatName :
+                        MTTEX.Formats[_format.HeaderInfo.Format].FormatName);
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo(_format.Bitmaps.FirstOrDefault(), formatInfo) { MipMaps = _format.Bitmaps.Skip(1).ToList(), Name = "0" } };
             }
         }
 
-        public async Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
             // TODO: Get the Kanvas to encode the image and update the UI with it.
             return false;

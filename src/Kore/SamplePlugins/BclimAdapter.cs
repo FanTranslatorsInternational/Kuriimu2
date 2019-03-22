@@ -10,6 +10,7 @@ using Kontract.Attributes;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
+using System.Linq;
 
 namespace Kore.SamplePlugins
 {
@@ -31,7 +32,7 @@ namespace Kore.SamplePlugins
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+        public IList<FormatInfo> FormatInfos => _format.DDDSFormat.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
 
         #endregion
 
@@ -46,7 +47,7 @@ namespace Kore.SamplePlugins
                     if (br.BaseStream.Length < 0x28) return false;
 
                     br.BaseStream.Position = br.BaseStream.Length - 0x28;
-                    if (br.ReadString(4,Encoding.ASCII) != "CLIM")
+                    if (br.ReadString(4, Encoding.ASCII) != "CLIM")
                         result = false;
                 }
             }
@@ -68,11 +69,11 @@ namespace Kore.SamplePlugins
             if (File.Exists(filename))
             {
                 _format = new BCLIM(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Image = _format.Texture, Name = "0" } };
+                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo(_format.Texture, new FormatInfo(_format.TextureHeader.Format, _format.DDDSFormat[_format.TextureHeader.Format].FormatName)) { Name = "0" } };
             }
         }
 
-        public async Task<bool> Encode(BitmapInfo bitmapInfo, IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
             // TODO: Get Kanvas to encode the image and update the UI with it.
             return false;
