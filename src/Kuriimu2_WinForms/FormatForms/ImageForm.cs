@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Kuriimu2_WinForms.Interfaces;
-using Kore;
-using Kontract.Interfaces.Archive;
-using Kontract.Interfaces.Image;
-using Kuriimu2_WinForms.Properties;
-using System.Drawing.Imaging;
+using System.Drawing;
 using System.Drawing.Drawing2D;
-using Cyotek.Windows.Forms;
-using Kontract.Interfaces.Common;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using Cyotek.Windows.Forms;
 using Kontract;
+using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Image;
+using Kore;
+using Kuriimu2_WinForms.Interfaces;
+using Kuriimu2_WinForms.Properties;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
@@ -59,7 +56,7 @@ namespace Kuriimu2_WinForms.FormatForms
             _parentAdapter = parentAdapter;
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
-            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(x => new ToolStripMenuItem { Text = x.FormatName, Tag = x }).ToArray());
+            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(f => new ToolStripMenuItem { Text = f.FormatName, Tag = f }).ToArray());
             if (tsbFormat.DropDownItems.Count > 0)
                 foreach (var tsb in tsbFormat.DropDownItems)
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;

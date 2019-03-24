@@ -46,6 +46,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.imbPreview = new Cyotek.Windows.Forms.ImageBox();
             this.cmsPreview = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.pbEncoding = new Kuriimu2_WinForms.Controls.InfoProgressBar();
             this.tlsTools = new System.Windows.Forms.ToolStrip();
             this.tslZoom = new System.Windows.Forms.ToolStripLabel();
             this.tslTool = new System.Windows.Forms.ToolStripLabel();
@@ -59,7 +60,6 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tlsProperties = new System.Windows.Forms.ToolStrip();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
-            this.pbEncoding = new Kuriimu2_WinForms.InfoProgressBar();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -235,6 +235,17 @@ namespace Kuriimu2_WinForms.FormatForms
             this.cmsPreview.Name = "cmsPreview";
             this.cmsPreview.Size = new System.Drawing.Size(61, 4);
             // 
+            // pbEncoding
+            // 
+            this.pbEncoding.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pbEncoding.Location = new System.Drawing.Point(0, 398);
+            this.pbEncoding.Name = "pbEncoding";
+            this.pbEncoding.ProgressColor = System.Drawing.Color.ForestGreen;
+            this.pbEncoding.Size = new System.Drawing.Size(570, 23);
+            this.pbEncoding.TabIndex = 4;
+            this.pbEncoding.Text = null;
+            this.pbEncoding.TextColor = System.Drawing.Color.Black;
+            // 
             // tlsTools
             // 
             this.tlsTools.AutoSize = false;
@@ -264,7 +275,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tslTool.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tslTool.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslTool.Name = "tslTool";
-            this.tslTool.Size = new System.Drawing.Size(68, 22);
+            this.tslTool.Size = new System.Drawing.Size(69, 22);
             this.tslTool.Text = "Tool: Zoom";
             // 
             // toolStripSeparator3
@@ -284,7 +295,8 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tsbFormat.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbFormat.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbFormat.Name = "tsbFormat";
-            this.tsbFormat.Size = new System.Drawing.Size(13, 22);
+            this.tsbFormat.Size = new System.Drawing.Size(61, 22);
+            this.tsbFormat.Text = "Format:";
             // 
             // splProperties
             // 
@@ -357,17 +369,6 @@ namespace Kuriimu2_WinForms.FormatForms
             this.toolStripLabel1.Size = new System.Drawing.Size(60, 22);
             this.toolStripLabel1.Text = "Properties";
             // 
-            // pbEncoding
-            // 
-            this.pbEncoding.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pbEncoding.Location = new System.Drawing.Point(0, 398);
-            this.pbEncoding.Name = "pbEncoding";
-            this.pbEncoding.ProgressColor = System.Drawing.Color.ForestGreen;
-            this.pbEncoding.Size = new System.Drawing.Size(570, 23);
-            this.pbEncoding.TabIndex = 4;
-            this.pbEncoding.Text = null;
-            this.pbEncoding.TextColor = System.Drawing.Color.Black;
-            // 
             // ImageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -426,6 +427,6 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripLabel tslFormat;
         private ToolStripDropDownButton tsbFormat;
-        private InfoProgressBar pbEncoding;
+        private Controls.InfoProgressBar pbEncoding;
     }
 }

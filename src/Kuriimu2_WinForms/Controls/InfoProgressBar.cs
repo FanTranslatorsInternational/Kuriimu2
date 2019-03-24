@@ -7,9 +7,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Kuriimu2_WinForms
+namespace Kuriimu2_WinForms.Controls
 {
-    class InfoProgressBar : ProgressBar
+    /// <inheritdoc />
+    /// <summary>
+    /// </summary>
+    public class InfoProgressBar : ProgressBar
     {
         private string _text;
         private Color _textColor;
@@ -54,13 +57,20 @@ namespace Kuriimu2_WinForms
             }
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// </summary>
         public InfoProgressBar()
         {
-            SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             _textColor = Color.Black;
             _progColor = Color.ForestGreen;
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnPaint(PaintEventArgs e)
         {
             var controlRect = new Rectangle(DisplayRectangle.X, DisplayRectangle.Y, DisplayRectangle.Width - 1, DisplayRectangle.Height - 1);
