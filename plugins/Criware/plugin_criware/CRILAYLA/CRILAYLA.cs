@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using Komponent.IO;
-using System.Linq;
+using Komponent.IO.Attributes;
 
 namespace plugin_criware.CRILAYLA
 {
@@ -156,7 +156,7 @@ namespace plugin_criware.CRILAYLA
                 var destStart = dest.Position -= 0x10;
                 using (var bw = new BinaryWriterX(dest, true))
                 {
-                    bw.WriteStruct(header);
+                    bw.WriteType(header);
                     bw.BaseStream.Position += header.CompressedSize;
                     bw.Write(uncompressedData);
                 }
@@ -179,7 +179,7 @@ namespace plugin_criware.CRILAYLA
             input.Position = 0;
             using (var br = new BinaryReaderX(input, true))
             {
-                var header = br.ReadStruct<CrilaylaHeader>();
+                var header = br.ReadType<CrilaylaHeader>();
 
                 if (header.Magic != "CRILAYLA" || header.Magic == "\0\0\0\0\0\0\0\0")
                     throw new InvalidOperationException();

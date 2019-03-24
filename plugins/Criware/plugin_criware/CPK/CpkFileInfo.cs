@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Komponent.IO;
 using Kontract.Interfaces.Archive;
 
 namespace plugin_criware.CPK
@@ -54,7 +55,14 @@ namespace plugin_criware.CPK
             get
             {
                 if (Compressed && !_fileDataChanged)
-                    return _decompressedFile ?? (_decompressedFile = new MemoryStream(CRILAYLA.CRILAYLA.Decompress(_fileData)));
+                    //if (Obfuscated)
+                    //{
+                    //    var bytes = UtfTools.XorUtf(new BinaryReaderX(_fileData, true).ReadAllBytes());
+                    //    var 
+                    //    return _decompressedFile ?? (_decompressedFile = new MemoryStream(CRILAYLA.CRILAYLA.Decompress(_fileData)));
+                    //}
+                    //else
+                        return _decompressedFile ?? (_decompressedFile = new MemoryStream(CRILAYLA.CRILAYLA.Decompress(_fileData)));
 
                 return _fileData;
             }

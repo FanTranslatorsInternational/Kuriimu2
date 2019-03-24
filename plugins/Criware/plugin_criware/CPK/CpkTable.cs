@@ -75,7 +75,7 @@ namespace plugin_criware.CPK
             using (var br = new BinaryReaderX(input, true))
             {
                 // Read in the table header.
-                Header = br.ReadStruct<CpkTableHeader>();
+                Header = br.ReadType<CpkTableHeader>();
                 br.ByteOrder = ByteOrder.BigEndian;
 
                 // Handle obfuscated UTF table
@@ -87,7 +87,7 @@ namespace plugin_criware.CPK
                     _tableStream = new BinaryReaderX(new MemoryStream(UtfTools.XorUtf(br.ReadBytes(Header.PacketSize))), true, ByteOrder.BigEndian);
 
                     // Read the table info.
-                    TableInfo = _tableStream.ReadStruct<CpkTableInfo>();
+                    TableInfo = _tableStream.ReadType<CpkTableInfo>();
 
                     // Replace the stream with a new SubStream into the decrypted data.
                     _tableStream = new BinaryReaderX(new SubStream(_tableStream.BaseStream, 0x8, TableInfo.TableSize), true, ByteOrder.BigEndian);
@@ -95,7 +95,7 @@ namespace plugin_criware.CPK
                 else
                 {
                     // Read the table info.
-                    TableInfo = br.ReadStruct<CpkTableInfo>();
+                    TableInfo = br.ReadType<CpkTableInfo>();
 
                     // Create a sub stream of the entire table.
                     _tableStream = new BinaryReaderX(new SubStream(br.BaseStream, 0x18, TableInfo.TableSize), true, ByteOrder.BigEndian);
@@ -170,13 +170,13 @@ namespace plugin_criware.CPK
                 var nameOffset = 0;
 
                 // Write the main header
-                bw.WriteStruct(Header);
+                bw.WriteType(Header);
 
                 // Switch to BE
                 bw.ByteOrder = ByteOrder.BigEndian;
 
                 // Write the table info
-                bw.WriteStruct(TableInfo);
+                bw.WriteType(TableInfo);
 
                 #region Strings
 
@@ -295,7 +295,7 @@ namespace plugin_criware.CPK
         private string ReadString(int offset)
         {
             _stringStream.BaseStream.Position = offset;
-            return _stringStream.ReadString();
+            return _stringStream.ReadCStringASCII();
         }
 
         /// <summary>

@@ -160,7 +160,7 @@ namespace plugin_criware.CPK
                         cfi.SaveFile(bw.BaseStream);
 
                         // Update the sizes.
-                        cfi.Row["FileSize"].Value = (uint)cfi.CompressedLength; 
+                        cfi.Row["FileSize"].Value = (uint)cfi.CompressedLength;
                         cfi.Row["ExtractSize"].Value = (uint)cfi.FileLength;
 
                         // Align for the next file (except on the last file).
