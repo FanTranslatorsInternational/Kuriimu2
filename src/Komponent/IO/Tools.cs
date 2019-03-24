@@ -1,12 +1,10 @@
-﻿using Komponent.IO.Attributes;
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using Komponent.IO.Attributes;
 
 namespace Komponent.IO
 {
@@ -100,39 +98,31 @@ namespace Komponent.IO
 
         private static int MeasureType(Type type, MemberInfo field, string limit)
         {
-            var typeAttributes = new MemberAttributeInfo(type);
-            MemberAttributeInfo fieldAttributes = null;
-            if (field != null) fieldAttributes = new MemberAttributeInfo(field);
+            //var typeAttributes = new MemberAttributeInfo(type);
+            var fieldAttributes = field != null ? new MemberAttributeInfo(field) : null;
 
             if (fieldAttributes?.TypeChoiceAttributes.Any() ?? false)
-                throw new InvalidOperationException($"Type choice attributes are not supported for static measurement");
+                throw new InvalidOperationException("Type choice attributes are not supported for static measurement");
 
             if (type.IsPrimitive)
-            {
                 return MeasurePrimitive(type);
-            }
-            else if (type == typeof(decimal))
-            {
+
+            if (type == typeof(decimal))
                 return 16;
-            }
-            else if (type == typeof(string))
-            {
+
+            if (type == typeof(string))
                 return MeasureString(fieldAttributes);
-            }
-            else if (IsList(type))
-            {
+
+            if (IsList(type))
                 return MeasureList(type, fieldAttributes);
-            }
-            else if (type.IsClass || IsStruct(type))
-            {
+
+            if (type.IsClass || IsStruct(type))
                 return MeasureObject(type, limit);
-            }
-            else if (type.IsEnum)
-            {
+
+            if (type.IsEnum)
                 return MeasureType(type.GetEnumUnderlyingType());
-            }
-            else
-                throw new UnsupportedTypeException(type);
+
+            throw new UnsupportedTypeException(type);
         }
 
         private static int MeasurePrimitive(Type type)
@@ -169,7 +159,7 @@ namespace Komponent.IO
                 case StringEncoding.ASCII: charSize = 1; break;
                 case StringEncoding.UTF32: charSize = 4; break;
                 default:
-                    throw new InvalidOperationException($"Variable width encodings are not supported for static measurement");
+                    throw new InvalidOperationException("Variable width encodings are not supported for static measurement");
             }
 
             var length = attributes?.FixedLengthAttribute.Length ?? 0;
