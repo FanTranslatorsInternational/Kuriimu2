@@ -7,6 +7,7 @@ using Kontract.Interfaces.Common;
 
 namespace Kontract.Interfaces.Image
 {
+    /// <inheritdoc />
     /// <summary>
     /// This is the image adapter interface for creating image format plugins.
     /// </summary>
@@ -25,8 +26,8 @@ namespace Kontract.Interfaces.Image
         /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.
         /// </summary>
-        /// <param name="bitmapInfo">The BitmapInfo to re-encode</param>
-        /// <param name="formatInfo">The FormatInfo to encode into</param>
+        /// <param name="bitmapInfo">The <see cref="BitmapInfo"/> to be encoded.</param>
+        /// <param name="formatInfo">The <see cref="FormatInfo"/> to encode into.</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
         Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress);
@@ -70,7 +71,7 @@ namespace Kontract.Interfaces.Image
         public string Name { get; set; }
 
         /// <summary>
-        /// Returns the dimensions of the main iamge.
+        /// Returns the dimensions of the main image.
         /// </summary>
         [Category("Properties")]
         [Description("The dimensions of the image.")]
