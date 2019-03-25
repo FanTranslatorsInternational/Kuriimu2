@@ -71,7 +71,7 @@
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
     <Compile Include="Interfaces\Common\IPluginMetadata.cs" />
-    <Compile Include="Interfaces\Intermediate\ICipher.cs" />
+    <Compile Include="Interfaces\Intermediate\ICipherAdapter.cs" />
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />

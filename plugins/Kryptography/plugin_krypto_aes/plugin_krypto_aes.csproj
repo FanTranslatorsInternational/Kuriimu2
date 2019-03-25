@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>3b527cf3-b0d6-450f-9ef7-deb854a5fae3</ProjectGuid>
+    <ProjectGuid>{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>plugin_krypto_aes</RootNamespace>
@@ -31,24 +31,40 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System"/>
-    
-    <Reference Include="System.Core"/>
-    <Reference Include="System.Xml.Linq"/>
-    <Reference Include="System.Data.DataSetExtensions"/>
-    
-    
-    <Reference Include="Microsoft.CSharp"/>
-    
-    <Reference Include="System.Data"/>
-    
-    <Reference Include="System.Net.Http"/>
-    
-    <Reference Include="System.Xml"/>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Cbc\Aes128Cbc.cs" />
+    <Compile Include="Cbc\Aes256Cbc.cs" />
+    <Compile Include="Ecb\Aes128Ecb.cs" />
+    <Compile Include="Ecb\Aes256Ecb.cs" />
+    <Compile Include="Ctr\Aes128CtrLe.cs" />
+    <Compile Include="Ctr\Aes256CtrLe.cs" />
+    <Compile Include="Ctr\Aes128CtrBe.cs" />
+    <Compile Include="Ctr\Aes256CtrBe.cs" />
+    <Compile Include="Xts\Aes128XtsLe.cs" />
+    <Compile Include="Xts\Aes256XtsLe.cs" />
+    <Compile Include="Xts\Aes128XtsBe.cs" />
+    <Compile Include="Xts\Aes256XtsBe.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Kontract\Kontract.csproj">
+      <Project>{a43ecc92-dc90-4f79-9871-49e02a11adad}</Project>
+      <Name>Kontract</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\src\Kryptography\Kryptography.csproj">
+      <Project>{b0d44561-33f6-4bd0-8617-537df06e2aab}</Project>
+      <Name>Kryptography</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
- </Project>
+</Project>
