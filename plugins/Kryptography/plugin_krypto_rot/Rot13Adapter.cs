@@ -1,7 +1,7 @@
 ﻿using Kontract;
-using Kontract.Interfaces.Common;
+using Kontract.Attributes;
 using Kontract.Interfaces.Intermediate;
-using Kryptography.AES;
+using Kryptography;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -9,16 +9,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 
-namespace plugin_krypto_aes.Ctr
+namespace plugin_krypto_rot
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes128CtrLe : ICipherAdapter
+    [MenuStripExtension("General", "Rot13")]
+    public class Rot13Adapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "Rot13";
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
         {
@@ -54,45 +54,29 @@ namespace plugin_krypto_aes.Ctr
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 Ctr Key", 16, out var error);
-            if (key == null)
-                return Task.Factory.StartNew(() =>
-                {
-                    progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                    return false;
-                });
-
-            var ctr = OnRequestKey("AES128 Ctr IV", 16, out error);
-            if (ctr == null)
-                return Task.Factory.StartNew(() =>
-                {
-                    progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                    return false;
-                });
-
             return Task.Factory.StartNew(() =>
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CtrStream(decrypt ? input : output, key, ctr, true))
+                using (var rot = new RotStream(decrypt ? input : output, 13))
                 {
                     var buffer = new byte[0x10000];
-                    while (ecb.Position < ecb.Length)
+                    while (rot.Position < rot.Length)
                     {
-                        var length = (int)Math.Min(0x10000, ecb.Length - ecb.Position);
+                        var length = (int)Math.Min(0x10000, rot.Length - rot.Position);
 
                         if (decrypt)
                         {
-                            ecb.Read(buffer, 0, length);
+                            rot.Read(buffer, 0, length);
                             output.Write(buffer, 0, length);
                         }
                         else
                         {
                             input.Read(buffer, 0, length);
-                            ecb.Write(buffer, 0, length);
+                            rot.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Length / ecb.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)rot.Length / rot.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

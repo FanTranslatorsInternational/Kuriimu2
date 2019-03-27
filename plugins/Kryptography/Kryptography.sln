@@ -5,9 +5,13 @@ VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_aes", "plugin_krypto_aes\plugin_krypto_aes.csproj", "{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kryptography", "..\..\src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kontract", "..\..\src\Kontract\Kontract.csproj", "{A43ECC92-DC90-4F79-9871-49E02A11ADAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kryptography", "..\..\src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_rot", "plugin_krypto_rot\plugin_krypto_rot.csproj", "{1BE80D57-6E57-4790-BFE1-2E6898B51234}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_xor", "plugin_krypto_xor\plugin_krypto_xor.csproj", "{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +23,22 @@ Global
 		{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0D44561-33F6-4BD0-8617-537DF06E2AAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1BE80D57-6E57-4790-BFE1-2E6898B51234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1BE80D57-6E57-4790-BFE1-2E6898B51234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1BE80D57-6E57-4790-BFE1-2E6898B51234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1BE80D57-6E57-4790-BFE1-2E6898B51234}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

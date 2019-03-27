@@ -14,6 +14,11 @@ namespace Kontract.Interfaces.Intermediate
     public interface ICipherAdapter : IPlugin
     {
         /// <summary>
+        /// The name of the Cipher Adapter
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Encrypts a file
         /// </summary>
         /// <param name="toEncrypt"></param>

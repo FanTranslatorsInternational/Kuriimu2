@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
     <Compile Include="Attributes\FormFieldAttributes.cs" />
+    <Compile Include="Attributes\MenuStripExtensionAttribute.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Exceptions.cs" />

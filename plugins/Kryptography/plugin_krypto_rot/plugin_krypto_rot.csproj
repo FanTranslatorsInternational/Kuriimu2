@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3B527CF3-B0D6-450F-9EF7-DEB854A5FAE3}</ProjectGuid>
+    <ProjectGuid>{1BE80D57-6E57-4790-BFE1-2E6898B51234}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>plugin_krypto_aes</RootNamespace>
-    <AssemblyName>plugin_krypto_aes</AssemblyName>
+    <RootNamespace>plugin_krypto_rot</RootNamespace>
+    <AssemblyName>plugin_krypto_rot</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -42,18 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Ctr\Aes128CtrBe.cs" />
-    <Compile Include="Ctr\Aes128CtrLe.cs" />
-    <Compile Include="Ctr\Aes256CtrBe.cs" />
-    <Compile Include="Ctr\Aes256CtrLe.cs" />
-    <Compile Include="Cbc\Aes256Cbc.cs" />
-    <Compile Include="Cbc\Aes128Cbc.cs" />
-    <Compile Include="Xts\Aes128XtsBe.cs" />
-    <Compile Include="Xts\Aes128XtsLe.cs" />
-    <Compile Include="Xts\Aes256XtsBe.cs" />
-    <Compile Include="Xts\Aes256XtsLe.cs" />
-    <Compile Include="Ecb\Aes256Ecb.cs" />
-    <Compile Include="Ecb\Aes128Ecb.cs" />
+    <Compile Include="Rot13Adapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

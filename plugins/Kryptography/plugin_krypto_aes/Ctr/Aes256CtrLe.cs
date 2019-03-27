@@ -18,6 +18,8 @@ namespace plugin_krypto_aes.Ctr
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
+        public string Name => throw new NotImplementedException();
+
         private byte[] OnRequestKey(string message, int keyLength, out string error)
         {
             error = string.Empty;

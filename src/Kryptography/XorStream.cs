@@ -5,54 +5,28 @@ using System.Numerics;
 
 namespace Kryptography
 {
-    public class XorStream : KryptoStream
+    public class XorStream : Stream
     {
-        public override int BlockSize => 8;
-        public override int BlockSizeBytes => 1;
-        protected override int BlockAlign => BlockSizeBytes;
-        protected override int SectorAlign => BlockSizeBytes;
+        private Stream _baseStream;
+        private byte[] _key;
 
-        public override List<byte[]> Keys { get; protected set; }
-        public override int KeySize => Keys?[0]?.Length ?? 0;
-        public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+        public override bool CanRead => _baseStream.CanRead;
 
-        public XorStream(byte[] input, byte[] key) : base(input)
+        public override bool CanSeek => _baseStream.CanSeek;
+
+        public override bool CanWrite => _baseStream.CanWrite;
+
+        public override long Length => _baseStream.Length;
+
+        public override long Position { get => _baseStream.Position; set => Seek(value, SeekOrigin.Begin); }
+
+        public XorStream(Stream input, byte[] key)
         {
-            Initialize(key);
+            _baseStream = input;
+            _key = key;
         }
 
-        public XorStream(Stream input, byte[] key) : base(input)
-        {
-            Initialize(key);
-        }
-
-        public XorStream(byte[] input, long offset, long length, byte[] key) : base(input, offset, length)
-        {
-            Initialize(key);
-        }
-
-        public XorStream(Stream input, long offset, long length, byte[] key) : base(input, offset, length)
-        {
-            Initialize(key);
-        }
-
-        private void Initialize(byte[] key)
-        {
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-        }
-
-        protected override void Decrypt(byte[] buffer, int offset, int count)
-        {
-            XORData(buffer, offset, count, Keys[0]);
-        }
-
-        protected override void Encrypt(byte[] buffer, int offset, int count)
-        {
-            XORData(buffer, offset, count, Keys[0]);
-        }
-
-        private void XORData(byte[] buffer, int offset, int count, byte[] key)
+        private void XorData(byte[] buffer, int offset, int count, byte[] key)
         {
             var xorBuffer = new byte[count];
             FillXorBuffer(xorBuffer, _baseStream.Position, key);
@@ -87,13 +61,35 @@ namespace Kryptography
             }
         }
 
-        public override void Flush()
+        public override void Flush() => _baseStream.Flush();
+
+        public override void SetLength(long value) => _baseStream.SetLength(value);
+
+        public override long Seek(long offset, SeekOrigin origin)
         {
+            if (!CanSeek)
+                throw new NotSupportedException("Can't seek stream.");
+
+            return _baseStream.Seek(offset, origin);
         }
 
-        public override void SetLength(long value)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            if (!CanRead)
+                throw new NotSupportedException("Can't read from stream.");
+
+            _baseStream.Read(buffer, offset, count);
+            XorData(buffer, offset, count, _key);
+            return count;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (!CanWrite)
+                throw new NotSupportedException("Can't write to stream.");
+
+            XorData(buffer, offset, count, _key);
+            _baseStream.Write(buffer, offset, count);
         }
     }
 }

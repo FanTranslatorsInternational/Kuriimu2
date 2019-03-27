@@ -5,51 +5,26 @@ using System.Numerics;
 
 namespace Kryptography
 {
-    public class RotStream : KryptoStream
+    public sealed class RotStream : Stream
     {
-        public override int BlockSize => 8;
-        public override int BlockSizeBytes => 1;
-        protected override int BlockAlign => BlockSizeBytes;
-        protected override int SectorAlign => BlockSizeBytes;
+        private Stream _baseStream;
 
-        public override List<byte[]> Keys { get; protected set; }
-        public override int KeySize => Keys?[0]?.Length ?? 0;
-        public override byte[] IV { get => throw new NotImplementedException(); protected set => throw new NotImplementedException(); }
+        public override bool CanRead => _baseStream.CanRead;
 
-        public RotStream(byte[] input, byte key) : base(input)
+        public override bool CanSeek => _baseStream.CanSeek;
+
+        public override bool CanWrite => _baseStream.CanWrite;
+
+        public override long Length => _baseStream.Length;
+
+        public override long Position { get => _baseStream.Position; set => Seek(value, SeekOrigin.Begin); }
+
+        private byte _key;
+
+        public RotStream(Stream input, byte key)
         {
-            Initialize(key);
-        }
-
-        public RotStream(Stream input, byte key) : base(input)
-        {
-            Initialize(key);
-        }
-
-        public RotStream(byte[] input, long offset, long length, byte key) : base(input, offset, length)
-        {
-            Initialize(key);
-        }
-
-        public RotStream(Stream input, long offset, long length, byte key) : base(input, offset, length)
-        {
-            Initialize(key);
-        }
-
-        private void Initialize(byte key)
-        {
-            Keys = new List<byte[]>();
-            Keys.Add(new byte[] { key });
-        }
-
-        protected override void Decrypt(byte[] buffer, int offset, int count)
-        {
-            RotData(buffer, offset, count, (byte)(0xFF - Keys[0][0] + 1));
-        }
-
-        protected override void Encrypt(byte[] buffer, int offset, int count)
-        {
-            RotData(buffer, offset, count, Keys[0][0]);
+            _baseStream = input;
+            _key = key;
         }
 
         private void RotData(byte[] buffer, int offset, int count, byte rotBy)
@@ -68,39 +43,38 @@ namespace Kryptography
             }
 
             for (; j < count; ++j)
-            {
                 buffer[offset + j] += rotBy;
-            }
         }
 
-        public override void Flush()
+        public override void Flush() => _baseStream.Flush();
+
+        public override void SetLength(long value) => _baseStream.SetLength(value);
+
+        public override long Seek(long offset, SeekOrigin origin)
         {
+            if (!CanSeek)
+                throw new NotSupportedException("Can't seek stream.");
+
+            return _baseStream.Seek(offset, origin);
         }
 
-        public override void SetLength(long value)
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            if (!CanRead)
+                throw new NotSupportedException("Can't read from stream.");
+
+            _baseStream.Read(buffer, offset, count);
+            RotData(buffer, offset, count, (byte)(0x100 - _key));
+            return count;
         }
 
-        //protected override void ProcessRead(long alignedPosition, int alignedCount, byte[] decryptedData, int decOffset)
-        //{
-        //    Position = alignedPosition;
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (!CanWrite)
+                throw new NotSupportedException("Can't write to stream.");
 
-        //    var readData = new byte[alignedCount];
-        //    _stream.Read(readData, 0, alignedCount);
-
-        //    for (int i = 0; i < alignedCount; i++)
-        //        decryptedData[decOffset + i] = (byte)(readData[i] - Keys[0][0]);
-        //}
-
-        //protected override void ProcessWrite(byte[] buffer, int offset, int count, long alignedPosition)
-        //{
-        //    var encBuffer = new byte[count];
-        //    for (int i = 0; i < count; i++)
-        //        encBuffer[i] = (byte)(buffer[offset + i] + Keys[0][0]);
-
-        //    Position = alignedPosition;
-        //    _stream.Write(encBuffer, 0, count);
-        //}
+            RotData(buffer, offset, count, _key);
+            _baseStream.Write(buffer, offset, count);
+        }
     }
 }

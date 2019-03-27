@@ -18,6 +18,8 @@ namespace plugin_krypto_aes.Cbc
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
+        public string Name => "Aes128 CBC";
+
         private byte[] OnRequestKey(string message, int keyLength, out string error)
         {
             error = string.Empty;
