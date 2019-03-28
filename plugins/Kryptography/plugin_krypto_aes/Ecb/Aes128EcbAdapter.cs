@@ -10,11 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Kontract.Attributes;
 
-namespace plugin_krypto_aes.Cbc
+namespace plugin_krypto_aes.Ecb
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes256Cbc : ICipherAdapter
+    [MenuStripExtension("AES", "128", "ECB")]
+    public class Aes128EcbAdapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
@@ -54,16 +56,8 @@ namespace plugin_krypto_aes.Cbc
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 CBC Key", 32, out var error);
+            var key = OnRequestKey("AES128 ECB Key", 16, out var error);
             if (key == null)
-                return Task.Factory.StartNew(() =>
-                {
-                    progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                    return false;
-                });
-
-            var iv = OnRequestKey("AES128 CBC IV", 32, out error);
-            if (iv == null)
                 return Task.Factory.StartNew(() =>
                 {
                     progress.Report(new ProgressReport { Percentage = 0, Message = error });
@@ -74,7 +68,7 @@ namespace plugin_krypto_aes.Cbc
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CbcStream(decrypt ? input : output, key, iv))
+                using (var ecb = new EcbStream(decrypt ? input : output, key))
                 {
                     var buffer = new byte[0x10000];
                     while (ecb.Position < ecb.Length)

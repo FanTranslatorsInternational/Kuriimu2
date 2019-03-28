@@ -10,11 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Kontract.Attributes;
 
-namespace plugin_krypto_aes.Ctr
+namespace plugin_krypto_aes.Ecb
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes128CtrBe : ICipherAdapter
+    [MenuStripExtension("AES", "256", "ECB")]
+    public class Aes256EcbAdapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
@@ -54,16 +56,8 @@ namespace plugin_krypto_aes.Ctr
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 Ctr Key", 16, out var error);
+            var key = OnRequestKey("AES256 ECB Key", 32, out var error);
             if (key == null)
-                return Task.Factory.StartNew(() =>
-                {
-                    progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                    return false;
-                });
-
-            var ctr = OnRequestKey("AES128 Ctr IV", 16, out error);
-            if (ctr == null)
                 return Task.Factory.StartNew(() =>
                 {
                     progress.Report(new ProgressReport { Percentage = 0, Message = error });
@@ -74,7 +68,7 @@ namespace plugin_krypto_aes.Ctr
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CtrStream(decrypt ? input : output, key, ctr))
+                using (var ecb = new EcbStream(decrypt ? input : output, key))
                 {
                     var buffer = new byte[0x10000];
                     while (ecb.Position < ecb.Length)

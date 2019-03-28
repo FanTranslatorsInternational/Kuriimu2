@@ -10,15 +10,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Kontract.Attributes;
 
-namespace plugin_krypto_aes.Ctr
+namespace plugin_krypto_aes.Cbc
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes256CtrLe : ICipherAdapter
+    [MenuStripExtension("AES", "128", "CBC")]
+    public class Aes128CbcAdapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "Aes128 CBC";
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
         {
@@ -54,7 +56,7 @@ namespace plugin_krypto_aes.Ctr
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 Ctr Key", 32, out var error);
+            var key = OnRequestKey("AES128 CBC Key", 16, out var error);
             if (key == null)
                 return Task.Factory.StartNew(() =>
                 {
@@ -62,8 +64,8 @@ namespace plugin_krypto_aes.Ctr
                     return false;
                 });
 
-            var ctr = OnRequestKey("AES128 Ctr IV", 32, out error);
-            if (ctr == null)
+            var iv = OnRequestKey("AES128 CBC IV", 16, out error);
+            if (iv == null)
                 return Task.Factory.StartNew(() =>
                 {
                     progress.Report(new ProgressReport { Percentage = 0, Message = error });
@@ -74,7 +76,7 @@ namespace plugin_krypto_aes.Ctr
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CtrStream(decrypt ? input : output, key, ctr, true))
+                using (var ecb = new CbcStream(decrypt ? input : output, key, iv))
                 {
                     var buffer = new byte[0x10000];
                     while (ecb.Position < ecb.Length)

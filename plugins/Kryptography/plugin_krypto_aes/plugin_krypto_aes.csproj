@@ -42,18 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Ctr\Aes128CtrBe.cs" />
-    <Compile Include="Ctr\Aes128CtrLe.cs" />
-    <Compile Include="Ctr\Aes256CtrBe.cs" />
-    <Compile Include="Ctr\Aes256CtrLe.cs" />
-    <Compile Include="Cbc\Aes256Cbc.cs" />
-    <Compile Include="Cbc\Aes128Cbc.cs" />
-    <Compile Include="Xts\Aes128XtsBe.cs" />
-    <Compile Include="Xts\Aes128XtsLe.cs" />
-    <Compile Include="Xts\Aes256XtsBe.cs" />
-    <Compile Include="Xts\Aes256XtsLe.cs" />
-    <Compile Include="Ecb\Aes256Ecb.cs" />
-    <Compile Include="Ecb\Aes128Ecb.cs" />
+    <Compile Include="Ctr\Aes128CtrBeAdapter.cs" />
+    <Compile Include="Ctr\Aes128CtrLeAdapter.cs" />
+    <Compile Include="Ctr\Aes256CtrBeAdapter.cs" />
+    <Compile Include="Ctr\Aes256CtrLeAdapter.cs" />
+    <Compile Include="Cbc\Aes256CbcAdapter.cs" />
+    <Compile Include="Cbc\Aes128CbcAdapter.cs" />
+    <Compile Include="Xts\Aes128XtsBeAdapter.cs" />
+    <Compile Include="Xts\Aes128XtsLeAdapter.cs" />
+    <Compile Include="Xts\Aes256XtsBeAdapter.cs" />
+    <Compile Include="Xts\Aes256XtsLeAdapter.cs" />
+    <Compile Include="Ecb\Aes256EcbAdapter.cs" />
+    <Compile Include="Ecb\Aes128EcbAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

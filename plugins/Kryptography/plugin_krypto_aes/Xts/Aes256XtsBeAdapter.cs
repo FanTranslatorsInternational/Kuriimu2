@@ -10,11 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Kontract.Attributes;
 
 namespace plugin_krypto_aes.Ecb
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes128Ecb : ICipherAdapter
+    [MenuStripExtension("AES", "256", "XTS", "BE")]
+    public class Aes256XtsBeAdapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
@@ -54,7 +56,7 @@ namespace plugin_krypto_aes.Ecb
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 ECB Key", 16, out var error);
+            var key = OnRequestKey("AES256 XTS Key", 64, out var error);
             if (key == null)
                 return Task.Factory.StartNew(() =>
                 {
@@ -66,7 +68,7 @@ namespace plugin_krypto_aes.Ecb
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new EcbStream(decrypt ? input : output, key))
+                using (var ecb = new XtsStream(decrypt ? input : output, key, new byte[32]))
                 {
                     var buffer = new byte[0x10000];
                     while (ecb.Position < ecb.Length)

@@ -10,11 +10,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Kontract.Attributes;
 
 namespace plugin_krypto_aes.Ecb
 {
     [Export(typeof(ICipherAdapter))]
-    public class Aes128XtsBe : ICipherAdapter
+    [MenuStripExtension("AES", "128", "XTS", "LE")]
+    public class Aes128XtsLeAdapter : ICipherAdapter
     {
         public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
 
@@ -66,7 +68,7 @@ namespace plugin_krypto_aes.Ecb
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new XtsStream(decrypt ? input : output, key, new byte[16]))
+                using (var ecb = new XtsStream(decrypt ? input : output, key, new byte[16], true))
                 {
                     var buffer = new byte[0x10000];
                     while (ecb.Position < ecb.Length)
