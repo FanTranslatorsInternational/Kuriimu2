@@ -11,7 +11,10 @@ namespace Kryptography.AES
         private byte[] _key;
         private byte[] _initialIv;
         private byte[] _currentIv;
+
         private Stream _baseStream;
+        private long _internalLength;
+        private byte[] _lastBlockBuffer;
 
         private int _blockSize => _key.Length;
 
@@ -21,9 +24,9 @@ namespace Kryptography.AES
 
         public override bool CanWrite => _baseStream.CanWrite;
 
-        public override long Length => _baseStream.Length;
+        public override long Length => _internalLength;
 
-        public override long Position { get => _baseStream.Position; set => Seek(value, SeekOrigin.Begin); }
+        public override long Position { get; set; }
 
         public CbcStream(Stream input, byte[] key, byte[] iv)
         {
@@ -46,6 +49,9 @@ namespace Kryptography.AES
             _currentIv = new byte[iv.Length];
             Array.Copy(iv, _currentIv, iv.Length);
 
+            _internalLength = input.Length;
+            _lastBlockBuffer = new byte[key.Length];
+
             _aes = Aes.Create();
             _aes.Padding = PaddingMode.None;
             _aes.Mode = CipherMode.CBC;
@@ -67,25 +73,39 @@ namespace Kryptography.AES
         //    _aes.CreateEncryptor(Keys[0], iv).TransformBlock(buffer, offset, count, buffer, offset);
         //}
 
-        private void SetIvByPosition()
+        private void SetIvByPosition(long pos)
         {
-            long bkPos = _baseStream.Position;
-            _baseStream.Position = _baseStream.Position / _blockSize * _blockSize;
+            var alignedPos = pos / _blockSize * _blockSize;
 
-            if (_baseStream.Position < _blockSize)
+            if (alignedPos < _blockSize)
             {
                 Array.Copy(_initialIv, _currentIv, _blockSize);
             }
             else
             {
-                _baseStream.Position -= _blockSize;
+                long bkPos = _baseStream.Position;
+                _baseStream.Position = alignedPos - _blockSize;
                 _baseStream.Read(_currentIv, 0, _blockSize);
+                _baseStream.Position = bkPos;
             }
-
-            _baseStream.Position = bkPos;
         }
 
-        public override void Flush() => _baseStream.Flush();
+        public override void Flush()
+        {
+            Position = Length / _blockSize * _blockSize;
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
+            _baseStream.Write(_lastBlockBuffer, 0, _blockSize);
+            _baseStream.Position = bkPos;
+
+            _internalLength = _baseStream.Length;
+            Position += _blockSize;
+
+            Array.Clear(_lastBlockBuffer, 0, _blockSize);
+
+            _baseStream.Flush();
+        }
 
         public override void SetLength(long value)
         {
@@ -97,9 +117,20 @@ namespace Kryptography.AES
             if (!CanSeek)
                 throw new NotSupportedException("Can't seek stream.");
 
-            var newPos = _baseStream.Seek(offset, origin);
-            SetIvByPosition();
-            return newPos;
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
+                case SeekOrigin.Current:
+                    Position += offset;
+                    break;
+                case SeekOrigin.End:
+                    Position = Length + offset;
+                    break;
+            }
+
+            return Position;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -117,24 +148,58 @@ namespace Kryptography.AES
 
         private void InternalRead(byte[] buffer, int offset, int count)
         {
-            var origPos = Position;
             var alignedPosition = Position / _blockSize * _blockSize;
             var diffPos = Position - alignedPosition;
             var alignedCount = RoundUpToMultiple(Position + count, _blockSize) - alignedPosition;
-
-            Position = alignedPosition;
+            
+            SetIvByPosition(alignedPosition);
 
             var internalBuffer = new byte[alignedCount];
-            _baseStream.Read(internalBuffer, 0, (int)alignedCount);
+            if (alignedPosition + alignedCount >= Length)
+                Array.Copy(_lastBlockBuffer, 0, internalBuffer, alignedCount - _blockSize, _blockSize);
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = alignedPosition;
+            _baseStream.Read(internalBuffer, 0, (int)alignedCount - _blockSize);
+            _baseStream.Position = bkPos;
+
             _aes.CreateDecryptor(_key, _currentIv).TransformBlock(internalBuffer, 0, (int)alignedCount, internalBuffer, 0);
 
-            Position = origPos;
             Array.Copy(internalBuffer, diffPos, buffer, offset, count);
+            Position += count;
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            if (!CanWrite)
+                throw new NotSupportedException("Can't write to stream.");
+
+            if (Position < Length)
+                throw new InvalidOperationException($"Can't rewrite data in {nameof(CbcStream)}.");
+
+            var posLenDiff = Position - Length;
+            var alignedReadStart = Length / _blockSize * _blockSize;
+            var alignedCount = RoundUpToMultiple(Position + count, _blockSize) - alignedReadStart;
+            var readLength = Length % _blockSize;
+            
+            SetIvByPosition(alignedReadStart);
+
+            var internalBuffer = new byte[alignedCount];
+            if (readLength > 0)
+                _aes.CreateDecryptor(_key, _currentIv).TransformBlock(_lastBlockBuffer, 0, (int)readLength, internalBuffer, 0);
+
+            Array.Copy(buffer, offset, internalBuffer, Position - alignedReadStart, count);
+            _aes.CreateEncryptor(_key, _currentIv).TransformBlock(internalBuffer, 0, (int)alignedCount, internalBuffer, 0);
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = alignedReadStart;
+            _baseStream.Write(internalBuffer,0,(int)alignedCount);
+            _baseStream.Position = bkPos;
+
+            Array.Copy(internalBuffer, alignedCount - _blockSize, _lastBlockBuffer, 0, _blockSize);
+
+            Position += count;
+            _internalLength = Position;
         }
 
         private long RoundUpToMultiple(long numToRound, int multiple)

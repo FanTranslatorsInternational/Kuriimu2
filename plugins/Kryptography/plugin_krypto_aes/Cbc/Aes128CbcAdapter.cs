@@ -14,11 +14,11 @@ using Kontract.Attributes;
 
 namespace plugin_krypto_aes.Cbc
 {
-    [Export(typeof(ICipherAdapter))]
+    [Export(typeof(IPlugin))]
     [MenuStripExtension("AES", "128", "CBC")]
     public class Aes128CbcAdapter : ICipherAdapter
     {
-        public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
+        public event EventHandler<RequestKeyEventArgs> RequestKey;
 
         public string Name => "Aes128 CBC";
 

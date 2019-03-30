@@ -14,11 +14,11 @@ using Kontract.Attributes;
 
 namespace plugin_krypto_aes.Ctr
 {
-    [Export(typeof(ICipherAdapter))]
+    [Export(typeof(IPlugin))]
     [MenuStripExtension("AES", "256", "CTR", "LE")]
     public class Aes256CtrLeAdapter : ICipherAdapter
     {
-        public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
+        public event EventHandler<RequestKeyEventArgs> RequestKey;
 
         public string Name => throw new NotImplementedException();
 

@@ -1,4 +1,6 @@
 ﻿using Kontract;
+using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Intermediate;
 using Kryptography;
 using System;
@@ -11,10 +13,11 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_xor
 {
-    [Export(typeof(ICipherAdapter))]
+    [Export(typeof(IPlugin))]
+    [MenuStripExtension("General", "Rot13")]
     public class XorAdapter : ICipherAdapter
     {
-        public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
+        public event EventHandler<RequestKeyEventArgs> RequestKey;
 
         public string Name => "Xor";
 

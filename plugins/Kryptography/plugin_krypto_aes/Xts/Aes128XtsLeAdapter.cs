@@ -14,11 +14,11 @@ using Kontract.Attributes;
 
 namespace plugin_krypto_aes.Ecb
 {
-    [Export(typeof(ICipherAdapter))]
+    [Export(typeof(IPlugin))]
     [MenuStripExtension("AES", "128", "XTS", "LE")]
     public class Aes128XtsLeAdapter : ICipherAdapter
     {
-        public EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
+        public event EventHandler<RequestKeyEventArgs> RequestKey;
 
         public string Name => throw new NotImplementedException();
 

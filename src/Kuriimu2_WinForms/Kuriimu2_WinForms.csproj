@@ -53,6 +53,8 @@
     <Compile Include="Controls\InfoProgressBar.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Extensions\LinqExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="InputBox.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -87,6 +89,7 @@
     <Compile Include="Interfaces\IKuriimuForm.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ToolStripMenuBuilder.cs" />
     <EmbeddedResource Include="InputBox.resx">
       <DependentUpon>InputBox.cs</DependentUpon>
     </EmbeddedResource>

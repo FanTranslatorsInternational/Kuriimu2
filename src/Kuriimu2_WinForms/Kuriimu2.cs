@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using Kontract;
+using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Image;
+using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kuriimu2_WinForms.Extensions;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
@@ -19,6 +27,8 @@ namespace Kuriimu2_WinForms
         private Random _rand = new Random();
         private string _tempFolder = "temp";
 
+        private ToolStripMenuItem _cipherToolStrip;
+
         public Kuriimu2()
         {
             InitializeComponent();
@@ -27,6 +37,23 @@ namespace Kuriimu2_WinForms
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
+
+            LoadExtensions();
+        }
+
+        private void LoadExtensions()
+        {
+            LoadCiphers();
+        }
+
+        private void LoadCiphers()
+        {
+            var ciphers = _kore.PluginLoader.GetAdapters<ICipherAdapter>();
+            var cipherMenuBuilder = new ToolStripMenuBuilder<ICipherAdapter>(ciphers, AddCipherDelegates);
+
+            _cipherToolStrip = new ToolStripMenuItem("Ciphers");
+            cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
+            mainMenuStrip.Items.Add(_cipherToolStrip);
         }
 
         #region Events
@@ -43,6 +70,31 @@ namespace Kuriimu2_WinForms
                 }
             }
         }
+
+        #region Ciphers
+        private void Cipher_RequestKey(object sender, RequestKeyEventArgs e)
+        {
+            var input = new InputBox("Requesting data", e.RequestMessage);
+
+            while (string.IsNullOrEmpty(input.InputText) || Regex.IsMatch(input.InputText, "^[a-fA-F0-9]+$"))
+                if (input.ShowDialog() != DialogResult.OK)
+                    return;
+
+            e.Data = input.InputText.Hexlify();
+        }
+
+        private void EncItem_Click(object sender, EventArgs e)
+        {
+            var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
+            DoCipher(new Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>>(cipher.Encrypt));
+        }
+
+        private void DecItem_Click(object sender, EventArgs e)
+        {
+            var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
+            DoCipher(new Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>>(cipher.Decrypt));
+        }
+        #endregion
 
         #region Tab Item
         private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
@@ -137,6 +189,49 @@ namespace Kuriimu2_WinForms
         #endregion
 
         #region Utilities
+
+        #region Ciphers
+        private async void DoCipher(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> cipherFunc)
+        {
+            // File to open
+            var openFile = new OpenFileDialog();
+            if (openFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // File to save
+            var saveFile = new SaveFileDialog();
+            if (saveFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            _cipherToolStrip.Enabled = false;
+            var report = new Progress<ProgressReport>();
+            await cipherFunc(openFile.OpenFile(), saveFile.OpenFile(), report);
+
+            _cipherToolStrip.Enabled = true;
+        }
+
+        private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher)
+        {
+            cipher.RequestKey += Cipher_RequestKey;
+
+            var decItem = new ToolStripMenuItem("Decrypt");
+            decItem.Click += DecItem_Click;
+            decItem.Tag = cipher;
+
+            var encItem = new ToolStripMenuItem("Encrypt");
+            encItem.Click += EncItem_Click;
+            encItem.Tag = cipher;
+
+            item?.DropDownItems.Add(decItem);
+            item?.DropDownItems.Add(encItem);
+        }
+        #endregion
 
         #region Open File
         /// <summary>

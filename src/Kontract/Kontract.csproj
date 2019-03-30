@@ -73,6 +73,7 @@
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
     <Compile Include="Interfaces\Common\IPluginMetadata.cs" />
     <Compile Include="Interfaces\Intermediate\ICipherAdapter.cs" />
+    <Compile Include="Interfaces\Intermediate\IIntermediate.cs" />
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />

@@ -11,13 +11,8 @@ namespace Kontract.Interfaces.Intermediate
     /// <summary>
     /// Provides methods to decrypt or encrypt files
     /// </summary>
-    public interface ICipherAdapter : IPlugin
+    public interface ICipherAdapter : IIntermediate
     {
-        /// <summary>
-        /// The name of the Cipher Adapter
-        /// </summary>
-        string Name { get; }
-
         /// <summary>
         /// Encrypts a file
         /// </summary>
@@ -37,7 +32,7 @@ namespace Kontract.Interfaces.Intermediate
         /// <summary>
         /// Eventhandler for requesting key material
         /// </summary>
-        EventHandler<RequestKeyEventArgs> RequestKey { get; set; }
+        event EventHandler<RequestKeyEventArgs> RequestKey;
     }
 
     /// <summary>
