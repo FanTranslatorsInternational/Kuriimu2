@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Ku
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KontractUnitTests", "src\KontractUnitTests\KontractUnitTests.csproj", "{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KryptographyUnitTests", "KryptographyUnitTests\KryptographyUnitTests.csproj", "{289420A9-552B-46B2-84B6-BFA48D408951}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{289420A9-552B-46B2-84B6-BFA48D408951}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{289420A9-552B-46B2-84B6-BFA48D408951}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{289420A9-552B-46B2-84B6-BFA48D408951}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{289420A9-552B-46B2-84B6-BFA48D408951}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
