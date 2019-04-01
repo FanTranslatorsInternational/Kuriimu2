@@ -7,8 +7,8 @@ namespace Kryptography.AES
 {
     public class XtsStream : KryptoStream
     {
-        private XtsCryptoTransform _encryptor;
-        private XtsCryptoTransform _decryptor;
+        private AesXtsCryptoTransform _encryptor;
+        private AesXtsCryptoTransform _decryptor;
         private bool _littleEndianId;
 
         public override int BlockSize => 128;
@@ -46,14 +46,10 @@ namespace Kryptography.AES
             _littleEndianId = littleEndianId;
             SectorSize = sectorSize;
 
-            Keys = new List<byte[]>();
-            Keys.Add(key);
-            IV = id;
+            var xts = AesXts.Create(littleEndianId, sectorSize);
 
-            var xts = XtsContext.Create(key, id, littleEndianId, sectorSize);
-
-            _encryptor = (XtsCryptoTransform)xts.CreateEncryptor();
-            _decryptor = (XtsCryptoTransform)xts.CreateDecryptor();
+            _encryptor = (AesXtsCryptoTransform)xts.CreateEncryptor(key, id);
+            _decryptor = (AesXtsCryptoTransform)xts.CreateDecryptor(key, id);
         }
 
         protected override void Dispose(bool disposing)

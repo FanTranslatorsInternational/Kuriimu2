@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -7,15 +6,14 @@ namespace Kryptography.AES
 {
     public sealed class EcbStream : Stream
     {
-        private ICryptoTransform _decryptor;
-        private ICryptoTransform _encryptor;
-        private byte[] _key;
+        private readonly ICryptoTransform _decryptor;
+        private readonly ICryptoTransform _encryptor;
 
-        private Stream _baseStream;
+        private readonly Stream _baseStream;
         private long _internalLength;
-        private byte[] _lastBlockBuffer;
+        private readonly byte[] _lastBlockBuffer;
 
-        private int _blockSize => _key.Length;
+        private static int BlockSize => 16;
 
         public override bool CanRead => _baseStream.CanRead;
 
@@ -29,44 +27,41 @@ namespace Kryptography.AES
 
         public EcbStream(Stream input, byte[] key)
         {
-            if ((key.Length / 4 < 4 && key.Length / 4 > 8) || key.Length % 4 > 0)
+            if (key.Length / 4 < 4 || key.Length / 4 > 8 || key.Length % 4 > 0)
                 throw new InvalidOperationException("Key has invalid length.");
 
-            if (input.Length % key.Length != 0)
-                throw new InvalidOperationException("Stream needs to have a length dividable by key length");
+            if (input.Length % BlockSize != 0)
+                throw new InvalidOperationException($"Stream needs to have a length dividable by {BlockSize}");
 
             _baseStream = input;
 
-            _key = new byte[key.Length];
-            Array.Copy(key, _key, key.Length);
-
             _internalLength = input.Length;
-            _lastBlockBuffer = new byte[key.Length];
+            _lastBlockBuffer = new byte[BlockSize];
 
-            var aes = Aes.Create();
+            Aes aes = Aes.Create() ?? throw new ArgumentNullException(nameof(aes));
             aes.Padding = PaddingMode.None;
             aes.Mode = CipherMode.ECB;
 
-            _decryptor = aes.CreateDecryptor(_key, null);
-            _encryptor = aes.CreateEncryptor(_key, null);
+            _decryptor = aes.CreateDecryptor(key, new byte[0]);
+            _encryptor = aes.CreateEncryptor(key, new byte[0]);
         }
 
         public override void Flush()
         {
-            if (_internalLength % _blockSize <= 0)
+            if (_internalLength % BlockSize <= 0)
                 return;
 
-            Position = Length / _blockSize * _blockSize;
+            Position = Length / BlockSize * BlockSize;
 
             var bkPos = _baseStream.Position;
             _baseStream.Position = Position;
-            _baseStream.Write(_lastBlockBuffer, 0, _blockSize);
+            _baseStream.Write(_lastBlockBuffer, 0, BlockSize);
             _baseStream.Position = bkPos;
 
             _internalLength = _baseStream.Length;
-            Position += _blockSize;
+            Position += BlockSize;
 
-            Array.Clear(_lastBlockBuffer, 0, _blockSize);
+            Array.Clear(_lastBlockBuffer, 0, BlockSize);
 
             _baseStream.Flush();
         }
@@ -112,17 +107,17 @@ namespace Kryptography.AES
 
         private void InternalRead(byte[] buffer, int offset, int count)
         {
-            var alignedPosition = Position / _blockSize * _blockSize;
+            var alignedPosition = Position / BlockSize * BlockSize;
             var diffPos = Position - alignedPosition;
-            var alignedCount = RoundUpToMultiple(Position + count, _blockSize) - alignedPosition;
+            var alignedCount = RoundUpToMultiple(Position + count, BlockSize) - alignedPosition;
 
             var internalBuffer = new byte[alignedCount];
             if (alignedPosition + alignedCount > Length)
-                Array.Copy(_lastBlockBuffer, 0, internalBuffer, alignedCount - _blockSize, _blockSize);
+                Array.Copy(_lastBlockBuffer, 0, internalBuffer, alignedCount - BlockSize, BlockSize);
 
             var bkPos = _baseStream.Position;
             _baseStream.Position = alignedPosition;
-            _baseStream.Read(internalBuffer, 0, (int)alignedCount - (alignedPosition + alignedCount > Length ? _blockSize : 0));
+            _baseStream.Read(internalBuffer, 0, (int)alignedCount - (alignedPosition + alignedCount > Length ? BlockSize : 0));
             _baseStream.Position = bkPos;
 
             _decryptor.TransformBlock(internalBuffer, 0, (int)alignedCount, internalBuffer, 0);
@@ -136,9 +131,9 @@ namespace Kryptography.AES
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
-            var alignedLength = Length / _blockSize * _blockSize;
-            var alignedPos = Position / _blockSize * _blockSize;
-            var alignedCount = RoundUpToMultiple(Position + count, _blockSize) - Math.Min(alignedPos, alignedLength);
+            var alignedLength = Length / BlockSize * BlockSize;
+            var alignedPos = Position / BlockSize * BlockSize;
+            var alignedCount = RoundUpToMultiple(Position + count, BlockSize) - Math.Min(alignedPos, alignedLength);
 
             // Setup buffer
             var internalBuffer = new byte[alignedCount];
@@ -147,17 +142,17 @@ namespace Kryptography.AES
             var bkPos = _baseStream.Position;
             var lowPos = Math.Min(alignedLength, alignedPos);
             _baseStream.Position = lowPos;
-            bool useLastBlockBuffer = Length % _blockSize > 0 && Position + count > alignedLength;
+            bool useLastBlockBuffer = Length % BlockSize > 0 && Position + count > alignedLength;
             long readCount = 0;
             if (Position < Length)
             {
-                readCount = (Position + count <= Length) ? alignedCount - (useLastBlockBuffer ? _blockSize : 0) : alignedLength - alignedPos;
+                readCount = (Position + count <= Length) ? alignedCount - (useLastBlockBuffer ? BlockSize : 0) : alignedLength - alignedPos;
                 _baseStream.Read(internalBuffer, 0, (int)readCount);
             }
-            if (useLastBlockBuffer) Array.Copy(_lastBlockBuffer, 0, internalBuffer, readCount, _blockSize);
+            if (useLastBlockBuffer) Array.Copy(_lastBlockBuffer, 0, internalBuffer, readCount, BlockSize);
 
             // Decrypt read data
-            var decryptCount = readCount + (useLastBlockBuffer ? _blockSize : 0);
+            var decryptCount = readCount + (useLastBlockBuffer ? BlockSize : 0);
             if (decryptCount > 0) _decryptor.TransformBlock(internalBuffer, 0, (int)decryptCount, internalBuffer, 0);
 
             // Copy write data to internal buffer
@@ -168,18 +163,18 @@ namespace Kryptography.AES
 
             // Write data to stream
             _baseStream.Position = lowPos;
-            if (Position + count > Length) useLastBlockBuffer = (Position + count) % _blockSize > 0;
-            _baseStream.Write(internalBuffer, 0, (int)alignedCount - (useLastBlockBuffer ? _blockSize : 0));
+            if (Position + count > Length) useLastBlockBuffer = (Position + count) % BlockSize > 0;
+            _baseStream.Write(internalBuffer, 0, (int)alignedCount - (useLastBlockBuffer ? BlockSize : 0));
 
             // Fill last buffer, if necessary
-            if (useLastBlockBuffer) Array.Copy(internalBuffer, alignedCount - _blockSize, _lastBlockBuffer, 0, _blockSize);
+            if (useLastBlockBuffer) Array.Copy(internalBuffer, alignedCount - BlockSize, _lastBlockBuffer, 0, BlockSize);
 
             _baseStream.Position = bkPos;
             if (Position + count > Length) _internalLength = Position + count;
             Position += count;
         }
 
-        private long RoundUpToMultiple(long numToRound, int multiple)
+        private static long RoundUpToMultiple(long numToRound, int multiple)
         {
             if (multiple == 0)
                 return numToRound;

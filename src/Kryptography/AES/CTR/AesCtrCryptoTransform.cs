@@ -4,26 +4,27 @@ using System.Security.Cryptography;
 
 namespace Kryptography.AES.CTR
 {
-    public class CtrCryptoTransform : ICryptoTransform
+    public class AesCtrCryptoTransform : ICryptoTransform
     {
         public byte[] Ctr { get; set; }
 
         private ICryptoTransform _cryptor;
-        private bool _littleEndianCtr;
+        private readonly bool _littleEndianCtr;
 
         private bool _firstTransform = true;
 
-        public CtrCryptoTransform(ICryptoTransform cryptor, byte[] ctr, bool littleEndianCtr)
+        public AesCtrCryptoTransform(ICryptoTransform cryptor, byte[] ctr, bool littleEndianCtr)
         {
             Ctr = new byte[ctr.Length];
             Array.Copy(ctr, Ctr, ctr.Length);
+
             _cryptor = cryptor;
             _littleEndianCtr = littleEndianCtr;
         }
 
-        public int InputBlockSize => _cryptor.InputBlockSize;
+        public int InputBlockSize => 16;
 
-        public int OutputBlockSize => _cryptor.OutputBlockSize;
+        public int OutputBlockSize => 16;
 
         public bool CanTransformMultipleBlocks => true;
 
@@ -32,6 +33,7 @@ namespace Kryptography.AES.CTR
         public void Dispose()
         {
             _cryptor.Dispose();
+            _cryptor = null;
             Ctr = null;
         }
 
@@ -75,7 +77,7 @@ namespace Kryptography.AES.CTR
 
         private void Process(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] ctr)
         {
-            var alignedCount = RoundUpToMultiple(inputCount, InputBlockSize); // (int)Math.Ceiling((double)inputCount / InputBlockSize) * InputBlockSize;
+            var alignedCount = RoundUpToMultiple(inputCount, InputBlockSize);
 
             var encryptedCtrs = CreateXorPad(ctr, (int)alignedCount);
 
@@ -98,7 +100,7 @@ namespace Kryptography.AES.CTR
         private void XorData(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset, byte[] encryptedCtrs)
         {
             var simdLength = Vector<byte>.Count;
-            var j = 0;
+            int j;
             for (j = 0; j <= inputCount - simdLength; j += simdLength)
             {
                 var va = new Vector<byte>(inputBuffer, j + inputOffset);
