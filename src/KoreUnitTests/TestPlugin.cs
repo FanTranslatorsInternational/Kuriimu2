@@ -13,10 +13,7 @@ using Kontract.Interfaces.Archive;
 
 namespace KoreUnitTests
 {
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
-    [Export(typeof(ITest))]
+    [Export(typeof(IPlugin))]
     [PluginExtensionInfo("*.test")]
     [PluginInfo("TestTextId", "TestPlugin", "Test", "onepiecefreak", "github.com", "A test plugin for UnitTests")]
     public class TestPlugin : IIdentifyFiles, ILoadFiles, ISaveFiles, ITest, IMultipleFiles
