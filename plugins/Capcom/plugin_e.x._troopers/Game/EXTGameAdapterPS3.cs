@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using plugin_mt_framework.GFDv1;
@@ -16,8 +17,7 @@ using plugin_mt_framework.GFDv1;
 namespace plugin_e.x._troopers.Game
 {
     [Export(typeof(EXTGameAdapterPS3))]
-    [Export(typeof(IGameAdapter))]
-    [Export(typeof(IGenerateGamePreviews))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("B344166C-F1BE-49B2-9ADC-38771D0A15DA", "E.X. Troopers (PS3)", "EXTGAPS3", "IcySon55")]
     public sealed class EXTGameAdapterPS3 : IGameAdapter, IGenerateGamePreviews
     {
@@ -56,7 +56,7 @@ namespace plugin_e.x._troopers.Game
             var fontPath = Path.Combine(PluginDirectory, _ID, "jpn", "font00_jpn.gfd");
             var gfd = new GFDv1FontAdapter();
             if (File.Exists(fontPath))
-                gfd.Load(fontPath);
+                gfd.Load(new StreamInfo { FileData = File.OpenRead(fontPath), FileName = fontPath });
             return gfd;
         });
         private static GFDv1FontAdapter Font => FontInitializer.Value;
@@ -66,7 +66,7 @@ namespace plugin_e.x._troopers.Game
             var fontPath = Path.Combine(PluginDirectory, _ID, "jpn", "pad.gfd");
             var gfd = new GFDv1FontAdapter();
             if (File.Exists(fontPath))
-                gfd.Load(fontPath);
+                gfd.Load(new StreamInfo { FileData = File.OpenRead(fontPath), FileName = fontPath });
             return gfd;
         });
         private static GFDv1FontAdapter PadFont => PadFontInitializer.Value;
