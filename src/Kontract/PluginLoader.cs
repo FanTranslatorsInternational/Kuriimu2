@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,32 @@ namespace Kontract
         /// Provides access to the <see cref="PluginLoader"/> singleton instance.
         /// </summary>
         public static PluginLoader Instance => _pluginLoaderInitializer.Value;
+
+        /// <summary>
+        /// Re/Loads a plugin container for a given parent object.
+        /// </summary>
+        /// <param name="parent">The parent object to load plugins for.</param>
+        /// <param name="pluginDirectory">The directory to load plugins from</param>
+        /// <param name="types">Extra types to load plugins from.</param>
+        public static void ComposePlugins(object parent, string pluginDirectory = "plugins", params Type[] types)
+        {
+            // An aggregate catalog that combines multiple catalogs.
+            var catalog = new AggregateCatalog();
+
+            // Loads plugins from the Assembly of the given types.
+            foreach (var type in types)
+                catalog.Catalogs.Add(new AssemblyCatalog(type.Assembly));
+
+            // Loads plugins from all DLLs found in the plugin directory.
+            if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
+                catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
+
+            // Create the CompositionContainer with the parts in the catalog.
+            var container = new CompositionContainer(catalog);
+
+            // Fill the imports of this object.
+            container.ComposeParts(parent);
+        }
 
         #region Imports
 #pragma warning disable 0649, 0169
@@ -43,7 +70,7 @@ namespace Kontract
         {
             PluginFolder = Path.GetFullPath(pluginFolder);
 
-            Plugins.ComposePlugins(this, PluginFolder);
+            ComposePlugins(this, PluginFolder);
         }
 
         /// <summary>
