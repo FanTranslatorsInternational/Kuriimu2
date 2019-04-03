@@ -5,51 +5,61 @@ using System.IO;
 
 namespace Kryptography.AES
 {
-    public class XtsStream : KryptoStream
+    public class XtsStream : Stream //KryptoStream
     {
-        private AesXtsCryptoTransform _encryptor;
-        private AesXtsCryptoTransform _decryptor;
-        private bool _littleEndianId;
+        private readonly AesXtsCryptoTransform _decryptor;
+        private readonly AesXtsCryptoTransform _encryptor;
+        private readonly bool _littleEndianId;
 
-        public override int BlockSize => 128;
-        public override int BlockSizeBytes => 16;
-        public int SectorSize { get; protected set; }
-        protected override int BlockAlign => BlockSizeBytes;
-        protected override int SectorAlign => SectorSize;
+        private readonly byte[] _initialId;
+        private readonly byte[] _currentId;
+        private readonly int _sectorSize;
 
-        public override List<byte[]> Keys { get; protected set; }
-        public override int KeySize => Keys?[0]?.Length ?? 0;
-        public override byte[] IV { get; protected set; }
+        private readonly Stream _baseStream;
+        private long _internalLength;
+        private readonly byte[] _lastBlockBuffer;
 
-        public XtsStream(byte[] input, byte[] key, byte[] sectorId, bool littleEndianId = false, int sectorSize = 512) : base(input)
+        private static int BlockSize => 16;
+
+        public override bool CanRead => _baseStream.CanRead;
+
+        public override bool CanSeek => _baseStream.CanSeek;
+
+        public override bool CanWrite => _baseStream.CanWrite;
+
+        public override long Length => _internalLength;
+
+        public override long Position { get; set; }
+
+        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool littleEndianId, int sectorSize)
         {
-            Initialize(key, sectorId, littleEndianId, sectorSize);
-        }
+            if (key.Length / 4 < 4 || key.Length / 4 > 8 || key.Length % 4 > 0)
+                throw new InvalidOperationException("Key has invalid length.");
 
-        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool littleEndianId = false, int sectorSize = 512) : base(input)
-        {
-            Initialize(key, sectorId, littleEndianId, sectorSize);
-        }
+            if (sectorId.Length != BlockSize)
+                throw new InvalidOperationException("SectorId has invalid length.");
 
-        public XtsStream(byte[] input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false, int sectorSize = 512) : base(input, offset, length)
-        {
-            Initialize(key, sectorId, littleEndianId, sectorSize);
-        }
+            if (input.Length % BlockSize != 0)
+                throw new InvalidOperationException($"Stream needs to have a length dividable by {BlockSize}.");
 
-        public XtsStream(Stream input, long offset, long length, byte[] key, byte[] sectorId, bool littleEndianId = false, int sectorSize = 512) : base(input, offset, length)
-        {
-            Initialize(key, sectorId, littleEndianId, sectorSize);
-        }
+            if (sectorSize % BlockSize != 0)
+                throw new InvalidOperationException($"SectorSize needs to be dividable by {BlockSize}");
 
-        private void Initialize(byte[] key, byte[] id, bool littleEndianId, int sectorSize)
-        {
+            _baseStream = input;
+            _internalLength = _baseStream.Length;
+
+            _lastBlockBuffer = new byte[BlockSize];
             _littleEndianId = littleEndianId;
-            SectorSize = sectorSize;
+            _sectorSize = sectorSize;
+
+            _initialId = new byte[sectorId.Length];
+            Array.Copy(sectorId, _initialId, sectorId.Length);
+            _currentId = new byte[sectorId.Length];
+            Array.Copy(sectorId, _currentId, sectorId.Length);
 
             var xts = AesXts.Create(littleEndianId, sectorSize);
-
-            _encryptor = (AesXtsCryptoTransform)xts.CreateEncryptor(key, id);
-            _decryptor = (AesXtsCryptoTransform)xts.CreateDecryptor(key, id);
+            _encryptor = (AesXtsCryptoTransform)xts.CreateEncryptor(key, _initialId);
+            _decryptor = (AesXtsCryptoTransform)xts.CreateDecryptor(key, _initialId);
         }
 
         protected override void Dispose(bool disposing)
@@ -63,42 +73,182 @@ namespace Kryptography.AES
             }
         }
 
-        protected override void Decrypt(byte[] buffer, int offset, int count)
+        private void SetSectorIdByPosition(long pos)
         {
-            var iv = new byte[BlockSizeBytes];
-            GetId(iv);
+            var alignedPos = pos / _sectorSize * _sectorSize;
 
-            _decryptor.SectorId = iv;
-            _decryptor.TransformBlock(buffer, offset, count, buffer, offset);
-        }
-
-        protected override void Encrypt(byte[] buffer, int offset, int count)
-        {
-            var iv = new byte[BlockSizeBytes];
-            GetId(iv);
-
-            _encryptor.SectorId = iv;
-            _encryptor.TransformBlock(buffer, offset, count, buffer, offset);
-        }
-
-        private void GetId(byte[] id)
-        {
-            Array.Copy(IV, 0, id, 0, 0x10);
-
-            if (_baseStream.Position >= SectorSize)
+            if (alignedPos < _sectorSize)
             {
-                var count = _baseStream.Position / SectorSize;
-                id.Increment((int)count, _littleEndianId);
+                Array.Copy(_initialId, _currentId, BlockSize);
+            }
+            else
+            {
+                var toIncrement = new byte[BlockSize];
+                Array.Copy(_initialId, toIncrement, BlockSize);
+                toIncrement.Increment((int)(alignedPos / _sectorSize), _littleEndianId);
+                Array.Copy(toIncrement, _currentId, BlockSize);
             }
         }
 
         public override void Flush()
         {
+            if (_internalLength % BlockSize == 0)
+                return;
+
+            Position = Length / BlockSize * BlockSize;
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
+            _baseStream.Write(_lastBlockBuffer, 0, _lastBlockBuffer.Length);
+            _baseStream.Position = bkPos;
+
+            _internalLength = _baseStream.Length;
+            Position += BlockSize;
+
+            Array.Clear(_lastBlockBuffer, 0, _lastBlockBuffer.Length);
+
+            _baseStream.Flush();
         }
 
         public override void SetLength(long value)
         {
             throw new NotImplementedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            if (!CanSeek)
+                throw new NotSupportedException("Can't seek stream.");
+
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
+                case SeekOrigin.Current:
+                    Position += offset;
+                    break;
+                case SeekOrigin.End:
+                    Position = Length + offset;
+                    break;
+            }
+
+            return Position;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (!CanRead)
+                throw new NotSupportedException("Can't read from stream.");
+
+            if (Position + count > Length)
+                throw new InvalidOperationException("Can't read beyond stream.");
+
+            InternalRead(buffer, offset, count);
+
+            return count;
+        }
+
+        private void InternalRead(byte[] buffer, int offset, int count)
+        {
+            var alignedPosition = Position / _sectorSize * _sectorSize;
+            var diffPos = Position - alignedPosition;
+            var alignedCount = RoundUpToMultiple(Position + count, BlockSize) - alignedPosition;
+
+            SetSectorIdByPosition(alignedPosition);
+            Array.Copy(_currentId, _decryptor.SectorId, BlockSize);
+
+            var internalBuffer = new byte[alignedCount];
+            if (alignedPosition + alignedCount > Length)
+                Array.Copy(_lastBlockBuffer, 0, internalBuffer, alignedCount - BlockSize, BlockSize);
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = alignedPosition;
+            _baseStream.Read(internalBuffer, 0, (int)alignedCount - (alignedPosition + alignedCount > Length ? BlockSize : 0));
+            _baseStream.Position = bkPos;
+
+            var sectorAlignedCount = RoundUpToMultiple(alignedCount, _sectorSize);
+            var sectorBuffer = new byte[sectorAlignedCount];
+            Array.Copy(internalBuffer,sectorBuffer,alignedCount);
+            _decryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedCount, sectorBuffer, 0);
+            Array.Copy(sectorBuffer,internalBuffer,alignedCount);
+
+            Array.Copy(internalBuffer, diffPos, buffer, offset, count);
+            Position += count;
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (!CanWrite)
+                throw new NotSupportedException("Can't write to stream.");
+
+            var alignedLengthSector = Length / _sectorSize * _sectorSize;
+            var alignedLengthBlock = Length / BlockSize * BlockSize;
+            var alignedPos = Position / _sectorSize * _sectorSize;
+            var alignedCount = RoundUpToMultiple(Position + count, BlockSize) - Math.Min(alignedPos, alignedLengthSector);
+
+            // Setup buffer
+            var internalBuffer = new byte[alignedCount];
+
+            // Read existing data to buffer, if section overlaps with already written data
+            var bkPos = _baseStream.Position;
+            var lowPos = Math.Min(alignedLengthSector, alignedPos);
+            _baseStream.Position = lowPos;
+            bool useLastBlockBuffer = Length % BlockSize > 0 && Position + count > alignedLengthBlock;
+            long readCount = 0;
+            if (Position < Length)
+            {
+                readCount = (Position + count <= Length) ? alignedCount - (useLastBlockBuffer ? BlockSize : 0) : alignedLengthSector - alignedPos;
+                _baseStream.Read(internalBuffer, 0, (int)readCount);
+            }
+            if (useLastBlockBuffer) Array.Copy(_lastBlockBuffer, 0, internalBuffer, readCount, BlockSize);
+
+            // Set SectorId
+            SetSectorIdByPosition(lowPos);
+            Array.Copy(_currentId, _decryptor.SectorId, BlockSize);
+            Array.Copy(_currentId, _encryptor.SectorId, BlockSize);
+
+            // Decrypt read data
+            var decryptCount = readCount + (useLastBlockBuffer ? BlockSize : 0);
+            var sectorAlignedDecryptCount = RoundUpToMultiple(decryptCount, _sectorSize);
+            var sectorBuffer = new byte[sectorAlignedDecryptCount];
+            Array.Copy(internalBuffer,sectorBuffer,decryptCount);
+            if (decryptCount > 0) _decryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedDecryptCount, sectorBuffer, 0);
+            Array.Copy(sectorBuffer,internalBuffer, decryptCount);
+
+            // Copy write data to internal buffer
+            Array.Copy(buffer, offset, internalBuffer, Position - lowPos, count);
+
+            // Encrypt buffer
+            var sectorAlignedEncryptCount = RoundUpToMultiple(alignedCount,_sectorSize);
+            sectorBuffer = new byte[sectorAlignedEncryptCount];
+            Array.Copy(internalBuffer,sectorBuffer,alignedCount);
+            _encryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedEncryptCount, sectorBuffer, 0);
+            Array.Copy(sectorBuffer,internalBuffer,alignedCount);
+
+            // Write data to stream
+            _baseStream.Position = lowPos;
+            if (Position + count > Length) useLastBlockBuffer = (Position + count) % BlockSize > 0;
+            _baseStream.Write(internalBuffer, 0, (int)alignedCount - (useLastBlockBuffer ? BlockSize : 0));
+
+            // Fill last buffer, if necessary
+            if (useLastBlockBuffer) Array.Copy(internalBuffer, alignedCount - BlockSize, _lastBlockBuffer, 0, BlockSize);
+
+            _baseStream.Position = bkPos;
+            if (Position + count > Length) _internalLength = Position + count;
+            Position += count;
+        }
+
+        private long RoundUpToMultiple(long numToRound, int multiple)
+        {
+            if (multiple == 0)
+                return numToRound;
+
+            long remainder = numToRound % multiple;
+            if (remainder == 0)
+                return numToRound;
+
+            return numToRound + multiple - remainder;
         }
     }
 }

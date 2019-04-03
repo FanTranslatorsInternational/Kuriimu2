@@ -51,8 +51,8 @@ namespace Kryptography.AES.XTS
             Array.Copy(rgbKey, key1.Length, key2, 0, key2.Length);
 
             return new AesXtsCryptoTransform(
-                _aes.CreateEncryptor(key1, new byte[0]),
-                _aes.CreateEncryptor(key2, new byte[0]),
+                _aes.CreateDecryptor(key1, null),
+                _aes.CreateEncryptor(key2, null),
                 IV,
                 _sectorSize,
                 _littleEndianId);
@@ -73,8 +73,8 @@ namespace Kryptography.AES.XTS
             Array.Copy(rgbKey, key1.Length, key2, 0, key2.Length);
 
             return new AesXtsCryptoTransform(
-                _aes.CreateEncryptor(key1, new byte[0]),
-                _aes.CreateEncryptor(key2, new byte[0]),
+                _aes.CreateEncryptor(key1, null),
+                _aes.CreateEncryptor(key2, null),
                 IV,
                 _sectorSize,
                 _littleEndianId);
