@@ -145,7 +145,8 @@ namespace Kore
 
             try
             {
-                if (kli.Adapter is IMultipleFiles multiFileAdapter) multiFileAdapter.FileSystem = kli.FileSystem;
+                if (kli.Adapter is IMultipleFiles multiFileAdapter)
+                    multiFileAdapter.FileSystem = kli.FileSystem;
 
                 kli.Adapter.LeaveOpen = kli.LeaveOpen;
                 kli.Adapter.Load(streamInfo);
@@ -183,10 +184,7 @@ namespace Kore
            - 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
            - 6. Reopen dependent files from parent to child
         */
-        public KoreFileInfo SaveFile(KoreSaveInfo ksi)
-        {
-            return SaveFile(ksi, true);
-        }
+        public KoreFileInfo SaveFile(KoreSaveInfo ksi) => SaveFile(ksi, true);
 
         private KoreFileInfo SaveFile(KoreSaveInfo ksi, bool firstIteration)
         {
@@ -201,7 +199,7 @@ namespace Kore
             if (firstIteration)
                 fullPathTree = CreateFullPathTree(ksi.Kfi);
 
-            // Save all childs first, if existent
+            // Save all children first, if they exist
             SaveChildren(ksi);
 
             // Save data with the adapter
@@ -225,10 +223,7 @@ namespace Kore
             }
 
             // Reopen files recursively from parent to child
-            if (firstIteration)
-                return ReopenFiles(kfi.ParentKfi != null ? kfi.ParentKfi : kfi, fullPathTree, tempFolder, kfi.ParentKfi != null);
-
-            return null;
+            return firstIteration ? ReopenFiles(kfi.ParentKfi != null ? kfi.ParentKfi : kfi, fullPathTree, tempFolder, kfi.ParentKfi != null) : null;
         }
 
         private FullPathNode CreateFullPathTree(KoreFileInfo kfi)
@@ -322,8 +317,8 @@ namespace Kore
                 var relativeFileName = file.Remove(0, root.Length + 1);
                 var openedFile = physicalFS.OpenFile(relativeFileName);
 
-                if (!Directory.Exists(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName))))
-                    Directory.CreateDirectory(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName)));
+                if (!Directory.Exists(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName) ?? string.Empty)))
+                    Directory.CreateDirectory(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName) ?? string.Empty));
 
                 var createdFile = File.Create(Path.Combine(newSaveLocation, relativeFileName));
                 openedFile.CopyTo(createdFile);
