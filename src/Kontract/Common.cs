@@ -22,31 +22,8 @@ namespace Kontract
             if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
                 catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
 
-            // TODO: TEMPORARY SamplePlugin Loading
-            catalog.Catalogs.Add(new AssemblyCatalog("Kore.dll"));
-
             // Create the CompositionContainer with the parts in the catalog.
             var container = new CompositionContainer(catalog);
-
-            // Fill the imports of this object.
-            container.ComposeParts(parent);
-        }
-
-        /// <summary>
-        /// Re/Loads a plugin container for a given parent object.
-        /// </summary>
-        /// <param name="parent">The parent object to load plugins for.</param>
-        /// <param name="pluginDirectory">The directory to load plugins from</param>
-        public static void ComposePlugins(object parent, CompositionContainer container, string pluginDirectory)
-        {
-            // An aggregate catalog that combines multiple catalogs.
-            //var catalog = new AggregateCatalog();
-
-            //if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
-            //    catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
-
-            // Create the CompositionContainer with the parts in the catalog.
-            //container = new CompositionContainer(catalog);
 
             // Fill the imports of this object.
             container.ComposeParts(parent);
