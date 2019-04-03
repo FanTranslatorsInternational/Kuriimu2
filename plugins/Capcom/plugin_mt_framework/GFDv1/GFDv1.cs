@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
@@ -32,8 +33,6 @@ namespace plugin_mt_framework.GFDv1
 
         #region MT Texture Adapters
 
-        private CompositionContainer _container;
-
         [ImportMany(typeof(IMtFrameworkTextureAdapter))]
         private List<IMtFrameworkTextureAdapter> _texAdapters;
 
@@ -48,17 +47,17 @@ namespace plugin_mt_framework.GFDv1
             Textures = new List<Bitmap>();
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                Plugins.ComposePlugins(this, _container);
+                PluginLoader.ComposePlugins(this);
         }
 
-        public GFDv1(FileStream input)
+        public GFDv1(StreamInfo input)
         {
-            _sourceFile = input.Name;
+            _sourceFile = input.FileName;
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                Plugins.ComposePlugins(this, _container);
+                PluginLoader.ComposePlugins(this);
 
-            using (var br = new BinaryReaderX(input))
+            using (var br = new BinaryReaderX(input.FileData))
             {
                 // Set endianess
                 if (br.PeekString() == "\0DFG")
@@ -68,7 +67,7 @@ namespace plugin_mt_framework.GFDv1
                 }
 
                 // Header
-                Header = br.ReadStruct<FileHeader>();
+                Header = br.ReadType<FileHeader>();
                 HeaderF = br.ReadMultiple<float>(Header.FCount);
 
                 // Name
@@ -104,10 +103,12 @@ namespace plugin_mt_framework.GFDv1
                 Textures = new List<Bitmap>();
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    var streamInfo = new StreamInfo { FileData = File.OpenRead(GetTexName(_sourceFile, i)), FileName = GetTexName(_sourceFile, i) };
+                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(streamInfo));
+                    streamInfo.FileData.Position = 0;
                     if (texAdapter == null) continue;
-                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
-                    Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0]);
+                    ((ILoadFiles)texAdapter).Load(streamInfo);
+                    Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Image);
                 }
 
                 // Glyphs
@@ -131,15 +132,15 @@ namespace plugin_mt_framework.GFDv1
             }
         }
 
-        public void Save(FileStream output)
+        public void Save(StreamInfo output)
         {
-            using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
+            using (var bw = new BinaryWriterX(output.FileData, ByteOrder, BitOrder))
             {
                 // Header
                 Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD\0" : "\0DFG";
                 Header.CharacterCount = Characters.Count;
                 Header.FontTexCount = Textures.Count;
-                bw.WriteStruct(Header);
+                bw.WriteType(Header);
                 foreach (var f in HeaderF)
                     bw.Write(f);
 
@@ -177,14 +178,16 @@ namespace plugin_mt_framework.GFDv1
                 // Textures
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    var streamInfo = new StreamInfo { FileData = File.OpenRead(GetTexName(_sourceFile, i)), FileName = GetTexName(_sourceFile, i) };
+                    var texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(streamInfo));
+                    streamInfo.FileData.Position = 0;
                     if (texAdapter == null) continue;
-                    ((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
-                    ((IImageAdapter)texAdapter).BitmapInfos[0].Bitmaps[0] = Textures[i];
-                    ((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
+                    ((ILoadFiles)texAdapter).Load(streamInfo);
+                    ((IImageAdapter)texAdapter).BitmapInfos[0].Image = Textures[i];
+                    ((ISaveFiles)texAdapter).Save(new StreamInfo { FileData = File.Create(GetTexName(output.FileName, i)), FileName = GetTexName(output.FileName, i) });
                 }
 
-                _sourceFile = output.Name;
+                _sourceFile = output.FileName;
             }
         }
 

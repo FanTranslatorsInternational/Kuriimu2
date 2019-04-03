@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
@@ -13,11 +12,7 @@ using Kontract.Interfaces.Font;
 namespace plugin_mt_framework.GFDv1
 {
     [Export(typeof(GFDv1FontAdapter))]
-    [Export(typeof(IFontAdapter2))]
-    [Export(typeof(IFontRenderer))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font v1", "GFDv1", "IcySon55", "", "This is the GFDv1 font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
     public sealed class GFDv1FontAdapter : IFontAdapter2, IFontRenderer, IIdentifyFiles, ILoadFiles, ISaveFiles
@@ -67,6 +62,8 @@ namespace plugin_mt_framework.GFDv1
             get => _gfd.Header.DescentLine;
             set => _gfd.Header.DescentLine = value;
         }
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
@@ -119,13 +116,13 @@ namespace plugin_mt_framework.GFDv1
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo streamInfo)
         {
             var result = true;
 
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(streamInfo.FileData, true))
                 {
                     if (br.BaseStream.Length < 8)
                         result = false;
@@ -156,19 +153,14 @@ namespace plugin_mt_framework.GFDv1
             return result;
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-            {
-                _gfd = new GFDv1(File.OpenRead(filename));
-            }
-            else
-                throw new FileNotFoundException();
+            _gfd = new GFDv1(input);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _gfd.Save(File.Create(filename));
+            _gfd.Save(output);
         }
 
         public void Dispose()

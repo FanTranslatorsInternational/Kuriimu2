@@ -6,6 +6,7 @@ using Kanvas.Format;
 using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 using Kontract.Interfaces.Image;
 
 namespace plugin_mt_framework.TEX
@@ -95,6 +96,8 @@ namespace plugin_mt_framework.TEX
             [Category("Properties")]
             [ReadOnly(true)]
             public string Format { get; set; }
+
+            public MTTexBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
         }
 
         public static Dictionary<byte, IImageFormat> Formats = new Dictionary<byte, IImageFormat>

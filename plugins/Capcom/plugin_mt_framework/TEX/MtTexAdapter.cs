@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
@@ -12,11 +12,7 @@ using Kontract.Interfaces.Image;
 namespace plugin_mt_framework.TEX
 {
     [Export(typeof(MtTexAdapter))]
-    [Export(typeof(IImageAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ICreateFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [Export(typeof(IMtFrameworkTextureAdapter))]
     [PluginInfo("5D5B51A3-7280-4E90-B02E-E0ABD7C1F005", "MT Framework Texture", "MTTEX", "IcySon55", "", "This is the MTTEX image adapter for Kuriimu.")]
     [PluginExtensionInfo("*.tex")]
@@ -30,15 +26,19 @@ namespace plugin_mt_framework.TEX
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
+        public bool LeaveOpen { get; set; }
+
+        public IList<FormatInfo> FormatInfos => null;
+
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             var result = true;
 
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                 {
                     var magic = br.ReadString(4);
                     if (magic != "TEX\0" && magic != "\0XET")
@@ -58,24 +58,20 @@ namespace plugin_mt_framework.TEX
             //_format = new MTTEX();
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-            {
-                _format = new MTTEX(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo { Bitmaps = _format.Bitmaps, Name = "0" } };
-            }
+            _format = new MTTEX(input.FileData);
+            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Bitmaps.First(), new FormatInfo(0, "This doesn't work.") ) { Name = "0", MipMaps = _format.Bitmaps.Skip(1).ToList() } };
         }
 
-        public async Task<bool> Encode(IProgress<ProgressReport> progress)
+        public Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            // TODO: Get the Kanvas to encode the image and update the UI with it.
-            return false;
+            throw new NotImplementedException();
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _format.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }
