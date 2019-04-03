@@ -93,6 +93,7 @@
     <Compile Include="Dialogs\ViewModels\OpenTypeViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\PropertyEditorViewModel.cs" />
     <Compile Include="Dialogs\Common\Common.cs" />
+    <Compile Include="Interfaces\IArchiveEditor.cs" />
     <Compile Include="Interfaces\IFileEditor.cs" />
     <Compile Include="Interfaces\ITextEditor.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

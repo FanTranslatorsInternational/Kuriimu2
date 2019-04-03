@@ -21,7 +21,7 @@ using Image = System.Drawing.Image;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor2ViewModel : Screen, IFileEditor, ITextEditor
+    public sealed class TextEditor2ViewModel : Screen, ITextEditor
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
@@ -33,7 +33,7 @@ namespace Kuriimu2.ViewModels
 
         private TextEntry _selectedEntry;
 
-        public KoreFileInfo KoreFile { get; }
+        public KoreFileInfo KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; private set; }
 
         public bool OriginalTextReadOnly => true;
@@ -99,7 +99,7 @@ namespace Kuriimu2.ViewModels
                 // TODO: Implement game adapter persistence
 
                 // Entries
-                _gameAdapterInstance.Adapter.Filename = KoreFile.FileInfo.Name;
+                _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
                 if (_adapter != null)
                     _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
                 Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
@@ -193,36 +193,36 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public void Save(string filename = "")
-        {
-            try
-            {
-                // ;_;
-                //var entries = _gameAdapter.SaveEntries().ToList();
-                //for (var i = 0; i < entries.Count; i++)
-                //{
-                //    _adapter.Entries[i].EditedText = entries[i].EditedText;
-                //}
+        //public void Save(string filename = "")
+        //{
+        //    try
+        //    {
+        //        // ;_;
+        //        //var entries = _gameAdapter.SaveEntries().ToList();
+        //        //for (var i = 0; i < entries.Count; i++)
+        //        //{
+        //        //    _adapter.Entries[i].EditedText = entries[i].EditedText;
+        //        //}
 
-                // settle...
-                foreach (var entry in _gameAdapterInstance.Adapter.SaveEntries())
-                    _adapter.Entries.First(e => e.Name == entry.Name).EditedText = entry.EditedText;
+        //        // settle...
+        //        foreach (var entry in _gameAdapterInstance.Adapter.SaveEntries())
+        //            _adapter.Entries.First(e => e.Name == entry.Name).EditedText = entry.EditedText;
 
-                if (filename == string.Empty)
-                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
-                else
-                {
-                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
-                    KoreFile.FileInfo = new FileInfo(filename);
-                }
-                KoreFile.HasChanges = false;
-                NotifyOfPropertyChange(DisplayName);
-            }
-            catch (Exception)
-            {
-                // Handle on UI gracefully somehow~
-            }
-        }
+        //        if (filename == string.Empty)
+        //            ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.StreamFileInfo.FileName);
+        //        else
+        //        {
+        //            ((ISaveFiles)KoreFile.Adapter).Save(filename);
+        //            KoreFile.FileInfo = new FileInfo(filename);
+        //        }
+        //        KoreFile.HasChanges = false;
+        //        NotifyOfPropertyChange(DisplayName);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Handle on UI gracefully somehow~
+        //    }
+        //}
 
         public override void TryClose(bool? dialogResult = null)
         {

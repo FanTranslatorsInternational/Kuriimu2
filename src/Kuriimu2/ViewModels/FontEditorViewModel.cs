@@ -28,7 +28,7 @@ namespace Kuriimu2.ViewModels
         private FontCharacter _selectedCharacter;
         private ImageSource _selectedTexture;
 
-        public KoreFileInfo KoreFile { get; }
+        public KoreFileInfo KoreFile { get; set; }
         public ObservableCollection<FontCharacter> Characters { get; private set; }
 
         public FontCharacter SelectedCharacter
@@ -250,8 +250,8 @@ namespace Kuriimu2.ViewModels
         {
             try
             {
-                var dir = KoreFile.FileInfo.Directory.FullName;
-                var name = Path.GetFileNameWithoutExtension(KoreFile.FileInfo.Name);
+                var dir = Path.GetDirectoryName(KoreFile.StreamFileInfo.FileName);
+                var name = Path.GetFileNameWithoutExtension(KoreFile.StreamFileInfo.FileName);
 
                 for (var index = 0; index < _adapter.Textures.Count; index++)
                 {
@@ -296,26 +296,6 @@ namespace Kuriimu2.ViewModels
         }
 
         #endregion
-
-        public void Save(string filename = "")
-        {
-            try
-            {
-                if (filename == string.Empty)
-                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
-                else
-                {
-                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
-                    KoreFile.FileInfo = new FileInfo(filename);
-                }
-                KoreFile.HasChanges = false;
-                NotifyOfPropertyChange(() => DisplayName);
-            }
-            catch (Exception)
-            {
-                // Handle on UI gracefully somehow~
-            }
-        }
 
         public override void TryClose(bool? dialogResult = null)
         {

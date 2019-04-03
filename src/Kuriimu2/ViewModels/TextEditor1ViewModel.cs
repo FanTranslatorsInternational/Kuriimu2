@@ -11,11 +11,11 @@ using Kuriimu2.Interfaces;
 
 namespace Kuriimu2.ViewModels
 {
-    public sealed class TextEditor1ViewModel : Screen, IFileEditor, ITextEditor
+    public sealed class TextEditor1ViewModel : Screen, ITextEditor
     {
         private ITextAdapter _adapter;
 
-        public KoreFileInfo KoreFile { get; }
+        public KoreFileInfo KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; }
 
         private TextEntry _selectedEntry;
@@ -27,7 +27,7 @@ namespace Kuriimu2.ViewModels
 
             DisplayName = KoreFile.DisplayName;
             _adapter = KoreFile.Adapter as ITextAdapter;
-            
+
             if (_adapter != null)
                 Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
 
@@ -65,24 +65,33 @@ namespace Kuriimu2.ViewModels
             //NotifyOfPropertyChange(nameof(Entries));
         }
 
-        public void Save(string filename = "")
-        {
-            try
-            {
-                if (filename == string.Empty)
-                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
-                else
-                {
-                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
-                    KoreFile.FileInfo = new FileInfo(filename);
-                }
-                KoreFile.HasChanges = false;
-                NotifyOfPropertyChange(DisplayName);
-            }
-            catch (Exception)
-            {
-                // Handle on UI gracefully somehow~
-            }
-        }
+        //public void Save(KoreManager kore, string filename = "")
+        //{
+        //    try
+        //    {
+        //        if (!KoreFile.HasChanges && filename == string.Empty)
+        //            return;
+
+        //        var ksi = new KoreSaveInfo(KoreFile, "temp") { NewSaveFile = filename };
+        //        var savedKfi = kore.SaveFile(ksi);
+
+        //        if (savedKfi.ParentKfi != null)
+        //            savedKfi.ParentKfi.HasChanges = true;
+
+        //        //if (filename == string.Empty)
+        //        //    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.StreamFileInfo.FileName);
+        //        //else
+        //        //{
+        //        //    ((ISaveFiles)KoreFile.Adapter).Save(filename);
+        //        //    KoreFile.FileInfo = new FileInfo(filename);
+        //        //}
+        //        KoreFile.HasChanges = false;
+        //        NotifyOfPropertyChange(DisplayName);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Handle on UI gracefully somehow~
+        //    }
+        //}
     }
 }

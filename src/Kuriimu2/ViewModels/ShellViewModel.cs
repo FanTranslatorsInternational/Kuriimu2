@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
@@ -24,14 +24,13 @@ namespace Kuriimu2.ViewModels
 
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private Kore.KoreManager _kore;
+        private KoreManager _kore = new KoreManager();
 
         #endregion
 
         public ShellViewModel()
         {
             DisplayName = "Kuriimu2";
-            _kore = new Kore.KoreManager();
 
             // Load passed-in file
             if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))
@@ -47,20 +46,20 @@ namespace Kuriimu2.ViewModels
                 await LoadFile(file);
         }
 
-        public async void OpenTypeButton()
-        {
-            var pe = new OpenTypeViewModel(_kore)
-            {
-                Title = $"Open File by Type",
-                Message = ""
-            };
-            _windows.Add(pe);
+        //public async void OpenTypeButton()
+        //{
+        //    var pe = new OpenTypeViewModel(_kore)
+        //    {
+        //        Title = "Open File by Type",
+        //        Message = ""
+        //    };
+        //    _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
-            {
-                await LoadFile(pe.SelectedFilePath, pe.SelectedFormatType);
-            }
-        }
+        //    if (_wm.ShowDialog(pe) == true)
+        //    {
+        //        await LoadFile(pe.SelectedFilePath, pe.SelectedFormatType);
+        //    }
+        //}
 
         public async void FileDrop(DragEventArgs e)
         {
@@ -87,14 +86,10 @@ namespace Kuriimu2.ViewModels
             {
                 filter = editor.KoreFile.Filter;
 
-                var sfd = new SaveFileDialog { FileName = editor.KoreFile.FileInfo.Name, Filter = filter };
+                var sfd = new SaveFileDialog { FileName = editor.KoreFile.StreamFileInfo.FileName, Filter = filter };
                 if (sfd.ShowDialog() != true) return;
 
                 SaveFile(sfd.FileName);
-            }
-            else
-            {
-
             }
         }
 
@@ -114,12 +109,12 @@ namespace Kuriimu2.ViewModels
 
             var sfd = new SaveFileDialog
             {
-                FileName = editor.KoreFile.FileInfo.Name + Kore.Utilities.Common.GetAdapterExtension<KupAdapter>(),
-                Filter = Kore.Utilities.Common.GetAdapterFilter<KupAdapter>()
+                FileName = editor.KoreFile.StreamFileInfo.FileName + Common.GetAdapterExtension<KupAdapter>(),
+                Filter = Common.GetAdapterFilter<KupAdapter>()
             };
             if (sfd.ShowDialog() != true) return;
 
-            Kore.Utilities.Text.ExportKup(adapter, sfd.FileName);
+            Text.ExportKup(adapter, sfd.FileName);
         }
 
         public void TextEditorImportFile()
@@ -165,7 +160,7 @@ namespace Kuriimu2.ViewModels
 
             try
             {
-                await Task.Run(() => { kfi = _kore.LoadFile(filename, true); });
+                await Task.Run(() => { kfi = _kore.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename)); });
             }
             catch (LoadFileException ex)
             {
@@ -175,21 +170,21 @@ namespace Kuriimu2.ViewModels
             ActivateTab(kfi);
         }
 
-        private async Task LoadFile(string filename, ILoadFiles adapter)
-        {
-            KoreFileInfo kfi = null;
+        //private async Task LoadFile(string filename, ILoadFiles adapter)
+        //{
+        //    KoreFileInfo kfi = null;
 
-            try
-            {
-                await Task.Run(() => { kfi = _kore.LoadFile(filename, adapter); });
-            }
-            catch (LoadFileException ex)
-            {
-                MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+        //    try
+        //    {
+        //        await Task.Run(() => { kfi = _kore.LoadFile(filename, adapter); });
+        //    }
+        //    catch (LoadFileException ex)
+        //    {
+        //        MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
 
-            ActivateTab(kfi);
-        }
+        //    ActivateTab(kfi);
+        //}
 
         private void ActivateTab(KoreFileInfo kfi)
         {
@@ -209,9 +204,41 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        /// <summary>
+        /// The global save method that handles the various editor types.
+        /// </summary>
+        /// <param name="filename">The target file name to save as.</param>
         private void SaveFile(string filename = "")
         {
-            (ActiveItem as IFileEditor)?.Save(filename);
+            var currentTab = ActiveItem as IFileEditor;
+            try
+            {
+                if (currentTab == null)
+                    return;
+
+                if (!currentTab.KoreFile.HasChanges && filename == string.Empty)
+                    return;
+
+                var ksi = new KoreSaveInfo(currentTab.KoreFile, "temp") { NewSaveFile = filename };
+                var savedKfi = _kore.SaveFile(ksi);
+
+                if (savedKfi.ParentKfi != null)
+                    savedKfi.ParentKfi.HasChanges = true;
+
+                currentTab.KoreFile = savedKfi;
+
+                // Handle archive editors.
+                // TODO: Port the win forms code for this behaviour to WPF MVVM
+                if (ActiveItem is IArchiveEditor archiveEditor)
+                {
+                    //archiveEditor.UpdateChildTabs(savedKfi);
+                    //archiveEditor.UpdateParent();
+                }
+            }
+            catch (Exception ex)
+            {
+                // ignored
+            }
         }
 
         #endregion

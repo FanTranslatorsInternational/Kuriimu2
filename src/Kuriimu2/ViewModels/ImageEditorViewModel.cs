@@ -36,7 +36,7 @@ namespace Kuriimu2.ViewModels
         private int _progressValue;
         private int _selectedZoomLevel;
 
-        public KoreFileInfo KoreFile { get; }
+        public KoreFileInfo KoreFile { get; set; }
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
 
         public BitmapEntry SelectedBitmap
@@ -199,13 +199,13 @@ namespace Kuriimu2.ViewModels
             var sfd = new SaveFileDialog
             {
                 Title = "Export PNG",
-                FileName = KoreFile.FileInfo.Name + ".png",
+                FileName = KoreFile.StreamFileInfo.FileName + ".png",
                 Filter = "Portable Network Graphics (*.png)|*.png"
             };
 
             if ((bool)sfd.ShowDialog())
             {
-                SelectedBitmap.BitmapInfo.Bitmaps.First().Save(sfd.FileName, ImageFormat.Png);
+                SelectedBitmap.BitmapInfo.Image.Save(sfd.FileName, ImageFormat.Png);
             }
         }
 
@@ -241,25 +241,25 @@ namespace Kuriimu2.ViewModels
 
         #endregion
 
-        public void Save(string filename = "")
-        {
-            try
-            {
-                if (filename == string.Empty)
-                    ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
-                else
-                {
-                    ((ISaveFiles)KoreFile.Adapter).Save(filename);
-                    KoreFile.FileInfo = new FileInfo(filename);
-                }
-                KoreFile.HasChanges = false;
-                NotifyOfPropertyChange(() => DisplayName);
-            }
-            catch (Exception)
-            {
-                // Handle on UI gracefully somehow~
-            }
-        }
+        //public void Save(string filename = "")
+        //{
+        //    try
+        //    {
+        //        if (filename == string.Empty)
+        //            ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
+        //        else
+        //        {
+        //            ((ISaveFiles)KoreFile.Adapter).Save(filename);
+        //            KoreFile.FileInfo = new FileInfo(filename);
+        //        }
+        //        KoreFile.HasChanges = false;
+        //        NotifyOfPropertyChange(() => DisplayName);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // Handle on UI gracefully somehow~
+        //    }
+        //}
 
         public override void TryClose(bool? dialogResult = null)
         {
@@ -279,25 +279,25 @@ namespace Kuriimu2.ViewModels
 
         public string Name => BitmapInfo?.Name;
 
-        public BitmapImage ImageOne => BitmapInfo?.Bitmaps.FirstOrDefault()?.ToBitmapImage(true);
+        public BitmapImage ImageOne => BitmapInfo?.Image.ToBitmapImage(true);
 
-        public BitmapImage ImageTwo => BitmapInfo?.Bitmaps.Skip(1).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageTwoVisible => BitmapInfo?.Bitmaps.Count > 1 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageTwo => BitmapInfo?.MipMaps.Skip(0).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageTwoVisible => BitmapInfo?.MipMaps.Count > 0 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageThree => BitmapInfo?.Bitmaps.Skip(2).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageThreeVisible => BitmapInfo?.Bitmaps.Count > 2 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageThree => BitmapInfo?.MipMaps.Skip(1).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageThreeVisible => BitmapInfo?.MipMaps.Count > 1 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageFour => BitmapInfo?.Bitmaps.Skip(3).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageFourVisible => BitmapInfo?.Bitmaps.Count > 3 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageFour => BitmapInfo?.MipMaps.Skip(2).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageFourVisible => BitmapInfo?.MipMaps.Count > 2 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageFive => BitmapInfo?.Bitmaps.Skip(4).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageFiveVisible => BitmapInfo?.Bitmaps.Count > 4 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageFive => BitmapInfo?.MipMaps.Skip(3).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageFiveVisible => BitmapInfo?.MipMaps.Count > 3 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageSix => BitmapInfo?.Bitmaps.Skip(5).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageSixVisible => BitmapInfo?.Bitmaps.Count > 5 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageSix => BitmapInfo?.MipMaps.Skip(4).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageSixVisible => BitmapInfo?.MipMaps.Count > 4 ? Visibility.Visible : Visibility.Hidden;
 
-        public BitmapImage ImageSeven => BitmapInfo?.Bitmaps.Skip(6).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageSevenVisible => BitmapInfo?.Bitmaps.Count > 6 ? Visibility.Visible : Visibility.Hidden;
+        public BitmapImage ImageSeven => BitmapInfo?.MipMaps.Skip(5).FirstOrDefault()?.ToBitmapImage(true);
+        public Visibility ImageSevenVisible => BitmapInfo?.MipMaps.Count > 5 ? Visibility.Visible : Visibility.Hidden;
 
         public BitmapEntry(BitmapInfo bitmapInfo)
         {
