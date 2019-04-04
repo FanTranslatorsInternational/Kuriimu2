@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
@@ -10,36 +9,32 @@ using Kontract.Interfaces.Text;
 namespace plugin_valkyria_chronicles.MXEN
 {
     [Export(typeof(MxenAdapter))]
-    [Export(typeof(ITextAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("66812C1F-BDB6-44A5-819D-4FAD9B991A65", "VC-MXEN Data", "MXEN", "IcySon55", "", "This is the MXE text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.mxe")]
     public sealed class MxenAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
-        private MXEN _mxen;
+        private MXEN _format;
 
         #region Properties
 
-        public IEnumerable<TextEntry> Entries => _mxen?.Entries;
+        public IEnumerable<TextEntry> Entries => _format?.Entries;
 
         public string NameFilter => @".*";
+
         public int NameMaxLength => 0;
 
-        public string LineEndings
-        {
-            get => "\n";
-            set => throw new NotImplementedException();
-        }
+        public string LineEndings { get; set; } = "\n";
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString() == "MXEN";
             }
             catch (Exception)
@@ -48,15 +43,14 @@ namespace plugin_valkyria_chronicles.MXEN
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-                _mxen = new MXEN(File.OpenRead(filename));
+            _format = new MXEN(input.FileData);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _mxen.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }

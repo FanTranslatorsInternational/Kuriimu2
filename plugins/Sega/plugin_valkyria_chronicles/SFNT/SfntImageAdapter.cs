@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
@@ -14,9 +12,7 @@ using Kontract.Interfaces.Image;
 namespace plugin_valkyria_chronicles.SFNT
 {
     [Export(typeof(SfntImageAdapter))]
-    [Export(typeof(IImageAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("A294C965-6BC5-4EC5-8814-D4305115B73A", "VC-SFNT Font Image", "SFNT", "IcySon55", "", "This is the SFNT image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.bf1")]
     public sealed class SfntImageAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles
@@ -29,13 +25,17 @@ namespace plugin_valkyria_chronicles.SFNT
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
+        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+
+        public bool LeaveOpen { get; set; }
+
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString() == "SFNT";
             }
             catch (Exception)
@@ -44,24 +44,15 @@ namespace plugin_valkyria_chronicles.SFNT
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-            {
-                _format = new SFNT(File.OpenRead(filename));
-                _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo { Bitmaps = new List<Bitmap> { i }, Name = $"{index}" }).ToList();
-            }
+            _format = new SFNT(input.FileData);
+            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo(i, new FormatInfo(0, "")) { Name = $"{index}" }).ToList();
         }
 
-        public async Task<bool> Encode(IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            // TODO: Get Kanvas to encode the image and update the UI with it.
-            return false;
-        }
-
-        public void Save(string filename, int versionIndex = 0)
-        {
-            _format.Save(File.Create(filename));
+            throw new NotImplementedException();
         }
 
         public void Dispose() { }

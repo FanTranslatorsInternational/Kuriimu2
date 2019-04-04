@@ -30,13 +30,13 @@ namespace plugin_valkyria_chronicles.HTEX
             using (var br = new BinaryReaderX(input))
             {
                 // Packet Header
-                _packetHeader = br.ReadStruct<PacketHeaderX>();
+                _packetHeader = br.ReadType<PacketHeaderX>();
 
                 // HTSF Packet Header
-                _htsfPacketHeader = br.ReadStruct<PacketHeaderX>();
+                _htsfPacketHeader = br.ReadType<PacketHeaderX>();
 
                 // HTSF Header
-                _htsfHeader = br.ReadStruct<HtsfHeader>();
+                _htsfHeader = br.ReadType<HtsfHeader>();
 
                 var bytes = br.ReadBytes(_htsfPacketHeader.DataSize - Common.PacketHeaderXSize);
                 ImageStream = new MemoryStream(bytes);
@@ -45,8 +45,8 @@ namespace plugin_valkyria_chronicles.HTEX
                 //    File.WriteAllBytes(Path.ChangeExtension(stream.Name, "gim"), bytes);
 
                 // Footers
-                _htsfFooter = br.ReadStruct<PacketHeaderX>();
-                _htexFooter = br.ReadStruct<PacketHeaderX>();
+                _htsfFooter = br.ReadType<PacketHeaderX>();
+                _htexFooter = br.ReadType<PacketHeaderX>();
             }
         }
 
@@ -66,20 +66,20 @@ namespace plugin_valkyria_chronicles.HTEX
 
                 // Footers
                 _htsfPacketHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
-                bw.WriteStruct(_htsfFooter);
+                bw.WriteType(_htsfFooter);
 
                 _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
-                bw.WriteStruct(_htexFooter);
+                bw.WriteType(_htexFooter);
 
                 // Write Packet Header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(_packetHeader);
+                bw.WriteType(_packetHeader);
 
                 // Write HTSF Packet Header
-                bw.WriteStruct(_htsfPacketHeader);
+                bw.WriteType(_htsfPacketHeader);
 
                 // Write HTSF Header
-                bw.WriteStruct(_htsfHeader);
+                bw.WriteType(_htsfHeader);
             }
         }
     }

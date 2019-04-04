@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
@@ -13,10 +12,7 @@ using Kontract.Interfaces.Font;
 namespace plugin_valkyria_chronicles.SFNT
 {
     [Export(typeof(SfntFontAdapter))]
-    [Export(typeof(IFontAdapter2))]
-    [Export(typeof(IFontRenderer))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("E18AD60F-A8C0-4A6E-A903-C165AFE417E1", "VC-SFNT Font", "SFNT", "IcySon55", "", "This is the SFNT font adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.bf1")]
     public sealed class SfntFontAdapter : IFontRenderer, IIdentifyFiles, ILoadFiles
@@ -34,6 +30,8 @@ namespace plugin_valkyria_chronicles.SFNT
         public float Baseline { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public float DescentLine { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
@@ -96,11 +94,11 @@ namespace plugin_valkyria_chronicles.SFNT
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString() == "SFNT";
             }
             catch (Exception)
@@ -109,17 +107,9 @@ namespace plugin_valkyria_chronicles.SFNT
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-            {
-                _format = new SFNT(File.OpenRead(filename));
-            }
-        }
-
-        public void Save(string filename, int versionIndex = 0)
-        {
-            throw new NotImplementedException();
+            _format = new SFNT(input.FileData);
         }
 
         public void Dispose() { }

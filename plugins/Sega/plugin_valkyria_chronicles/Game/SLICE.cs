@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 
 namespace plugin_valkyria_chronicles.Game
 {
@@ -37,7 +38,7 @@ namespace plugin_valkyria_chronicles.Game
         {
             using (var br = new BinaryReaderX(input))
             {
-                Header = br.ReadStruct<FileHeader>();
+                Header = br.ReadType<FileHeader>();
                 if (Header.FileSize != br.BaseStream.Length)
                     return;
 

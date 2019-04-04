@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Komponent.IO;
+using Komponent.IO.Attributes;
 
 namespace plugin_valkyria_chronicles
 {

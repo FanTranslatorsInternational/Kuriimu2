@@ -13,10 +13,7 @@ using plugin_sony_images.GIM;
 namespace plugin_valkyria_chronicles.HTEX
 {
     [Export(typeof(HtexAdapter))]
-    [Export(typeof(IImageAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("0337C082-324C-46C2-ABDA-CBD873864D75", "VC-HTEX Image", "HTEX", "IcySon55", "", "This is the HTX image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.htx")]
     public sealed class HtexAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
@@ -29,13 +26,17 @@ namespace plugin_valkyria_chronicles.HTEX
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos { get; private set; }
 
+        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+
+        public bool LeaveOpen { get; set; }
+
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString() == "HTEX";
             }
             catch (Exception)
@@ -44,26 +45,24 @@ namespace plugin_valkyria_chronicles.HTEX
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (!File.Exists(filename)) return;
-            _format = new HTEX(File.OpenRead(filename));
+            _format = new HTEX(input.FileData);
             _gim.Load(_format.ImageStream);
             BitmapInfos = _gim.BitmapInfos;
         }
 
-        public async Task<bool> Encode(IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            // TODO: Get Kanvas to encode the image and update the UI with it.
-            return false;
+            throw new NotImplementedException();
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
             var gimOutput = new MemoryStream();
             _gim.Save(gimOutput);
             _format.ImageStream = gimOutput;
-            _format.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose()

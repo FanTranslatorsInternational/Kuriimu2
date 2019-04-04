@@ -42,10 +42,10 @@ namespace plugin_valkyria_chronicles.MTPA
             using (var br = new BinaryReaderX(input))
             {
                 // Packet Header
-                _packetHeader = br.ReadStruct<PacketHeaderX>();
+                _packetHeader = br.ReadType<PacketHeaderX>();
 
                 // MTPA Header
-                _mtpaHeader = br.ReadStruct<MTPAHeader>();
+                _mtpaHeader = br.ReadType<MTPAHeader>();
                 var metadataSize = _mtpaHeader.MetadataSize;
 
                 // Unknown MTPA Data
@@ -98,17 +98,17 @@ namespace plugin_valkyria_chronicles.MTPA
                 br.BaseStream.Position = textEnd;
 
                 // ENRS
-                _enrs = br.ReadStruct<PacketHeaderX>();
+                _enrs = br.ReadType<PacketHeaderX>();
                 if (br.BaseStream.Position + _enrs.DataSize + Common.PacketHeaderXSize * 2 <= br.BaseStream.Length)
                 {
                     _enrsData = br.ReadBytes(_enrs.DataSize);
-                    _enrsFooter = br.ReadStruct<PacketHeaderX>();
+                    _enrsFooter = br.ReadType<PacketHeaderX>();
                 }
                 else
                     br.BaseStream.Position = br.BaseStream.Length - Common.PacketHeaderXSize;
 
                 // MTPA Footer
-                _mtpaFooter = br.ReadStruct<PacketHeaderX>();
+                _mtpaFooter = br.ReadType<PacketHeaderX>();
             }
         }
 
@@ -150,27 +150,27 @@ namespace plugin_valkyria_chronicles.MTPA
                 _packetHeader.DataSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
 
                 // ENRS
-                bw.WriteStruct(_enrs);
+                bw.WriteType(_enrs);
                 bw.Write(_enrsData);
-                bw.WriteStruct(_enrsFooter);
+                bw.WriteType(_enrsFooter);
 
                 // Update Packet Header
                 _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
 
                 // Footer
-                bw.WriteStruct(_mtpaFooter);
+                bw.WriteType(_mtpaFooter);
 
                 // Write Text Metadata
                 bw.BaseStream.Position = metadataStart;
                 foreach (var pointer in _mtpaTextMetadata)
-                    bw.WriteStruct(pointer);
+                    bw.WriteType(pointer);
 
                 // Write Packer Header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(_packetHeader);
+                bw.WriteType(_packetHeader);
 
                 // Write MTPA Header
-                bw.WriteStruct(_mtpaHeader);
+                bw.WriteType(_mtpaHeader);
 
                 // Write Unknown MTPA Data
                 foreach (var data in _mtpaHeaderData)

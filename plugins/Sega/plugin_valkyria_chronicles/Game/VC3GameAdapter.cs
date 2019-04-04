@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using plugin_valkyria_chronicles.SFNT;
@@ -15,8 +16,7 @@ using plugin_valkyria_chronicles.SFNT;
 namespace plugin_valkyria_chronicles.Game
 {
     [Export(typeof(VC3GameAdapter))]
-    [Export(typeof(IGameAdapter))]
-    [Export(typeof(IGenerateGamePreviews))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("84D2BD62-7AC6-459B-B3BB-3A65855135F6", "Valkyria Chronicles 3", "VC3GA", "IcySon55")]
     public sealed class VC3GameAdapter : IGameAdapter, IGenerateGamePreviews
     {
@@ -50,7 +50,7 @@ namespace plugin_valkyria_chronicles.Game
             var fontPath = Path.Combine("plugins", typeof(VC3GameAdapter).GetCustomAttribute<PluginInfoAttribute>().ID, "ODIN_FONT_16.BF1");
             var sfnt = new SfntFontAdapter();
             if (File.Exists(fontPath))
-                sfnt.Load(fontPath);
+                sfnt.Load(new StreamInfo { FileData = File.OpenRead(fontPath), FileName = fontPath });
             return sfnt;
         });
         private SfntFontAdapter OdinFont => OdinFontInitializer.Value;

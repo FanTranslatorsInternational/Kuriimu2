@@ -56,10 +56,10 @@ namespace plugin_valkyria_chronicles.MXEN
             using (var br = new BinaryReaderX(input))
             {
                 // Packet Header
-                _packetHeader = br.ReadStruct<PacketHeaderX>();
+                _packetHeader = br.ReadType<PacketHeaderX>();
 
                 // MXEC Packet Header
-                _mxecPacketHeader = br.ReadStruct<PacketHeaderX>();
+                _mxecPacketHeader = br.ReadType<PacketHeaderX>();
 
                 // Rolling XOR Encryption
                 Stream ss;
@@ -89,7 +89,7 @@ namespace plugin_valkyria_chronicles.MXEN
                 var bbr = new BinaryReaderX(ss);
 
                 // MXEC Header
-                _mxecHeader = bbr.ReadStruct<MXECHeader>();
+                _mxecHeader = bbr.ReadType<MXECHeader>();
 
                 // Unsupported Tables
                 if (_mxecHeader.Table2Offset > 0)
@@ -183,21 +183,21 @@ namespace plugin_valkyria_chronicles.MXEN
                 br.BaseStream.Position = Common.PacketHeaderXSize * 2 + _mxecPacketHeader.DataSize;
 
                 // POF0
-                _pof0 = br.ReadStruct<PacketHeaderX>();
+                _pof0 = br.ReadType<PacketHeaderX>();
                 _pof0Data = br.ReadBytes(_pof0.DataSize);
 
                 // ENRS
-                _enrs = br.ReadStruct<PacketHeaderX>();
+                _enrs = br.ReadType<PacketHeaderX>();
                 _enrsData = br.ReadBytes(_enrs.DataSize);
 
                 // CCRS
-                _ccrs = br.ReadStruct<PacketHeaderX>();
+                _ccrs = br.ReadType<PacketHeaderX>();
                 _ccrsData = br.ReadBytes(_ccrs.DataSize);
 
                 // Footers
-                _ccrsFooter = br.ReadStruct<PacketHeaderX>();
-                _mxecFooter = br.ReadStruct<PacketHeaderX>();
-                _mxenFooter = br.ReadStruct<PacketHeaderX>();
+                _ccrsFooter = br.ReadType<PacketHeaderX>();
+                _mxecFooter = br.ReadType<PacketHeaderX>();
+                _mxenFooter = br.ReadType<PacketHeaderX>();
             }
         }
 
@@ -246,7 +246,7 @@ namespace plugin_valkyria_chronicles.MXEN
 
                     // Write MXEC Header
                     ms.Position = 0;
-                    bbw.WriteStruct(_mxecHeader);
+                    bbw.WriteType(_mxecHeader);
 
                     // Update All Text Pointers
                     foreach (var entry in _table1Objects)
@@ -299,32 +299,32 @@ namespace plugin_valkyria_chronicles.MXEN
                 bw.BaseStream.Position = Common.PacketHeaderXSize * 2 + _mxecPacketHeader.DataSize;
 
                 // POF0
-                bw.WriteStruct(_pof0);
+                bw.WriteType(_pof0);
                 bw.Write(_pof0Data);
 
                 // ENRS
-                bw.WriteStruct(_enrs);
+                bw.WriteType(_enrs);
                 bw.Write(_enrsData);
 
                 // CCRS
-                bw.WriteStruct(_ccrs);
+                bw.WriteType(_ccrs);
                 bw.Write(_ccrsData);
 
                 // Footers
-                bw.WriteStruct(_ccrsFooter);
+                bw.WriteType(_ccrsFooter);
 
                 _mxecPacketHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize * 2;
-                bw.WriteStruct(_mxecFooter);
+                bw.WriteType(_mxecFooter);
 
                 _packetHeader.PacketSize = (int)bw.BaseStream.Position - Common.PacketHeaderXSize;
-                bw.WriteStruct(_mxenFooter);
+                bw.WriteType(_mxenFooter);
 
                 // Write Packet Header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(_packetHeader);
+                bw.WriteType(_packetHeader);
 
                 // Write MXEC Packet Header
-                bw.WriteStruct(_mxecPacketHeader);
+                bw.WriteType(_mxecPacketHeader);
             }
         }
     }

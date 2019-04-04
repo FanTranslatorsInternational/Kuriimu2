@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
@@ -10,36 +9,32 @@ using Kontract.Interfaces.Text;
 namespace plugin_valkyria_chronicles.MTPA
 {
     [Export(typeof(MtpaAdapter))]
-    [Export(typeof(ITextAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("FD00E783-0904-4A9E-8575-59CDA5A165B9", "VC-MTPA Text", "MTPA", "IcySon55", "", "This is the MTP text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.mtp")]
     public sealed class MtpaAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
-        private MTPA _mtpa;
+        private MTPA _format;
 
         #region Properties
 
-        public IEnumerable<TextEntry> Entries => _mtpa?.Entries;
+        public IEnumerable<TextEntry> Entries => _format?.Entries;
 
         public string NameFilter => @".*";
+
         public int NameMaxLength => 0;
 
-        public string LineEndings
-        {
-            get => "\n";
-            set => throw new NotImplementedException();
-        }
+        public string LineEndings { get; set; } = "\n";
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString() == "MTPA";
             }
             catch (Exception)
@@ -48,15 +43,14 @@ namespace plugin_valkyria_chronicles.MTPA
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-                _mtpa = new MTPA(File.OpenRead(filename));
+            _format = new MTPA(input.FileData);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _mtpa.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }

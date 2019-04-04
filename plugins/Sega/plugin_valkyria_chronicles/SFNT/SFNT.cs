@@ -46,10 +46,10 @@ namespace plugin_valkyria_chronicles.SFNT
             using (var br = new BinaryReaderX(input))
             {
                 // Packet Header
-                _packetHeader = br.ReadStruct<PacketHeaderX>();
+                _packetHeader = br.ReadType<PacketHeaderX>();
 
                 // SFNT Header
-                _sfntHeader = br.ReadStruct<SFNTHeader>();
+                _sfntHeader = br.ReadType<SFNTHeader>();
                 var offsets = br.ReadMultiple<int>(_sfntHeader.EntryCount);
 
                 // Blocks
@@ -59,12 +59,12 @@ namespace plugin_valkyria_chronicles.SFNT
                     switch (br.PeekString())
                     {
                         case "MFNT":
-                            var packetHeaderX = br.ReadStruct<PacketHeaderX>();
+                            var packetHeaderX = br.ReadType<PacketHeaderX>();
                             _imageBlocks.Add((packetHeaderX, br.ReadBytes(packetHeaderX.PacketSize)));
                             break;
                         case "MFGT":
                         case "HFPR":
-                            var packetHeader = br.ReadStruct<PacketHeader>();
+                            var packetHeader = br.ReadType<PacketHeader>();
                             _dataBlocks.Add((packetHeader, br.ReadBytes(packetHeader.PacketSize)));
                             break;
                     }
@@ -152,7 +152,7 @@ namespace plugin_valkyria_chronicles.SFNT
                 }
 
                 // SFNT Footer
-                _sfntFooter = br.ReadStruct<PacketHeaderX>();
+                _sfntFooter = br.ReadType<PacketHeaderX>();
             }
         }
 
