@@ -13,12 +13,7 @@ using Kontract.Interfaces.Image;
 namespace plugin_sony_images.GIM
 {
     [Export(typeof(GimAdapter))]
-    [Export(typeof(IImageAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ILoadStreams))]
-    [Export(typeof(ISaveFiles))]
-    [Export(typeof(ISaveStreams))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("1AD809EE-3C0F-4837-98AD-E21EC42F29B8", "Graphic Image Map", "GIM", "IcySon55", "", "This is the GIM image adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.gim")]
     public sealed class GimAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles, ILoadStreams, ISaveFiles, ISaveStreams
@@ -31,14 +26,18 @@ namespace plugin_sony_images.GIM
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
+        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+
+        public bool LeaveOpen { get; set; }
+
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
                 // TODO: Look for potential BE files that might have the "GIM" magic
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                     return br.PeekString(3) == "MIG";
             }
             catch (Exception)
@@ -47,10 +46,9 @@ namespace plugin_sony_images.GIM
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-                Load(File.OpenRead(filename));
+            Load(input.FileData);
         }
 
         public void Load(params Stream[] inputs)
@@ -59,25 +57,25 @@ namespace plugin_sony_images.GIM
                 throw new Exception("No stream was provided to load from.");
 
             _format = new GIM(inputs[0]);
-            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo { Bitmaps = i.Select(p => p.Item1).ToList(), Name = $"{index}" }).ToList();
+            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo(i.First().Item1, new FormatInfo(0, "")) { Name = $"{index}", MipMaps = i.Select(p => p.Item1).Skip(1).ToList() }).ToList();
         }
 
-        public async Task<bool> Encode(IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            // TODO: Get Kanvas to encode the image and update the UI with it.
-            return false;
+            throw new NotImplementedException();
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.Bitmaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
-            using (var output = File.Create(filename))
-                _format.Save(output);
+            // Adjust this logic for the new IImageAdapter
+            _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.MipMaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
+            _format.Save(output.FileData);
         }
 
         public void Save(Stream output, int versionIndex = 0)
         {
-            _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.Bitmaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
+            // Adjust this logic for the new IImageAdapter
+            _format.Images = _bitmapInfos.Zip(_format.Images, (b, f) => b.MipMaps.Zip(f, (b2, f2) => (b2, f2.Item2, f2.Item3, f2.Item4, f2.Item5)).ToList()).ToList();
             _format.Save(output);
         }
 

@@ -8,6 +8,7 @@ using Kanvas.Interface;
 using Kanvas.Palette;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 
 namespace plugin_sony_images.GIM
 {
@@ -23,7 +24,7 @@ namespace plugin_sony_images.GIM
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = 0;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                _chunkHeader = br.ReadType<GIMChunk>();
 
                 while (input.Position < _absoluteBlockPosition + _chunkHeader.BlockSize && input.Position < input.Length)
                 {
@@ -64,7 +65,7 @@ namespace plugin_sony_images.GIM
             output.Position = headerOffset;
 
             using (var bw = new BinaryWriterX(output, true))
-                bw.WriteStruct(header);
+                bw.WriteType(header);
             output.Position = output.Length;
         }
     }
@@ -80,7 +81,7 @@ namespace plugin_sony_images.GIM
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                _chunkHeader = br.ReadType<GIMChunk>();
 
                 while (input.Position < _absoluteBlockPosition + _chunkHeader.BlockSize && input.Position < input.Length)
                 {
@@ -112,7 +113,7 @@ namespace plugin_sony_images.GIM
                 header.BlockSize = (int)(output.Length - headerOffset);
                 output.Position = headerOffset;
 
-                using (var bw = new BinaryWriterX(output, true)) bw.WriteStruct(header);
+                using (var bw = new BinaryWriterX(output, true)) bw.WriteType(header);
                 output.Position = output.Length;
 
                 index++;
@@ -140,9 +141,9 @@ namespace plugin_sony_images.GIM
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                _chunkHeader = br.ReadType<GIMChunk>();
 
-                _imageMeta = br.ReadStruct<ImageBlockMeta>();
+                _imageMeta = br.ReadType<ImageBlockMeta>();
 
                 //Read Palette if needed
                 if (_imageMeta.ImageFormat >= ImageFormat.Palette_4 && _imageMeta.ImageFormat <= ImageFormat.Palette_32)
@@ -227,8 +228,8 @@ namespace plugin_sony_images.GIM
                     header.NextBlockRelativeOffset = (0x10 + 0x40 + data.Length + 0xF) & ~0xF;
                 using (var bw = new BinaryWriterX(output, true))
                 {
-                    bw.WriteStruct(header);
-                    bw.WriteStruct(meta);
+                    bw.WriteType(header);
+                    bw.WriteType(meta);
                     bw.Write(data);
                     bw.WriteAlignment();
                 }
@@ -260,8 +261,8 @@ namespace plugin_sony_images.GIM
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
-                ImageMeta = br.ReadStruct<ImageBlockMeta>();
+                _chunkHeader = br.ReadType<GIMChunk>();
+                ImageMeta = br.ReadType<ImageBlockMeta>();
 
                 Format = Support.Formats[ImageMeta.ImageFormat];
                 Palette = Format.Load(br.ReadBytes(ImageMeta.Width * ImageMeta.Height * ImageMeta.Bpp / 8)).ToList();
@@ -283,8 +284,8 @@ namespace plugin_sony_images.GIM
 
             using (var bw = new BinaryWriterX(output, true))
             {
-                bw.WriteStruct(header);
-                bw.WriteStruct(meta);
+                bw.WriteType(header);
+                bw.WriteType(meta);
                 bw.Write(dataP);
                 bw.WriteAlignment();
             }
@@ -303,7 +304,7 @@ namespace plugin_sony_images.GIM
             using (var br = new BinaryReaderX(input, true))
             {
                 _absoluteBlockPosition = input.Position;
-                _chunkHeader = br.ReadStruct<GIMChunk>();
+                _chunkHeader = br.ReadType<GIMChunk>();
 
                 // TODO: Implement support for the FileInfo strings as well as these truncated blocks
                 _bytes = br.ReadBytes(_chunkHeader.BlockSize - _chunkHeader.BlockDataOffset);
@@ -315,7 +316,7 @@ namespace plugin_sony_images.GIM
             // TODO: Implement support for the FileInfo strings as well as these truncated blocks
             using (var bw = new BinaryWriterX(output, true))
             {
-                bw.WriteStruct(_chunkHeader);
+                bw.WriteType(_chunkHeader);
                 bw.Write(_bytes);
             }
         }
