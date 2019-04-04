@@ -19,6 +19,13 @@ namespace KryptographyUnitTests
             enc.TransformBlock(content, 0, content.Length, content, 0);
         }
 
+        public void Decrypt(byte[] content, byte[] sectorId)
+        {
+            var aes = AesXts.Create(false, 0x20);
+            var enc = aes.CreateDecryptor(new byte[0x20], sectorId);
+            enc.TransformBlock(content, 0, content.Length, content, 0);
+        }
+
         [TestMethod]
         public void XtsContextTest()
         {
@@ -84,67 +91,74 @@ namespace KryptographyUnitTests
         [TestMethod]
         public void WriteTest1()
         {
-            var key = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            var content = new byte[] { 0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e };
-            var expected = new byte[] { 0x40, 0x15, 0xaf, 0xf5, 0x6f, 0xb5, 0xb9, 0x20, 0xc9, 0x55, 0x44, 0x90, 0x35, 0xda, 0xa7, 0x41 };
+            var expected = new byte[0x30];
+            expected[0x21] = 0x02;
+            Encrypt(expected, new byte[0x10]);
+
+            var content = new byte[0x30];
+            content[0x21] = 0x02;
+            Encrypt(content, new byte[0x10]);
             var ms = new MemoryStream(content);
-            var ecb = new EcbStream(ms, key);
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
 
-            ecb.Position = 3;
-            ecb.Write(new byte[] { 0x11, 0x11 }, 0, 2);
-            ecb.Flush();
+            xts.Position = 0x21;
+            xts.Write(new byte[] { 0x02 }, 0, 1);
+            xts.Flush();
 
+            Assert.AreEqual(0x30, xts.Length);
             Assert.IsTrue(ms.ToArray().SequenceEqual(expected));
-            Assert.AreEqual(5, ecb.Position);
+            Assert.AreEqual(0x22, xts.Position);
             Assert.AreEqual(0, ms.Position);
         }
 
         [TestMethod]
         public void WriteTest2()
         {
-            var key = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            var content = new byte[] { 0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e };
-            var expected = new byte[] { 0x04, 0x10, 0xbe, 0xfc, 0xcd, 0xe6, 0x94, 0x4b, 0x69, 0xdd, 0x00, 0x7d, 0xeb, 0xe3, 0x9a, 0x9d,
-            0x3a, 0xb6, 0x07, 0x36, 0xf9, 0xcd, 0x20, 0xa2, 0xcf, 0xe1, 0xf2, 0x48, 0x34, 0xb6, 0x25, 0x3d};
+            var expected = new byte[0x40];
+            expected[0x2f] = 0x02;
+            expected[0x30] = 0x02;
+            Encrypt(expected, new byte[0x10]);
+
+            var content = new byte[0x30];
+            Encrypt(content, new byte[0x10]);
             var ms = new MemoryStream();
-            ms.Write(content, 0, content.Length);
-            var ecb = new EcbStream(ms, key);
+            ms.Write(content, 0, 0x30);
+            ms.Position = 0;
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
 
-            ecb.Position = 15;
-            ecb.Write(new byte[] { 0x11, 0x11 }, 0, 2);
-            var actualLength = ecb.Length;
-            ecb.Flush();
-            var flushedLength = ecb.Length;
+            xts.Position = 0x2f;
+            xts.Write(new byte[] { 0x02, 0x02 }, 0, 2);
+            xts.Flush();
 
+            Assert.AreEqual(0x40, xts.Length);
             Assert.IsTrue(ms.ToArray().SequenceEqual(expected));
-            Assert.AreEqual(32, ecb.Length);
-            Assert.AreEqual(17, actualLength);
-            Assert.AreEqual(32, flushedLength);
-            Assert.AreEqual(16, ms.Position);
+            Assert.AreEqual(0x40, xts.Position);
+            Assert.AreEqual(0, ms.Position);
         }
 
         [TestMethod]
         public void WriteTest3()
         {
-            var key = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-            var content = new byte[] { 0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e };
-            var expected = new byte[] { 0x66, 0xe9, 0x4b, 0xd4, 0xef, 0x8a, 0x2c, 0x3b, 0x88, 0x4c, 0xfa, 0x59, 0xca, 0x34, 0x2b, 0x2e,
-                0x4c, 0x02, 0x1d, 0x6d, 0xf5, 0x51, 0xd7, 0xf8, 0x74, 0xa4, 0xe0, 0x30, 0x8f, 0x4c, 0xb6, 0x13 };
+            var expected = new byte[0x40];
+            expected[0x35] = 0x02;
+            expected[0x36] = 0x02;
+            Encrypt(expected, new byte[0x10]);
+
+            var content = new byte[0x30];
+            Encrypt(content, new byte[0x10]);
             var ms = new MemoryStream();
-            ms.Write(content, 0, content.Length);
-            var ecb = new EcbStream(ms, key);
+            ms.Write(content, 0, 0x30);
+            ms.Position = 0;
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
 
-            ecb.Position = 17;
-            ecb.Write(new byte[] { 0x11, 0x11 }, 0, 2);
-            var actualLength = ecb.Length;
-            ecb.Flush();
-            var flushedLength = ecb.Length;
+            xts.Position = 0x35;
+            xts.Write(new byte[] { 0x02, 0x02 }, 0, 2);
+            xts.Flush();
 
+            Assert.AreEqual(0x40, xts.Length);
             Assert.IsTrue(ms.ToArray().SequenceEqual(expected));
-            Assert.AreEqual(32, ecb.Length);
-            Assert.AreEqual(19, actualLength);
-            Assert.AreEqual(32, flushedLength);
-            Assert.AreEqual(16, ms.Position);
+            Assert.AreEqual(0x40, xts.Position);
+            Assert.AreEqual(0, ms.Position);
         }
     }
 }

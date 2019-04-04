@@ -42,8 +42,8 @@ namespace Kryptography.AES
             aes.Padding = PaddingMode.None;
             aes.Mode = CipherMode.ECB;
 
-            _decryptor = aes.CreateDecryptor(key, new byte[0]);
-            _encryptor = aes.CreateEncryptor(key, new byte[0]);
+            _decryptor = aes.CreateDecryptor(key, null);
+            _encryptor = aes.CreateEncryptor(key, null);
         }
 
         public override void Flush()

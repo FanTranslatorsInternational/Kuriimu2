@@ -107,6 +107,7 @@ namespace KryptographyUnitTests
                 0x49, 0xe2, 0xfc, 0xce, 0xfa, 0x7e, 0x30, 0x61, 0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a };
             var ms = new MemoryStream();
             ms.Write(content, 0, content.Length);
+            ms.Position = 0;
             var ctrS = new CtrStream(ms, key, ctr, false);
 
             ctrS.Position = 15;
@@ -119,7 +120,7 @@ namespace KryptographyUnitTests
             Assert.AreEqual(32, ctrS.Length);
             Assert.AreEqual(17, actualLength);
             Assert.AreEqual(32, flushedLength);
-            Assert.AreEqual(16, ms.Position);
+            Assert.AreEqual(0, ms.Position);
         }
 
         [TestMethod]
@@ -132,6 +133,7 @@ namespace KryptographyUnitTests
                 0x58, 0xf3, 0xed, 0xce, 0xfa, 0x7e, 0x30, 0x61, 0x36, 0x7f, 0x1d, 0x57, 0xa4, 0xe7, 0x45, 0x5a };
             var ms = new MemoryStream();
             ms.Write(content, 0, content.Length);
+            ms.Position = 0;
             var ctrS = new CtrStream(ms, key, ctr, false);
 
             ctrS.Position = 17;
@@ -144,7 +146,7 @@ namespace KryptographyUnitTests
             Assert.AreEqual(32, ctrS.Length);
             Assert.AreEqual(19, actualLength);
             Assert.AreEqual(32, flushedLength);
-            Assert.AreEqual(16, ms.Position);
+            Assert.AreEqual(0, ms.Position);
         }
     }
 }
