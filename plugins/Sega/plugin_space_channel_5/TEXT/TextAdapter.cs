@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
@@ -10,11 +9,7 @@ using Kontract.Interfaces.Text;
 namespace plugin_space_channel_5.TEXT
 {
     [Export(typeof(TextAdapter))]
-    [Export(typeof(ITextAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ICreateFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("46944E91-2F9C-4082-B0A2-503C5DC8824D", "SC5-TEXT Text", "TEXT", "IcySon55", "", "This is the Space Channel 5 text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.bin")]
     public sealed class TextAdapter : ITextAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles
@@ -26,21 +21,20 @@ namespace plugin_space_channel_5.TEXT
         public IEnumerable<TextEntry> Entries => _format?.Entries;
 
         public string NameFilter => @".*";
+
         public int NameMaxLength => 0;
 
-        public string LineEndings
-        {
-            get => "\n";
-            set => throw new NotImplementedException();
-        }
+        public string LineEndings { get; set; } = "\n";
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                 {
                     var magic = br.ReadString(4);
                     var fileSize = br.ReadInt32();
@@ -58,15 +52,14 @@ namespace plugin_space_channel_5.TEXT
             _format = new TEXT();
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-                _format = new TEXT(File.OpenRead(filename));
+            _format = new TEXT(input.FileData);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _format.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }

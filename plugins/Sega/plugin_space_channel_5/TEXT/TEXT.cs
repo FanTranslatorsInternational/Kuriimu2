@@ -48,7 +48,7 @@ namespace plugin_space_channel_5.TEXT
             using (var br = new BinaryReaderX(input))
             {
                 // TEXT Header
-                _textHeader = br.ReadStruct<TEXTHeader>();
+                _textHeader = br.ReadType<TEXTHeader>();
 
                 // Text Group Metadata
                 var groupMetadata = br.ReadMultiple<TextGroupMetadata>(_textHeader.EntryCount);
@@ -135,7 +135,7 @@ namespace plugin_space_channel_5.TEXT
 
                 // Write the header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(_textHeader);
+                bw.WriteType(_textHeader);
 
                 // Write the group metadata
                 bw.WriteMultiple(groupMetadata);

@@ -1,4 +1,4 @@
-﻿using Komponent.IO;
+﻿using Komponent.IO.Attributes;
 
 namespace plugin_space_channel_5.TEXT
 {
