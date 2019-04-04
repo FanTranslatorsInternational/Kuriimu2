@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
@@ -11,10 +10,7 @@ using Kontract.Interfaces.Text;
 namespace plugin_metal_max.ARR
 {
     [Export(typeof(ArrAdapter))]
-    [Export(typeof(ITextAdapter))]
-    [Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("B6C58C25-4E1C-4B9C-ABCF-DE905B1BBF51", "Metal Max 3: ARR Credits Text", "ARR", "IcySon55, BuddyRoach", "", "This is the Metal Max 3 ARR credits text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.arr")]
     public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddEntries
@@ -26,21 +22,20 @@ namespace plugin_metal_max.ARR
         public IEnumerable<TextEntry> Entries => _format?.Entries;
 
         public string NameFilter => @".*";
+
         public int NameMaxLength => 0;
 
-        public string LineEndings
-        {
-            get => "\n";
-            set => throw new NotImplementedException();
-        }
+        public string LineEndings { get; set; } = "\n";
+
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                 {
                     var count = br.ReadInt32();
 
@@ -65,15 +60,14 @@ namespace plugin_metal_max.ARR
             }
         }
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-                _format = new ARR(File.OpenRead(filename));
+            _format = new ARR(input.FileData);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _format.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }
