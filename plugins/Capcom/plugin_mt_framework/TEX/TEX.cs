@@ -9,7 +9,7 @@ using Komponent.IO;
 
 namespace plugin_mt_framework.TEX
 {
-    public sealed partial class MTTEX
+    public sealed partial class TEX
     {
         public List<Bitmap> Bitmaps = new List<Bitmap>();
         private const int MinHeight = 8;
@@ -29,7 +29,7 @@ namespace plugin_mt_framework.TEX
         private byte[] SwitchUnknownData = null;
         private byte[] SwitchOverflowingData = null;
 
-        public MTTEX(Stream input)
+        public TEX(Stream input)
         {
             using (var br = new BinaryReaderX(input))
             {

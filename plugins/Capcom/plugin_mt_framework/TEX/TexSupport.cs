@@ -7,17 +7,16 @@ using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Attributes;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Image;
 
-namespace Kore.SamplePlugins
+namespace plugin_mt_framework.TEX
 {
     /// <summary>
     /// Marker interface.
     /// </summary>
     public interface IMtFrameworkTextureAdapter { }
 
-    public partial class MTTEX
+    public partial class TEX
     {
         // Format
         public enum Format : byte
@@ -90,6 +89,15 @@ namespace Kore.SamplePlugins
             public int Unknown2;
             public byte Format;
             public int Unknown3;
+        }
+
+        public sealed class MTTexBitmapInfo : BitmapInfo
+        {
+            [Category("Properties")]
+            [ReadOnly(true)]
+            public string Format { get; set; }
+
+            public MTTexBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
         }
 
         public static Dictionary<byte, IImageFormat> Formats = new Dictionary<byte, IImageFormat>

@@ -60,9 +60,9 @@
     <Compile Include="GFDv1\GFDv1.cs" />
     <Compile Include="GFDv1\GFDv1FontAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TEX\MTTEX.cs" />
-    <Compile Include="TEX\MtTexAdapter.cs" />
-    <Compile Include="TEX\MtTexSupport.cs" />
+    <Compile Include="TEX\TEX.cs" />
+    <Compile Include="TEX\TexAdapter.cs" />
+    <Compile Include="TEX\TexSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

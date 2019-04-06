@@ -190,7 +190,7 @@ namespace Kore
         {
             var kfi = ksi.Kfi;
             var tempFolder = ksi.TempFolder;
-            if (!string.IsNullOrEmpty(ksi.NewSaveFile) && File.GetAttributes(ksi.NewSaveFile).HasFlag(FileAttributes.Directory))
+            if (!string.IsNullOrEmpty(ksi.NewSaveFile) && File.Exists(ksi.NewSaveFile) && File.GetAttributes(ksi.NewSaveFile).HasFlag(FileAttributes.Directory))
                 throw new InvalidOperationException($"{nameof(ksi.NewSaveFile)} needs to be a file path.");
             var guid = Guid.NewGuid().ToString();
 

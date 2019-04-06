@@ -70,9 +70,6 @@
     <Compile Include="SamplePlugins\KUP.cs" />
     <Compile Include="SamplePlugins\BclimAdapter.cs" />
     <Compile Include="SamplePlugins\KupAdapter.cs" />
-    <Compile Include="SamplePlugins\MTTEX.cs" />
-    <Compile Include="SamplePlugins\MtTexAdapter.cs" />
-    <Compile Include="SamplePlugins\MtTexSupport.cs" />
     <Compile Include="SamplePlugins\NoGameAdapter.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Text.cs" />
