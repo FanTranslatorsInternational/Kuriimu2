@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Kryptography\Kryptography.csproj" />
+    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
   </ItemGroup>
 
 </Project>

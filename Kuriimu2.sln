@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Ku
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KontractUnitTests", "src\KontractUnitTests\KontractUnitTests.csproj", "{6A4F77ED-FA75-403D-9E6B-C8ABDAFD13EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KryptographyUnitTests", "KryptographyUnitTests\KryptographyUnitTests.csproj", "{289420A9-552B-46B2-84B6-BFA48D408951}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KryptographyUnitTests", "src\KryptographyUnitTests\KryptographyUnitTests.csproj", "{289420A9-552B-46B2-84B6-BFA48D408951}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
