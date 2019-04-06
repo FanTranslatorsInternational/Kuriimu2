@@ -11,14 +11,14 @@ using Kontract.Interfaces.Image;
 
 namespace plugin_mt_framework.TEX
 {
-    [Export(typeof(MtTexAdapter))]
+    [Export(typeof(TexAdapter))]
     [Export(typeof(IPlugin))]
     [Export(typeof(IMtFrameworkTextureAdapter))]
-    [PluginInfo("5D5B51A3-7280-4E90-B02E-E0ABD7C1F005", "MT Framework Texture", "MTTEX", "IcySon55", "", "This is the MTTEX image adapter for Kuriimu.")]
+    [PluginInfo("plugin_mt_framework_TEX", "MT Framework Texture", "TEX", "IcySon55", "", "This is the TEX image adapter for Kuriimu.")]
     [PluginExtensionInfo("*.tex")]
-    public sealed class MtTexAdapter : IImageAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles, IMtFrameworkTextureAdapter
+    public sealed class TexAdapter : IImageAdapter, IIdentifyFiles, ICreateFiles, ILoadFiles, ISaveFiles, IMtFrameworkTextureAdapter
     {
-        private MTTEX _format;
+        private TEX _format;
         private List<BitmapInfo> _bitmapInfos;
 
         #region Properties
@@ -60,7 +60,8 @@ namespace plugin_mt_framework.TEX
 
         public void Load(StreamInfo input)
         {
-            _format = new MTTEX(input.FileData);
+            _format = new TEX(input.FileData);
+            // TODO: Implement support for properly populating the FormatInfo for MTTEX.
             _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Bitmaps.First(), new FormatInfo(0, "This doesn't work.") ) { Name = "0", MipMaps = _format.Bitmaps.Skip(1).ToList() } };
         }
 

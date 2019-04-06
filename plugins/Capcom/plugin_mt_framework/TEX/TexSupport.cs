@@ -16,7 +16,7 @@ namespace plugin_mt_framework.TEX
     /// </summary>
     public interface IMtFrameworkTextureAdapter { }
 
-    public partial class MTTEX
+    public partial class TEX
     {
         // Format
         public enum Format : byte
