@@ -10,6 +10,7 @@ namespace Kryptography.AES
         private readonly AesXtsCryptoTransform _decryptor;
         private readonly AesXtsCryptoTransform _encryptor;
         private readonly bool _littleEndianId;
+        private readonly bool _advanceSectorId;
 
         private readonly byte[] _initialId;
         private readonly byte[] _currentId;
@@ -31,7 +32,7 @@ namespace Kryptography.AES
 
         public override long Position { get; set; }
 
-        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool littleEndianId, int sectorSize)
+        public XtsStream(Stream input, byte[] key, byte[] sectorId, bool advanceSectorId, bool littleEndianId, int sectorSize)
         {
             if (key.Length / 4 < 4 || key.Length / 4 > 8 || key.Length % 4 > 0)
                 throw new InvalidOperationException("Key has invalid length.");
@@ -50,6 +51,7 @@ namespace Kryptography.AES
 
             _lastBlockBuffer = new byte[BlockSize];
             _littleEndianId = littleEndianId;
+            _advanceSectorId = advanceSectorId;
             _sectorSize = sectorSize;
 
             _initialId = new byte[sectorId.Length];
@@ -57,7 +59,7 @@ namespace Kryptography.AES
             _currentId = new byte[sectorId.Length];
             Array.Copy(sectorId, _currentId, sectorId.Length);
 
-            var xts = AesXts.Create(littleEndianId, sectorSize);
+            var xts = AesXts.Create(littleEndianId, sectorSize, advanceSectorId);
             _encryptor = (AesXtsCryptoTransform)xts.CreateEncryptor(key, _initialId);
             _decryptor = (AesXtsCryptoTransform)xts.CreateDecryptor(key, _initialId);
         }
@@ -75,6 +77,12 @@ namespace Kryptography.AES
 
         private void SetSectorIdByPosition(long pos)
         {
+            if (_advanceSectorId)
+            {
+                Array.Copy(_initialId, _currentId, _initialId.Length);
+                return;
+            }
+
             var alignedPos = pos / _sectorSize * _sectorSize;
 
             if (alignedPos < _sectorSize)
@@ -169,9 +177,9 @@ namespace Kryptography.AES
 
             var sectorAlignedCount = RoundUpToMultiple(alignedCount, _sectorSize);
             var sectorBuffer = new byte[sectorAlignedCount];
-            Array.Copy(internalBuffer,sectorBuffer,alignedCount);
+            Array.Copy(internalBuffer, sectorBuffer, alignedCount);
             _decryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedCount, sectorBuffer, 0);
-            Array.Copy(sectorBuffer,internalBuffer,alignedCount);
+            Array.Copy(sectorBuffer, internalBuffer, alignedCount);
 
             Array.Copy(internalBuffer, diffPos, buffer, offset, count);
             Position += count;
@@ -212,19 +220,19 @@ namespace Kryptography.AES
             var decryptCount = readCount + (useLastBlockBuffer ? BlockSize : 0);
             var sectorAlignedDecryptCount = RoundUpToMultiple(decryptCount, _sectorSize);
             var sectorBuffer = new byte[sectorAlignedDecryptCount];
-            Array.Copy(internalBuffer,sectorBuffer,decryptCount);
+            Array.Copy(internalBuffer, sectorBuffer, decryptCount);
             if (decryptCount > 0) _decryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedDecryptCount, sectorBuffer, 0);
-            Array.Copy(sectorBuffer,internalBuffer, decryptCount);
+            Array.Copy(sectorBuffer, internalBuffer, decryptCount);
 
             // Copy write data to internal buffer
             Array.Copy(buffer, offset, internalBuffer, Position - lowPos, count);
 
             // Encrypt buffer
-            var sectorAlignedEncryptCount = RoundUpToMultiple(alignedCount,_sectorSize);
+            var sectorAlignedEncryptCount = RoundUpToMultiple(alignedCount, _sectorSize);
             sectorBuffer = new byte[sectorAlignedEncryptCount];
-            Array.Copy(internalBuffer,sectorBuffer,alignedCount);
+            Array.Copy(internalBuffer, sectorBuffer, alignedCount);
             _encryptor.TransformBlock(sectorBuffer, 0, (int)sectorAlignedEncryptCount, sectorBuffer, 0);
-            Array.Copy(sectorBuffer,internalBuffer,alignedCount);
+            Array.Copy(sectorBuffer, internalBuffer, alignedCount);
 
             // Write data to stream
             _baseStream.Position = lowPos;

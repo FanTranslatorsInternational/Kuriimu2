@@ -7,6 +7,7 @@ namespace Kryptography.AES.XTS
     {
         private readonly int _sectorSize;
         private readonly bool _littleEndianId;
+        private readonly bool _advanceSectorId;
         private Aes _aes;
 
         public override byte[] Key { get; set; }
@@ -17,15 +18,16 @@ namespace Kryptography.AES.XTS
         /// </summary>
         /// <param name="littleEndianId">Defines if the id is little endian</param>
         /// <param name="sectorSize">Defines the size of a sector</param>
-        public static AesXts Create(bool littleEndianId, int sectorSize)
+        public static AesXts Create(bool littleEndianId, int sectorSize, bool advanceSectorId)
         {
-            return new AesXts(littleEndianId, sectorSize);
+            return new AesXts(littleEndianId, sectorSize, advanceSectorId);
         }
 
-        protected AesXts(bool littleEndianId, int sectorSize)
+        protected AesXts(bool littleEndianId, int sectorSize, bool advanceSectorId)
         {
             _littleEndianId = littleEndianId;
             _sectorSize = sectorSize;
+            _advanceSectorId = advanceSectorId;
             CreateAesContext();
         }
 
@@ -54,6 +56,7 @@ namespace Kryptography.AES.XTS
                 _aes.CreateDecryptor(key1, null),
                 _aes.CreateEncryptor(key2, null),
                 IV,
+                _advanceSectorId,
                 _sectorSize,
                 _littleEndianId);
         }
@@ -76,6 +79,7 @@ namespace Kryptography.AES.XTS
                 _aes.CreateEncryptor(key1, null),
                 _aes.CreateEncryptor(key2, null),
                 IV,
+                _advanceSectorId,
                 _sectorSize,
                 _littleEndianId);
         }
