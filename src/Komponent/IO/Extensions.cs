@@ -35,7 +35,7 @@ namespace Komponent.IO
         }
     }
 
-    public class IOExtensions
+    public class MeasurementMethods
     {
         private static int MeasurePrimitive(Type type)
         {
@@ -139,5 +139,25 @@ namespace Komponent.IO
 
         public static int MeasureStruct<T>() where T : class
             => MeasureStruct(typeof(T));
+    }
+
+    public static class IOExtensions
+    {
+        public static byte[] Hexlify(this string input, int length = -1)
+        {
+            int NumberChars = input.Length;
+            byte[] bytes = new byte[(length < 0) ? NumberChars / 2 : (length + 1) & ~1];
+            for (int i = 0; i < ((length < 0) ? NumberChars : length * 2); i += 2)
+                bytes[i / 2] = Convert.ToByte(input.Substring(i, 2), 16);
+            return bytes;
+        }
+
+        public static string Stringify(this byte[] input, int length = -1)
+        {
+            string result = "";
+            for (int i = 0; i < (length < 0 ? input.Length : length); i++)
+                result += input[i].ToString("X2");
+            return result;
+        }
     }
 }

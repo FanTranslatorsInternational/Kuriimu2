@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_rot", "plugin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_xor", "plugin_krypto_xor\plugin_krypto_xor.csproj", "{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_nintendo", "plugin_krypto_nintendo\plugin_krypto_nintendo.csproj", "{74C23886-A187-4662-A6F8-9A84BEA7874C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Komponent", "..\..\src\Komponent\Komponent.csproj", "{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0708B0F4-7DBD-4461-9D2A-7D6B9AB01E14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
