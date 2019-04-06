@@ -38,7 +38,7 @@ namespace Kryptography.AES.CTR
             IV = new byte[rgbIv.Length];
             Array.Copy(rgbIv, IV, rgbIv.Length);
 
-            return new AesCtrCryptoTransform(_aes.CreateEncryptor(Key, new byte[0]), IV, _littleEndianCtr);
+            return new AesCtrCryptoTransform(_aes.CreateEncryptor(Key, null), IV, _littleEndianCtr);
         }
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIv)
@@ -50,7 +50,7 @@ namespace Kryptography.AES.CTR
             IV = new byte[rgbIv.Length];
             Array.Copy(rgbIv, IV, rgbIv.Length);
 
-            return new AesCtrCryptoTransform(_aes.CreateEncryptor(Key, new byte[0]), IV, _littleEndianCtr);
+            return new AesCtrCryptoTransform(_aes.CreateEncryptor(Key, null), IV, _littleEndianCtr);
         }
 
         private static void ValidateInput(byte[] key, byte[] iv)
