@@ -14,14 +14,14 @@ namespace KryptographyUnitTests
     {
         public void Encrypt(byte[] content, byte[] sectorId)
         {
-            var aes = AesXts.Create(false, 0x20);
+            var aes = AesXts.Create(false, 0x20, true);
             var enc = aes.CreateEncryptor(new byte[0x20], sectorId);
             enc.TransformBlock(content, 0, content.Length, content, 0);
         }
 
         public void Decrypt(byte[] content, byte[] sectorId)
         {
-            var aes = AesXts.Create(false, 0x20);
+            var aes = AesXts.Create(false, 0x20, true);
             var enc = aes.CreateDecryptor(new byte[0x20], sectorId);
             enc.TransformBlock(content, 0, content.Length, content, 0);
         }
@@ -29,7 +29,7 @@ namespace KryptographyUnitTests
         [TestMethod]
         public void XtsContextTest()
         {
-            var aes = AesXts.Create(false, 0x20);
+            var aes = AesXts.Create(false, 0x20, true);
             var enc = aes.CreateEncryptor(new byte[0x20], new byte[0x10]);
             var dec = aes.CreateDecryptor(new byte[0x20], new byte[0x10]);
 
@@ -43,8 +43,8 @@ namespace KryptographyUnitTests
         [TestMethod]
         public void InitializeStream()
         {
-            Assert.ThrowsException<InvalidOperationException>(() => new XtsStream(new MemoryStream(new byte[2]), new byte[32], new byte[16], false, 0x30));
-            Assert.ThrowsException<InvalidOperationException>(() => new XtsStream(new MemoryStream(new byte[16]), new byte[32], new byte[16], false, 0x27));
+            Assert.ThrowsException<InvalidOperationException>(() => new XtsStream(new MemoryStream(new byte[2]), new byte[32], new byte[16], true, false, 0x30));
+            Assert.ThrowsException<InvalidOperationException>(() => new XtsStream(new MemoryStream(new byte[16]), new byte[32], new byte[16], true, false, 0x27));
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace KryptographyUnitTests
             var key = new byte[32];
             var final = new byte[] { 0x3a, 0x18, 0xda, 0xa2, 0xca, 0x3b, 0x3a, 0x64, 0x58, 0xe5, 0xaf, 0xac, 0xbc, 0x48, 0x95, 0x8e };
             var ms = new MemoryStream(final);
-            var xts = new XtsStream(ms, key, new byte[16], false, 0x30);
+            var xts = new XtsStream(ms, key, new byte[16], true, false, 0x30);
             var result = new byte[16];
             var expected = new byte[16];
             expected[0xf] = 0x01;
@@ -76,7 +76,7 @@ namespace KryptographyUnitTests
             var content = new byte[0x30];
             Array.Copy(toEncrypt, 0, content, 0x20, 0x10);
             var ms = new MemoryStream(content);
-            var xts = new XtsStream(ms, new byte[32], new byte[16], false, 0x20);
+            var xts = new XtsStream(ms, new byte[32], new byte[16], true, false, 0x20);
             var result = new byte[16];
             var expected = new byte[16];
 
@@ -99,7 +99,7 @@ namespace KryptographyUnitTests
             content[0x21] = 0x02;
             Encrypt(content, new byte[0x10]);
             var ms = new MemoryStream(content);
-            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], true, false, 0x20);
 
             xts.Position = 0x21;
             xts.Write(new byte[] { 0x02 }, 0, 1);
@@ -124,7 +124,7 @@ namespace KryptographyUnitTests
             var ms = new MemoryStream();
             ms.Write(content, 0, 0x30);
             ms.Position = 0;
-            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], true, false, 0x20);
 
             xts.Position = 0x2f;
             xts.Write(new byte[] { 0x02, 0x02 }, 0, 2);
@@ -149,7 +149,7 @@ namespace KryptographyUnitTests
             var ms = new MemoryStream();
             ms.Write(content, 0, 0x30);
             ms.Position = 0;
-            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], false, 0x20);
+            var xts = new XtsStream(ms, new byte[0x20], new byte[0x10], true, false, 0x20);
 
             xts.Position = 0x35;
             xts.Write(new byte[] { 0x02, 0x02 }, 0, 2);
