@@ -61,31 +61,25 @@ namespace plugin_krypto_nintendo.Nca
             nca.Position = 0x200;
             var magic = new byte[4];
             nca.Read(magic, 0, 4);
-
-            if (Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
+            nca.Position = bkPos;
+            
+            if (!Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
             {
-                NcaVersion = ver;
-                IdentifyMasterKey(new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, false));
-                nca.Position = bkPos;
-                return;
+                IsEncrypted = true;
+                var xts = new XtsStream(nca, _keyStorage.HeaderKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+                xts.Position = 0x200;
+                xts.Read(magic, 0, 4);
+
+                if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
+                    throw new InvalidOperationException("No valid Nca.");
             }
 
-            IsEncrypted = true;
-            var str = new XtsStream(nca, _keyStorage.HeaderKey, new byte[0x10], true, true, NcaConstants.MediaSize);
-            str.Position = 0x200;
-            str.Read(magic, 0, 4);
-
-            if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
-                throw new InvalidOperationException("No valid Nca.");
-
             NcaVersion = ver;
-            var headerNca = new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, true);
+            var ncaHeader = new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, IsEncrypted);
 
-            IdentifyMasterKey(headerNca);
-            IdentifyKeyArea(headerNca);
-            IdentifyRightsId(headerNca);
-
-            nca.Position = bkPos;
+            IdentifyMasterKey(ncaHeader);
+            IdentifyKeyArea(ncaHeader);
+            IdentifyRightsId(ncaHeader);
         }
 
         private void IdentifyMasterKey(Stream headerNca)

@@ -28,7 +28,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
             _internalLength = input.Length;
 
             if (decTitleKey != null)
-                _baseStream = new CtrStream(input, decTitleKey, sectionCtr, true);
+                _baseStream = new CtrStream(input, decTitleKey, sectionCtr, false);
             else
             {
                 switch (sectionCryptoType)
@@ -41,13 +41,13 @@ namespace plugin_krypto_nintendo.Nca.Streams
                         // XTS
                         var key_area_key = new byte[0x20];
                         Array.Copy(decKeyArea, key_area_key, 0x20);
-                        _baseStream = new XtsStream(input, key_area_key, new byte[0x10], true, true, 0x200);
+                        _baseStream = new XtsStream(input, key_area_key, new byte[0x10], true, false, 0x200);
                         break;
                     case 3:
                         //CTR
                         key_area_key = new byte[0x10];
                         Array.Copy(decKeyArea, 0x20, key_area_key, 0, 0x10);
-                        _baseStream = new CtrStream(input, key_area_key, sectionCtr, true);
+                        _baseStream = new CtrStream(input, key_area_key, sectionCtr, false);
                         break;
                     case 4:
                         //BKTR
