@@ -18,6 +18,7 @@ namespace plugin_yuusha_shisu.PAC
         public string ArchiveName;
     }
 
+    [Alignment(0x20)]
     public class FileEntry
     {
         [FixedLength(4)]
@@ -28,7 +29,7 @@ namespace plugin_yuusha_shisu.PAC
         public short Unk2;
         public short StringLength;
         public int Null2;
-        [FixedLength(0x2C)]
+        [VariableLength("StringLength")]
         public string FileName;
     }
 
