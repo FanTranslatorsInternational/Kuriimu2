@@ -18,31 +18,12 @@ namespace plugin_krypto_aes.Ecb
     [MenuStripExtension("AES", "256", "ECB")]
     public class Aes256EcbAdapter : ICipherAdapter
     {
-        public event EventHandler<RequestKeyEventArgs> RequestKey;
+        public event EventHandler<RequestDataEventArgs> RequestData;
 
         public string Name => throw new NotImplementedException();
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
-        {
-            error = string.Empty;
-
-            var eventArgs = new RequestKeyEventArgs(message, keyLength);
-            RequestKey?.Invoke(this, eventArgs);
-
-            if (eventArgs.Data == null)
-            {
-                error = "Data not given.";
-                return null;
-            }
-
-            if (eventArgs.Data.Length != keyLength)
-            {
-                error = "Data has no valid length.";
-                return null;
-            }
-
-            return eventArgs.Data;
-        }
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
