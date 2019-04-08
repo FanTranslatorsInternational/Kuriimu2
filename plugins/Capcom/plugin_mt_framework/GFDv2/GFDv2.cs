@@ -9,12 +9,11 @@ using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
+using plugin_mt_framework.TEX;
 
-namespace Kore.SamplePlugins
+namespace plugin_mt_framework.GFDv2
 {
     public class GFDv2
     {
@@ -46,18 +45,16 @@ namespace Kore.SamplePlugins
             Characters = new List<GFDv2Character>();
             Textures = new List<Bitmap>();
 
-            //TODO
-            //Plugins.ComposePlugins(this, _container);
-            KoreManager.ComposeSamplePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                PluginLoader.ComposePlugins(this);
         }
 
         public GFDv2(FileStream input)
         {
             _sourceFile = input.Name;
 
-            //TODO
-            //Plugins.ComposePlugins(this, _container);
-            KoreManager.ComposeSamplePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                PluginLoader.ComposePlugins(this);
 
             using (var br = new BinaryReaderX(input))
             {
