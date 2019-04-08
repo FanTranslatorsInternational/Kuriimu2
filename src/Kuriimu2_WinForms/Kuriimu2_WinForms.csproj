@@ -231,5 +231,8 @@
   <ItemGroup>
     <None Include="images\menu-border-simple.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="images\kuriimu2winforms.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

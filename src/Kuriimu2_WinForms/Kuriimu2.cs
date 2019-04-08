@@ -33,6 +33,8 @@ namespace Kuriimu2_WinForms
         {
             InitializeComponent();
 
+            Icon = Resources.kuriimu2winforms;
+
             _kore = new KoreManager();
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
