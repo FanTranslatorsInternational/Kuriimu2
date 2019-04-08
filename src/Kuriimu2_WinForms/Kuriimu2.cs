@@ -55,7 +55,7 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
             cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            mainMenuStrip.Items.Add(_cipherToolStrip);
+            mnuMain.Items.Add(_cipherToolStrip);
         }
 
         #region Events
@@ -295,7 +295,11 @@ namespace Kuriimu2_WinForms
 
         private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, KoreFileInfo parentKfi = null)
         {
-            var tabPage = new TabPage();
+            var tabPage = new TabPage
+            {
+                BackColor = SystemColors.Window,
+                Padding = new Padding(0, 2, 2, 1)
+            };
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
