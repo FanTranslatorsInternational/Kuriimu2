@@ -1,6 +1,7 @@
 ﻿using Komponent.IO;
 using Kryptography.AES;
 using plugin_krypto_nintendo.Nca.KeyStorages;
+using plugin_krypto_nintendo.Nca.Models;
 using plugin_krypto_nintendo.Nca.Streams;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace plugin_krypto_nintendo.Nca
+namespace plugin_krypto_nintendo.Nca.Factories
 {
-    public class NcaFactory
+    public class NcaReadFactory
     {
         private Stream _baseStream;
         private NcaKeyStorage _keyStorage;
@@ -35,9 +36,9 @@ namespace plugin_krypto_nintendo.Nca
             }
         }
 
-        public NcaFactory(Stream nca, string keyFile) : this(nca, keyFile, null) { }
+        public NcaReadFactory(Stream nca, string keyFile) : this(nca, keyFile, null) { }
 
-        public NcaFactory(Stream nca, string keyFile, string titleKeyFile)
+        public NcaReadFactory(Stream nca, string keyFile, string titleKeyFile)
         {
             if (nca == null)
                 throw new ArgumentNullException(nameof(nca));
@@ -155,6 +156,9 @@ namespace plugin_krypto_nintendo.Nca
 
         public Stream CreateReadableStream()
         {
+            if (!_keyStorage.MasterKeys.ContainsKey(MasterKeyRev))
+                throw new InvalidOperationException($"Masterkey {MasterKeyRev} was not found.");
+
             byte[] titleKey = null;
             if (HasRightsId)
             {
@@ -179,9 +183,6 @@ namespace plugin_krypto_nintendo.Nca
 
             if (!Enum.IsDefined(typeof(NcaVersion), (int)NcaVersion))
                 throw new ArgumentException(nameof(NcaVersion));
-
-            if (!_keyStorage.MasterKeys.ContainsKey(MasterKeyRev))
-                throw new InvalidOperationException($"Masterkey {MasterKeyRev} was not found.");
 
             if (DecryptedKeyArea == null)
                 throw new ArgumentNullException(nameof(DecryptedKeyArea));

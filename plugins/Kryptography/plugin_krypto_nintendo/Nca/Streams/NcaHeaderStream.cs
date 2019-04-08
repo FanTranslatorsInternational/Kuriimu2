@@ -1,4 +1,5 @@
 ﻿using Kryptography.AES;
+using plugin_krypto_nintendo.Nca.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;

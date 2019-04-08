@@ -3,6 +3,7 @@ using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Intermediate;
 using plugin_krypto_nintendo.Nca;
+using plugin_krypto_nintendo.Nca.Factories;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -36,7 +37,7 @@ namespace plugin_krypto_nintendo.Adapters
                 });
             }
 
-            var factory = new NcaFactory(toDecrypt, keyFile);
+            var factory = new NcaReadFactory(toDecrypt, keyFile);
             if (factory.HasRightsId)
             {
                 var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);

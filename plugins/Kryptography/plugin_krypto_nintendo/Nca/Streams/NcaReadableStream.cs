@@ -1,5 +1,6 @@
 ﻿using Komponent.IO;
 using plugin_krypto_nintendo.Nca.KeyStorages;
+using plugin_krypto_nintendo.Nca.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,26 +10,12 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.Streams
 {
-    internal class SectionLimits
-    {
-        public int Index { get; }
-        public long StartOffset { get; }
-        public long Length { get; }
-
-        public SectionLimits(int index, long startOffset, long length)
-        {
-            Index = index;
-            StartOffset = startOffset;
-            Length = length;
-        }
-    }
-
     internal class NcaReadableStream : Stream
     {
         private Stream _baseStream;
         private NcaHeaderStream _header;
         private NcaBodyStream[] _sections;
-        private SectionLimits[] _sectionLimits;
+        private SectionLimit[] _sectionLimits;
 
         public override bool CanRead => true;
 
@@ -49,7 +36,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
             var sections = new byte[0x40];
             _header.Read(sections, 0, 0x40);
             _sections = new NcaBodyStream[4];
-            _sectionLimits = new SectionLimits[4];
+            _sectionLimits = new SectionLimit[4];
             for (int i = 0; i < 4; i++)
             {
                 var sectionOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
@@ -72,7 +59,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
                 var subStream = new SubStream(input, offset, length);
                 _sections[i] = new NcaBodyStream(subStream, sectionCryptoType[0], GenerateCTR(sectionCtr, offset), decKeyArea, decTitleKey);
-                _sectionLimits[i] = new SectionLimits(i, offset, length);
+                _sectionLimits[i] = new SectionLimit(i, offset, length);
             }
         }
 
@@ -116,7 +103,6 @@ namespace plugin_krypto_nintendo.Nca.Streams
                 }
                 else
                 {
-                    // TODO: Calculate length
                     toRead = (int)Math.Min(toRead, sectionToRead.StartOffset + sectionToRead.Length - newPosition);
                     _sections[sectionToRead.Index].Position = newPosition;
                     readBytes += _sections[sectionToRead.Index].Read(buffer, offset + readBytes, toRead);

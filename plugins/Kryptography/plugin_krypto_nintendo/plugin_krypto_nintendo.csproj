@@ -43,14 +43,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Adapters\NcaAdapter.cs" />
+    <Compile Include="Nca\Factories\NcaWriteFactory.cs" />
     <Compile Include="Nca\KeyStorages\NcaTitleKeyStorage.cs" />
-    <Compile Include="Nca\NcaConstants.cs" />
+    <Compile Include="Nca\Models\NcaBodySection.cs" />
+    <Compile Include="Nca\Models\NcaConstants.cs" />
+    <Compile Include="Nca\Models\NcaSectionCrypto.cs" />
+    <Compile Include="Nca\Models\SectionLimit.cs" />
     <Compile Include="Nca\Streams\NcaBodyStream.cs" />
-    <Compile Include="Nca\NcaFactory.cs" />
+    <Compile Include="Nca\Factories\NcaReadFactory.cs" />
     <Compile Include="Nca\Streams\NcaHeaderStream.cs" />
     <Compile Include="Nca\KeyStorages\NcaKeyStorage.cs" />
     <Compile Include="Nca\Streams\NcaReadableStream.cs" />
-    <Compile Include="Nca\NcaVersion.cs" />
+    <Compile Include="Nca\Models\NcaVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adapters\RequestMethods.cs" />
   </ItemGroup>

@@ -28,8 +28,7 @@ namespace Kontract.Interfaces.Intermediate
         /// <param name="decryptInto"></param>
         /// <param name="progress"></param>
         Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress);
-
-        // TODO: Change event ot retrieve general data, instead of byte[]
+        
         /// <summary>
         /// Eventhandler for requesting data
         /// </summary>
