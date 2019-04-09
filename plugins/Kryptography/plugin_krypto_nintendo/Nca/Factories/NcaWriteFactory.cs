@@ -1,5 +1,7 @@
-﻿using plugin_krypto_nintendo.Nca.KeyStorages;
+﻿using Kryptography.AES;
+using plugin_krypto_nintendo.Nca.KeyStorages;
 using plugin_krypto_nintendo.Nca.Models;
+using plugin_krypto_nintendo.Nca.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -73,6 +75,11 @@ namespace plugin_krypto_nintendo.Nca.Factories
         public NcaBodySection[] Sections { get; }
 
         /// <summary>
+        /// The key index to decrypt the key area
+        /// </summary>
+        public KeyAreaKeyType KeyAreaKeyType { get; set; }
+
+        /// <summary>
         /// The encrypted key area to be used for body section cipher operations
         /// </summary>
         public byte[] EncryptedKeyArea { get; set; }
@@ -90,13 +97,58 @@ namespace plugin_krypto_nintendo.Nca.Factories
         /// <summary>
         /// Creates a writable stream based on the given cipher information in this factory
         /// </summary>
-        /// <param name="baseStream">The stream to be written to</param>
+        /// <param name="writeStream">The stream to be written to</param>
         /// <returns>The writable stream for the NCA</returns>
-        public Stream CreateWritableStream(Stream baseStream)
+        public Stream CreateWritableStream(Stream writeStream)
         {
-            // TODO: check each property for validity
-            // TODO: Create writable stream; Maybe refactor NcaReadableStream to do both
-            return null;
+            byte[] decTitleKey = null;
+            byte[] decKeyArea = null;
+            if (UseTitleKeyEncryption)
+            {
+                if (EncryptedTitleKey == null)
+                    throw new ArgumentNullException(nameof(EncryptedTitleKey));
+                if (EncryptedTitleKey.Length != 0x10)
+                    throw new InvalidOperationException($"Invalid title key length.");
+
+                // Decrypt title key
+                if (!_keyStorage.TitleKek.ContainsKey(MasterKeyRevision))
+                    throw new InvalidOperationException($"No title kek found for master key revision {MasterKeyRevision}.");
+
+                decTitleKey = new byte[0x10];
+                new EcbStream(new MemoryStream(EncryptedTitleKey), _keyStorage.TitleKek[MasterKeyRevision]).Read(decTitleKey, 0, decTitleKey.Length); ;
+            }
+            else
+            {
+                if (EncryptedKeyArea == null)
+                    throw new ArgumentNullException(nameof(EncryptedKeyArea));
+                if (EncryptedKeyArea.Length != 0x40)
+                    throw new InvalidOperationException($"Invalid key area length.");
+
+                // Decrypt key area
+                decKeyArea = new byte[0x40];
+                byte[] decKey;
+                switch (KeyAreaKeyType)
+                {
+                    case KeyAreaKeyType.Application:
+                        decKey = _keyStorage[$"key_area_key_application_{MasterKeyRevision:00}"];
+                        break;
+                    case KeyAreaKeyType.Ocean:
+                        decKey = _keyStorage[$"key_area_key_ocean_{MasterKeyRevision:00}"];
+                        break;
+                    case KeyAreaKeyType.System:
+                        decKey = _keyStorage[$"key_area_key_system_{MasterKeyRevision:00}"];
+                        break;
+                    default:
+                        throw new InvalidOperationException($"KeyAreaType {KeyAreaKeyType} not supported.");
+                }
+
+                new EcbStream(new MemoryStream(EncryptedKeyArea), decKey).Read(decKeyArea, 0, decKeyArea.Length);
+            }
+
+            // TODO: Refactor readable stream to take in sections; To be writable
+            var stream = new NcaReadableStream(writeStream, NcaVersion, decKeyArea, _keyStorage, decTitleKey, true);
+            
+            return stream;
         }
     }
 }

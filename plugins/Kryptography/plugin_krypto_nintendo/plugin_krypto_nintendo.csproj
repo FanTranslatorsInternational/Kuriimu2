@@ -45,6 +45,7 @@
     <Compile Include="Adapters\NcaAdapter.cs" />
     <Compile Include="Nca\Factories\NcaWriteFactory.cs" />
     <Compile Include="Nca\KeyStorages\NcaTitleKeyStorage.cs" />
+    <Compile Include="Nca\Models\KeyAreaKeyType.cs" />
     <Compile Include="Nca\Models\NcaBodySection.cs" />
     <Compile Include="Nca\Models\NcaConstants.cs" />
     <Compile Include="Nca\Models\NcaSectionCrypto.cs" />

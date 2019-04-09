@@ -63,7 +63,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
             var magic = new byte[4];
             nca.Read(magic, 0, 4);
             nca.Position = bkPos;
-            
+
             if (!Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
             {
                 IsEncrypted = true;
@@ -178,7 +178,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
                 }
 
                 if (_keyStorage.TitleKek.ContainsKey(MasterKeyRev))
-                    new EcbStream(new MemoryStream(titleKey), _keyStorage.TitleKek[MasterKeyRev]);
+                    new EcbStream(new MemoryStream(titleKey), _keyStorage.TitleKek[MasterKeyRev]).Read(titleKey, 0, titleKey.Length);
             }
 
             if (!Enum.IsDefined(typeof(NcaVersion), (int)NcaVersion))
