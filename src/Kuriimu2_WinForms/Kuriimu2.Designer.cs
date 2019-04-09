@@ -35,9 +35,12 @@
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
-            this.globalOperationProgress = new Kuriimu2_WinForms.Controls.InfoProgressBar();
+            this.operationStatusBar = new System.Windows.Forms.StatusStrip();
+            this.operationProgress = new Controls.InfoToolStripProgressBar();
+            this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
+            this.operationStatusBar.SuspendLayout();
             this.SuspendLayout();
             // 
             // mnuMain
@@ -68,16 +71,14 @@
             // 
             // openFiles
             // 
-            this.openFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.openFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.openFiles.ImageList = this.tabCloseButtons;
-            this.openFiles.Location = new System.Drawing.Point(3, 26);
+            this.openFiles.Location = new System.Drawing.Point(3, 2);
             this.openFiles.Margin = new System.Windows.Forms.Padding(0);
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 505);
+            this.openFiles.Size = new System.Drawing.Size(953, 529);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -98,16 +99,26 @@
             this.pnlMain.Size = new System.Drawing.Size(957, 533);
             this.pnlMain.TabIndex = 2;
             // 
-            // globalOperationProgress
+            // statusStrip1
             // 
-            this.globalOperationProgress.Dock = System.Windows.Forms.DockStyle.Top;
-            this.globalOperationProgress.Location = new System.Drawing.Point(0, 24);
-            this.globalOperationProgress.Name = "globalOperationProgress";
-            this.globalOperationProgress.ProgressColor = System.Drawing.Color.ForestGreen;
-            this.globalOperationProgress.Size = new System.Drawing.Size(957, 23);
-            this.globalOperationProgress.TabIndex = 3;
-            this.globalOperationProgress.Text = null;
-            this.globalOperationProgress.TextColor = System.Drawing.Color.Black;
+            this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.operationProgress,
+            this.operationTimer});
+            this.operationStatusBar.Location = new System.Drawing.Point(0, 535);
+            this.operationStatusBar.Name = "operationStatusBar";
+            this.operationStatusBar.Size = new System.Drawing.Size(957, 22);
+            this.operationStatusBar.TabIndex = 3;
+            this.operationStatusBar.Text = "";
+            // 
+            // operationProgress
+            // 
+            this.operationProgress.Name = "operationProgress";
+            this.operationProgress.Size = new System.Drawing.Size(100, 16);
+            // 
+            // operationTimer
+            // 
+            this.operationTimer.Name = "operationTimer";
+            this.operationTimer.Size = new System.Drawing.Size(0, 17);
             // 
             // Kuriimu2
             // 
@@ -115,7 +126,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(957, 557);
-            this.Controls.Add(this.globalOperationProgress);
+            this.Controls.Add(this.operationStatusBar);
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
@@ -127,6 +138,8 @@
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
             this.pnlMain.ResumeLayout(false);
+            this.operationStatusBar.ResumeLayout(false);
+            this.operationStatusBar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -140,7 +153,9 @@
         private System.Windows.Forms.TabControl openFiles;
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
-        private Controls.InfoProgressBar globalOperationProgress;
+        private System.Windows.Forms.StatusStrip operationStatusBar;
+        private Controls.InfoToolStripProgressBar operationProgress;
+        private System.Windows.Forms.ToolStripStatusLabel operationTimer;
     }
 }
 

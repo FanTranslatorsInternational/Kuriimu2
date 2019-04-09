@@ -82,6 +82,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
         public event EventHandler<SaveTabEventArgs> SaveTab;
         public event EventHandler<CloseTabEventArgs> CloseTab;
+        public event EventHandler<ProgressReport> ReportProgress;
 
         public void Close()
         {
@@ -158,9 +159,9 @@ namespace Kuriimu2_WinForms.FormatForms
 
             tsbFormat.Enabled = false;
 
-            pbEncoding.Maximum = 100;
-            pbEncoding.Step = 1;
-            pbEncoding.Value = 0;
+            //pbEncoding.Maximum = 100;
+            //pbEncoding.Step = 1;
+            //pbEncoding.Value = 0;
 
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
@@ -181,8 +182,9 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private void Report_ProgressChanged(object sender, ProgressReport e)
         {
-            pbEncoding.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
-            pbEncoding.Value = Convert.ToInt32(e.Percentage);
+            ReportProgress?.Invoke(this, e);
+            //pbEncoding.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            //pbEncoding.Value = Convert.ToInt32(e.Percentage);
         }
 
         public void UpdateParent()

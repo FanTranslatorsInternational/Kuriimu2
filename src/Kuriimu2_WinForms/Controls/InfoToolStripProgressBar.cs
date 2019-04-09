@@ -12,7 +12,7 @@ namespace Kuriimu2_WinForms.Controls
     /// <inheritdoc />
     /// <summary>
     /// </summary>
-    public class InfoProgressBar : ProgressBar
+    public class InfoToolStripProgressBar : ToolStripProgressBar
     {
         private string _text;
         private Color _textColor;
@@ -27,7 +27,7 @@ namespace Kuriimu2_WinForms.Controls
             set
             {
                 _text = value;
-                OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+                OnPaint(new PaintEventArgs(ProgressBar.CreateGraphics(), ProgressBar.DisplayRectangle));
             }
         }
 
@@ -40,7 +40,7 @@ namespace Kuriimu2_WinForms.Controls
             set
             {
                 _textColor = value;
-                OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+                OnPaint(new PaintEventArgs(ProgressBar.CreateGraphics(), ProgressBar.DisplayRectangle));
             }
         }
 
@@ -53,16 +53,17 @@ namespace Kuriimu2_WinForms.Controls
             set
             {
                 _progColor = value;
-                OnPaint(new PaintEventArgs(CreateGraphics(), DisplayRectangle));
+                OnPaint(new PaintEventArgs(ProgressBar.CreateGraphics(), ProgressBar.DisplayRectangle));
             }
         }
 
         /// <inheritdoc />
         /// <summary>
         /// </summary>
-        public InfoProgressBar()
+        public InfoToolStripProgressBar()
         {
-            SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+            ProgressBar.Style = ProgressBarStyle.Continuous;
+            //ProgressBar.SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
             _textColor = Color.Black;
             _progColor = Color.ForestGreen;
         }
@@ -73,8 +74,16 @@ namespace Kuriimu2_WinForms.Controls
         /// <param name="e"></param>
         protected override void OnPaint(PaintEventArgs e)
         {
-            var controlRect = new Rectangle(DisplayRectangle.X, DisplayRectangle.Y, DisplayRectangle.Width - 1, DisplayRectangle.Height - 1);
-            var progressRect = new Rectangle(DisplayRectangle.X, DisplayRectangle.Y, Convert.ToInt32((double)DisplayRectangle.Width / Maximum * Value - 1), DisplayRectangle.Height - 1);
+            var controlRect = new Rectangle(
+                ProgressBar.DisplayRectangle.X,
+                ProgressBar.DisplayRectangle.Y,
+                ProgressBar.DisplayRectangle.Width - 1,
+                ProgressBar.DisplayRectangle.Height - 1);
+            var progressRect = new Rectangle(
+                ProgressBar.DisplayRectangle.X,
+                ProgressBar.DisplayRectangle.Y,
+                Convert.ToInt32((double)ProgressBar.DisplayRectangle.Width / Maximum * Value - 1),
+                ProgressBar.DisplayRectangle.Height - 1);
 
             // Draw background
             e.Graphics.FillRectangle(new SolidBrush(SystemColors.Control), controlRect);
@@ -84,9 +93,9 @@ namespace Kuriimu2_WinForms.Controls
             e.Graphics.DrawRectangle(new Pen(SystemColors.ControlDark), controlRect);
 
             // Draw string
-            var stringSize = e.Graphics.MeasureString(Text, DefaultFont);
+            var stringSize = e.Graphics.MeasureString(Text, Control.DefaultFont);
             var pointText = new PointF((Width - stringSize.Width) / 2, (Height - stringSize.Height) / 2);
-            e.Graphics.DrawString(Text, DefaultFont, new SolidBrush(_textColor), pointText);
+            e.Graphics.DrawString(Text, Control.DefaultFont, new SolidBrush(_textColor), pointText);
         }
     }
 }

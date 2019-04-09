@@ -53,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls\InfoProgressBar.cs">
+    <Compile Include="Controls\InfoToolStripProgressBar.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Extensions\LinqExtensions.cs" />

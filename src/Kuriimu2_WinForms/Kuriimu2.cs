@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -27,11 +28,17 @@ namespace Kuriimu2_WinForms
         private Random _rand = new Random();
         private string _tempFolder = "temp";
 
+        private Timer _timer;
+        private Stopwatch _globalOperationWatch;
+
         private ToolStripMenuItem _cipherToolStrip;
 
         public Kuriimu2()
         {
             InitializeComponent();
+            _timer = new Timer { Interval = 14 };
+            _timer.Tick += _timer_Tick;
+            _globalOperationWatch = new Stopwatch();
 
             Icon = Resources.kuriimu2winforms;
 
@@ -41,6 +48,11 @@ namespace Kuriimu2_WinForms
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
             LoadExtensions();
+        }
+
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
         }
 
         private void LoadExtensions()
@@ -76,6 +88,8 @@ namespace Kuriimu2_WinForms
         #region Ciphers
         private void Cipher_RequestData(object sender, RequestDataEventArgs e)
         {
+            _globalOperationWatch.Stop();
+
             var input = new InputBox("Requesting data", e.RequestMessage);
             var ofd = new OpenFileDialog() { Title = e.RequestMessage };
 
@@ -86,6 +100,7 @@ namespace Kuriimu2_WinForms
                     if (ofd.ShowDialog() == DialogResult.OK && ofd.CheckFileExists)
                     {
                         e.Data = ofd.FileName;
+                        _globalOperationWatch.Start();
                         return;
                     }
 
@@ -96,6 +111,7 @@ namespace Kuriimu2_WinForms
                     if (input.ShowDialog() == DialogResult.OK && input.Text.Length == e.DataSize)
                     {
                         e.Data = input.Text;
+                        _globalOperationWatch.Start();
                         return;
                     }
 
@@ -208,8 +224,8 @@ namespace Kuriimu2_WinForms
 
         private void Report_ProgressChanged(object sender, ProgressReport e)
         {
-            globalOperationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
-            globalOperationProgress.Value = Convert.ToInt32(e.Percentage);
+            operationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            operationProgress.Value = Convert.ToInt32(e.Percentage);
         }
         #endregion
 
@@ -242,7 +258,14 @@ namespace Kuriimu2_WinForms
 
             var openFileStream = openFile.OpenFile();
             var saveFileStream = saveFile.OpenFile();
+
+            _timer.Start();
+            _globalOperationWatch.Reset();
+            _globalOperationWatch.Start();
             await cipherFunc(openFileStream, saveFileStream, report);
+            _globalOperationWatch.Stop();
+            _timer.Stop();
+
             openFileStream.Close();
             saveFileStream.Close();
 
@@ -330,6 +353,7 @@ namespace Kuriimu2_WinForms
 
             tabControl.SaveTab += TabControl_SaveTab;
             tabControl.CloseTab += TabControl_CloseTab;
+            tabControl.ReportProgress += Report_ProgressChanged;
 
             tabPage.Controls.Add(tabControl as UserControl);
 
