@@ -1,5 +1,4 @@
-﻿using Kontract.Interfaces.FileSystem;
-using System;
+﻿using System;
 using System.IO;
 
 namespace Kontract.Interfaces.Common
@@ -13,15 +12,41 @@ namespace Kontract.Interfaces.Common
         bool LeaveOpen { get; set; }
 
         /// <summary>
-        /// Loads the given file.
+        /// Loads the given file stream.
         /// </summary>
-        /// <param name="file">The file to be loaded.</param>
-        void Load(StreamInfo file);
+        /// <param name="input">The file stream to be loaded.</param>
+        void Load(StreamInfo input);
     }
 
+    /// <summary>
+    /// A data class that represents stream information used for loading and saving files.
+    /// </summary>
     public class StreamInfo
     {
+        /// <summary>
+        /// The underlying data stream to read from and write to.
+        /// </summary>
         public Stream FileData { get; set; }
+
+        /// <summary>
+        /// The name of the file associated with the strean.
+        /// </summary>
         public string FileName { get; set; }
+
+        /// <summary>
+        /// Creates a new blank <see cref="StreamInfo"/> object.
+        /// </summary>
+        public StreamInfo() { }
+
+        /// <summary>
+        /// Creates a new populated <see cref="StreamInfo"/> object.
+        /// </summary>
+        /// <param name="fileData">A readable or writeable stream for the underlying file data.</param>
+        /// <param name="fileName">The name or intended name of the associated file.</param>
+        public StreamInfo(Stream fileData, string fileName)
+        {
+            FileData = fileData;
+            FileName = fileName;
+        }
     }
 }

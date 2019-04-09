@@ -9,14 +9,13 @@ using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
+using plugin_mt_framework.TEX;
 
-namespace Kore.SamplePlugins
+namespace plugin_mt_framework.GFDv1Old
 {
-    public class GFDv1 : IFormatConverter<GFDv1, GFDv2>
+    public class GFDv1
     {
         public FileHeader Header;
         public List<float> HeaderF;
@@ -46,18 +45,16 @@ namespace Kore.SamplePlugins
             Characters = new List<GFDv1Character>();
             Textures = new List<Bitmap>();
 
-            //TODO
-            //Plugins.ComposePlugins(this, _container);
-            KoreManager.ComposeSamplePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                PluginLoader.ComposePlugins(this);
         }
 
         public GFDv1(FileStream input)
         {
             _sourceFile = input.Name;
 
-            //TODO
-            //Plugins.ComposePlugins(this, _container);
-            KoreManager.ComposeSamplePlugins(this, _container);
+            if (_texAdapters == null || _texAdapters.Count == 0)
+                PluginLoader.ComposePlugins(this);
 
             using (var br = new BinaryReaderX(input))
             {
@@ -188,17 +185,6 @@ namespace Kore.SamplePlugins
             fName += ".tex";
 
             return Path.Combine(dName, fName);
-        }
-
-        // Conversion
-        public GFDv2 ConvertTo(GFDv1 inFormat)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public static implicit operator GFDv2(GFDv1 source)
-        {
-            throw new System.NotImplementedException();
         }
 
         // Support

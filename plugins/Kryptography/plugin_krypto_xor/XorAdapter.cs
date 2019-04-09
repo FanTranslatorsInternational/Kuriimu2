@@ -14,34 +14,15 @@ using System.Threading.Tasks;
 namespace plugin_krypto_xor
 {
     [Export(typeof(IPlugin))]
-    [MenuStripExtension("General", "Rot13")]
+    [MenuStripExtension("General", "Xor")]
     public class XorAdapter : ICipherAdapter
     {
-        public event EventHandler<RequestKeyEventArgs> RequestKey;
+        public event EventHandler<RequestDataEventArgs> RequestData;
 
         public string Name => "Xor";
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
-        {
-            error = string.Empty;
-
-            var eventArgs = new RequestKeyEventArgs(message, keyLength);
-            RequestKey?.Invoke(this, eventArgs);
-
-            if (eventArgs.Data == null)
-            {
-                error = "Data not given.";
-                return null;
-            }
-
-            if (keyLength >= 0 && eventArgs.Data.Length != keyLength)
-            {
-                error = "Data has no valid length.";
-                return null;
-            }
-
-            return eventArgs.Data;
-        }
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {

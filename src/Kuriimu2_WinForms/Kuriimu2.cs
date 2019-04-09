@@ -33,6 +33,8 @@ namespace Kuriimu2_WinForms
         {
             InitializeComponent();
 
+            Icon = Resources.kuriimu2winforms;
+
             _kore = new KoreManager();
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
@@ -53,7 +55,7 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
             cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            mainMenuStrip.Items.Add(_cipherToolStrip);
+            mnuMain.Items.Add(_cipherToolStrip);
         }
 
         #region Events
@@ -72,15 +74,34 @@ namespace Kuriimu2_WinForms
         }
 
         #region Ciphers
-        private void Cipher_RequestKey(object sender, RequestKeyEventArgs e)
+        private void Cipher_RequestData(object sender, RequestDataEventArgs e)
         {
             var input = new InputBox("Requesting data", e.RequestMessage);
+            var ofd = new OpenFileDialog() { Title = e.RequestMessage };
 
-            while (string.IsNullOrEmpty(input.InputText) || Regex.IsMatch(input.InputText, "^[a-fA-F0-9]+$"))
-                if (input.ShowDialog() != DialogResult.OK)
-                    return;
+            while (true)
+            {
+                if (e.IsRequestFile)
+                {
+                    if (ofd.ShowDialog() == DialogResult.OK && ofd.CheckFileExists)
+                    {
+                        e.Data = ofd.FileName;
+                        return;
+                    }
 
-            e.Data = input.InputText.Hexlify();
+                    MessageBox.Show("No valid file selected. Please choose a valid file.", "Invalid file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    if (input.ShowDialog() == DialogResult.OK && input.Text.Length == e.DataSize)
+                    {
+                        e.Data = input.Text;
+                        return;
+                    }
+
+                    MessageBox.Show("No valid data input. Please input valid data.", "Invalid data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void EncItem_Click(object sender, EventArgs e)
@@ -218,7 +239,7 @@ namespace Kuriimu2_WinForms
 
         private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher)
         {
-            cipher.RequestKey += Cipher_RequestKey;
+            cipher.RequestData += Cipher_RequestData;
 
             var decItem = new ToolStripMenuItem("Decrypt");
             decItem.Click += DecItem_Click;
@@ -274,7 +295,11 @@ namespace Kuriimu2_WinForms
 
         private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, KoreFileInfo parentKfi = null)
         {
-            var tabPage = new TabPage();
+            var tabPage = new TabPage
+            {
+                BackColor = SystemColors.Window,
+                Padding = new Padding(0, 2, 2, 1)
+            };
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)

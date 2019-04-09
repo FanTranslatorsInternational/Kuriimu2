@@ -1,6 +1,4 @@
-﻿using Kontract.Interfaces.FileSystem;
-
-namespace Kontract.Interfaces.Common
+﻿namespace Kontract.Interfaces.Common
 {
     /// <summary>
     /// This interface allows a plugin to participate in automatic file identification.

@@ -9,16 +9,18 @@ namespace Kryptography.AES.XTS
         private ICryptoTransform _key1;
         private ICryptoTransform _key2;
         private readonly int _sectorSize;
+        private readonly bool _advanceSectorId;
         private bool _firstTransform;
         private readonly bool _littleEndianId;
 
         public byte[] SectorId { get; set; }
 
-        public AesXtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, byte[] sectorId, int sectorSize, bool littleEndianId)
+        public AesXtsCryptoTransform(ICryptoTransform key1, ICryptoTransform key2, byte[] sectorId, bool advanceSectorId, int sectorSize, bool littleEndianId)
         {
             _key1 = key1;
             _key2 = key2;
             _sectorSize = sectorSize;
+            _advanceSectorId = advanceSectorId;
 
             _firstTransform = true;
             _littleEndianId = littleEndianId;
@@ -72,7 +74,6 @@ namespace Kryptography.AES.XTS
             byte[] tweakPad = new byte[inputCount];
             ComputeTweakPad(tweak, tweakPad);
 
-            //TweakCrypt(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, tweak);
             ApplyXex(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset, tweakPad);
         }
 
@@ -85,7 +86,8 @@ namespace Kryptography.AES.XTS
             for (int i = 0; i < sectorCount; i++)
             {
                 Array.Copy(tweak, 0, sectorTweaks, i << 4, 16);
-                tweak.Increment(1, _littleEndianId);
+                if (_advanceSectorId)
+                    tweak.Increment(1, _littleEndianId);
             }
 
             //Encrypt SectorTweaks

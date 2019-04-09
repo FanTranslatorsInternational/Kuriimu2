@@ -28,22 +28,23 @@ namespace Kontract.Interfaces.Intermediate
         /// <param name="decryptInto"></param>
         /// <param name="progress"></param>
         Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress);
-
+        
         /// <summary>
-        /// Eventhandler for requesting key material
+        /// Eventhandler for requesting data
         /// </summary>
-        event EventHandler<RequestKeyEventArgs> RequestKey;
+        event EventHandler<RequestDataEventArgs> RequestData;
     }
 
     /// <summary>
     /// The event arguments for requesting key material
     /// </summary>
-    public class RequestKeyEventArgs : EventArgs
+    public class RequestDataEventArgs : EventArgs
     {
-        public RequestKeyEventArgs(string requestMessage, int dataLength)
+        public RequestDataEventArgs(string requestMessage, int dataLength, bool isRequestFile)
         {
             RequestMessage = requestMessage;
             DataSize = dataLength;
+            IsRequestFile = isRequestFile;
         }
 
         /// <summary>
@@ -52,13 +53,18 @@ namespace Kontract.Interfaces.Intermediate
         public string RequestMessage { get; }
 
         /// <summary>
-        /// The length of the key
+        /// The length of the data
         /// </summary>
         public int DataSize { get; }
 
         /// <summary>
-        /// The key returned by the event
+        /// Defines if event should request a file
         /// </summary>
-        public byte[] Data { get; set; }
+        public bool IsRequestFile { get; }
+
+        /// <summary>
+        /// The data returned by the event
+        /// </summary>
+        public string Data { get; set; }
     }
 }
