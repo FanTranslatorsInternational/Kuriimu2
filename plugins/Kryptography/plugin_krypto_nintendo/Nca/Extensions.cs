@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Kryptography
+namespace plugin_krypto_nintendo.Nca
 {
     internal static class Extensions
     {
-        internal static void Increment(this byte[] input, long count, bool littleEndian)
+        internal static void Decrement(this byte[] input, long count, bool littleEndian)
         {
             if (!littleEndian)
                 for (int i = input.Length - 1; i >= 0; i--)
@@ -13,14 +17,14 @@ namespace Kryptography
                         break;
 
                     var check = input[i];
-                    input[i] += (byte)count;
+                    input[i] -= (byte)count;
                     count >>= 8;
 
                     int off = 0;
-                    while (i - off - 1 >= 0 && input[i - off] < check)
+                    while (i - off - 1 >= 0 && input[i - off] > check)
                     {
                         check = input[i - off - 1];
-                        input[i - off - 1]++;
+                        input[i - off - 1]--;
                         off++;
                     }
                 }
@@ -31,14 +35,14 @@ namespace Kryptography
                         break;
 
                     var check = input[i];
-                    input[i] += (byte)count;
+                    input[i] -= (byte)count;
                     count >>= 8;
 
                     int off = 0;
-                    while (i + off + 1 < input.Length && input[i + off] < check)
+                    while (i + off + 1 < input.Length && input[i + off] > check)
                     {
                         check = input[i + off + 1];
-                        input[i + off + 1]++;
+                        input[i + off + 1]--;
                         off++;
                     }
                 }

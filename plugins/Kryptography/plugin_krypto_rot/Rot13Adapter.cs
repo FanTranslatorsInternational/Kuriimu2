@@ -55,7 +55,7 @@ namespace plugin_krypto_rot
                             rot.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)rot.Length / rot.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)rot.Position / rot.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

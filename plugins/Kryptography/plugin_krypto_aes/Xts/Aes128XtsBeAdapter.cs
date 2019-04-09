@@ -80,7 +80,7 @@ namespace plugin_krypto_aes.Ecb
                             xts.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)xts.Length / xts.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)xts.Position / xts.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

@@ -145,7 +145,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
                 new EcbStream(new MemoryStream(EncryptedKeyArea), decKey).Read(decKeyArea, 0, decKeyArea.Length);
             }
 
-            // TODO: Refactor readable stream to take in sections; To be writable
+            // TODO: Create writable stream;
             var stream = new NcaReadableStream(writeStream, NcaVersion, decKeyArea, _keyStorage, decTitleKey, true);
             
             return stream;

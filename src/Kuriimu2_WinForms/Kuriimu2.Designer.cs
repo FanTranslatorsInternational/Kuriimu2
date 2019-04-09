@@ -35,6 +35,7 @@
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
+            this.globalOperationProgress = new Kuriimu2_WinForms.Controls.InfoProgressBar();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.SuspendLayout();
@@ -67,14 +68,16 @@
             // 
             // openFiles
             // 
-            this.openFiles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.openFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.openFiles.ImageList = this.tabCloseButtons;
-            this.openFiles.Location = new System.Drawing.Point(3, 2);
+            this.openFiles.Location = new System.Drawing.Point(3, 26);
             this.openFiles.Margin = new System.Windows.Forms.Padding(0);
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 529);
+            this.openFiles.Size = new System.Drawing.Size(953, 505);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -95,12 +98,24 @@
             this.pnlMain.Size = new System.Drawing.Size(957, 533);
             this.pnlMain.TabIndex = 2;
             // 
+            // globalOperationProgress
+            // 
+            this.globalOperationProgress.Dock = System.Windows.Forms.DockStyle.Top;
+            this.globalOperationProgress.Location = new System.Drawing.Point(0, 24);
+            this.globalOperationProgress.Name = "globalOperationProgress";
+            this.globalOperationProgress.ProgressColor = System.Drawing.Color.ForestGreen;
+            this.globalOperationProgress.Size = new System.Drawing.Size(957, 23);
+            this.globalOperationProgress.TabIndex = 3;
+            this.globalOperationProgress.Text = null;
+            this.globalOperationProgress.TextColor = System.Drawing.Color.Black;
+            // 
             // Kuriimu2
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(957, 557);
+            this.Controls.Add(this.globalOperationProgress);
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
@@ -125,6 +140,7 @@
         private System.Windows.Forms.TabControl openFiles;
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
+        private Controls.InfoProgressBar globalOperationProgress;
     }
 }
 

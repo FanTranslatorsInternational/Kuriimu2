@@ -205,6 +205,12 @@ namespace Kuriimu2_WinForms
         {
             e.EventResult = CloseFile(e.Kfi, e.LeaveOpen);
         }
+
+        private void Report_ProgressChanged(object sender, ProgressReport e)
+        {
+            globalOperationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            globalOperationProgress.Value = Convert.ToInt32(e.Percentage);
+        }
         #endregion
 
         #endregion
@@ -232,7 +238,13 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip.Enabled = false;
             var report = new Progress<ProgressReport>();
-            await cipherFunc(openFile.OpenFile(), saveFile.OpenFile(), report);
+            report.ProgressChanged += Report_ProgressChanged;
+
+            var openFileStream = openFile.OpenFile();
+            var saveFileStream = saveFile.OpenFile();
+            await cipherFunc(openFileStream, saveFileStream, report);
+            openFileStream.Close();
+            saveFileStream.Close();
 
             _cipherToolStrip.Enabled = true;
         }

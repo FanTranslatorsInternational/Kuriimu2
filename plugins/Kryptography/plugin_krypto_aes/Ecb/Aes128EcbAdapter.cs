@@ -67,7 +67,7 @@ namespace plugin_krypto_aes.Ecb
                             ecb.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Length / ecb.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)ecb.Position / ecb.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 
