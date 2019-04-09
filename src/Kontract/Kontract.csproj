@@ -65,9 +65,7 @@
     <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\Common\ICreateFiles.cs" />
     <Compile Include="Interfaces\Image\IImageAdapter.cs" />
-    <Compile Include="Interfaces\Common\ILoadStreams.cs" />
     <Compile Include="Interfaces\Common\ILoadFiles.cs" />
-    <Compile Include="Interfaces\Common\ISaveStreams.cs" />
     <Compile Include="Interfaces\Common\ISaveFiles.cs" />
     <Compile Include="Interfaces\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
