@@ -54,7 +54,7 @@ namespace Kontract.Interfaces.Image
         /// The list of all mipmap data.
         /// </summary>
         [Browsable(false)]
-        public List<Bitmap> MipMaps { get; set; }
+        public List<Bitmap> MipMaps { get; set; } = new List<Bitmap>();
 
         /// <summary>
         /// The number of mipmaps that this BitmapInfo has.
