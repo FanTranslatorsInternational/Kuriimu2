@@ -27,6 +27,7 @@ namespace Kuriimu2_WinForms.FormatForms
         private IImageAdapter _imageAdapter => (IImageAdapter)Kfi.Adapter;
         private int _selectedImageIndex = 0;
         private BitmapInfo _selectedBitmapInfo => _imageAdapter.BitmapInfos[_selectedImageIndex];
+        private Bitmap[] _bestBitmaps;
         private Bitmap _thumbnailBackground;
 
         Dictionary<string, string> _stylesText = new Dictionary<string, string>
@@ -54,6 +55,7 @@ namespace Kuriimu2_WinForms.FormatForms
             _currentTab = tabPage;
             _parentTab = parentTabPage;
             _parentAdapter = parentAdapter;
+            _bestBitmaps = _imageAdapter.BitmapInfos.Select(x => (Bitmap)x.Image.Clone()).ToArray();
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
             tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(f => new ToolStripMenuItem { Text = f.FormatName, Tag = f }).ToArray());
@@ -74,6 +76,7 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             var tsb = (ToolStripMenuItem)sender;
 
+            _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps.Clone();
             ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
         }
 
@@ -142,6 +145,7 @@ namespace Kuriimu2_WinForms.FormatForms
             try
             {
                 _selectedBitmapInfo.Image = new Bitmap(filename);
+                _bestBitmaps[_selectedImageIndex] = (Bitmap)_selectedBitmapInfo.Image.Clone();
                 ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
