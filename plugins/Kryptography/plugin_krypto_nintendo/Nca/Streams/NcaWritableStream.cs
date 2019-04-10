@@ -31,11 +31,18 @@ namespace plugin_krypto_nintendo.Nca.Streams
         {
             _baseStream = input;
 
+            _headerStream = new NcaHeaderStream(input, version, keyStorage.HeaderKey, isEncrypted);
+
             _sections = sections;
             _sectionStreams = new Stream[sections.Length];
             for (int i = 0; i < sections.Length; i++)
             {
-                ;
+                var sectionIv = new byte[0x10];
+                if (sections[i].SectionCrypto == NcaSectionCrypto.TitleKey || sections[i].SectionCrypto == NcaSectionCrypto.Ctr)
+                    Array.Copy(sections[i].BaseSectionCtr, sectionIv, 0x10);
+                else
+                    sectionIv.Decrement(sections[i].MediaOffset, false);
+                _sectionStreams[i] = new NcaBodyStream(input, (byte)sections[i].SectionCrypto, sectionIv, decKeyArea, decTitleKey);
             }
         }
 

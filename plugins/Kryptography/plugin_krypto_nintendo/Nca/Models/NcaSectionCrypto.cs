@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.Models
 {
-    public enum NcaSectionCrypto
+    public enum NcaSectionCrypto:byte
     {
         NoCrypto = 1,
         Xts,
         Ctr,
         Bktr,
-        TitleKey = 256
+        TitleKey = 255
     }
 }

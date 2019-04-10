@@ -1,18 +1,17 @@
-﻿using System;
+﻿using Kanvas.Format;
+using Kanvas.Interface;
+using Kanvas.Quantization.ColorCache;
+using Kanvas.Quantization.Helper;
+using Kanvas.Quantization.PathProvider;
+using Kanvas.Quantization.Quantizer;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-
-using Kanvas.Format;
-using Kanvas.Interface;
-using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Quantizer;
-using Kanvas.Quantization.PathProvider;
-using Kanvas.Quantization.ColorCache;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Kanvas.Quantization
 {
@@ -22,7 +21,7 @@ namespace Kanvas.Quantization
         {
             unsafe
             {
-                var rgbaData = new RGBA(8, 8, 8, 8, true).Save(colors);
+                var rgbaData = new RGBA(8, 8, 8, 8) { IsAlphaFirst = true }.Save(colors);
 
                 var img = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
                 var imgData = img.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
