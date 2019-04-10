@@ -60,7 +60,7 @@ namespace plugin_blue_reflection.KSLT
 
         public void Save(StreamInfo output, int versionIndex = 0)
         {
-            //_format.Save(output.FileData);
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }
