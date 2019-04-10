@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Kuriimu2_WinForms.Controls
@@ -14,7 +9,7 @@ namespace Kuriimu2_WinForms.Controls
     /// </summary>
     public class InfoToolStripProgressBar : ToolStripProgressBar
     {
-        private string _text;
+        private string _text = string.Empty;
         private Color _textColor;
         private Color _progColor;
 
