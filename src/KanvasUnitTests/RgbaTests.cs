@@ -1,7 +1,6 @@
 ﻿using Kanvas.Format;
 using Komponent.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Linq;
 
 namespace KanvasUnitTests
