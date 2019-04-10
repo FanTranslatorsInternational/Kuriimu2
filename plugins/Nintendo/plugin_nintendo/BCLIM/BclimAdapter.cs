@@ -1,30 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
-using System.Linq;
+using plugin_nintendo.NW4C;
 
-namespace Kore.SamplePlugins
+namespace plugin_nintendo.BCLIM
 {
     [Export(typeof(BclimAdapter))]
-    [Export(typeof(IImageAdapter))]
-    //[Export(typeof(IIdentifyFiles))]
-    [Export(typeof(ICreateFiles))]
-    //[Export(typeof(ILoadFiles))]
-    [Export(typeof(ISaveFiles))]
+    [Export(typeof(IPlugin))]
     [PluginInfo("FAD19315-1A30-44A3-B0D4-0E6A8E71A39F", "NW4C BCLIM Image", "BCLIM", "IcySon55", "", "This is the BCLIM image adapter for Kuriimu.")]
     [PluginExtensionInfo("*.bclim")]
-    public sealed class BclimAdapter : IImageAdapter, /*IIdentifyFiles,*/ ICreateFiles/*, ILoadFiles,*/ /*ISaveFiles*/
+    public sealed class BclimAdapter : IImageAdapter, IIdentifyFiles, /*ICreateFiles,*/ ILoadFiles, ISaveFiles
     {
         private BCLIM _format;
+
         private List<BitmapInfo> _bitmapInfos;
 
         #region Properties
@@ -32,22 +27,26 @@ namespace Kore.SamplePlugins
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<FormatInfo> FormatInfos => _format.DDDSFormat.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
+        [FormFieldIgnore]
+        public IList<FormatInfo> FormatInfos => ImageFormats.CTRFormats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
+
+        [FormFieldIgnore]
+        public bool LeaveOpen { get; set; }
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input)
         {
             var result = true;
 
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, true))
                 {
                     if (br.BaseStream.Length < 0x28) return false;
 
                     br.BaseStream.Position = br.BaseStream.Length - 0x28;
-                    if (br.ReadString(4, Encoding.ASCII) != "CLIM")
+                    if (br.ReadString(4) != "CLIM")
                         result = false;
                 }
             }
@@ -59,18 +58,15 @@ namespace Kore.SamplePlugins
             return result;
         }
 
-        public void Create()
-        {
-            _format = new BCLIM();
-        }
+        //public void Create()
+        //{
+        //    _format = new BCLIM();
+        //}
 
-        public void Load(string filename)
+        public void Load(StreamInfo input)
         {
-            if (File.Exists(filename))
-            {
-                _format = new BCLIM(File.OpenRead(filename));
-                _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo(_format.Texture, new FormatInfo(_format.TextureHeader.Format, _format.DDDSFormat[_format.TextureHeader.Format].FormatName)) { Name = "0" } };
-            }
+            _format = new BCLIM(input.FileData);
+            _bitmapInfos = new List<BitmapInfo>() { new BitmapInfo(_format.Texture, new FormatInfo(_format.TextureHeader.Format, ImageFormats.CTRFormats[_format.TextureHeader.Format].FormatName)) { Name = "0" } };
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
@@ -79,9 +75,9 @@ namespace Kore.SamplePlugins
             return false;
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public void Save(StreamInfo output, int versionIndex = 0)
         {
-            _format.Save(File.Create(filename));
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }

@@ -23,12 +23,12 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override long Position { get; set; }
 
-        public NcaBodyStream(Stream input, byte sectionCryptoType, byte[] sectionCtr, byte[] decKeyArea, byte[] decTitleKey)
+        public NcaBodyStream(Stream input, byte sectionCryptoType, byte[] iv, byte[] decKeyArea, byte[] decTitleKey)
         {
             _internalLength = input.Length;
 
             if (decTitleKey != null)
-                _baseStream = new CtrStream(input, decTitleKey, sectionCtr, true);
+                _baseStream = new CtrStream(input, decTitleKey, iv, false);
             else
             {
                 switch (sectionCryptoType)
@@ -41,13 +41,13 @@ namespace plugin_krypto_nintendo.Nca.Streams
                         // XTS
                         var key_area_key = new byte[0x20];
                         Array.Copy(decKeyArea, key_area_key, 0x20);
-                        _baseStream = new XtsStream(input, key_area_key, new byte[0x10], true, true, 0x200);
+                        _baseStream = new XtsStream(input, key_area_key, iv, true, false, 0x200);
                         break;
                     case 3:
                         //CTR
                         key_area_key = new byte[0x10];
                         Array.Copy(decKeyArea, 0x20, key_area_key, 0, 0x10);
-                        _baseStream = new CtrStream(input, key_area_key, sectionCtr, true);
+                        _baseStream = new CtrStream(input, key_area_key, iv, false);
                         break;
                     case 4:
                         //BKTR
@@ -65,7 +65,11 @@ namespace plugin_krypto_nintendo.Nca.Streams
             if (!CanRead)
                 throw new NotSupportedException("Can't read stream.");
 
-            return _baseStream.Read(buffer, offset, count);
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
+            var readBytes = _baseStream.Read(buffer, offset, count);
+            _baseStream.Position = bkPos;
+            return readBytes;
         }
 
         public override long Seek(long offset, SeekOrigin origin)

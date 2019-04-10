@@ -262,7 +262,9 @@ __pycache__/
 
 ## Our own ignores
 /sample_files
-/src/Kuriimu2/Images/Source
+/Artwork
 /LinqPad.ps1
 /src/KoreUnitTests/temp
 /plugins/Criware/plugin_criware/Scripts
+/*.rar
+/*.bat

@@ -1,4 +1,5 @@
 ﻿using Kryptography.AES;
+using plugin_krypto_nintendo.Nca.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,8 +31,8 @@ namespace plugin_krypto_nintendo.Nca.Streams
             if (header.Length != NcaConstants.HeaderSize)
                 throw new InvalidOperationException($"Nca headers can only be {NcaConstants.HeaderSize} bytes long.");
 
-            _advancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], true, true, NcaConstants.MediaSize);
-            _nonAdvancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], false, true, NcaConstants.MediaSize);
+            _advancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+            _nonAdvancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
             _version = version;
             _internalLength = header.Length;
         }
@@ -46,7 +47,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
         {
             if (!CanRead)
                 throw new NotSupportedException("Can't read from stream.");
-            if (Position > NcaConstants.HeaderSize || Position + count >= NcaConstants.HeaderSize)
+            if (Position > NcaConstants.HeaderSize || Position + count > NcaConstants.HeaderSize)
                 throw new EndOfStreamException();
 
             var bkPosNonAdvance = _nonAdvancingBaseStream.Position;

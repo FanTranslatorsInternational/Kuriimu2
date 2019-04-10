@@ -46,7 +46,6 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.imbPreview = new Cyotek.Windows.Forms.ImageBox();
             this.cmsPreview = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.pbEncoding = new Kuriimu2_WinForms.Controls.InfoProgressBar();
             this.tlsTools = new System.Windows.Forms.ToolStrip();
             this.tslZoom = new System.Windows.Forms.ToolStripLabel();
             this.tslTool = new System.Windows.Forms.ToolStripLabel();
@@ -197,7 +196,6 @@ namespace Kuriimu2_WinForms.FormatForms
             // splMain.Panel1
             // 
             this.splMain.Panel1.Controls.Add(this.imbPreview);
-            this.splMain.Panel1.Controls.Add(this.pbEncoding);
             this.splMain.Panel1.Controls.Add(this.tlsTools);
             // 
             // splMain.Panel2
@@ -234,17 +232,6 @@ namespace Kuriimu2_WinForms.FormatForms
             // 
             this.cmsPreview.Name = "cmsPreview";
             this.cmsPreview.Size = new System.Drawing.Size(61, 4);
-            // 
-            // pbEncoding
-            // 
-            this.pbEncoding.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pbEncoding.Location = new System.Drawing.Point(0, 398);
-            this.pbEncoding.Name = "pbEncoding";
-            this.pbEncoding.ProgressColor = System.Drawing.Color.ForestGreen;
-            this.pbEncoding.Size = new System.Drawing.Size(570, 23);
-            this.pbEncoding.TabIndex = 4;
-            this.pbEncoding.Text = null;
-            this.pbEncoding.TextColor = System.Drawing.Color.Black;
             // 
             // tlsTools
             // 
@@ -427,6 +414,5 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripLabel tslFormat;
         private ToolStripDropDownButton tsbFormat;
-        private Controls.InfoProgressBar pbEncoding;
     }
 }

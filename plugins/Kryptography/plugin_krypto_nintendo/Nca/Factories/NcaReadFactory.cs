@@ -1,6 +1,7 @@
 ﻿using Komponent.IO;
 using Kryptography.AES;
 using plugin_krypto_nintendo.Nca.KeyStorages;
+using plugin_krypto_nintendo.Nca.Models;
 using plugin_krypto_nintendo.Nca.Streams;
 using System;
 using System.Collections.Generic;
@@ -9,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace plugin_krypto_nintendo.Nca
+namespace plugin_krypto_nintendo.Nca.Factories
 {
-    public class NcaFactory
+    public class NcaReadFactory
     {
         private Stream _baseStream;
         private NcaKeyStorage _keyStorage;
@@ -35,9 +36,9 @@ namespace plugin_krypto_nintendo.Nca
             }
         }
 
-        public NcaFactory(Stream nca, string keyFile) : this(nca, keyFile, null) { }
+        public NcaReadFactory(Stream nca, string keyFile) : this(nca, keyFile, null) { }
 
-        public NcaFactory(Stream nca, string keyFile, string titleKeyFile)
+        public NcaReadFactory(Stream nca, string keyFile, string titleKeyFile)
         {
             if (nca == null)
                 throw new ArgumentNullException(nameof(nca));
@@ -61,31 +62,25 @@ namespace plugin_krypto_nintendo.Nca
             nca.Position = 0x200;
             var magic = new byte[4];
             nca.Read(magic, 0, 4);
+            nca.Position = bkPos;
 
-            if (Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
+            if (!Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
             {
-                NcaVersion = ver;
-                IdentifyMasterKey(new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, false));
-                nca.Position = bkPos;
-                return;
+                IsEncrypted = true;
+                var xts = new XtsStream(nca, _keyStorage.HeaderKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+                xts.Position = 0x200;
+                xts.Read(magic, 0, 4);
+
+                if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
+                    throw new InvalidOperationException("No valid Nca.");
             }
 
-            IsEncrypted = true;
-            var str = new XtsStream(nca, _keyStorage.HeaderKey, new byte[0x10], true, true, NcaConstants.MediaSize);
-            str.Position = 0x200;
-            str.Read(magic, 0, 4);
-
-            if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
-                throw new InvalidOperationException("No valid Nca.");
-
             NcaVersion = ver;
-            var headerNca = new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, true);
+            var ncaHeader = new NcaHeaderStream(new SubStream(nca, 0, NcaConstants.HeaderSize), ver, _keyStorage.HeaderKey, IsEncrypted);
 
-            IdentifyMasterKey(headerNca);
-            IdentifyKeyArea(headerNca);
-            IdentifyRightsId(headerNca);
-
-            nca.Position = bkPos;
+            IdentifyMasterKey(ncaHeader);
+            IdentifyKeyArea(ncaHeader);
+            IdentifyRightsId(ncaHeader);
         }
 
         private void IdentifyMasterKey(Stream headerNca)
@@ -161,6 +156,9 @@ namespace plugin_krypto_nintendo.Nca
 
         public Stream CreateReadableStream()
         {
+            if (!_keyStorage.MasterKeys.ContainsKey(MasterKeyRev))
+                throw new InvalidOperationException($"Masterkey {MasterKeyRev} was not found.");
+
             byte[] titleKey = null;
             if (HasRightsId)
             {
@@ -180,14 +178,11 @@ namespace plugin_krypto_nintendo.Nca
                 }
 
                 if (_keyStorage.TitleKek.ContainsKey(MasterKeyRev))
-                    new EcbStream(new MemoryStream(titleKey), _keyStorage.TitleKek[MasterKeyRev]);
+                    new EcbStream(new MemoryStream(titleKey), _keyStorage.TitleKek[MasterKeyRev]).Read(titleKey, 0, titleKey.Length);
             }
 
             if (!Enum.IsDefined(typeof(NcaVersion), (int)NcaVersion))
                 throw new ArgumentException(nameof(NcaVersion));
-
-            if (!_keyStorage.MasterKeys.ContainsKey(MasterKeyRev))
-                throw new InvalidOperationException($"Masterkey {MasterKeyRev} was not found.");
 
             if (DecryptedKeyArea == null)
                 throw new ArgumentNullException(nameof(DecryptedKeyArea));

@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.Archive;
+﻿using Kontract;
+using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.FileSystem;
 using Kore;
@@ -16,6 +17,7 @@ namespace Kuriimu2_WinForms.Interfaces
     {
         event EventHandler<SaveTabEventArgs> SaveTab;
         event EventHandler<CloseTabEventArgs> CloseTab;
+        event EventHandler<ProgressReport> ReportProgress;
 
         KoreFileInfo Kfi { get; set; }
         Color TabColor { get; set; }

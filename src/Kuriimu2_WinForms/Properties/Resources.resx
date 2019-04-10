@@ -124,6 +124,9 @@
   <data name="import_import" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\images\import-import.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="kuriimu2winforms" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\images\kuriimu2winforms.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="menu_add" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\images\menu-add.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

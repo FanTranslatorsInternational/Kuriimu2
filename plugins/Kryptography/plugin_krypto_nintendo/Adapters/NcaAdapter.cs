@@ -1,9 +1,12 @@
 ﻿using Kontract;
 using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Intermediate;
 using plugin_krypto_nintendo.Nca;
+using plugin_krypto_nintendo.Nca.Factories;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,20 +14,44 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Adapters
 {
+    [Export(typeof(IPlugin))]
     [MenuStripExtension("Nintendo", "Nca")]
     public class NcaAdapter : ICipherAdapter
     {
         public string Name => "Nca";
 
-        public event EventHandler<RequestKeyEventArgs> RequestKey;
+        public event EventHandler<RequestDataEventArgs> RequestData;
+
+        private string OnRequestFile(string message, out string error)
+            => RequestMethods.RequestFile((args) => RequestData?.Invoke(this, args), message, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
-            // TODO: Get keyfile path
-            var factory = new NcaFactory(toDecrypt, "");
+            var keyFile = OnRequestFile("Select Switch key file...", out var error);
+            if (!string.IsNullOrEmpty(error))
+            {
+                return Task.Factory.StartNew(() =>
+                {
+                    progress.Report(new ProgressReport { Percentage = 0, Message = error });
+                    return false;
+                });
+            }
+
+            var factory = new NcaReadFactory(toDecrypt, keyFile);
             if (factory.HasRightsId)
-                // TODO: Get titlekey file
-                factory.SetTitleKeyFile("");
+            {
+                var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    return Task.Factory.StartNew(() =>
+                    {
+                        progress.Report(new ProgressReport { Percentage = 0, Message = error });
+                        return false;
+                    });
+                }
+
+                factory.SetTitleKeyFile(titleKeyFile);
+            }
 
             return Task.Factory.StartNew(() =>
             {
@@ -40,7 +67,7 @@ namespace plugin_krypto_nintendo.Adapters
                         cs.Read(buffer, 0, length);
                         decryptInto.Write(buffer, 0, length);
 
-                        progress.Report(new ProgressReport { Percentage = (double)cs.Length / cs.Position * 100, Message = "Decryption..." });
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / cs.Length * 100, Message = "Decryption..." });
                     }
                 }
 
@@ -50,6 +77,7 @@ namespace plugin_krypto_nintendo.Adapters
             });
         }
 
+        // TODO: Implement encryption
         public Task<bool> Encrypt(Stream toEncrypt, Stream encryptInto, IProgress<ProgressReport> progress)
         {
             throw new NotImplementedException();

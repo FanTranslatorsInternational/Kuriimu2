@@ -4,16 +4,7 @@ namespace Kryptography
 {
     internal static class Extensions
     {
-        internal static byte[] Hexlify(this string hex, int length = -1)
-        {
-            int NumberChars = hex.Length;
-            byte[] bytes = new byte[(length < 0) ? NumberChars / 2 : (length + 1) & ~1];
-            for (int i = 0; i < ((length < 0) ? NumberChars : length * 2); i += 2)
-                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
-            return bytes;
-        }
-
-        internal static void Increment(this byte[] input, int count, bool littleEndian)
+        internal static void Increment(this byte[] input, long count, bool littleEndian)
         {
             if (!littleEndian)
                 for (int i = input.Length - 1; i >= 0; i--)

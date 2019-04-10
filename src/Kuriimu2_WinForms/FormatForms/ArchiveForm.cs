@@ -77,6 +77,8 @@ namespace Kuriimu2_WinForms.FormatForms
         public event EventHandler<OpenTabEventArgs> OpenTab;
 
         public event EventHandler<SaveTabEventArgs> SaveTab;
+
+        public event EventHandler<ProgressReport> ReportProgress;
         #endregion
 
         public KoreFileInfo Kfi { get; set; }

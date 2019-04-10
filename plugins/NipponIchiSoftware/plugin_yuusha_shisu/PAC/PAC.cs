@@ -1,59 +1,92 @@
 ﻿using Komponent.IO;
 using Kontract.Interfaces.Archive;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace plugin_yuusha_shisu.PAC
 {
     public class PAC
     {
-        public List<ArchiveFileInfo> Files { get; } = new List<ArchiveFileInfo>();
+        private const int _entryAlignment = 0x20;
+        private const int _fileAlignment = 0x80;
+
         private FileHeader _header;
         private List<FileEntry> _entries;
 
+        /// <summary>
+        /// The files contained within this PAC archive.
+        /// </summary>
+        public List<ArchiveFileInfo> Files { get; } = new List<ArchiveFileInfo>();
+
+        /// <summary>
+        /// Loads the metadata and files from a PAC archive.
+        /// </summary>
+        /// <param name="input">An input stream for a PAC archive.</param>
         public PAC(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
+                // Header
                 _header = br.ReadType<FileHeader>();
+                
+                // Offsets
                 var offsets = br.ReadMultiple<int>(_header.FileCount);
-                br.SeekAlignment(0x20);
+                br.SeekAlignment(_entryAlignment);
+                
+                // Entries
                 _entries = br.ReadMultiple<FileEntry>(_header.FileCount);
-                //br.SeekAlignment(0x80);
+
+                // Files
                 for (int i = 0; i < offsets.Count; i++)
                 {
-                    var length = (i < offsets.Count-1 ? offsets[i + 1] : (int)br.BaseStream.Length) - offsets[i];
+                    br.BaseStream.Position = offsets[i];
+                    var length = br.ReadInt32();
+                    var off = br.BaseStream.Position + _fileAlignment - sizeof(int);
+
                     Files.Add(new ArchiveFileInfo
                     {
-                        FileName = _entries[i].FileName.Trim('\0'),
-                        FileData = new SubStream(br.BaseStream, offsets[i], length),
+                        FileName = "\\" + _entries[i].FileName.Trim('\0'),
+                        FileData = new SubStream(br.BaseStream, off, length),
                         State = ArchiveFileState.Archived
                     });
                 }
             }
         }
 
+        /// <summary>
+        /// Saves the metadata and files into a PAC archive.
+        /// </summary>
+        /// <param name="output">An output stream for a PAC archive.</param>
+        /// <returns>True if successful.</returns>
         public bool Save(Stream output)
         {
             using (var bw = new BinaryWriterX(output, true))
             {
+                // Header
                 bw.WriteType(_header);
                 var offsetPosition = bw.BaseStream.Position;
-                bw.BaseStream.Position += _header.FileCount * sizeof(int);
-                bw.WriteAlignment(0x20);
-                bw.WriteMultiple(_entries);
-                bw.WriteAlignment(0x80);
-                var offsets = new List<int>();
 
+                // Skip Offsets
+                bw.BaseStream.Position += _header.FileCount * sizeof(int);
+                bw.WriteAlignment(_entryAlignment);
+
+                // Entries
+                bw.WriteMultiple(_entries);
+                bw.WriteAlignment(_fileAlignment);
+
+                // Files
+                var offsets = new List<int>();
                 foreach(var afi in Files)
                 {
                     offsets.Add((int)bw.BaseStream.Position);
+                    bw.Write((int)afi.FileSize);
+                    bw.Write(_fileAlignment);
+                    bw.WriteAlignment(_fileAlignment);
                     afi.FileData.CopyTo(bw.BaseStream);
+                    bw.WriteAlignment(_fileAlignment);
                 }
+
+                // Offsets
                 bw.BaseStream.Position = offsetPosition;
                 bw.WriteMultiple(offsets);
             }

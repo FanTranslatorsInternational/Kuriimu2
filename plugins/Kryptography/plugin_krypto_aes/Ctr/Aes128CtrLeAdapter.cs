@@ -18,31 +18,12 @@ namespace plugin_krypto_aes.Ctr
     [MenuStripExtension("AES", "128", "CTR", "LE")]
     public class Aes128CtrLeAdapter : ICipherAdapter
     {
-        public event EventHandler<RequestKeyEventArgs> RequestKey;
+        public event EventHandler<RequestDataEventArgs> RequestData;
 
         public string Name => throw new NotImplementedException();
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
-        {
-            error = string.Empty;
-
-            var eventArgs = new RequestKeyEventArgs(message, keyLength);
-            RequestKey?.Invoke(this, eventArgs);
-
-            if (eventArgs.Data == null)
-            {
-                error = "Data not given.";
-                return null;
-            }
-
-            if (eventArgs.Data.Length != keyLength)
-            {
-                error = "Data has no valid length.";
-                return null;
-            }
-
-            return eventArgs.Data;
-        }
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -76,25 +57,25 @@ namespace plugin_krypto_aes.Ctr
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CtrStream(decrypt ? input : output, key, ctr, true))
+                using (var cs = new CtrStream(decrypt ? input : output, key, ctr, true))
                 {
                     var buffer = new byte[0x10000];
-                    while (ecb.Position < ecb.Length)
+                    while (cs.Position < cs.Length)
                     {
-                        var length = (int)Math.Min(0x10000, ecb.Length - ecb.Position);
+                        var length = (int)Math.Min(0x10000, cs.Length - cs.Position);
 
                         if (decrypt)
                         {
-                            ecb.Read(buffer, 0, length);
+                            cs.Read(buffer, 0, length);
                             output.Write(buffer, 0, length);
                         }
                         else
                         {
                             input.Read(buffer, 0, length);
-                            ecb.Write(buffer, 0, length);
+                            cs.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Length / ecb.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / cs.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

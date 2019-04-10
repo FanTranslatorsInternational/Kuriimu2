@@ -77,7 +77,7 @@ namespace Kryptography.AES
 
         private void SetSectorIdByPosition(long pos)
         {
-            if (_advanceSectorId)
+            if (!_advanceSectorId)
             {
                 Array.Copy(_initialId, _currentId, _initialId.Length);
                 return;

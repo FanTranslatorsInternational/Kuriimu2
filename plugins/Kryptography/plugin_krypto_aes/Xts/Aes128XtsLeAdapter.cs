@@ -18,31 +18,15 @@ namespace plugin_krypto_aes.Ecb
     [MenuStripExtension("AES", "128", "XTS", "LE")]
     public class Aes128XtsLeAdapter : ICipherAdapter
     {
-        public event EventHandler<RequestKeyEventArgs> RequestKey;
+        public event EventHandler<RequestDataEventArgs> RequestData;
 
         public string Name => throw new NotImplementedException();
 
         private byte[] OnRequestKey(string message, int keyLength, out string error)
-        {
-            error = string.Empty;
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
 
-            var eventArgs = new RequestKeyEventArgs(message, keyLength);
-            RequestKey?.Invoke(this, eventArgs);
-
-            if (eventArgs.Data == null)
-            {
-                error = "Data not given.";
-                return null;
-            }
-
-            if (eventArgs.Data.Length != keyLength)
-            {
-                error = "Data has no valid length.";
-                return null;
-            }
-
-            return eventArgs.Data;
-        }
+        private long OnRequestNumber(string message, long defaultValue, out string error)
+            => RequestMethods.RequestNumber((args) => RequestData?.Invoke(this, args), message, defaultValue, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -64,29 +48,43 @@ namespace plugin_krypto_aes.Ecb
                     return false;
                 });
 
+            var sectorSize = OnRequestNumber("AES128 XTS SectorSize", 512, out error);
+            if (!string.IsNullOrEmpty(error))
+            {
+                return Task.Factory.StartNew(() =>
+                {
+                    progress.Report(new ProgressReport
+                    {
+                        Percentage = 0,
+                        Message = error
+                    });
+                    return false;
+                });
+            }
+
             return Task.Factory.StartNew(() =>
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new XtsStream(decrypt ? input : output, key, new byte[16], true))
+                using (var xts = new XtsStream(decrypt ? input : output, key, new byte[16], true, true, (int)sectorSize))
                 {
                     var buffer = new byte[0x10000];
-                    while (ecb.Position < ecb.Length)
+                    while (xts.Position < xts.Length)
                     {
-                        var length = (int)Math.Min(0x10000, ecb.Length - ecb.Position);
+                        var length = (int)Math.Min(0x10000, xts.Length - xts.Position);
 
                         if (decrypt)
                         {
-                            ecb.Read(buffer, 0, length);
+                            xts.Read(buffer, 0, length);
                             output.Write(buffer, 0, length);
                         }
                         else
                         {
                             input.Read(buffer, 0, length);
-                            ecb.Write(buffer, 0, length);
+                            xts.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Length / ecb.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)xts.Position / xts.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

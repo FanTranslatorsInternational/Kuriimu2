@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -27,11 +28,19 @@ namespace Kuriimu2_WinForms
         private Random _rand = new Random();
         private string _tempFolder = "temp";
 
+        private Timer _timer;
+        private Stopwatch _globalOperationWatch;
+
         private ToolStripMenuItem _cipherToolStrip;
 
         public Kuriimu2()
         {
             InitializeComponent();
+            _timer = new Timer { Interval = 14 };
+            _timer.Tick += _timer_Tick;
+            _globalOperationWatch = new Stopwatch();
+
+            Icon = Resources.kuriimu2winforms;
 
             _kore = new KoreManager();
 
@@ -39,6 +48,11 @@ namespace Kuriimu2_WinForms
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
             LoadExtensions();
+        }
+
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
         }
 
         private void LoadExtensions()
@@ -53,7 +67,7 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
             cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            mainMenuStrip.Items.Add(_cipherToolStrip);
+            mnuMain.Items.Add(_cipherToolStrip);
         }
 
         #region Events
@@ -72,15 +86,38 @@ namespace Kuriimu2_WinForms
         }
 
         #region Ciphers
-        private void Cipher_RequestKey(object sender, RequestKeyEventArgs e)
+        private void Cipher_RequestData(object sender, RequestDataEventArgs e)
         {
+            _globalOperationWatch.Stop();
+
             var input = new InputBox("Requesting data", e.RequestMessage);
+            var ofd = new OpenFileDialog() { Title = e.RequestMessage };
 
-            while (string.IsNullOrEmpty(input.InputText) || Regex.IsMatch(input.InputText, "^[a-fA-F0-9]+$"))
-                if (input.ShowDialog() != DialogResult.OK)
-                    return;
+            while (true)
+            {
+                if (e.IsRequestFile)
+                {
+                    if (ofd.ShowDialog() == DialogResult.OK && ofd.CheckFileExists)
+                    {
+                        e.Data = ofd.FileName;
+                        _globalOperationWatch.Start();
+                        return;
+                    }
 
-            e.Data = input.InputText.Hexlify();
+                    MessageBox.Show("No valid file selected. Please choose a valid file.", "Invalid file", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    if (input.ShowDialog() == DialogResult.OK && input.Text.Length == e.DataSize)
+                    {
+                        e.Data = input.Text;
+                        _globalOperationWatch.Start();
+                        return;
+                    }
+
+                    MessageBox.Show("No valid data input. Please input valid data.", "Invalid data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void EncItem_Click(object sender, EventArgs e)
@@ -184,6 +221,12 @@ namespace Kuriimu2_WinForms
         {
             e.EventResult = CloseFile(e.Kfi, e.LeaveOpen);
         }
+
+        private void Report_ProgressChanged(object sender, ProgressReport e)
+        {
+            operationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            operationProgress.Value = Convert.ToInt32(e.Percentage);
+        }
         #endregion
 
         #endregion
@@ -211,14 +254,27 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip.Enabled = false;
             var report = new Progress<ProgressReport>();
-            await cipherFunc(openFile.OpenFile(), saveFile.OpenFile(), report);
+            report.ProgressChanged += Report_ProgressChanged;
+
+            var openFileStream = openFile.OpenFile();
+            var saveFileStream = saveFile.OpenFile();
+
+            _timer.Start();
+            _globalOperationWatch.Reset();
+            _globalOperationWatch.Start();
+            await cipherFunc(openFileStream, saveFileStream, report);
+            _globalOperationWatch.Stop();
+            _timer.Stop();
+
+            openFileStream.Close();
+            saveFileStream.Close();
 
             _cipherToolStrip.Enabled = true;
         }
 
         private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher)
         {
-            cipher.RequestKey += Cipher_RequestKey;
+            cipher.RequestData += Cipher_RequestData;
 
             var decItem = new ToolStripMenuItem("Decrypt");
             decItem.Click += DecItem_Click;
@@ -274,7 +330,11 @@ namespace Kuriimu2_WinForms
 
         private TabPage AddTabPage(KoreFileInfo kfi, Color tabColor, KoreFileInfo parentKfi = null)
         {
-            var tabPage = new TabPage();
+            var tabPage = new TabPage
+            {
+                BackColor = SystemColors.Window,
+                Padding = new Padding(0, 2, 2, 1)
+            };
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
@@ -293,6 +353,7 @@ namespace Kuriimu2_WinForms
 
             tabControl.SaveTab += TabControl_SaveTab;
             tabControl.CloseTab += TabControl_CloseTab;
+            tabControl.ReportProgress += Report_ProgressChanged;
 
             tabPage.Controls.Add(tabControl as UserControl);
 

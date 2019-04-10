@@ -1,5 +1,6 @@
 ﻿using Komponent.IO;
 using plugin_krypto_nintendo.Nca.KeyStorages;
+using plugin_krypto_nintendo.Nca.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,24 +10,12 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.Streams
 {
-    internal class SectionLimits
-    {
-        public long StartOffset { get; }
-        public long Length { get; }
-
-        public SectionLimits(long startOffset, long length)
-        {
-            StartOffset = startOffset;
-            Length = length;
-        }
-    }
-
     internal class NcaReadableStream : Stream
     {
         private Stream _baseStream;
         private NcaHeaderStream _header;
         private NcaBodyStream[] _sections;
-        private SectionLimits[] _sectionLimits;
+        private SectionLimit[] _sectionLimits;
 
         public override bool CanRead => true;
 
@@ -47,26 +36,35 @@ namespace plugin_krypto_nintendo.Nca.Streams
             var sections = new byte[0x40];
             _header.Read(sections, 0, 0x40);
             _sections = new NcaBodyStream[4];
-            _sectionLimits = new SectionLimits[4];
+            _sectionLimits = new SectionLimit[4];
             for (int i = 0; i < 4; i++)
             {
+                var sectionOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
                 long offset = BitConverter.ToInt32(sections, i * 0x10) * NcaConstants.MediaSize;
                 long length = BitConverter.ToInt32(sections, i * 0x10 + 4) * NcaConstants.MediaSize - offset;
 
+                if (offset == 0 || length == 0)
+                    continue;
+
                 var sectionCryptoType = new byte[1];
-                _header.Position = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize + 4;
+                _header.Position = sectionOffset + 4;
                 _header.Read(sectionCryptoType, 0, 1);
                 if (sectionCryptoType[0] < 1 || sectionCryptoType[0] > 4)
                     throw new InvalidOperationException($"CryptoType for section {i} must be 1-4. Found CryptoType: {sectionCryptoType[0]}");
 
                 var sectionCtr = new byte[8];
-                _header.Position = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize + 0x140;
+                _header.Position = sectionOffset + 0x140;
                 _header.Read(sectionCtr, 0, 8);
                 sectionCtr = sectionCtr.Reverse().ToArray();
 
-                var subStream = new SubStream(input, offset, length);
-                _sections[i] = new NcaBodyStream(subStream, sectionCryptoType[0], GenerateCTR(sectionCtr, offset), decKeyArea, decTitleKey);
-                _sectionLimits[i] = new SectionLimits(offset, length);
+                //var subStream = new SubStream(input, offset, length);
+                var sectionIv = new byte[0x10];
+                if (decTitleKey != null || sectionCryptoType[0] == 3)
+                    Array.Copy(GenerateCTR(sectionCtr, 0), sectionIv, 0x10);
+                else
+                    sectionIv.Decrement((int)(offset / NcaConstants.MediaSize), false);
+                _sections[i] = new NcaBodyStream(input, sectionCryptoType[0], sectionIv, decKeyArea, decTitleKey);
+                _sectionLimits[i] = new SectionLimit(i, offset, length);
             }
         }
 
@@ -82,8 +80,41 @@ namespace plugin_krypto_nintendo.Nca.Streams
             if (Position + count > Length)
                 throw new EndOfStreamException("Can't read beyond stream.");
 
-            // TODO: Implement reading
-            throw new NotImplementedException();
+            int readBytes = 0;
+            if (Position < NcaConstants.HeaderSize)
+            {
+                var toRead = Math.Min(NcaConstants.HeaderSize - Position, count);
+                _header.Position = Position;
+                readBytes = _header.Read(buffer, offset, (int)toRead);
+            }
+
+            while (readBytes < count)
+            {
+                var newPosition = Position + readBytes;
+                var toRead = count - readBytes;
+
+                var sectionToRead = _sectionLimits.FirstOrDefault(x => x != null && newPosition >= x.StartOffset && newPosition < x.StartOffset + x.Length);
+                if (sectionToRead == null)
+                {
+                    var nextSectionLimits = _sectionLimits.Where(x => x != null && x.StartOffset - newPosition >= 0);
+                    if (nextSectionLimits.Any())
+                        toRead = (int)Math.Min(toRead, nextSectionLimits.Min(x => x.StartOffset) - newPosition);
+
+                    var bkPos = _baseStream.Position;
+                    _baseStream.Position = newPosition;
+                    readBytes += _baseStream.Read(buffer, offset + readBytes, toRead);
+                    _baseStream.Position = bkPos;
+                }
+                else
+                {
+                    toRead = (int)Math.Min(toRead, sectionToRead.StartOffset + sectionToRead.Length - newPosition);
+                    _sections[sectionToRead.Index].Position = newPosition;
+                    readBytes += _sections[sectionToRead.Index].Read(buffer, offset + readBytes, toRead);
+                }
+            }
+
+            Position += readBytes;
+            return readBytes;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
