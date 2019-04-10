@@ -48,5 +48,14 @@ namespace plugin_blue_reflection.KSLT
                 }
             }
         }
+
+        public bool Save(Stream output)
+        {
+            /*using (var bw = new BinaryWriterX(output, true))
+            {
+                
+            }
+            return true;*/
+        }
     }
 }

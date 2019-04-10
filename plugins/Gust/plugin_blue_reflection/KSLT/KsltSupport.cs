@@ -17,7 +17,7 @@ namespace plugin_blue_reflection.KSLT
         public int FileSize;
         public int OffsetTable;
         public int FNameTableSize;
-        public int FileSize2;
+        public int FileCount2;
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ namespace plugin_blue_reflection.KSLT
         /// </summary>
         public static Dictionary<int, IImageFormat> Formats = new Dictionary<int, IImageFormat>
         {
-            [0x0] = new RGBA(8, 8, 8, 8, false, false, ByteOrder.BigEndian)
+            [0x0] = new RGBA(8, 8, 8, 8, false, true, ByteOrder.BigEndian)
         };
     }
 }
