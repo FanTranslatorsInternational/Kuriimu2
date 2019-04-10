@@ -54,8 +54,7 @@ namespace plugin_blue_reflection.KSLT
             /*using (var bw = new BinaryWriterX(output, true))
             {
                 
-            }
-            return true;*/
+            }*/
             return false;
         }
     }

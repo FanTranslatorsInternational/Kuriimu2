@@ -23,7 +23,7 @@ namespace plugin_blue_reflection.KSLT
     /// <summary>
     /// 
     /// </summary>
-    public class unkPadding
+    public class UnkPadding
     {
         [FixedLength(0x38)]
         public byte[] Padding = {0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
