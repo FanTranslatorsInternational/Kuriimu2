@@ -1,15 +1,13 @@
-﻿using Kontract.Interfaces.Common;
-using Kontract.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Archive;
 using Komponent.IO;
-using Kontract.Interfaces.Image;
 using Kontract;
+using Kontract.Attributes;
+using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Image;
 
 namespace plugin_blue_reflection.KSLT
 {
@@ -28,13 +26,12 @@ namespace plugin_blue_reflection.KSLT
         public IList<BitmapInfo> BitmapInfos => infos;
 
         [FormFieldIgnore]
-        public IList<FormatInfo> FormatInfos => null;//ImageFormats.CTRFormats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
+        public IList<FormatInfo> FormatInfos => ImageFormats.Formats.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
 
         [FormFieldIgnore]
         public bool LeaveOpen { get; set; }
 
         #endregion
-
 
         public bool Identify(StreamInfo input)
         {
@@ -52,8 +49,7 @@ namespace plugin_blue_reflection.KSLT
         public void Load(StreamInfo input)
         {
             _format = new KSLT(input.FileData);
-            infos = _format.bitmaps.Select(b => new BitmapInfo(b, new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName))).ToList();
-            //infos = new List<BitmapInfo>() { new BitmapInfo(_format.Texture, new FormatInfo(_format.TextureHeader.Format, ImageFormats.CTRFormats[_format.TextureHeader.Format].FormatName)) { Name = "0" } };
+            infos = _format.Bitmaps.Select(b => new BitmapInfo(b, new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName))).ToList();
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)

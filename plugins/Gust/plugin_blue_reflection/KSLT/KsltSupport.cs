@@ -1,10 +1,14 @@
-﻿using Kanvas.Format;
+﻿using System.Collections.Generic;
+using Kanvas.Format;
 using Kanvas.Interface;
+using Komponent.IO;
 using Komponent.IO.Attributes;
-using System.Collections.Generic;
 
 namespace plugin_blue_reflection.KSLT
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class FileHeader
     {
         [FixedLength(8)]
@@ -15,6 +19,10 @@ namespace plugin_blue_reflection.KSLT
         public int FNameTableSize;
         public int FileSize2;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class unkPadding
     {
         [FixedLength(0x38)]
@@ -23,12 +31,20 @@ namespace plugin_blue_reflection.KSLT
                                  0x80, 0x3F, 0x00, 0x00, 0x80, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class OffsetEntry
     {
         public int Offset;
         [FixedLength(0x10)]
         public byte[] Padding;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class ImageHeader
     {
         public int unk0;
@@ -44,11 +60,18 @@ namespace plugin_blue_reflection.KSLT
         [FixedLength(0x24)]
         public byte[] Padding;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public static class ImageFormats
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public static Dictionary<int, IImageFormat> Formats = new Dictionary<int, IImageFormat>
         {
-            [0x0] = new RGBA(8, 8, 8, 8, false, true),
+            [0x0] = new RGBA(8, 8, 8, 8, false, false, ByteOrder.BigEndian)
         };
     }
 }
