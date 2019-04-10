@@ -32,6 +32,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KontractUnitTests", "src\Ko
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KryptographyUnitTests", "src\KryptographyUnitTests\KryptographyUnitTests.csproj", "{289420A9-552B-46B2-84B6-BFA48D408951}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KanvasUnitTests", "src\KanvasUnitTests\KanvasUnitTests.csproj", "{8A597CA9-7313-45C4-A242-83BB86C19CAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{289420A9-552B-46B2-84B6-BFA48D408951}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{289420A9-552B-46B2-84B6-BFA48D408951}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{289420A9-552B-46B2-84B6-BFA48D408951}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A597CA9-7313-45C4-A242-83BB86C19CAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A597CA9-7313-45C4-A242-83BB86C19CAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A597CA9-7313-45C4-A242-83BB86C19CAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A597CA9-7313-45C4-A242-83BB86C19CAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
