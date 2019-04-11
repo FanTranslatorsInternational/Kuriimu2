@@ -56,8 +56,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
                 _header.Position = sectionOffset + 0x140;
                 _header.Read(sectionCtr, 0, 8);
                 sectionCtr = sectionCtr.Reverse().ToArray();
-
-                //var subStream = new SubStream(input, offset, length);
+                
                 var sectionIv = new byte[0x10];
                 if (decTitleKey != null || sectionCryptoType[0] == 3)
                     Array.Copy(GenerateCTR(sectionCtr, 0), sectionIv, 0x10);

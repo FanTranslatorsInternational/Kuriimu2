@@ -10,23 +10,20 @@ namespace plugin_krypto_nintendo.Nca.Streams
 {
     internal class NcaBodyStream : Stream
     {
-        private long _internalLength;
-        private Stream _baseStream;
+        private readonly Stream _baseStream;
 
         public override bool CanRead => true;
 
         public override bool CanSeek => true;
 
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
 
-        public override long Length => _internalLength;
+        public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
         public NcaBodyStream(Stream input, byte sectionCryptoType, byte[] iv, byte[] decKeyArea, byte[] decTitleKey)
         {
-            _internalLength = input.Length;
-
             if (decTitleKey != null)
                 _baseStream = new CtrStream(input, decTitleKey, iv, false);
             else
@@ -69,6 +66,9 @@ namespace plugin_krypto_nintendo.Nca.Streams
             _baseStream.Position = Position;
             var readBytes = _baseStream.Read(buffer, offset, count);
             _baseStream.Position = bkPos;
+
+            Position += count;
+
             return readBytes;
         }
 
@@ -100,11 +100,15 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            // TODO: Implement write
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
-            throw new NotImplementedException();
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
+            _baseStream.Write(buffer, offset, count);
+            _baseStream.Position = bkPos;
+
+            Position += count;
         }
     }
 }

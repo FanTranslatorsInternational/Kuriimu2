@@ -43,7 +43,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
                     // In case of Ctr we just set the base ctr, since with setting the stream position the counter will get updated correctly already
                     Array.Copy(sections[i].BaseSectionCtr, sectionIv, 0x10);
                 else
-                    /* TODO: sections encrypted with XTS though might start with sector id 0 at their respective section offset
+                    /* sections encrypted with XTS start with sector id 0 at their respective section offset
                      * since the cipher stream will still start at offset 0, the sector id gets decremented to a point that it will be 0, reaching its section offset
                      * this code can be removed if XTS sections don't start at 0 but with a value representing their section offset
                      */
