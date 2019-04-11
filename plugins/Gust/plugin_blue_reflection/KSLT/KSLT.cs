@@ -30,7 +30,7 @@ namespace plugin_blue_reflection.KSLT
                 var offsets = br.ReadMultiple<OffsetEntry>(_header. FileCount);
                 var fileNames = new List<string>();
                 for (int i = 0; i < _header.FileCount; i++)
-                    fileNames.Add(br.ReadCStringASCII().Substring(1));
+                    fileNames.Add(br.ReadCStringASCII());
 
                 foreach (var o in offsets)
                 {
