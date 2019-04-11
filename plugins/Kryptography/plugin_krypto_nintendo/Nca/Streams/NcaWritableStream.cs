@@ -15,7 +15,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         private Stream _headerStream;
         private Stream[] _sectionStreams;
-        private NcaBodySection[] _sections;
+        private List<NcaBodySection> _sections;
 
         public override bool CanRead => false;
 
@@ -33,14 +33,20 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
             _headerStream = new NcaHeaderStream(input, version, keyStorage.HeaderKey, isEncrypted);
 
-            _sections = sections;
+            _sections = sections.ToList();
             _sectionStreams = new Stream[sections.Length];
             for (int i = 0; i < sections.Length; i++)
             {
+                // In the writable stream, all cipher streams encapsulate the whole stream instead of sub streaming them
                 var sectionIv = new byte[0x10];
                 if (sections[i].SectionCrypto == NcaSectionCrypto.TitleKey || sections[i].SectionCrypto == NcaSectionCrypto.Ctr)
+                    // In case of Ctr we just set the base ctr, since with setting the stream position the counter will get updated correctly already
                     Array.Copy(sections[i].BaseSectionCtr, sectionIv, 0x10);
                 else
+                    /* TODO: sections encrypted with XTS though might start with sector id 0 at their respective section offset
+                     * since the cipher stream will still start at offset 0, the sector id gets decremented to a point that it will be 0, reaching its section offset
+                     * this code can be removed if XTS sections don't start at 0 but with a value representing their section offset
+                     */
                     sectionIv.Decrement(sections[i].MediaOffset, false);
                 _sectionStreams[i] = new NcaBodyStream(input, (byte)sections[i].SectionCrypto, sectionIv, decKeyArea, decTitleKey);
             }
@@ -91,7 +97,55 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            // Prepare write buffer
+            var newPosition = Math.Min(Length, Position);
+            var lenPosDiff = Length - Position;
+            var writeBuffer = new byte[Math.Max(0, lenPosDiff) + count];
+            Array.Copy(buffer, offset, writeBuffer, Math.Max(0, lenPosDiff), count);
+
+            // write buffer until its end
+            var writtenBytes = 0;
+            var writeLength = writeBuffer.Length;
+            while (writtenBytes < writeLength)
+            {
+                int toWrite = writeLength - writtenBytes;
+
+                if (newPosition < NcaConstants.HeaderSize)
+                {
+                    toWrite = (int)Math.Min(toWrite, NcaConstants.HeaderSize - newPosition);
+                    _headerStream.Position = newPosition;
+                    _headerStream.Write(writeBuffer, writtenBytes, toWrite);
+                }
+                else
+                {
+                    var sectionToWrite = _sections.FirstOrDefault(x =>
+                            x != null &&
+                            newPosition >= x.MediaOffset * NcaConstants.MediaSize &&
+                            newPosition < x.MediaOffset * NcaConstants.MediaSize + x.MediaLength * NcaConstants.MediaSize);
+                    if (sectionToWrite == null)
+                    {
+                        var nextSections = _sections.Where(x => x != null && x.MediaOffset * NcaConstants.MediaSize - newPosition >= 0).ToList();
+                        if (nextSections.Any())
+                            toWrite = Math.Min(toWrite, (int)(nextSections.Min(x => x.MediaOffset * NcaConstants.MediaSize) - newPosition));
+
+                        var bkPos = _baseStream.Position;
+                        _baseStream.Position = newPosition;
+                        _baseStream.Write(writeBuffer, writtenBytes, toWrite);
+                        _baseStream.Position = bkPos;
+                    }
+                    else
+                    {
+                        var sectionNr = _sections.ToList().IndexOf(sectionToWrite);
+                        toWrite = (int)Math.Min(toWrite, (sectionToWrite.MediaOffset * NcaConstants.MediaSize + sectionToWrite.MediaLength * NcaConstants.MediaSize) - newPosition);
+
+                        _sectionStreams[sectionNr].Position = newPosition;
+                        _sectionStreams[sectionNr].Write(writeBuffer, writtenBytes, toWrite);
+                    }
+                }
+
+                writtenBytes += toWrite;
+                newPosition += toWrite;
+            }
         }
     }
 }

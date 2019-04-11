@@ -125,7 +125,7 @@ namespace plugin_mt_framework.TEX
 
         public static Dictionary<byte, IImageFormat> SwitchFormats = new Dictionary<byte, IImageFormat>
         {
-            [0x07] = new RGBA(8, 8, 8, 8, false, false, ByteOrder.BigEndian),
+            [0x07] = new RGBA(8, 8, 8, 8) { ByteOrder = ByteOrder.BigEndian },
             [0x13] = new DXT(DXT.Format.DXT1),
             [0x17] = new DXT(DXT.Format.DXT5),
             [0x19] = new ATI(ATI.Format.ATI1A),

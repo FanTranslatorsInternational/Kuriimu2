@@ -111,6 +111,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            // TODO: Implement write
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
