@@ -30,7 +30,7 @@ namespace plugin_blue_reflection.KSLT
                 var offsets = br.ReadMultiple<OffsetEntry>(_header. FileCount);
                 var fileNames = new List<string>();
                 for (int i = 0; i < _header.FileCount; i++)
-                    fileNames.Add(br.ReadCStringASCII());
+                    fileNames.Add(br.ReadCStringASCII().Substring(1));
 
                 foreach (var o in offsets)
                 {
@@ -59,7 +59,7 @@ namespace plugin_blue_reflection.KSLT
                 bw.BaseStream.Position += (0x14 * _header.FileCount);
                 foreach (var b in Bitmaps)
                 {
-                    bw.Write(b.Name + '\0');
+                    bw.WriteString(b.Name, System.Text.Encoding.ASCII, false, true);
                 }
                 var newOffsets = new List<OffsetEntry>();
                 foreach (var b in Bitmaps)
