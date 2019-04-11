@@ -49,7 +49,7 @@ namespace plugin_blue_reflection.KSLT
         public void Load(StreamInfo input)
         {
             _format = new KSLT(input.FileData);
-            infos = _format.Bitmaps.Select(b => new BitmapInfo(b, new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName))).ToList();
+            infos = _format.Bitmaps;
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
@@ -60,7 +60,7 @@ namespace plugin_blue_reflection.KSLT
 
         public void Save(StreamInfo output, int versionIndex = 0)
         {
-            //_format.Save(output.FileData);
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }
