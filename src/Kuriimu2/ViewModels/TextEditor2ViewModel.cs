@@ -50,7 +50,7 @@ namespace Kuriimu2.ViewModels
             GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
-            SelectedGameAdapter = GameAdapters.First();
+            SelectedGameAdapter = GameAdapters.FirstOrDefault();
             SelectedZoomLevel = 1;
 
             if (Keyboard.IsKeyDown(Key.LeftShift))
@@ -94,15 +94,26 @@ namespace Kuriimu2.ViewModels
                 // Adapter
                 _selectedGameAdapter = value;
                 // Instantiate a new instance of the adapter.
-                _gameAdapterInstance = new GameAdapter((IGameAdapter)Activator.CreateInstance(_selectedGameAdapter.Adapter.GetType()));
-                NotifyOfPropertyChange(() => SelectedGameAdapter);
+                if (_selectedGameAdapter != null)
+                {
+                    _gameAdapterInstance = new GameAdapter((IGameAdapter)Activator.CreateInstance(_selectedGameAdapter.Adapter.GetType()));
+                    NotifyOfPropertyChange(() => SelectedGameAdapter);
+                }
                 // TODO: Implement game adapter persistence
 
                 // Entries
-                _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
-                if (_adapter != null)
-                    _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
-                Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
+                if (_gameAdapterInstance != null)
+                {
+                    _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
+                    if (_adapter != null)
+                        _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
+                    Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
+                }
+                else
+                {
+                    // Direct entry loading when no game adapters are present (not even the NoGameAdapter)
+                    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
+                }
                 foreach (var entry in Entries)
                     entry.Edited += (sender, args) =>
                     {
@@ -120,7 +131,7 @@ namespace Kuriimu2.ViewModels
             {
                 try
                 {
-                    if (_gameAdapterInstance.Adapter is IGenerateGamePreviews generator)
+                    if (_gameAdapterInstance?.Adapter is IGenerateGamePreviews generator)
                         return generator.GeneratePreview(SelectedEntry).ToBitmapImage();
                 }
                 catch (Exception ex)
