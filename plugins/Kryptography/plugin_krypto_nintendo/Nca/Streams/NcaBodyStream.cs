@@ -50,7 +50,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
                         _baseStream = new CtrStream(input, key_area_key, iv, false);
                         break;
                     case 4:
-                        //BKTR
+                        //BKTR, some CTR
                         //stub
                         // TODO: Implement BKTR cryptography
                         throw new NotSupportedException($"This section crypto is not supported yet.");
@@ -100,6 +100,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
+            // TODO: Implement write
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
