@@ -35,8 +35,13 @@
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
+            this.operationStatusBar = new System.Windows.Forms.StatusStrip();
+            this.operationProgress = new Kuriimu2_WinForms.Controls.InfoToolStripProgressBar();
+            this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
+            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
+            this.operationStatusBar.SuspendLayout();
             this.SuspendLayout();
             // 
             // mnuMain
@@ -53,7 +58,8 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem});
+            this.openToolStripMenuItem,
+            this.openWithPluginToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
@@ -61,20 +67,21 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // openFiles
             // 
             this.openFiles.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.openFiles.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             this.openFiles.ImageList = this.tabCloseButtons;
             this.openFiles.Location = new System.Drawing.Point(3, 2);
             this.openFiles.Margin = new System.Windows.Forms.Padding(0);
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 529);
+            this.openFiles.Size = new System.Drawing.Size(953, 507);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -92,8 +99,38 @@
             this.pnlMain.Location = new System.Drawing.Point(0, 24);
             this.pnlMain.Name = "pnlMain";
             this.pnlMain.Padding = new System.Windows.Forms.Padding(3, 2, 1, 2);
-            this.pnlMain.Size = new System.Drawing.Size(957, 533);
+            this.pnlMain.Size = new System.Drawing.Size(957, 511);
             this.pnlMain.TabIndex = 2;
+            // 
+            // operationStatusBar
+            // 
+            this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.operationProgress,
+            this.operationTimer});
+            this.operationStatusBar.Location = new System.Drawing.Point(0, 535);
+            this.operationStatusBar.Name = "operationStatusBar";
+            this.operationStatusBar.Size = new System.Drawing.Size(957, 22);
+            this.operationStatusBar.TabIndex = 3;
+            // 
+            // operationProgress
+            // 
+            this.operationProgress.Name = "operationProgress";
+            this.operationProgress.ProgressColor = System.Drawing.Color.ForestGreen;
+            this.operationProgress.Size = new System.Drawing.Size(500, 16);
+            this.operationProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.operationProgress.TextColor = System.Drawing.Color.Black;
+            // 
+            // operationTimer
+            // 
+            this.operationTimer.Name = "operationTimer";
+            this.operationTimer.Size = new System.Drawing.Size(0, 17);
+            // 
+            // openWithPluginToolStripMenuItem
+            // 
+            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
+            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openWithPluginToolStripMenuItem.Text = "Open with &Plugin";
+            this.openWithPluginToolStripMenuItem.Click += new System.EventHandler(this.openWithPluginToolStripMenuItem_Click);
             // 
             // Kuriimu2
             // 
@@ -102,6 +139,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(957, 557);
             this.Controls.Add(this.pnlMain);
+            this.Controls.Add(this.operationStatusBar);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
             this.Name = "Kuriimu2";
@@ -112,6 +150,8 @@
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
             this.pnlMain.ResumeLayout(false);
+            this.operationStatusBar.ResumeLayout(false);
+            this.operationStatusBar.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -125,6 +165,10 @@
         private System.Windows.Forms.TabControl openFiles;
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
+        private System.Windows.Forms.StatusStrip operationStatusBar;
+        private Controls.InfoToolStripProgressBar operationProgress;
+        private System.Windows.Forms.ToolStripStatusLabel operationTimer;
+        private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
     }
 }
 

@@ -378,10 +378,10 @@ namespace plugin_sony_images.GIM
     {
         public static Dictionary<ImageFormat, IImageFormat> Formats = new Dictionary<ImageFormat, IImageFormat>
         {
-            [ImageFormat.RGB565] = new RGBA(5, 6, 5, 0, true, true),
-            [ImageFormat.RGBA5551] = new RGBA(5, 5, 5, 1, true, true),
-            [ImageFormat.RGBA4444] = new RGBA(4, 4, 4, 4, true, true),
-            [ImageFormat.RGBA8888] = new RGBA(8, 8, 8, 8, true, true),
+            [ImageFormat.RGB565] = new RGBA(5, 6, 5, 0) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
+            [ImageFormat.RGBA5551] = new RGBA(5, 5, 5, 1) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
+            [ImageFormat.RGBA4444] = new RGBA(4, 4, 4, 4) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
+            [ImageFormat.RGBA8888] = new RGBA(8, 8, 8, 8) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
             [ImageFormat.Palette_4] = new Palette(4),
             [ImageFormat.Palette_8] = new Palette(8),
             //[6] = new AI(8,8),    ??

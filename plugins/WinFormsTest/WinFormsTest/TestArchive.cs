@@ -61,7 +61,8 @@ namespace WinFormsTest
                         {
                             FileData = new MemoryStream(archiveBr.ReadBytes(length)),
                             State = ArchiveFileState.Archived,
-                            FileName = name
+                            FileName = name,
+                            PluginIds = new[] { "Test-Archive-Id" }
                         });
                     }
                 }

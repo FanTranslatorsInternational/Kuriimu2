@@ -4,7 +4,7 @@ namespace Kryptography
 {
     internal static class Extensions
     {
-        internal static void Increment(this byte[] input, int count, bool littleEndian)
+        internal static void Increment(this byte[] input, long count, bool littleEndian)
         {
             if (!littleEndian)
                 for (int i = input.Length - 1; i >= 0; i--)

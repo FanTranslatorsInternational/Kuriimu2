@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.Archive;
+﻿using Kontract;
+using Kontract.Interfaces.Archive;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
 using System;
@@ -37,6 +38,7 @@ namespace Kuriimu2_WinForms.FormatForms
         public event EventHandler<OpenTabEventArgs> OpenTab;
         public event EventHandler<SaveTabEventArgs> SaveTab;
         public event EventHandler<CloseTabEventArgs> CloseTab;
+        public event EventHandler<ProgressReport> ReportProgress;
 
         public void Close()
         {

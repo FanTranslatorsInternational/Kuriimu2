@@ -56,9 +56,13 @@ namespace plugin_krypto_nintendo.Nca.Streams
                 _header.Position = sectionOffset + 0x140;
                 _header.Read(sectionCtr, 0, 8);
                 sectionCtr = sectionCtr.Reverse().ToArray();
-
-                var subStream = new SubStream(input, offset, length);
-                _sections[i] = new NcaBodyStream(subStream, sectionCryptoType[0], GenerateCTR(sectionCtr, offset), decKeyArea, decTitleKey);
+                
+                var sectionIv = new byte[0x10];
+                if (decTitleKey != null || sectionCryptoType[0] == 3)
+                    Array.Copy(GenerateCTR(sectionCtr, 0), sectionIv, 0x10);
+                else
+                    sectionIv.Decrement((int)(offset / NcaConstants.MediaSize), false);
+                _sections[i] = new NcaBodyStream(input, sectionCryptoType[0], sectionIv, decKeyArea, decTitleKey);
                 _sectionLimits[i] = new SectionLimit(i, offset, length);
             }
         }
@@ -81,7 +85,6 @@ namespace plugin_krypto_nintendo.Nca.Streams
                 var toRead = Math.Min(NcaConstants.HeaderSize - Position, count);
                 _header.Position = Position;
                 readBytes = _header.Read(buffer, offset, (int)toRead);
-                Position += readBytes;
             }
 
             while (readBytes < count)
@@ -89,7 +92,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
                 var newPosition = Position + readBytes;
                 var toRead = count - readBytes;
 
-                var sectionToRead = _sectionLimits.FirstOrDefault(x => x != null && x.StartOffset >= newPosition && x.StartOffset + x.Length < newPosition);
+                var sectionToRead = _sectionLimits.FirstOrDefault(x => x != null && newPosition >= x.StartOffset && newPosition < x.StartOffset + x.Length);
                 if (sectionToRead == null)
                 {
                     var nextSectionLimits = _sectionLimits.Where(x => x != null && x.StartOffset - newPosition >= 0);

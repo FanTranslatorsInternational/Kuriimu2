@@ -1,20 +1,16 @@
 ﻿using Kryptography.AES;
 using plugin_krypto_nintendo.Nca.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.Streams
 {
     class NcaHeaderStream : Stream
     {
-        private Stream _advancingBaseStream;
-        private Stream _nonAdvancingBaseStream;
-        private NcaVersion _version;
-        private long _internalLength;
+        private readonly Stream _baseStream;
+        private readonly Stream _advancingBaseStream;
+        private readonly Stream _nonAdvancingBaseStream;
+        private readonly NcaVersion _version;
 
         public override bool CanRead => true;
 
@@ -22,7 +18,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override bool CanWrite => false;
 
-        public override long Length => _internalLength;
+        public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
@@ -31,10 +27,14 @@ namespace plugin_krypto_nintendo.Nca.Streams
             if (header.Length != NcaConstants.HeaderSize)
                 throw new InvalidOperationException($"Nca headers can only be {NcaConstants.HeaderSize} bytes long.");
 
-            _advancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
-            _nonAdvancingBaseStream = !isEncrypted ? header : new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
+            _baseStream = header;
+            _advancingBaseStream = !isEncrypted ? 
+                header : 
+                new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+            _nonAdvancingBaseStream = !isEncrypted ? 
+                header : 
+                new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
             _version = version;
-            _internalLength = header.Length;
         }
 
         public override void Flush()
@@ -114,7 +114,43 @@ namespace plugin_krypto_nintendo.Nca.Streams
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
-            throw new NotImplementedException(nameof(Write));
+            var bkPosNonAdvance = _nonAdvancingBaseStream.Position;
+            var bkPosAdvance = _advancingBaseStream.Position;
+
+            var writtenBytes = 0;
+            var newPosition = Position;
+            while (writtenBytes < count)
+            {
+                var toWrite = count - writtenBytes;
+                if (newPosition < NcaConstants.HeaderWithoutSectionsSize)
+                {
+                    toWrite = (int)Math.Min(toWrite, NcaConstants.HeaderWithoutSectionsSize - newPosition);
+                    _advancingBaseStream.Position = newPosition;
+                    _advancingBaseStream.Write(buffer, offset + writtenBytes, toWrite);
+                }
+                else
+                {
+                    switch (_version)
+                    {
+                        case NcaVersion.NCA2:
+                            _nonAdvancingBaseStream.Position = newPosition;
+                            _nonAdvancingBaseStream.Write(buffer, offset + writtenBytes, toWrite);
+                            break;
+                        case NcaVersion.NCA3:
+                            _advancingBaseStream.Position = newPosition;
+                            _advancingBaseStream.Write(buffer, offset + writtenBytes, toWrite);
+                            break;
+                    }
+                }
+
+                writtenBytes += toWrite;
+                newPosition += toWrite;
+            }
+
+            Position += writtenBytes;
+
+            _nonAdvancingBaseStream.Position = bkPosNonAdvance;
+            _advancingBaseStream.Position = bkPosAdvance;
         }
     }
 }

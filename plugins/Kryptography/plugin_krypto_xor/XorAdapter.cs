@@ -66,7 +66,7 @@ namespace plugin_krypto_xor
                             xor.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)xor.Length / xor.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)xor.Position / xor.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

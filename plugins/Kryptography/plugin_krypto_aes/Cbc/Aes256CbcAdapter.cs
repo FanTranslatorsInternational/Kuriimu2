@@ -57,25 +57,25 @@ namespace plugin_krypto_aes.Cbc
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = decrypt ? "Decryption..." : "Encryption..." });
 
-                using (var ecb = new CbcStream(decrypt ? input : output, key, iv))
+                using (var cbc = new CbcStream(decrypt ? input : output, key, iv))
                 {
                     var buffer = new byte[0x10000];
-                    while (ecb.Position < ecb.Length)
+                    while (cbc.Position < cbc.Length)
                     {
-                        var length = (int)Math.Min(0x10000, ecb.Length - ecb.Position);
+                        var length = (int)Math.Min(0x10000, cbc.Length - cbc.Position);
 
                         if (decrypt)
                         {
-                            ecb.Read(buffer, 0, length);
+                            cbc.Read(buffer, 0, length);
                             output.Write(buffer, 0, length);
                         }
                         else
                         {
                             input.Read(buffer, 0, length);
-                            ecb.Write(buffer, 0, length);
+                            cbc.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Length / ecb.Position * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)cbc.Position / cbc.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

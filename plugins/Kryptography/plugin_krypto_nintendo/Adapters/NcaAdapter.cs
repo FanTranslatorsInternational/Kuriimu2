@@ -67,7 +67,7 @@ namespace plugin_krypto_nintendo.Adapters
                         cs.Read(buffer, 0, length);
                         decryptInto.Write(buffer, 0, length);
 
-                        progress.Report(new ProgressReport { Percentage = (double)cs.Length / cs.Position * 100, Message = "Decryption..." });
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / cs.Length * 100, Message = "Decryption..." });
                     }
                 }
 

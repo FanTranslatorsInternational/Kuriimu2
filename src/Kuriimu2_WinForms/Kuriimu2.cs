@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
@@ -27,11 +29,17 @@ namespace Kuriimu2_WinForms
         private Random _rand = new Random();
         private string _tempFolder = "temp";
 
+        private Timer _timer;
+        private Stopwatch _globalOperationWatch;
+
         private ToolStripMenuItem _cipherToolStrip;
 
         public Kuriimu2()
         {
             InitializeComponent();
+            _timer = new Timer { Interval = 14 };
+            _timer.Tick += _timer_Tick;
+            _globalOperationWatch = new Stopwatch();
 
             Icon = Resources.kuriimu2winforms;
 
@@ -41,6 +49,11 @@ namespace Kuriimu2_WinForms
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
             LoadExtensions();
+        }
+
+        private void _timer_Tick(object sender, EventArgs e)
+        {
+            operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
         }
 
         private void LoadExtensions()
@@ -76,6 +89,8 @@ namespace Kuriimu2_WinForms
         #region Ciphers
         private void Cipher_RequestData(object sender, RequestDataEventArgs e)
         {
+            _globalOperationWatch.Stop();
+
             var input = new InputBox("Requesting data", e.RequestMessage);
             var ofd = new OpenFileDialog() { Title = e.RequestMessage };
 
@@ -86,6 +101,7 @@ namespace Kuriimu2_WinForms
                     if (ofd.ShowDialog() == DialogResult.OK && ofd.CheckFileExists)
                     {
                         e.Data = ofd.FileName;
+                        _globalOperationWatch.Start();
                         return;
                     }
 
@@ -96,6 +112,7 @@ namespace Kuriimu2_WinForms
                     if (input.ShowDialog() == DialogResult.OK && input.Text.Length == e.DataSize)
                     {
                         e.Data = input.Text;
+                        _globalOperationWatch.Start();
                         return;
                     }
 
@@ -162,7 +179,7 @@ namespace Kuriimu2_WinForms
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             foreach (var file in files)
-                OpenFile(file);
+                OpenFile(file, false);
         }
         #endregion
 
@@ -171,7 +188,14 @@ namespace Kuriimu2_WinForms
         {
             var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
             if (ofd.ShowDialog() == DialogResult.OK)
-                OpenFile(ofd.FileName);
+                OpenFile(ofd.FileName, false);
+        }
+
+        private void openWithPluginToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
+            if (ofd.ShowDialog() == DialogResult.OK)
+                OpenFile(ofd.FileName, true);
         }
         #endregion
 
@@ -181,7 +205,12 @@ namespace Kuriimu2_WinForms
             var openedTabPage = GetTabPageForKfi(GetKfiForFullPath(Path.Combine(e.Kfi.FullPath, e.Afi.FileName)));
             if (openedTabPage == null)
             {
-                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.Afi.FileData, e.Afi.FileName) { LeaveOpen = e.LeaveOpen, FileSystem = e.FileSystem });
+                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.Afi.FileData, e.Afi.FileName)
+                {
+                    Adapter = e.PreselectedAdapter,
+                    LeaveOpen = e.LeaveOpen,
+                    FileSystem = e.FileSystem
+                });
                 if (newKfi == null)
                     return;
 
@@ -204,6 +233,12 @@ namespace Kuriimu2_WinForms
         private void TabControl_CloseTab(object sender, CloseTabEventArgs e)
         {
             e.EventResult = CloseFile(e.Kfi, e.LeaveOpen);
+        }
+
+        private void Report_ProgressChanged(object sender, ProgressReport e)
+        {
+            operationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
+            operationProgress.Value = Convert.ToInt32(e.Percentage);
         }
         #endregion
 
@@ -232,7 +267,20 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip.Enabled = false;
             var report = new Progress<ProgressReport>();
-            await cipherFunc(openFile.OpenFile(), saveFile.OpenFile(), report);
+            report.ProgressChanged += Report_ProgressChanged;
+
+            var openFileStream = openFile.OpenFile();
+            var saveFileStream = saveFile.OpenFile();
+
+            _timer.Start();
+            _globalOperationWatch.Reset();
+            _globalOperationWatch.Start();
+            await cipherFunc(openFileStream, saveFileStream, report);
+            _globalOperationWatch.Stop();
+            _timer.Stop();
+
+            openFileStream.Close();
+            saveFileStream.Close();
 
             _cipherToolStrip.Enabled = true;
         }
@@ -259,7 +307,7 @@ namespace Kuriimu2_WinForms
         /// Opens a file with KoreManager and opens a corresponding tab
         /// </summary>
         /// <param name="filename"></param>
-        private void OpenFile(string filename)
+        private void OpenFile(string filename, bool shouldChoosePlugin)
         {
             if (!File.Exists(filename))
                 throw new FileNotFoundException(filename);
@@ -280,12 +328,35 @@ namespace Kuriimu2_WinForms
                     return;
                 }
 
-                var kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename) { FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)) });
-                if (kfi == null)
+                KoreFileInfo kfi = null;
+                if (shouldChoosePlugin)
                 {
-                    MessageBox.Show($"No plugin supports \"{filename}\".");
-                    openFile.Dispose();
-                    return;
+                    var pluginChooser = new ChoosePluginForm(_kore.PluginLoader);
+                    if (pluginChooser.ShowDialog() != DialogResult.OK)
+                    {
+                        MessageBox.Show($"No plugin was selected.");
+                        openFile.Dispose();
+                        return;
+                    }
+
+                    kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                    {
+                        FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)),
+                        Adapter = pluginChooser.ChosenAdapter
+                    });
+                }
+                else
+                {
+                    kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                    {
+                        FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename))
+                    });
+                    if (kfi == null)
+                    {
+                        MessageBox.Show($"No plugin supports \"{filename}\".");
+                        openFile.Dispose();
+                        return;
+                    }
                 }
 
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
@@ -308,8 +379,9 @@ namespace Kuriimu2_WinForms
                 tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
             else if (kfi.Adapter is IArchiveAdapter)
             {
-                tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder);
+                tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _kore.PluginLoader);
                 (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
+                (tabControl as IArchiveForm).GetAdapterById += Kuriimu2_GetAdapterById;
             }
             tabControl.TabColor = tabColor;
 
@@ -318,6 +390,7 @@ namespace Kuriimu2_WinForms
 
             tabControl.SaveTab += TabControl_SaveTab;
             tabControl.CloseTab += TabControl_CloseTab;
+            tabControl.ReportProgress += Report_ProgressChanged;
 
             tabPage.Controls.Add(tabControl as UserControl);
 
@@ -326,6 +399,12 @@ namespace Kuriimu2_WinForms
             openFiles.SelectedTab = tabPage;
 
             return tabPage;
+        }
+
+        private void Kuriimu2_GetAdapterById(object sender, GetAdapterInformationByIdEventArgs e)
+        {
+            e.SelectedPlugin = _kore.PluginLoader.CreateAdapter<ILoadFiles>(e.PluginId);
+            e.PluginMetaData = _kore.GetMetadata<PluginInfoAttribute>(e.SelectedPlugin);
         }
         #endregion
 
