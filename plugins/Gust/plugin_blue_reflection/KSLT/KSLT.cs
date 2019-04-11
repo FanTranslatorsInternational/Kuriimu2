@@ -3,17 +3,18 @@ using System.Drawing;
 using System.IO;
 using Kanvas;
 using Komponent.IO;
+using Kontract.Interfaces.Image;
 
 namespace plugin_blue_reflection.KSLT
 {
     public class KSLT
     {
         private FileHeader _header;
-
+        private List<UnkPadding> _padding;
         /// <summary>
         /// 
         /// </summary>
-        public List<Bitmap> Bitmaps = new List<Bitmap>();
+        public List<BitmapInfo> Bitmaps = new List<BitmapInfo>();        
 
         /// <summary>
         /// 
@@ -25,10 +26,8 @@ namespace plugin_blue_reflection.KSLT
             {
                 _header = br.ReadType<FileHeader>();
                 br.BaseStream.Position = 0x40;
-                br.BaseStream.Position += _header.OffsetTable;
-
+                _padding = br.ReadMultiple<UnkPadding>(_header.FileCount);
                 var offsets = br.ReadMultiple<OffsetEntry>(_header. FileCount);
-                
                 var fileNames = new List<string>();
                 for (int i = 0; i < _header.FileCount; i++)
                     fileNames.Add(br.ReadCStringASCII());
@@ -44,18 +43,46 @@ namespace plugin_blue_reflection.KSLT
                         Height = imgHeader.Height,
                         Format = ImageFormats.Formats[0x0]
                     };
-                    Bitmaps.Add(Common.Load(texture, settings));
+                    Bitmaps.Add(new KsltBitmapInfo(Common.Load(texture, settings), new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName)) { Name = fileNames[offsets.IndexOf(o)], Header = imgHeader });
                 }
             }
         }
 
         public bool Save(Stream output)
         {
-            /*using (var bw = new BinaryWriterX(output, true))
+            using (var bw = new BinaryWriterX(output, true))
             {
-                
-            }*/
-            return false;
+                bw.WriteType(_header);
+                bw.BaseStream.Position = 0x40;
+                bw.WriteMultiple(_padding);
+                var offsetTablePos = bw.BaseStream.Position;
+                bw.BaseStream.Position += (0x14 * _header.FileCount);
+                foreach (var b in Bitmaps)
+                {
+                    bw.Write(b.Name + '\0');
+                }
+                var newOffsets = new List<OffsetEntry>();
+                foreach (var b in Bitmaps)
+                {
+                    var kbi = b as KsltBitmapInfo;
+                    newOffsets.Add(new OffsetEntry() { Offset = (int)bw.BaseStream.Position });
+                    var settings = new ImageSettings
+                    {
+                        Width = kbi.Image.Width,
+                        Height = kbi.Image.Height,
+                        Format = ImageFormats.Formats[0x0]
+                    };
+                    var imageData = Common.Save(kbi.Image, settings);
+                    kbi.Header.Width = (short)kbi.Image.Width;
+                    kbi.Header.Height = (short)kbi.Image.Height;
+                    kbi.Header.DataSize = imageData.Length;
+                    bw.WriteType(kbi.Header);
+                    bw.Write(imageData);                    
+                }
+                bw.BaseStream.Position = offsetTablePos;
+                bw.WriteMultiple(newOffsets);
+            }
+            return true;
         }
     }
 }
