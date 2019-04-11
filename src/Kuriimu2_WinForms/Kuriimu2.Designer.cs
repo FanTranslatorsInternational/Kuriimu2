@@ -38,6 +38,7 @@
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
             this.operationProgress = new Kuriimu2_WinForms.Controls.InfoToolStripProgressBar();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
+            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.operationStatusBar.SuspendLayout();
@@ -57,7 +58,8 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem});
+            this.openToolStripMenuItem,
+            this.openWithPluginToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "&File";
@@ -65,7 +67,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
@@ -123,6 +125,13 @@
             this.operationTimer.Name = "operationTimer";
             this.operationTimer.Size = new System.Drawing.Size(0, 17);
             // 
+            // openWithPluginToolStripMenuItem
+            // 
+            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
+            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openWithPluginToolStripMenuItem.Text = "Open with &Plugin";
+            this.openWithPluginToolStripMenuItem.Click += new System.EventHandler(this.openWithPluginToolStripMenuItem_Click);
+            // 
             // Kuriimu2
             // 
             this.AllowDrop = true;
@@ -159,6 +168,7 @@
         private System.Windows.Forms.StatusStrip operationStatusBar;
         private Controls.InfoToolStripProgressBar operationProgress;
         private System.Windows.Forms.ToolStripStatusLabel operationTimer;
+        private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
     }
 }
 

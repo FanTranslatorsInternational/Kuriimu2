@@ -34,7 +34,8 @@ namespace Kuriimu2_WinForms.FormatForms
         private string _subFolder;
         private TabPage _currentTab;
         private string _tempFolder;
-        public ArchiveForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, string tempFolder)
+        private PluginLoader _pluginLoader;
+        public ArchiveForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, string tempFolder, PluginLoader pluginLoader)
         {
             InitializeComponent();
 
@@ -64,6 +65,8 @@ namespace Kuriimu2_WinForms.FormatForms
             _subFolder = Guid.NewGuid().ToString();
             _childTabs = new List<TabPage>();
 
+            _pluginLoader = pluginLoader;
+
             if (!Directory.Exists(Path.Combine(tempFolder, _subFolder)))
                 Directory.CreateDirectory(Path.Combine(tempFolder, _subFolder));
 
@@ -79,6 +82,8 @@ namespace Kuriimu2_WinForms.FormatForms
         public event EventHandler<SaveTabEventArgs> SaveTab;
 
         public event EventHandler<ProgressReport> ReportProgress;
+
+        public event EventHandler<GetAdapterInformationByIdEventArgs> GetAdapterById;
         #endregion
 
         public KoreFileInfo Kfi { get; set; }
@@ -177,6 +182,27 @@ namespace Kuriimu2_WinForms.FormatForms
             openFileToolStripMenuItem.Enabled = kuriimuVisible || kukkiiVisible || karameruVisible;
             openFileToolStripMenuItem.Text = openFileToolStripMenuItem.Enabled ? "Open" : "No plugins support this file";
             openFileToolStripMenuItem.Tag = afi;
+
+            openWithPluginToolStripMenuItem.DropDownItems.Clear();
+            openWithPluginToolStripMenuItem.Visible = afi.PluginIds != null && afi.PluginIds.Length > 0;
+            if (afi.PluginIds != null)
+                foreach (var id in afi.PluginIds)
+                {
+                    var args = new GetAdapterInformationByIdEventArgs(id);
+                    GetAdapterById?.Invoke(this, args);
+
+                    var item = new ToolStripMenuItem(args.PluginMetaData?.Name ?? "<unknown>") { Tag = (args.SelectedPlugin, afi) };
+                    item.Click += Item_Click;
+                    openWithPluginToolStripMenuItem.DropDownItems.Add(item);
+                }
+        }
+
+        private void Item_Click(object sender, EventArgs e)
+        {
+            var tsi = (ToolStripMenuItem)sender;
+            var info = ((ILoadFiles, ArchiveFileInfo))tsi.Tag;
+            if (!OpenAfi(info.Item2, info.Item1))
+                MessageBox.Show("File couldn't be opened with this plugin.", "File not opened", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void extractFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -804,11 +830,13 @@ namespace Kuriimu2_WinForms.FormatForms
                 MessageBox.Show($"Following files were not opened:" + notOpened.Aggregate("", (a, b) => a + Environment.NewLine + Path.GetFileName(b.FileName)), "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private bool OpenAfi(ArchiveFileInfo afi)
+        private bool OpenAfi(ArchiveFileInfo afi) => OpenAfi(afi, null);
+
+        private bool OpenAfi(ArchiveFileInfo afi, ILoadFiles adapter)
         {
             var fs = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
 
-            var args = new OpenTabEventArgs(afi, Kfi, fs) { LeaveOpen = true };
+            var args = new OpenTabEventArgs(afi, Kfi, fs) { PreselectedAdapter = adapter, LeaveOpen = true };
             OpenTab?.Invoke(this, args);
 
             if (args.EventResult && args.OpenedTabPage != null)

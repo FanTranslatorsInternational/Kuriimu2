@@ -64,6 +64,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2_WinForms\bin\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>
