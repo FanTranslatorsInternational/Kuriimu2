@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using Kanvas.Format;
 using Kanvas.Interface;
 using Komponent.IO;
 using Komponent.IO.Attributes;
+using Kontract.Interfaces.Image;
 
 namespace plugin_blue_reflection.KSLT
 {
@@ -23,7 +25,7 @@ namespace plugin_blue_reflection.KSLT
     /// <summary>
     /// 
     /// </summary>
-    public class unkPadding
+    public class UnkPadding
     {
         [FixedLength(0x38)]
         public byte[] Padding = {0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
@@ -39,7 +41,7 @@ namespace plugin_blue_reflection.KSLT
     {
         public int Offset;
         [FixedLength(0x10)]
-        public byte[] Padding;
+        public byte[] Padding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     }
 
     /// <summary>
@@ -71,7 +73,14 @@ namespace plugin_blue_reflection.KSLT
         /// </summary>
         public static Dictionary<int, IImageFormat> Formats = new Dictionary<int, IImageFormat>
         {
-            [0x0] = new RGBA(8, 8, 8, 8, false, true, ByteOrder.BigEndian)
+            [0x0] = new RGBA(8, 8, 8, 8) { IsAlphaFirst = true }
         };
+    }
+
+    public class KsltBitmapInfo : BitmapInfo
+    {
+        public ImageHeader Header { get; set; }
+
+        public KsltBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
     }
 }
