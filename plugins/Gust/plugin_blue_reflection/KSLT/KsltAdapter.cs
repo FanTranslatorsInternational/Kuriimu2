@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Kanvas;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
@@ -54,8 +56,32 @@ namespace plugin_blue_reflection.KSLT
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
-            // TODO: Get Kanvas to encode the image and update the UI with it.
-            return false;
+            if (bitmapInfo.Image == null)
+                return await Task.Factory.StartNew(() => false);
+
+            return await Task.Factory.StartNew(() =>
+            {
+                progress.Report(new ProgressReport { Percentage = 0, Message = "Begin encoding..." });
+
+                Thread.Sleep(100);
+
+                var kbi = bitmapInfo as KsltBitmapInfo;
+                var settings = new ImageSettings
+                {
+                    Width = kbi.Image.Width,
+                    Height = kbi.Image.Height,
+                    Format = ImageFormats.Formats[formatInfo.FormatIndex]
+                };
+                kbi.ImageData = Common.Save(kbi.Image, settings);
+                progress.Report(new ProgressReport { Percentage = 50, Message = "Encoding complete." });
+
+                Thread.Sleep(100);
+
+                bitmapInfo.Image = Common.Load(kbi.ImageData, settings);
+                progress.Report(new ProgressReport { Percentage = 100, Message = "Reload complete." });
+
+                return true;
+            });
         }
 
         public void Save(StreamInfo output, int versionIndex = 0)
