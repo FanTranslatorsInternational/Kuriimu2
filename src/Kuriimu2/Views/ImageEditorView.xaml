@@ -61,7 +61,7 @@
                                         <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
                                     </Border.Effect>
                                 </Border>
-                                <Image Source="{Binding SelectedImage}" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                <Image Source="{Binding SelectedImage}" RenderOptions.BitmapScalingMode="NearestNeighbor" cal:Message.Attach="[Event Drop] = [Action FileDrop($eventArgs)]">
                                     <Image.LayoutTransform>
                                         <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}"></ScaleTransform>
                                     </Image.LayoutTransform>
