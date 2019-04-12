@@ -79,7 +79,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
             if (_selectedBitmapInfo.FormatInfo.FormatIndex != ((FormatInfo)tsb.Tag).FormatIndex)
             {
-                _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_imageAdapter.BitmapInfos.IndexOf(_selectedBitmapInfo)].Clone();
+                _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
                 var result = ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
 
                 if (result.IsCompleted)
