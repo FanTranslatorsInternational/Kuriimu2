@@ -14,7 +14,6 @@ namespace plugin_krypto_nintendo.Nca.Factories
 {
     public class NcaReadFactory
     {
-        private Stream _baseStream;
         private NcaKeyStorage _keyStorage;
         private NcaTitleKeyStorage _titleKeyStorage;
         private byte[] _rightsId;
@@ -51,8 +50,6 @@ namespace plugin_krypto_nintendo.Nca.Factories
             SetTitleKeyFile(titleKeyFile);
 
             IdentifyInformation(nca);
-
-            _baseStream = nca;
         }
 
         private void IdentifyInformation(Stream nca)
@@ -154,7 +151,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
             _titleKeyStorage = new NcaTitleKeyStorage(titleKeyFile);
         }
 
-        public Stream CreateReadableStream()
+        public Stream CreateReadableStream(Stream nca)
         {
             byte[] titleKey = null;
             if (HasRightsId)
@@ -186,13 +183,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
             if (DecryptedKeyArea.Length != 0x40)
                 throw new InvalidOperationException($"Key area has to be 0x40 bytes.");
 
-            return new NcaReadableStream(_baseStream, NcaVersion, DecryptedKeyArea, _keyStorage, titleKey, IsEncrypted);
+            return new NcaReadableStream(nca, NcaVersion, DecryptedKeyArea, _keyStorage, titleKey, IsEncrypted);
         }
-
-        // TODO: Implement creation of writable stream
-        //public NcaWritableStream CreateWritableStream(Stream ncaFile)
-        //{
-
-        //}
     }
 }

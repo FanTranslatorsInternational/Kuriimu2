@@ -10,20 +10,21 @@ namespace Kryptography
         private Stream _baseStream;
         private byte[] _key;
 
-        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanRead => _baseStream.CanRead && true;
 
-        public override bool CanSeek => _baseStream.CanSeek;
+        public override bool CanSeek => _baseStream.CanSeek && true;
 
-        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanWrite => _baseStream.CanWrite && true;
 
         public override long Length => _baseStream.Length;
 
-        public override long Position { get => _baseStream.Position; set => Seek(value, SeekOrigin.Begin); }
+        public override long Position { get; set; }
 
         public XorStream(Stream input, byte[] key)
         {
             _baseStream = input;
-            _key = key;
+            _key = new byte[key.Length];
+            Array.Copy(key, _key, key.Length);
         }
 
         private void XorData(byte[] buffer, int offset, int count, byte[] key)
@@ -63,14 +64,57 @@ namespace Kryptography
 
         public override void Flush() => _baseStream.Flush();
 
-        public override void SetLength(long value) => _baseStream.SetLength(value);
+        public override void SetLength(long value)
+        {
+            if (!CanWrite || !CanSeek)
+                throw new NotSupportedException("Can't set length of stream.");
+            if (value < 0)
+                throw new IOException("Length can't be smaller than 0.");
+
+            if (value > Length)
+            {
+                var bkPosThis = Position;
+                var bkPosBase = _baseStream.Position;
+
+                var startPos = Math.Max(_baseStream.Length, Length);
+                var newDataLength = value - startPos;
+                var written = 0;
+                var newData = new byte[0x10000];
+                while (written < newDataLength)
+                {
+                    Position = startPos;
+                    var toWrite = (int)Math.Min(0x10000, newDataLength - written);
+                    Write(newData, 0, toWrite);
+                    written += toWrite;
+                    startPos += toWrite;
+                }
+
+                _baseStream.Position = bkPosBase;
+                Position = bkPosThis;
+            }
+            else
+                _baseStream.SetLength(value);
+        }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
             if (!CanSeek)
                 throw new NotSupportedException("Can't seek stream.");
 
-            return _baseStream.Seek(offset, origin);
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
+                case SeekOrigin.Current:
+                    Position += offset;
+                    break;
+                case SeekOrigin.End:
+                    Position = Length + offset;
+                    break;
+            }
+
+            return Position;
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -78,8 +122,14 @@ namespace Kryptography
             if (!CanRead)
                 throw new NotSupportedException("Can't read from stream.");
 
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
             _baseStream.Read(buffer, offset, count);
+            _baseStream.Position = bkPos;
+
             XorData(buffer, offset, count, _key);
+
+            Position += count;
             return count;
         }
 
@@ -88,8 +138,16 @@ namespace Kryptography
             if (!CanWrite)
                 throw new NotSupportedException("Can't write to stream.");
 
-            XorData(buffer, offset, count, _key);
+            var internalBuffer = new byte[count];
+            Array.Copy(buffer, offset, internalBuffer, 0, count);
+            XorData(internalBuffer, offset, count, _key);
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Position;
             _baseStream.Write(buffer, offset, count);
+            _baseStream.Position = bkPos;
+
+            Position += count;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Kryptography.AES;
+using plugin_krypto_nintendo.Nca.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,41 +13,42 @@ namespace plugin_krypto_nintendo.Nca.Streams
     {
         private readonly Stream _baseStream;
 
-        public override bool CanRead => true;
+        public override bool CanRead => _baseStream.CanRead && true;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => _baseStream.CanSeek && true;
 
-        public override bool CanWrite => true;
+        public override bool CanWrite => _baseStream.CanWrite && true;
 
         public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
-        public NcaBodyStream(Stream input, byte sectionCryptoType, byte[] iv, byte[] decKeyArea, byte[] decTitleKey)
+        public NcaBodyStream(Stream input, NcaSectionCrypto sectionCryptoType, byte[] iv, byte[] decKeyArea, byte[] decTitleKey)
         {
-            if (decTitleKey != null)
+            if (sectionCryptoType == NcaSectionCrypto.TitleKey)
+            {
+                if (decTitleKey == null)
+                    throw new ArgumentNullException(nameof(decTitleKey));
                 _baseStream = new CtrStream(input, decTitleKey, iv, false);
+            }
             else
             {
                 switch (sectionCryptoType)
                 {
-                    case 1:
-                        // No crypto
+                    case NcaSectionCrypto.NoCrypto:
                         _baseStream = input;
                         break;
-                    case 2:
-                        // XTS
+                    case NcaSectionCrypto.Xts:
                         var key_area_key = new byte[0x20];
                         Array.Copy(decKeyArea, key_area_key, 0x20);
                         _baseStream = new XtsStream(input, key_area_key, iv, true, false, 0x200);
                         break;
-                    case 3:
-                        //CTR
+                    case NcaSectionCrypto.Ctr:
                         key_area_key = new byte[0x10];
                         Array.Copy(decKeyArea, 0x20, key_area_key, 0, 0x10);
                         _baseStream = new CtrStream(input, key_area_key, iv, false);
                         break;
-                    case 4:
+                    case NcaSectionCrypto.Bktr:
                         //BKTR, some CTR
                         //stub
                         // TODO: Implement BKTR cryptography
@@ -93,10 +95,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
             return Position;
         }
 
-        public override void SetLength(long value)
-        {
-            throw new NotImplementedException();
-        }
+        public override void SetLength(long value) => _baseStream.SetLength(value);
 
         public override void Write(byte[] buffer, int offset, int count)
         {
@@ -106,6 +105,8 @@ namespace plugin_krypto_nintendo.Nca.Streams
             var bkPos = _baseStream.Position;
             _baseStream.Position = Position;
             _baseStream.Write(buffer, offset, count);
+
+            //_baseStream.Flush();
             _baseStream.Position = bkPos;
 
             Position += count;

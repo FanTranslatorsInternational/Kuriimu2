@@ -17,11 +17,11 @@ namespace plugin_krypto_nintendo.Nca.Streams
         private Stream[] _sectionStreams;
         private List<NcaBodySection> _sections;
 
-        public override bool CanRead => false;
+        public override bool CanRead => _baseStream.CanRead && false;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => _baseStream.CanSeek && true;
 
-        public override bool CanWrite => true;
+        public override bool CanWrite => _baseStream.CanWrite && true;
 
         public override long Length => _baseStream.Length;
 
@@ -48,7 +48,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
                      * this code can be removed if XTS sections don't start at 0 but with a value representing their section offset
                      */
                     sectionIv.Decrement(sections[i].MediaOffset, false);
-                _sectionStreams[i] = new NcaBodyStream(input, (byte)sections[i].SectionCrypto, sectionIv, decKeyArea, decTitleKey);
+                _sectionStreams[i] = new NcaBodyStream(input, sections[i].SectionCrypto, sectionIv, decKeyArea, decTitleKey);
             }
         }
 
@@ -92,7 +92,10 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            _headerStream.SetLength(value);
+            foreach (var sec in _sectionStreams)
+                sec.SetLength(value);
+            _baseStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -145,7 +148,11 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
                 writtenBytes += toWrite;
                 newPosition += toWrite;
+
+                SetLength(_baseStream.Length);
             }
+
+            Position += writtenBytes;
         }
     }
 }

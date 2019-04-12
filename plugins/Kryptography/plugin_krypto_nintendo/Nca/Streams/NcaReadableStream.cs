@@ -17,11 +17,11 @@ namespace plugin_krypto_nintendo.Nca.Streams
         private NcaBodyStream[] _sections;
         private SectionLimit[] _sectionLimits;
 
-        public override bool CanRead => true;
+        public override bool CanRead => _baseStream.CanRead && true;
 
-        public override bool CanSeek => true;
+        public override bool CanSeek => _baseStream.CanSeek && true;
 
-        public override bool CanWrite => false;
+        public override bool CanWrite => _baseStream.CanWrite && false;
 
         public override long Length => _baseStream.Length;
 
@@ -39,7 +39,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
             _sectionLimits = new SectionLimit[4];
             for (int i = 0; i < 4; i++)
             {
-                var sectionOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
+                var sectionHeaderOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
                 long offset = BitConverter.ToInt32(sections, i * 0x10) * NcaConstants.MediaSize;
                 long length = BitConverter.ToInt32(sections, i * 0x10 + 4) * NcaConstants.MediaSize - offset;
 
@@ -47,22 +47,22 @@ namespace plugin_krypto_nintendo.Nca.Streams
                     continue;
 
                 var sectionCryptoType = new byte[1];
-                _header.Position = sectionOffset + 4;
+                _header.Position = sectionHeaderOffset + 4;
                 _header.Read(sectionCryptoType, 0, 1);
                 if (sectionCryptoType[0] < 1 || sectionCryptoType[0] > 4)
                     throw new InvalidOperationException($"CryptoType for section {i} must be 1-4. Found CryptoType: {sectionCryptoType[0]}");
 
                 var sectionCtr = new byte[8];
-                _header.Position = sectionOffset + 0x140;
+                _header.Position = sectionHeaderOffset + 0x140;
                 _header.Read(sectionCtr, 0, 8);
                 sectionCtr = sectionCtr.Reverse().ToArray();
-                
+
                 var sectionIv = new byte[0x10];
                 if (decTitleKey != null || sectionCryptoType[0] == 3)
                     Array.Copy(GenerateCTR(sectionCtr, 0), sectionIv, 0x10);
                 else
                     sectionIv.Decrement((int)(offset / NcaConstants.MediaSize), false);
-                _sections[i] = new NcaBodyStream(input, sectionCryptoType[0], sectionIv, decKeyArea, decTitleKey);
+                _sections[i] = new NcaBodyStream(input, (NcaSectionCrypto)sectionCryptoType[0], sectionIv, decKeyArea, decTitleKey);
                 _sectionLimits[i] = new SectionLimit(i, offset, length);
             }
         }
@@ -70,6 +70,8 @@ namespace plugin_krypto_nintendo.Nca.Streams
         public override void Flush()
         {
             _header.Flush();
+            foreach (var sec in _sections)
+                sec.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -139,7 +141,10 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            _header.SetLength(value);
+            foreach (var sec in _sections)
+                sec.SetLength(value);
+            _baseStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)

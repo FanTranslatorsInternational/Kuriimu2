@@ -40,9 +40,10 @@ namespace plugin_krypto_rot
                 using (var rot = new RotStream(decrypt ? input : output, 13))
                 {
                     var buffer = new byte[0x10000];
-                    while (rot.Position < rot.Length)
+                    var totalLength = decrypt ? rot.Length : input.Length;
+                    while (rot.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, rot.Length - rot.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - rot.Position);
 
                         if (decrypt)
                         {
@@ -55,7 +56,7 @@ namespace plugin_krypto_rot
                             rot.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)rot.Position / rot.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)rot.Position / totalLength * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

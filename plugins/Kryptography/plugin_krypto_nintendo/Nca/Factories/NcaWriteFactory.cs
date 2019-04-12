@@ -188,6 +188,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
         private void IdentifyEncryptedKeyArea(Stream header)
         {
             header.Position = 0x300;
+            EncryptedKeyArea = new byte[0x40];
             header.Read(EncryptedKeyArea, 0, 0x40);
         }
 
@@ -214,7 +215,6 @@ namespace plugin_krypto_nintendo.Nca.Factories
 
         private void IdentifyTitleId(Stream header)
         {
-            // TODO: Validate length of rightsid/titleid with a ticket encrypted nca and title key storage
             header.Position = 0x230;
             TitleId = new byte[0x10];
             header.Read(TitleId, 0, 0x10);
@@ -222,7 +222,36 @@ namespace plugin_krypto_nintendo.Nca.Factories
 
         private void IdentifyBodySections(Stream header)
         {
-            // TODO: Identify body sections
+            header.Position = 0x240;
+            var sections = new byte[0x40];
+            header.Read(sections, 0, 0x40);
+
+            var bodySections = new List<NcaBodySection>();
+            for (int i = 0; i < 4; i++)
+            {
+                var mediaOffset = BitConverter.ToInt32(sections, i * 0x10);
+                var mediaEndOffset = BitConverter.ToInt32(sections, i * 0x10 + 4);
+                if (mediaOffset == 0 || mediaEndOffset == 0)
+                    continue;
+
+                var sectionHeaderOffset = NcaConstants.HeaderWithoutSectionsSize + i * NcaConstants.MediaSize;
+                header.Position = sectionHeaderOffset + 4;
+                var sectionCrypto = new byte[1];
+                header.Read(sectionCrypto, 0, 1);
+                if (sectionCrypto[0] < 1 || sectionCrypto[0] > 4)
+                    throw new InvalidOperationException($"CryptoType for section {i} must be 1-4. Found CryptoType: {sectionCrypto[0]}");
+
+                var sectionCtr = new byte[8];
+                header.Position = sectionHeaderOffset + 0x140;
+                header.Read(sectionCtr, 0, 8);
+                sectionCtr = sectionCtr.Reverse().ToArray();
+                var sectionIv = new byte[0x10];
+                Array.Copy(sectionCtr, sectionIv, 8);
+
+                bodySections.Add(new NcaBodySection(mediaOffset, mediaEndOffset - mediaOffset, (NcaSectionCrypto)sectionCrypto[0], sectionIv));
+            }
+
+            Sections = bodySections.ToArray();
         }
 
         /// <summary>
@@ -230,8 +259,19 @@ namespace plugin_krypto_nintendo.Nca.Factories
         /// </summary>
         /// <param name="writeStream">The stream to be written to</param>
         /// <returns>The writable stream for the NCA</returns>
+        /// <remarks>If <see cref="UseTitleKeyEncryption"/> is set, every section crypto type gets set to title key encryption;
+        /// Otherwise if <see cref="UseTitleKeyEncryption"/> is not set and section crypto type is title key, section crypto type gets set to ctr encryption</remarks>
         public Stream CreateWritableStream(Stream writeStream)
         {
+            foreach (var section in Sections)
+            {
+                if (UseTitleKeyEncryption)
+                    section.SectionCrypto = NcaSectionCrypto.TitleKey;
+                else
+                    if (section.SectionCrypto == NcaSectionCrypto.TitleKey)
+                    section.SectionCrypto = NcaSectionCrypto.Ctr;
+            }
+
             byte[] decTitleKey = null;
             byte[] decKeyArea = null;
             if (UseTitleKeyEncryption)
