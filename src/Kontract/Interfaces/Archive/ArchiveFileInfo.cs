@@ -4,13 +4,25 @@ using System.IO;
 
 namespace Kontract.Interfaces.Archive
 {
+    /// <summary>
+    /// the base class for a file in an archive to load in Kuriimu2
+    /// </summary>
     [DebuggerDisplay("{FileName}")]
     public class ArchiveFileInfo
     {
+        /// <summary>
+        /// Internal file data
+        /// </summary>
         protected Stream _fileData;
 
-        public string FileName { get; set; } = string.Empty; // Complete filename including path and extension.
+        /// <summary>
+        /// The complete name of the file including path and extension.
+        /// </summary>
+        public string FileName { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Provides a stream to read the file data from.
+        /// </summary>
         public virtual Stream FileData // Provides a stream to read the file data from.
         {
             get
@@ -22,9 +34,23 @@ namespace Kontract.Interfaces.Archive
             set => _fileData = value;
         }
 
-        public virtual long? FileSize => FileData?.Length; // The length of the (uncompressed) stream, override this in derived classes when FileData is also overridden.
+        /// <summary>
+        /// The length of the (uncompressed) stream
+        /// </summary>
+        /// <remarks>Override in derived classes when FileData gets overridden</remarks>
+        public virtual long? FileSize => FileData?.Length;
 
-        public ArchiveFileState State { get; set; } = ArchiveFileState.Empty; // Dictates the state of the ArchiveFileInfo to the UI. Plugins should not rely on this field for code logic.
+        /// <summary>
+        /// Dictates the state of the ArchiveFileInfo
+        /// </summary>
+        /// <remarks>Plugins should not rely on this property for code logic</remarks>
+        public ArchiveFileState State { get; set; } = ArchiveFileState.Empty;
+
+        /// <summary>
+        /// Holds all plugin ids that could potentially open that file; Other plugins get ignored for opening it
+        /// </summary>
+        /// <remarks>If null or empty, this property gets ignored.</remarks>
+        public string[] PluginIds { get; set; }
     }
 
     [Flags]

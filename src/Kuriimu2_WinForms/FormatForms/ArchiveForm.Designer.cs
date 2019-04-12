@@ -60,6 +60,7 @@
             this.deleteFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.openFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imlFilesLarge = new System.Windows.Forms.ImageList(this.components);
             this.tlsFileDetails = new System.Windows.Forms.ToolStrip();
             this.tslFileCount = new System.Windows.Forms.ToolStripLabel();
@@ -272,7 +273,7 @@
             // toolStripLabel2
             // 
             this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(84, 22);
+            this.toolStripLabel2.Size = new System.Drawing.Size(83, 22);
             this.toolStripLabel2.Text = "Directory Tree:";
             // 
             // lstFiles
@@ -322,16 +323,17 @@
             this.renameFileToolStripMenuItem,
             this.deleteFileToolStripMenuItem,
             this.toolStripSeparator4,
-            this.openFileToolStripMenuItem});
+            this.openFileToolStripMenuItem,
+            this.openWithPluginToolStripMenuItem});
             this.mnuFiles.Name = "mnuFiles";
-            this.mnuFiles.Size = new System.Drawing.Size(127, 120);
+            this.mnuFiles.Size = new System.Drawing.Size(181, 164);
             this.mnuFiles.Opening += new System.ComponentModel.CancelEventHandler(this.mnuFiles_Opening);
             // 
             // extractFileToolStripMenuItem
             // 
             this.extractFileToolStripMenuItem.Image = global::Kuriimu2_WinForms.Properties.Resources.menu_export;
             this.extractFileToolStripMenuItem.Name = "extractFileToolStripMenuItem";
-            this.extractFileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.extractFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.extractFileToolStripMenuItem.Text = "E&xtract...";
             this.extractFileToolStripMenuItem.Click += new System.EventHandler(this.extractFileToolStripMenuItem_Click);
             // 
@@ -339,7 +341,7 @@
             // 
             this.replaceFileToolStripMenuItem.Image = global::Kuriimu2_WinForms.Properties.Resources.menu_import;
             this.replaceFileToolStripMenuItem.Name = "replaceFileToolStripMenuItem";
-            this.replaceFileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.replaceFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.replaceFileToolStripMenuItem.Text = "&Replace...";
             this.replaceFileToolStripMenuItem.Click += new System.EventHandler(this.replaceFileToolStripMenuItem_Click);
             // 
@@ -347,7 +349,7 @@
             // 
             this.renameFileToolStripMenuItem.Image = global::Kuriimu2_WinForms.Properties.Resources.menu_field_properties;
             this.renameFileToolStripMenuItem.Name = "renameFileToolStripMenuItem";
-            this.renameFileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.renameFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.renameFileToolStripMenuItem.Text = "Re&name...";
             this.renameFileToolStripMenuItem.Click += new System.EventHandler(this.renameFileToolStripMenuItem_Click);
             // 
@@ -355,21 +357,27 @@
             // 
             this.deleteFileToolStripMenuItem.Image = global::Kuriimu2_WinForms.Properties.Resources.menu_delete;
             this.deleteFileToolStripMenuItem.Name = "deleteFileToolStripMenuItem";
-            this.deleteFileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.deleteFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteFileToolStripMenuItem.Text = "&Delete";
             this.deleteFileToolStripMenuItem.Click += new System.EventHandler(this.deleteFileToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(123, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(177, 6);
             // 
             // openFileToolStripMenuItem
             // 
             this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
-            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openFileToolStripMenuItem.Text = "Open";
             this.openFileToolStripMenuItem.Click += new System.EventHandler(this.openFileToolStripMenuItem_Click);
+            // 
+            // openWithPluginToolStripMenuItem
+            // 
+            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
+            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openWithPluginToolStripMenuItem.Text = "Open with plugin";
             // 
             // imlFilesLarge
             // 
@@ -552,5 +560,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem openFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripButton tsbFileOpen;
+        private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
     }
 }

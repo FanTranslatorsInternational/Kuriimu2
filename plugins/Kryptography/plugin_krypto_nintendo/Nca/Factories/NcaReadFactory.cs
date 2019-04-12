@@ -156,9 +156,6 @@ namespace plugin_krypto_nintendo.Nca.Factories
 
         public Stream CreateReadableStream()
         {
-            if (!_keyStorage.MasterKeys.ContainsKey(MasterKeyRev))
-                throw new InvalidOperationException($"Masterkey {MasterKeyRev} was not found.");
-
             byte[] titleKey = null;
             if (HasRightsId)
             {
