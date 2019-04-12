@@ -151,13 +151,13 @@ namespace Kuriimu2_WinForms.FormatForms
                 Import(ofd.FileName);
         }
 
-        private void Import(string filename)
+        private async void Import(string filename)
         {
             try
             {
                 _selectedBitmapInfo.Image = new Bitmap(filename);
                 _bestBitmaps[_selectedImageIndex] = (Bitmap)_selectedBitmapInfo.Image.Clone();
-                ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
+                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -333,6 +333,9 @@ namespace Kuriimu2_WinForms.FormatForms
             // Format Dropdown
             tsbFormat.Text = _selectedBitmapInfo.FormatInfo.FormatName;
             tsbFormat.Tag = _selectedBitmapInfo.FormatInfo.FormatIndex;
+            // Updated selected format
+            foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
+                tsm.Checked = ((FormatInfo)tsm.Tag).FormatIndex == _selectedBitmapInfo.FormatInfo.FormatIndex;
         }
 
         private void GenerateThumbnailBackground()
