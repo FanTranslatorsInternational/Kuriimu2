@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.Streams
 {
-    internal class NcaWritableStream : Stream
+    internal class NcaStream : Stream
     {
         private Stream _baseStream;
 
@@ -17,21 +17,21 @@ namespace plugin_krypto_nintendo.Nca.Streams
         private Stream[] _sectionStreams;
         private List<NcaBodySection> _sections;
 
-        public override bool CanRead => _baseStream.CanRead && false;
+        public override bool CanRead => _baseStream.CanRead && _headerStream.CanRead && _sectionStreams.All(x => x.CanRead) && true;
 
-        public override bool CanSeek => _baseStream.CanSeek && true;
+        public override bool CanSeek => _baseStream.CanSeek && _headerStream.CanSeek && _sectionStreams.All(x => x.CanSeek) && true;
 
-        public override bool CanWrite => _baseStream.CanWrite && true;
+        public override bool CanWrite => _baseStream.CanWrite && _headerStream.CanWrite && _sectionStreams.All(x => x.CanWrite) && true;
 
         public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
-        public NcaWritableStream(Stream input, NcaVersion version, byte[] decKeyArea, NcaKeyStorage keyStorage, byte[] decTitleKey, NcaBodySection[] sections, bool isEncrypted)
+        public NcaStream(Stream input, NcaVersion version, NcaBodySection[] sections, NcaKeyStorage keyStorage, byte[] decKeyArea, byte[] decTitleKey)
         {
             _baseStream = input;
 
-            _headerStream = new NcaHeaderStream(input, version, keyStorage.HeaderKey, isEncrypted);
+            _headerStream = new NcaHeaderStream(input, version, keyStorage.HeaderKey);
 
             _sections = sections.ToList();
             _sectionStreams = new Stream[sections.Length];
@@ -65,8 +65,48 @@ namespace plugin_krypto_nintendo.Nca.Streams
         {
             if (!CanRead)
                 throw new NotSupportedException("Can't read stream.");
+            if (Position + count > Length)
+                throw new EndOfStreamException("Can't read beyond stream.");
 
-            throw new NotImplementedException();
+            int readBytes = 0;
+            if (Position < NcaConstants.HeaderSize)
+            {
+                var toRead = Math.Min(NcaConstants.HeaderSize - Position, count);
+                _headerStream.Position = Position;
+                readBytes = _headerStream.Read(buffer, offset, (int)toRead);
+            }
+
+            while (readBytes < count)
+            {
+                var newPosition = Position + readBytes;
+                var toRead = count - readBytes;
+
+                var sectionToRead = _sections.FirstOrDefault(x =>
+                    x != null &&
+                    newPosition >= x.MediaOffset * NcaConstants.MediaSize &&
+                    newPosition < (x.MediaOffset + x.MediaLength) * NcaConstants.MediaSize);
+                if (sectionToRead == null)
+                {
+                    var nextSectionLimits = _sections.Where(x => x != null && x.MediaOffset * NcaConstants.MediaSize - newPosition >= 0);
+                    if (nextSectionLimits.Any())
+                        toRead = (int)Math.Min(toRead, nextSectionLimits.Min(x => x.MediaOffset * NcaConstants.MediaSize) - newPosition);
+
+                    var bkPos = _baseStream.Position;
+                    _baseStream.Position = newPosition;
+                    readBytes += _baseStream.Read(buffer, offset + readBytes, toRead);
+                    _baseStream.Position = bkPos;
+                }
+                else
+                {
+                    toRead = (int)Math.Min(toRead, sectionToRead.MediaOffset * NcaConstants.MediaSize + sectionToRead.MediaLength * NcaConstants.MediaSize - newPosition);
+                    var sectionNr = _sections.IndexOf(sectionToRead);
+                    _sectionStreams[sectionNr].Position = newPosition;
+                    readBytes += _sectionStreams[sectionNr].Read(buffer, offset + readBytes, toRead);
+                }
+            }
+
+            Position += readBytes;
+            return readBytes;
         }
 
         public override long Seek(long offset, SeekOrigin origin)

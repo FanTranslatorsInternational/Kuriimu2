@@ -39,7 +39,7 @@ namespace plugin_krypto_nintendo.Nca.Models
         /// <summary>
         /// The cipher context to use for the section
         /// </summary>
-        public NcaSectionCrypto SectionCrypto { get; internal set; }
+        public NcaSectionCrypto SectionCrypto { get; set; }
 
         /// <summary>
         /// The counter to calculate the actual Ctr from for this section

@@ -22,18 +22,11 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override long Position { get; set; }
 
-        public NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey, bool isEncrypted)
+        public NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey)
         {
-            //if (header.Length != NcaConstants.HeaderSize)
-            //    throw new InvalidOperationException($"Nca headers can only be {NcaConstants.HeaderSize} bytes long.");
-
             _baseStream = header;
-            _advancingBaseStream = !isEncrypted ?
-                header :
-                new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
-            _nonAdvancingBaseStream = !isEncrypted ?
-                header :
-                new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
+            _advancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+            _nonAdvancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
             _version = version;
         }
 
@@ -148,11 +141,12 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
                 writtenBytes += toWrite;
                 newPosition += toWrite;
+
+                SetLength(_baseStream.Length);
             }
 
             Position += writtenBytes;
-
-            //_baseStream.Flush();
+            
             _nonAdvancingBaseStream.Position = bkPosNonAdvance;
             _advancingBaseStream.Position = bkPosAdvance;
         }

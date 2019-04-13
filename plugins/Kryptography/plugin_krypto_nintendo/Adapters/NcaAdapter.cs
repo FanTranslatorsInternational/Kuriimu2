@@ -46,71 +46,48 @@ namespace plugin_krypto_nintendo.Adapters
                     return false;
                 });
             }
-
-            Stream cs;
-            if (decrypt)
+            
+            var factory = new NcaFactory(input, keyFile);
+            if (factory.UseTitleKeyEncryption)
             {
-                var factory = new NcaReadFactory(input, keyFile);
-                if (factory.HasRightsId)
+                var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
+                if (!string.IsNullOrEmpty(error))
                 {
-                    var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
-                    if (!string.IsNullOrEmpty(error))
+                    return Task.Factory.StartNew(() =>
                     {
-                        return Task.Factory.StartNew(() =>
-                        {
-                            progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                            return false;
-                        });
-                    }
-
-                    factory.SetTitleKeyFile(titleKeyFile);
+                        progress.Report(new ProgressReport { Percentage = 0, Message = error });
+                        return false;
+                    });
                 }
 
-                cs = factory.CreateReadableStream(input);
+                factory.SetTitleKeyFile(titleKeyFile);
             }
-            else
-            {
-                var factory = new NcaWriteFactory(input, keyFile);
-                if (factory.UseTitleKeyEncryption)
-                {
-                    var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
-                    if (!string.IsNullOrEmpty(error))
-                    {
-                        return Task.Factory.StartNew(() =>
-                        {
-                            progress.Report(new ProgressReport { Percentage = 0, Message = error });
-                            return false;
-                        });
-                    }
-
-                    factory.SetTitleKeyFile(titleKeyFile);
-                }
-
-                cs = factory.CreateWritableStream(output);
-            }
-
+            
             return Task.Factory.StartNew(() =>
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = "Decryption..." });
 
-                var buffer = new byte[0x10000];
-                var totalLength = decrypt ? cs.Length : input.Length;
-                while (cs.Position < totalLength)
+                using (var cs = factory.CreateStream(decrypt ? input : output))
                 {
-                    var length = (int)Math.Min(0x10000, totalLength - cs.Position);
-
-                    if (decrypt)
+                    var buffer = new byte[0x10000];
+                    var totalLength = decrypt ? cs.Length : input.Length;
+                    while (cs.Position < totalLength)
                     {
-                        cs.Read(buffer, 0, length);
-                        output.Write(buffer, 0, length);
-                    }
-                    else
-                    {
-                        input.Read(buffer, 0, length);
-                        cs.Write(buffer, 0, length);
-                    }
+                        var length = (int)Math.Min(0x10000, totalLength - cs.Position);
 
-                    progress.Report(new ProgressReport { Percentage = (double)cs.Position / totalLength * 100, Message = "Decryption..." });
+                        if (decrypt)
+                        {
+                            cs.Read(buffer, 0, length);
+                            output.Write(buffer, 0, length);
+                        }
+                        else
+                        {
+                            input.Read(buffer, 0, length);
+                            cs.Write(buffer, 0, length);
+                        }
+
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / totalLength * 100, Message = "Decryption..." });
+                    }
                 }
 
                 progress.Report(new ProgressReport { Percentage = 100, Message = "Decryption finished." });

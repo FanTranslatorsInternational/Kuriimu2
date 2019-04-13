@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 namespace plugin_krypto_nintendo.Nca.Factories
 {
     /// <summary>
-    /// Factory to configure cipher information for write operations on an NCA
+    /// Factory to configure settings for cipher operations on an NCA
     /// </summary>
-    public class NcaWriteFactory
+    public class NcaFactory
     {
         private NcaKeyStorage _keyStorage;
         private NcaTitleKeyStorage _titleKeyStorage;
@@ -65,7 +65,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
         /// </summary>
         /// <param name="nca">The nca to identify cipher information from</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
-        public NcaWriteFactory(Stream nca, string keyFile) : this(nca, keyFile, null)
+        public NcaFactory(Stream nca, string keyFile) : this(nca, keyFile, null)
         {
         }
 
@@ -75,7 +75,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
         /// <param name="nca">The nca to identify cipher information from</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
         /// <param name="titleKeyFile">The file containing all title keys for cipher operations</param>
-        public NcaWriteFactory(Stream nca, string keyFile, string titleKeyFile)
+        public NcaFactory(Stream nca, string keyFile, string titleKeyFile)
         {
             if (nca == null)
                 throw new ArgumentNullException(nameof(nca));
@@ -97,7 +97,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
         /// <param name="masterKeyRevision">The master key revision to be used</param>
         /// <param name="keyFile">The file containing all keys for cipher operations</param>
         /// <param name="sections">the NCA body section information</param>
-        public NcaWriteFactory(NcaVersion version, int masterKeyRevision, string keyFile, params NcaBodySection[] sections)
+        public NcaFactory(NcaVersion version, int masterKeyRevision, string keyFile, params NcaBodySection[] sections)
         {
             if (masterKeyRevision < 0 || masterKeyRevision > 31)
                 throw new InvalidOperationException($"Invalid master key revision.");
@@ -146,10 +146,9 @@ namespace plugin_krypto_nintendo.Nca.Factories
             nca.Read(magic, 0, 4);
             nca.Position = bkPos;
 
-            bool isEncrypted = false;
+            var header = nca;
             if (!Enum.TryParse<NcaVersion>(Encoding.ASCII.GetString(magic), out var ver))
             {
-                isEncrypted = true;
                 var xts = new XtsStream(nca, _keyStorage.HeaderKey, new byte[0x10], true, false, NcaConstants.MediaSize)
                 {
                     Position = 0x200
@@ -158,16 +157,18 @@ namespace plugin_krypto_nintendo.Nca.Factories
 
                 if (!Enum.TryParse(Encoding.ASCII.GetString(magic), out ver))
                     throw new InvalidOperationException("No valid Nca.");
+
+                header = new NcaHeaderStream(nca, ver, _keyStorage.HeaderKey);
             }
 
             NcaVersion = ver;
-            var header = new NcaHeaderStream(nca, ver, _keyStorage.HeaderKey, isEncrypted);
 
             IdentifyMasterKeyRevision(header);
             IdentifyEncryptedKeyArea(header);
             IdentifyEncryptedTitleKey(header);
             IdentifyTitleId(header);
             IdentifyBodySections(header);
+            header.Position = 0;
         }
 
         private void IdentifyMasterKeyRevision(Stream header)
@@ -255,17 +256,17 @@ namespace plugin_krypto_nintendo.Nca.Factories
         }
 
         /// <summary>
-        /// Creates a writable stream based on the given cipher information in this factory
+        /// Creates a stream based on the given cipher settings in this factory
         /// </summary>
-        /// <param name="writeStream">The stream to be written to</param>
-        /// <returns>The writable stream for the NCA</returns>
+        /// <param name="baseStream">The base stream</param>
+        /// <returns>The crypto stream for the NCA</returns>
         /// <remarks>If <see cref="UseTitleKeyEncryption"/> is set, every section crypto type gets set to title key encryption;
         /// Otherwise if <see cref="UseTitleKeyEncryption"/> is not set and section crypto type is title key, section crypto type gets set to ctr encryption</remarks>
-        public Stream CreateWritableStream(Stream writeStream)
+        public Stream CreateStream(Stream baseStream)
         {
             foreach (var section in Sections)
             {
-                if (UseTitleKeyEncryption)
+                if (UseTitleKeyEncryption && section.SectionCrypto == NcaSectionCrypto.Ctr)
                     section.SectionCrypto = NcaSectionCrypto.TitleKey;
                 else
                     if (section.SectionCrypto == NcaSectionCrypto.TitleKey)
@@ -280,7 +281,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
                     throw new InvalidOperationException("Title key storage isn't set and no encrypted title key was given.");
                 if (EncryptedTitleKey == null)
                 {
-                    if (TitleId.Length != 8)
+                    if (TitleId.Length != 0x10)
                         throw new InvalidOperationException("Title id has invalid length.");
                     if (!_titleKeyStorage.Contains(TitleId.Stringify()))
                         throw new InvalidOperationException("Title id was not found in title key storage.");
@@ -329,7 +330,7 @@ namespace plugin_krypto_nintendo.Nca.Factories
                 new EcbStream(new MemoryStream(EncryptedKeyArea), decKey).Read(decKeyArea, 0, decKeyArea.Length);
             }
 
-            return new NcaWritableStream(writeStream, NcaVersion, decKeyArea, _keyStorage, decTitleKey, Sections, true);
+            return new NcaStream(baseStream, NcaVersion, Sections, _keyStorage, decKeyArea, decTitleKey);
         }
     }
 }
