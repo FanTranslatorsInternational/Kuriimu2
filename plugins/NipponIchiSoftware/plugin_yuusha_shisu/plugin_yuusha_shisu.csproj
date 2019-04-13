@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Kanvas, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Kanvas.2.0.4\lib\net472\Kanvas.dll</HintPath>
+    </Reference>
     <Reference Include="Komponent, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Kuriimu2.Komponent.2.0.4\lib\net472\Komponent.dll</HintPath>
     </Reference>
@@ -40,6 +43,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BTX\BTX.cs" />
+    <Compile Include="BTX\BtxAdapter.cs" />
+    <Compile Include="BTX\BtxSupport.cs" />
     <Compile Include="PAC\PAC.cs" />
     <Compile Include="PAC\PacAdapter.cs" />
     <Compile Include="PAC\PacSupport.cs" />
