@@ -285,20 +285,25 @@ namespace Kuriimu2_WinForms
             _cipherToolStrip.Enabled = true;
         }
 
-        private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher)
+        private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher, bool ignoreDecrypt, bool ignoreEncrypt)
         {
             cipher.RequestData += Cipher_RequestData;
 
-            var decItem = new ToolStripMenuItem("Decrypt");
-            decItem.Click += DecItem_Click;
-            decItem.Tag = cipher;
+            if (!ignoreDecrypt)
+            {
+                var decItem = new ToolStripMenuItem("Decrypt");
+                decItem.Click += DecItem_Click;
+                decItem.Tag = cipher;
+                item?.DropDownItems.Add(decItem);
+            }
 
-            var encItem = new ToolStripMenuItem("Encrypt");
-            encItem.Click += EncItem_Click;
-            encItem.Tag = cipher;
-
-            item?.DropDownItems.Add(decItem);
-            item?.DropDownItems.Add(encItem);
+            if (!ignoreEncrypt)
+            {
+                var encItem = new ToolStripMenuItem("Encrypt");
+                encItem.Click += EncItem_Click;
+                encItem.Tag = cipher;
+                item?.DropDownItems.Add(encItem);
+            }
         }
         #endregion
 
