@@ -143,16 +143,16 @@ namespace Kuriimu2.ViewModels
             }
         }
 
-        public bool AddButtonEnabled => _adapter is IAddEntries;
+        public bool AddButtonEnabled => _adapter is ITextAddEntries;
 
         public void AddEntry()
         {
-            if (!(_adapter is IAddEntries add)) return;
+            if (!(_adapter is ITextAddEntries add)) return;
 
             var entry = add.NewEntry();
             var added = false;
 
-            if (_adapter is IRenameEntries ren)
+            if (_adapter is ITextRenameEntries ren)
             {
                 var nte = new AddTextEntryViewModel
                 {

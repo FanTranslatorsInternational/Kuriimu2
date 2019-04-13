@@ -13,12 +13,12 @@ namespace Kontract.Interfaces.Game
         /// <summary>
         /// 
         /// </summary>
-        string ID { get; }
+        //string ID { get; }
 
         /// <summary>
         /// 
         /// </summary>
-        string Name { get; }
+        //string Name { get; }
 
         /// <summary>
         /// 
@@ -33,19 +33,26 @@ namespace Kontract.Interfaces.Game
         /// <summary>
         /// The list of game text entries provided by the game adapter to the UI.
         /// </summary>
-        IEnumerable<TextEntry> Entries { get; }
+        //IEnumerable<TextEntry> Entries { get; }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="entries"></param>
-        void LoadEntries(IEnumerable<TextEntry> entries);
+        //void LoadEntries(IEnumerable<TextEntry> entries);
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        IEnumerable<TextEntry> SaveEntries();
+        //IEnumerable<TextEntry> SaveEntries();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <returns></returns>
+        Bitmap GeneratePreview(TextEntry entry);
     }
 
     /// <summary>

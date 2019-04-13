@@ -20,26 +20,26 @@ namespace Kontract.Interfaces.Text
         /// A regular expression that new names must match.
         /// Use @".*" to accept any character.
         /// </summary>
-        string NameFilter { get; }
+        //string NameFilter { get; }
 
         /// <summary>
         /// The maximum length that entry names can store.
         /// Longer names will be truncated.
         /// 0 for unlimited.
         /// </summary>
-        int NameMaxLength { get; }
+        //int NameMaxLength { get; }
 
         // TODO: Determine if this member is necessary at all.
         /// <summary>
         /// The line endings used by the file format.
         /// </summary>
-        string LineEndings { get; set; }
+        //string LineEndings { get; set; }
     }
 
     /// <summary>
     /// This interface allows the text adapter to add new entries through the UI.
     /// </summary>
-    public interface IAddEntries
+    public interface ITextAddEntries
     {
         /// <summary>
         /// Creates a new entry and allows the plugin to provide its derived type.
@@ -58,7 +58,7 @@ namespace Kontract.Interfaces.Text
     /// <summary>
     /// This interface allows the text adapter to rename entries through the UI making use of the NameList.
     /// </summary>
-    public interface IRenameEntries
+    public interface ITextRenameEntries
     {
         /// <summary>
         /// Renames an entry and allows the plugin to perform any required renaming steps.
@@ -72,7 +72,7 @@ namespace Kontract.Interfaces.Text
     /// <summary>
     /// This interface allows the text adapter to delete entries through the UI.
     /// </summary>
-    public interface IDeleteEntries
+    public interface ITextDeleteEntries
     {
         /// <summary>
         /// Deletes an entry and allows the plugin to perform any required deletion steps.
