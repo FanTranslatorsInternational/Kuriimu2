@@ -12,6 +12,7 @@ using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
@@ -379,7 +380,7 @@ namespace Kuriimu2_WinForms
 
             IKuriimuForm tabControl = null;
             if (kfi.Adapter is ITextAdapter)
-                tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
+                tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _kore.GetAdapters<IGameAdapter>());
             else if (kfi.Adapter is IImageAdapter)
                 tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
             else if (kfi.Adapter is IArchiveAdapter)
