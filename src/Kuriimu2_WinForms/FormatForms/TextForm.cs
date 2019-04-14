@@ -1,4 +1,11 @@
-﻿using Kontract;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
@@ -6,16 +13,6 @@ using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
@@ -156,7 +153,8 @@ namespace Kuriimu2_WinForms.FormatForms
                 return;
             }
 
-            imgPreview.Image = _selectedGameAdapter.GeneratePreview(_textEntries[_selectedTextEntryIndex]);
+            if (_selectedGameAdapter is IGenerateGamePreviews generator)
+                imgPreview.Image = generator.GeneratePreview(_textEntries[_selectedTextEntryIndex]);
         }
         #endregion
 

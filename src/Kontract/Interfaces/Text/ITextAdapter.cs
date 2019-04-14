@@ -20,20 +20,20 @@ namespace Kontract.Interfaces.Text
         /// A regular expression that new names must match.
         /// Use @".*" to accept any character.
         /// </summary>
-        //string NameFilter { get; }
+        string NameFilter { get; }
 
         /// <summary>
         /// The maximum length that entry names can store.
         /// Longer names will be truncated.
         /// 0 for unlimited.
         /// </summary>
-        //int NameMaxLength { get; }
+        int NameMaxLength { get; }
 
         // TODO: Determine if this member is necessary at all.
         /// <summary>
         /// The line endings used by the file format.
         /// </summary>
-        //string LineEndings { get; set; }
+        string LineEndings { get; set; }
     }
 
     /// <summary>
