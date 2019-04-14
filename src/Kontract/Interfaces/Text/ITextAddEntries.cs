@@ -3,7 +3,7 @@
     /// <summary>
     /// This interface allows the text adapter to add new entries through the UI.
     /// </summary>
-    public interface ITextAddEntries
+    public interface IAddEntries
     {
         /// <summary>
         /// Creates a new entry and allows the plugin to provide its derived type.

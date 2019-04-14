@@ -126,7 +126,7 @@ namespace Kuriimu2_WinForms.FormatForms
             //tsbProperties.Enabled = _archiveAdapter.FileHasExtendedProperties;
 
             // Text
-            tlsTextAdd.Enabled = _textAdapter is ITextAddEntries;
+            tlsTextAdd.Enabled = _textAdapter is IAddEntries;
             tlsTextEntryCount.Text = $"Entries: {_textAdapter.Entries.Count()}";
 
             // Preview

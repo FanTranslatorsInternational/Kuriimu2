@@ -3,7 +3,7 @@
     /// <summary>
     /// This interface allows the text adapter to rename entries through the UI making use of the NameList.
     /// </summary>
-    public interface ITextRenameEntries
+    public interface IRenameEntries
     {
         /// <summary>
         /// Renames an entry and allows the plugin to perform any required renaming steps.

@@ -3,7 +3,7 @@
     /// <summary>
     /// This interface allows the text adapter to delete entries through the UI.
     /// </summary>
-    public interface ITextDeleteEntries
+    public interface IDeleteEntries
     {
         /// <summary>
         /// Deletes an entry and allows the plugin to perform any required deletion steps.
