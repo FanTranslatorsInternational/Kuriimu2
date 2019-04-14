@@ -14,17 +14,17 @@ namespace WinFormsTest
 {
     [Export(typeof(IPlugin))]
     [PluginInfo("Test-Game-Id", "WinForms TestPreview")]
-    public class TestGame : IGameAdapter
+    public class TestGame : IGameAdapter, IGenerateGamePreviews
     {
-        //public string ID => throw new NotImplementedException();
+        public string ID => throw new NotImplementedException();
 
-        //public string Name => "WinForms Test Preview";
+        public string Name => "WinForms Test Preview";
 
         public string IconPath => "";
 
         public string Filename { get; set; }
 
-        //public IEnumerable<TextEntry> Entries => throw new NotImplementedException();
+        public IEnumerable<TextEntry> Entries => throw new NotImplementedException();
 
         public Bitmap GeneratePreview(TextEntry entry)
         {
@@ -37,14 +37,14 @@ namespace WinFormsTest
             return image;
         }
 
-        //public void LoadEntries(IEnumerable<TextEntry> entries)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public void LoadEntries(IEnumerable<TextEntry> entries)
+        {
+            throw new NotImplementedException();
+        }
 
-        //public IEnumerable<TextEntry> SaveEntries()
-        //{
-        //    throw new NotImplementedException();
-        //}
+        public IEnumerable<TextEntry> SaveEntries()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

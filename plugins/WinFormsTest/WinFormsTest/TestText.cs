@@ -47,6 +47,7 @@ namespace WinFormsTest
         {
             // Here a format class can get initialized and all opened files passed in
             var buffer = new byte[5];
+            file.FileData.Position = 4;
             file.FileData.Read(buffer, 0, 5);
             _texts = new List<TextEntry> { new TextEntry { Name = "First entry", OriginalText = Encoding.ASCII.GetString(buffer) } };
         }

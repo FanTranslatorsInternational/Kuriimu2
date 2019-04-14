@@ -117,6 +117,9 @@
             this.imgPreview.Size = new System.Drawing.Size(297, 400);
             this.imgPreview.TabIndex = 1;
             this.imgPreview.TabStop = false;
+            this.imgPreview.Zoomed += new System.EventHandler<Cyotek.Windows.Forms.ImageBoxZoomEventArgs>(this.imgPreview_Zoomed);
+            this.imgPreview.KeyDown += new System.Windows.Forms.KeyEventHandler(this.imgPreview_KeyDown);
+            this.imgPreview.KeyUp += new System.Windows.Forms.KeyEventHandler(this.imgPreview_KeyUp);
             // 
             // tlsPreview
             // 

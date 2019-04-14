@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Cyotek.Windows.Forms;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Archive;
@@ -38,11 +39,9 @@ namespace Kuriimu2_WinForms.FormatForms
             _currentTab = tabPage;
             _parentTab = parentTabPage;
             _parentAdapter = parentAdapter;
-            _gameAdapters = gameAdapters;
-            _textEntries = _textAdapter.Entries.ToList();
 
-            LoadGameAdapters();
-            LoadEntries();
+            LoadGameAdapters(gameAdapters);
+            LoadEntries(_textAdapter.Entries);
 
             UpdatePreview();
             UpdateForm();
@@ -87,13 +86,16 @@ namespace Kuriimu2_WinForms.FormatForms
         #endregion
 
         #region Load
-        private void LoadGameAdapters()
+        private void LoadGameAdapters(IEnumerable<IGameAdapter> gameAdapters)
         {
+            _gameAdapters = gameAdapters.ToList();
+
             tlsPreviewPlugin.DropDownItems.AddRange(_gameAdapters.Select(g =>
                 new ToolStripMenuItem
                 {
                     Text = g.GetType().GetCustomAttributes(typeof(PluginInfoAttribute), false).Cast<PluginInfoAttribute>().FirstOrDefault()?.Name,
-                    Image = string.IsNullOrEmpty(g.IconPath) || !File.Exists(g.IconPath) ? null : new Bitmap(g.IconPath)
+                    Image = string.IsNullOrEmpty(g.IconPath) || !File.Exists(g.IconPath) ? null : new Bitmap(g.IconPath),
+                    Tag = g
                 }).ToArray());
 
             if (tlsPreviewPlugin.DropDownItems.Count > 0)
@@ -103,13 +105,10 @@ namespace Kuriimu2_WinForms.FormatForms
             _selectedPreviewPluginIndex = 0;
         }
 
-        private void PreviewItem_Click(object sender, EventArgs e)
+        private void LoadEntries(IEnumerable<TextEntry> textEntries)
         {
-            throw new NotImplementedException();
-        }
+            _textEntries = textEntries.ToList();
 
-        private void LoadEntries()
-        {
             lstText.Items.Clear();
             lstText.Items.AddRange(_textAdapter.Entries.Select(x => new ListViewItem(new[] { x.Name, x.OriginalText, x.OriginalText, x.Notes }) { Tag = x }).ToArray());
         }
@@ -170,12 +169,47 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             SaveAs();
         }
-        #endregion
+
+        private void PreviewItem_Click(object sender, EventArgs e)
+        {
+            var tsi = (ToolStripMenuItem)sender;
+            _selectedPreviewPluginIndex = _gameAdapters.IndexOf((IGameAdapter)tsi.Tag);
+
+            UpdatePreview();
+        }
 
         private void lstText_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lstText.SelectedIndices.Count > 0)
                 _selectedTextEntryIndex = lstText.SelectedIndices[0];
+
+            UpdatePreview();
+        }
+        #endregion
+
+        private void imgPreview_Zoomed(object sender, Cyotek.Windows.Forms.ImageBoxZoomEventArgs e)
+        {
+            tlsPreviewZoom.Text = "Zoom: " + imgPreview.Zoom + "%";
+        }
+
+        private void imgPreview_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                imgPreview.SelectionMode = ImageBoxSelectionMode.None;
+                imgPreview.Cursor = Cursors.SizeAll;
+                tlsPreviewTool.Text = "Tool: Pan";
+            }
+        }
+
+        private void imgPreview_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                imgPreview.SelectionMode = ImageBoxSelectionMode.Zoom;
+                imgPreview.Cursor = Cursors.Default;
+                tlsPreviewTool.Text = "Tool: Zoom";
+            }
         }
     }
 }
