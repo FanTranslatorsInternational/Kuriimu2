@@ -1,16 +1,10 @@
-﻿using Kontract.Interfaces.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using Kontract.Interfaces.Common;
 
 namespace Kontract.Attributes.Intermediate
 {
     /// <summary>
     /// Indicates if the encryption method of an ICipherAdapter should be ignored
     /// </summary>
-    public class IgnoreEncryptionAttribute : Attribute, IPluginMetadata
-    {
-    }
+    public class IgnoreEncryptionAttribute : Attribute, IPluginMetadata { }
 }

@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace Kontract.FileSystem
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class PhysicalFileSystem : IFileSystem
     {
         private List<(string filename, Stream stream)> _openedFiles;

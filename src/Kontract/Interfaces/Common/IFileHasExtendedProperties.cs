@@ -1,4 +1,4 @@
-﻿namespace Kontract.Interfaces
+﻿namespace Kontract.Interfaces.Common
 {
     /// <summary>
     /// This interface allows a plugin to display a custom extended properties dialog.

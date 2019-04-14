@@ -4,6 +4,9 @@ using System.IO;
 namespace Kontract.FileSystem
 {
     /// <inheritdoc />
+    /// <summary>
+    /// 
+    /// </summary>
     public class FileSystemStream : Stream
     {
         private readonly Stream _baseStream;
@@ -43,17 +46,6 @@ namespace Kontract.FileSystem
         {
             CloseStream?.Invoke(this, new CloseStreamEventArgs(_baseStream));
             base.Close();
-        }
-    }
-
-    /// <inheritdoc />
-    public class CloseStreamEventArgs : EventArgs
-    {
-        public Stream BaseStream { get; }
-
-        public CloseStreamEventArgs(Stream baseStream)
-        {
-            BaseStream = baseStream;
         }
     }
 }

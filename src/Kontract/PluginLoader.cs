@@ -10,6 +10,9 @@ using Kontract.Interfaces.Common;
 
 namespace Kontract
 {
+    /// <summary>
+    /// <see cref="PluginLoader"/> is used to load in all avaliable plugins.
+    /// </summary>
     public class PluginLoader
     {
         /// <summary>

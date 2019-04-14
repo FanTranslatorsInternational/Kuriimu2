@@ -1,9 +1,5 @@
-﻿using Kontract.Interfaces.Common;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Kontract.Interfaces.Intermediate
@@ -33,38 +29,5 @@ namespace Kontract.Interfaces.Intermediate
         /// Eventhandler for requesting data
         /// </summary>
         event EventHandler<RequestDataEventArgs> RequestData;
-    }
-
-    /// <summary>
-    /// The event arguments for requesting key material
-    /// </summary>
-    public class RequestDataEventArgs : EventArgs
-    {
-        public RequestDataEventArgs(string requestMessage, int dataLength, bool isRequestFile)
-        {
-            RequestMessage = requestMessage;
-            DataSize = dataLength;
-            IsRequestFile = isRequestFile;
-        }
-
-        /// <summary>
-        /// The message displayed in an input field
-        /// </summary>
-        public string RequestMessage { get; }
-
-        /// <summary>
-        /// The length of the data
-        /// </summary>
-        public int DataSize { get; }
-
-        /// <summary>
-        /// Defines if event should request a file
-        /// </summary>
-        public bool IsRequestFile { get; }
-
-        /// <summary>
-        /// The data returned by the event
-        /// </summary>
-        public string Data { get; set; }
     }
 }
