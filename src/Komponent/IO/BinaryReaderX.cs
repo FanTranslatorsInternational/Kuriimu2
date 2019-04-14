@@ -551,7 +551,12 @@ namespace Komponent.IO
             if (alignmentAttribute != null)
             {
                 Reset();
-                BaseStream.Position += alignmentAttribute.Alignment - BaseStream.Position % alignmentAttribute.Alignment;
+
+                var remainder = BaseStream.Position % alignmentAttribute.Alignment;
+                if (remainder > 0)
+                    BaseStream.Position += alignmentAttribute.Alignment - remainder;
+
+                //BaseStream.Position += alignmentAttribute.Alignment - BaseStream.Position % alignmentAttribute.Alignment;
             }
 
             return item;
