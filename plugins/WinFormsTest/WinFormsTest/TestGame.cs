@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace WinFormsTest
 {
-    [Export(typeof(IPlugin))]
+    //[Export(typeof(IPlugin))]
     [PluginInfo("Test-Game-Id", "WinForms TestPreview")]
     public class TestGame : IGameAdapter, IGenerateGamePreviews
     {
