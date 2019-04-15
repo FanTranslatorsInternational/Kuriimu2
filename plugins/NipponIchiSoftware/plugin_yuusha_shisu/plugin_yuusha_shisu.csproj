@@ -52,6 +52,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BINText\BINText.cs" />
+    <Compile Include="BINText\BINTextAdapter.cs" />
     <Compile Include="BTX\BTX.cs" />
     <Compile Include="BTX\BtxAdapter.cs" />
     <Compile Include="BTX\BtxSupport.cs" />
