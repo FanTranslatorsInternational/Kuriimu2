@@ -261,9 +261,9 @@ __pycache__/
 *.pyc
 
 ## Our own ignores
+/dist
 /sample_files
 /Artwork
-/LinqPad.ps1
 /src/KoreUnitTests/temp
 /plugins/Criware/plugin_criware/Scripts
 /*.rar

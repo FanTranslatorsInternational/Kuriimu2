@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\dist\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\dist\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -83,6 +83,8 @@
     <Compile Include="Interfaces\Common\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
     <Compile Include="Interfaces\Common\IPluginMetadata.cs" />
+    <Compile Include="Interfaces\Image\IPaletteImage.cs" />
+    <Compile Include="Interfaces\Image\PaletteBitmapInfo.cs" />
     <Compile Include="Interfaces\Intermediate\ICipherAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IIntermediate.cs" />
     <Compile Include="Interfaces\Intermediate\RequestDataEventArgs.cs" />
