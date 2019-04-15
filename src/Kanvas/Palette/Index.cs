@@ -66,7 +66,7 @@ namespace Kanvas.Palette
                             bw.WriteNibble(indexData.Index);
                             break;
                         case 8:
-                            bw.Write(indexData.Index);
+                            bw.Write((byte)indexData.Index);
                             break;
                         default:
                             throw new Exception($"IndexDepth {IndexDepth} not supported!");
