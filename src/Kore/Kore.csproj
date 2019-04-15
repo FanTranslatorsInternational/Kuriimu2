@@ -65,20 +65,6 @@
     <Compile Include="SamplePlugins\KupAdapter.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Text.cs" />
-    <Compile Include="XF\Compression\Huffman.cs" />
-    <Compile Include="XF\Compression\HuffSupport.cs" />
-    <Compile Include="XF\Compression\Level5.cs" />
-    <Compile Include="XF\Compression\LZ10.cs" />
-    <Compile Include="XF\Compression\LZ11.cs" />
-    <Compile Include="XF\Compression\RLE.cs" />
-    <Compile Include="XF\IMGC\IMGC.cs" />
-    <Compile Include="XF\IMGC\ImgcSupport.cs" />
-    <Compile Include="XF\Interface\IArchiveManager.cs" />
-    <Compile Include="XF\Interface\IFilePlugin.cs" />
-    <Compile Include="XF\XF.cs" />
-    <Compile Include="XF\XfAdapter.cs" />
-    <Compile Include="XF\XPCK\XPCK.cs" />
-    <Compile Include="XF\XPCK\XpckSupport.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kanvas\Kanvas.csproj">
