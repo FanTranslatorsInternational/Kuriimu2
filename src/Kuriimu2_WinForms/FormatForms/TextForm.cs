@@ -28,7 +28,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private int _selectedPreviewPluginIndex;
         private int _selectedTextEntryIndex;
-        private IGameAdapter _selectedGameAdapter => _gameAdapters[_selectedPreviewPluginIndex];
+        private IGameAdapter _selectedGameAdapter => _gameAdapters.Any() ? _gameAdapters[_selectedPreviewPluginIndex] : null;
 
         public TextForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, IList<IGameAdapter> gameAdapters)
         {
@@ -146,6 +146,9 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private void UpdatePreview()
         {
+            if (_selectedGameAdapter == null)
+                return;
+
             if (!_textEntries.Any() || _selectedTextEntryIndex < 0)
             {
                 imgPreview.Image = null;
