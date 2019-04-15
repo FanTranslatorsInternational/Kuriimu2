@@ -83,6 +83,8 @@
     <Compile Include="Interfaces\Common\IFileHasExtendedProperties.cs" />
     <Compile Include="Interfaces\Font\IFontAdapter.cs" />
     <Compile Include="Interfaces\Common\IPluginMetadata.cs" />
+    <Compile Include="Interfaces\Image\IPaletteImage.cs" />
+    <Compile Include="Interfaces\Image\PaletteBitmapInfo.cs" />
     <Compile Include="Interfaces\Intermediate\ICipherAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IIntermediate.cs" />
     <Compile Include="Interfaces\Intermediate\RequestDataEventArgs.cs" />

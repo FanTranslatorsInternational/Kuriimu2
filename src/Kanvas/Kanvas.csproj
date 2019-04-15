@@ -56,6 +56,8 @@
     <Compile Include="Format\Support\ASTC\Wrapper\Wrapper.cs" />
     <Compile Include="Format\Support\ETC1.cs" />
     <Compile Include="Format\Support\PVRTC.cs" />
+    <Compile Include="Interface\IPaletteImageFormat.cs" />
+    <Compile Include="Models\ImageSettings.cs" />
     <Compile Include="Palette\AI.cs" />
     <Compile Include="Format\ATC.cs" />
     <Compile Include="Format\ATI.cs" />
@@ -80,6 +82,8 @@
     <Compile Include="Format\Support\BCn\ImageEncodingHelper.cs" />
     <Compile Include="Format\Support\DXT.cs" />
     <Compile Include="Format\Support\Support.cs" />
+    <Compile Include="Models\IndexData.cs" />
+    <Compile Include="Models\PaletteImageSettings.cs" />
     <Compile Include="Swizzle\BC.cs" />
     <Compile Include="Swizzle\CTR.cs" />
     <Compile Include="Swizzle\Linear.cs" />
@@ -97,7 +101,10 @@
       <Name>Komponent</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Quantization\Interfaces\" />
+    <Folder Include="Quantization\Models\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="Libraries\astcenc.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
