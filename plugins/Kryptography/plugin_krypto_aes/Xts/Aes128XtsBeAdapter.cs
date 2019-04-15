@@ -65,9 +65,10 @@ namespace plugin_krypto_aes.Ecb
                 using (var xts = new XtsStream(decrypt ? input : output, key, new byte[16], true, false, (int)sectorSize))
                 {
                     var buffer = new byte[0x10000];
-                    while (xts.Position < xts.Length)
+                    var totalLength = decrypt ? xts.Length : input.Length;
+                    while (xts.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, xts.Length - xts.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - xts.Position);
 
                         if (decrypt)
                         {
@@ -80,7 +81,7 @@ namespace plugin_krypto_aes.Ecb
                             xts.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)xts.Position / xts.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)xts.Position / totalLength * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

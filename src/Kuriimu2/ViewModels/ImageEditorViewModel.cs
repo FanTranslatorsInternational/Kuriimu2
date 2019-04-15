@@ -62,6 +62,30 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public void FileDrop(DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            if (files == null || !files.Any(f => f.EndsWith(".png")))
+            {
+                MessageBox.Show("None of the files were compatible image files.", "No Images", MessageBoxButton.OK);
+                return;
+            }
+
+            ImportBitmap(files.FirstOrDefault(f => f.EndsWith(".png")));
+        }
+
+        public void ImportBitmap(string path)
+        {
+            if (path != null && File.Exists(path))
+            {
+                SelectedBitmap.BitmapInfo.Image = new System.Drawing.Bitmap(path);
+                SelectedImage = _selectedBitmapInfo?.BitmapInfo.Image.ToBitmapImage(true);
+                NotifyOfPropertyChange(() => SelectedBitmap);
+            }
+        }
+
         public string StatusText
         {
             get => _statusText;

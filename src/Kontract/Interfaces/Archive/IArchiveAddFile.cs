@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kontract.Interfaces.Archive
+﻿namespace Kontract.Interfaces.Archive
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public interface IArchiveAddFile
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="afi"></param>
         void AddFile(ArchiveFileInfo afi);
     }
 }

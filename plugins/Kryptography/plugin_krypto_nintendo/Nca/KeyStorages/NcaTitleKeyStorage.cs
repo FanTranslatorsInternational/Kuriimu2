@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace plugin_krypto_nintendo.Nca.KeyStorages
 {
+    /// <summary>
+    /// Storage for decrypted title keys paired to their title id
+    /// </summary>
     internal class NcaTitleKeyStorage
     {
         private Dictionary<string, byte[]> _keyMaterial;
@@ -47,13 +50,13 @@ namespace plugin_krypto_nintendo.Nca.KeyStorages
                     Regex.IsMatch(l.Split('=').First(), "^[a-fA-F0-9]+$") &&
                     Regex.IsMatch(l.Split('=').Skip(1).First(), "^[a-fA-F0-9]+$"))
                 .ToDictionary(
-                    l => l.Split('=').First(),
+                    l => l.Split('=').First().ToUpper(),
                     l => l.Split('=').Skip(1).First().Hexlify()
                 );
 
             foreach (var key in _keyMaterial)
             {
-                if (key.Key.Length != 8)
+                if (key.Key.Length != 0x20) // because it's a string, it means double the length; in byte[] it would be 0x10
                     throw new InvalidOperationException($"Title id \"{key.Key}\" has an invalid length.");
                 if (key.Value.Length != 0x10)
                     throw new InvalidOperationException($"Encrypted title key at title id \"{key.Key}\" has an invalid length.");

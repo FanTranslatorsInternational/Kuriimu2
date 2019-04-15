@@ -64,12 +64,6 @@
     <Compile Include="AES\XTS\AesXtsCryptoTransform.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="KryptoStream.cs" />
-    <Compile Include="Nintendo\Common.cs" />
-    <Compile Include="Nintendo\KeyStorage.cs" />
-    <Compile Include="Nintendo\NcaBodySectionStream.cs" />
-    <Compile Include="Nintendo\NcaStream.cs" />
-    <Compile Include="Nintendo\NcaExtensions.cs" />
-    <Compile Include="Nintendo\NcaHeaderStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RotStream.cs" />
     <Compile Include="Sony\BBCipher\BBCipherContext.cs" />

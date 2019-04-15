@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace Kontract.FileSystem
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class VirtualFileSystem : IFileSystem
     {
         private readonly char _pathDelimiter = Path.DirectorySeparatorChar;

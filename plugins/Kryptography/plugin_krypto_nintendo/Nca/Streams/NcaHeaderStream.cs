@@ -16,24 +16,17 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override bool CanSeek => true;
 
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
 
         public override long Length => _baseStream.Length;
 
         public override long Position { get; set; }
 
-        public NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey, bool isEncrypted)
+        public NcaHeaderStream(Stream header, NcaVersion version, byte[] headerKey)
         {
-            if (header.Length != NcaConstants.HeaderSize)
-                throw new InvalidOperationException($"Nca headers can only be {NcaConstants.HeaderSize} bytes long.");
-
             _baseStream = header;
-            _advancingBaseStream = !isEncrypted ? 
-                header : 
-                new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
-            _nonAdvancingBaseStream = !isEncrypted ? 
-                header : 
-                new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
+            _advancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], true, false, NcaConstants.MediaSize);
+            _nonAdvancingBaseStream = new XtsStream(header, headerKey, new byte[0x10], false, false, NcaConstants.MediaSize);
             _version = version;
         }
 
@@ -41,6 +34,7 @@ namespace plugin_krypto_nintendo.Nca.Streams
         {
             _advancingBaseStream.Flush();
             _nonAdvancingBaseStream.Flush();
+            _baseStream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -106,7 +100,9 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            _nonAdvancingBaseStream.SetLength(value);
+            _advancingBaseStream.SetLength(value);
+            _baseStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -145,10 +141,12 @@ namespace plugin_krypto_nintendo.Nca.Streams
 
                 writtenBytes += toWrite;
                 newPosition += toWrite;
+
+                SetLength(_baseStream.Length);
             }
 
             Position += writtenBytes;
-
+            
             _nonAdvancingBaseStream.Position = bkPosNonAdvance;
             _advancingBaseStream.Position = bkPosAdvance;
         }

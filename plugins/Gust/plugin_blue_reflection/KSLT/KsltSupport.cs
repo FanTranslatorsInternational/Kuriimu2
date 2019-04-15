@@ -2,7 +2,6 @@
 using System.Drawing;
 using Kanvas.Format;
 using Kanvas.Interface;
-using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Image;
 
@@ -41,7 +40,7 @@ namespace plugin_blue_reflection.KSLT
     {
         public int Offset;
         [FixedLength(0x10)]
-        public byte[] Padding = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        public byte[] Padding = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     }
 
     /// <summary>
@@ -77,10 +76,26 @@ namespace plugin_blue_reflection.KSLT
         };
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class KsltBitmapInfo : BitmapInfo
     {
+        /// <summary>
+        /// 
+        /// </summary>
         public ImageHeader Header { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public byte[] ImageData { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="formatInfo"></param>
         public KsltBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
     }
 }

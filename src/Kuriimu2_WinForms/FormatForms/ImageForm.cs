@@ -6,6 +6,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Cyotek.Windows.Forms;
 using Kontract;
@@ -58,7 +59,7 @@ namespace Kuriimu2_WinForms.FormatForms
             _bestBitmaps = _imageAdapter.BitmapInfos.Select(x => (Bitmap)x.Image.Clone()).ToArray();
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
-            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(f => new ToolStripMenuItem { Text = f.FormatName, Tag = f }).ToArray());
+            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(f => new ToolStripMenuItem { Text = f.FormatName, Tag = f, Checked = f.FormatIndex == _selectedBitmapInfo.FormatInfo.FormatIndex }).ToArray());
             if (tsbFormat.DropDownItems.Count > 0)
                 foreach (var tsb in tsbFormat.DropDownItems)
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
@@ -76,8 +77,18 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             var tsb = (ToolStripMenuItem)sender;
 
-            _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps.Clone();
-            ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
+            if (_selectedBitmapInfo.FormatInfo.FormatIndex != ((FormatInfo)tsb.Tag).FormatIndex)
+            {
+                _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
+                var result = ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
+
+                if (result.IsCompleted)
+                {
+                    foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
+                        tsm.Checked = false;
+                    tsb.Checked = true;
+                }
+            }
         }
 
         public KoreFileInfo Kfi { get; set; }
@@ -140,13 +151,13 @@ namespace Kuriimu2_WinForms.FormatForms
                 Import(ofd.FileName);
         }
 
-        private void Import(string filename)
+        private async void Import(string filename)
         {
             try
             {
                 _selectedBitmapInfo.Image = new Bitmap(filename);
                 _bestBitmaps[_selectedImageIndex] = (Bitmap)_selectedBitmapInfo.Image.Clone();
-                ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
+                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -156,10 +167,10 @@ namespace Kuriimu2_WinForms.FormatForms
             }
         }
 
-        private async void ImageEncode(BitmapInfo bitmapInfo, FormatInfo formatInfo)
+        private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, FormatInfo formatInfo)
         {
             if (!tsbFormat.Enabled)
-                return;
+                return false;
 
             tsbFormat.Enabled = false;
 
@@ -174,7 +185,7 @@ namespace Kuriimu2_WinForms.FormatForms
             {
                 MessageBox.Show("Encoding was not successful.", "Encoding unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 tsbFormat.Enabled = true;
-                return;
+                return result;
             }
             bitmapInfo.FormatInfo = formatInfo;
 
@@ -182,6 +193,8 @@ namespace Kuriimu2_WinForms.FormatForms
             UpdateImageList();
 
             tsbFormat.Enabled = true;
+
+            return result;
         }
 
         private void Report_ProgressChanged(object sender, ProgressReport e)
@@ -320,6 +333,9 @@ namespace Kuriimu2_WinForms.FormatForms
             // Format Dropdown
             tsbFormat.Text = _selectedBitmapInfo.FormatInfo.FormatName;
             tsbFormat.Tag = _selectedBitmapInfo.FormatInfo.FormatIndex;
+            // Updated selected format
+            foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
+                tsm.Checked = ((FormatInfo)tsm.Tag).FormatIndex == _selectedBitmapInfo.FormatInfo.FormatIndex;
         }
 
         private void GenerateThumbnailBackground()

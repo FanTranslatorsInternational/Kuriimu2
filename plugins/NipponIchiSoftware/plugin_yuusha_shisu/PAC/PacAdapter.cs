@@ -1,26 +1,23 @@
-﻿using Kontract.Interfaces.Common;
-using Kontract.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Interfaces.Archive;
 using Komponent.IO;
+using Kontract.Attributes;
+using Kontract.Interfaces.Archive;
+using Kontract.Interfaces.Common;
 
 namespace plugin_yuusha_shisu.PAC
 {
     [Export(typeof(PacAdapter))]
     [Export(typeof(IPlugin))]
-    [PluginInfo("plugin_yuusha_shisu","HeroWillDie","PAC","StorMyu")]
+    [PluginInfo("plugin_yuusha_shisu_pac", "Death of a Hero", "PAC", "StorMyu")]
     [PluginExtensionInfo("*.pac")]
-    public sealed class PacAdapter : IPlugin,IArchiveAdapter,IIdentifyFiles,ILoadFiles,ISaveFiles,IArchiveReplaceFiles
+    public sealed class PacAdapter : IPlugin, IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IArchiveReplaceFiles
     {
         private PAC _format;
 
         #region Properties
-        public List<ArchiveFileInfo> Files => _format?.Files ;
+        public List<ArchiveFileInfo> Files => _format?.Files;
         public bool FileHasExtendedProperties => false;
         public bool LeaveOpen { get; set; }
 

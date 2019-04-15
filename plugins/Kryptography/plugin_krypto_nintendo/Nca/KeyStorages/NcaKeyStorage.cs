@@ -23,6 +23,8 @@ namespace plugin_krypto_nintendo.Nca.KeyStorages
 
         #endregion Key Storages
 
+        public bool ContainsHeaderKey => _keyMaterial.ContainsKey("header_key");
+
         private Dictionary<string, byte[]> _keyMaterial;
 
         public byte[] this[string i]

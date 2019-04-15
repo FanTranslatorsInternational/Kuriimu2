@@ -17,11 +17,11 @@ namespace Kryptography.AES
 
         private static int BlockSize => 16;
 
-        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanRead => _baseStream.CanRead && true;
 
-        public override bool CanSeek => _baseStream.CanSeek;
+        public override bool CanSeek => _baseStream.CanSeek && true;
 
-        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanWrite => _baseStream.CanWrite && true;
 
         public override long Length => _internalLength;
 
@@ -94,7 +94,45 @@ namespace Kryptography.AES
 
         public override void SetLength(long value)
         {
-            throw new NotImplementedException();
+            if (!CanWrite || !CanSeek)
+                throw new NotSupportedException("Can't set length of stream.");
+            if (value < 0)
+                throw new IOException("Length can't be smaller than 0.");
+
+            if (value > Length)
+            {
+                var bkPosThis = Position;
+                var bkPosBase = _baseStream.Position;
+
+                var startPos = Math.Max(_baseStream.Length, Length);
+                var newDataLength = value - startPos;
+                var written = 0;
+                var newData = new byte[0x10000];
+                while (written < newDataLength)
+                {
+                    Position = startPos;
+                    var toWrite = (int)Math.Min(0x10000, newDataLength - written);
+                    Write(newData, 0, toWrite);
+                    written += toWrite;
+                    startPos += toWrite;
+                }
+
+                _baseStream.Position = bkPosBase;
+                Position = bkPosThis;
+            }
+            else
+            {
+                if (value % BlockSize != Length % BlockSize)
+                {
+                    var bkPos = _baseStream.Position;
+                    _baseStream.Position = value % BlockSize;
+                    _baseStream.Read(_lastBlockBuffer,0,0x10);
+                    _baseStream.Position = bkPos;
+                }
+                _baseStream.SetLength(value);
+            }
+
+            _internalLength = value;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -161,7 +199,7 @@ namespace Kryptography.AES
 
             if (Position < Length)
                 throw new InvalidOperationException($"Can't rewrite data in {nameof(CbcStream)}.");
-            
+
             var alignedReadStart = Length / BlockSize * BlockSize;
             var alignedCount = RoundUpToMultiple(Position + count, BlockSize) - alignedReadStart;
             var readLength = Length % BlockSize;

@@ -60,9 +60,10 @@ namespace plugin_krypto_aes.Ctr
                 using (var cs = new CtrStream(decrypt ? input : output, key, ctr, true))
                 {
                     var buffer = new byte[0x10000];
-                    while (cs.Position < cs.Length)
+                    var totalLength = decrypt ? cs.Length : input.Length;
+                    while (cs.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, cs.Length - cs.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - cs.Position);
 
                         if (decrypt)
                         {
@@ -75,7 +76,7 @@ namespace plugin_krypto_aes.Ctr
                             cs.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / cs.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / totalLength * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

@@ -1,4 +1,5 @@
 ﻿using Kontract.Attributes;
+using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces.Intermediate;
 using Kuriimu2_WinForms.Extensions;
 using System;
@@ -13,9 +14,9 @@ namespace Kuriimu2_WinForms
     class ToolStripMenuBuilder<TAdapter> where TAdapter : IIntermediate
     {
         private List<ToolStripMenuItem> _tree;
-        private Action<ToolStripMenuItem, TAdapter> _addItemDelegates;
+        private Action<ToolStripMenuItem, TAdapter, bool, bool> _addItemDelegates;
 
-        public ToolStripMenuBuilder(IEnumerable<TAdapter> adapters, Action<ToolStripMenuItem, TAdapter> addItemDelegates)
+        public ToolStripMenuBuilder(IEnumerable<TAdapter> adapters, Action<ToolStripMenuItem, TAdapter, bool, bool> addItemDelegates)
         {
             _addItemDelegates = addItemDelegates;
             _tree = CreateTree(adapters).ToList();
@@ -34,6 +35,13 @@ namespace Kuriimu2_WinForms
             foreach (var adapter in adapters)
             {
                 var attr = adapter.GetType().GetCustomAttributes(typeof(MenuStripExtensionAttribute), false).Cast<MenuStripExtensionAttribute>().FirstOrDefault();
+
+                var ignoreEnc = adapter.GetType().GetCustomAttributes(typeof(IgnoreEncryptionAttribute), false).Any();
+                var ignoreDec = adapter.GetType().GetCustomAttributes(typeof(IgnoreDecryptionAttribute), false).Any();
+
+                if (ignoreDec && ignoreEnc)
+                    continue;
+
                 if (attr == null)
                 {
                     var nodeItem = result.FirstOrDefault(x => x.Name == "Others");
@@ -44,7 +52,7 @@ namespace Kuriimu2_WinForms
                     }
 
                     var cipherItem = new ToolStripMenuItem(adapter.Name);
-                    _addItemDelegates(cipherItem, adapter);
+                    _addItemDelegates(cipherItem, adapter, ignoreDec, ignoreEnc);
 
                     nodeItem.DropDownItems.Add(cipherItem);
                 }
@@ -78,7 +86,7 @@ namespace Kuriimu2_WinForms
                         items = internalItem.DropDownItems;
                     }
 
-                    _addItemDelegates(internalItem, adapter);
+                    _addItemDelegates(internalItem, adapter, ignoreDec, ignoreEnc);
                 }
             }
 

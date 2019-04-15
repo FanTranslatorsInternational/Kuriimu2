@@ -27,6 +27,16 @@ namespace plugin_krypto_nintendo.Adapters
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
+            return DoCipher(toDecrypt, decryptInto, progress, true);
+        }
+
+        public Task<bool> Encrypt(Stream toEncrypt, Stream encryptInto, IProgress<ProgressReport> progress)
+        {
+            return DoCipher(toEncrypt, encryptInto, progress, false);
+        }
+
+        private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
+        {
             var keyFile = OnRequestFile("Select Switch key file...", out var error);
             if (!string.IsNullOrEmpty(error))
             {
@@ -36,9 +46,9 @@ namespace plugin_krypto_nintendo.Adapters
                     return false;
                 });
             }
-
-            var factory = new NcaReadFactory(toDecrypt, keyFile);
-            if (factory.HasRightsId)
+            
+            var factory = new NcaFactory(input, keyFile);
+            if (factory.UseTitleKeyEncryption)
             {
                 var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
                 if (!string.IsNullOrEmpty(error))
@@ -52,22 +62,31 @@ namespace plugin_krypto_nintendo.Adapters
 
                 factory.SetTitleKeyFile(titleKeyFile);
             }
-
+            
             return Task.Factory.StartNew(() =>
             {
                 progress.Report(new ProgressReport { Percentage = 0, Message = "Decryption..." });
 
-                using (var cs = factory.CreateReadableStream())
+                using (var cs = factory.CreateStream(decrypt ? input : output))
                 {
                     var buffer = new byte[0x10000];
-                    while (cs.Position < cs.Length)
+                    var totalLength = decrypt ? cs.Length : input.Length;
+                    while (cs.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, cs.Length - cs.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - cs.Position);
 
-                        cs.Read(buffer, 0, length);
-                        decryptInto.Write(buffer, 0, length);
+                        if (decrypt)
+                        {
+                            cs.Read(buffer, 0, length);
+                            output.Write(buffer, 0, length);
+                        }
+                        else
+                        {
+                            input.Read(buffer, 0, length);
+                            cs.Write(buffer, 0, length);
+                        }
 
-                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / cs.Length * 100, Message = "Decryption..." });
+                        progress.Report(new ProgressReport { Percentage = (double)cs.Position / totalLength * 100, Message = "Decryption..." });
                     }
                 }
 
@@ -75,12 +94,6 @@ namespace plugin_krypto_nintendo.Adapters
 
                 return true;
             });
-        }
-
-        // TODO: Implement encryption
-        public Task<bool> Encrypt(Stream toEncrypt, Stream encryptInto, IProgress<ProgressReport> progress)
-        {
-            throw new NotImplementedException();
         }
     }
 }

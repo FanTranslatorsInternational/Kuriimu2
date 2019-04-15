@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kontract.Interfaces.Archive
+﻿namespace Kontract.Interfaces.Archive
 {
-    public interface IArchiveReplaceFiles
-    {
-    }
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IArchiveReplaceFiles { }
 }

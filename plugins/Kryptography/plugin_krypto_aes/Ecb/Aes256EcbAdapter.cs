@@ -52,9 +52,10 @@ namespace plugin_krypto_aes.Ecb
                 using (var ecb = new EcbStream(decrypt ? input : output, key))
                 {
                     var buffer = new byte[0x10000];
-                    while (ecb.Position < ecb.Length)
+                    var totalLength = decrypt ? ecb.Length : input.Length;
+                    while (ecb.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, ecb.Length - ecb.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - ecb.Position);
 
                         if (decrypt)
                         {
@@ -67,7 +68,7 @@ namespace plugin_krypto_aes.Ecb
                             ecb.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)ecb.Position / ecb.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)ecb.Position / totalLength * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

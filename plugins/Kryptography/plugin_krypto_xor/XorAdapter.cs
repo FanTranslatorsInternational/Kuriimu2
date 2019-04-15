@@ -51,9 +51,10 @@ namespace plugin_krypto_xor
                 using (var xor = new XorStream(decrypt ? input : output, key))
                 {
                     var buffer = new byte[0x10000];
-                    while (xor.Position < xor.Length)
+                    var totalLength = decrypt ? xor.Length : input.Length;
+                    while (xor.Position < totalLength)
                     {
-                        var length = (int)Math.Min(0x10000, xor.Length - xor.Position);
+                        var length = (int)Math.Min(0x10000, totalLength - xor.Position);
 
                         if (decrypt)
                         {
@@ -66,7 +67,7 @@ namespace plugin_krypto_xor
                             xor.Write(buffer, 0, length);
                         }
 
-                        progress.Report(new ProgressReport { Percentage = (double)xor.Position / xor.Length * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
+                        progress.Report(new ProgressReport { Percentage = (double)xor.Position / totalLength * 100, Message = decrypt ? "Decryption..." : "Encryption...", });
                     }
                 }
 

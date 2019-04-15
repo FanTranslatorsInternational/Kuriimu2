@@ -45,7 +45,7 @@ namespace plugin_yuusha_shisu.PAC
 
                     Files.Add(new ArchiveFileInfo
                     {
-                        FileName = "\\" + _entries[i].FileName.Trim('\0'),
+                        FileName = _entries[i].FileName.Trim('\0'),
                         FileData = new SubStream(br.BaseStream, off, length),
                         State = ArchiveFileState.Archived
                     });

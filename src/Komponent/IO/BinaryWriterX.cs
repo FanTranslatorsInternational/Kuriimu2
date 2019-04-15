@@ -465,7 +465,11 @@ namespace Komponent.IO
 
             // Apply alignment
             if (alignmentAttribute != null)
-                Write(new byte[alignmentAttribute.Alignment - BaseStream.Position % alignmentAttribute.Alignment]);
+            {
+                var remainder = BaseStream.Position % alignmentAttribute.Alignment;
+                if (remainder > 0)
+                    Write(new byte[alignmentAttribute.Alignment - remainder]);
+            }
         }
 
         #endregion

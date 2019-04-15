@@ -10,7 +10,7 @@ namespace plugin_krypto_nintendo.Nca.Models
     {
         public NcaBodySection(long mediaOffset, long mediaLength, NcaSectionCrypto sectionCrypto, byte[] baseSectionCtr)
         {
-            if (mediaOffset < 0)
+            if (mediaOffset < 6)
                 throw new ArgumentOutOfRangeException(nameof(mediaOffset));
             if (mediaLength <= 0)
                 throw new ArgumentOutOfRangeException(nameof(mediaLength));
@@ -39,7 +39,7 @@ namespace plugin_krypto_nintendo.Nca.Models
         /// <summary>
         /// The cipher context to use for the section
         /// </summary>
-        public NcaSectionCrypto SectionCrypto { get; }
+        public NcaSectionCrypto SectionCrypto { get; set; }
 
         /// <summary>
         /// The counter to calculate the actual Ctr from for this section
