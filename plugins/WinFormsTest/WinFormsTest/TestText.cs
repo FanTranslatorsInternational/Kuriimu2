@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
@@ -16,24 +14,19 @@ namespace WinFormsTest
     [PluginInfo("Test-Text-Id")]
     public class TestTextPlugin : ITextAdapter, ILoadFiles, IIdentifyFiles, IMultipleFiles
     {
-        public IEnumerable<TextEntry> Entries => _texts;
-
         private IEnumerable<TextEntry> _texts;
 
-        public string NameFilter => throw new NotImplementedException();
+        public IEnumerable<TextEntry> Entries => _texts;
 
-        public int NameMaxLength => throw new NotImplementedException();
+        public string NameFilter => ".*";
 
-        public string LineEndings { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int NameMaxLength => 0;
+
+        public string LineEndings { get; set; }
 
         public IFileSystem FileSystem { get; set; }
 
         public bool LeaveOpen { get; set; }
-
-        public void Dispose()
-        {
-            ;
-        }
 
         public bool Identify(StreamInfo file)
         {
@@ -51,5 +44,7 @@ namespace WinFormsTest
             file.FileData.Read(buffer, 0, 5);
             _texts = new List<TextEntry> { new TextEntry { Name = "First entry", OriginalText = Encoding.ASCII.GetString(buffer) } };
         }
+
+        public void Dispose() { }
     }
 }

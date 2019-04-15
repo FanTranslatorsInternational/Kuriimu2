@@ -67,7 +67,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
-copy /y "$(TargetPath)" "$(SolutionDir)..\..\src\Kuriimu2\bin\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>mkdir "$(SolutionDir)..\..\dist\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
+copy /y "$(TargetPath)" "$(SolutionDir)..\..\dist\$(ConfigurationName)\plugins\$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>
