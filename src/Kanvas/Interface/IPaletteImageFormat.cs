@@ -10,6 +10,16 @@ namespace Kanvas.Interface
 {
     public interface IPaletteImageFormat
     {
+        /// <summary>
+        /// The number of bits one pixel takes in the format definition. Also known as bits per pixel (bpp)
+        /// </summary>
+        int IndexDepth { get; }
+
+        /// <summary>
+        /// The name to display for this format
+        /// </summary>
+        string FormatName { get; }
+
         IEnumerable<IndexData> LoadIndeces(byte[] data);
 
         Color RetrieveColor(IndexData indexData, IList<Color> palette);
