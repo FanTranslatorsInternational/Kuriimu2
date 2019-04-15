@@ -48,7 +48,7 @@ namespace Kanvas.Palette
 
         public IndexData RetrieveIndex(Color color, IList<Color> palette)
         {
-            var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B);
+            var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B && c.A == color.A);
             if (foundColor == Color.Empty)
                 throw new InvalidOperationException($"Color {color} was not found in palette.");
             return new IndexData(palette.IndexOf(foundColor));
