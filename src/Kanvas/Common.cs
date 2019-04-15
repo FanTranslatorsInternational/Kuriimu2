@@ -113,7 +113,7 @@ namespace Kanvas
         /// <param name="paletteBytes">Bytearray containing the binary palette data.</param>
         /// <param name="settings">The settings determining the final image output.</param>
         /// <returns>Bitmap</returns>
-        public static Bitmap Load(byte[] bytes, byte[] paletteBytes, PaletteImageSettings settings)
+        public static (Bitmap image, IList<Color> palette) Load(byte[] bytes, byte[] paletteBytes, PaletteImageSettings settings)
         {
             int width = settings.Width, height = settings.Height;
             var paletteFormat = settings.PaletteFormat;
@@ -138,7 +138,7 @@ namespace Kanvas
             }
             bmp.UnlockBits(data);
 
-            return bmp;
+            return (bmp, palette);
         }
 
         /// <summary>
