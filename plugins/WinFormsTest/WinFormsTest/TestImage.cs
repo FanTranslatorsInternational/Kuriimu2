@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Kanvas;
 using Kanvas.Format;
 using Kanvas.Interface;
+using Kanvas.Models;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
-using System.Linq;
-using System.Threading;
 
 namespace WinFormsTest
 {
