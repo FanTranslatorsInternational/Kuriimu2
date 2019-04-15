@@ -58,7 +58,7 @@ namespace plugin_kuriimu.KUP
                     CheckCharacters = false
                 };
 
-                using (var xmlIO = new StreamWriter(output, xmlSettings.Encoding))
+                using (var xmlIO = new StreamWriter(output, xmlSettings.Encoding, 0x1000, true))
                 {
                     var serializer = new XmlSerializer(typeof(KUP));
                     var namespaces = new XmlSerializerNamespaces();

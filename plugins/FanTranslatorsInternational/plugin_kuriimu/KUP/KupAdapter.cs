@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
@@ -31,7 +32,7 @@ namespace plugin_kuriimu.KUP
 
         public string LineEndings { get; set; } = "\n";
 
-        public bool LeaveOpen { get; set; }
+        public bool LeaveOpen { get; set; } = false;
 
         #endregion
 
@@ -41,7 +42,7 @@ namespace plugin_kuriimu.KUP
 
             try
             {
-                using (var sr = new StreamReader(input.FileData))
+                using (var sr = new StreamReader(input.FileData, Encoding.UTF8, true, 0x1000, LeaveOpen))
                 {
                     sr.ReadLine(); // Skip the XML declaration
                     if (!sr.ReadLine().StartsWith("<kup"))
