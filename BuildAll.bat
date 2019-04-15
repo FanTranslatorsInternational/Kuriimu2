@@ -18,7 +18,12 @@ for /r %%i in (*.sln) do (echo Restoring nugets for %%i & call "nuget\BuildNuget
 echo.
 echo ### Build Solutions ###
 echo.
+choice /m "Build all solutions (3..2..1..Y)" /t 3 /d Y
+if errorlevel 2 goto skip
+if errorlevel 1 goto build
+:build
 for /r %%i in (*.sln) do (echo Building %%i... & @if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64\MsBuild.exe" (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64\MsBuild.exe" %%i /p:Configuration=Debug /p:WarningLevel=0 > nul 2>&1) else (call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" %%i /p:Configuration=Debug /p:WarningLevel=0 > nul 2>&1))
+:skip
 echo.
 echo ##################################
 echo         Build All Complete
