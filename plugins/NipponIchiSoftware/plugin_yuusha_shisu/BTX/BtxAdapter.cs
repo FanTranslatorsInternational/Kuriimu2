@@ -16,7 +16,7 @@ namespace plugin_yuusha_shisu.BTX
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_btx", "Death of a Hero", "BTX", "IcySon55")]
     [PluginExtensionInfo("*.btx")]
-    public class BtxAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles
+    public class BtxAdapter : IImageAdapter, /*IIndexedImageAdapter,*/ IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private BTX _format;
         private List<BitmapInfo> _bitmapInfos;
@@ -26,7 +26,7 @@ namespace plugin_yuusha_shisu.BTX
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<FormatInfo> FormatInfos => BTX.Formats.Select(x => new FormatInfo((int)x.Key, x.Value.FormatName)).ToList();
+        public IList<FormatInfo> FormatInfos => BTX.Formats.Select(x => new FormatInfo((int)x.Key, x.Value.FormatName)).Union(BTX.PaletteFormats.Select(x => new FormatInfo((int)x.Key, x.Value.FormatName))).ToList();
 
         public bool LeaveOpen { get; set; }
 
@@ -48,12 +48,22 @@ namespace plugin_yuusha_shisu.BTX
         public void Load(StreamInfo input)
         {
             _format = new BTX(input.FileData);
-            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Texture, new FormatInfo(0, BTX.Formats[ImageFormat.Palette_8].FormatName)) };
+            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Texture, new FormatInfo((int)_format.Header.Format, _format.FormatName)) };
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
         {
+
+
+
+
+
             return false;
+        }
+
+        public void Save(StreamInfo output, int versionIndex = 0)
+        {
+            _format.Save(output.FileData);
         }
 
         public void Dispose() { }
