@@ -72,12 +72,12 @@ namespace Kanvas.Palette
             {
                 foreach (var indexData in indeces)
                 {
-                    var alphaIndexData = (AlphaIndexData) indexData;
+                    var alphaIndexData = (AlphaIndexData)indexData;
                     switch (IndexDepth)
                     {
                         case 8:
-                            var b = (byte)(Helper.ChangeBitDepth(alphaIndexData.Alpha, 8, AlphaDepth) << alphaShift);
-                            bw.Write(b | alphaIndexData.Index & ((1 << alphaIndexData.Index) - 1));
+                            var b = Helper.ChangeBitDepth(alphaIndexData.Alpha, 8, AlphaDepth) << alphaShift;
+                            bw.Write((byte)(b | alphaIndexData.Index & ((1 << alphaIndexData.Index) - 1)));
                             break;
                         default:
                             throw new Exception($"IndexDepth {IndexDepth} not supported.");
