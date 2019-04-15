@@ -8,20 +8,20 @@ using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Text;
 
-namespace plugin_yuusha_shisu.BINText
+namespace plugin_yuusha_shisu.MSG
 {
-    class BINText
+    class MSG
     {
-        private BINTextContent _content;
+        private MSGContent _content;
         public List<TextEntry> Entries;
 
 
-        public BINText(Stream input)
+        public MSG(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
                 // Read
-                _content = br.ReadType<BINTextContent>();
+                _content = br.ReadType<MSGContent>();
                 Entries = new List<TextEntry>
                 {
                     new TextEntry
@@ -45,7 +45,7 @@ namespace plugin_yuusha_shisu.BINText
         }
     }
 
-    public class BINTextContent
+    public class MSGContent
     {
         public int Magic;
         public int HeaderSize;

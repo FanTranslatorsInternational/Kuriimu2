@@ -9,15 +9,15 @@ using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 
-namespace plugin_yuusha_shisu.BINText
+namespace plugin_yuusha_shisu.MSG
 {
-    [Export(typeof(BINTextAdapter))]
+    [Export(typeof(MSGAdapter))]
     [Export(typeof(IPlugin))]
-    [PluginInfo("plugin_yuusha_shisu_bintext", "Death of a Hero", "BINText", "StorMyu")]
+    [PluginInfo("plugin_yuusha_shisu_MSG", "Death of a Hero", "MSG", "StorMyu")]
     [PluginExtensionInfo("*.bin")]
-    public sealed class BINTextAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class MSGAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
-        private BINText _format;
+        private MSG _format;
 
         #region Properties
 
@@ -52,7 +52,7 @@ namespace plugin_yuusha_shisu.BINText
 
         public void Load(StreamInfo input)
         {
-            _format = new BINText(input.FileData);
+            _format = new MSG(input.FileData);
         }
 
         public void Save(StreamInfo output, int versionIndex = 0)
