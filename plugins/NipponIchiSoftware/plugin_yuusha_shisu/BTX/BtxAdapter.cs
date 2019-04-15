@@ -11,12 +11,11 @@ using Kontract.Interfaces.Image;
 
 namespace plugin_yuusha_shisu.BTX
 {
-
     [Export(typeof(BtxAdapter))]
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_btx", "Death of a Hero", "BTX", "IcySon55")]
     [PluginExtensionInfo("*.btx")]
-    public class BtxAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles
+    public sealed class BtxAdapter : IImageAdapter, IIdentifyFiles, ILoadFiles
     {
         private BTX _format;
         private List<BitmapInfo> _bitmapInfos;
@@ -48,7 +47,7 @@ namespace plugin_yuusha_shisu.BTX
         public void Load(StreamInfo input)
         {
             _format = new BTX(input.FileData);
-            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Texture, new FormatInfo(0, BTX.Formats[ImageFormat.Palette_8].FormatName)) };
+            _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Texture, new FormatInfo((int)_format.Header.Format, BTX.Formats[_format.Header.Format].FormatName)) };
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)

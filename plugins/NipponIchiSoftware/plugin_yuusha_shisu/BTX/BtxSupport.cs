@@ -13,7 +13,7 @@ namespace plugin_yuusha_shisu.BTX
         public short Width;
         public short Height;
         public int Unk1; // Width/Height again?
-        public short Unk2; // 5?
+        public ImageFormat Format;
         public short Unk3; // Palette size?
         public int Unk4;
         public int ImageOffset;
@@ -27,10 +27,7 @@ namespace plugin_yuusha_shisu.BTX
     /// </summary>
     public enum ImageFormat : short
     {
-        RGBA8888,
-        Palette_4,
-        Palette_8,
-        Palette_16,
-        Palette_32
+        RGBA8888 = 0x00,
+        Palette_8 = 0x05
     }
 }
