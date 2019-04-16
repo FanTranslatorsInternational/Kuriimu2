@@ -1,21 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Text;
 
 namespace plugin_yuusha_shisu.MSG
 {
-    class MSG
+    /// <summary>
+    /// 
+    /// </summary>
+    public class MSG
     {
+        /// <summary>
+        /// 
+        /// </summary>
         private MSGContent _content;
+
+        /// <summary>
+        /// 
+        /// </summary>
         public List<TextEntry> Entries;
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
         public MSG(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
@@ -33,6 +44,11 @@ namespace plugin_yuusha_shisu.MSG
                 };
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="output"></param>
         public void Save(Stream output)
         {
             using (var bw = new BinaryWriterX(output, true))
@@ -45,6 +61,9 @@ namespace plugin_yuusha_shisu.MSG
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class MSGContent
     {
         public int Magic;

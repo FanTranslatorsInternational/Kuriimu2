@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 
 namespace plugin_yuusha_shisu.MSG
 {
-    [Export(typeof(MSGAdapter))]
+    [Export(typeof(MsgAdapter))]
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_MSG", "Death of a Hero", "MSG", "StorMyu")]
     [PluginExtensionInfo("*.bin")]
-    public sealed class MSGAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class MsgAdapter : ITextAdapter, ILoadFiles, ISaveFiles
     {
         private MSG _format;
 
@@ -32,23 +27,6 @@ namespace plugin_yuusha_shisu.MSG
         public bool LeaveOpen { get; set; }
 
         #endregion
-
-        public bool Identify(StreamInfo input)
-        {
-            try
-            {
-                using (var br = new BinaryReaderX(input.FileData, true))
-                {
-                    var magic = br.ReadString(4);
-                    var fileSize = br.ReadInt32();
-                    return magic == "TEXT" && fileSize == br.BaseStream.Length;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
 
         public void Load(StreamInfo input)
         {

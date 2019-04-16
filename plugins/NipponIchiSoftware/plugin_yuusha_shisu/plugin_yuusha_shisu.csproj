@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MSG\MSG.cs" />
-    <Compile Include="MSG\MSGAdapter.cs" />
+    <Compile Include="MSG\MsgAdapter.cs" />
     <Compile Include="BTX\BTX.cs" />
     <Compile Include="BTX\BtxAdapter.cs" />
     <Compile Include="BTX\BtxSupport.cs" />
