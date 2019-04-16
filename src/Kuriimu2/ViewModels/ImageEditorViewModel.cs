@@ -6,17 +6,16 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
 using Kore;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
+using Kuriimu2.ViewModels.ImageEditor;
 using Microsoft.Win32;
 
 namespace Kuriimu2.ViewModels
@@ -25,16 +24,17 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly Kore.KoreManager _kore;
+        private readonly KoreManager _kore;
         private readonly IImageAdapter _adapter;
 
         private BitmapEntry _selectedBitmapInfo;
         private ImageSource _selectedImage;
         private string _statusText;
-        private bool _progressActive;
+        private bool _progressActive = false;
         private string _progressActionName;
         private int _progressValue;
-        private int _selectedZoomLevel;
+        private int _zoomIndex = ZoomLevels.IndexOf(100);
+        private double _selectedZoomLevel;
 
         public KoreFileInfo KoreFile { get; set; }
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
@@ -132,7 +132,7 @@ namespace Kuriimu2.ViewModels
 
         public int ImageBorderThickness => 1;
 
-        public string ImageCount => (Bitmaps?.Count ?? 0) + ((Bitmaps?.Count ?? 0) != 1 ? " Bitmaps" : " Bitmap");
+        public string ImageCount => (Bitmaps?.Count ?? 0) + ((Bitmaps?.Count ?? 0) != 1 ? " Images" : " Image");
 
         // Constructor
         public ImageEditorViewModel(Kore.KoreManager kore, KoreFileInfo koreFile)
@@ -146,20 +146,7 @@ namespace Kuriimu2.ViewModels
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
 
             SelectedBitmap = Bitmaps?.FirstOrDefault();
-            SelectedZoomLevel = 2;
-        }
-
-        public List<int> ZoomLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
-
-        public int SelectedZoomLevel
-        {
-            get => _selectedZoomLevel;
-            set
-            {
-                if (value == _selectedZoomLevel) return;
-                _selectedZoomLevel = value;
-                NotifyOfPropertyChange(() => SelectedZoomLevel);
-            }
+            SelectedZoomLevel = 1;
         }
 
         public void ImageProperties()
@@ -265,25 +252,41 @@ namespace Kuriimu2.ViewModels
 
         #endregion
 
-        //public void Save(string filename = "")
-        //{
-        //    try
-        //    {
-        //        if (filename == string.Empty)
-        //            ((ISaveFiles)KoreFile.Adapter).Save(KoreFile.FileInfo.FullName);
-        //        else
-        //        {
-        //            ((ISaveFiles)KoreFile.Adapter).Save(filename);
-        //            KoreFile.FileInfo = new FileInfo(filename);
-        //        }
-        //        KoreFile.HasChanges = false;
-        //        NotifyOfPropertyChange(() => DisplayName);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        // Handle on UI gracefully somehow~
-        //    }
-        //}
+        // Zooming
+        public static List<int> ZoomLevels { get; } = new List<int> { 7, 10, 15, 20, 25, 30, 50, 70, 100, 150, 200, 300, 400, 500, 600, 700, 800, 1000, 1200, 1600 };
+
+        public double SelectedZoomLevel
+        {
+            get => _selectedZoomLevel;
+            set
+            {
+                if (value == _selectedZoomLevel) return;
+                _selectedZoomLevel = value;
+                NotifyOfPropertyChange(() => SelectedZoomLevel);
+                NotifyOfPropertyChange(() => ZoomLevel);
+            }
+        }
+
+        public int ZoomIndex
+        {
+            get => _zoomIndex;
+            set
+            {
+                if (value == _zoomIndex) return;
+                _zoomIndex = value;
+                SelectedZoomLevel = ZoomLevels[value] / 100D;
+            }
+        }
+
+        public string ZoomLevel => $"Zoom: {ZoomLevels[ZoomIndex]}%";
+
+        public void MouseWheel(MouseWheelEventArgs args)
+        {
+            if (args.Delta > 0) // Zoom In
+                ZoomIndex += ZoomIndex == ZoomLevels.Count - 1 ? 0 : 1;
+            else // Zoom Out
+                ZoomIndex -= ZoomIndex == 0 ? 0 : 1;
+        }
 
         public override void TryClose(bool? dialogResult = null)
         {
@@ -294,38 +297,6 @@ namespace Kuriimu2.ViewModels
                 _windows.Remove(scr);
             }
             base.TryClose(dialogResult);
-        }
-    }
-
-    public sealed class BitmapEntry
-    {
-        public BitmapInfo BitmapInfo = null;
-
-        public string Name => BitmapInfo?.Name;
-
-        public BitmapImage ImageOne => BitmapInfo?.Image.ToBitmapImage(true);
-
-        public BitmapImage ImageTwo => BitmapInfo?.MipMaps.Skip(0).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageTwoVisible => BitmapInfo?.MipMaps.Count > 0 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapImage ImageThree => BitmapInfo?.MipMaps.Skip(1).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageThreeVisible => BitmapInfo?.MipMaps.Count > 1 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapImage ImageFour => BitmapInfo?.MipMaps.Skip(2).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageFourVisible => BitmapInfo?.MipMaps.Count > 2 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapImage ImageFive => BitmapInfo?.MipMaps.Skip(3).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageFiveVisible => BitmapInfo?.MipMaps.Count > 3 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapImage ImageSix => BitmapInfo?.MipMaps.Skip(4).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageSixVisible => BitmapInfo?.MipMaps.Count > 4 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapImage ImageSeven => BitmapInfo?.MipMaps.Skip(5).FirstOrDefault()?.ToBitmapImage(true);
-        public Visibility ImageSevenVisible => BitmapInfo?.MipMaps.Count > 5 ? Visibility.Visible : Visibility.Hidden;
-
-        public BitmapEntry(BitmapInfo bitmapInfo)
-        {
-            BitmapInfo = bitmapInfo;
         }
     }
 }

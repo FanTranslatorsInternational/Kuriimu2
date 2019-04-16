@@ -14,6 +14,7 @@ using Kore.SamplePlugins;
 using Kore.Utilities;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
+using Kuriimu2.ViewModels.ImageEditor;
 using Microsoft.Win32;
 
 namespace Kuriimu2.ViewModels
@@ -169,22 +170,6 @@ namespace Kuriimu2.ViewModels
 
             ActivateTab(kfi);
         }
-
-        //private async Task LoadFile(string filename, ILoadFiles adapter)
-        //{
-        //    KoreFileInfo kfi = null;
-
-        //    try
-        //    {
-        //        await Task.Run(() => { kfi = _kore.LoadFile(filename, adapter); });
-        //    }
-        //    catch (LoadFileException ex)
-        //    {
-        //        MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-
-        //    ActivateTab(kfi);
-        //}
 
         private void ActivateTab(KoreFileInfo kfi)
         {

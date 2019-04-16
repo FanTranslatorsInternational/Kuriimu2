@@ -23,29 +23,22 @@
             </Grid.RowDefinitions>
 
             <!-- Bitmap -->
-            <DockPanel Grid.Column="0">
-                <Grid DockPanel.Dock="Top">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
                     <ToolBarPanel Grid.Column="0">
                         <ToolBar ToolBarTray.IsLocked="True">
-                            <Label Content="Bitmap"></Label>
-                        </ToolBar>
-                    </ToolBarPanel>
-
-                    <ToolBarPanel Grid.Column="0">
-                        <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                            <TextBlock Text="Zoom: " VerticalAlignment="Center"></TextBlock>
-                            <ComboBox ItemsSource="{Binding ZoomLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" Margin="3 0"></TextBlock>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                            <Label Content="Image"></Label>
                         </ToolBar>
                     </ToolBarPanel>
                 </Grid>
 
-                <Border BorderThickness="1" BorderBrush="Gray">
+                <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray">
                     <DockPanel>
                         <DockPanel.Background>
                             <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
@@ -54,9 +47,9 @@
                                 </VisualBrush.Visual>
                             </VisualBrush>
                         </DockPanel.Background>
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" cal:Message.Attach="[Event PreviewMouseWheel] = [Action MouseWheel($eventArgs)]">
                             <Grid HorizontalAlignment="Center" VerticalAlignment="Center" UseLayoutRounding="True">
-                                <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="-1 -1 -1 -1">
+                                <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="0">
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
                                     </Border.Effect>
@@ -70,7 +63,25 @@
                         </ScrollViewer>
                     </DockPanel>
                 </Border>
-            </DockPanel>
+
+                <Grid Grid.Row="2">
+                    <ToolBarPanel>
+                        <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                            <TextBlock Text="{Binding ZoomLevel, UpdateSourceTrigger=PropertyChanged, FallbackValue=Zoom: 100%}" VerticalAlignment="Center"></TextBlock>
+                            <!--<ComboBox ItemsSource="{Binding ZoomLevels}" SelectedItem="{Binding SelectedZoomLevel}" MinWidth="30" Padding="0">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Margin="3 0"></TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>-->
+                        </ToolBar>
+                    </ToolBarPanel>
+                    <ToolBarPanel>
+                        
+                    </ToolBarPanel>
+                </Grid>
+            </Grid>
 
             <Label Grid.Column="1" Grid.Row="0" Width="4"></Label>
 
@@ -132,21 +143,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" cal:Message.Attach="[Event MouseDoubleClick] = [Action EditBitmap]">
-                                    <Grid Margin="2 4">
-                                        <Grid.Resources>
-                                            <Style TargetType="Grid">
-                                                <Style.Resources>
-                                                    <Style TargetType="Image">
-                                                        <Setter Property="HorizontalAlignment" Value="Center" />
-                                                        <Setter Property="VerticalAlignment" Value="Center" />
-                                                    </Style>
-                                                </Style.Resources>
-                                                <Setter Property="HorizontalAlignment" Value="Left" />
-                                                <Setter Property="VerticalAlignment" Value="Top" />
-                                                <Setter Property="Margin" Value="0 0 1 1" />
-                                            </Style>
-                                        </Grid.Resources>
-
+                                    <Grid Margin="0 2" Width="96" Height="64">
                                         <Grid.Background>
                                             <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
                                                 <VisualBrush.Visual>
@@ -155,42 +152,15 @@
                                             </VisualBrush>
                                         </Grid.Background>
 
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="65" />
-                                            <ColumnDefinition Width="17" />
-                                            <ColumnDefinition Width="5" />
-                                            <ColumnDefinition Width="11" />
+                                        <!--<Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="96" />
                                         </Grid.ColumnDefinitions>
 
                                         <Grid.RowDefinitions>
-                                            <RowDefinition Height="33" />
-                                            <RowDefinition Height="9" />
-                                            <RowDefinition Height="5" />
-                                            <RowDefinition Height="3" />
-                                            <RowDefinition Height="15" />
-                                        </Grid.RowDefinitions>
+                                            <RowDefinition Height="64" />
+                                        </Grid.RowDefinitions>-->
 
-                                        <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="1" Grid.RowSpan="5" Width="64" Height="64">
-                                            <Image Source="{Binding ImageOne}" MaxWidth="64" MaxHeight="64" />
-                                        </Grid>
-                                        <Grid Grid.Column="1" Grid.Row="0" Grid.ColumnSpan="3" Grid.RowSpan="1" Width="32" Height="32">
-                                            <Image Source="{Binding ImageTwo}" Visibility="{Binding ImageTwoVisible}" MaxWidth="32" MaxHeight="32" />
-                                        </Grid>
-                                        <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="1" Grid.RowSpan="4" Width="16" Height="16">
-                                            <Image Source="{Binding ImageThree}" Visibility="{Binding ImageThreeVisible}" MaxWidth="16" MaxHeight="16" />
-                                        </Grid>
-                                        <Grid Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Grid.RowSpan="1" Width="8" Height="8">
-                                            <Image Source="{Binding ImageFour}" Visibility="{Binding ImageFourVisible}" MaxWidth="8" MaxHeight="8" />
-                                        </Grid>
-                                        <Grid Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="1" Grid.RowSpan="2" Width="4" Height="4">
-                                            <Image Source="{Binding ImageFive}" Visibility="{Binding ImageFiveVisible}" MaxWidth="4" MaxHeight="4" />
-                                        </Grid>
-                                        <Grid Grid.Column="3" Grid.Row="2" Grid.ColumnSpan="2" Grid.RowSpan="1" Width="2" Height="2">
-                                            <Image Source="{Binding ImageSix}" Visibility="{Binding ImageSixVisible}" MaxWidth="2" MaxHeight="2" />
-                                        </Grid>
-                                        <Grid Grid.Column="3" Grid.Row="3" Grid.ColumnSpan="1" Grid.RowSpan="1" Width="1" Height="1">
-                                            <Image Source="{Binding ImageSeven}" Visibility="{Binding ImageSevenVisible}" MaxWidth="1" MaxHeight="1" />
-                                        </Grid>
+                                        <Image Source="{Binding Thumbnail}" MaxWidth="96" MaxHeight="64" RenderOptions.BitmapScalingMode="HighQuality" />
                                     </Grid>
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
                                 </StackPanel>
@@ -208,9 +178,12 @@
             </Grid>
 
             <!-- Status bar -->
-            <StatusBar Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1" >
+            <StatusBar Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1">
+                <StatusBar.Background>
+                    <SolidColorBrush Color="Transparent" />
+                </StatusBar.Background>
                 <StatusBarItem>
-                    <Label Height="16" Content="{Binding ProgressActionName}" Padding="0" />
+                    <Label Height="16" Content="{Binding ProgressActionName, FallbackValue=Status}" Padding="0" />
                 </StatusBarItem>
                 <StatusBarItem HorizontalContentAlignment="Stretch">
                     <ProgressBar Height="16" Visibility="{Binding ProgressActive}" Minimum="0" Maximum="1000" Value="{Binding ProgressValue}"></ProgressBar>
