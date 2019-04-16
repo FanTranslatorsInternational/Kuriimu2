@@ -58,7 +58,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
         public void Close()
         {
-            throw new NotImplementedException();
+            
         }
 
         #region Utilities
