@@ -1,5 +1,6 @@
 ﻿using Kanvas.Interface;
 using Kanvas.Models;
+using Kanvas.Quantization.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,12 @@ namespace Kanvas.Models
     {
         public IPaletteImageFormat PaletteFormat { get; }
 
-        public PaletteImageSettings(IImageFormat format, IPaletteImageFormat paletteFormat, int width, int height) : base(format, width, height)
+        public IColorQuantizer Quantizer { get; }
+
+        public PaletteImageSettings(IImageFormat format, IPaletteImageFormat paletteFormat, IColorQuantizer quantizer, int width, int height) : base(format, width, height)
         {
             PaletteFormat = paletteFormat;
+            Quantizer = quantizer;
         }
     }
 }

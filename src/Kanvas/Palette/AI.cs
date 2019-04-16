@@ -55,12 +55,10 @@ namespace Kanvas.Palette
             return Color.FromArgb(alphaIndexData.Alpha, color.R, color.G, color.B);
         }
 
-        public IndexData RetrieveIndex(Color color, IList<Color> palette)
+        // TODO: Rethink this method as it doesn't work for AI properly
+        public IndexData RetrieveIndexData(int index, Color color)
         {
-            var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B);
-            if (foundColor == Color.Empty)
-                throw new InvalidOperationException($"Color {color} was not found in palette.");
-            return new AlphaIndexData(color.A, palette.IndexOf(foundColor));
+            return new AlphaIndexData(color.A, index);
         }
 
         public byte[] SaveIndices(IEnumerable<IndexData> indeces)

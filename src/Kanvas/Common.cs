@@ -145,26 +145,21 @@ namespace Kanvas
         /// Converts a given Bitmap, modified by given settings, in binary data
         /// </summary>
         /// <param name="bmp">The bitmap, which will be converted.</param>
-        /// <param name="palette">The list containing all colors of the palette to use.</param>
         /// <param name="settings">The settings determining the final binary data output.</param>
         /// <returns><see cref="Tuple"/> containing 2 byte arrays</returns>
-        public static (byte[] indexData, byte[] paletteData) Save(Bitmap bmp, IList<Color> palette, PaletteImageSettings settings)
+        public static (byte[] indexData, byte[] paletteData) Save(Bitmap bmp, PaletteImageSettings settings)
         {
-            var indeces = new List<IndexData>();
             var points = GetPointSequence(settings);  // Swizzle
 
-            foreach (var point in points)
+            var (indexEnumerable, palette) = settings.Quantizer.Process(bmp);
+            var indeces = indexEnumerable.ToList();
+            var indexDatas = points.Select(point =>
             {
-                var x = Clamp(point.X, 0, bmp.Width);
-                var y = Clamp(point.Y, 0, bmp.Height);
+                var index = indeces[Clamp(point.X, 0, bmp.Width) + Clamp(point.Y, 0, bmp.Height) * bmp.Width];
+                return settings.PaletteFormat.RetrieveIndexData(index, palette[index]);
+            }).ToList();
 
-                var color = bmp.GetPixel(x, y);
-                var index = settings.PaletteFormat.RetrieveIndex(color, palette);
-
-                indeces.Add(index);
-            }
-
-            return (settings.PaletteFormat.SaveIndices(indeces), settings.Format.Save(palette));
+            return (settings.PaletteFormat.SaveIndices(indexDatas), settings.Format.Save(palette));
         }
     }
 }

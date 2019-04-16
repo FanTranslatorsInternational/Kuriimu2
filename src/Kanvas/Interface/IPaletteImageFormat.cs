@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Kanvas.Models;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Kanvas.Models;
 
 namespace Kanvas.Interface
 {
@@ -24,7 +24,7 @@ namespace Kanvas.Interface
 
         Color RetrieveColor(IndexData indexData, IList<Color> palette);
 
-        IndexData RetrieveIndex(Color color, IList<Color> palette);
+        IndexData RetrieveIndexData(int index, Color color);
 
         byte[] SaveIndices(IEnumerable<IndexData> indeces);
     }

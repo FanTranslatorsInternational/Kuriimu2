@@ -46,12 +46,10 @@ namespace Kanvas.Palette
             return palette[indexData.Index];
         }
 
-        public IndexData RetrieveIndex(Color color, IList<Color> palette)
+        // TODO: Rethink this method, as it wouldn't work for AI properly
+        public IndexData RetrieveIndexData(int index, Color color)
         {
-            var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B && c.A == color.A);
-            if (foundColor == Color.Empty)
-                throw new InvalidOperationException($"Color {color} was not found in palette.");
-            return new IndexData(palette.IndexOf(foundColor));
+            return new IndexData(index);
         }
 
         public byte[] SaveIndices(IEnumerable<IndexData> indeces)

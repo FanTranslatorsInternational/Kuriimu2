@@ -39,8 +39,7 @@ namespace Kanvas.Quantization.Quantizers
             _colorCount = colorCount;
             _colorCache = colorCache;
         }
-
-        // TODO: Implement process of distinct color quantizer
+        
         /// <inheritdoc cref="IColorQuantizer.Process"/>
         public (IEnumerable<int> indeces, IList<Color> palette) Process(Bitmap image)
         {
@@ -131,6 +130,7 @@ namespace Kanvas.Quantization.Quantizers
             return comparers.Count > 0 && maximalCount > colorCount;
         }
 
+        // TODO: Getting indeces can be parallelized
         private IEnumerable<int> GetIndeces(Bitmap image)
         {
             for (int y = 0; y < image.Height; y++)
