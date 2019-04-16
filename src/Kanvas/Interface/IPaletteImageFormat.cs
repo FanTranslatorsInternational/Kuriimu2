@@ -24,7 +24,7 @@ namespace Kanvas.Interface
 
         Color RetrieveColor(IndexData indexData, IList<Color> palette);
 
-        IndexData RetrieveIndexData(int index, Color color);
+        IndexData RetrieveIndex(Color color, IList<Color> palette);
 
         byte[] SaveIndices(IEnumerable<IndexData> indeces);
     }
