@@ -84,6 +84,14 @@
     <Compile Include="Format\Support\Support.cs" />
     <Compile Include="Models\IndexData.cs" />
     <Compile Include="Models\PaletteImageSettings.cs" />
+    <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
+    <Compile Include="Quantization\Helper\ColorModelHelper.cs" />
+    <Compile Include="Quantization\Interfaces\IColorCache.cs" />
+    <Compile Include="Quantization\Interfaces\IColorQuantizer.cs" />
+    <Compile Include="Quantization\Models\ColorModel.cs" />
+    <Compile Include="Quantization\Models\ColorModelComponents.cs" />
+    <Compile Include="Quantization\Models\DistinctColorInfo.cs" />
+    <Compile Include="Quantization\Quantizers\DistinctSelectionQuantizer.cs" />
     <Compile Include="Swizzle\BC.cs" />
     <Compile Include="Swizzle\CTR.cs" />
     <Compile Include="Swizzle\Linear.cs" />
@@ -101,10 +109,7 @@
       <Name>Komponent</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Quantization\Interfaces\" />
-    <Folder Include="Quantization\Models\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="Libraries\astcenc.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
