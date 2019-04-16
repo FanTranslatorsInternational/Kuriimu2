@@ -8,7 +8,7 @@ namespace plugin_yuusha_shisu.MSG
 {
     [Export(typeof(MsgAdapter))]
     [Export(typeof(IPlugin))]
-    [PluginInfo("plugin_yuusha_shisu_MSG", "Death of a Hero", "MSG", "StorMyu")]
+    [PluginInfo("plugin_yuusha_shisu_msg", "Death of a Hero", "MSG", "StorMyu")]
     [PluginExtensionInfo("*.bin")]
     public sealed class MsgAdapter : ITextAdapter, ILoadFiles, ISaveFiles
     {

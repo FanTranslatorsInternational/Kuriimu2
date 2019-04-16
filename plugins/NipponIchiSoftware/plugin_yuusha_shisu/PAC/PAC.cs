@@ -5,12 +5,22 @@ using System.IO;
 
 namespace plugin_yuusha_shisu.PAC
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class PAC
     {
         private const int _entryAlignment = 0x20;
         private const int _fileAlignment = 0x80;
 
+        /// <summary>
+        /// 
+        /// </summary>
         private FileHeader _header;
+
+        /// <summary>
+        /// 
+        /// </summary>
         private List<FileEntry> _entries;
 
         /// <summary>
@@ -28,11 +38,11 @@ namespace plugin_yuusha_shisu.PAC
             {
                 // Header
                 _header = br.ReadType<FileHeader>();
-                
+
                 // Offsets
                 var offsets = br.ReadMultiple<int>(_header.FileCount);
                 br.SeekAlignment(_entryAlignment);
-                
+
                 // Entries
                 _entries = br.ReadMultiple<FileEntry>(_header.FileCount);
 
@@ -76,7 +86,7 @@ namespace plugin_yuusha_shisu.PAC
 
                 // Files
                 var offsets = new List<int>();
-                foreach(var afi in Files)
+                foreach (var afi in Files)
                 {
                     offsets.Add((int)bw.BaseStream.Position);
                     bw.Write((int)afi.FileSize);
