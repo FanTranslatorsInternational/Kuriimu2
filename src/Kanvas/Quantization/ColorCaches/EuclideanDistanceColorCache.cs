@@ -14,7 +14,8 @@ namespace Kanvas.Quantization.ColorCaches
     public class EuclideanDistanceColorCache : IColorCache
     {
         private ColorModel _model;
-        private IList<Color> _cache;
+
+        public IList<Color> Palette { get; private set; }
 
         /// <summary>
         /// Creates a color cache with euclidean distance comparison.
@@ -37,20 +38,20 @@ namespace Kanvas.Quantization.ColorCaches
         /// <inheritdoc cref="IColorCache.CachePalette"/>
         public void CachePalette(IList<Color> palette)
         {
-            _cache = palette;
+            Palette = palette;
         }
 
         /// <inheritdoc cref="IColorCache.GetPaletteIndex"/>
         public int GetPaletteIndex(Color color)
         {
-            if(_cache==null) throw new ArgumentNullException(nameof(_cache));
-            if (!_cache.Any()) throw new InvalidOperationException("Cache is empty.");
+            if (Palette == null) throw new ArgumentNullException(nameof(Palette));
+            if (!Palette.Any()) throw new InvalidOperationException("Cache is empty.");
 
             long leastDistance = long.MaxValue;
             int result = 0;
-            for (int i = 0; i < _cache.Count; i++)
+            for (int i = 0; i < Palette.Count; i++)
             {
-                var distance = ColorModelHelper.GetEuclideanDistance(_model, color, _cache[i]);
+                var distance = ColorModelHelper.GetEuclideanDistance(_model, color, Palette[i]);
                 if (distance == 0)
                     return i;
 

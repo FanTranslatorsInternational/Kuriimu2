@@ -56,6 +56,7 @@
     <Compile Include="Format\Support\ASTC\Wrapper\Wrapper.cs" />
     <Compile Include="Format\Support\ETC1.cs" />
     <Compile Include="Format\Support\PVRTC.cs" />
+    <Compile Include="Interface\IIndexImageFormat.cs" />
     <Compile Include="Interface\IPaletteImageFormat.cs" />
     <Compile Include="Models\ImageSettings.cs" />
     <Compile Include="MoreLinq\MoreEnumerable.MaxBy.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Interface\IImageFormat.cs" />
     <Compile Include="Interface\IImageSwizzle.cs" />
     <Compile Include="Palette\Index.cs" />
+    <Compile Include="Palette\Index2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Format\Support\ATC.cs" />
     <Compile Include="Format\Support\ATI.cs" />
@@ -87,6 +89,7 @@
     <Compile Include="Models\PaletteImageSettings.cs" />
     <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
     <Compile Include="Quantization\Helper\ColorModelHelper.cs" />
+    <Compile Include="Quantization\Helper\FastRandom.cs" />
     <Compile Include="Quantization\Interfaces\IColorCache.cs" />
     <Compile Include="Quantization\Interfaces\IColorQuantizer.cs" />
     <Compile Include="Quantization\Models\ColorModel.cs" />

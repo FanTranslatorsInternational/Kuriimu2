@@ -12,6 +12,8 @@ namespace Kanvas.Quantization.Interfaces
     /// </summary>
     public interface IColorCache
     {
+        IList<Color> Palette { get; }
+
         /// <summary>
         /// Caches a list of colors.
         /// </summary>

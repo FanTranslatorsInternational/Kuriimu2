@@ -1,4 +1,5 @@
 ﻿using Kanvas.Quantization.ColorCaches;
+using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Interfaces;
 using Kanvas.Quantization.Models;
 using MoreLinq;
@@ -42,22 +43,43 @@ namespace Kanvas.Quantization.Quantizers
         }
 
         /// <inheritdoc cref="IColorQuantizer.Process"/>
+        public (IEnumerable<int> indeces, IList<Color> palette) Process(IEnumerable<Color> colors)
+        {
+            // Step 1: Get all distinct colors from the image
+            FillDistinctColors(colors);
+
+            // Step 2: Create palette
+            CreateAndCachePalette();
+
+            // Step 3: Loop through original colors and get nearest match from cache
+            var indeces = GetIndeces(colors);
+
+            return (indeces, _colorCache.Palette);
+        }
+
+        /// <inheritdoc cref="IColorQuantizer.Process"/>
         public (IEnumerable<int> indeces, IList<Color> palette) Process(Bitmap image)
         {
             // Step 1: Get all distinct colors from the image
             FillDistinctColors(image);
 
-            // Step 2: Filter colors by hue, saturation and brightness
-            // Step 2.1: If color count not reached, take top(n) colors
-            var palette = FilterColorInfos();
+            // Step 2: Create palette
+            CreateAndCachePalette();
 
-            // Step 3: Cache filtered colors
-            _colorCache.CachePalette(palette);
-
-            // Step 4: Loop through original colors and get nearest match from cache
+            // Step 3: Loop through original colors and get nearest match from cache
             var indeces = GetIndeces(image);
 
-            return (indeces, palette);
+            return (indeces, _colorCache.Palette);
+        }
+
+        private void CreateAndCachePalette()
+        {
+            // Step 1: Filter colors by hue, saturation and brightness
+            // Step 1.1: If color count not reached, take top(n) colors
+            var palette = FilterColorInfos();
+
+            // Step 2: Cache filtered colors
+            _colorCache.CachePalette(palette);
         }
 
         private void FillDistinctColors(Bitmap image)
@@ -73,6 +95,15 @@ namespace Kanvas.Quantization.Quantizers
                 }
         }
 
+        private void FillDistinctColors(IEnumerable<Color> colors)
+        {
+            _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
+
+            foreach (var color in colors)
+                _distinctColors.AddOrUpdate(color.ToArgb(), key => new DistinctColorInfo(color),
+                    (key, info) => info.IncreaseCount());
+        }
+
         private List<Color> FilterColorInfos()
         {
             var colorInfoList = _distinctColors.Values.ToList();
@@ -82,7 +113,7 @@ namespace Kanvas.Quantization.Quantizers
             if (foundColorCount < maxColorCount)
                 return colorInfoList.Select(info => Color.FromArgb(info.Color)).ToList();
 
-            var random = new Random(13);
+            var random = new FastRandom(13);
             colorInfoList = colorInfoList.OrderBy(info => random.Next(foundColorCount)).ToList();
 
             DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
@@ -103,7 +134,7 @@ namespace Kanvas.Quantization.Quantizers
                 int allowedTake = Math.Min(maxColorCount, listColorCount);
                 colorInfoList = colorInfoList.Take(allowedTake).ToList();
             }
-            
+
             var palette = new List<Color>
             {
                 Color.FromArgb(background.Color)
@@ -148,6 +179,13 @@ namespace Kanvas.Quantization.Quantizers
                 {
                     yield return _colorCache.GetPaletteIndex(image.GetPixel(x, y));
                 }
+        }
+
+        // TODO: Getting indeces can be parallelized
+        private IEnumerable<int> GetIndeces(IEnumerable<Color> colors)
+        {
+            foreach (var color in colors)
+                yield return _colorCache.GetPaletteIndex(color);
         }
 
         #region Equality Comparers
