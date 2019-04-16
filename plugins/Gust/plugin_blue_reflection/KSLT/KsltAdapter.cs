@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kanvas;
+using Kanvas.Models;
 using Komponent.IO;
 using Kontract;
 using Kontract.Attributes;
@@ -66,12 +67,7 @@ namespace plugin_blue_reflection.KSLT
                 Thread.Sleep(100);
 
                 var kbi = bitmapInfo as KsltBitmapInfo;
-                var settings = new ImageSettings
-                {
-                    Width = kbi.Image.Width,
-                    Height = kbi.Image.Height,
-                    Format = ImageFormats.Formats[formatInfo.FormatIndex]
-                };
+                var settings = new ImageSettings(ImageFormats.Formats[formatInfo.FormatIndex], kbi.Image.Width, kbi.Image.Height);
                 kbi.ImageData = Common.Save(kbi.Image, settings);
                 progress.Report(new ProgressReport { Percentage = 50, Message = "Encoding complete." });
 

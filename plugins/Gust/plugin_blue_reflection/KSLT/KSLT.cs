@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Kanvas;
+using Kanvas.Models;
 using Komponent.IO;
 using Kontract.Interfaces.Image;
 
@@ -24,7 +25,7 @@ namespace plugin_blue_reflection.KSLT
         /// <summary>
         /// 
         /// </summary>
-        public List<BitmapInfo> Bitmaps = new List<BitmapInfo>();        
+        public List<BitmapInfo> Bitmaps = new List<BitmapInfo>();
 
         /// <summary>
         /// 
@@ -37,7 +38,7 @@ namespace plugin_blue_reflection.KSLT
                 _header = br.ReadType<FileHeader>();
                 br.BaseStream.Position = 0x40;
                 _padding = br.ReadMultiple<UnkPadding>(_header.FileCount);
-                var offsets = br.ReadMultiple<OffsetEntry>(_header. FileCount);
+                var offsets = br.ReadMultiple<OffsetEntry>(_header.FileCount);
                 var fileNames = new List<string>();
                 for (int i = 0; i < _header.FileCount; i++)
                     fileNames.Add(br.ReadCStringASCII());
@@ -47,13 +48,9 @@ namespace plugin_blue_reflection.KSLT
                     br.BaseStream.Position = o.Offset;
                     var imgHeader = br.ReadType<ImageHeader>();
                     var texture = br.ReadBytes(imgHeader.DataSize);
-                    var settings = new ImageSettings
+                    var settings = new ImageSettings(ImageFormats.Formats[0x0], imgHeader.Width, imgHeader.Height);
+                    Bitmaps.Add(new KsltBitmapInfo(Common.Load(texture, settings), new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName))
                     {
-                        Width = imgHeader.Width,
-                        Height = imgHeader.Height,
-                        Format = ImageFormats.Formats[0x0]
-                    };
-                    Bitmaps.Add(new KsltBitmapInfo(Common.Load(texture, settings), new FormatInfo(0x0, ImageFormats.Formats[0x0].FormatName)) {
                         Name = fileNames[offsets.IndexOf(o)],
                         Header = imgHeader,
                         ImageData = texture
@@ -87,7 +84,7 @@ namespace plugin_blue_reflection.KSLT
                     kbi.Header.Height = (short)kbi.Image.Height;
                     kbi.Header.DataSize = kbi.ImageData.Length;
                     bw.WriteType(kbi.Header);
-                    bw.Write(kbi.ImageData);                    
+                    bw.Write(kbi.ImageData);
                 }
                 bw.BaseStream.Position = offsetTablePos;
                 bw.WriteMultiple(newOffsets);
