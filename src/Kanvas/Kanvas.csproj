@@ -58,6 +58,7 @@
     <Compile Include="Format\Support\PVRTC.cs" />
     <Compile Include="Interface\IPaletteImageFormat.cs" />
     <Compile Include="Models\ImageSettings.cs" />
+    <Compile Include="MoreLinq\MoreEnumerable.MaxBy.cs" />
     <Compile Include="Palette\AI.cs" />
     <Compile Include="Format\ATC.cs" />
     <Compile Include="Format\ATI.cs" />
@@ -102,6 +103,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Kanvas.nuspec" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Komponent\Komponent.csproj">

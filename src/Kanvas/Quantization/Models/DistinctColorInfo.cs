@@ -11,21 +11,21 @@ namespace Kanvas.Quantization.Models
     {
         public int Count { get; private set; }
 
-        public Color Color { get; }
+        public int Color { get; }
 
-        public float Hue { get; }
+        public int Hue { get; }
 
-        public float Saturation { get; }
+        public int Saturation { get; }
 
-        public float Brightness { get; }
+        public int Brightness { get; }
 
         public DistinctColorInfo(Color color)
         {
-            Color = color;
+            Color = color.ToArgb();
 
-            Hue = color.GetHue();
-            Saturation = color.GetSaturation();
-            Brightness = color.GetBrightness();
+            Hue = Convert.ToInt32(color.GetHue() * 5000000);
+            Saturation = Convert.ToInt32(color.GetSaturation() * 5000000);
+            Brightness = Convert.ToInt32(color.GetBrightness() * 5000000);
 
             Count = 1;
         }

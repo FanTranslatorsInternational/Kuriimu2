@@ -1,6 +1,7 @@
 ﻿using Kanvas.Quantization.ColorCaches;
 using Kanvas.Quantization.Interfaces;
 using Kanvas.Quantization.Models;
+using MoreLinq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace Kanvas.Quantization.Quantizers
             _colorCount = colorCount;
             _colorCache = colorCache;
         }
-        
+
         /// <inheritdoc cref="IColorQuantizer.Process"/>
         public (IEnumerable<int> indeces, IList<Color> palette) Process(Bitmap image)
         {
@@ -79,14 +80,14 @@ namespace Kanvas.Quantization.Quantizers
             var maxColorCount = _colorCount;
 
             if (foundColorCount < maxColorCount)
-                return colorInfoList.Select(info => info.Color).ToList();
+                return colorInfoList.Select(info => Color.FromArgb(info.Color)).ToList();
 
             var random = new Random(13);
             colorInfoList = colorInfoList.OrderBy(info => random.Next(foundColorCount)).ToList();
 
-            //DistinctColorInfo background = colorInfoList.Max(info => info.Count);
-            //colorInfoList.Remove(background);
-            //maxColorCount--;
+            DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
+            colorInfoList.Remove(background);
+            maxColorCount--;
 
             // Filter by hue, saturation and brightness
             var comparers = new List<IEqualityComparer<DistinctColorInfo>> { new ColorHueComparer(), new ColorSaturationComparer(), new ColorBrightnessComparer() };
@@ -95,11 +96,20 @@ namespace Kanvas.Quantization.Quantizers
             {
             }
 
-            // If color count still too high, just take enough
-            if (colorInfoList.Count > maxColorCount)
-                colorInfoList = colorInfoList.Take(maxColorCount).ToList();
+            int listColorCount = colorInfoList.Count;
 
-            return colorInfoList.Select(info => info.Color).ToList();
+            if (listColorCount > 0)
+            {
+                int allowedTake = Math.Min(maxColorCount, listColorCount);
+                colorInfoList = colorInfoList.Take(allowedTake).ToList();
+            }
+            
+            var palette = new List<Color>
+            {
+                Color.FromArgb(background.Color)
+            };
+            palette.AddRange(colorInfoList.Select(colorInfo => Color.FromArgb(colorInfo.Color)));
+            return palette;
         }
 
         private static bool ProcessList(int colorCount, List<DistinctColorInfo> list, ICollection<IEqualityComparer<DistinctColorInfo>> comparers, out List<DistinctColorInfo> outputList)
