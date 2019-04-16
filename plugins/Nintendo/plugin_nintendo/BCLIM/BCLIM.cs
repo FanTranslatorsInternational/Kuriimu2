@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 using Kanvas;
+using Kanvas.Models;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using plugin_nintendo.NW4C;
@@ -25,11 +26,8 @@ namespace plugin_nintendo.BCLIM
                 br.ByteOrder = FileHeader.ByteOrder;
                 TextureHeader = br.ReadType<BclimHeader>();
 
-                Settings = new ImageSettings
+                Settings = new ImageSettings(ImageFormats.CTRFormats[TextureHeader.Format], TextureHeader.Width, TextureHeader.Height)
                 {
-                    Width = TextureHeader.Width,
-                    Height = TextureHeader.Height,
-                    Format = ImageFormats.CTRFormats[TextureHeader.Format],
                     Swizzle = new CTRSwizzle(TextureHeader.Width, TextureHeader.Height, TextureHeader.SwizzleTileMode)
                 };
 

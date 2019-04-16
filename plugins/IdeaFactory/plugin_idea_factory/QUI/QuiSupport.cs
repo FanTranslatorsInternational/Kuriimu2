@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using Kontract.Attributes;
 using Kontract.Interfaces.Text;
 

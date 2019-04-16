@@ -31,14 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kanvas, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kanvas.2.0.4\lib\net472\Kanvas.dll</HintPath>
+    <Reference Include="Kanvas, Version=2.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Kanvas.2.0.5\lib\net472\Kanvas.dll</HintPath>
     </Reference>
-    <Reference Include="Komponent, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Komponent.2.0.4\lib\net472\Komponent.dll</HintPath>
+    <Reference Include="Komponent, Version=2.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Komponent.2.0.5\lib\net472\Komponent.dll</HintPath>
     </Reference>
-    <Reference Include="Kontract, Version=2.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kontract.2.0.4\lib\net472\Kontract.dll</HintPath>
+    <Reference Include="Kontract, Version=2.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Kuriimu2.Kontract.2.0.5\lib\net472\Kontract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -62,7 +62,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(SolutionDir)..\..\dist\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1
