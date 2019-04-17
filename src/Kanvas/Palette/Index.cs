@@ -50,8 +50,7 @@ namespace Kanvas.Palette
         {
             return palette[indexData.Index];
         }
-
-        // TODO: Rethink this method, as it wouldn't work for AI properly
+        
         public IndexData RetrieveIndex(Color color, IList<Color> palette)
         {
             var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B && c.A == color.A);

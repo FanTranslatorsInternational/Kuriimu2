@@ -64,5 +64,11 @@ namespace Kanvas.Quantization.ColorCaches
 
             return result;
         }
+
+        /// <inheritdoc cref="IColorCache.Reset"/>
+        public void Reset()
+        {
+            Palette.Clear();
+        }
     }
 }

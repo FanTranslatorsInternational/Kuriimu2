@@ -43,7 +43,7 @@ namespace Kanvas.Quantization.Quantizers
         }
 
         /// <inheritdoc cref="IColorQuantizer.Process"/>
-        public (IEnumerable<int> indeces, IList<Color> palette) Process(IEnumerable<Color> colors)
+        public IEnumerable<int> Process(IEnumerable<Color> colors)
         {
             // Step 1: Get all distinct colors from the image
             FillDistinctColors(colors);
@@ -54,11 +54,31 @@ namespace Kanvas.Quantization.Quantizers
             // Step 3: Loop through original colors and get nearest match from cache
             var indeces = GetIndeces(colors);
 
-            return (indeces, _colorCache.Palette);
+            return indeces;
+        }
+
+        /// <inheritdoc cref="IColorQuantizer.GetPaletteIndex"/>
+        public int GetPaletteIndex(Color color, int x, int y)
+        {
+            // TODO: Implement GetPaletteIndex
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc cref="IColorQuantizer.GetPalette"/>
+        public IList<Color> GetPalette()
+        {
+            return _colorCache.Palette;
+        }
+
+        /// <inheritdoc cref="IColorQuantizer.Reset"/>
+        public void Reset()
+        {
+            _distinctColors.Clear();
+            _colorCache.Reset();
         }
 
         /// <inheritdoc cref="IColorQuantizer.Process"/>
-        public (IEnumerable<int> indeces, IList<Color> palette) Process(Bitmap image)
+        public IEnumerable<int> Process(Bitmap image)
         {
             // Step 1: Get all distinct colors from the image
             FillDistinctColors(image);
@@ -69,7 +89,7 @@ namespace Kanvas.Quantization.Quantizers
             // Step 3: Loop through original colors and get nearest match from cache
             var indeces = GetIndeces(image);
 
-            return (indeces, _colorCache.Palette);
+            return indeces;
         }
 
         private void CreateAndCachePalette()
