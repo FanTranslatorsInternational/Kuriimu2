@@ -88,6 +88,7 @@
     <Compile Include="Models\IndexData.cs" />
     <Compile Include="Models\PaletteImageSettings.cs" />
     <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
+    <Compile Include="Quantization\Common.cs" />
     <Compile Include="Quantization\Ditherers\Bayer4Ditherer.cs" />
     <Compile Include="Quantization\Helper\ColorModelHelper.cs" />
     <Compile Include="Quantization\Helper\FastRandom.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="Quantization\Models\ColorModel.cs" />
     <Compile Include="Quantization\Models\ColorModelComponents.cs" />
     <Compile Include="Quantization\Models\DistinctColorInfo.cs" />
+    <Compile Include="Quantization\Models\TaskModel.cs" />
     <Compile Include="Quantization\Quantizers\DistinctSelectionQuantizer.cs" />
     <Compile Include="Swizzle\BC.cs" />
     <Compile Include="Swizzle\CTR.cs" />

@@ -31,9 +31,9 @@ namespace Kanvas.Quantization.Helper
                     {
                         ComponentD = color.A - targetColor.A
                     };
-                default:
-                    throw new InvalidOperationException($"ColorModel {model} is not supported.");
             }
+
+            return null;
         }
     }
 }

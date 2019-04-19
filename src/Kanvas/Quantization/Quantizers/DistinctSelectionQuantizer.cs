@@ -6,6 +6,7 @@ using MoreLinq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -17,32 +18,40 @@ namespace Kanvas.Quantization.Quantizers
     /// <inheritdoc cref="IColorQuantizer"/>
     public class DistinctSelectionQuantizer : IColorQuantizer
     {
-        private readonly int _colorCount;
-        private readonly IColorCache _colorCache;
+        private int _colorCount;
+        private IColorCache _colorCache;
+        private int _taskCount = 8;
         private ConcurrentDictionary<int, DistinctColorInfo> _distinctColors;
 
-        /// <summary>
-        /// Creates a new instance of <see cref="DistinctSelectionQuantizer"/>
-        /// </summary>
-        /// <param name="colorCount">The maximum count of colors in the final palette.</param>
-        public DistinctSelectionQuantizer(int colorCount)
-        {
-            _colorCount = colorCount;
-            _colorCache = new EuclideanDistanceColorCache(ColorModel.RGB);
-        }
+        #region IColorQuantizer
 
-        /// <summary>
-        /// Creates a new instance of <see cref="DistinctSelectionQuantizer"/>
-        /// </summary>
-        /// <param name="colorCount">The maximum count of colors in the final palette.</param>
-        /// <param name="colorCache">The cache implementation to use.</param>
-        public DistinctSelectionQuantizer(int colorCount, IColorCache colorCache)
+        /// <inheritdoc cref="IColorQuantizer.UsesColorCache"/>
+        public bool UsesColorCache => true;
+
+        /// <inheritdoc cref="IColorQuantizer.UsesVariableColorCount"/>
+        public bool UsesVariableColorCount => true;
+
+        /// <inheritdoc cref="IColorQuantizer.AllowParallel"/>
+        public bool AllowParallel => true;
+
+        /// <inheritdoc cref="IColorQuantizer.SetColorCache(IColorCache)"/>
+        public void SetColorCache(IColorCache colorCache)
         {
-            _colorCount = colorCount;
             _colorCache = colorCache;
         }
 
-        /// <inheritdoc cref="IColorQuantizer.Process"/>
+        /// <inheritdoc cref="IColorQuantizer.SetColorCount(int)"/>
+        public void SetColorCount(int colorCount)
+        {
+            _colorCount = colorCount;
+        }
+
+        /// <inheritdoc cref="IColorQuantizer.SetParallelTasks(int)"/>
+        public void SetParallelTasks(int taskCount)
+        {
+            _taskCount = taskCount;
+        }
+
         public IEnumerable<int> Process(IEnumerable<Color> colors)
         {
             // Step 1: Get all distinct colors from the image
@@ -57,39 +66,25 @@ namespace Kanvas.Quantization.Quantizers
             return indeces;
         }
 
-        /// <inheritdoc cref="IColorQuantizer.GetPaletteIndex"/>
-        public int GetPaletteIndex(Color color, int x, int y)
+        public int GetPaletteIndex(Color color)
         {
-            // TODO: Implement GetPaletteIndex
-            throw new NotImplementedException();
+            return _colorCache.GetPaletteIndex(color);
         }
 
-        /// <inheritdoc cref="IColorQuantizer.GetPalette"/>
         public IList<Color> GetPalette()
         {
             return _colorCache.Palette;
         }
 
-        /// <inheritdoc cref="IColorQuantizer.Reset"/>
-        public void Reset()
+        #endregion
+
+        private void FillDistinctColors(IEnumerable<Color> colors)
         {
-            _distinctColors.Clear();
-            _colorCache.Reset();
-        }
+            _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
 
-        /// <inheritdoc cref="IColorQuantizer.Process"/>
-        public IEnumerable<int> Process(Bitmap image)
-        {
-            // Step 1: Get all distinct colors from the image
-            FillDistinctColors(image);
-
-            // Step 2: Create palette
-            CreateAndCachePalette();
-
-            // Step 3: Loop through original colors and get nearest match from cache
-            var indeces = GetIndeces(image);
-
-            return indeces;
+            foreach (var c in colors)
+                _distinctColors.AddOrUpdate(c.ToArgb(), key => new DistinctColorInfo(c),
+                    (key, info) => info.IncreaseCount());
         }
 
         private void CreateAndCachePalette()
@@ -100,28 +95,6 @@ namespace Kanvas.Quantization.Quantizers
 
             // Step 2: Cache filtered colors
             _colorCache.CachePalette(palette);
-        }
-
-        private void FillDistinctColors(Bitmap image)
-        {
-            _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
-
-            for (int y = 0; y < image.Height; y++)
-                for (int x = 0; x < image.Width; x++)
-                {
-                    var color = image.GetPixel(x, y);
-                    _distinctColors.AddOrUpdate(color.ToArgb(), key => new DistinctColorInfo(color),
-                        (key, info) => info.IncreaseCount());
-                }
-        }
-
-        private void FillDistinctColors(IEnumerable<Color> colors)
-        {
-            _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
-
-            foreach (var color in colors)
-                _distinctColors.AddOrUpdate(color.ToArgb(), key => new DistinctColorInfo(color),
-                    (key, info) => info.IncreaseCount());
         }
 
         private List<Color> FilterColorInfos()
@@ -191,21 +164,27 @@ namespace Kanvas.Quantization.Quantizers
             return comparers.Count > 0 && maximalCount > colorCount;
         }
 
-        // TODO: Getting indeces can be parallelized
-        private IEnumerable<int> GetIndeces(Bitmap image)
-        {
-            for (int y = 0; y < image.Height; y++)
-                for (int x = 0; x < image.Width; x++)
-                {
-                    yield return _colorCache.GetPaletteIndex(image.GetPixel(x, y));
-                }
-        }
-
-        // TODO: Getting indeces can be parallelized
         private IEnumerable<int> GetIndeces(IEnumerable<Color> colors)
         {
-            foreach (var color in colors)
-                yield return _colorCache.GetPaletteIndex(color);
+            var colorList = colors.ToArray();
+            var indices = new int[colorList.Length];
+
+            var elementCount = colorList.Length / _taskCount;
+            var overflow = colorList.Length - elementCount * _taskCount;
+
+            var tasks = new TaskModel[_taskCount];
+            for (int i = 0; i < _taskCount; i++)
+                tasks[i] = new TaskModel(colorList, indices, i * elementCount, elementCount + (i == _taskCount - 1 ? overflow : 0));
+
+            Parallel.ForEach(tasks, RunTask);
+
+            return indices;
+        }
+
+        private void RunTask(TaskModel taskModel)
+        {
+            for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
+                taskModel.Indices[i] = _colorCache.GetPaletteIndex(taskModel.Colors[i]);
         }
 
         #region Equality Comparers

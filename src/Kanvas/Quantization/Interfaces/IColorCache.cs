@@ -12,6 +12,9 @@ namespace Kanvas.Quantization.Interfaces
     /// </summary>
     public interface IColorCache
     {
+        /// <summary>
+        /// The cached palette.
+        /// </summary>
         IList<Color> Palette { get; }
 
         /// <summary>
@@ -26,10 +29,5 @@ namespace Kanvas.Quantization.Interfaces
         /// <param name="color">The color to compare with.</param>
         /// <returns>Index of nearest color in the cache.</returns>
         int GetPaletteIndex(Color color);
-
-        /// <summary>
-        /// Resets this instance to a new state.
-        /// </summary>
-        void Reset();
     }
 }

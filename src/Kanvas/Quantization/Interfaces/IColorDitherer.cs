@@ -7,8 +7,22 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Quantization.Interfaces
 {
+    /// <summary>
+    /// Describes methods to quantize and dither a collection of colors.
+    /// </summary>
     public interface IColorDitherer
     {
-        (IEnumerable<int> indeces, IList<Color> palette) Process(Bitmap image);
+        /// <summary>
+        /// Prepares the ditherer with a quantizer.
+        /// </summary>
+        /// <param name="quantizer">The quantizer.</param>
+        void Prepare(IColorQuantizer quantizer);
+
+        /// <summary>
+        /// Quantizes and dithers a collection of colors.
+        /// </summary>
+        /// <param name="colors">The collection to quantize and dither.</param>
+        /// <returns></returns>
+        IEnumerable<int> Process(IEnumerable<Color> colors);
     }
 }

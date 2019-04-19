@@ -8,15 +8,42 @@ using System.Threading.Tasks;
 namespace Kanvas.Quantization.Interfaces
 {
     /// <summary>
-    /// Describes methods to quantize an image.
+    /// Describes methods to quantize a collection of colors.
     /// </summary>
     public interface IColorQuantizer
     {
         /// <summary>
-        /// Quantizes an images.
+        /// Determines if a color cache is used.
         /// </summary>
-        /// <param name="image">The image to quantize.</param>
-        IEnumerable<int> Process(Bitmap image);
+        bool UsesColorCache { get; }
+
+        /// <summary>
+        /// Determines if the color count can be changed.
+        /// </summary>
+        bool UsesVariableColorCount { get; }
+
+        /// <summary>
+        /// Determines if the quantizer allows parallel processing
+        /// </summary>
+        bool AllowParallel { get; }
+
+        /// <summary>
+        /// Sets the color cache.
+        /// </summary>
+        /// <param name="colorCache">Color cache to set.</param>
+        void SetColorCache(IColorCache colorCache);
+
+        /// <summary>
+        /// Sets the color count for the palette.
+        /// </summary>
+        /// <param name="colorCount">Color count to set.</param>
+        void SetColorCount(int colorCount);
+
+        /// <summary>
+        /// Sets the count of tasks the quantizer uses for parallel processing.
+        /// </summary>
+        /// <param name="taskCount">Count of tasks.</param>
+        void SetParallelTasks(int taskCount);
 
         /// <summary>
         /// Quantizes a collection of colors.
@@ -25,23 +52,16 @@ namespace Kanvas.Quantization.Interfaces
         IEnumerable<int> Process(IEnumerable<Color> colors);
 
         /// <summary>
-        /// Gets the index of the given color in the quantizer
+        /// Gets the index of the given color in the quantizer.
         /// </summary>
-        /// <param name="color"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
+        /// <param name="color">Color to find in the quantizer.</param>
         /// <returns></returns>
-        int GetPaletteIndex(Color color, int x, int y);
+        int GetPaletteIndex(Color color);
 
         /// <summary>
-        /// Retrieves the palette created in the quantization process
+        /// Retrieves the palette created in the quantization process.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The palette of the quantized color collection.</returns>
         IList<Color> GetPalette();
-
-        /// <summary>
-        /// Resets the instance to a new state.
-        /// </summary>
-        void Reset();
     }
 }
