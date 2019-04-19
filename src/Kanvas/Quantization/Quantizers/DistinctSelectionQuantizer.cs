@@ -54,16 +54,18 @@ namespace Kanvas.Quantization.Quantizers
 
         public IEnumerable<int> Process(IEnumerable<Color> colors)
         {
+            var colorArray = colors.ToArray();
+
             // Step 1: Get all distinct colors from the image
-            FillDistinctColors(colors);
+            FillDistinctColors(colorArray);
 
             // Step 2: Create palette
             CreateAndCachePalette();
 
             // Step 3: Loop through original colors and get nearest match from cache
-            var indeces = GetIndeces(colors);
+            var indices = GetIndeces(colorArray);
 
-            return indeces;
+            return indices;
         }
 
         public int GetPaletteIndex(Color color)
@@ -78,13 +80,21 @@ namespace Kanvas.Quantization.Quantizers
 
         #endregion
 
-        private void FillDistinctColors(IEnumerable<Color> colors)
+        private void FillDistinctColors(Color[] colors)
         {
             _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
 
-            foreach (var c in colors)
-                _distinctColors.AddOrUpdate(c.ToArgb(), key => new DistinctColorInfo(c),
-                    (key, info) => info.IncreaseCount());
+            void ProcessingAction(TaskModel<Color[], ConcurrentDictionary<int, DistinctColorInfo>> taskModel)
+            {
+                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
+                {
+                    var color = taskModel.Input[i];
+                    taskModel.Output.AddOrUpdate(color.ToArgb(), key => new DistinctColorInfo(color),
+                        (key, info) => info.IncreaseCount());
+                }
+            }
+
+            ParallelProcessing.ProcessList(colors, _distinctColors, ProcessingAction, _taskCount);
         }
 
         private void CreateAndCachePalette()
@@ -169,22 +179,15 @@ namespace Kanvas.Quantization.Quantizers
             var colorList = colors.ToArray();
             var indices = new int[colorList.Length];
 
-            var elementCount = colorList.Length / _taskCount;
-            var overflow = colorList.Length - elementCount * _taskCount;
+            void ProcessingAction(TaskModel<Color[], int[]> taskModel)
+            {
+                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
+                    taskModel.Output[i] = _colorCache.GetPaletteIndex(taskModel.Input[i]);
+            }
 
-            var tasks = new TaskModel[_taskCount];
-            for (int i = 0; i < _taskCount; i++)
-                tasks[i] = new TaskModel(colorList, indices, i * elementCount, elementCount + (i == _taskCount - 1 ? overflow : 0));
-
-            Parallel.ForEach(tasks, RunTask);
+            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, _taskCount);
 
             return indices;
-        }
-
-        private void RunTask(TaskModel taskModel)
-        {
-            for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-                taskModel.Indices[i] = _colorCache.GetPaletteIndex(taskModel.Colors[i]);
         }
 
         #region Equality Comparers

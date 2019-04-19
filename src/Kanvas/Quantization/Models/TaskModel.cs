@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Quantization.Models
 {
-    internal class TaskModel
+    internal class TaskModel<TInput,TOutput>
     {
-        public Color[] Colors { get; }
-        public int[] Indices { get; }
+        public TInput Input { get; }
+        public TOutput Output { get; }
         public int Start { get; }
         public int Length { get; }
 
-        public TaskModel(Color[] inputColors, int[] indices, int start, int length)
+        public TaskModel(TInput input, TOutput output, int start, int length)
         {
-            Colors = inputColors;
-            Indices = indices;
+            Input = input;
+            Output = output;
             Start = start;
             Length = length;
         }

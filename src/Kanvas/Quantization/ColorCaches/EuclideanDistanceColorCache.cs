@@ -35,13 +35,13 @@ namespace Kanvas.Quantization.ColorCaches
             _model = model;
         }
 
-        /// <inheritdoc cref="IColorCache.CachePalette"/>
+        /// <inheritdoc cref="IColorCache.CachePalette(IList{Color})"/>
         public void CachePalette(IList<Color> palette)
         {
             Palette = palette;
         }
 
-        /// <inheritdoc cref="IColorCache.GetPaletteIndex"/>
+        /// <inheritdoc cref="IColorCache.GetPaletteIndex(Color)"/>
         public int GetPaletteIndex(Color color)
         {
             if (Palette == null) throw new ArgumentNullException(nameof(Palette));
@@ -63,12 +63,6 @@ namespace Kanvas.Quantization.ColorCaches
             }
 
             return result;
-        }
-
-        /// <inheritdoc cref="IColorCache.Reset"/>
-        public void Reset()
-        {
-            Palette.Clear();
         }
     }
 }

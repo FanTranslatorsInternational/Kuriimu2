@@ -79,7 +79,6 @@ namespace Kanvas.Palette
 
         public (IEnumerable<IndexData> indeces, IList<Color> palette) Quantize(IEnumerable<Color> colors)
         {
-            //_quantizer.Reset();
             var data = _quantizer.Process(colors);
             return (data.Select(i => new IndexData(i)), _quantizer.GetPalette());
         }

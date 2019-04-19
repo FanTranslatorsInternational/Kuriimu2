@@ -16,7 +16,7 @@ namespace Kanvas.Quantization.Helper
             var distance = comps.ComponentA * comps.ComponentA + comps.ComponentB * comps.ComponentB +
                            comps.ComponentC * comps.ComponentC;
             if (comps.ComponentD.HasValue) distance += comps.ComponentD.Value * comps.ComponentD.Value;
-            return (long) distance;
+            return (long)distance;
         }
 
         private static ColorModelComponents GetColorComponentsDistance(ColorModel model, Color color, Color targetColor)

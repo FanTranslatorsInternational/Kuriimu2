@@ -92,6 +92,7 @@
     <Compile Include="Quantization\Ditherers\Bayer4Ditherer.cs" />
     <Compile Include="Quantization\Helper\ColorModelHelper.cs" />
     <Compile Include="Quantization\Helper\FastRandom.cs" />
+    <Compile Include="Quantization\Helper\ParallelProcessing.cs" />
     <Compile Include="Quantization\Interfaces\IColorCache.cs" />
     <Compile Include="Quantization\Interfaces\IColorDitherer.cs" />
     <Compile Include="Quantization\Interfaces\IColorQuantizer.cs" />
