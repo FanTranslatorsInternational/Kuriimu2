@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,6 @@ namespace Kanvas.Quantization.Quantizers
     {
         private int _colorCount;
         private IColorCache _colorCache;
-        private int _taskCount = 8;
         private ConcurrentDictionary<int, DistinctColorInfo> _distinctColors;
 
         #region IColorQuantizer
@@ -33,6 +33,8 @@ namespace Kanvas.Quantization.Quantizers
 
         /// <inheritdoc cref="IColorQuantizer.AllowParallel"/>
         public bool AllowParallel => true;
+
+        public int TaskCount { get; private set; } = 8;
 
         /// <inheritdoc cref="IColorQuantizer.SetColorCache(IColorCache)"/>
         public void SetColorCache(IColorCache colorCache)
@@ -49,20 +51,17 @@ namespace Kanvas.Quantization.Quantizers
         /// <inheritdoc cref="IColorQuantizer.SetParallelTasks(int)"/>
         public void SetParallelTasks(int taskCount)
         {
-            _taskCount = taskCount;
+            TaskCount = taskCount;
         }
 
         public IEnumerable<int> Process(IEnumerable<Color> colors)
         {
             var colorArray = colors.ToArray();
 
-            // Step 1: Get all distinct colors from the image
-            FillDistinctColors(colorArray);
+            // Step 1: Create and cache palette
+            CreatePalette(colorArray);
 
-            // Step 2: Create palette
-            CreateAndCachePalette();
-
-            // Step 3: Loop through original colors and get nearest match from cache
+            // Step 2: Loop through original colors and get nearest match from cache
             var indices = GetIndeces(colorArray);
 
             return indices;
@@ -94,16 +93,19 @@ namespace Kanvas.Quantization.Quantizers
                 }
             }
 
-            ParallelProcessing.ProcessList(colors, _distinctColors, ProcessingAction, _taskCount);
+            ParallelProcessing.ProcessList(colors, _distinctColors, ProcessingAction, TaskCount);
         }
 
-        private void CreateAndCachePalette()
+        public void CreatePalette(IEnumerable<Color> colors)
         {
-            // Step 1: Filter colors by hue, saturation and brightness
-            // Step 1.1: If color count not reached, take top(n) colors
+            // Step 1: Filter out distinct colors
+            FillDistinctColors(colors.ToArray());
+
+            // Step 2: Filter colors by hue, saturation and brightness
+            // Step 2.1: If color count not reached, take top(n) colors
             var palette = FilterColorInfos();
 
-            // Step 2: Cache filtered colors
+            // Step 3: Cache palette
             _colorCache.CachePalette(palette);
         }
 
@@ -117,7 +119,17 @@ namespace Kanvas.Quantization.Quantizers
                 return colorInfoList.Select(info => Color.FromArgb(info.Color)).ToList();
 
             var random = new FastRandom(13);
-            colorInfoList = colorInfoList.OrderBy(info => random.Next(foundColorCount)).ToList();
+            colorInfoList = colorInfoList.
+                OrderBy(info => random.Next(foundColorCount)).
+                ToList();
+
+            // TODO
+            var name = @"D:\Users\Kirito\Desktop\hue2.bin";
+            var file = File.OpenWrite(name);
+            using (var bw = new BinaryWriter(file))
+                foreach (var info in _distinctColors.OrderBy(x => x.Value.Color))
+                    bw.Write(info.Value.Hue);
+            file.Close();
 
             DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
             colorInfoList.Remove(background);
@@ -158,6 +170,14 @@ namespace Kanvas.Quantization.Quantizers
                     Distinct(comparer).
                     ToList();
 
+                // TODO
+                var name = @"D:\Users\Kirito\Desktop\filteredList2.bin";
+                var file = File.OpenWrite(name);
+                using (var bw = new BinaryWriter(file))
+                    foreach (var info in filteredList.OrderBy(x => x.Color))
+                        bw.Write(info.Hue);
+                file.Close();
+
                 Int32 filteredListCount = filteredList.Count;
 
                 if (filteredListCount > colorCount && filteredListCount > maximalCount)
@@ -185,7 +205,7 @@ namespace Kanvas.Quantization.Quantizers
                     taskModel.Output[i] = _colorCache.GetPaletteIndex(taskModel.Input[i]);
             }
 
-            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, _taskCount);
+            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, TaskCount);
 
             return indices;
         }

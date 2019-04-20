@@ -23,9 +23,14 @@ namespace Kanvas.Quantization.Interfaces
         bool UsesVariableColorCount { get; }
 
         /// <summary>
-        /// Determines if the quantizer allows parallel processing
+        /// Determines if the quantizer allows parallel processing.
         /// </summary>
         bool AllowParallel { get; }
+
+        /// <summary>
+        /// The number of tasks used for quantization.
+        /// </summary>
+        int TaskCount { get; }
 
         /// <summary>
         /// Sets the color cache.
@@ -57,6 +62,12 @@ namespace Kanvas.Quantization.Interfaces
         /// <param name="color">Color to find in the quantizer.</param>
         /// <returns></returns>
         int GetPaletteIndex(Color color);
+
+        /// <summary>
+        /// Creates a palette out of a collection of colors.
+        /// </summary>
+        /// <param name="colors"></param>
+        void CreatePalette(IEnumerable<Color> colors);
 
         /// <summary>
         /// Retrieves the palette created in the quantization process.

@@ -34,7 +34,7 @@ namespace Kanvas.Quantization
 
             if (settings.Ditherer != null)
             {
-                settings.Ditherer.Prepare(settings.Quantizer);
+                settings.Ditherer.Prepare(settings.Quantizer, image.Width, image.Height);
                 return (settings.Ditherer.Process(colors), settings.Quantizer.GetPalette());
             }
 
