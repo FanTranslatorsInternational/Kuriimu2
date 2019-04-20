@@ -23,7 +23,8 @@ namespace Kanvas.Quantization.Helper
         public int Next(int upperBound)
         {
             uint t = _x ^ (_x << 11); _x = _y; _y = _z; _z = _w;
-            return (int)(RealUnitInt * (int)(0x7FFFFFFF & (_w = _w ^ (_w >> 19) ^ t ^ (t >> 8))) * upperBound);
+            _w = _w ^ (_w >> 19) ^ t ^ (t >> 8);
+            return (int)(RealUnitInt * (int)(0x7FFFFFFF & _w) * upperBound);
         }
     }
 }

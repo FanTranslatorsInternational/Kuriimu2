@@ -16,9 +16,9 @@ namespace Kanvas.Quantization.Interfaces
         /// Prepares the ditherer with a quantizer.
         /// </summary>
         /// <param name="quantizer">The quantizer.</param>
-        /// <param name="height">Height of the original image.</param>
         /// <param name="width">Width of the original image.</param>
-        void Prepare(IColorQuantizer quantizer, int height, int width);
+        /// <param name="height">Height of the original image.</param>
+        void Prepare(IColorQuantizer quantizer, int width, int height);
 
         /// <summary>
         /// Quantizes and dithers a collection of colors.

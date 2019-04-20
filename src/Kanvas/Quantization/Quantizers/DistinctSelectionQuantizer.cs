@@ -21,7 +21,7 @@ namespace Kanvas.Quantization.Quantizers
     {
         private int _colorCount;
         private IColorCache _colorCache;
-        private ConcurrentDictionary<int, DistinctColorInfo> _distinctColors;
+        private ConcurrentDictionary<uint, DistinctColorInfo> _distinctColors;
 
         #region IColorQuantizer
 
@@ -81,14 +81,14 @@ namespace Kanvas.Quantization.Quantizers
 
         private void FillDistinctColors(Color[] colors)
         {
-            _distinctColors = new ConcurrentDictionary<int, DistinctColorInfo>();
+            _distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
 
-            void ProcessingAction(TaskModel<Color[], ConcurrentDictionary<int, DistinctColorInfo>> taskModel)
+            void ProcessingAction(TaskModel<Color[], ConcurrentDictionary<uint, DistinctColorInfo>> taskModel)
             {
                 for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
                 {
                     var color = taskModel.Input[i];
-                    taskModel.Output.AddOrUpdate(color.ToArgb(), key => new DistinctColorInfo(color),
+                    taskModel.Output.AddOrUpdate((uint)color.ToArgb(), key => new DistinctColorInfo(color),
                         (key, info) => info.IncreaseCount());
                 }
             }
@@ -123,14 +123,6 @@ namespace Kanvas.Quantization.Quantizers
                 OrderBy(info => random.Next(foundColorCount)).
                 ToList();
 
-            // TODO
-            var name = @"D:\Users\Kirito\Desktop\hue2.bin";
-            var file = File.OpenWrite(name);
-            using (var bw = new BinaryWriter(file))
-                foreach (var info in _distinctColors.OrderBy(x => x.Value.Color))
-                    bw.Write(info.Value.Hue);
-            file.Close();
-
             DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
             colorInfoList.Remove(background);
             maxColorCount--;
@@ -155,6 +147,7 @@ namespace Kanvas.Quantization.Quantizers
                 Color.FromArgb(background.Color)
             };
             palette.AddRange(colorInfoList.Select(colorInfo => Color.FromArgb(colorInfo.Color)));
+
             return palette;
         }
 
@@ -169,14 +162,6 @@ namespace Kanvas.Quantization.Quantizers
                 List<DistinctColorInfo> filteredList = list.
                     Distinct(comparer).
                     ToList();
-
-                // TODO
-                var name = @"D:\Users\Kirito\Desktop\filteredList2.bin";
-                var file = File.OpenWrite(name);
-                using (var bw = new BinaryWriter(file))
-                    foreach (var info in filteredList.OrderBy(x => x.Color))
-                        bw.Write(info.Hue);
-                file.Close();
 
                 Int32 filteredListCount = filteredList.Count;
 

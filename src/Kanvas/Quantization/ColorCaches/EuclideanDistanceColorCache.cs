@@ -2,6 +2,7 @@
 using Kanvas.Quantization.Interfaces;
 using Kanvas.Quantization.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -15,6 +16,7 @@ namespace Kanvas.Quantization.ColorCaches
     public class EuclideanDistanceColorCache : IColorCache
     {
         private ColorModel _model;
+        private ConcurrentDictionary<int, int> _cache;
 
         public IList<Color> Palette { get; private set; }
 
@@ -40,6 +42,7 @@ namespace Kanvas.Quantization.ColorCaches
         public void CachePalette(IList<Color> palette)
         {
             Palette = palette;
+            _cache=new ConcurrentDictionary<int, int>();
         }
 
         /// <inheritdoc cref="IColorCache.GetPaletteIndex(Color)"/>
@@ -48,6 +51,17 @@ namespace Kanvas.Quantization.ColorCaches
             if (Palette == null) throw new ArgumentNullException(nameof(Palette));
             if (!Palette.Any()) throw new InvalidOperationException("Cache is empty.");
 
+            return _cache.AddOrUpdate(color.ToArgb(),
+                colorKey =>
+                {
+                    int paletteIndexInside = CalculatePaletteIndex(color);
+                    return paletteIndexInside;
+                },
+                (colorKey, inputIndex) => inputIndex);
+        }
+
+        private int CalculatePaletteIndex(Color color)
+        {
             long leastDistance = long.MaxValue;
             int result = 0;
             for (int i = 0; i < Palette.Count; i++)
