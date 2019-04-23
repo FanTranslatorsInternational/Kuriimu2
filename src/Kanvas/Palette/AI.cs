@@ -54,7 +54,7 @@ namespace Kanvas.Palette
             var color = palette[alphaIndexData.Index];
             return Color.FromArgb(alphaIndexData.Alpha, color.R, color.G, color.B);
         }
-
+        
         public IndexData RetrieveIndex(Color color, IList<Color> palette)
         {
             var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B);

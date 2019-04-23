@@ -1,5 +1,6 @@
 ﻿using Kanvas.Interface;
 using Kanvas.Models;
+using Kanvas.Quantization.Interfaces;
 using Komponent.IO;
 using System;
 using System.Collections.Generic;
@@ -11,16 +12,20 @@ namespace Kanvas.Palette
 {
     public class Index : IPaletteImageFormat
     {
+        private IImageFormat _paletteFormat;
+
         public int IndexDepth { get; }
         public string FormatName { get; }
 
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
+        public IColorQuantizer ColorQuantizer { get; set; }
 
-        public Index(int indexDepth)
+        public Index(int indexDepth, IImageFormat paletteFormat)
         {
             if (indexDepth % 4 != 0) throw new InvalidOperationException("IndexDepth has to be dividable by 4.");
 
             IndexDepth = indexDepth;
+            _paletteFormat = paletteFormat;
             FormatName = $"Palette {indexDepth}Bit";
         }
 
@@ -45,7 +50,7 @@ namespace Kanvas.Palette
         {
             return palette[indexData.Index];
         }
-
+        
         public IndexData RetrieveIndex(Color color, IList<Color> palette)
         {
             var foundColor = palette.FirstOrDefault(c => c.R == color.R && c.G == color.G && c.B == color.B && c.A == color.A);
