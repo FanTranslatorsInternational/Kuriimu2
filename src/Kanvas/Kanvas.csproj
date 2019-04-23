@@ -93,6 +93,7 @@
     <Compile Include="Quantization\ColorCaches\BaseColorCache.cs" />
     <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
     <Compile Include="Quantization\ColorCaches\LocalitySensitiveHashColorCache.cs" />
+    <Compile Include="Quantization\ColorCaches\OctreeColorCache.cs" />
     <Compile Include="Quantization\Common.cs" />
     <Compile Include="Quantization\Ditherers\ErrorDiffusion\AtkinsonDitherer.cs" />
     <Compile Include="Quantization\Ditherers\ErrorDiffusion\BaseErrorDiffusionDitherer.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Quantization\Models\ColorCache\ColorModel.cs" />
     <Compile Include="Quantization\Models\ColorCache\ColorModelComponents.cs" />
     <Compile Include="Quantization\Models\ColorCache\LshBucketInfo.cs" />
+    <Compile Include="Quantization\Models\ColorCache\OctreeCacheNode.cs" />
     <Compile Include="Quantization\Models\Ditherer\ColorComponentError.cs" />
     <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionElement.cs" />
     <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionList.cs" />
