@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kanvas.Quantization.Ditherers
+namespace Kanvas.Quantization.Ditherers.Ordered
 {
     public class Bayer8Ditherer : BaseOrderDitherer
     {

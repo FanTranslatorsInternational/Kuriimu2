@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Models;
 
-namespace Kanvas.Quantization.Ditherers
+namespace Kanvas.Quantization.Ditherers.Ordered
 {
     public class Bayer4Ditherer : BaseOrderDitherer
     {

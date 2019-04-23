@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kanvas.Quantization.Models
+namespace Kanvas.Quantization.Models.Parallel
 {
-    internal class TaskModel<TInput,TOutput>
+    internal class LineTask<TInput, TOutput>
     {
         public TInput Input { get; }
         public TOutput Output { get; }
         public int Start { get; }
         public int Length { get; }
 
-        public TaskModel(TInput input, TOutput output, int start, int length)
+        public LineTask(TInput input, TOutput output, int start, int length)
         {
             Input = input;
             Output = output;

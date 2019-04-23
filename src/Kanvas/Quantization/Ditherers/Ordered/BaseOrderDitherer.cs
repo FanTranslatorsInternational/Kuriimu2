@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Interfaces;
 using Kanvas.Quantization.Models;
+using Kanvas.Quantization.Models.Parallel;
 
-namespace Kanvas.Quantization.Ditherers
+namespace Kanvas.Quantization.Ditherers.Ordered
 {
     public abstract class BaseOrderDitherer : IColorDitherer
     {
@@ -29,7 +30,7 @@ namespace Kanvas.Quantization.Ditherers
             var colorList = colors.ToArray();
             _quantizer.CreatePalette(colorList);
 
-            var processingAction = new Action<TaskModel<Color[], int[]>>(taskModel =>
+            var processingAction = new Action<LineTask<Color[], int[]>>(taskModel =>
             {
                 var matrixWidth = Matrix.GetLength(0);
                 var matrixHeight = Matrix.GetLength(1);

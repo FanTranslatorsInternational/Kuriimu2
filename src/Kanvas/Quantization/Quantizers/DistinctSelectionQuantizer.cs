@@ -13,6 +13,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kanvas.Quantization.Models.Parallel;
+using Kanvas.Quantization.Models.Quantizer;
 
 namespace Kanvas.Quantization.Quantizers
 {
@@ -83,7 +85,7 @@ namespace Kanvas.Quantization.Quantizers
         {
             _distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
 
-            void ProcessingAction(TaskModel<Color[], ConcurrentDictionary<uint, DistinctColorInfo>> taskModel)
+            void ProcessingAction(LineTask<Color[], ConcurrentDictionary<uint, DistinctColorInfo>> taskModel)
             {
                 for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
                 {
@@ -184,7 +186,7 @@ namespace Kanvas.Quantization.Quantizers
             var colorList = colors.ToArray();
             var indices = new int[colorList.Length];
 
-            void ProcessingAction(TaskModel<Color[], int[]> taskModel)
+            void ProcessingAction(LineTask<Color[], int[]> taskModel)
             {
                 for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
                     taskModel.Output[i] = _colorCache.GetPaletteIndex(taskModel.Input[i]);
