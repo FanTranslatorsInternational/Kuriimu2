@@ -179,8 +179,13 @@ namespace Kuriimu2.ViewModels
             if (added)
             {
                 KoreFile.HasChanges = true;
-                _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
-                Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
+                if (_gameAdapterInstance != null)
+                {
+                    _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
+                    Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
+                }
+                else
+                    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
                 foreach (var ent in Entries.Where(e => e.Name == entry.Name))
                     ent.Edited += (sender, args) =>
                     {
