@@ -13,71 +13,34 @@ using System.Threading.Tasks;
 namespace Kanvas.Quantization.ColorCaches
 {
     /// <inheritdoc cref="IColorCache"/>
-    public class EuclideanDistanceColorCache : IColorCache
+    public class EuclideanDistanceColorCache : BaseColorCache
     {
-        private ColorModel _model;
         private ConcurrentDictionary<int, int> _cache;
 
-        public IList<Color> Palette { get; private set; }
-
-        /// <summary>
-        /// Creates a color cache with euclidean distance comparison.
-        /// </summary>
-        /// <remarks>Uses color model RGB by default.</remarks>
-        public EuclideanDistanceColorCache()
+        protected override void OnPrepare()
         {
-            _model = ColorModel.RGB;
         }
 
-        /// <summary>
-        /// Creates a color cache with euclidean distance comparison.
-        /// </summary>
-        /// <param name="model">The color model to use in the comparison.</param>
-        public EuclideanDistanceColorCache(ColorModel model)
+        protected override void OnCachePalette()
         {
-            _model = model;
+            _cache = new ConcurrentDictionary<int, int>();
         }
 
-        /// <inheritdoc cref="IColorCache.CachePalette(IList{Color})"/>
-        public void CachePalette(IList<Color> palette)
+        /// <inheritdoc cref="BaseColorCache.CalculatePaletteIndex"/>
+        protected override int CalculatePaletteIndex(Color color)
         {
-            Palette = palette;
-            _cache=new ConcurrentDictionary<int, int>();
-        }
-
-        /// <inheritdoc cref="IColorCache.GetPaletteIndex(Color)"/>
-        public int GetPaletteIndex(Color color)
-        {
-            if (Palette == null) throw new ArgumentNullException(nameof(Palette));
-            if (!Palette.Any()) throw new InvalidOperationException("Cache is empty.");
-
             return _cache.AddOrUpdate(color.ToArgb(),
                 colorKey =>
                 {
-                    int paletteIndexInside = CalculatePaletteIndex(color);
+                    int paletteIndexInside = CalculatePaletteIndexInternal(color);
                     return paletteIndexInside;
                 },
                 (colorKey, inputIndex) => inputIndex);
         }
 
-        private int CalculatePaletteIndex(Color color)
+        private int CalculatePaletteIndexInternal(Color color)
         {
-            long leastDistance = long.MaxValue;
-            int result = 0;
-            for (int i = 0; i < Palette.Count; i++)
-            {
-                var distance = ColorModelHelper.GetEuclideanDistance(_model, color, Palette[i]);
-                if (distance == 0)
-                    return i;
-
-                if (distance < leastDistance)
-                {
-                    leastDistance = distance;
-                    result = i;
-                }
-            }
-
-            return result;
+            return ColorModelHelper.GetSmallestEuclideanDistanceIndex(_colorModel, color, Palette);
         }
     }
 }

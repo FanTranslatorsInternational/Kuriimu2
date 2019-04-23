@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kanvas.Quantization.Models
+namespace Kanvas.Quantization.Models.ColorCache
 {
     public enum ColorModel
     {

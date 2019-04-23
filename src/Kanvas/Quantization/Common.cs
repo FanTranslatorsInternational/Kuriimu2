@@ -7,6 +7,8 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kanvas.Quantization.ColorCaches;
+using Kanvas.Quantization.Models.ColorCache;
 
 namespace Kanvas.Quantization
 {
@@ -15,12 +17,19 @@ namespace Kanvas.Quantization
         public IColorDitherer Ditherer { get; set; }
         public IColorQuantizer Quantizer { get; }
         public IColorCache ColorCache { get; set; }
+        public ColorModel ColorModel { get; set; }
         public int ColorCount { get; set; }
         public int ParallelCount { get; set; }
 
         public QuantizeImageSettings(IColorQuantizer quantizer)
         {
             Quantizer = quantizer ?? throw new ArgumentNullException(nameof(quantizer));
+
+            Ditherer = null;
+            ColorCache = new EuclideanDistanceColorCache();
+            ColorModel = ColorModel.RGB;
+            ColorCount = 256;
+            ParallelCount = 8;
         }
     }
 
@@ -28,25 +37,30 @@ namespace Kanvas.Quantization
     {
         public static (IEnumerable<int> indeces, IList<Color> palette) Quantize(Bitmap image, QuantizeImageSettings settings)
         {
-            Setup(settings);
+            Setup(image, settings);
 
             var colors = Decompose(image);
 
-            if (settings.Ditherer != null)
-            {
-                settings.Ditherer.Prepare(settings.Quantizer, image.Width, image.Height);
-                return (settings.Ditherer.Process(colors), settings.Quantizer.GetPalette());
-            }
-
-            return (settings.Quantizer.Process(colors), settings.Quantizer.GetPalette());
+            var indices = settings.Ditherer?.Process(colors) ?? settings.Quantizer.Process(colors);
+            return (indices, settings.Quantizer.GetPalette());
         }
 
-        private static void Setup(QuantizeImageSettings settings)
+        private static void Setup(Bitmap image, QuantizeImageSettings settings)
         {
+            // Check arguments
             if (settings.Quantizer.UsesColorCache && settings.ColorCache == null)
                 throw new ArgumentNullException(nameof(settings.ColorCache));
-            settings.Quantizer.SetColorCache(settings.ColorCache);
+            if (settings.Quantizer.AllowParallel && settings.ParallelCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(settings.ParallelCount));
+            if (settings.Quantizer.UsesVariableColorCount && settings.ColorCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(settings.ColorCount));
 
+            // Prepare objects
+            settings.Ditherer?.Prepare(settings.Quantizer, image.Width, image.Height);
+            settings.ColorCache?.Prepare(settings.ColorModel);
+
+            if (settings.Quantizer.UsesColorCache)
+                settings.Quantizer.SetColorCache(settings.ColorCache);
             if (settings.Quantizer.UsesVariableColorCount)
                 settings.Quantizer.SetColorCount(settings.ColorCount);
             if (settings.Quantizer.AllowParallel)

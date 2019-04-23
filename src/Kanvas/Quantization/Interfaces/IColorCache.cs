@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kanvas.Quantization.Models;
+using Kanvas.Quantization.Models.ColorCache;
 
 namespace Kanvas.Quantization.Interfaces
 {
@@ -16,6 +18,12 @@ namespace Kanvas.Quantization.Interfaces
         /// The cached palette.
         /// </summary>
         IList<Color> Palette { get; }
+
+        /// <summary>
+        /// Prepares the cache.
+        /// </summary>
+        /// <param name="model">The color model to use for index calculations.</param>
+        void Prepare(ColorModel model);
 
         /// <summary>
         /// Caches a list of colors.
