@@ -11,7 +11,6 @@ using Kontract.Interfaces.Image;
 
 namespace plugin_yuusha_shisu.BTX
 {
-
     [Export(typeof(BtxAdapter))]
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_btx", "Death of a Hero", "BTX", "IcySon55")]
