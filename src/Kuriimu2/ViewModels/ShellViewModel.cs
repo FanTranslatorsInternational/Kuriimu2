@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,11 +11,8 @@ using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
-using Kore.SamplePlugins;
 using Kore.Utilities;
-using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
-using Kuriimu2.ViewModels.ImageEditor;
 using Microsoft.Win32;
 
 namespace Kuriimu2.ViewModels
@@ -34,8 +32,16 @@ namespace Kuriimu2.ViewModels
             DisplayName = "Kuriimu2";
 
             // Load passed-in file
+            // TODO: Somehow handle multiple files via delayed asynchronous loading
             if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))
                 LoadFile(AppBootstrapper.Args[0]);
+        }
+
+        public void ExitMenu()
+        {
+            if ((ActiveItem as IFileEditor)?.KoreFile.HasChanges ?? false)
+                ; //ConfirmLossOfChanges();
+            Application.Current.Shutdown();
         }
 
         public async void OpenButton()
@@ -99,23 +105,31 @@ namespace Kuriimu2.ViewModels
             //_kore.Debug();
         }
 
-        // Toolbars
-        public Visibility TextEditorToolsVisible => ActiveItem is TextEditor2ViewModel ? Visibility.Visible : Visibility.Hidden;
+        #region ToolBar Visibility
+
+        // Text
+        public Visibility TextEditorToolsVisible => ActiveItem is ITextEditor ? Visibility.Visible : Visibility.Hidden;
+        public Visibility TextEditorCanExportFiles => ActiveItem is ITextEditor text ? (text.TextEditorCanExportFiles ? Visibility.Visible : Visibility.Hidden) : Visibility.Hidden;
+        public Visibility TextEditorCanImportFiles => ActiveItem is ITextEditor text ? (text.TextEditorCanImportFiles ? Visibility.Visible : Visibility.Hidden) : Visibility.Hidden;
+
+        #endregion
 
         public void TextEditorExportFile()
         {
-            // TODO: Introduce a way to select from a list of ITextAdapter + ICreateFiles to allow for format conversion
             var editor = (IFileEditor)ActiveItem;
             if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
 
+            var creators = _kore.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
+
             var sfd = new SaveFileDialog
             {
-                FileName = editor.KoreFile.StreamFileInfo.FileName + Common.GetAdapterExtension<KupAdapter>(),
-                Filter = Common.GetAdapterFilter<KupAdapter>()
+                FileName = Path.GetFileName(editor.KoreFile.StreamFileInfo.FileName) + Common.GetAdapterExtension(creators.First()),
+                InitialDirectory = Path.GetDirectoryName(editor.KoreFile.StreamFileInfo.FileName),
+                Filter = Common.GetAdapterFilters(creators)
             };
             if (sfd.ShowDialog() != true) return;
 
-            Text.ExportKup(adapter, sfd.FileName);
+            Text.ExportFile(adapter, creators.Skip(sfd.FilterIndex - 1).First(), sfd.FileName);
         }
 
         public void TextEditorImportFile()
@@ -132,8 +146,13 @@ namespace Kuriimu2.ViewModels
         // Tabs
         public void TabChanged(SelectionChangedEventArgs args)
         {
-            NotifyOfPropertyChange(() => TextEditorToolsVisible);
+            // General
             NotifyOfPropertyChange(() => SaveButtonsEnabled);
+
+            // Text Editor
+            NotifyOfPropertyChange(() => TextEditorToolsVisible);
+            NotifyOfPropertyChange(() => TextEditorCanExportFiles);
+            NotifyOfPropertyChange(() => TextEditorCanImportFiles);
         }
 
         public void CloseTab(IScreen tab)

@@ -9,7 +9,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Attributes;
-using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using Kore;
@@ -25,7 +24,7 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly Kore.KoreManager _kore;
+        private readonly KoreManager _kore;
         private readonly ITextAdapter _adapter;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
@@ -41,7 +40,7 @@ namespace Kuriimu2.ViewModels
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         // Constructor
-        public TextEditor2ViewModel(Kore.KoreManager kore, KoreFileInfo koreFile)
+        public TextEditor2ViewModel(KoreManager kore, KoreFileInfo koreFile)
         {
             _kore = kore;
             KoreFile = koreFile;
@@ -83,6 +82,15 @@ namespace Kuriimu2.ViewModels
                 NotifyOfPropertyChange(() => SelectedZoomLevel);
             }
         }
+
+        #region Visibility
+
+        public bool TextEditorCanExportFiles => true;
+
+        public bool TextEditorCanImportFiles => true;
+
+        #endregion
+
 
         public IList<GameAdapter> GameAdapters { get; }
 
