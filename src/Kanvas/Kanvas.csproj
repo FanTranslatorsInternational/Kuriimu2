@@ -59,8 +59,8 @@
     <Compile Include="Format\Support\ASTC\Wrapper\Wrapper.cs" />
     <Compile Include="Format\Support\ETC1.cs" />
     <Compile Include="Format\Support\PVRTC.cs" />
-    <Compile Include="Interface\IIndexImageFormat.cs" />
-    <Compile Include="Interface\IPaletteImageFormat.cs" />
+    <Compile Include="Interface\IColorEncodingKnownDimensions.cs" />
+    <Compile Include="Interface\IIndexEncoding.cs" />
     <Compile Include="Models\ImageSettings.cs" />
     <Compile Include="MoreLinq\MoreEnumerable.MaxBy.cs" />
     <Compile Include="Palette\AI.cs" />
@@ -70,7 +70,7 @@
     <Compile Include="Format\HL.cs" />
     <Compile Include="Format\LA.cs" />
     <Compile Include="Format\RGBA.cs" />
-    <Compile Include="Interface\IImageFormat.cs" />
+    <Compile Include="Interface\IColorEncoding.cs" />
     <Compile Include="Interface\IImageSwizzle.cs" />
     <Compile Include="Palette\Index.cs" />
     <Compile Include="Palette\Index2.cs" />

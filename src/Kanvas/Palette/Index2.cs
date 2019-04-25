@@ -14,15 +14,15 @@ using System.Threading.Tasks;
 namespace Kanvas.Palette
 {
     // TODO: Remove or merge later on; Only temporary
-    public class Index2 : IIndexImageFormat
+    public class Index2 : IIndexEncoding
     {
         private readonly int _indexDepth;
-        private readonly IImageFormat _paletteFormat;
+        private readonly IColorEncoding _paletteFormat;
         private readonly ByteOrder _byteOrder;
         private readonly IColorQuantizer _quantizer;
 
         // TODO: Make quantizer optional?
-        public Index2(int indexDepth, IImageFormat paletteFormat, IColorQuantizer quantizer, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        public Index2(int indexDepth, IColorEncoding paletteFormat, IColorQuantizer quantizer, ByteOrder byteOrder = ByteOrder.LittleEndian)
         {
             if (indexDepth % 8 != 0) throw new InvalidOperationException("IndexDepth needs to be dividable by 8.");
 
@@ -54,9 +54,9 @@ namespace Kanvas.Palette
             return (result, palette);
         }
 
-        public IEnumerable<Color> Compose(IEnumerable<IndexData> indeces, IList<Color> palette)
+        public IEnumerable<Color> Compose(IEnumerable<IndexData> indices, IList<Color> palette)
         {
-            foreach (var indexData in indeces)
+            foreach (var indexData in indices)
                 yield return palette[indexData.Index];
         }
 

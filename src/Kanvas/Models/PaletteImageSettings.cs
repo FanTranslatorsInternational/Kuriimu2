@@ -14,7 +14,7 @@ namespace Kanvas.Models
     {
         public IPaletteImageFormat PaletteFormat { get; }
 
-        public PaletteImageSettings(IImageFormat format, IPaletteImageFormat paletteFormat, int width, int height) : base(format, width, height)
+        public PaletteImageSettings(IColorEncoding format, IPaletteImageFormat paletteFormat, int width, int height) : base(format, width, height)
         {
             PaletteFormat = paletteFormat;
         }

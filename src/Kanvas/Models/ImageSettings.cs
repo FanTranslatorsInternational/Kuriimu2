@@ -24,9 +24,9 @@ namespace Kanvas.Models
         public int Height { get; set; }
 
         /// <summary>
-        /// The <see cref="IImageFormat"/> to load or save a color collection with.
+        /// The <see cref="IColorEncoding"/> to load or save a color collection with.
         /// </summary>
-        public IImageFormat Format { get; set; }
+        public IColorEncoding Format { get; set; }
 
         /// <summary>
         /// The multiplicator the width is padded to.
@@ -58,7 +58,7 @@ namespace Kanvas.Models
 
         }
 
-        public ImageSettings(IImageFormat format, int width, int height)
+        public ImageSettings(IColorEncoding format, int width, int height)
         {
             Format = format;
             Width = width;

@@ -7,7 +7,7 @@ using Komponent.IO;
 
 namespace Kanvas.Format
 {
-    public class DXT : IImageFormat
+    public class DXT : IColorEncoding
     {
         public enum Format
         {

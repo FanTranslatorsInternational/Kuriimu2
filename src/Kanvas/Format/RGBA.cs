@@ -1,34 +1,28 @@
 ﻿using Kanvas.Interface;
-using Kanvas.Support;
-using Komponent.IO;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using Kanvas.Support;
+using Komponent.IO;
 
 namespace Kanvas.Format
 {
     /// <summary>
     /// Defines the RGBA encoding
     /// </summary>
-    public class RGBA : IImageFormat
+    public class RGBA : IColorEncoding
     {
         private bool _isAlphaFirst;
         private bool _shouldSwapColorChannels;
 
-        /// <summary>
-        /// Summed BitDepth of all components
-        /// </summary>
+        /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; set; }
 
-        /// <summary>
-        /// Is the encoding a block compression
-        /// </summary>
+        /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
         public bool IsBlockCompression => false;
 
-        /// <summary>
-        /// Name of the format configured
-        /// </summary>
+        /// <inheritdoc cref="IColorEncoding.FormatName"/>
         public string FormatName { get; set; }
 
         /// <summary>
@@ -67,8 +61,8 @@ namespace Kanvas.Format
         /// <summary>
         /// Should the color components be interpreted in reverse
         /// </summary>
-        /// <remarks>If false, RGB is used</remarks>
-        /// <remarks>If true, BGR is used</remarks>
+        /// <remarks>If <c>false</c>, RGB is used</remarks>
+        /// <remarks>If <c>true</c>, BGR is used</remarks>
         public bool ShouldSwapColorChannels
         {
             get => _shouldSwapColorChannels;
@@ -84,10 +78,23 @@ namespace Kanvas.Format
         /// </summary>
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RGBA"/>.
+        /// </summary>
+        /// <param name="r">Value of the red component.</param>
+        /// <param name="g">Value of the green component.</param>
+        /// <param name="b">Value of the blue component.</param>
         public RGBA(int r, int g, int b) : this(r, g, b, 0)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RGBA"/>.
+        /// </summary>
+        /// <param name="r">Value of the red component.</param>
+        /// <param name="g">Value of the green component.</param>
+        /// <param name="b">Value of the blue component.</param>
+        /// <param name="a">Value of the alpha component.</param>
         public RGBA(int r, int g, int b, int a)
         {
             BitDepth = r + g + b + a;

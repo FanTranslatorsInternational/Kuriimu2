@@ -11,7 +11,7 @@ using static Kanvas.Support.PVRTC;
 
 namespace Kanvas.Format
 {
-    public class PVRTC : IImageFormatKnownDimensions
+    public class PVRTC : IColorEncodingKnownDimensions
     {
         public enum Format : ulong
         {

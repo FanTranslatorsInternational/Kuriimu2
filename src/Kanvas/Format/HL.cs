@@ -11,7 +11,7 @@ using Kanvas.Support;
 
 namespace Kanvas.Format
 {
-    public class HL : IImageFormat
+    public class HL : IColorEncoding
     {
         public int BitDepth { get; set; }
 

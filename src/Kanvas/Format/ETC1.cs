@@ -10,7 +10,7 @@ using System.IO;
 
 namespace Kanvas.Format
 {
-    public class ETC1 : IImageFormat
+    public class ETC1 : IColorEncoding
     {
         public int BitDepth { get; set; }
         public int BlockBitDepth { get; set; }

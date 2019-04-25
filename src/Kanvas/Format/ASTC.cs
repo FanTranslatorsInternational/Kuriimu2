@@ -12,7 +12,7 @@ using Komponent.IO.Attributes;
 
 namespace Kanvas.Format
 {
-    public class ASTC : IImageFormatKnownDimensions
+    public class ASTC : IColorEncodingKnownDimensions
     {
         public int BitDepth { get; set; }
         public int BlockBitDepth { get; set; }

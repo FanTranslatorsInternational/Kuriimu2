@@ -45,7 +45,7 @@ namespace Kanvas
             int width = settings.Width, height = settings.Height;
 
             // Used mainly for the block compressions PVRTC and ASTC
-            if (settings.Format is IImageFormatKnownDimensions ifkd)
+            if (settings.Format is IColorEncodingKnownDimensions ifkd)
             {
                 ifkd.Width = width;
                 ifkd.Height = height;
@@ -82,7 +82,7 @@ namespace Kanvas
         {
             int width = settings.Width, height = settings.Height;
 
-            if (settings.Format is IImageFormatKnownDimensions ifkd)
+            if (settings.Format is IColorEncodingKnownDimensions ifkd)
             {
                 ifkd.Width = width;
                 ifkd.Height = height;

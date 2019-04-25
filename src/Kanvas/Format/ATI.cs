@@ -10,7 +10,7 @@ using System.IO;
 
 namespace Kanvas.Format
 {
-    public class ATI : IImageFormat
+    public class ATI : IColorEncoding
     {
         public enum Format
         {
