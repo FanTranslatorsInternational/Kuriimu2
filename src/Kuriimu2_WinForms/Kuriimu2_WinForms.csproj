@@ -216,9 +216,7 @@
   <ItemGroup>
     <None Include="images\menu-add.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Tools\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="images\image-export.png" />
   </ItemGroup>

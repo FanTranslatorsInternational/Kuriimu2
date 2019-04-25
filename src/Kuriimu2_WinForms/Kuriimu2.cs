@@ -50,6 +50,7 @@ namespace Kuriimu2_WinForms
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
             LoadExtensions();
+            //LoadImageView();
         }
 
         private void _timer_Tick(object sender, EventArgs e)
@@ -60,6 +61,8 @@ namespace Kuriimu2_WinForms
         private void LoadExtensions()
         {
             LoadCiphers();
+            //LoadHashes();
+            //LoadCompressions();
         }
 
         private void LoadCiphers()
@@ -69,8 +72,31 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
             cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            mnuMain.Items.Add(_cipherToolStrip);
+            if (_cipherToolStrip.DropDownItems.Count > 0)
+                mnuMain.Items.Add(_cipherToolStrip);
         }
+
+        //private void LoadHashes()
+        //{
+        //    var hashes = _kore.PluginLoader.GetAdapters<IHashAdapter>();
+        //    var hashMenuBuilder = new ToolStripMenuBuilder<IHashAdapter>(hashes, AddHashDelegates);
+
+        //    _hashToolStrip = new ToolStripMenuItem("Hashes");
+        //    hashMenuBuilder.AddTreeToMenuStrip(_hashToolStrip);
+        //    if (_hashToolStrip.DropDownItems.Count > 0)
+        //        mnuMain.Items.Add(_hashToolStrip);
+        //}
+
+        //private void LoadCompressions()
+        //{
+        //    var compressions = _kore.PluginLoader.GetAdapters<ICompressionAdapter>();
+        //    var compMenuBuilder = new ToolStripMenuBuilder<ICompressionAdapter>(compressions, AddCompressionDelegates);
+
+        //    _compToolStrip = new ToolStripMenuItem("Compressions");
+        //    compMenuBuilder.AddTreeToMenuStrip(_compToolStrip);
+        //    if (_compToolStrip.DropDownItems.Count > 0)
+        //        mnuMain.Items.Add(_compToolStrip);
+        //}
 
         #region Events
 
