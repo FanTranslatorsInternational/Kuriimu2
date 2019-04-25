@@ -57,31 +57,31 @@ namespace Kore.Batch
 
             switch (typeof(T).Name)
             {
-                case nameof(ITextAdapter):
-                    patterns = kore.FileExtensionsByType<ITextAdapter>();
-                    files = Directory.EnumerateFiles(InputDirectory, "*", SearchOption).Where(f => patterns.Any(p => f.EndsWith(p, StringComparison.OrdinalIgnoreCase))).ToList();
-                    max = files.Count;
+                //case nameof(ITextAdapter):
+                //    patterns = kore.FileExtensionsByType<ITextAdapter>();
+                //    files = Directory.EnumerateFiles(InputDirectory, "*", SearchOption).Where(f => patterns.Any(p => f.EndsWith(p, StringComparison.OrdinalIgnoreCase))).ToList();
+                //    max = files.Count;
 
-                    foreach (var file in files)
-                    {
-                        await Task.Run(() =>
-                        {
-                            try
-                            {
-                                var outFile = file + Utilities.Common.GetAdapterExtension<KupAdapter>();
-                                //TODO
-                                Utilities.Text.ExportKup((ITextAdapter)kore.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false }).Adapter, outFile);
-                                current++;
-                                progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
-                            }
-                            catch (Exception e)
-                            {
-                                current++;
-                                progress.Report(new ProgressReport { Percentage = current / max * 100 });
-                            }
-                        });
-                    }
-                    break;
+                //    foreach (var file in files)
+                //    {
+                //        await Task.Run(() =>
+                //        {
+                //            try
+                //            {
+                //                var outFile = file + Utilities.Common.GetAdapterExtension<KupAdapter>();
+                //                //TODO
+                //                Utilities.Text.ExportFile((ITextAdapter)kore.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false }).Adapter, outFile);
+                //                current++;
+                //                progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
+                //            }
+                //            catch (Exception e)
+                //            {
+                //                current++;
+                //                progress.Report(new ProgressReport { Percentage = current / max * 100 });
+                //            }
+                //        });
+                //    }
+                //    break;
                 case nameof(IImageAdapter):
                     patterns = kore.FileExtensionsByType<IImageAdapter>();
                     files = Directory.EnumerateFiles(InputDirectory, "*", SearchOption).Where(f => patterns.Any(p => f.EndsWith(p, StringComparison.OrdinalIgnoreCase))).ToList();

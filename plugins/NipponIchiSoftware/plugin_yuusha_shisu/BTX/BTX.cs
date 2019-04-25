@@ -11,6 +11,9 @@ using Komponent.IO;
 
 namespace plugin_yuusha_shisu.BTX
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class BTX
     {
         /// <summary>
@@ -130,7 +133,7 @@ namespace plugin_yuusha_shisu.BTX
         /// </summary>
         public static Dictionary<ImageFormat, IPaletteImageFormat> PaletteFormats = new Dictionary<ImageFormat, IPaletteImageFormat>
         {
-            [ImageFormat.Palette_8] = new Index(8)
+            [ImageFormat.Palette_8] = new Index(8, new RGBA(8, 8, 8))
         };
     }
 }

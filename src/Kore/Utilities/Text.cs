@@ -1,31 +1,42 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
-using Kontract.Interfaces;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
-using Kontract.Interfaces.FileSystem;
-using Kore.SamplePlugins;
 
 namespace Kore.Utilities
 {
     public static class Text
     {
         /// <summary>
-        /// Exports an open file to a KUP file.
+        /// Exports an open file to a given adapter format.
         /// </summary>
-        /// <param name="adapter">The adapter to be exported from.</param>
+        /// <param name="sourceAdapter">The adapter to be exported from.</param>
+        /// <param name="exportAdapter">The adapter to be exported to.</param>
         /// <param name="outputFileName">The target filename to save to.</param>
-        public static void ExportKup(ITextAdapter adapter, string outputFileName)
+        public static void ExportFile(ITextAdapter sourceAdapter, ITextAdapter exportAdapter, string outputFileName)
         {
-            var kup = new KupAdapter();
-            kup.Create();
-            kup.Entries = adapter.Entries.Select(entry => new TextEntry
+            var newAdapter = (ITextAdapter)Activator.CreateInstance(exportAdapter.GetType());
+
+            if (newAdapter is ICreateFiles creator && newAdapter is IAddEntries add)
             {
-                Name = entry.Name,
-                EditedText = entry.EditedText,
-                OriginalText = entry.OriginalText.Length == 0 ? entry.EditedText : entry.OriginalText,
-                MaxLength = entry.MaxLength
-            });
-            kup.Save(outputFileName);
+                // Create 
+                creator.Create();
+
+                // Create the new entries
+                foreach (var entry in sourceAdapter.Entries)
+                {
+                    var newEntry = add.NewEntry();
+                    newEntry.Name = entry.Name;
+                    newEntry.EditedText = entry.EditedText;
+                    newEntry.OriginalText = entry.OriginalText.Length == 0 ? entry.EditedText : entry.OriginalText;
+                    newEntry.MaxLength = entry.MaxLength;
+                    add.AddEntry(newEntry);
+                }
+
+                // Save the file
+                (newAdapter as ISaveFiles)?.Save(new StreamInfo(File.Create(outputFileName), outputFileName));
+            }
         }
 
         /// <summary>

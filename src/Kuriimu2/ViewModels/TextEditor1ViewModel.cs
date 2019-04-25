@@ -58,6 +58,10 @@ namespace Kuriimu2.ViewModels
 
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
+        public bool TextEditorCanExportFiles => false;
+
+        public bool TextEditorCanImportFiles => false;
+
         public void AddEntry()
         {
             //Entries.Add(new Entry($"Label {Entries.Count}", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));

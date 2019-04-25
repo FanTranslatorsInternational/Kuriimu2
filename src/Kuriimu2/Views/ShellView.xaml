@@ -10,36 +10,36 @@
     <DockPanel Name="Root" AllowDrop="True" cal:Message.Attach="[Event Drop] = [Action FileDrop($eventArgs)]">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="_New" Name="NewMenu" IsEnabled="False" cal:Message.Attach="[Event Click] = [Action NewButton]">
+                    <MenuItem.Icon>
+                        <Image Source="/Images/menu-new.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="_Open" Name="OpenMenu" cal:Message.Attach="[Event Click] = [Action OpenButton]">
                     <MenuItem.Icon>
                         <Image Source="/Images/menu-open.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-            </MenuItem>
-            <!--<MenuItem Header="_Tools">
-                <MenuItem Header="_Generators">
-                    <MenuItem.Items>
-                        <MenuItem Header="_Font (GFD)">
-                            <MenuItem.Icon>
-                                <Image Source="/Images/menu-new.png" />
-                            </MenuItem.Icon>
-                        </MenuItem>
-                    </MenuItem.Items>
+                <Separator />
+                <MenuItem Header="_Exit" Name="ExitMenu">
+                    <MenuItem.Icon>
+                        <Image Source="/Images/menu-power.png" />
+                    </MenuItem.Icon>
                 </MenuItem>
-            </MenuItem>-->
+            </MenuItem>
         </Menu>
 
         <ToolBarTray DockPanel.Dock="Top" Background="Transparent">
             <ToolBar ToolBarTray.IsLocked="True">
-                <Button Name="NewButton">
+                <Button Name="NewButton" IsEnabled="False">
                     <Image Source="/Images/menu-new.png" />
                 </Button>
                 <Button Name="OpenButton">
                     <Image Source="/Images/menu-open.png" />
                 </Button>
-                <Button Name="OpenTypeButton">
+                <!--<Button Name="OpenTypeButton">
                     <Image Source="/Images/menu-open.png" />
-                </Button>
+                </Button>-->
                 <Button Name="SaveButton" IsEnabled="{Binding SaveButtonsEnabled}">
                     <Image Source="/Images/menu-save.png" />
                 </Button>
@@ -48,13 +48,14 @@
                 </Button>
             </ToolBar>
 
+            <!-- Text Editor Toolbar -->
             <ToolBar Name="TextEditorTools" Visibility="{Binding TextEditorToolsVisible}">
-                <Button Name="TextEditorExportFile">
+                <Button Name="TextEditorExportFile" Visibility="{Binding TextEditorCanExportFiles}">
                     <StackPanel>
                         <Image Source="/Images/export-text.png" Width="16"></Image>
                     </StackPanel>
                 </Button>
-                <Button Name="TextEditorImportFile">
+                <Button Name="TextEditorImportFile" Visibility="{Binding TextEditorCanImportFiles}">
                     <StackPanel>
                         <Image Source="/Images/import-text.png" Width="16"></Image>
                     </StackPanel>
