@@ -7,7 +7,7 @@ using Komponent.IO;
 
 namespace Kanvas.Format
 {
-    public class ATC : IColorEncoding
+    public class ATC : IColorTranscoding
     {
         public bool IsBlockCompression { get => true; }
 

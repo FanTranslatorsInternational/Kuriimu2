@@ -78,14 +78,14 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             var sourceColor = inputElement.Input;
             var error = inputElement.Error;
 
-            // Add error component values to source color
+            // Add Error component values to source color
             var errorDiffusedColor = Color.FromArgb(
                 sourceColor.A,
                 GetClampedValue(sourceColor.R + error.RedError, 0, 255),
                 GetClampedValue(sourceColor.G + error.GreenError, 0, 255),
                 GetClampedValue(sourceColor.B + error.BlueError, 0, 255));
 
-            // Quantize error diffused source color
+            // Quantize Error diffused source color
             delayedLineTask.Output[index] = _quantizer.GetPaletteIndex(errorDiffusedColor);
 
             // Retrieve new quantized color for this point
@@ -109,12 +109,12 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                     var coefficient = Matrix[shiftY + MatrixSideHeight, shiftX + MatrixSideWidth];
                     var errorFactor = ErrorFactorMatrix[shiftY + MatrixSideHeight, shiftX + MatrixSideWidth];
 
-                    // If substantial error factor and target point in image bounds
+                    // If substantial Error factor and target point in image bounds
                     if (coefficient != 0 &&
                         targetX >= 0 && targetX < _width &&
                         targetY >= 0 && targetY < _height)
                     {
-                        // Add error to target point for later processing
+                        // Add Error to target point for later processing
                         var newTarget = delayedLineTask.Input[targetX + targetY * _width];
                         newTarget.Error.RedError += Convert.ToInt32(errorFactor * redError);
                         newTarget.Error.GreenError += Convert.ToInt32(errorFactor * greenError);
@@ -204,7 +204,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         //            int greenError = sourceColor.G - targetColor.G;
         //            int blueError = sourceColor.B - targetColor.B;
 
-        //            // if no error, continue
+        //            // if no Error, continue
         //            if (redError == 0 && greenError == 0 && blueError == 0)
         //                continue;
 

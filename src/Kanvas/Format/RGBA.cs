@@ -3,50 +3,51 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Support;
-using Komponent.IO;
+using System.Text;
+using Kanvas.Format.Support;
+using Kanvas.Models;
 
 namespace Kanvas.Format
 {
     /// <summary>
-    /// Defines the RGBA encoding
+    /// Defines the RGBA encoding.
     /// </summary>
-    public class RGBA : IColorEncoding
+    public class RGBA : IColorTranscoding
     {
         private bool _isAlphaFirst;
         private bool _shouldSwapColorChannels;
 
-        /// <inheritdoc cref="IColorEncoding.BitDepth"/>
+        /// <inheritdoc cref="IColorTranscoding.BitDepth"/>
         public int BitDepth { get; set; }
 
-        /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
+        /// <inheritdoc cref="IColorTranscoding.IsBlockCompression"/>
         public bool IsBlockCompression => false;
 
-        /// <inheritdoc cref="IColorEncoding.FormatName"/>
+        /// <inheritdoc cref="IColorTranscoding.FormatName"/>
         public string FormatName { get; set; }
 
         /// <summary>
-        /// The bit depth of the red component
+        /// The bit depth of the red component.
         /// </summary>
         public int RedDepth { get; }
 
         /// <summary>
-        /// The bit depth of the green component
+        /// The bit depth of the green component.
         /// </summary>
         public int GreenDepth { get; }
 
         /// <summary>
-        /// The bit depth of the blue component
+        /// The bit depth of the blue component.
         /// </summary>
         public int BlueDepth { get; }
 
         /// <summary>
-        /// The bit depth of the alpha component
+        /// The bit depth of the alpha component.
         /// </summary>
         public int AlphaDepth { get; }
 
         /// <summary>
-        /// Should the alpha component be interpreted before the color components
+        /// Should the alpha component be interpreted before the color components.
         /// </summary>
         public bool IsAlphaFirst
         {
@@ -59,10 +60,10 @@ namespace Kanvas.Format
         }
 
         /// <summary>
-        /// Should the color components be interpreted in reverse
+        /// Should the color components be interpreted in reverse.
         /// </summary>
-        /// <remarks>If <c>false</c>, RGB is used</remarks>
-        /// <remarks>If <c>true</c>, BGR is used</remarks>
+        /// <remarks>If <c>false</c>, RGB is used.</remarks>
+        /// <remarks>If <c>true</c>, BGR is used.</remarks>
         public bool ShouldSwapColorChannels
         {
             get => _shouldSwapColorChannels;
@@ -74,7 +75,7 @@ namespace Kanvas.Format
         }
 
         /// <summary>
-        /// Byte order to use to read the value
+        /// Byte order to use to read the values.
         /// </summary>
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
 
@@ -128,7 +129,7 @@ namespace Kanvas.Format
 
         public IEnumerable<Color> Load(byte[] tex)
         {
-            using (var br = new BinaryReaderX(new MemoryStream(tex), ByteOrder))
+            using (var br = new BinaryReader(new MemoryStream(tex)))
             {
                 var (aShift, rShift, gShift, bShift) = GetBitShifts();
                 var (aBitMask, rBitMask, gBitMask, bBitMask) = GetChannelMasks();
@@ -140,16 +141,13 @@ namespace Kanvas.Format
                     if (BitDepth <= 8)
                         value = br.ReadByte();
                     else if (BitDepth <= 16)
-                        value = br.ReadUInt16();
+                        value = Convert.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
                     else if (BitDepth <= 24)
-                    {
-                        var tmp = br.ReadBytes(3);
-                        value = (ByteOrder == ByteOrder.LittleEndian) ? tmp[2] << 16 | tmp[1] << 8 | tmp[0] : tmp[0] << 16 | tmp[1] << 8 | tmp[0];
-                    }
+                        value = Convert.FromByteArray<uint>(br.ReadBytes(3), ByteOrder);
                     else if (BitDepth <= 32)
-                        value = br.ReadUInt32();
+                        value = Convert.FromByteArray<uint>(br.ReadBytes(4), ByteOrder);
                     else
-                        throw new Exception($"BitDepth {BitDepth} not supported!");
+                        throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");
 
                     yield return Color.FromArgb(
                         (AlphaDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> aShift & aBitMask), AlphaDepth, 8),
@@ -206,7 +204,7 @@ namespace Kanvas.Format
         public byte[] Save(IEnumerable<Color> colors)
         {
             var ms = new MemoryStream();
-            using (var bw = new BinaryWriterX(ms, true, ByteOrder))
+            using (var bw = new BinaryWriter(ms, Encoding.ASCII, true))
                 foreach (var color in colors)
                 {
                     var a = (AlphaDepth == 0) ? 0 : Helper.ChangeBitDepth(color.A, 8, AlphaDepth);
@@ -225,16 +223,11 @@ namespace Kanvas.Format
                     if (BitDepth <= 8)
                         bw.Write((byte)value);
                     else if (BitDepth <= 16)
-                        bw.Write((ushort)value);
+                        bw.Write(Support.Convert.ToByteArray((ushort)value, 2, ByteOrder));
                     else if (BitDepth <= 24)
-                    {
-                        var tmp = (ByteOrder == ByteOrder.LittleEndian) ?
-                                new[] { (byte)(value & 0xff), (byte)(value >> 8 & 0xff), (byte)(value >> 16 & 0xff) } :
-                                new[] { (byte)(value >> 16 & 0xff), (byte)(value >> 8 & 0xff), (byte)(value & 0xff) };
-                        bw.WriteMultiple(tmp);
-                    }
+                        bw.Write(Support.Convert.ToByteArray((uint)value, 3, ByteOrder));
                     else if (BitDepth <= 32)
-                        bw.Write((uint)value);
+                        bw.Write(Support.Convert.ToByteArray((uint)value, 4, ByteOrder));
                     else
                         throw new Exception($"BitDepth {BitDepth} not supported!");
                 }

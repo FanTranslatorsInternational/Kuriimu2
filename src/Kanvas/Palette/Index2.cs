@@ -17,12 +17,12 @@ namespace Kanvas.Palette
     public class Index2 : IIndexEncoding
     {
         private readonly int _indexDepth;
-        private readonly IColorEncoding _paletteFormat;
+        private readonly IColorTranscoding _paletteFormat;
         private readonly ByteOrder _byteOrder;
         private readonly IColorQuantizer _quantizer;
 
         // TODO: Make quantizer optional?
-        public Index2(int indexDepth, IColorEncoding paletteFormat, IColorQuantizer quantizer, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        public Index2(int indexDepth, IColorTranscoding paletteFormat, IColorQuantizer quantizer, ByteOrder byteOrder = ByteOrder.LittleEndian)
         {
             if (indexDepth % 8 != 0) throw new InvalidOperationException("IndexDepth needs to be dividable by 8.");
 

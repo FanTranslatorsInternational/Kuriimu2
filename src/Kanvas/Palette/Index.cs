@@ -12,7 +12,7 @@ namespace Kanvas.Palette
 {
     public class Index : IPaletteImageFormat
     {
-        private IColorEncoding _paletteFormat;
+        private IColorTranscoding _paletteFormat;
 
         public int IndexDepth { get; }
         public string FormatName { get; }
@@ -20,7 +20,7 @@ namespace Kanvas.Palette
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
         public IColorQuantizer ColorQuantizer { get; set; }
 
-        public Index(int indexDepth, IColorEncoding paletteFormat)
+        public Index(int indexDepth, IColorTranscoding paletteFormat)
         {
             if (indexDepth % 4 != 0) throw new InvalidOperationException("IndexDepth has to be dividable by 4.");
 

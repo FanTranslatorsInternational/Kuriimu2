@@ -45,7 +45,7 @@ namespace Kanvas
             int width = settings.Width, height = settings.Height;
 
             // Used mainly for the block compressions PVRTC and ASTC
-            if (settings.Format is IColorEncodingKnownDimensions ifkd)
+            if (settings.Format is IColorTranscodingKnownDimensions ifkd)
             {
                 ifkd.Width = width;
                 ifkd.Height = height;
@@ -76,13 +76,13 @@ namespace Kanvas
         /// Converts a given Bitmap, modified by given settings, in binary data
         /// </summary>
         /// <param name="bmp">The bitmap, which will be converted</param>
-        /// <param name="settings">Settings like Format, Dimensions and Swizzles</param>
+        /// <param name="settings">Settings like _format, Dimensions and Swizzles</param>
         /// <returns>byte[]</returns>
         public static byte[] Save(Bitmap bmp, ImageSettings settings)
         {
             int width = settings.Width, height = settings.Height;
 
-            if (settings.Format is IColorEncodingKnownDimensions ifkd)
+            if (settings.Format is IColorTranscodingKnownDimensions ifkd)
             {
                 ifkd.Width = width;
                 ifkd.Height = height;

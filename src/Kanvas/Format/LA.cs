@@ -1,92 +1,130 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Kanvas.Interface;
 using System.Drawing;
-using Komponent.IO;
 using System.IO;
+using Kanvas.Models;
 using Kanvas.Support;
 
 namespace Kanvas.Format
 {
-    public class LA : IColorEncoding
+    /// <summary>
+    /// Defines the LA encoding.
+    /// </summary>
+    public class LA : IColorTranscoding
     {
+        /// <inheritdoc cref="IColorTranscoding.BitDepth"/>
         public int BitDepth { get; set; }
 
-        public bool IsBlockCompression { get => false; }
+        /// <inheritdoc cref="IColorTranscoding.IsBlockCompression"/>
+        public bool IsBlockCompression => false;
 
+        /// <inheritdoc cref="IColorTranscoding.FormatName"/>
         public string FormatName { get; set; }
 
-        int lDepth;
-        int aDepth;
+        /// <summary>
+        /// The bit depth of the luminence component.
+        /// </summary>
+        public int LuminenceDepth { get; }
 
-        ByteOrder byteOrder;
+        /// <summary>
+        /// The bit depth of the alpha component.
+        /// </summary>
+        public int AlphaDepth { get; }
 
-        public LA(int l, int a, ByteOrder byteOrder = ByteOrder.LittleEndian)
+        /// <summary>
+        /// Byte order to use to read the values.
+        /// </summary>
+        public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LA"/>.
+        /// </summary>
+        /// <param name="l">Value of the luminence component.</param>
+        /// <param name="a">Value of the alpha component.</param>
+        public LA(int l, int a)
         {
-            BitDepth = a + l;
-            if (BitDepth % 4 != 0) throw new Exception($"Overall bitDepth has to be dividable by 4. Given bitDepth: {BitDepth}");
-            if (BitDepth > 16) throw new Exception($"Overall bitDepth can't be bigger than 16. Given bitDepth: {BitDepth}");
-            if (BitDepth < 4) throw new Exception($"Overall bitDepth can't be smaller than 4. Given bitDepth: {BitDepth}");
-            if (l < 4 && a < 4) throw new Exception($"Luminance and Alpha value can't be smaller than 4.\nGiven Luminance: {l}; Given Alpha: {a}");
+            BitDepth = l + a;
+            if (BitDepth % 4 != 0) throw new InvalidOperationException($"Overall bitDepth has to be dividable by 4. Given bitDepth: {BitDepth}");
+            if (BitDepth > 16) throw new InvalidOperationException($"Overall bitDepth can't be bigger than 16. Given bitDepth: {BitDepth}");
+            if (BitDepth < 4) throw new InvalidOperationException($"Overall bitDepth can't be smaller than 4. Given bitDepth: {BitDepth}");
+            if (l < 4 && a < 4) throw new InvalidOperationException($"Luminance and Alpha value can't be smaller than 4.\nGiven Luminance: {l}; Given Alpha: {a}");
 
-            lDepth = l;
-            aDepth = a;
+            LuminenceDepth = l;
+            AlphaDepth = a;
 
-            FormatName = ((l != 0) ? "L" : "") + ((a != 0) ? "A" : "") + ((l != 0) ? l.ToString() : "") + ((a != 0) ? a.ToString() : "");
+            UpdateName();
+        }
 
-            this.byteOrder = byteOrder;
+        private void UpdateName()
+        {
+            FormatName = (LuminenceDepth != 0 ? "L" : "") +
+                         (AlphaDepth != 0 ? "A" : "") +
+                         (LuminenceDepth != 0 ? LuminenceDepth.ToString() : "") +
+                         (AlphaDepth != 0 ? AlphaDepth.ToString() : "");
         }
 
         public IEnumerable<Color> Load(byte[] tex)
         {
-            using (var br = new BinaryReaderX(new MemoryStream(tex), byteOrder))
+            var lShift = AlphaDepth;
+
+            var aBitMask = (1 << AlphaDepth) - 1;
+            var lBitMask = (1 << LuminenceDepth) - 1;
+
+            using (var br = new BinaryReader(new MemoryStream(tex)))
             {
-                var lShift = aDepth;
-
-                var aBitMask = (1 << aDepth) - 1;
-                var lBitMask = (1 << lDepth) - 1;
-
-                while (true)
+                while (br.BaseStream.Position < br.BaseStream.Length)
                 {
-                    long value = 0;
+                    long value;
 
                     switch (BitDepth)
                     {
                         case 4:
-                            value = br.ReadNibble();
+                            value = br.ReadByte();
+
+                            // high nibble first
+                            yield return CreateColor((value & 0xF0) >> 4, aBitMask, lBitMask, lShift);
+                            yield return CreateColor(value & 0xF, aBitMask, lBitMask, lShift);
                             break;
                         case 8:
                             value = br.ReadByte();
                             break;
                         case 16:
-                            value = br.ReadUInt16();
+                            value = Support.Convert.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
                             break;
                         default:
-                            throw new Exception($"BitDepth {BitDepth} not supported!");
+                            throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");
                     }
 
-                    yield return Color.FromArgb(
-                        (aDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value & aBitMask), aDepth, 8),
-                        (lDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lShift & lBitMask), lDepth, 8),
-                        (lDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lShift & lBitMask), lDepth, 8),
-                        (lDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lShift & lBitMask), lDepth, 8));
+                    yield return CreateColor(value, aBitMask, lBitMask, lShift);
                 }
             }
         }
 
+        private Color CreateColor(long value, int alphaBitMask, int lumBitMask, int lumShift)
+        {
+            return Color.FromArgb(
+                (AlphaDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value & alphaBitMask), AlphaDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Helper.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8));
+        }
+
         public byte[] Save(IEnumerable<Color> colors)
         {
+            byte nibbleBuffer = 0;
+            bool writeNibble = false;
+
             var ms = new MemoryStream();
-            using (var bw = new BinaryWriterX(ms, true, byteOrder))
+            using (var bw = new BinaryWriter(ms, Encoding.ASCII, true))
+            {
                 foreach (var color in colors)
                 {
-                    var a = (aDepth == 0) ? 0 : Helper.ChangeBitDepth(color.A, 8, aDepth);
-                    var l = (lDepth == 0) ? 0 : Helper.ChangeBitDepth(color.G, 8, lDepth);
+                    var a = (AlphaDepth == 0) ? 0 : Helper.ChangeBitDepth(color.A, 8, AlphaDepth);
+                    var l = (LuminenceDepth == 0) ? 0 : Helper.ChangeBitDepth(color.G, 8, LuminenceDepth);
 
-                    var lShift = aDepth;
+                    var lShift = AlphaDepth;
 
                     long value = a;
                     value |= (uint)(l << lShift);
@@ -94,18 +132,30 @@ namespace Kanvas.Format
                     switch (BitDepth)
                     {
                         case 4:
-                            bw.WriteNibble((int)value);
+                            if (writeNibble)
+                            {
+                                nibbleBuffer |= (byte)(value & 0xF);
+                                bw.Write(nibbleBuffer);
+                            }
+                            else
+                                nibbleBuffer = (byte)((value & 0xF) << 4);
+
+                            writeNibble = !writeNibble;
                             break;
                         case 8:
                             bw.Write((byte)value);
                             break;
                         case 16:
-                            bw.Write((ushort)value);
+                            bw.Write(Support.Convert.ToByteArray((ushort)value, 2, ByteOrder));
                             break;
                         default:
-                            throw new Exception($"BitDepth {BitDepth} not supported!");
+                            throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");
                     }
                 }
+
+                if (writeNibble)
+                    bw.Write(nibbleBuffer);
+            }
 
             return ms.ToArray();
         }

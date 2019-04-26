@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace Kanvas.Support
+namespace Kanvas.Format.Support
 {
     public class ATC
     {
