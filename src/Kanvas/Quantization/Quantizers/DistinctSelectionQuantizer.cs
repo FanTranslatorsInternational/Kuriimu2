@@ -1,20 +1,13 @@
-﻿using Kanvas.Quantization.ColorCaches;
-using Kanvas.Quantization.Helper;
+﻿using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Interfaces;
-using Kanvas.Quantization.Models;
-using MoreLinq;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kanvas.Quantization.Models.Parallel;
 using Kanvas.Quantization.Models.Quantizer;
+using Kanvas.Support;
 
 namespace Kanvas.Quantization.Quantizers
 {

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Quantization.Models.ColorCache
 {
+    /// <summary>
+    /// The model describing the color structure for color caches.
+    /// </summary>
     public enum ColorModel
     {
         RGB,

@@ -16,26 +16,26 @@ namespace Kanvas.Models
         /// <summary>
         /// Width of the image.
         /// </summary>
-        public int Width { get; set; }
+        public int Width { get; }
 
         /// <summary>
         /// Height of the image
         /// </summary>
-        public int Height { get; set; }
+        public int Height { get; }
 
         /// <summary>
-        /// The <see cref="IColorTranscoding"/> to load or save a color collection with.
+        /// The <see cref="IColorEncoding"/> to load or save colors with.
         /// </summary>
-        public IColorTranscoding Format { get; set; }
+        public IColorEncoding Encoding { get; }
 
         /// <summary>
-        /// The multiplicator the width is padded to.
+        /// The multiplicand the width is padded to.
         /// </summary>
         /// <remarks>0, if no padding is used.</remarks>
         public int PadWidth { get; set; } = 0;
 
         /// <summary>
-        /// The multiplicator the height is padded to.
+        /// The multiplicand the height is padded to.
         /// </summary>
         /// <remarks>0, if no padding is used.</remarks>
         public int PadHeight { get; set; } = 0;
@@ -48,19 +48,19 @@ namespace Kanvas.Models
         /// <summary>
         /// A pixel shader applied on load and save.
         /// </summary>
-        /// <remarks>This should only be used if every color in the collection is expected to be independantly changed by some common scheme.</remarks>
+        /// <remarks>This should only be used if every color in the collection is expected to be independently changed by some common scheme.</remarks>
         /// <remarks>This property is not used for Palette operations</remarks>
         public Func<Color, Color> PixelShader { get; set; }
 
-        [Obsolete]
-        public ImageSettings()
+        /// <summary>
+        /// Creates a new instance of <see cref="ImageSettings"/>.
+        /// </summary>
+        /// <param name="encoding">The encoding used for the colors in an image.</param>
+        /// <param name="width">The width of the image.</param>
+        /// <param name="height">The height of the image.</param>
+        public ImageSettings(IColorEncoding encoding, int width, int height)
         {
-
-        }
-
-        public ImageSettings(IColorTranscoding format, int width, int height)
-        {
-            Format = format;
+            Encoding = encoding;
             Width = width;
             Height = height;
         }
