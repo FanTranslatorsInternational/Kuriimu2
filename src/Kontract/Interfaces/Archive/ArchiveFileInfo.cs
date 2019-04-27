@@ -47,10 +47,10 @@ namespace Kontract.Interfaces.Archive
         public ArchiveFileState State { get; set; } = ArchiveFileState.Empty;
 
         /// <summary>
-        /// Holds all plugin ids that could potentially open that file; Other plugins get ignored for opening it
+        /// Holds all plugin FQNs that could potentially open that file; Other plugins get ignored for opening it
         /// </summary>
         /// <remarks>If null or empty, this property gets ignored.</remarks>
-        public string[] PluginIds { get; set; }
+        public string[] PluginNames { get; set; }
     }
 
     [Flags]

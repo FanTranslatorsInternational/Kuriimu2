@@ -1,7 +1,7 @@
-﻿using Kanvas.Format;
-using Komponent.IO;
+﻿using Kanvas.Encoding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
+using Kanvas.Models;
 
 namespace KanvasUnitTests
 {

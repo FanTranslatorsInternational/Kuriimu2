@@ -61,10 +61,6 @@
       <Project>{810cefcf-6900-43ff-8939-ef2d52236882}</Project>
       <Name>Kanvas</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Komponent\Komponent.csproj">
-      <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
-      <Name>Komponent</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -184,9 +184,9 @@ namespace Kuriimu2_WinForms.FormatForms
             openFileToolStripMenuItem.Tag = afi;
 
             openWithPluginToolStripMenuItem.DropDownItems.Clear();
-            openWithPluginToolStripMenuItem.Visible = afi.PluginIds != null && afi.PluginIds.Length > 0;
-            if (afi.PluginIds != null)
-                foreach (var id in afi.PluginIds)
+            openWithPluginToolStripMenuItem.Visible = afi.PluginNames != null && afi.PluginNames.Length > 0;
+            if (afi.PluginNames != null)
+                foreach (var id in afi.PluginNames)
                 {
                     var args = new GetAdapterInformationByIdEventArgs(id);
                     GetAdapterById?.Invoke(this, args);

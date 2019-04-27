@@ -101,7 +101,6 @@
     <Compile Include="Interfaces\Text\ITextDeleteEntries.cs" />
     <Compile Include="Interfaces\Text\ITextRenameEntries.cs" />
     <Compile Include="Interfaces\Text\TextEntry.cs" />
-    <Compile Include="MoreLinq\MoreEnumerable.DistinctBy.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

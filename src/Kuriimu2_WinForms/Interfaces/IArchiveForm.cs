@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Kontract.Interfaces;
 
 namespace Kuriimu2_WinForms.Interfaces
 {
@@ -44,14 +45,14 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class GetAdapterInformationByIdEventArgs : EventArgs
     {
-        public string PluginId { get; }
+        public string PluginName { get; }
 
         public ILoadFiles SelectedPlugin { get; set; }
         public PluginInfoAttribute PluginMetaData { get; set; }
 
-        public GetAdapterInformationByIdEventArgs(string pluginId)
+        public GetAdapterInformationByIdEventArgs(string pluginName)
         {
-            PluginId = pluginId;
+            PluginName = pluginName;
         }
     }
 }

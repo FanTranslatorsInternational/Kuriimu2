@@ -435,7 +435,7 @@ namespace Kuriimu2_WinForms
 
         private void Kuriimu2_GetAdapterById(object sender, GetAdapterInformationByIdEventArgs e)
         {
-            e.SelectedPlugin = _kore.PluginLoader.CreateAdapter<ILoadFiles>(e.PluginId);
+            e.SelectedPlugin = _kore.PluginLoader.CreateNewAdapter<ILoadFiles>(e.PluginName);
             e.PluginMetaData = _kore.GetMetadata<PluginInfoAttribute>(e.SelectedPlugin);
         }
         #endregion
