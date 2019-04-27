@@ -61,7 +61,7 @@
     <Compile Include="Interfaces\Archive\IArchiveRenameFiles.cs" />
     <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
-    <Compile Include="Interfaces\Common\IPlugin.cs" />
+    <Compile Include="Interfaces\IPlugin.cs" />
     <Compile Include="Interfaces\Font\FontCharacter.cs" />
     <Compile Include="Interfaces\Font\FontCharacter2.cs" />
     <Compile Include="Interfaces\Font\IAddCharacters.cs" />
@@ -101,11 +101,13 @@
     <Compile Include="Interfaces\Text\ITextDeleteEntries.cs" />
     <Compile Include="Interfaces\Text\ITextRenameEntries.cs" />
     <Compile Include="Interfaces\Text\TextEntry.cs" />
+    <Compile Include="MoreLinq\MoreEnumerable.DistinctBy.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Kontract.nuspec" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

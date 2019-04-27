@@ -5,19 +5,20 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 
 namespace Kontract
 {
     /// <summary>
-    /// <see cref="PluginLoader"/> is used to load in all avaliable plugins.
+    /// <see cref="PluginLoader"/> is used to load in all available plugins.
     /// </summary>
     public class PluginLoader
     {
         /// <summary>
         /// Lazy loads the <see cref="PluginLoader"/> singleton instance.
         /// </summary>
+        // ReSharper disable once InconsistentNaming
         private static readonly Lazy<PluginLoader> _pluginLoaderInitializer = new Lazy<PluginLoader>(() => new PluginLoader("plugins"));
 
         /// <summary>
@@ -55,6 +56,7 @@ namespace Kontract
 #pragma warning disable 0649, 0169
 
         [ImportMany(typeof(IPlugin))]
+        // ReSharper disable once CollectionNeverUpdated.Local
         private List<IPlugin> _plugins;
 
 #pragma warning restore 0649, 0169
@@ -77,17 +79,36 @@ namespace Kontract
         }
 
         /// <summary>
-        /// Instantiates a new instance of the given plugin type <see cref="T"/> using its pluginID.
+        /// Creates a new instance of the given plugin type <typeparamref name="T"/> using its fully qualified name.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="pluginID"></param>
-        /// <returns></returns>
-        public T CreateAdapter<T>(string pluginID)
+        /// <typeparam name="T">Type to return the adapter as.</typeparam>
+        /// <param name="fqn">The fully qualified name of the adapter type.</param>
+        /// <returns>The new instance of the adapter.</returns>
+        public T CreateNewAdapter<T>(string fqn)
         {
-            var adapter = _plugins.FirstOrDefault(x => x.GetType().GetCustomAttribute<PluginInfoAttribute>()?.ID == pluginID);
-            if (adapter == null) return default(T);
+            var adapter = _plugins.FirstOrDefault(x => x.GetType().FullName == fqn);
+
+            if (adapter == null)
+                return default;
 
             return (T)Activator.CreateInstance(adapter.GetType());
+        }
+
+        /// <summary>
+        /// Creates a new instance of the given plugin type <typeparamref name="T"/> using an adapter.
+        /// </summary>
+        /// <typeparam name="T">Type to return the adapter as.</typeparam>
+        /// <param name="adapter">The adapter to create a new instance of.</param>
+        /// <returns>The new instance of the adapter.</returns>
+        public T CreateNewAdapter<T>(IPlugin adapter)
+        {
+            var adapterType = adapter.GetType();
+            var chosenAdapter = _plugins.FirstOrDefault(x => x.GetType() == adapterType && x.GetType() is T);
+
+            if (chosenAdapter == null)
+                return default;
+
+            return (T)Activator.CreateInstance(adapterType);
         }
 
         /// <summary>
