@@ -9,6 +9,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.FileSystem;
+using Kontract.Models;
 using Kore.SamplePlugins;
 
 namespace Kore.Batch

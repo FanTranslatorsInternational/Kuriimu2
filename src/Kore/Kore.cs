@@ -138,7 +138,7 @@ namespace Kore
 
             // Instantiate a new instance of the adapter
             // ReSharper disable once SuspiciousTypeConversion.Global
-            kli.Adapter = PluginLoader.CreateNewAdapter<ILoadFiles>((IPlugin) kli.Adapter);
+            kli.Adapter = PluginLoader.CreateNewAdapter<ILoadFiles>((IPlugin)kli.Adapter);
 
             // Load files(s)
             kli.FileData.Position = 0;
@@ -537,7 +537,14 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var allTypes = PluginLoader.GetAdapters<ILoadFiles>().Select(x => new { PluginLoader.GetMetadata<PluginInfoAttribute>(x).Name, Extension = PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+                var allTypes = PluginLoader.
+                    GetAdapters<ILoadFiles>().
+                    Select(x => new
+                    {
+                        Name = PluginLoader.GetMetadata<PluginInfoAttribute>(x)?.Name,
+                        Extension = PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x)?.Extension.ToLower()
+                    }).
+                    OrderBy(o => o.Name).ToList();
 
                 // Add the special all supported files filter
                 if (allTypes.Count > 0)

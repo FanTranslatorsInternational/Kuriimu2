@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using Kontract.Interfaces.Image;
 
-namespace Kontract.Interfaces.Image
+namespace Kontract.Models.Image
 {
     /// <summary>
     /// The base bitmap info class.

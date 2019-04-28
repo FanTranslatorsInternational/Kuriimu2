@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Common;
+using Kontract.Models;
+using Kontract.Models.Image;
 
 namespace Kontract.Interfaces.Image
 {
-    /// <inheritdoc />
+    /// <inheritdoc cref="IPlugin"/>
     /// <summary>
     /// This is the image adapter interface for creating image format plugins.
     /// </summary>
@@ -26,7 +27,7 @@ namespace Kontract.Interfaces.Image
         /// </summary>
         /// <param name="bitmapInfo">The <see cref="BitmapInfo"/> to be encoded.</param>
         /// <param name="formatInfo">The <see cref="FormatInfo"/> to encode into.</param>
-        /// <param name="progress">The progress object to report progress through.</param>
+        /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
         Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress);
     }

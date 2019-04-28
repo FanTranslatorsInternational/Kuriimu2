@@ -14,6 +14,7 @@ using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
+using Kontract.Models;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;

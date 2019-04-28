@@ -16,6 +16,8 @@ using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 using Kore;
 using Kuriimu2_WinForms.Extensions;
 using Kuriimu2_WinForms.FormatForms;

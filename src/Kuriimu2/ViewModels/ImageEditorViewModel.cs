@@ -11,6 +11,7 @@ using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract;
 using Kontract.Interfaces.Image;
+using Kontract.Models;
 using Kore;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;

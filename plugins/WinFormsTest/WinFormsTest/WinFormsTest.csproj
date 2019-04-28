@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -43,9 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestArchive.cs" />
+    <Compile Include="Archive\Models\FileEntry.cs" />
+    <Compile Include="Archive\Models\Header.cs" />
+    <Compile Include="Image\Models\Header.cs" />
+    <Compile Include="Image\TestImage.cs" />
+    <Compile Include="Archive\TestArchive.cs" />
     <Compile Include="TestGame.cs" />
-    <Compile Include="TestImage.cs" />
     <Compile Include="TestText.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -55,7 +58,7 @@
       <Name>Kanvas</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\Komponent\Komponent.csproj">
-      <Project>{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}</Project>
+      <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
       <Name>Komponent</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\src\Kontract\Kontract.csproj">

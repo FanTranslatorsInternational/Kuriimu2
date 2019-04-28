@@ -1,4 +1,4 @@
-﻿namespace Kontract.Interfaces.Image
+﻿namespace Kontract.Models.Image
 {
     /// <summary>
     /// The base class for format information

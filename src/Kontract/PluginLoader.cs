@@ -103,7 +103,7 @@ namespace Kontract
         public T CreateNewAdapter<T>(IPlugin adapter)
         {
             var adapterType = adapter.GetType();
-            var chosenAdapter = _plugins.FirstOrDefault(x => x.GetType() == adapterType && x.GetType() is T);
+            var chosenAdapter = _plugins.FirstOrDefault(x => x.GetType() == adapterType && x is T);
 
             if (chosenAdapter == null)
                 return default;

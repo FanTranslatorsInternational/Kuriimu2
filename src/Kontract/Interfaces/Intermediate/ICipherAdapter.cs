@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
 namespace Kontract.Interfaces.Intermediate
 {

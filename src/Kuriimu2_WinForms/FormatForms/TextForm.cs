@@ -12,6 +12,7 @@ using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
+using Kontract.Models;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
 

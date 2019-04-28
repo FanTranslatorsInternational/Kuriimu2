@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Kontract.Models;
+using Kontract.Models.Image;
 
 namespace Kontract.Interfaces.Image
 {
     /// <summary>
-    /// This is the palette image interface to edit a palette of a given <see cref="PaletteBitmapInfo"/>.
+    /// This is the indexed image interface to edit a palette of a given <see cref="IndexedBitmapInfo"/>.
     /// </summary>
-    public interface IPaletteImage
+    public interface IIndexedImageAdapter:IImageAdapter
     {
         /// <summary>
         /// Sets the whole palette.
@@ -19,7 +19,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="palette">The palette to set.</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the palette was set successfully, False otherwise.</returns>
-        Task<bool> SetPalette(PaletteBitmapInfo info, IList<Color> palette, IProgress<ProgressReport> progress);
+        Task<bool> SetPalette(IndexedBitmapInfo info, IList<Color> palette, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Sets a single color in the palette.
@@ -29,6 +29,6 @@ namespace Kontract.Interfaces.Image
         /// <param name="index">The index to set the color to in the palette.</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the palette was set successfully, False otherwise.</returns>
-        Task<bool> SetColorInPalette(PaletteBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress);
+        Task<bool> SetColorInPalette(IndexedBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress);
     }
 }

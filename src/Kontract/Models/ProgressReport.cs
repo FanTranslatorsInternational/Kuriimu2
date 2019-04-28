@@ -1,4 +1,10 @@
-﻿namespace Kontract
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Kontract.Models
 {
     /// <summary>
     /// The ProgressReport class passes completion percentage and messages to the UI.

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Kontract.Interfaces.Intermediate
+namespace Kontract.Models.Intermediate
 {
     /// <summary>
     /// The event arguments for requesting key material

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Kontract.Models;
 
 namespace Kuriimu2_WinForms.Interfaces
 {

@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Kontract
+namespace Kontract.Exceptions
 {
     /// <summary>
     /// Exception thrown by plugins trying to load other plugins.

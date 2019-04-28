@@ -58,13 +58,27 @@ namespace Kanvas.Support
             if (data.Length > limit)
                 throw new ArgumentOutOfRangeException(nameof(data));
 
-            long result = 0;
+            ulong result = 0;
             for (int i = 0; i < data.Length; i++)
             {
                 if (byteOrder == ByteOrder.LittleEndian)
-                    result |= (long)(data[i] << (i * 8));
+                    result |= (ulong)(data[i] << (i * 8));
                 else
                     result = (result << 8) | data[i];
+            }
+
+            var typeCode = Type.GetTypeCode(typeof(T));
+            switch (typeCode)
+            {
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                    return FromInteger(input, limit, byteOrder);
+                default:
+                    throw new InvalidOperationException($"{typeCode} is not supported.");
             }
 
             return (T)System.Convert.ChangeType(result, typeof(T));

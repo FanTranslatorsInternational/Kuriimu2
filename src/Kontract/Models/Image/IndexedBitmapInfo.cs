@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Kontract.Interfaces.Image
+namespace Kontract.Models.Image
 {
     /// <summary>
     /// Extended <see cref="BitmapInfo"/> to add palette information.
     /// </summary>
-    public class PaletteBitmapInfo : BitmapInfo
+    public class IndexedBitmapInfo : BitmapInfo
     {
         /// <summary>
         /// The palette of the main image.
@@ -33,7 +29,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="image"></param>
         /// <param name="formatInfo"></param>
         /// <param name="palette"></param>
-        public PaletteBitmapInfo(Bitmap image, FormatInfo formatInfo, IList<Color> palette) : base(image, formatInfo)
+        public IndexedBitmapInfo(Bitmap image, FormatInfo formatInfo, IList<Color> palette) : base(image, formatInfo)
         {
             Palette = palette;
         }
