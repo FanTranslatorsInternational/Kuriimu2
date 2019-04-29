@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text;
 using Kontract.Interfaces.Image;
 
 namespace Kontract.Models.Image
@@ -58,6 +59,11 @@ namespace Kontract.Models.Image
         /// The image format information for encoding and decoding purposes
         /// </summary>
         [Browsable(false)]
-        public EncodingInfo ImageEncoding { get; set; }
+        public EncodingInfo ImageEncoding { get; private set; }
+
+        public virtual void SetImageEncoding(EncodingInfo imageEnc)
+        {
+            ImageEncoding = imageEnc;
+        }
     }
 }

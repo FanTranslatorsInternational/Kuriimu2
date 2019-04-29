@@ -31,7 +31,7 @@ namespace Kontract.Models.Image
         /// The format in which the palette is encoded.
         /// </summary>
         [Browsable(false)]
-        public EncodingInfo PaletteEncoding { get; set; }
+        public EncodingInfo PaletteEncoding { get; private set; }
 
         /// <summary>
         /// The count of colors in a palette.
@@ -40,5 +40,14 @@ namespace Kontract.Models.Image
         [Description("The count of colors in a palette.")]
         [ReadOnly(true)]
         public int ColorCount => Palette?.Count ?? 0;
+
+        /// <summary>
+        /// Sets <see cref="PaletteEncoding"/>.
+        /// </summary>
+        /// <param name="paletteEnc"></param>
+        public virtual void SetPaletteEncoding(EncodingInfo paletteEnc)
+        {
+            PaletteEncoding = paletteEnc;
+        }
     }
 }

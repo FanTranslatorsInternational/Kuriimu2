@@ -29,6 +29,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="encodingInfo">The <see cref="EncodingInfo"/> to encode into.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
+        /// <remarks><see cref="EncodingInfo"/> should be updated in the given <see cref="BitmapInfo"/> here.</remarks>
         Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo, IProgress<ProgressReport> progress);
     }
 }

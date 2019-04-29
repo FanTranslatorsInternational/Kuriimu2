@@ -69,6 +69,10 @@ namespace WinFormsTest.Image
 
                 info.Image = newImg.image;
                 info.Palette = newImg.palette;
+                if(encodingInfo.Variant==0)
+                    info.SetImageEncoding(encodingInfo);
+                else
+                    info.SetPaletteEncoding(encodingInfo);
 
                 return true;
             });

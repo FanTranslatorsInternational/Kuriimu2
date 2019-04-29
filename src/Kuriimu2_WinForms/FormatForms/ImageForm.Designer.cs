@@ -52,6 +52,8 @@ namespace Kuriimu2_WinForms.FormatForms
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.tslFormat = new System.Windows.Forms.ToolStripLabel();
             this.tsbFormat = new System.Windows.Forms.ToolStripDropDownButton();
+            this.tslPalette = new System.Windows.Forms.ToolStripLabel();
+            this.tsbPalette = new System.Windows.Forms.ToolStripDropDownButton();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.treBitmaps = new System.Windows.Forms.TreeView();
             this.imlBitmaps = new System.Windows.Forms.ImageList(this.components);
@@ -218,7 +220,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.imbPreview.Location = new System.Drawing.Point(0, 0);
             this.imbPreview.Name = "imbPreview";
             this.imbPreview.SelectionMode = Cyotek.Windows.Forms.ImageBoxSelectionMode.Zoom;
-            this.imbPreview.Size = new System.Drawing.Size(570, 398);
+            this.imbPreview.Size = new System.Drawing.Size(570, 421);
             this.imbPreview.TabIndex = 0;
             this.imbPreview.TabStop = false;
             this.imbPreview.Zoomed += new System.EventHandler<Cyotek.Windows.Forms.ImageBoxZoomEventArgs>(this.imbPreview_Zoomed);
@@ -244,7 +246,9 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tslTool,
             this.toolStripSeparator3,
             this.tslFormat,
-            this.tsbFormat});
+            this.tsbFormat,
+            this.tslPalette,
+            this.tsbPalette});
             this.tlsTools.Location = new System.Drawing.Point(0, 421);
             this.tlsTools.Name = "tlsTools";
             this.tlsTools.Size = new System.Drawing.Size(570, 25);
@@ -262,7 +266,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tslTool.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tslTool.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslTool.Name = "tslTool";
-            this.tslTool.Size = new System.Drawing.Size(69, 22);
+            this.tslTool.Size = new System.Drawing.Size(68, 22);
             this.tslTool.Text = "Tool: Zoom";
             // 
             // toolStripSeparator3
@@ -284,6 +288,20 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tsbFormat.Name = "tsbFormat";
             this.tsbFormat.Size = new System.Drawing.Size(61, 22);
             this.tsbFormat.Text = "Format:";
+            // 
+            // tslPalette
+            // 
+            this.tslPalette.Name = "tslPalette";
+            this.tslPalette.Size = new System.Drawing.Size(46, 22);
+            this.tslPalette.Text = "Palette:";
+            // 
+            // tsbPalette
+            // 
+            this.tsbPalette.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbPalette.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbPalette.Name = "tsbPalette";
+            this.tsbPalette.Size = new System.Drawing.Size(59, 22);
+            this.tsbPalette.Text = "Palette:";
             // 
             // splProperties
             // 
@@ -414,5 +432,7 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStripSeparator toolStripSeparator3;
         private ToolStripLabel tslFormat;
         private ToolStripDropDownButton tsbFormat;
+        private ToolStripLabel tslPalette;
+        private ToolStripDropDownButton tsbPalette;
     }
 }

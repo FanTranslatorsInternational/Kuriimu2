@@ -61,12 +61,12 @@ namespace Kanvas.Support
             byte[] buffer = new byte[arraySize];
             if (byteOrder == ByteOrder.LittleEndian)
             {
-                var lengthToCopy = Math.Min(arraySize, input.Length);
-                Array.Copy(input, input.Length - lengthToCopy, buffer, arraySize - lengthToCopy, lengthToCopy);
+                Array.Copy(input, 0, buffer, 0, Math.Min(arraySize, input.Length));
             }
             else
             {
-                Array.Copy(input, 0, buffer, 0, Math.Min(arraySize,input.Length));
+                var lengthToCopy = Math.Min(arraySize, input.Length);
+                Array.Copy(input, input.Length - lengthToCopy, buffer, arraySize - lengthToCopy, lengthToCopy);
             }
 
             if (BitConverter.IsLittleEndian && byteOrder == ByteOrder.LittleEndian ||

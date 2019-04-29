@@ -61,10 +61,21 @@ namespace Kuriimu2_WinForms.FormatForms
             _bestBitmaps = _imageAdapter.BitmapInfos.Select(x => (Bitmap)x.Image.Clone()).ToArray();
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
+
+            // Populate format dropdown
             tsbFormat.DropDownItems.AddRange(_imageAdapter.ImageEncodingInfos?.Select(f => new ToolStripMenuItem { Text = f.EncodingName, Tag = f, Checked = f.EncodingIndex == _selectedBitmapInfo.ImageEncoding.EncodingIndex }).ToArray());
             if (tsbFormat.DropDownItems.Count > 0)
                 foreach (var tsb in tsbFormat.DropDownItems)
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
+
+            // populate palette format dropdown
+            if (_imageAdapter is IIndexedImageAdapter indexAdapter && _selectedBitmapInfo is IndexedBitmapInfo indexInfo)
+            {
+                tsbPalette.DropDownItems.AddRange(indexAdapter.PaletteEncodingInfos?.Select(f => new ToolStripMenuItem { Text = f.EncodingName, Tag = f, Checked = f.EncodingIndex == indexInfo.PaletteEncoding.EncodingIndex }).ToArray());
+                if (tsbPalette.DropDownItems.Count > 0)
+                    foreach (var tsb in tsbPalette.DropDownItems)
+                        ((ToolStripMenuItem)tsb).Click += tsbPalette_Click;
+            }
 
             tsbImageBorderStyle.DropDownItems.AddRange(Enum.GetNames(typeof(ImageBoxBorderStyle)).Select(s => new ToolStripMenuItem { Image = (Image)Resources.ResourceManager.GetObject(_stylesImages[s]), Text = _stylesText[s], Tag = s }).ToArray());
             foreach (var tsb in tsbImageBorderStyle.DropDownItems)
@@ -75,22 +86,41 @@ namespace Kuriimu2_WinForms.FormatForms
             UpdateImageList();
         }
 
-        private void tsbFormat_Click(object sender, EventArgs e)
+        private async void tsbFormat_Click(object sender, EventArgs e)
         {
             var tsb = (ToolStripMenuItem)sender;
 
             if (_selectedBitmapInfo.ImageEncoding.EncodingIndex != ((EncodingInfo)tsb.Tag).EncodingIndex)
             {
                 _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
-                var result = ImageEncode(_selectedBitmapInfo, (EncodingInfo)tsb.Tag);
+                var result = await ImageEncode(_selectedBitmapInfo, (EncodingInfo)tsb.Tag);
 
-                if (result.IsCompleted)
+                if (result)
                 {
                     foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
                         tsm.Checked = false;
                     tsb.Checked = true;
                 }
             }
+        }
+
+        private async void tsbPalette_Click(object sender, EventArgs e)
+        {
+            var tsb = (ToolStripMenuItem)sender;
+
+            if (_selectedBitmapInfo is IndexedBitmapInfo indexInfo)
+                if (indexInfo.PaletteEncoding.EncodingIndex != ((EncodingInfo)tsb.Tag).EncodingIndex)
+                {
+                    indexInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
+                    var result = await ImageEncode(indexInfo, (EncodingInfo)tsb.Tag);
+
+                    if (result)
+                    {
+                        foreach (ToolStripMenuItem tsm in tsbPalette.DropDownItems)
+                            tsm.Checked = false;
+                        tsb.Checked = true;
+                    }
+                }
         }
 
         public KoreFileInfo Kfi { get; set; }
@@ -171,30 +201,27 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo)
         {
-            if (!tsbFormat.Enabled)
+            if (!tsbFormat.Enabled && !tsbPalette.Enabled)
                 return false;
 
-            tsbFormat.Enabled = false;
-
-            //pbEncoding.Maximum = 100;
-            //pbEncoding.Step = 1;
-            //pbEncoding.Value = 0;
+            tsbFormat.Enabled = tsbPalette.Enabled = false;
 
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
             var result = await _imageAdapter.Encode(bitmapInfo, encodingInfo, report);
             if (!result)
             {
-                MessageBox.Show("Encoding was not successful.", "Encoding unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Encoding was not successful.", "Encoding was unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 tsbFormat.Enabled = true;
+                tsbPalette.Enabled = _imageAdapter is IIndexedImageAdapter;
                 return result;
             }
-            bitmapInfo.ImageEncoding = encodingInfo;
 
             UpdatePreview();
             UpdateImageList();
 
             tsbFormat.Enabled = true;
+            tsbPalette.Enabled = _imageAdapter is IIndexedImageAdapter;
 
             return result;
         }
@@ -223,14 +250,12 @@ namespace Kuriimu2_WinForms.FormatForms
             tsbSave.Enabled = _imageAdapter is ISaveFiles;
             tsbSaveAs.Enabled = _imageAdapter is ISaveFiles && Kfi.ParentKfi == null;
 
-            try
-            {
-                tsbFormat.Enabled = _imageAdapter.ImageEncodingInfos?.Any() ?? false;
-            }
-            catch
-            {
-                tsbFormat.Enabled = false;
-            }
+            var isIndexed = _imageAdapter is IIndexedImageAdapter;
+            tslPalette.Visible = isIndexed;
+            tsbPalette.Visible = isIndexed;
+            tsbPalette.Enabled = isIndexed && ((_imageAdapter as IIndexedImageAdapter).PaletteEncodingInfos?.Any() ?? false);
+
+            tsbFormat.Enabled = _imageAdapter.ImageEncodingInfos?.Any() ?? false;
         }
 
         private void ImageForm_Load(object sender, EventArgs e)
@@ -335,9 +360,19 @@ namespace Kuriimu2_WinForms.FormatForms
             // Format Dropdown
             tsbFormat.Text = _selectedBitmapInfo.ImageEncoding.EncodingName;
             tsbFormat.Tag = _selectedBitmapInfo.ImageEncoding.EncodingIndex;
-            // Updated selected format
+            // Update selected format
             foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
                 tsm.Checked = ((EncodingInfo)tsm.Tag).EncodingIndex == _selectedBitmapInfo.ImageEncoding.EncodingIndex;
+
+            // Palette Dropdown
+            if (_imageAdapter is IIndexedImageAdapter && _selectedBitmapInfo is IndexedBitmapInfo indexedInfo)
+            {
+                tsbPalette.Text = indexedInfo.PaletteEncoding.EncodingName;
+                tsbPalette.Tag = indexedInfo.PaletteEncoding.EncodingIndex;
+                // Update selected palette format
+                foreach (ToolStripMenuItem tsm in tsbPalette.DropDownItems)
+                    tsm.Checked = ((EncodingInfo)tsm.Tag).EncodingIndex == indexedInfo.PaletteEncoding.EncodingIndex;
+            }
         }
 
         private void GenerateThumbnailBackground()

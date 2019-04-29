@@ -53,6 +53,7 @@
     <Compile Include="ConvertTests.cs" />
     <Compile Include="RgbaTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RgbTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
