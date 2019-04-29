@@ -255,6 +255,8 @@ namespace Kuriimu2_WinForms.FormatForms
             tsbPalette.Visible = isIndexed;
             tsbPalette.Enabled = isIndexed && ((_imageAdapter as IIndexedImageAdapter).PaletteEncodingInfos?.Any() ?? false);
 
+            splProperties.Panel2Collapsed = !isIndexed;
+
             tsbFormat.Enabled = _imageAdapter.ImageEncodingInfos?.Any() ?? false;
         }
 
@@ -328,7 +330,7 @@ namespace Kuriimu2_WinForms.FormatForms
             if (_imageAdapter.BitmapInfos.Count > 0)
             {
                 imbPreview.Image = _selectedBitmapInfo.Image;
-                pptImageProperties.SelectedObject = _selectedBitmapInfo;
+                //pptImageProperties.SelectedObject = _selectedBitmapInfo;
             }
 
             // Grid Color 1
@@ -364,15 +366,39 @@ namespace Kuriimu2_WinForms.FormatForms
             foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
                 tsm.Checked = ((EncodingInfo)tsm.Tag).EncodingIndex == _selectedBitmapInfo.ImageEncoding.EncodingIndex;
 
-            // Palette Dropdown
             if (_imageAdapter is IIndexedImageAdapter && _selectedBitmapInfo is IndexedBitmapInfo indexedInfo)
             {
+                // Palette Dropdown
                 tsbPalette.Text = indexedInfo.PaletteEncoding.EncodingName;
                 tsbPalette.Tag = indexedInfo.PaletteEncoding.EncodingIndex;
                 // Update selected palette format
                 foreach (ToolStripMenuItem tsm in tsbPalette.DropDownItems)
                     tsm.Checked = ((EncodingInfo)tsm.Tag).EncodingIndex == indexedInfo.PaletteEncoding.EncodingIndex;
+
+                // Palette Picture Box
+                var dimPalette = Convert.ToInt32(Math.Sqrt(indexedInfo.ColorCount));
+                var paletteImg = ComposeImage(indexedInfo.Palette, dimPalette, dimPalette);
+                pbPalette.Image = paletteImg;
             }
+        }
+
+        public static Bitmap ComposeImage(IList<Color> colors, int width, int height)
+        {
+            var image = new Bitmap(width, height);
+            var data = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            unsafe
+            {
+                var ptr = (int*)data.Scan0;
+                for (int i = 0; i < image.Width * image.Height; i++)
+                {
+                    if (i >= colors.Count)
+                        break;
+                    ptr[i] = colors[i].ToArgb();
+                }
+            }
+            image.UnlockBits(data);
+
+            return image;
         }
 
         private void GenerateThumbnailBackground()

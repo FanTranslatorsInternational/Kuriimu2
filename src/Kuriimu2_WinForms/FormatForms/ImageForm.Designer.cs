@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using Kuriimu2_WinForms.Controls;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
@@ -57,9 +58,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.treBitmaps = new System.Windows.Forms.TreeView();
             this.imlBitmaps = new System.Windows.Forms.ImageList(this.components);
-            this.pptImageProperties = new System.Windows.Forms.PropertyGrid();
-            this.tlsProperties = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
+            this.pbPalette = new Kuriimu2_WinForms.Controls.PictureBoxWithInterpolationMode();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -72,7 +71,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties.Panel1.SuspendLayout();
             this.splProperties.Panel2.SuspendLayout();
             this.splProperties.SuspendLayout();
-            this.tlsProperties.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).BeginInit();
             this.SuspendLayout();
             // 
             // tlsMain
@@ -316,8 +315,7 @@ namespace Kuriimu2_WinForms.FormatForms
             // 
             // splProperties.Panel2
             // 
-            this.splProperties.Panel2.Controls.Add(this.pptImageProperties);
-            this.splProperties.Panel2.Controls.Add(this.tlsProperties);
+            this.splProperties.Panel2.Controls.Add(this.pbPalette);
             this.splProperties.Size = new System.Drawing.Size(215, 446);
             this.splProperties.SplitterDistance = 236;
             this.splProperties.TabIndex = 0;
@@ -346,33 +344,19 @@ namespace Kuriimu2_WinForms.FormatForms
             this.imlBitmaps.ImageSize = new System.Drawing.Size(94, 64);
             this.imlBitmaps.TransparentColor = System.Drawing.Color.Transparent;
             // 
-            // pptImageProperties
+            // pbPalette
             // 
-            this.pptImageProperties.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pptImageProperties.LineColor = System.Drawing.SystemColors.ControlDark;
-            this.pptImageProperties.Location = new System.Drawing.Point(0, 25);
-            this.pptImageProperties.Name = "pptImageProperties";
-            this.pptImageProperties.Size = new System.Drawing.Size(215, 181);
-            this.pptImageProperties.TabIndex = 1;
-            this.pptImageProperties.ToolbarVisible = false;
-            // 
-            // tlsProperties
-            // 
-            this.tlsProperties.AutoSize = false;
-            this.tlsProperties.BackColor = System.Drawing.Color.Transparent;
-            this.tlsProperties.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-            this.tlsProperties.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripLabel1});
-            this.tlsProperties.Location = new System.Drawing.Point(0, 0);
-            this.tlsProperties.Name = "tlsProperties";
-            this.tlsProperties.Size = new System.Drawing.Size(215, 25);
-            this.tlsProperties.TabIndex = 0;
-            // 
-            // toolStripLabel1
-            // 
-            this.toolStripLabel1.Name = "toolStripLabel1";
-            this.toolStripLabel1.Size = new System.Drawing.Size(60, 22);
-            this.toolStripLabel1.Text = "Properties";
+            this.pbPalette.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pbPalette.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbPalette.ErrorImage = null;
+            this.pbPalette.InitialImage = null;
+            this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            this.pbPalette.Location = new System.Drawing.Point(0, 0);
+            this.pbPalette.Name = "pbPalette";
+            this.pbPalette.Size = new System.Drawing.Size(215, 206);
+            this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pbPalette.TabIndex = 0;
+            this.pbPalette.TabStop = false;
             // 
             // ImageForm
             // 
@@ -396,8 +380,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splProperties)).EndInit();
             this.splProperties.ResumeLayout(false);
-            this.tlsProperties.ResumeLayout(false);
-            this.tlsProperties.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -411,9 +394,6 @@ namespace Kuriimu2_WinForms.FormatForms
         private ContextMenuStrip cmsPreview;
         private TreeView treBitmaps;
         private SplitContainer splProperties;
-        private PropertyGrid pptImageProperties;
-        private ToolStrip tlsProperties;
-        private ToolStripLabel toolStripLabel1;
         private ToolStripButton tsbSave;
         private ToolStripButton tsbSaveAs;
         private ToolStripSeparator toolStripSeparator1;
@@ -434,5 +414,6 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStripDropDownButton tsbFormat;
         private ToolStripLabel tslPalette;
         private ToolStripDropDownButton tsbPalette;
+        private PictureBoxWithInterpolationMode pbPalette;
     }
 }
