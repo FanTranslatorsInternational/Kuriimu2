@@ -353,10 +353,12 @@ namespace Kuriimu2_WinForms.FormatForms
             this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
             this.pbPalette.Location = new System.Drawing.Point(0, 0);
             this.pbPalette.Name = "pbPalette";
+            this.pbPalette.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             this.pbPalette.Size = new System.Drawing.Size(215, 206);
             this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbPalette.TabIndex = 0;
             this.pbPalette.TabStop = false;
+            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PbPalette_MouseClick);
             // 
             // ImageForm
             // 

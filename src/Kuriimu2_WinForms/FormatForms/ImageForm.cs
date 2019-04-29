@@ -204,7 +204,8 @@ namespace Kuriimu2_WinForms.FormatForms
             if (!tsbFormat.Enabled && !tsbPalette.Enabled)
                 return false;
 
-            tsbFormat.Enabled = tsbPalette.Enabled = false;
+            DisablePaletteControls();
+            DisableImageControls();
 
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
@@ -217,11 +218,9 @@ namespace Kuriimu2_WinForms.FormatForms
                 return result;
             }
 
+            UpdateForm();
             UpdatePreview();
             UpdateImageList();
-
-            tsbFormat.Enabled = true;
-            tsbPalette.Enabled = _imageAdapter is IIndexedImageAdapter;
 
             return result;
         }
@@ -250,10 +249,11 @@ namespace Kuriimu2_WinForms.FormatForms
             tsbSave.Enabled = _imageAdapter is ISaveFiles;
             tsbSaveAs.Enabled = _imageAdapter is ISaveFiles && Kfi.ParentKfi == null;
 
-            var isIndexed = _imageAdapter is IIndexedImageAdapter;
+            var isIndexed = _selectedBitmapInfo is IndexedBitmapInfo;
             tslPalette.Visible = isIndexed;
             tsbPalette.Visible = isIndexed;
             tsbPalette.Enabled = isIndexed && ((_imageAdapter as IIndexedImageAdapter).PaletteEncodingInfos?.Any() ?? false);
+            pbPalette.Enabled = isIndexed;
 
             splProperties.Panel2Collapsed = !isIndexed;
 
@@ -554,6 +554,46 @@ namespace Kuriimu2_WinForms.FormatForms
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
             if (files.Length > 0 && File.Exists(files[0]))
                 Import(files[0]);
+        }
+
+        private async void PbPalette_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo) || !pbPalette.Enabled)
+                return;
+
+            DisablePaletteControls();
+            DisableImageControls();
+
+            var index = GetPaletteIndex(e.Location);
+            if (index >= indexInfo.ColorCount)
+                return;
+
+            // TODO: Choose Color somehow
+
+            var progress = new Progress<ProgressReport>();
+            progress.ProgressChanged += Report_ProgressChanged;
+            await indexAdapter.SetColorInPalette(indexInfo, Color.BlueViolet, index, progress);
+
+            UpdateForm();
+            UpdatePreview();
+        }
+
+        private int GetPaletteIndex(Point point)
+        {
+            var xIndex = point.X / (pbPalette.Width / pbPalette.Image.Width);
+            var yIndex = point.Y / (pbPalette.Height / pbPalette.Image.Height);
+            return yIndex * pbPalette.Image.Width + xIndex;
+        }
+
+        private void DisablePaletteControls()
+        {
+            pbPalette.Enabled = false;
+            tsbPalette.Enabled = false;
+        }
+
+        private void DisableImageControls()
+        {
+            tsbFormat.Enabled = false;
         }
     }
 }
