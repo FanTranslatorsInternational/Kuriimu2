@@ -73,7 +73,7 @@
     <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\Common\ICreateFiles.cs" />
     <Compile Include="Models\Image\BitmapInfo.cs" />
-    <Compile Include="Models\Image\FormatInfo.cs" />
+    <Compile Include="Models\Image\EncodingInfo.cs" />
     <Compile Include="Interfaces\Image\IImageAdapter.cs" />
     <Compile Include="Interfaces\Common\ILoadStreams.cs" />
     <Compile Include="Interfaces\Common\ILoadFiles.cs" />

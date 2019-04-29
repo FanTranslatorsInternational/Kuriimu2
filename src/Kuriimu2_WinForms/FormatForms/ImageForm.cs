@@ -61,7 +61,7 @@ namespace Kuriimu2_WinForms.FormatForms
             _bestBitmaps = _imageAdapter.BitmapInfos.Select(x => (Bitmap)x.Image.Clone()).ToArray();
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
-            tsbFormat.DropDownItems.AddRange(_imageAdapter.FormatInfos?.Select(f => new ToolStripMenuItem { Text = f.FormatName, Tag = f, Checked = f.FormatIndex == _selectedBitmapInfo.FormatInfo.FormatIndex }).ToArray());
+            tsbFormat.DropDownItems.AddRange(_imageAdapter.ImageEncodingInfos?.Select(f => new ToolStripMenuItem { Text = f.EncodingName, Tag = f, Checked = f.EncodingIndex == _selectedBitmapInfo.ImageEncoding.EncodingIndex }).ToArray());
             if (tsbFormat.DropDownItems.Count > 0)
                 foreach (var tsb in tsbFormat.DropDownItems)
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
@@ -79,10 +79,10 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             var tsb = (ToolStripMenuItem)sender;
 
-            if (_selectedBitmapInfo.FormatInfo.FormatIndex != ((FormatInfo)tsb.Tag).FormatIndex)
+            if (_selectedBitmapInfo.ImageEncoding.EncodingIndex != ((EncodingInfo)tsb.Tag).EncodingIndex)
             {
                 _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
-                var result = ImageEncode(_selectedBitmapInfo, (FormatInfo)tsb.Tag);
+                var result = ImageEncode(_selectedBitmapInfo, (EncodingInfo)tsb.Tag);
 
                 if (result.IsCompleted)
                 {
@@ -159,7 +159,7 @@ namespace Kuriimu2_WinForms.FormatForms
             {
                 _selectedBitmapInfo.Image = new Bitmap(filename);
                 _bestBitmaps[_selectedImageIndex] = (Bitmap)_selectedBitmapInfo.Image.Clone();
-                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.FormatInfo);
+                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.ImageEncoding);
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -169,7 +169,7 @@ namespace Kuriimu2_WinForms.FormatForms
             }
         }
 
-        private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, FormatInfo formatInfo)
+        private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo)
         {
             if (!tsbFormat.Enabled)
                 return false;
@@ -182,14 +182,14 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
-            var result = await _imageAdapter.Encode(bitmapInfo, formatInfo, report);
+            var result = await _imageAdapter.Encode(bitmapInfo, encodingInfo, report);
             if (!result)
             {
                 MessageBox.Show("Encoding was not successful.", "Encoding unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 tsbFormat.Enabled = true;
                 return result;
             }
-            bitmapInfo.FormatInfo = formatInfo;
+            bitmapInfo.ImageEncoding = encodingInfo;
 
             UpdatePreview();
             UpdateImageList();
@@ -225,7 +225,7 @@ namespace Kuriimu2_WinForms.FormatForms
 
             try
             {
-                tsbFormat.Enabled = _imageAdapter.FormatInfos?.Any() ?? false;
+                tsbFormat.Enabled = _imageAdapter.ImageEncodingInfos?.Any() ?? false;
             }
             catch
             {
@@ -333,11 +333,11 @@ namespace Kuriimu2_WinForms.FormatForms
             tsbImageBorderColor.Image = ibcBitmap;
 
             // Format Dropdown
-            tsbFormat.Text = _selectedBitmapInfo.FormatInfo.FormatName;
-            tsbFormat.Tag = _selectedBitmapInfo.FormatInfo.FormatIndex;
+            tsbFormat.Text = _selectedBitmapInfo.ImageEncoding.EncodingName;
+            tsbFormat.Tag = _selectedBitmapInfo.ImageEncoding.EncodingIndex;
             // Updated selected format
             foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
-                tsm.Checked = ((FormatInfo)tsm.Tag).FormatIndex == _selectedBitmapInfo.FormatInfo.FormatIndex;
+                tsm.Checked = ((EncodingInfo)tsm.Tag).EncodingIndex == _selectedBitmapInfo.ImageEncoding.EncodingIndex;
         }
 
         private void GenerateThumbnailBackground()

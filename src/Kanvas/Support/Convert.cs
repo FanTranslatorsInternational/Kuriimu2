@@ -1,33 +1,81 @@
 ﻿using System;
+using System.Linq;
 using Kanvas.Models;
 
 namespace Kanvas.Support
 {
     internal static class Convert
     {
+        #region From byte[]
         public static TOut FromByteArray<TOut>(byte[] input, ByteOrder byteOrder)
         {
-            var outType = typeof(TOut);
-
-            if (!outType.IsPrimitive)
+            if (!typeof(TOut).IsPrimitive)
                 throw new InvalidOperationException($"Type is not supported in this method.");
 
-            var typeCode = Type.GetTypeCode(outType);
+            if (TryToNumber<TOut>(input, byteOrder, out var res))
+                return res;
+
+            return default;
+        }
+
+        private static bool TryToNumber<T>(byte[] data, ByteOrder byteOrder, out T result)
+        {
+            result = default;
+
+            var typeCode = Type.GetTypeCode(typeof(T));
+            object value;
+            byte[] buffer;
             switch (typeCode)
             {
                 case TypeCode.Int16:
+                    value = UseBitConverter(data, byteOrder, 2, BitConverter.ToInt16);
+                    break;
                 case TypeCode.UInt16:
-                    return ToNumber<TOut>(input, 2, byteOrder);
+                    value = UseBitConverter(data, byteOrder, 2, BitConverter.ToUInt16);
+                    break;
                 case TypeCode.Int32:
+                    value = UseBitConverter(data, byteOrder, 4, BitConverter.ToInt32);
+                    break;
                 case TypeCode.UInt32:
-                    return ToNumber<TOut>(input, 4, byteOrder);
+                    value = UseBitConverter(data, byteOrder, 4, BitConverter.ToUInt32);
+                    break;
                 case TypeCode.Int64:
+                    value = UseBitConverter(data, byteOrder, 8, BitConverter.ToInt64);
+                    break;
                 case TypeCode.UInt64:
-                    return ToNumber<TOut>(input, 8, byteOrder);
+                    value = UseBitConverter(data, byteOrder, 8, BitConverter.ToUInt64);
+                    break;
                 default:
-                    throw new InvalidOperationException($"{typeCode} is not supported.");
+                    return false;
             }
+
+            result = (T)System.Convert.ChangeType(value, typeof(T));
+            return true;
         }
+
+        private static T UseBitConverter<T>(byte[] input, ByteOrder byteOrder, int arraySize, Func<byte[], int, T> func)
+        {
+            if (input.Length <= 0)
+                throw new ArgumentOutOfRangeException(nameof(input));
+
+            byte[] buffer = new byte[arraySize];
+            if (byteOrder == ByteOrder.LittleEndian)
+            {
+                var lengthToCopy = Math.Min(arraySize, input.Length);
+                Array.Copy(input, input.Length - lengthToCopy, buffer, arraySize - lengthToCopy, lengthToCopy);
+            }
+            else
+            {
+                Array.Copy(input, 0, buffer, 0, Math.Min(arraySize,input.Length));
+            }
+
+            if (BitConverter.IsLittleEndian && byteOrder == ByteOrder.LittleEndian ||
+                !BitConverter.IsLittleEndian && byteOrder == ByteOrder.BigEndian)
+                return func(buffer, 0);
+
+            return func(buffer.Reverse().ToArray(), 0);
+        }
+        #endregion
 
         public static byte[] ToByteArray<TIn>(TIn input, int limit, ByteOrder byteOrder)
         {
@@ -49,39 +97,6 @@ namespace Kanvas.Support
                 default:
                     throw new InvalidOperationException($"{typeCode} is not supported.");
             }
-        }
-
-        private static T ToNumber<T>(byte[] data, int limit, ByteOrder byteOrder)
-        {
-            if (limit <= 0)
-                throw new ArgumentOutOfRangeException(nameof(limit));
-            if (data.Length > limit)
-                throw new ArgumentOutOfRangeException(nameof(data));
-
-            ulong result = 0;
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (byteOrder == ByteOrder.LittleEndian)
-                    result |= (ulong)(data[i] << (i * 8));
-                else
-                    result = (result << 8) | data[i];
-            }
-
-            var typeCode = Type.GetTypeCode(typeof(T));
-            switch (typeCode)
-            {
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    return FromInteger(input, limit, byteOrder);
-                default:
-                    throw new InvalidOperationException($"{typeCode} is not supported.");
-            }
-
-            return (T)System.Convert.ChangeType(result, typeof(T));
         }
 
         private static byte[] FromInteger<T>(T input, int limit, ByteOrder byteOrder)

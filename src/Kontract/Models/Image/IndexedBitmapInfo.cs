@@ -10,10 +10,28 @@ namespace Kontract.Models.Image
     public class IndexedBitmapInfo : BitmapInfo
     {
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="imageEncoding"></param>
+        /// <param name="palette"></param>
+        public IndexedBitmapInfo(Bitmap image, EncodingInfo imageEncoding, IList<Color> palette, EncodingInfo paletteEncoding) : base(image, imageEncoding)
+        {
+            Palette = palette;
+            PaletteEncoding = paletteEncoding;
+        }
+
+        /// <summary>
         /// The palette of the main image.
         /// </summary>
         [Browsable(false)]
         public IList<Color> Palette { get; set; }
+
+        /// <summary>
+        /// The format in which the palette is encoded.
+        /// </summary>
+        [Browsable(false)]
+        public EncodingInfo PaletteEncoding { get; set; }
 
         /// <summary>
         /// The count of colors in a palette.
@@ -22,16 +40,5 @@ namespace Kontract.Models.Image
         [Description("The count of colors in a palette.")]
         [ReadOnly(true)]
         public int ColorCount => Palette?.Count ?? 0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        /// <param name="formatInfo"></param>
-        /// <param name="palette"></param>
-        public IndexedBitmapInfo(Bitmap image, FormatInfo formatInfo, IList<Color> palette) : base(image, formatInfo)
-        {
-            Palette = palette;
-        }
     }
 }

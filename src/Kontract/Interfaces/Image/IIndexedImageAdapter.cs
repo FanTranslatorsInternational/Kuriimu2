@@ -13,6 +13,11 @@ namespace Kontract.Interfaces.Image
     public interface IIndexedImageAdapter:IImageAdapter
     {
         /// <summary>
+        /// The list of formats provided by the image adapter to change encoding of the image data.
+        /// </summary>
+        IList<EncodingInfo> PaletteEncodingInfos { get; }
+
+        /// <summary>
         /// Sets the whole palette.
         /// </summary>
         /// <param name="info">The image info to set the palette in.</param>

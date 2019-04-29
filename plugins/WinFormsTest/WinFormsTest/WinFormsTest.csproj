@@ -46,8 +46,10 @@
     <Compile Include="Archive\Models\FileEntry.cs" />
     <Compile Include="Archive\Models\Header.cs" />
     <Compile Include="Image\Models\Header.cs" />
+    <Compile Include="Image\Models\IndexHeader.cs" />
     <Compile Include="Image\TestImage.cs" />
     <Compile Include="Archive\TestArchive.cs" />
+    <Compile Include="Image\TestIndexImage.cs" />
     <Compile Include="TestGame.cs" />
     <Compile Include="TestText.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

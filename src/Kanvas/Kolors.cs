@@ -14,6 +14,39 @@ namespace Kanvas
     /// </summary>
     public static class Kolors
     {
+        #region General
+        public static IList<Color> DecomposeImage(Bitmap image)
+        {
+            var result = new Color[image.Width * image.Height];
+
+            var data = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            unsafe
+            {
+                var ptr = (int*)data.Scan0;
+                for (int i = 0; i < image.Width * image.Height; i++)
+                    result[i] = Color.FromArgb(ptr[i]);
+            }
+            image.UnlockBits(data);
+
+            return result;
+        }
+
+        public static Bitmap ComposeImage(IList<Color> colors,int width,int height)
+        {
+            var image=new Bitmap(width,height);
+            var data = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            unsafe
+            {
+                var ptr = (int*)data.Scan0;
+                for (int i = 0; i < image.Width * image.Height; i++)
+                    ptr[i] = colors[i].ToArgb();
+            }
+            image.UnlockBits(data);
+
+            return image;
+        }
+        #endregion
+
         #region Image encoding
 
         /// <summary>
@@ -160,7 +193,6 @@ namespace Kanvas
                 }
             }
 
-            // TODO: Implement palette override
             // Decompose/Quantize colors
             var (indices, palette) = settings.QuantizationSettings != null ?
                 settings.IndexEncoding.Quantize(colors, settings.QuantizationSettings) :
@@ -181,7 +213,7 @@ namespace Kanvas
         /// <returns>Collection of indices and a palette.</returns>
         public static (IEnumerable<int> indeces, IList<Color> palette) Quantize(Bitmap image,
             QuantizationSettings settings)
-            => Quantize(Decompose(image), settings);
+            => Quantize(DecomposeImage(image), settings);
 
         /// <summary>
         /// Quantizes a collection of colors.
@@ -226,22 +258,6 @@ namespace Kanvas
 
                 yield return point;
             }
-        }
-
-        private static IList<Color> Decompose(Bitmap image)
-        {
-            var result = new Color[image.Width * image.Height];
-
-            var data = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            unsafe
-            {
-                var ptr = (int*)data.Scan0;
-                for (int i = 0; i < image.Width * image.Height; i++)
-                    result[i] = Color.FromArgb(ptr[i]);
-            }
-            image.UnlockBits(data);
-
-            return result;
         }
 
         private static void SetupQuantization(QuantizationSettings settings)

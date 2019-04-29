@@ -18,17 +18,17 @@ namespace Kontract.Interfaces.Image
         IList<BitmapInfo> BitmapInfos { get; }
 
         /// <summary>
-        /// The list of formats provided by the image adapter to change encoding
+        /// The list of formats provided by the image adapter to change encoding of the image data.
         /// </summary>
-        IList<FormatInfo> FormatInfos { get; }
+        IList<EncodingInfo> ImageEncodingInfos { get; }
 
         /// <summary>
         /// Instructs the plugin to encode the bitmaps and report progress as it goes.
         /// </summary>
         /// <param name="bitmapInfo">The <see cref="BitmapInfo"/> to be encoded.</param>
-        /// <param name="formatInfo">The <see cref="FormatInfo"/> to encode into.</param>
+        /// <param name="encodingInfo">The <see cref="EncodingInfo"/> to encode into.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
-        Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress);
+        Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo, IProgress<ProgressReport> progress);
     }
 }

@@ -14,11 +14,11 @@ namespace Kontract.Models.Image
         /// 
         /// </summary>
         /// <param name="image"></param>
-        /// <param name="formatInfo"></param>
-        public BitmapInfo(Bitmap image, FormatInfo formatInfo)
+        /// <param name="imageEncoding"></param>
+        public BitmapInfo(Bitmap image, EncodingInfo imageEncoding)
         {
             Image = image;
-            FormatInfo = formatInfo;
+            ImageEncoding = imageEncoding;
         }
 
         /// <summary>
@@ -58,6 +58,6 @@ namespace Kontract.Models.Image
         /// The image format information for encoding and decoding purposes
         /// </summary>
         [Browsable(false)]
-        public FormatInfo FormatInfo { get; set; }
+        public EncodingInfo ImageEncoding { get; set; }
     }
 }

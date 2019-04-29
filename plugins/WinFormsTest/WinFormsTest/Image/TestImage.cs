@@ -29,9 +29,9 @@ namespace WinFormsTest.Image
 
         public IList<BitmapInfo> BitmapInfos { get; private set; }
 
-        public IList<FormatInfo> FormatInfos { get; private set; } =
-            _encodings.Select(x => new FormatInfo(x.Key, x.Value.FormatName)).ToList();
-        public Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
+        public IList<EncodingInfo> ImageEncodingInfos { get; private set; } =
+            _encodings.Select(x => new EncodingInfo(x.Key, x.Value.FormatName)).ToList();
+        public Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo, IProgress<ProgressReport> progress)
         {
             return Task.Factory.StartNew(() =>
             {
@@ -39,10 +39,10 @@ namespace WinFormsTest.Image
 
                 progress.Report(new ProgressReport { Message = "Re-encode..." });
                 var encoded = Kanvas.Kolors.Save(img,
-                    new ImageSettings(_encodings[formatInfo.FormatIndex], img.Width, img.Height));
+                    new ImageSettings(_encodings[encodingInfo.EncodingIndex], img.Width, img.Height));
                 progress.Report(new ProgressReport { Message = "Re-encode...", Percentage = 50 });
                 var newImg = Kanvas.Kolors.Load(encoded,
-                    new ImageSettings(_encodings[formatInfo.FormatIndex], img.Width, img.Height));
+                    new ImageSettings(_encodings[encodingInfo.EncodingIndex], img.Width, img.Height));
                 progress.Report(new ProgressReport { Message = "Re-encode...", Percentage = 100 });
 
                 bitmapInfo.Image = newImg;
@@ -55,7 +55,7 @@ namespace WinFormsTest.Image
         {
             _encodings = null;
             BitmapInfos = null;
-            FormatInfos = null;
+            ImageEncodingInfos = null;
         }
 
         public bool LeaveOpen { get; set; }
@@ -68,7 +68,7 @@ namespace WinFormsTest.Image
 
                 var img = Kanvas.Kolors.Load(imageData,
                     new ImageSettings(_encodings[header.format], header.width, header.height));
-                var info = new BitmapInfo(img, FormatInfos.First(x => x.FormatIndex == header.format));
+                var info = new BitmapInfo(img, ImageEncodingInfos.First(x => x.EncodingIndex == header.format));
                 BitmapInfos = new List<BitmapInfo>
                 {
                     info
@@ -80,12 +80,12 @@ namespace WinFormsTest.Image
         {
             var info = BitmapInfos.First();
             var imageData = Kanvas.Kolors.Save(info.Image,
-                new ImageSettings(_encodings[info.FormatInfo.FormatIndex], info.Image.Width, info.Image.Height));
+                new ImageSettings(_encodings[info.ImageEncoding.EncodingIndex], info.Image.Width, info.Image.Height));
 
             var header = new Header
             {
                 dataLength = imageData.Length,
-                format = info.FormatInfo.FormatIndex,
+                format = info.ImageEncoding.EncodingIndex,
                 width = info.Image.Width,
                 height = info.Image.Height
             };
