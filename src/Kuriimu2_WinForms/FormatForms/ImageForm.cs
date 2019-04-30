@@ -569,13 +569,16 @@ namespace Kuriimu2_WinForms.FormatForms
                 return;
 
             // TODO: Choose Color somehow
+            if (clrDialog.ShowDialog() != DialogResult.OK)
+                return;
 
             var progress = new Progress<ProgressReport>();
             progress.ProgressChanged += Report_ProgressChanged;
-            await indexAdapter.SetColorInPalette(indexInfo, Color.BlueViolet, index, progress);
+            await indexAdapter.SetColorInPalette(indexInfo, clrDialog.Color, index, progress);
 
             UpdateForm();
             UpdatePreview();
+            UpdateImageList();
         }
 
         private int GetPaletteIndex(Point point)

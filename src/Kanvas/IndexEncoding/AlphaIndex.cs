@@ -98,6 +98,20 @@ namespace Kanvas.IndexEncoding
             return (indices, palette.Values.ToList());
         }
 
+        /// <inheritdoc cref="IIndexEncoding.DecomposeWithPalette(IEnumerable{Color},IList{Color})"/>
+        public IEnumerable<IndexData> DecomposeWithPalette(IEnumerable<Color> colors, IList<Color> palette)
+        {
+            var paletteKeys = palette.Select(c => c.ToArgb() & 0x00FFFFFF).ToList();
+            foreach (var c in colors)
+            {
+                var colorKey = c.ToArgb() & 0x00FFFFFF;
+
+                var index = paletteKeys.IndexOf(colorKey);
+
+                yield return new AlphaIndexData(c.A, index);
+            }
+        }
+
         /// <inheritdoc cref="IIndexEncoding.Quantize(IEnumerable{Color},QuantizationSettings)"/>
         public (IEnumerable<IndexData> indices, IList<Color> palette) Quantize(IEnumerable<Color> colors, QuantizationSettings settings)
         {
