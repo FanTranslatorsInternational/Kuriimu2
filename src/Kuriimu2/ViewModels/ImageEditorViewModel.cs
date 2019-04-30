@@ -122,6 +122,7 @@ namespace Kuriimu2.ViewModels
                     SelectedPaletteImage = Kore.Utilities.Image.ComposeImage(indexedInfo.Palette, dimensions, dimensions).ToBitmapImage(true);
                 }
                 NotifyOfPropertyChange(() => SelectedBitmap);
+                NotifyOfPropertyChange(() => PaletteImageVisibility);
             }
         }
 
@@ -137,7 +138,7 @@ namespace Kuriimu2.ViewModels
         }
 
         // Palette
-        public Visibility PaletteImageVisibility => (_adapter is IIndexedImageAdapter) ? Visibility.Visible : Visibility.Hidden;
+        public Visibility PaletteImageVisibility => (_adapter is IIndexedImageAdapter && _selectedBitmapEntry.BitmapInfo is IndexedBitmapInfo) ? Visibility.Visible : Visibility.Hidden;
 
         public ImageSource SelectedPaletteImage
         {
@@ -147,6 +148,7 @@ namespace Kuriimu2.ViewModels
                 if (value == _selectedPaletteImage) return;
                 _selectedPaletteImage = value;
                 NotifyOfPropertyChange(() => SelectedPaletteImage);
+                NotifyOfPropertyChange(() => PaletteImageVisibility);
             }
         }
         
@@ -310,7 +312,7 @@ namespace Kuriimu2.ViewModels
 
             if (files == null || !files.Any(f => f.EndsWith(".png")))
             {
-                MessageBox.Show("None of the files were compatible image files.", "No Images", MessageBoxButton.OK);
+                MessageBox.Show("None of the files were compatible image files. (bmp, png, gif)", "No Images", MessageBoxButton.OK);
                 return;
             }
 

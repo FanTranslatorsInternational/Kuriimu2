@@ -90,7 +90,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="Auto"></RowDefinition>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0">
@@ -171,25 +171,23 @@
 
                 <Label Grid.Row="1" Height="0"></Label>
 
-                <DockPanel Grid.Row="2">
+                <DockPanel Grid.Row="2" Visibility="{Binding PaletteImageVisibility}">
                     <ToolBarPanel DockPanel.Dock="Top">
                         <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                            <Label Content="Palette" Visibility="{Binding PaletteImageVisibility}"></Label>
+                            <Label Content="Palette"></Label>
                         </ToolBar>
                     </ToolBarPanel>
 
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="1*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Image Grid.Column="0" Source="{Binding SelectedPaletteImage}" Visibility="{Binding PaletteImageVisibility}" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor" />
-
-                        <Label Grid.Column="1" Width="4"></Label>
-
-                    </Grid>
+                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray" VerticalAlignment="Top">
+                        <Border.Background>
+                            <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
+                                <VisualBrush.Visual>
+                                    <Image Source="/Images/preview-background.png" />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </Border.Background>
+                        <Image Grid.Column="0" Source="{Binding SelectedPaletteImage}" MinWidth="128" MinHeight="128" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                    </Border>
                 </DockPanel>
                 
                 <!--<DockPanel Grid.Row="2">
