@@ -122,7 +122,7 @@
     <Compile Include="Support\BCn\ImageEncoder.cs" />
     <Compile Include="Support\BCn\ImageEncodingHelper.cs" />
     <Compile Include="IndexEncoding\Models\IndexData.cs" />
-    <Compile Include="Models\IndexImageSettings.cs" />
+    <Compile Include="Models\IndexedImageSettings.cs" />
     <Compile Include="Quantization\ColorCaches\BaseColorCache.cs" />
     <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
     <Compile Include="Quantization\ColorCaches\LocalitySensitiveHashColorCache.cs" />

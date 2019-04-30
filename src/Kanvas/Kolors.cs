@@ -132,7 +132,7 @@ namespace Kanvas
         /// <param name="paletteBytes">Byte array containing the binary palette data.</param>
         /// <param name="settings">The settings determining the final image output.</param>
         /// <returns>Loaded bitmap, indices and colors.</returns>
-        public static (Bitmap image, IList<Color> palette) Load(byte[] bytes, byte[] paletteBytes, IndexImageSettings settings)
+        public static (Bitmap image, IList<Color> palette) Load(byte[] bytes, byte[] paletteBytes, IndexedImageSettings settings)
         {
             int width = settings.Width, height = settings.Height;
 
@@ -170,7 +170,7 @@ namespace Kanvas
         /// <param name="palette">The list containing all colors of the palette to use.</param>
         /// <param name="settings">The settings determining the final binary data output.</param>
         /// <returns><see cref="Tuple"/> containing 2 byte arrays.</returns>
-        public static (byte[] indexData, byte[] paletteData) Save(Bitmap bmp, IndexImageSettings settings)
+        public static (byte[] indexData, byte[] paletteData) Save(Bitmap bmp, IndexedImageSettings settings)
         {
             // Create swizzle point list
             var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height);
