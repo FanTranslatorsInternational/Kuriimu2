@@ -171,10 +171,23 @@
 
                 <Label Grid.Row="1" Height="4"></Label>
 
-                <DockPanel Grid.Row="2">
-                    <!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
-                    <TextBlock TextWrapping="Wrap" Text="{Binding StatusText}"></TextBlock>
-                </DockPanel>
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0" Source="{Binding SelectedPaletteImage}" Visibility="{Binding PaletteImageVisibility}" RenderOptions.BitmapScalingMode="NearestNeighbor"></Image>
+
+                    <Label Grid.Column="1" Width="4"></Label>
+
+                </Grid>
+                
+                <!--<DockPanel Grid.Row="2">
+                    --><!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
+                    <!--<TextBlock TextWrapping="Wrap" Text="{Binding StatusText}"></TextBlock>--><!--
+                </DockPanel>-->
             </Grid>
 
             <!-- Status bar -->
