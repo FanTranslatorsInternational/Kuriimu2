@@ -206,6 +206,21 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public void EntryProperties()
+        {
+            var prop = new Dialogs.ViewModels.PropertyEditorViewModel<TextEntry>
+            {
+                Message = "",
+                Object =  SelectedEntry
+            };
+            _windows.Add(prop);
+
+            if (_wm.ShowDialog(prop) == true)
+            {
+                // Cool
+            }
+        }
+
         public TextEntry SelectedEntry
         {
             get => _selectedEntry;
