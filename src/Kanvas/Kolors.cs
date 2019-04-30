@@ -31,9 +31,9 @@ namespace Kanvas
             return result;
         }
 
-        public static Bitmap ComposeImage(IList<Color> colors,int width,int height)
+        public static Bitmap ComposeImage(IList<Color> colors, int width, int height)
         {
-            var image=new Bitmap(width,height);
+            var image = new Bitmap(width, height);
             var data = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
             unsafe
             {
@@ -131,7 +131,7 @@ namespace Kanvas
         /// <param name="bytes">Byte array containing the binary image data.</param>
         /// <param name="paletteBytes">Byte array containing the binary palette data.</param>
         /// <param name="settings">The settings determining the final image output.</param>
-        /// <returns>Loaded bitmap.</returns>
+        /// <returns>Loaded bitmap, indices and colors.</returns>
         public static (Bitmap image, IList<Color> palette) Load(byte[] bytes, byte[] paletteBytes, IndexImageSettings settings)
         {
             int width = settings.Width, height = settings.Height;

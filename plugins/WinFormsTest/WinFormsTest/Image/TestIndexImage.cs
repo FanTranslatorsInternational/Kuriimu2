@@ -69,7 +69,7 @@ namespace WinFormsTest.Image
 
                 info.Image = newImg.image;
                 info.Palette = newImg.palette;
-                if(encodingInfo.Variant==0)
+                if (encodingInfo.Variant == 0)
                     info.SetImageEncoding(encodingInfo);
                 else
                     info.SetPaletteEncoding(encodingInfo);
@@ -110,24 +110,20 @@ namespace WinFormsTest.Image
         {
             return Task.Factory.StartNew(() =>
             {
+                //progress.Report(new ProgressReport { Message = "Replace color...", Percentage = 0 });
+
                 var enc = _indexEncodings[info.ImageEncoding.EncodingIndex];
 
-                progress.Report(new ProgressReport { Message = "Decompose image...", Percentage = 0 });
-
+                // Get index list
                 var colorList = Kanvas.Kolors.DecomposeImage(info.Image);
-                var data = enc.Decompose(colorList);
-                var changedPalette = data.palette;
-                changedPalette[index] = color;
+                var indices = enc.DecomposeWithPalette(colorList, info.Palette).ToList();
 
-                progress.Report(new ProgressReport { Message = "Compose image...", Percentage = 50 });
+                // Replace color
+                info.Palette[index] = color;
 
-                var newColorList = enc.Compose(data.indices, changedPalette);
-                var newImg = Kanvas.Kolors.ComposeImage(newColorList.ToList(), info.Image.Width, info.Image.Height);
-
-                progress.Report(new ProgressReport { Message = "Done.", Percentage = 100 });
-
-                info.Image = newImg;
-                info.Palette = changedPalette;
+                // Compose index list again
+                var newColorList = enc.Compose(indices, info.Palette).ToArray();
+                info.Image = Kanvas.Kolors.ComposeImage(newColorList, info.Image.Width, info.Image.Height);
 
                 return true;
             });

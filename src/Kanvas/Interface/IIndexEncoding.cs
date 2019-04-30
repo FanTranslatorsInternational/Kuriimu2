@@ -43,6 +43,14 @@ namespace Kanvas.Interface
         (IEnumerable<IndexData> indices, IList<Color> palette) Decompose(IEnumerable<Color> colors);
 
         /// <summary>
+        /// Decomposes a collection of colors with a given palette.
+        /// </summary>
+        /// <param name="colors">Collection of colors.</param>
+        /// <param name="palette">The palette to derive the indices from.</param>
+        /// <returns>Decomposed collection of indices.</returns>
+        IEnumerable<IndexData> DecomposeWithPalette(IEnumerable<Color> colors, IList<Color> palette);
+
+        /// <summary>
         /// Quantizes a collection of colors.
         /// </summary>
         /// <param name="colors">Collection of colors.</param>
