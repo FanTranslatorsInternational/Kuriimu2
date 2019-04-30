@@ -61,8 +61,6 @@
     <Compile Include="KoreLoadInfo.cs" />
     <Compile Include="KoreSaveInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SamplePlugins\KUP.cs" />
-    <Compile Include="SamplePlugins\KupAdapter.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Text.cs" />
   </ItemGroup>
