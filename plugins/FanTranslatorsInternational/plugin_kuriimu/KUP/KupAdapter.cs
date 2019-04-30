@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 
