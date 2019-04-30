@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\NoGameAdapter.cs" />
     <Compile Include="KUP\KUP.cs" />
     <Compile Include="KUP\KupAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
