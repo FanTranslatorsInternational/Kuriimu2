@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -65,7 +66,7 @@ namespace Kanvas.IndexEncoding
 
         /// <inheritdoc cref="IIndexEncoding.Compose(IEnumerable{IndexData},IList{Color})"/>
         public IEnumerable<Color> Compose(IEnumerable<IndexData> indices, IList<Color> palette)
-            => indices.Select(indexData => palette[indexData.Index]);
+            => indices.Select(indexData => indexData.Index < 0 || indexData.Index > palette.Count ? Color.Empty : palette[indexData.Index]);
 
         /// <inheritdoc cref="IIndexEncoding.Decompose(IEnumerable{Color})"/>
         public (IEnumerable<IndexData> indices, IList<Color> palette) Decompose(IEnumerable<Color> colors)
@@ -91,7 +92,7 @@ namespace Kanvas.IndexEncoding
         /// <inheritdoc cref="IIndexEncoding.DecomposeWithPalette(IEnumerable{Color},IList{Color})"/>
         public IEnumerable<IndexData> DecomposeWithPalette(IEnumerable<Color> colors, IList<Color> palette)
         {
-            var paletteKeys = palette.Select(c => c.ToArgb() & (!_allowAlpha ? 0x00FFFFFF : 0xFFFFFFFF)).ToList();
+            var paletteKeys = palette.Select(c => (int)(c.ToArgb() & (!_allowAlpha ? 0x00FFFFFF : 0xFFFFFFFF))).ToList();
             foreach (var c in colors)
             {
                 var colorKey = c.ToArgb();
@@ -99,6 +100,8 @@ namespace Kanvas.IndexEncoding
                     colorKey &= 0x00FFFFFF;
 
                 var index = paletteKeys.IndexOf(colorKey);
+                if (index < 0)
+                    Debugger.Break();
 
                 yield return new IndexData(index);
             }

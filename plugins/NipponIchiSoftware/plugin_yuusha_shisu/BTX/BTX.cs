@@ -78,19 +78,19 @@ namespace plugin_yuusha_shisu.BTX
                     br.BaseStream.Position = Header.PaletteOffset;
                     var palette = br.ReadBytes(paletteDataLength);
 
-                    var settings = new IndexedImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var settings = new IndexedImageSettings(IndexEncodings[(int)Header.Format], PaletteEncodings[(int)Header.Format], Header.Width, Header.Height);
                     var data = Kolors.Load(texture, palette, settings);
                     Texture = data.image;
                     Palette = data.palette;
-                    FormatName = Encodings[0].FormatName;
-                    PaletteFormatName = IndexEncodings[0].FormatName;
+                    FormatName = IndexEncodings[(int)Header.Format].FormatName;
+                    PaletteFormatName = PaletteEncodings[(int)Header.Format].FormatName;
                     HasPalette = true;
                 }
                 else
                 {
-                    var settings = new ImageSettings(Encodings[0], Header.Width, Header.Height);
+                    var settings = new ImageSettings(Encodings[(int)Header.Format], Header.Width, Header.Height);
                     Texture = Kolors.Load(texture, settings);
-                    FormatName = Encodings[0].FormatName;
+                    FormatName = Encodings[(int)Header.Format].FormatName;
                 }
             }
         }
@@ -116,7 +116,7 @@ namespace plugin_yuusha_shisu.BTX
                 // Setup
                 if (Header.Format == ImageFormat.Palette_8)
                 {
-                    var settings = new IndexedImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var settings = new IndexedImageSettings(IndexEncodings[(int)Header.Format], PaletteEncodings[(int)Header.Format], Header.Width, Header.Height);
                     var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data.indexData);
@@ -124,7 +124,7 @@ namespace plugin_yuusha_shisu.BTX
                 }
                 else
                 {
-                    var settings = new ImageSettings(Encodings[0], Header.Width, Header.Height);
+                    var settings = new ImageSettings(Encodings[(int)Header.Format], Header.Width, Header.Height);
                     var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data);
@@ -145,7 +145,15 @@ namespace plugin_yuusha_shisu.BTX
         /// </summary>
         public static Dictionary<int, IIndexEncoding> IndexEncodings = new Dictionary<int, IIndexEncoding>
         {
-            [0] = new Index(8, true)
+            [5] = new Index(8, true)
+        };
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Dictionary<int, IColorEncoding> PaletteEncodings = new Dictionary<int, IColorEncoding>
+        {
+            [5] = new RGBA(8, 8, 8, 8) { ByteOrder = Kanvas.Models.ByteOrder.BigEndian }
         };
     }
 }

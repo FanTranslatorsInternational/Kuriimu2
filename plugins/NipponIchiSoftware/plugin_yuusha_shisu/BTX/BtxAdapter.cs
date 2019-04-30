@@ -28,11 +28,13 @@ namespace plugin_yuusha_shisu.BTX
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<EncodingInfo> ImageEncodingInfos => BTX.Encodings.Select(x => new EncodingInfo((int)x.Key, x.Value.FormatName)).Union(BTX.IndexEncodings.Select(x => new EncodingInfo((int)x.Key, x.Value.FormatName))).ToList();
+        public IList<EncodingInfo> ImageEncodingInfos =>
+            BTX.IndexEncodings.Select(x => new EncodingInfo(x.Key, x.Value.FormatName)).Union(BTX.Encodings.Select(x => new EncodingInfo(x.Key, x.Value.FormatName))).ToList();
 
         public bool LeaveOpen { get; set; }
 
-        public IList<EncodingInfo> PaletteEncodingInfos => throw new NotImplementedException();
+        public IList<EncodingInfo> PaletteEncodingInfos =>
+            BTX.PaletteEncodings.Select(x => new EncodingInfo(x.Key, x.Value.FormatName, 1)).ToList();
 
         #endregion
 
@@ -54,9 +56,22 @@ namespace plugin_yuusha_shisu.BTX
             _format = new BTX(input.FileData);
 
             if (_format.HasPalette)
-                _bitmapInfos = new List<BitmapInfo> { new IndexedBitmapInfo(_format.Texture, new EncodingInfo((int)_format.Header.Format, _format.FormatName), _format.Palette, new EncodingInfo(0, _format.PaletteFormatName)) };
+            {
+                var indexEncodingInfo = ImageEncodingInfos.FirstOrDefault(x => x.EncodingIndex == (int)_format.Header.Format);
+                var paletteEncodingInfo = PaletteEncodingInfos.FirstOrDefault(x => x.EncodingIndex == (int) _format.Header.Format);
+                _bitmapInfos = new List<BitmapInfo>
+                {
+                    new IndexedBitmapInfo(_format.Texture,
+                        indexEncodingInfo,
+                        _format.Palette,
+                        paletteEncodingInfo)
+                };
+            }
             else
-                _bitmapInfos = new List<BitmapInfo> { new BitmapInfo(_format.Texture, new EncodingInfo((int)_format.Header.Format, _format.FormatName)) };
+                _bitmapInfos = new List<BitmapInfo>
+                {
+                    new BitmapInfo(_format.Texture, ImageEncodingInfos.First(x=>x.EncodingIndex==(int)_format.Header.Format))
+                };
         }
 
         public async Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo formatInfo, IProgress<ProgressReport> progress)
@@ -71,10 +86,27 @@ namespace plugin_yuusha_shisu.BTX
             return false;
         }
 
-        public async Task<bool> SetColorInPalette(IndexedBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress)
+        public Task<bool> SetColorInPalette(IndexedBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress)
         {
+            return Task.Factory.StartNew(() =>
+            {
+                //progress.Report(new ProgressReport { Message = "Replace color...", Percentage = 0 });
 
-            return false;
+                var enc = BTX.IndexEncodings[info.ImageEncoding.EncodingIndex];
+
+                // Get index list
+                var colorList = Kanvas.Kolors.DecomposeImage(info.Image);
+                var indices = enc.DecomposeWithPalette(colorList, info.Palette).ToList();
+
+                // Replace color
+                info.Palette[index] = color;
+
+                // Compose index list again
+                var newColorList = enc.Compose(indices, info.Palette).ToArray();
+                info.Image = Kanvas.Kolors.ComposeImage(newColorList, info.Image.Width, info.Image.Height);
+
+                return true;
+            });
         }
 
         public void Save(StreamInfo output, int versionIndex = 0)
