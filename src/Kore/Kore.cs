@@ -483,7 +483,7 @@ namespace Kore
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
             return PluginLoader.GetAdapters<ILoadFiles>().
-                Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
+                Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
                     ToLower().TrimEnd(';').Split(';').Any(s => kli.FileName.ToLower().EndsWith(s.TrimStart('*')))
                 ).Select(x =>
                 {
