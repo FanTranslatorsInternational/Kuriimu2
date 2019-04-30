@@ -176,9 +176,9 @@ namespace Kuriimu2_WinForms.FormatForms
             deleteFileToolStripMenuItem.Tag = afi;
 
             // Generate supported application menu items
-            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             openFileToolStripMenuItem.Enabled = kuriimuVisible || kukkiiVisible || karameruVisible;
             openFileToolStripMenuItem.Text = openFileToolStripMenuItem.Enabled ? "Open" : "No plugins support this file";
@@ -501,9 +501,9 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var ext = Path.GetExtension(afi?.FileName);
 
-            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
-            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kuriimuVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<ITextAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var kukkiiVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IImageAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
+            var karameruVisible = ext?.Length > 0 && PluginLoader.Instance.GetAdapters<IArchiveAdapter>().Where(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Select(x => PluginLoader.Instance.GetMetadata<PluginExtensionInfoAttribute>(x)).Any(x => x.Extension.ToLower().TrimStart('*') == ext.ToLower());
 
             // Menu
             tsbSave.Enabled = _archiveAdapter is ISaveFiles;
