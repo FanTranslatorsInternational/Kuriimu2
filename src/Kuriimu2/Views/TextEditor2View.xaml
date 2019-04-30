@@ -115,6 +115,9 @@
                             <Button Name="AddEntry" ToolTip="Add Text Entry" IsEnabled="{Binding AddButtonEnabled}">
                                 <Image Source="/Images/menu-add.png" Width="16" />
                             </Button>
+                            <Button Name="EntryProperties" ToolTip="Entry Properties">
+                                <Image Source="/Images/menu-properties.png" Width="16" />
+                            </Button>
                         </ToolBar>
                     </ToolBarPanel>
 
