@@ -6,6 +6,7 @@ using Kontract.Attributes;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using System.Linq;
+using Kontract.Interfaces;
 
 namespace plugin_yuusha_shisu.PAC
 {
@@ -43,7 +44,7 @@ namespace plugin_yuusha_shisu.PAC
             // Tie-in MsgAdapter
             if (fileInfo.FileName.Contains("msg"))
                 foreach (var afi in _format.Files.Where(afi => afi.FileName.Contains("msg")).Select(afi => afi))
-                    afi.PluginIds = new string[] { "plugin_yuusha_shisu_msg" };
+                    afi.PluginNames = new string[] { "plugin_yuusha_shisu_msg" };
         }
 
         public void Save(StreamInfo primaryFile, int versionIndex = 0)

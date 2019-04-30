@@ -3,10 +3,10 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using Kanvas;
-using Kanvas.Format;
+using Kanvas.Encoding;
+using Kanvas.IndexEncoding;
 using Kanvas.Interface;
 using Kanvas.Models;
-using Kanvas.Palette;
 using Komponent.IO;
 
 namespace plugin_yuusha_shisu.BTX
@@ -34,12 +34,22 @@ namespace plugin_yuusha_shisu.BTX
         /// <summary>
         /// 
         /// </summary>
+        public string FormatName;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public bool HasPalette { get; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public IList<Color> Palette;
 
         /// <summary>
         /// 
         /// </summary>
-        public string FormatName;
+        public string PaletteFormatName;
 
         /// <summary>
         /// 
@@ -68,17 +78,19 @@ namespace plugin_yuusha_shisu.BTX
                     br.BaseStream.Position = Header.PaletteOffset;
                     var palette = br.ReadBytes(paletteDataLength);
 
-                    var settings = new PaletteImageSettings(Formats[ImageFormat.RGBA8888], PaletteFormats[ImageFormat.Palette_8], Header.Width, Header.Height);
-                    var data = Common.Load(texture, palette, settings);
+                    var settings = new IndexImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var data = Kolors.Load(texture, palette, settings);
                     Texture = data.image;
                     Palette = data.palette;
-                    FormatName = PaletteFormats[ImageFormat.Palette_8].FormatName;
+                    FormatName = Encodings[0].FormatName;
+                    PaletteFormatName = IndexEncodings[0].FormatName;
+                    HasPalette = true;
                 }
                 else
                 {
-                    var settings = new ImageSettings(Formats[ImageFormat.RGBA8888], Header.Width, Header.Height);
-                    Texture = Common.Load(texture, settings);
-                    FormatName = Formats[ImageFormat.RGBA8888].FormatName;
+                    var settings = new ImageSettings(Encodings[0], Header.Width, Header.Height);
+                    Texture = Kolors.Load(texture, settings);
+                    FormatName = Encodings[0].FormatName;
                 }
             }
         }
@@ -104,16 +116,16 @@ namespace plugin_yuusha_shisu.BTX
                 // Setup
                 if (Header.Format == ImageFormat.Palette_8)
                 {
-                    var settings = new PaletteImageSettings(Formats[ImageFormat.RGBA8888], PaletteFormats[ImageFormat.Palette_8], Header.Width, Header.Height);
-                    var data = Common.Save(Texture, Palette, settings);
+                    var settings = new IndexImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data.indexData);
                     bw.Write(data.paletteData);
                 }
                 else
                 {
-                    var settings = new ImageSettings(Formats[ImageFormat.RGBA8888], Header.Width, Header.Height);
-                    var data = Common.Save(Texture, settings);
+                    var settings = new ImageSettings(Encodings[0], Header.Width, Header.Height);
+                    var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data);
                 }
@@ -123,17 +135,17 @@ namespace plugin_yuusha_shisu.BTX
         /// <summary>
         /// 
         /// </summary>
-        public static Dictionary<ImageFormat, IImageFormat> Formats = new Dictionary<ImageFormat, IImageFormat>
+        public static Dictionary<int, IColorEncoding> Encodings = new Dictionary<int, IColorEncoding>
         {
-            [ImageFormat.RGBA8888] = new RGBA(8, 8, 8, 8) { ByteOrder = ByteOrder.BigEndian }
+            [0] = new RGBA(8, 8, 8, 8) { ByteOrder = Kanvas.Models.ByteOrder.BigEndian }
         };
 
         /// <summary>
         /// 
         /// </summary>
-        public static Dictionary<ImageFormat, IPaletteImageFormat> PaletteFormats = new Dictionary<ImageFormat, IPaletteImageFormat>
+        public static Dictionary<int, IIndexEncoding> IndexEncodings = new Dictionary<int, IIndexEncoding>
         {
-            [ImageFormat.Palette_8] = new Index(8, new RGBA(8, 8, 8))
+            [0] = new Index(8, true)
         };
     }
 }
