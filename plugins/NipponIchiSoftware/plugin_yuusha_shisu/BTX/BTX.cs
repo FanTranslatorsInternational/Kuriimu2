@@ -78,7 +78,7 @@ namespace plugin_yuusha_shisu.BTX
                     br.BaseStream.Position = Header.PaletteOffset;
                     var palette = br.ReadBytes(paletteDataLength);
 
-                    var settings = new IndexImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var settings = new IndexedImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
                     var data = Kolors.Load(texture, palette, settings);
                     Texture = data.image;
                     Palette = data.palette;
@@ -116,7 +116,7 @@ namespace plugin_yuusha_shisu.BTX
                 // Setup
                 if (Header.Format == ImageFormat.Palette_8)
                 {
-                    var settings = new IndexImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
+                    var settings = new IndexedImageSettings(IndexEncodings[0], Encodings[0], Header.Width, Header.Height);
                     var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data.indexData);
