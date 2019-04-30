@@ -54,10 +54,27 @@ namespace Kuriimu2_WinForms.FormatForms
             InitializeComponent();
 
             Kfi = kfi;
-
             _currentTab = tabPage;
             _parentTab = parentTabPage;
             _parentAdapter = parentAdapter;
+
+            try
+            {
+                if (_imageAdapter.BitmapInfos == null)
+                    throw new ArgumentNullException(nameof(_imageAdapter.BitmapInfos));
+                if(_imageAdapter.ImageEncodingInfos == null)
+                    throw new ArgumentNullException(nameof(_imageAdapter.ImageEncodingInfos));
+                if (_imageAdapter is IIndexedImageAdapter indexAdapter)
+                {
+                    if (indexAdapter.PaletteEncodingInfos == null)
+                        throw new ArgumentNullException(nameof(indexAdapter.PaletteEncodingInfos));
+                }
+            }
+            catch
+            {
+                throw new InvalidOperationException($"The plugin missed to implement a property.");
+            }
+
             _bestBitmaps = _imageAdapter.BitmapInfos.Select(x => (Bitmap)x.Image.Clone()).ToArray();
 
             imbPreview.Image = _imageAdapter.BitmapInfos.FirstOrDefault()?.Image;
@@ -69,9 +86,9 @@ namespace Kuriimu2_WinForms.FormatForms
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
 
             // populate palette format dropdown
-            if (_imageAdapter is IIndexedImageAdapter indexAdapter && _selectedBitmapInfo is IndexedBitmapInfo indexInfo)
+            if (_imageAdapter is IIndexedImageAdapter indexAdapter2 && _selectedBitmapInfo is IndexedBitmapInfo indexInfo)
             {
-                tsbPalette.DropDownItems.AddRange(indexAdapter.PaletteEncodingInfos?.Select(f => new ToolStripMenuItem { Text = f.EncodingName, Tag = f, Checked = f.EncodingIndex == indexInfo.PaletteEncoding.EncodingIndex }).ToArray());
+                tsbPalette.DropDownItems.AddRange(indexAdapter2.PaletteEncodingInfos?.Select(f => new ToolStripMenuItem { Text = f.EncodingName, Tag = f, Checked = f.EncodingIndex == indexInfo.PaletteEncoding.EncodingIndex }).ToArray());
                 if (tsbPalette.DropDownItems.Count > 0)
                     foreach (var tsb in tsbPalette.DropDownItems)
                         ((ToolStripMenuItem)tsb).Click += tsbPalette_Click;

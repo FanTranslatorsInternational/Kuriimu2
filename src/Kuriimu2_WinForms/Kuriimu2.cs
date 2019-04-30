@@ -23,6 +23,7 @@ using Kuriimu2_WinForms.Extensions;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
+using ExecutionEngineException = System.ExecutionEngineException;
 
 namespace Kuriimu2_WinForms
 {
@@ -245,6 +246,12 @@ namespace Kuriimu2_WinForms
 
                 newKfi.ParentKfi = e.Kfi;
                 var newTabPage = AddTabPage(newKfi, (sender as IKuriimuForm).TabColor, e.Kfi);
+                if (newTabPage == null)
+                {
+                    newKfi.ParentKfi = null;
+                    _kore.CloseFile(newKfi, e.LeaveOpen);
+                    return;
+                }
 
                 e.OpenedTabPage = newTabPage;
             }
@@ -373,18 +380,37 @@ namespace Kuriimu2_WinForms
                         return;
                     }
 
-                    kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                    try
                     {
-                        FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)),
-                        Adapter = pluginChooser.ChosenAdapter
-                    });
+                        kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                        {
+                            FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)),
+                            Adapter = pluginChooser.ChosenAdapter
+                        });
+                    }
+                    catch(Exception e)
+                    {
+                        MessageBox.Show(e.ToString(), "Exception catched.");
+                        openFile.Dispose();
+                        return;
+                    }
                 }
                 else
                 {
-                    kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                    try
                     {
-                        FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename))
-                    });
+                        kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                        {
+                            FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename))
+                        });
+                    }
+                    catch(Exception e)
+                    {
+                        MessageBox.Show(e.ToString(),"Exception catched.");
+                        openFile.Dispose();
+                        return;
+                    }
+
                     if (kfi == null)
                     {
                         MessageBox.Show($"No plugin supports \"{filename}\".");
@@ -394,7 +420,9 @@ namespace Kuriimu2_WinForms
                 }
 
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
-                AddTabPage(kfi, tabColor);
+                var newTabPage = AddTabPage(kfi, tabColor);
+                if (newTabPage == null)
+                    _kore.CloseFile(kfi);
             }
         }
 
@@ -407,16 +435,25 @@ namespace Kuriimu2_WinForms
             };
 
             IKuriimuForm tabControl = null;
-            if (kfi.Adapter is ITextAdapter)
-                tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _kore.GetAdapters<IGameAdapter>());
-            else if (kfi.Adapter is IImageAdapter)
-                tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
-            else if (kfi.Adapter is IArchiveAdapter)
+            try
             {
-                tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _kore.PluginLoader);
-                (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
-                (tabControl as IArchiveForm).GetAdapterById += Kuriimu2_GetAdapterById;
+                if (kfi.Adapter is ITextAdapter)
+                    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _kore.GetAdapters<IGameAdapter>());
+                else if (kfi.Adapter is IImageAdapter)
+                    tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
+                else if (kfi.Adapter is IArchiveAdapter)
+                {
+                    tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _kore.PluginLoader);
+                    (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
+                    (tabControl as IArchiveForm).GetAdapterById += Kuriimu2_GetAdapterById;
+                }
             }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Exception catched.");
+                return null;
+            }
+
             tabControl.TabColor = tabColor;
 
             if (tabControl is UserControl uc)
