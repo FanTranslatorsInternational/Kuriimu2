@@ -32,6 +32,7 @@ namespace Kuriimu2_WinForms.FormatForms
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ImageForm));
             this.tlsMain = new System.Windows.Forms.ToolStrip();
             this.tsbSave = new System.Windows.Forms.ToolStripButton();
             this.tsbSaveAs = new System.Windows.Forms.ToolStripButton();
@@ -59,6 +60,10 @@ namespace Kuriimu2_WinForms.FormatForms
             this.treBitmaps = new System.Windows.Forms.TreeView();
             this.imlBitmaps = new System.Windows.Forms.ImageList(this.components);
             this.pbPalette = new Kuriimu2_WinForms.Controls.PictureBoxWithInterpolationMode();
+            this.tlsPalette = new System.Windows.Forms.ToolStrip();
+            this.tslPaletteLabel = new System.Windows.Forms.ToolStripLabel();
+            this.tsbPaletteImport = new System.Windows.Forms.ToolStripButton();
+            this.tsbPaletteExport = new System.Windows.Forms.ToolStripButton();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -72,6 +77,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties.Panel2.SuspendLayout();
             this.splProperties.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).BeginInit();
+            this.tlsPalette.SuspendLayout();
             this.SuspendLayout();
             // 
             // tlsMain
@@ -317,6 +323,7 @@ namespace Kuriimu2_WinForms.FormatForms
             // splProperties.Panel2
             // 
             this.splProperties.Panel2.Controls.Add(this.pbPalette);
+            this.splProperties.Panel2.Controls.Add(this.tlsPalette);
             this.splProperties.Size = new System.Drawing.Size(215, 446);
             this.splProperties.SplitterDistance = 236;
             this.splProperties.TabIndex = 0;
@@ -352,14 +359,55 @@ namespace Kuriimu2_WinForms.FormatForms
             this.pbPalette.ErrorImage = null;
             this.pbPalette.InitialImage = null;
             this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            this.pbPalette.Location = new System.Drawing.Point(0, 0);
+            this.pbPalette.Location = new System.Drawing.Point(0, 25);
             this.pbPalette.Name = "pbPalette";
             this.pbPalette.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-            this.pbPalette.Size = new System.Drawing.Size(215, 206);
+            this.pbPalette.Size = new System.Drawing.Size(215, 181);
             this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbPalette.TabIndex = 0;
             this.pbPalette.TabStop = false;
             this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PbPalette_MouseClick);
+            // 
+            // tlsPalette
+            // 
+            this.tlsPalette.BackColor = System.Drawing.Color.Transparent;
+            this.tlsPalette.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tlsPalette.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslPaletteLabel,
+            this.tsbPaletteImport,
+            this.tsbPaletteExport});
+            this.tlsPalette.Location = new System.Drawing.Point(0, 0);
+            this.tlsPalette.Name = "tlsPalette";
+            this.tlsPalette.Size = new System.Drawing.Size(215, 25);
+            this.tlsPalette.TabIndex = 1;
+            this.tlsPalette.Text = "tlsPalette";
+            // 
+            // tslPaletteLabel
+            // 
+            this.tslPaletteLabel.Name = "tslPaletteLabel";
+            this.tslPaletteLabel.Size = new System.Drawing.Size(46, 22);
+            this.tslPaletteLabel.Text = "Palette:";
+            // 
+            // tsbPaletteImport
+            // 
+            this.tsbPaletteImport.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsbPaletteImport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbPaletteImport.Image = ((System.Drawing.Image)(resources.GetObject("tsbPaletteImport.Image")));
+            this.tsbPaletteImport.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbPaletteImport.Name = "tsbPaletteImport";
+            this.tsbPaletteImport.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.tsbPaletteImport.Size = new System.Drawing.Size(23, 22);
+            this.tsbPaletteImport.Click += new System.EventHandler(this.TsbPaletteImport_Click);
+            // 
+            // tsbPaletteExport
+            // 
+            this.tsbPaletteExport.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsbPaletteExport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbPaletteExport.Image = ((System.Drawing.Image)(resources.GetObject("tsbPaletteExport.Image")));
+            this.tsbPaletteExport.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbPaletteExport.Name = "tsbPaletteExport";
+            this.tsbPaletteExport.Size = new System.Drawing.Size(23, 22);
+            this.tsbPaletteExport.Click += new System.EventHandler(this.TsbPaletteExport_Click);
             // 
             // ImageForm
             // 
@@ -381,9 +429,12 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tlsTools.PerformLayout();
             this.splProperties.Panel1.ResumeLayout(false);
             this.splProperties.Panel2.ResumeLayout(false);
+            this.splProperties.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splProperties)).EndInit();
             this.splProperties.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).EndInit();
+            this.tlsPalette.ResumeLayout(false);
+            this.tlsPalette.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -418,5 +469,9 @@ namespace Kuriimu2_WinForms.FormatForms
         private ToolStripLabel tslPalette;
         private ToolStripDropDownButton tsbPalette;
         private PictureBoxWithInterpolationMode pbPalette;
+        private ToolStrip tlsPalette;
+        private ToolStripLabel tslPaletteLabel;
+        private ToolStripButton tsbPaletteImport;
+        private ToolStripButton tsbPaletteExport;
     }
 }

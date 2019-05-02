@@ -17,8 +17,11 @@ using Kontract.Interfaces.Image;
 using Kontract.Models;
 using Kontract.Models.Image;
 using Kore;
+using Kore.Utilities;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
+using Convert = System.Convert;
+using Image = System.Drawing.Image;
 
 namespace Kuriimu2_WinForms.FormatForms
 {
@@ -282,6 +285,7 @@ namespace Kuriimu2_WinForms.FormatForms
             tsbPalette.Visible = isIndexed;
             tsbPalette.Enabled = isIndexed && ((_imageAdapter as IIndexedImageAdapter).PaletteEncodingInfos?.Any() ?? false);
             pbPalette.Enabled = isIndexed;
+            tsbPaletteImport.Enabled = isIndexed;
 
             splProperties.Panel2Collapsed = !isIndexed;
 
@@ -682,6 +686,141 @@ namespace Kuriimu2_WinForms.FormatForms
             var pixelColor = _selectedBitmapInfo.Image.GetPixel(pointInImg.X, pointInImg.Y);
 
             return (_selectedBitmapInfo as IndexedBitmapInfo)?.Palette.IndexOf(pixelColor) ?? -1;
+        }
+
+        private void TsbPaletteImport_Click(object sender, EventArgs e)
+        {
+            ImportPalette();
+        }
+
+        private async void ImportPalette()
+        {
+            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo))
+                return;
+
+            var colors = LoadPaletteFile();
+            if (colors == null)
+                return;
+
+            DisablePaletteControls();
+            DisableImageControls();
+
+            var progress = new Progress<ProgressReport>();
+            progress.ProgressChanged += Report_ProgressChanged;
+            bool result;
+            try
+            {
+                result = await indexAdapter.SetPalette(indexInfo, colors, progress);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            if (!result)
+            {
+                MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
+            _bestBitmaps[_selectedImageIndex] = indexInfo.Image;
+
+            UpdateForm();
+            UpdatePreview();
+            UpdateImageList();
+        }
+
+        private IList<Color> LoadPaletteFile()
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Title = "Open palette...",
+                InitialDirectory = Settings.Default.LastDirectory,
+                Filter = "Kuriimu Palette (*.kpal)|*.kpal|Microsoft RIFF Palette (*.pal)|*.pal"
+            };
+
+            if (ofd.ShowDialog() != DialogResult.OK)
+            {
+                MessageBox.Show("Couldn't open palette file.", "Invalid file", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return null;
+            }
+
+            IList<Color> palette = null;
+            if (Path.GetExtension(ofd.FileName) == ".kpal")
+            {
+                try
+                {
+                    var kpal = KPal.FromFile(ofd.FileName);
+                    palette = kpal.Palette;
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+            }
+            else if (Path.GetExtension(ofd.FileName) == ".pal")
+            {
+                try
+                {
+                    var pal = RiffPal.FromFile(ofd.FileName);
+                    palette = pal.Palette;
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+            }
+
+            return palette;
+        }
+
+        private void TsbPaletteExport_Click(object sender, EventArgs e)
+        {
+            ExportPalette();
+        }
+
+        private void ExportPalette()
+        {
+            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo))
+                return;
+
+            SavePaletteFile(indexInfo.Palette);
+        }
+
+        private void SavePaletteFile(IList<Color> colors)
+        {
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Title = "Save palette...",
+                InitialDirectory = Settings.Default.LastDirectory,
+                Filter = "Kuriimu Palette (*.kpal)|*.kpal"
+            };
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+            {
+                MessageBox.Show("Couldn't save palette file.", "Invalid file", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                var kpal = new KPal(colors, 1, 8, 8, 8, 8);
+                kpal.Save(sfd.FileName);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
     }
 }

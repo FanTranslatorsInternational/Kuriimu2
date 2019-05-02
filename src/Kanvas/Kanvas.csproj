@@ -174,12 +174,6 @@
     <None Include="Kanvas.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Komponent\Komponent.csproj">
-      <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
-      <Name>Komponent</Name>
-    </ProjectReference>
-  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <Content Include="Libraries\astcenc.dll">

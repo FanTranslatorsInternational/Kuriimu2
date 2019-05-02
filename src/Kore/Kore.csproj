@@ -53,6 +53,10 @@
     <Compile Include="Batch\BatchExport.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="Exceptions\KPal\InvalidKPalException.cs" />
+    <Compile Include="Exceptions\KPal\UnsupportedKPalVersionException.cs" />
+    <Compile Include="Exceptions\RiffPal\InvalidRiffPalException.cs" />
+    <Compile Include="Exceptions\RiffPal\UnsupportedRiffPaletteException.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
     <Compile Include="Generators\BitmapFontGeneratorWpf.cs" />
     <Compile Include="Generators\Common.cs" />
@@ -62,18 +66,14 @@
     <Compile Include="KoreSaveInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Common.cs" />
+    <Compile Include="Utilities\Convert.cs" />
     <Compile Include="Utilities\Image.cs" />
+    <Compile Include="Utilities\KPal.cs" />
+    <Compile Include="Utilities\Models\ByteOrder.cs" />
+    <Compile Include="Utilities\RiffPal.cs" />
     <Compile Include="Utilities\Text.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Kanvas\Kanvas.csproj">
-      <Project>{810cefcf-6900-43ff-8939-ef2d52236882}</Project>
-      <Name>Kanvas</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Komponent\Komponent.csproj">
-      <Project>{0601dfc5-60dd-44a3-aff8-a62e1e1481db}</Project>
-      <Name>Komponent</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Kontract\Kontract.csproj">
       <Project>{A43ECC92-DC90-4F79-9871-49E02A11ADAD}</Project>
       <Name>Kontract</Name>

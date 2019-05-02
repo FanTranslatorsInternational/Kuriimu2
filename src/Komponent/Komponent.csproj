@@ -70,12 +70,6 @@
   <ItemGroup>
     <None Include="Komponent.nuspec" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Kontract\Kontract.csproj">
-      <Project>{a43ecc92-dc90-4f79-9871-49e02a11adad}</Project>
-      <Name>Kontract</Name>
-    </ProjectReference>
-  </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
