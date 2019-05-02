@@ -227,6 +227,7 @@ namespace Kuriimu2_WinForms.FormatForms
             this.imbPreview.DragEnter += new System.Windows.Forms.DragEventHandler(this.imbPreview_DragEnter);
             this.imbPreview.KeyDown += new System.Windows.Forms.KeyEventHandler(this.imbPreview_KeyDown);
             this.imbPreview.KeyUp += new System.Windows.Forms.KeyEventHandler(this.imbPreview_KeyUp);
+            this.imbPreview.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ImbPreview_MouseClick);
             this.imbPreview.MouseEnter += new System.EventHandler(this.imbPreview_MouseEnter);
             // 
             // cmsPreview

@@ -594,20 +594,36 @@ namespace Kuriimu2_WinForms.FormatForms
                 Import(files[0]);
         }
 
-        private async void PbPalette_MouseClick(object sender, MouseEventArgs e)
+        private void PbPalette_MouseClick(object sender, MouseEventArgs e)
         {
-            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo) || !pbPalette.Enabled)
+            SetColorInPalette(GetPaletteIndex, e.Location);
+        }
+
+        private void ImbPreview_MouseClick(object sender, MouseEventArgs e)
+        {
+            SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
+        }
+
+        private async void SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
+        {
+            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo))
                 return;
 
             DisablePaletteControls();
             DisableImageControls();
 
-            var index = GetPaletteIndex(e.Location);
-            if (index >= indexInfo.ColorCount)
+            var index = indexFunc(controlPoint);
+            if (index < 0 || index >= indexInfo.ColorCount)
+            {
+                UpdateForm();
                 return;
+            }
 
             if (clrDialog.ShowDialog() != DialogResult.OK)
+            {
+                UpdateForm();
                 return;
+            }
 
             var progress = new Progress<ProgressReport>();
             progress.ProgressChanged += Report_ProgressChanged;
@@ -639,13 +655,6 @@ namespace Kuriimu2_WinForms.FormatForms
             UpdateImageList();
         }
 
-        private int GetPaletteIndex(Point point)
-        {
-            var xIndex = point.X / (pbPalette.Width / pbPalette.Image.Width);
-            var yIndex = point.Y / (pbPalette.Height / pbPalette.Image.Height);
-            return yIndex * pbPalette.Image.Width + xIndex;
-        }
-
         private void DisablePaletteControls()
         {
             pbPalette.Enabled = false;
@@ -655,6 +664,24 @@ namespace Kuriimu2_WinForms.FormatForms
         private void DisableImageControls()
         {
             tsbFormat.Enabled = false;
+        }
+
+        private int GetPaletteIndex(Point point)
+        {
+            var xIndex = point.X / (pbPalette.Width / pbPalette.Image.Width);
+            var yIndex = point.Y / (pbPalette.Height / pbPalette.Image.Height);
+            return yIndex * pbPalette.Image.Width + xIndex;
+        }
+
+        private int GetPaletteIndexByImageLocation(Point point)
+        {
+            if (!imbPreview.IsPointInImage(point))
+                return -1;
+
+            var pointInImg = imbPreview.PointToImage(point);
+            var pixelColor = _selectedBitmapInfo.Image.GetPixel(pointInImg.X, pointInImg.Y);
+
+            return (_selectedBitmapInfo as IndexedBitmapInfo)?.Palette.IndexOf(pixelColor) ?? -1;
         }
     }
 }

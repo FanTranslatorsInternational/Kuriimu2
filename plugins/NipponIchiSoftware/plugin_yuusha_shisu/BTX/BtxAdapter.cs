@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Kanvas.Models;
+using Kanvas.Quantization.Quantizers;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -87,7 +88,11 @@ namespace plugin_yuusha_shisu.BTX
                     if (BTX.IndexEncodings.ContainsKey(formatInfo.EncodingIndex))
                     {
                         // change to index encoding
-                        var settings = new IndexedImageSettings(BTX.IndexEncodings[formatInfo.EncodingIndex], BTX.PaletteEncodings[5], bitmapInfo.Image.Width, bitmapInfo.Image.Height);
+                        var quantSettings = new QuantizationSettings(new DistinctSelectionQuantizer(), bitmapInfo.Image.Width, bitmapInfo.Image.Height);
+                        var settings = new IndexedImageSettings(BTX.IndexEncodings[formatInfo.EncodingIndex], BTX.PaletteEncodings[5], bitmapInfo.Image.Width, bitmapInfo.Image.Height)
+                        {
+                            QuantizationSettings = quantSettings
+                        };
                         var (indexData, paletteData) = Kanvas.Kolors.Save(bitmapInfo.Image, settings);
                         var (image, palette) = Kanvas.Kolors.Load(indexData, paletteData, settings);
 
