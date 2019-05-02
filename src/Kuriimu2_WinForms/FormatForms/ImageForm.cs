@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -62,7 +63,7 @@ namespace Kuriimu2_WinForms.FormatForms
             {
                 if (_imageAdapter.BitmapInfos == null)
                     throw new ArgumentNullException(nameof(_imageAdapter.BitmapInfos));
-                if(_imageAdapter.ImageEncodingInfos == null)
+                if (_imageAdapter.ImageEncodingInfos == null)
                     throw new ArgumentNullException(nameof(_imageAdapter.ImageEncodingInfos));
                 if (_imageAdapter is IIndexedImageAdapter indexAdapter)
                 {
@@ -226,12 +227,22 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
-            var result = await _imageAdapter.Encode(bitmapInfo, encodingInfo, report);
+            bool result;
+            try
+            {
+                result = await _imageAdapter.Encode(bitmapInfo, encodingInfo, report);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return false;
+            }
+
             if (!result)
             {
                 MessageBox.Show("Encoding was not successful.", "Encoding was unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                tsbFormat.Enabled = true;
-                tsbPalette.Enabled = _imageAdapter is IIndexedImageAdapter;
+                UpdateForm();
                 return result;
             }
 
@@ -395,14 +406,24 @@ namespace Kuriimu2_WinForms.FormatForms
                 // Palette Picture Box
                 var dimPalette = Convert.ToInt32(Math.Sqrt(indexedInfo.ColorCount));
                 var paletteImg = ComposeImage(indexedInfo.Palette, dimPalette, dimPalette);
-                pbPalette.Image = paletteImg;
+                if (paletteImg != null)
+                    pbPalette.Image = paletteImg;
             }
         }
 
         public static Bitmap ComposeImage(IList<Color> colors, int width, int height)
         {
             var image = new Bitmap(width, height);
-            var data = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            BitmapData data;
+            try
+            {
+                data = image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.ToString());
+                return null;
+            }
             unsafe
             {
                 var ptr = (int*)data.Scan0;
@@ -585,13 +606,33 @@ namespace Kuriimu2_WinForms.FormatForms
             if (index >= indexInfo.ColorCount)
                 return;
 
-            // TODO: Choose Color somehow
             if (clrDialog.ShowDialog() != DialogResult.OK)
                 return;
 
             var progress = new Progress<ProgressReport>();
             progress.ProgressChanged += Report_ProgressChanged;
-            await indexAdapter.SetColorInPalette(indexInfo, clrDialog.Color, index, progress);
+            bool result;
+            try
+            {
+                result = await indexAdapter.SetColorInPalette(indexInfo, clrDialog.Color, index, progress);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            if (!result)
+            {
+                MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
+            _bestBitmaps[_selectedImageIndex] = indexInfo.Image;
 
             UpdateForm();
             UpdatePreview();

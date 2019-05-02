@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using Kanvas.Models;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -58,7 +59,7 @@ namespace plugin_yuusha_shisu.BTX
             if (_format.HasPalette)
             {
                 var indexEncodingInfo = ImageEncodingInfos.FirstOrDefault(x => x.EncodingIndex == (int)_format.Header.Format);
-                var paletteEncodingInfo = PaletteEncodingInfos.FirstOrDefault(x => x.EncodingIndex == (int) _format.Header.Format);
+                var paletteEncodingInfo = PaletteEncodingInfos.FirstOrDefault(x => x.EncodingIndex == (int)_format.Header.Format);
                 _bitmapInfos = new List<BitmapInfo>
                 {
                     new IndexedBitmapInfo(_format.Texture,
@@ -74,39 +75,110 @@ namespace plugin_yuusha_shisu.BTX
                 };
         }
 
-        public async Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo formatInfo, IProgress<ProgressReport> progress)
+        public Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo formatInfo, IProgress<ProgressReport> progress)
         {
+            return Task.Factory.StartNew(() =>
+            {
+                if (formatInfo.Variant == 0)
+                {
+                    // new image encoding
+                    var infoIndex = BitmapInfos.IndexOf(bitmapInfo);
 
-            return false;
+                    if (BTX.IndexEncodings.ContainsKey(formatInfo.EncodingIndex))
+                    {
+                        // change to index encoding
+                        var settings = new IndexedImageSettings(BTX.IndexEncodings[formatInfo.EncodingIndex], BTX.PaletteEncodings[5], bitmapInfo.Image.Width, bitmapInfo.Image.Height);
+                        var (indexData, paletteData) = Kanvas.Kolors.Save(bitmapInfo.Image, settings);
+                        var (image, palette) = Kanvas.Kolors.Load(indexData, paletteData, settings);
+
+                        var indexEncodingInfo = ImageEncodingInfos.FirstOrDefault(x => x.EncodingIndex == formatInfo.EncodingIndex);
+                        var paletteEncodingInfo = PaletteEncodingInfos.FirstOrDefault(x => x.EncodingIndex == formatInfo.EncodingIndex);
+                        BitmapInfos[infoIndex] = new IndexedBitmapInfo(image, indexEncodingInfo, palette, paletteEncodingInfo);
+
+                        _format.Palette = palette;
+                        _format.Texture = image;
+                        _format.Header.Format = (ImageFormat)formatInfo.EncodingIndex;
+                        _format.Header.ColorCount = palette.Count;
+                        _format.Header.Height = (short)image.Height;
+                        _format.Header.Width = (short)image.Width;
+                    }
+                    else if (BTX.Encodings.ContainsKey(formatInfo.EncodingIndex))
+                    {
+                        // change to normal encoding
+                        var settings = new ImageSettings(BTX.Encodings[formatInfo.EncodingIndex], bitmapInfo.Image.Width, bitmapInfo.Image.Height);
+                        var data = Kanvas.Kolors.Save(bitmapInfo.Image, settings);
+                        var image = Kanvas.Kolors.Load(data, settings);
+
+                        var encodingInfo = ImageEncodingInfos.FirstOrDefault(x => x.EncodingIndex == formatInfo.EncodingIndex);
+                        BitmapInfos[infoIndex] = new BitmapInfo(image, encodingInfo);
+
+                        _format.Palette = null;
+                        _format.Texture = image;
+                        _format.Header.Format = (ImageFormat)formatInfo.EncodingIndex;
+                        _format.Header.ColorCount = -1;
+                        _format.Header.Height = (short)image.Height;
+                        _format.Header.Width = (short)image.Width;
+                    }
+                }
+                else
+                {
+                    // new palette encoding
+                    var indexedInfo = (IndexedBitmapInfo)bitmapInfo;
+
+                    var paletteEncoding = BTX.PaletteEncodings[formatInfo.EncodingIndex];
+                    var paletteData = paletteEncoding.Save(indexedInfo.Palette);
+                    var newPalette = paletteEncoding.Load(paletteData).ToList();
+
+                    indexedInfo.Palette = newPalette;
+                    indexedInfo.SetPaletteEncoding(formatInfo);
+
+                    _format.Palette = newPalette;
+                    _format.Header.Format = (ImageFormat)formatInfo.EncodingIndex;
+                    _format.Header.ColorCount = newPalette.Count;
+                }
+
+                return true;
+            });
         }
 
         public async Task<bool> SetPalette(IndexedBitmapInfo info, IList<Color> palette, IProgress<ProgressReport> progress)
         {
+            //progress.Report(new ProgressReport { Message = "Replace color...", Percentage = 0 });
 
-            return false;
+            var enc = BTX.IndexEncodings[info.ImageEncoding.EncodingIndex];
+
+            // Get index list
+            var colorList = Kanvas.Kolors.DecomposeImage(info.Image);
+            var indices = enc.DecomposeWithPalette(colorList, info.Palette).ToList();
+
+            // Replace color
+            info.Palette = palette;
+
+            // Compose index list again
+            var newColorList = enc.Compose(indices, info.Palette).ToArray();
+            info.Image = Kanvas.Kolors.ComposeImage(newColorList, info.Image.Width, info.Image.Height);
+
+            return true;
         }
 
-        public Task<bool> SetColorInPalette(IndexedBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress)
+        public async Task<bool> SetColorInPalette(IndexedBitmapInfo info, Color color, int index, IProgress<ProgressReport> progress)
         {
-            return Task.Factory.StartNew(() =>
-            {
-                //progress.Report(new ProgressReport { Message = "Replace color...", Percentage = 0 });
+            //progress.Report(new ProgressReport { Message = "Replace color...", Percentage = 0 });
 
-                var enc = BTX.IndexEncodings[info.ImageEncoding.EncodingIndex];
+            var enc = BTX.IndexEncodings[info.ImageEncoding.EncodingIndex];
 
-                // Get index list
-                var colorList = Kanvas.Kolors.DecomposeImage(info.Image);
-                var indices = enc.DecomposeWithPalette(colorList, info.Palette).ToList();
+            // Get index list
+            var colorList = Kanvas.Kolors.DecomposeImage(info.Image);
+            var indices = enc.DecomposeWithPalette(colorList, info.Palette).ToList();
 
-                // Replace color
-                info.Palette[index] = color;
+            // Replace color
+            info.Palette[index] = color;
 
-                // Compose index list again
-                var newColorList = enc.Compose(indices, info.Palette).ToArray();
-                info.Image = Kanvas.Kolors.ComposeImage(newColorList, info.Image.Width, info.Image.Height);
+            // Compose index list again
+            var newColorList = enc.Compose(indices, info.Palette).ToArray();
+            info.Image = Kanvas.Kolors.ComposeImage(newColorList, info.Image.Width, info.Image.Height);
 
-                return true;
-            });
+            return true;
         }
 
         public void Save(StreamInfo output, int versionIndex = 0)
