@@ -47,10 +47,12 @@
   <ItemGroup>
     <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
     <Compile Include="Attributes\FormFieldAttributes.cs" />
+    <Compile Include="Attributes\Intermediate\PropertyAttribute.cs" />
     <Compile Include="Attributes\Intermediate\IgnoreDecryptionAttribute.cs" />
     <Compile Include="Attributes\Intermediate\IgnoreEncryptionAttribute.cs" />
     <Compile Include="Attributes\MenuStripExtensionAttribute.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
+    <Compile Include="Exceptions\PluginInconsistencyException.cs" />
     <Compile Include="Exceptions\PluginNotFoundException.cs" />
     <Compile Include="FileSystem\CloseStreamEventArgs.cs" />
     <Compile Include="Interfaces\Archive\ArchiveFileInfo.cs" />
@@ -60,6 +62,8 @@
     <Compile Include="Interfaces\Archive\IArchiveRenameFiles.cs" />
     <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
+    <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
+    <Compile Include="Interfaces\Intermediate\IImageSwizzleAdapter.cs" />
     <Compile Include="Interfaces\IPlugin.cs" />
     <Compile Include="Interfaces\Font\FontCharacter.cs" />
     <Compile Include="Interfaces\Font\FontCharacter2.cs" />

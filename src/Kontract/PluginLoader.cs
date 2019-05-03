@@ -5,8 +5,10 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Kontract.Exceptions;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
+using Kontract.Models;
 
 namespace Kontract
 {
@@ -32,6 +34,7 @@ namespace Kontract
         /// <param name="parent">The parent object to load plugins for.</param>
         /// <param name="pluginDirectory">The directory to load plugins from</param>
         /// <param name="types">Extra types to load plugins from.</param>
+        /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on load.</exception>
         public static void ComposePlugins(object parent, string pluginDirectory = "plugins", params Type[] types)
         {
             // An aggregate catalog that combines multiple catalogs.
@@ -49,7 +52,18 @@ namespace Kontract
             var container = new CompositionContainer(catalog);
 
             // Fill the imports of this object.
-            container.ComposeParts(parent);
+            try
+            {
+                container.ComposeParts(parent);
+            }
+            catch (TypeLoadException e)
+            {
+                throw new PluginInconsistencyException();
+            }
+            catch (Exception e)
+            {
+                throw new PluginInconsistencyException();
+            }
         }
 
         #region Imports
@@ -71,6 +85,7 @@ namespace Kontract
         /// Instantiates a new instance of the <see cref="PluginLoader"/> and composes all of the plugins found in the <see cref="PluginFolder"/> sub directory.
         /// </summary>
         /// <param name="pluginFolder"></param>
+        /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on load.</exception>
         public PluginLoader(string pluginFolder)
         {
             PluginFolder = Path.GetFullPath(pluginFolder);
