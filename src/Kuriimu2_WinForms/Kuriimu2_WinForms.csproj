@@ -103,6 +103,12 @@
     <Compile Include="Interfaces\IKuriimuForm.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RawImageViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RawImageViewer.Designer.cs">
+      <DependentUpon>RawImageViewer.cs</DependentUpon>
+    </Compile>
     <Compile Include="ToolStripMenuBuilder.cs" />
     <EmbeddedResource Include="ChoosePluginForm.resx">
       <DependentUpon>ChoosePluginForm.cs</DependentUpon>
@@ -132,6 +138,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="RawImageViewer.resx">
+      <DependentUpon>RawImageViewer.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

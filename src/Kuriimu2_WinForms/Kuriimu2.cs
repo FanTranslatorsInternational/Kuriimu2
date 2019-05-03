@@ -37,23 +37,42 @@ namespace Kuriimu2_WinForms
         private Stopwatch _globalOperationWatch;
 
         private ToolStripMenuItem _cipherToolStrip;
+        private ToolStripMenuItem _hashToolStrip;
+        private ToolStripMenuItem _compToolStrip;
+
+        private ToolStripMenuItem _imgDecToolStrip;
+        private ToolStripMenuItem _imgTransToolStrip;
+
+        private RawImageViewer _rawImgViewer;
 
         public Kuriimu2()
         {
             InitializeComponent();
+
+            try
+            {
+                _kore = new KoreManager();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Load += (s, evt) => Close();
+                return;
+            }
+
             _timer = new Timer { Interval = 14 };
             _timer.Tick += _timer_Tick;
             _globalOperationWatch = new Stopwatch();
 
             Icon = Resources.kuriimu2winforms;
 
-            _kore = new KoreManager();
+            _rawImgViewer = new RawImageViewer(_kore.PluginLoader);
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
             LoadExtensions();
-            //LoadImageView();
+            LoadImageViews();
         }
 
         private void _timer_Tick(object sender, EventArgs e)
@@ -68,6 +87,12 @@ namespace Kuriimu2_WinForms
             //LoadCompressions();
         }
 
+        private void LoadImageViews()
+        {
+            LoadRawImageViewer();
+            LoadImageTranscoder();
+        }
+
         private void LoadCiphers()
         {
             var ciphers = _kore.PluginLoader.GetAdapters<ICipherAdapter>();
@@ -75,8 +100,8 @@ namespace Kuriimu2_WinForms
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
             cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            if (_cipherToolStrip.DropDownItems.Count > 0)
-                mnuMain.Items.Add(_cipherToolStrip);
+            mnuMain.Items.Add(_cipherToolStrip);
+            _cipherToolStrip.Enabled = _cipherToolStrip.DropDownItems.Count > 0;
         }
 
         //private void LoadHashes()
@@ -86,8 +111,8 @@ namespace Kuriimu2_WinForms
 
         //    _hashToolStrip = new ToolStripMenuItem("Hashes");
         //    hashMenuBuilder.AddTreeToMenuStrip(_hashToolStrip);
-        //    if (_hashToolStrip.DropDownItems.Count > 0)
-        //        mnuMain.Items.Add(_hashToolStrip);
+        //mnuMain.Items.Add(_hashToolStrip);
+        //_hashToolStrip.Enabled = _hashToolStrip.DropDownItems.Count > 0;
         //}
 
         //private void LoadCompressions()
@@ -97,9 +122,35 @@ namespace Kuriimu2_WinForms
 
         //    _compToolStrip = new ToolStripMenuItem("Compressions");
         //    compMenuBuilder.AddTreeToMenuStrip(_compToolStrip);
-        //    if (_compToolStrip.DropDownItems.Count > 0)
-        //        mnuMain.Items.Add(_compToolStrip);
+        //mnuMain.Items.Add(_compToolStrip);
+        //_compToolStrip.Enabled = _compToolStrip.DropDownItems.Count > 0;
         //}
+
+        private void LoadRawImageViewer()
+        {
+            var imgAdapters = _kore.PluginLoader.GetAdapters<IColorEncodingAdapter>();
+
+            _imgDecToolStrip = new ToolStripMenuItem("Raw Image Viewer");
+            _imgDecToolStrip.Click += _imgDecToolStrip_Click;
+            _imgDecToolStrip.Enabled = imgAdapters.Any();
+
+            mnuMain.Items.Add(_imgDecToolStrip);
+        }
+
+        private void _imgDecToolStrip_Click(object sender, EventArgs e)
+        {
+            _rawImgViewer.ShowDialog();
+        }
+
+        private void LoadImageTranscoder()
+        {
+            var imgAdapters = _kore.PluginLoader.GetAdapters<IColorEncodingAdapter>();
+
+            _imgTransToolStrip = new ToolStripMenuItem("Image Transcoder");
+            _imgTransToolStrip.Enabled = imgAdapters.Any();
+
+            mnuMain.Items.Add(_imgTransToolStrip);
+        }
 
         #region Events
 
@@ -388,7 +439,7 @@ namespace Kuriimu2_WinForms
                             Adapter = pluginChooser.ChosenAdapter
                         });
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         MessageBox.Show(e.ToString(), "Exception catched.");
                         openFile.Dispose();
@@ -404,9 +455,9 @@ namespace Kuriimu2_WinForms
                             FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename))
                         });
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
-                        MessageBox.Show(e.ToString(),"Exception catched.");
+                        MessageBox.Show(e.ToString(), "Exception catched.");
                         openFile.Dispose();
                         return;
                     }
