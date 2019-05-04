@@ -33,7 +33,7 @@ namespace Kanvas.IndexEncoding
         {
             if (indexDepth <= 0) throw new ArgumentOutOfRangeException(nameof(indexDepth));
             if (alphaDepth <= 0) throw new ArgumentOutOfRangeException(nameof(alphaDepth));
-            if ((alphaDepth + indexDepth) % 8 != 0) throw new InvalidOperationException("_alphaDepth + _indexDepth has to be dividable by 8.");
+            //if ((alphaDepth + indexDepth) % 8 != 0) throw new InvalidOperationException("_alphaDepth + _indexDepth has to be dividable by 8.");
 
             _alphaDepth = alphaDepth;
             _indexDepth = indexDepth;
