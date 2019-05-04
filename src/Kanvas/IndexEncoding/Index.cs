@@ -30,8 +30,8 @@ namespace Kanvas.IndexEncoding
         /// <param name="allowAlpha">If decomposition should allow alpha in distinction.</param>
         public Index(int indexDepth, bool allowAlpha)
         {
-            if (indexDepth % 8 != 0)
-                throw new InvalidOperationException("IndexDepth needs to be dividable by 8.");
+            //if (indexDepth % 8 != 0)
+            //    throw new InvalidOperationException("IndexDepth needs to be dividable by 8.");
 
             _allowAlpha = allowAlpha;
             _indexDepth = indexDepth;

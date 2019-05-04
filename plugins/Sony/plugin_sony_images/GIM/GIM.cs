@@ -9,7 +9,7 @@ namespace plugin_sony_images.GIM
 {
     public sealed class GIM
     {
-        public List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> Images { get; set; }
+        public List<List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)>> Images { get; set; }
 
         private RootBlock _root;
         private byte[] _magic;

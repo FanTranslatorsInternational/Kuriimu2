@@ -1,0 +1,173 @@
+/*
+
+    VAG-Depack, hacked by bITmASTER@bigfoot.com
+    V0.1
+    
+    Changes:
+    12Oct2016, herbert3000, WAVE header added
+*/
+
+#ifdef _mam
+extern "C"
+{
+#endif /* _mam */
+
+#include <stdio.h>
+#include <string.h>
+
+double f[5][2] = { { 0.0, 0.0 },
+                    {  60.0 / 64.0,  0.0 },
+                    {  115.0 / 64.0, -52.0 / 64.0 },
+                    {  98.0 / 64.0, -55.0 / 64.0 },
+                    {  122.0 / 64.0, -60.0 / 64.0 } };
+
+double samples[28];
+
+struct {
+   char  chunkId[4];
+   int   chunkSize;
+   char  format[4];
+   char  subchunk1Id[4];
+   int   subchunk1Size;
+   short audioFormat;
+   short numChannels;
+   int   sampleRate;
+   int   byteRate;
+   short blockAlign;
+   short bitsPerSample;
+   char  subchunk2Id[4];
+   int   subchunk2Size;
+} waveHeader;
+
+int main( int argc, char *argv[] )
+{
+    FILE *vag, *pcm, *wav;
+    char fname[128];
+    char *p;
+    int predict_nr, shift_factor, flags;
+    int i;
+    int d, s;
+    static double s_1 = 0.0;
+    static double s_2 = 0.0;
+    
+    if ( argc != 2 ) {
+        printf( "Usage: %s *.vag\n", argv[0] );
+        return( -1 );
+    }
+   
+    vag = fopen( argv[1], "rb" );
+    if ( vag == NULL ) {
+        printf( "cannot open input file\n" );
+        return( -8 );
+    }
+    
+    fseek( vag, 64, SEEK_SET );
+    
+    strcpy( fname, argv[1] );
+    p = strrchr( fname, '.' );
+    p++;
+    strcpy( p, "PCM" );
+    pcm = fopen( fname, "wb" );
+    if ( pcm == NULL ) {
+        printf( "cannot open output file\n" );
+        return( -8 );
+    }
+    
+    while( 1 ) {
+        predict_nr = fgetc( vag );
+        shift_factor = predict_nr & 0xf;
+        predict_nr >>= 4;
+        if ((flags = fgetc( vag )) == EOF) {
+            break;
+        }
+        if ( flags == 7 )
+            break;             
+        for ( i = 0; i < 28; i += 2 ) {
+            d = fgetc( vag );
+            s = ( d & 0xf ) << 12;
+            if ( s & 0x8000 )
+                s |= 0xffff0000;
+            samples[i] = (double) ( s >> shift_factor  );
+            s = ( d & 0xf0 ) << 8;
+            if ( s & 0x8000 )
+                s |= 0xffff0000;
+            samples[i+1] = (double) ( s >> shift_factor  );
+        }
+        
+        for ( i = 0; i < 28; i++ ) {
+            samples[i] = samples[i] + s_1 * f[predict_nr][0] + s_2 * f[predict_nr][1];
+            s_2 = s_1;
+            s_1 = samples[i];
+            d = (int) ( samples[i] + 0.5 );
+            fputc( d & 0xff, pcm );
+            fputc( d >> 8, pcm );
+        }
+        if ( flags == 1 )
+            break;
+    }
+    
+    fclose( pcm );
+    fclose( vag );
+    
+    // create WAV file
+    
+    pcm = fopen( fname, "rb" );
+    if ( pcm == NULL ) {
+        printf( "cannot open PCM file\n" );
+        return( -8 );
+    }
+    
+    strcpy( fname, argv[1] );
+    p = strrchr( fname, '.' );
+    p++;
+    strcpy( p, "WAV" );
+    wav = fopen( fname, "wb" );
+    if ( wav == NULL ) {
+        printf( "cannot open WAV file\n" );
+        return( -8 );
+    }
+    
+    fseek( pcm, 0, SEEK_END );
+    int filesize = ftell( pcm );
+    fseek( pcm, 0, SEEK_SET );
+    
+    // set WAVE header
+    
+    strcpy( waveHeader.chunkId, "RIFF" );
+    strcpy( waveHeader.format, "WAVE" );
+    strcpy( waveHeader.subchunk1Id, "fmt " );
+    strcpy( waveHeader.subchunk2Id, "data" );
+    
+    waveHeader.audioFormat = 1; // PCM
+    waveHeader.numChannels = 1; // mono = 1, stereo = 2
+    waveHeader.sampleRate = 44100;
+    waveHeader.bitsPerSample = 16;
+    waveHeader.byteRate = waveHeader.sampleRate * waveHeader.numChannels * waveHeader.bitsPerSample / 8;
+    waveHeader.blockAlign = waveHeader.numChannels * waveHeader.bitsPerSample / 8;
+    waveHeader.subchunk1Size = 16;
+    waveHeader.subchunk2Size = filesize;
+    waveHeader.chunkSize = filesize + 36;
+    
+    
+    // write WAVE header
+    
+    fwrite( &waveHeader, sizeof(waveHeader), 1, wav );
+    
+    // copy PCM file to WAV file
+    
+    char buffer[1024];
+    size_t n;
+    
+    n = fread( buffer, 1, sizeof buffer, pcm );
+    fwrite( buffer, 1, n, wav );
+    
+    while ( n == sizeof buffer ) {
+        n = fread( buffer, 1, sizeof buffer, pcm );
+        fwrite( buffer, 1, n, wav );
+    }
+    
+    fclose( wav );
+    fclose( pcm );
+    
+    return( 0 );
+}
