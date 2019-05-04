@@ -11,7 +11,7 @@ using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces;
 using Kontract.Models;
 
-namespace plugin_rgba
+namespace plugin_kanvas_rgba
 {
     [Export(typeof(IPlugin))]
     [Property(nameof(Red), typeof(byte), 8)]
