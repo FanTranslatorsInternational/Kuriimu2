@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kontract.Models;
 
 namespace Kontract.Interfaces.Intermediate
 {
@@ -31,14 +32,16 @@ namespace Kontract.Interfaces.Intermediate
         /// <param name="imgData">Data to decode.</param>
         /// <param name="width">Width of the final image.</param>
         /// <param name="height">Height of the final image.</param>
+        /// <param name="progress">Reports progress.</param>
         /// <returns>The decoded image.</returns>
-        Bitmap Decode(byte[] imgData, int width, int height);
+        Task<Bitmap> Decode(byte[] imgData, int width, int height,IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Encodes an image to byte data.
         /// </summary>
         /// <param name="img">Image to encode.</param>
+        /// <param name="progress">Reports progress.</param>
         /// <returns>The encoded data.</returns>
-        byte[] Encode(Bitmap img);
+        Task<byte[]> Encode(Bitmap img, IProgress<ProgressReport> progress);
     }
 }

@@ -1,23 +1,16 @@
-﻿using Kontract;
+﻿using System;
+using System.Linq;
+using System.Windows.Forms;
+using Kontract;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
-using Kore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using Kontract.Interfaces;
 
-namespace Kuriimu2_WinForms
+namespace Kuriimu2_WinForms.MainForms
 {
     public partial class ChoosePluginForm : Form
     {

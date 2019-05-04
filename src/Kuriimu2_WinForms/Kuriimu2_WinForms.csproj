@@ -63,23 +63,29 @@
     </Compile>
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="ChoosePluginForm.cs">
+    <Compile Include="MainForms\ChoosePluginForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ChoosePluginForm.Designer.cs">
+    <Compile Include="MainForms\ChoosePluginForm.Designer.cs">
       <DependentUpon>ChoosePluginForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="InputBox.cs">
+    <Compile Include="MainForms\ImageTranscoder.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="InputBox.Designer.cs">
+    <Compile Include="MainForms\ImageTranscoder.Designer.cs">
+      <DependentUpon>ImageTranscoder.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MainForms\InputBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForms\InputBox.Designer.cs">
       <DependentUpon>InputBox.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\IArchiveForm.cs" />
-    <Compile Include="Kuriimu2.cs">
+    <Compile Include="MainForms\Kuriimu2.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Kuriimu2.Designer.cs">
+    <Compile Include="MainForms\Kuriimu2.Designer.cs">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </Compile>
     <Compile Include="FormatForms\ArchiveForm.cs">
@@ -101,22 +107,28 @@
       <DependentUpon>TextForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Interfaces\IKuriimuForm.cs" />
+    <Compile Include="MainForms\Models\EncodingWrapper.cs" />
+    <Compile Include="MainForms\Models\FormatWrapper.cs" />
+    <Compile Include="MainForms\Models\SwizzleWrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RawImageViewer.cs">
+    <Compile Include="MainForms\RawImageViewer.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RawImageViewer.Designer.cs">
+    <Compile Include="MainForms\RawImageViewer.Designer.cs">
       <DependentUpon>RawImageViewer.cs</DependentUpon>
     </Compile>
     <Compile Include="ToolStripMenuBuilder.cs" />
-    <EmbeddedResource Include="ChoosePluginForm.resx">
+    <EmbeddedResource Include="MainForms\ChoosePluginForm.resx">
       <DependentUpon>ChoosePluginForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="InputBox.resx">
+    <EmbeddedResource Include="MainForms\ImageTranscoder.resx">
+      <DependentUpon>ImageTranscoder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForms\InputBox.resx">
       <DependentUpon>InputBox.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Kuriimu2.resx">
+    <EmbeddedResource Include="MainForms\Kuriimu2.resx">
       <DependentUpon>Kuriimu2.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FormatForms\ArchiveForm.resx">
@@ -138,7 +150,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="RawImageViewer.resx">
+    <EmbeddedResource Include="MainForms\RawImageViewer.resx">
       <DependentUpon>RawImageViewer.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />

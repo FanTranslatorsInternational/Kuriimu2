@@ -17,6 +17,7 @@ using Kontract.Interfaces.Text;
 using Kontract.Models;
 using Kore;
 using Kuriimu2_WinForms.Interfaces;
+using Kuriimu2_WinForms.MainForms;
 using Kuriimu2_WinForms.Properties;
 
 namespace Kuriimu2_WinForms.FormatForms

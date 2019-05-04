@@ -1,20 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract;
 using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces.Intermediate;
+using Kontract.Models;
+using Kuriimu2_WinForms.MainForms.Models;
 
-namespace Kuriimu2_WinForms
+namespace Kuriimu2_WinForms.MainForms
 {
-    public partial class RawImageViewer : Form
+    public partial class ImageTranscoder : Form
     {
         private readonly PluginLoader _loader;
 
-        private bool _fileLoaded;
-        private Stream _openedFile;
+        private bool _imgLoaded;
+        private Stream _imgStream;
 
         private int _selectedEncodingIndex;
         private int _selectedSwizzleIndex;
@@ -27,7 +34,7 @@ namespace Kuriimu2_WinForms
         private IImageSwizzleAdapter SelectedSwizzleAdapter =>
             (cbSwizzle.Items[_selectedSwizzleIndex] as SwizzleWrapper)?.SwizzleAdapter;
 
-        public RawImageViewer(PluginLoader loader)
+        public ImageTranscoder(PluginLoader loader)
         {
             InitializeComponent();
 
@@ -71,36 +78,37 @@ namespace Kuriimu2_WinForms
         private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
         {
             _selectedEncodingIndex = cbEncoding.SelectedIndex;
-            UpdateExtendedProperties();
+            UpdateEncodingProperties();
         }
 
         private void CbSwizzle_SelectedIndexChanged(object sender, EventArgs e)
         {
             _selectedSwizzleIndex = cbSwizzle.SelectedIndex;
             SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
-            UpdateExtendedProperties();
+            UpdateSwizzleProperty();
         }
-
-        #region Update
 
         private void UpdateForm()
         {
             cbEncoding.Enabled = cbEncoding.Items.Count > 0;
             cbSwizzle.Enabled = cbSwizzle.Items.Count > 0;
-            tbOffset.Enabled = true;
+            exportToolStripMenuItem.Enabled = _imgLoaded;
         }
 
         private void UpdateExtendedProperties()
         {
-            _pnlEncodingProperties.Controls.Clear();
-            _pnlSwizzleProperties.Controls.Clear();
+            UpdateEncodingProperties();
+            UpdateSwizzleProperty();
+        }
 
-            int propertyWidth = 50;
+        private void UpdateEncodingProperties()
+        {
+            _pnlEncodingProperties.Controls.Clear();
 
             if (SelectedColorEncodingAdapter != null)
                 UpdateExtendedPropertiesWith(
                     _pnlEncodingProperties,
-                    propertyWidth,
+                    50,
                     EncodingPropertyTextBox_TextChanged,
                     EncodingPropertyComboBox_SelectedIndexChanged,
                     SelectedColorEncodingAdapter.
@@ -108,11 +116,16 @@ namespace Kuriimu2_WinForms
                         GetCustomAttributes(typeof(PropertyAttribute), false).
                         Cast<PropertyAttribute>().
                         ToArray());
+        }
+
+        private void UpdateSwizzleProperty()
+        {
+            _pnlSwizzleProperties.Controls.Clear();
 
             if (SelectedSwizzleAdapter != null)
                 UpdateExtendedPropertiesWith(
                     _pnlSwizzleProperties,
-                    propertyWidth,
+                    50,
                     SwizzlePropertyTextBox_TextChanged,
                     SwizzlePropertyComboBox_SelectedIndexChanged,
                     SelectedSwizzleAdapter.
@@ -124,7 +137,7 @@ namespace Kuriimu2_WinForms
 
         private void UpdateExtendedPropertiesWith(SplitterPanel panel, int width, EventHandler textChangedEvent, EventHandler indexChangedEvent, params PropertyAttribute[] propAttributes)
         {
-            int x = 0;
+            int x = 3;
             foreach (var attr in propAttributes)
             {
                 if (attr.PropertyType.IsPrimitive)
@@ -136,7 +149,7 @@ namespace Kuriimu2_WinForms
                     AddEnumProperty(attr, _pnlEncodingProperties, indexChangedEvent, width, x, 0);
                 }
 
-                x += width;
+                x += width + 3;
             }
         }
 
@@ -230,7 +243,7 @@ namespace Kuriimu2_WinForms
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, value);
 
-            LoadImage();
+            TranscodeImage();
         }
 
         private void SwizzlePropertyTextBox_TextChanged(object sender, EventArgs e)
@@ -245,7 +258,7 @@ namespace Kuriimu2_WinForms
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, value);
 
-            LoadImage();
+            TranscodeImage();
         }
 
         private void AddEnumProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler indexChangedEvent, int width, int x, int y)
@@ -292,7 +305,7 @@ namespace Kuriimu2_WinForms
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, format.Value);
 
-            LoadImage();
+            TranscodeImage();
         }
 
         private void SwizzlePropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -307,119 +320,91 @@ namespace Kuriimu2_WinForms
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, format.Value);
 
-            LoadImage();
-        }
-
-        #endregion
-
-        #region Models
-
-        private class EncodingWrapper
-        {
-            public IColorEncodingAdapter EncodingAdapter { get; }
-
-            public EncodingWrapper(IColorEncodingAdapter adapter)
-            {
-                EncodingAdapter = adapter;
-            }
-
-            public override string ToString()
-            {
-                return EncodingAdapter.Name;
-            }
-        }
-
-        private class SwizzleWrapper
-        {
-            public IImageSwizzleAdapter SwizzleAdapter { get; }
-
-            public SwizzleWrapper(IImageSwizzleAdapter adapter)
-            {
-                SwizzleAdapter = adapter;
-            }
-
-            public override string ToString()
-            {
-                return SwizzleAdapter?.Name ?? "None";
-            }
-        }
-
-        private class FormatWrapper
-        {
-            public int Value { get; }
-            public string Name { get; }
-
-            public FormatWrapper(int value, string name)
-            {
-                Value = value;
-                Name = name;
-            }
-
-            public override string ToString()
-            {
-                return Name;
-            }
-        }
-
-        #endregion
-
-        private void TbOffset_TextChanged(object sender, EventArgs e)
-        {
-            LoadImage();
-        }
-
-        private void LoadImage()
-        {
-            if (!_fileLoaded || _openedFile == null)
-                return;
-
-            if (!int.TryParse(tbOffset.Text, out var offset) || !int.TryParse(tbWidth.Text, out var width) || !int.TryParse(tbHeight.Text, out var height))
-                return;
-
-            if (offset < 0 || offset >= _openedFile.Length || width <= 0 || height <= 0)
-                return;
-
-            var neededData = SelectedColorEncodingAdapter.CalculateLength(width, height);
-
-            _openedFile.Position = offset;
-            var imgData = new byte[Math.Min(neededData, _openedFile.Length - offset)];
-            _openedFile.Read(imgData, 0, imgData.Length);
-
-            pbMain.Image = SelectedColorEncodingAdapter.Decode(imgData, width, height);
+            TranscodeImage();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var ofd = new OpenFileDialog()
             {
-                Title = "Open raw image...",
-                Filter = "All Files (*.*)|*.*"
+                Title = "Open image...",
+                Filter = "Portable Network Graphics (*.png)|*.png|JPEG (*.jpg)|*.jpg"
             };
 
             if (ofd.ShowDialog() != DialogResult.OK)
                 return;
 
-            OpenFile(ofd.FileName);
-            LoadImage();
+            OpenImage(ofd.FileName);
+            TranscodeImage();
         }
 
-        private void OpenFile(string fileName)
+        private void OpenImage(string imgFile)
         {
-            if (!File.Exists(fileName))
+            _imgStream = File.OpenRead(imgFile);
+            pbSource.Image = (Bitmap)Image.FromStream(_imgStream);
+            _imgLoaded = true;
+            exportToolStripMenuItem.Enabled = true;
+        }
+
+        private async void TranscodeImage()
+        {
+            if (!_imgLoaded || pbSource.Image == null)
                 return;
 
-            _openedFile = File.OpenRead(fileName);
-            _fileLoaded = true;
+            ToggleProperties(false);
+            ToggleForm(false);
+
+            var sourceImage = (Bitmap)Image.FromStream(_imgStream);
+            var progress = new Progress<ProgressReport>();
+            progress.ProgressChanged += Progress_ProgressChanged;
+            var imgData = await SelectedColorEncodingAdapter.Encode(sourceImage, progress);
+            pbTarget.Image = await SelectedColorEncodingAdapter.Decode(imgData, sourceImage.Width, sourceImage.Height, progress);
+
+            ToggleProperties(true);
+            ToggleForm(true);
         }
 
-        private void TbWidth_TextChanged(object sender, EventArgs e)
+        private void Progress_ProgressChanged(object sender, ProgressReport e)
         {
-            LoadImage();
+            throw new NotImplementedException();
         }
 
-        private void TbHeight_TextChanged(object sender, EventArgs e)
+        private void ToggleProperties(bool toggle)
         {
-            LoadImage();
+            var textBoxes = splExtendedProperties.Panel1.Controls.OfType<TextBox>();
+            var comboBoxes = splExtendedProperties.Panel1.Controls.OfType<ComboBox>();
+
+            foreach (var textBox in textBoxes)
+                textBox.Enabled = toggle;
+            foreach (var comboBox in comboBoxes)
+                comboBox.Enabled = toggle;
+        }
+
+        private void ToggleForm(bool toggle)
+        {
+            cbEncoding.Enabled = toggle;
+            cbSwizzle.Enabled = toggle;
+            openToolStripMenuItem.Enabled = toggle;
+            exportToolStripMenuItem.Enabled = toggle;
+        }
+
+        private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportImage();
+        }
+
+        private void ExportImage()
+        {
+            var sfd = new SaveFileDialog()
+            {
+                Title = "Export image...",
+                Filter = "Portable Network Graphics (*.png)|*.png|JPEG (*.jpg)|*.jpg"
+            };
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            pbTarget.Image.Save(sfd.FileName);
         }
     }
 }

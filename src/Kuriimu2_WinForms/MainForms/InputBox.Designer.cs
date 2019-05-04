@@ -1,4 +1,4 @@
-﻿namespace Kuriimu2_WinForms
+﻿namespace Kuriimu2_WinForms.MainForms
 {
     partial class InputBox
     {

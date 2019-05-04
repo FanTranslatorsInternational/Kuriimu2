@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kanvas.Encoding;
 using Kanvas.Interface;
@@ -11,6 +9,7 @@ using Kanvas.Models;
 using Kontract.Interfaces.Intermediate;
 using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces;
+using Kontract.Models;
 
 namespace plugin_rgba
 {
@@ -46,18 +45,22 @@ namespace plugin_rgba
             return width * height * paddedBitDepth;
         }
 
-        public Bitmap Decode(byte[] imgData, int width, int height)
+        public Task<Bitmap> Decode(byte[] imgData, int width, int height, IProgress<ProgressReport> progress)
         {
             var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), width, height)
             {
                 Swizzle = GetSwizzle()
             };
-            return Kanvas.Kolors.Load(imgData, settings);
+            return Task.Factory.StartNew(() => Kanvas.Kolors.Load(imgData, settings));
         }
 
-        public byte[] Encode(System.Drawing.Bitmap img)
+        public Task<byte[]> Encode(Bitmap img, IProgress<ProgressReport> progress)
         {
-            throw new NotImplementedException();
+            var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), img.Width, img.Height)
+            {
+                Swizzle = GetSwizzle()
+            };
+            return Task.Factory.StartNew(() => Kanvas.Kolors.Save(img, settings));
         }
     }
 }

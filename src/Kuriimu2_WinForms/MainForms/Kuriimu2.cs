@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
@@ -19,13 +16,11 @@ using Kontract.Interfaces.Text;
 using Kontract.Models;
 using Kontract.Models.Intermediate;
 using Kore;
-using Kuriimu2_WinForms.Extensions;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
-using ExecutionEngineException = System.ExecutionEngineException;
 
-namespace Kuriimu2_WinForms
+namespace Kuriimu2_WinForms.MainForms
 {
     public partial class Kuriimu2 : Form
     {
@@ -44,6 +39,7 @@ namespace Kuriimu2_WinForms
         private ToolStripMenuItem _imgTransToolStrip;
 
         private RawImageViewer _rawImgViewer;
+        private ImageTranscoder _transcodeImgViewer;
 
         public Kuriimu2()
         {
@@ -67,6 +63,7 @@ namespace Kuriimu2_WinForms
             Icon = Resources.kuriimu2winforms;
 
             _rawImgViewer = new RawImageViewer(_kore.PluginLoader);
+            _transcodeImgViewer = new ImageTranscoder(_kore.PluginLoader);
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
@@ -147,9 +144,15 @@ namespace Kuriimu2_WinForms
             var imgAdapters = _kore.PluginLoader.GetAdapters<IColorEncodingAdapter>();
 
             _imgTransToolStrip = new ToolStripMenuItem("Image Transcoder");
+            _imgTransToolStrip.Click += _imgTransToolStrip_Click;
             _imgTransToolStrip.Enabled = imgAdapters.Any();
 
             mnuMain.Items.Add(_imgTransToolStrip);
+        }
+
+        private void _imgTransToolStrip_Click(object sender, EventArgs e)
+        {
+            _transcodeImgViewer.ShowDialog();
         }
 
         #region Events
