@@ -30,13 +30,18 @@ namespace Kanvas.IndexEncoding
         /// <param name="allowAlpha">If decomposition should allow alpha in distinction.</param>
         public Index(int indexDepth, bool allowAlpha)
         {
-            //if (indexDepth % 8 != 0)
-            //    throw new InvalidOperationException("IndexDepth needs to be dividable by 8.");
+            if (!IsPowerOfTwo(indexDepth))
+                throw new InvalidOperationException("Index depth needs to be a power of 2.");
 
             _allowAlpha = allowAlpha;
             _indexDepth = indexDepth;
 
             UpdateName();
+        }
+
+        private bool IsPowerOfTwo(int x)
+        {
+            return (x & (x - 1)) == 0;
         }
 
         private void UpdateName()
@@ -47,14 +52,18 @@ namespace Kanvas.IndexEncoding
         /// <inheritdoc cref="IIndexEncoding.Load(byte[])"/>
         public IEnumerable<IndexData> Load(byte[] input)
         {
+            var mask = 1 << _indexDepth - 1;
+
             using (var br = new BinaryReader(new MemoryStream(input)))
                 while (br.BaseStream.Position < br.BaseStream.Length)
                     switch (_indexDepth)
                     {
+                        case 1:
+                        case 2:
                         case 4:
-                            var value = br.ReadByte();
-                            yield return new IndexData((value >> 4) & 0xF);
-                            yield return new IndexData(value & 0xF);
+                            var value4 = br.ReadByte();
+                            for (int i = 8 / _indexDepth - 1; i >= 0; i--)
+                                yield return new IndexData((value4 >> i * _indexDepth) & mask);
                             break;
                         case 8:
                             yield return new IndexData(br.ReadByte());
@@ -118,8 +127,9 @@ namespace Kanvas.IndexEncoding
         /// <inheritdoc cref="IIndexEncoding.Save(IEnumerable{IndexData})"/>
         public byte[] Save(IEnumerable<IndexData> indices)
         {
-            byte nibbleBuffer = 0;
-            bool writeNibble = false;
+            byte valueBuffer = 0;
+            var counter = 0;
+            var mask = 1 << _indexDepth - 1;
 
             var ms = new MemoryStream();
             using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))
@@ -127,16 +137,19 @@ namespace Kanvas.IndexEncoding
                 foreach (var indexData in indices)
                     switch (_indexDepth)
                     {
+                        case 1:
+                        case 2:
                         case 4:
-                            if (writeNibble)
-                            {
-                                nibbleBuffer |= (byte)(indexData.Index & 0xF);
-                                bw.Write(nibbleBuffer);
-                            }
-                            else
-                                nibbleBuffer = (byte)((indexData.Index & 0xF) << 4);
+                            counter += _indexDepth;
+                            valueBuffer <<= _indexDepth;
+                            valueBuffer |= (byte)(indexData.Index & mask);
 
-                            writeNibble = !writeNibble;
+                            if (counter == 8)
+                            {
+                                bw.Write(valueBuffer);
+                                counter = 0;
+                                valueBuffer = 0;
+                            }
                             break;
                         case 8:
                             bw.Write((byte)indexData.Index);
@@ -145,8 +158,8 @@ namespace Kanvas.IndexEncoding
                             throw new Exception($"IndexDepth {_indexDepth} not supported!");
                     }
 
-                if (writeNibble)
-                    bw.Write(nibbleBuffer);
+                if (counter > 0)
+                    bw.Write((byte)(valueBuffer << (8 - counter)));
             }
 
             return ms.ToArray();
