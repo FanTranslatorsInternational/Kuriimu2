@@ -155,9 +155,8 @@ namespace Kore
             catch (Exception ex)
             {
                 var pi = PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter);
-                throw new LoadFileException($"The {pi?.Name} plugin failed to load \"{Path.GetFileName(kli.FileName)}\".{Environment.NewLine}{Environment.NewLine}" +
-                    $"{ex.Message}{Environment.NewLine}{Environment.NewLine}" +
-                    $"{ex.StackTrace}");
+                var msg = $"The {pi?.Name} plugin failed to load \"{Path.GetFileName(kli.FileName)}\".";
+                throw new LoadFileException(msg, ex);
             }
 
             // Check if the stream still follows the LeaveOpen restriction

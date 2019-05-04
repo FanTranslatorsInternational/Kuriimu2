@@ -50,6 +50,7 @@
     <Compile Include="IndexEncoding\Models\AlphaIndexData.cs" />
     <Compile Include="Kolors.cs" />
     <Compile Include="Exceptions\ColorEncodingException.cs" />
+    <Compile Include="Models\BitOrder.cs" />
     <Compile Include="Models\QuantizationSettings.cs" />
     <Compile Include="Swizzle\Models\CtrTransformation.cs" />
     <Compile Include="Swizzle\Models\SwitchFormat.cs" />

@@ -24,6 +24,11 @@ namespace Kanvas.IndexEncoding
         public string FormatName { get; private set; }
 
         /// <summary>
+        /// Gets or sets the <see cref="BitOrder"/> for this instance.
+        /// </summary>
+        public BitOrder BitOrder { get; set; } = BitOrder.LeastSignificantFirst;
+
+        /// <summary>
         /// Creates a new instance of <see cref="Index"/>.
         /// </summary>
         /// <param name="indexDepth">Depth of the index component.</param>
@@ -52,7 +57,7 @@ namespace Kanvas.IndexEncoding
         /// <inheritdoc cref="IIndexEncoding.Load(byte[])"/>
         public IEnumerable<IndexData> Load(byte[] input)
         {
-            var mask = 1 << _indexDepth - 1;
+            var mask = (1 << _indexDepth) - 1;
 
             using (var br = new BinaryReader(new MemoryStream(input)))
                 while (br.BaseStream.Position < br.BaseStream.Length)
@@ -62,8 +67,13 @@ namespace Kanvas.IndexEncoding
                         case 2:
                         case 4:
                             var value4 = br.ReadByte();
-                            for (int i = 8 / _indexDepth - 1; i >= 0; i--)
-                                yield return new IndexData((value4 >> i * _indexDepth) & mask);
+                            var max = 8 / _indexDepth - 1;
+                            if (BitOrder == BitOrder.MostSignificantFirst)
+                                for (int i = max; i >= 0; i--)
+                                    yield return new IndexData((value4 >> i * _indexDepth) & mask);
+                            else
+                                for (int i = 0; i <= max; i++)
+                                    yield return new IndexData((value4 >> i * _indexDepth) & mask);
                             break;
                         case 8:
                             yield return new IndexData(br.ReadByte());
@@ -129,7 +139,7 @@ namespace Kanvas.IndexEncoding
         {
             byte valueBuffer = 0;
             var counter = 0;
-            var mask = 1 << _indexDepth - 1;
+            var mask = (1 << _indexDepth) - 1;
 
             var ms = new MemoryStream();
             using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))
@@ -141,8 +151,15 @@ namespace Kanvas.IndexEncoding
                         case 2:
                         case 4:
                             counter += _indexDepth;
-                            valueBuffer <<= _indexDepth;
-                            valueBuffer |= (byte)(indexData.Index & mask);
+                            if (BitOrder == BitOrder.MostSignificantFirst)
+                            {
+                                valueBuffer <<= _indexDepth;
+                                valueBuffer |= (byte)(indexData.Index & mask);
+                            }
+                            else
+                            {
+                                valueBuffer |= (byte)((indexData.Index & mask) << (counter - _indexDepth));
+                            }
 
                             if (counter == 8)
                             {
