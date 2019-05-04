@@ -413,6 +413,10 @@ namespace Kuriimu2_WinForms.FormatForms
                 if (paletteImg != null)
                     pbPalette.Image = paletteImg;
             }
+
+            // Dimensions
+            tslWidth.Text = _selectedBitmapInfo.Size.Width.ToString();
+            tslHeight.Text = _selectedBitmapInfo.Size.Height.ToString();
         }
 
         public static Bitmap ComposeImage(IList<Color> colors, int width, int height)
