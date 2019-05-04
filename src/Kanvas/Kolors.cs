@@ -66,7 +66,7 @@ namespace Kanvas
                 kd.Height = height;
             }
 
-            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height);
+            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height, settings.PadWidth, settings.PadHeight);
 
             var bmp = new Bitmap(width, height);
             var data = bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
@@ -104,7 +104,7 @@ namespace Kanvas
             }
 
             var colors = new List<Color>();
-            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height);
+            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height, settings.PadWidth, settings.PadHeight);
 
             foreach (var point in points)
             {
@@ -136,7 +136,7 @@ namespace Kanvas
         {
             int width = settings.Width, height = settings.Height;
 
-            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height);
+            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height, settings.PadWidth, settings.PadHeight);
             var indices = settings.IndexEncoding.Load(bytes);
             var palette = settings.Encoding.Load(paletteBytes).ToList();
 
@@ -173,7 +173,7 @@ namespace Kanvas
         public static (byte[] indexData, byte[] paletteData) Save(Bitmap bmp, IndexedImageSettings settings)
         {
             // Create swizzle point list
-            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height);
+            var points = GetPointSequence(settings.Swizzle, settings.Width, settings.Height, settings.PadWidth, settings.PadHeight);
 
             // Get swizzled collection of colors
             var colors = new List<Color>();
@@ -245,10 +245,10 @@ namespace Kanvas
         /// <summary>
         /// Gives back a sequence of points, modified by swizzles if applied
         /// </summary>
-        private static IEnumerable<Point> GetPointSequence(IImageSwizzle swizzle, int width, int height)
+        private static IEnumerable<Point> GetPointSequence(IImageSwizzle swizzle, int width, int height, int padWidth, int padHeight)
         {
-            int strideWidth = swizzle?.Width ?? width;
-            int strideHeight = swizzle?.Height ?? height;
+            int strideWidth = swizzle?.Width ?? (padWidth <= 0 ? width : padWidth);
+            int strideHeight = swizzle?.Height ?? (padHeight <= 0 ? height : padHeight);
 
             for (var i = 0; i < strideWidth * strideHeight; i++)
             {
