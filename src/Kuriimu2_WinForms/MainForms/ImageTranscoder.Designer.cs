@@ -33,9 +33,11 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splMain = new System.Windows.Forms.SplitContainer();
+            this.pnlImage = new System.Windows.Forms.Panel();
             this.splImage = new System.Windows.Forms.SplitContainer();
             this.pbSource = new Cyotek.Windows.Forms.ImageBox();
             this.pbTarget = new Cyotek.Windows.Forms.ImageBox();
+            this.btnTranscode = new System.Windows.Forms.Button();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.swizzleLabel = new System.Windows.Forms.Label();
             this.encLabel = new System.Windows.Forms.Label();
@@ -47,6 +49,7 @@
             this.splMain.Panel1.SuspendLayout();
             this.splMain.Panel2.SuspendLayout();
             this.splMain.SuspendLayout();
+            this.pnlImage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splImage)).BeginInit();
             this.splImage.Panel1.SuspendLayout();
             this.splImage.Panel2.SuspendLayout();
@@ -81,7 +84,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
@@ -89,7 +92,7 @@
             // 
             this.exportToolStripMenuItem.Enabled = false;
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            this.exportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exportToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.exportToolStripMenuItem.Text = "Export";
             this.exportToolStripMenuItem.Click += new System.EventHandler(this.ExportToolStripMenuItem_Click);
             // 
@@ -104,7 +107,7 @@
             // 
             // splMain.Panel1
             // 
-            this.splMain.Panel1.Controls.Add(this.splImage);
+            this.splMain.Panel1.Controls.Add(this.pnlImage);
             // 
             // splMain.Panel2
             // 
@@ -112,6 +115,16 @@
             this.splMain.Size = new System.Drawing.Size(664, 525);
             this.splMain.SplitterDistance = 448;
             this.splMain.TabIndex = 1;
+            // 
+            // pnlImage
+            // 
+            this.pnlImage.Controls.Add(this.splImage);
+            this.pnlImage.Controls.Add(this.btnTranscode);
+            this.pnlImage.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlImage.Location = new System.Drawing.Point(0, 0);
+            this.pnlImage.Name = "pnlImage";
+            this.pnlImage.Size = new System.Drawing.Size(664, 448);
+            this.pnlImage.TabIndex = 1;
             // 
             // splImage
             // 
@@ -128,7 +141,7 @@
             // 
             this.splImage.Panel2.Controls.Add(this.pbTarget);
             this.splImage.Panel2.Padding = new System.Windows.Forms.Padding(0, 3, 3, 3);
-            this.splImage.Size = new System.Drawing.Size(664, 448);
+            this.splImage.Size = new System.Drawing.Size(664, 425);
             this.splImage.SplitterDistance = 331;
             this.splImage.TabIndex = 0;
             // 
@@ -139,7 +152,7 @@
             this.pbSource.GridCellSize = 16;
             this.pbSource.Location = new System.Drawing.Point(3, 3);
             this.pbSource.Name = "pbSource";
-            this.pbSource.Size = new System.Drawing.Size(328, 442);
+            this.pbSource.Size = new System.Drawing.Size(328, 419);
             this.pbSource.TabIndex = 0;
             // 
             // pbTarget
@@ -149,8 +162,19 @@
             this.pbTarget.GridCellSize = 16;
             this.pbTarget.Location = new System.Drawing.Point(0, 3);
             this.pbTarget.Name = "pbTarget";
-            this.pbTarget.Size = new System.Drawing.Size(326, 442);
+            this.pbTarget.Size = new System.Drawing.Size(326, 419);
             this.pbTarget.TabIndex = 0;
+            // 
+            // btnTranscode
+            // 
+            this.btnTranscode.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.btnTranscode.Location = new System.Drawing.Point(0, 425);
+            this.btnTranscode.Name = "btnTranscode";
+            this.btnTranscode.Size = new System.Drawing.Size(664, 23);
+            this.btnTranscode.TabIndex = 1;
+            this.btnTranscode.Text = "Transcode";
+            this.btnTranscode.UseVisualStyleBackColor = true;
+            this.btnTranscode.Click += new System.EventHandler(this.BtnTranscode_Click);
             // 
             // splProperties
             // 
@@ -233,6 +257,7 @@
             this.splMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).EndInit();
             this.splMain.ResumeLayout(false);
+            this.pnlImage.ResumeLayout(false);
             this.splImage.Panel1.ResumeLayout(false);
             this.splImage.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splImage)).EndInit();
@@ -265,5 +290,7 @@
         private System.Windows.Forms.ComboBox cbEncoding;
         private System.Windows.Forms.SplitContainer splExtendedProperties;
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
+        private System.Windows.Forms.Panel pnlImage;
+        private System.Windows.Forms.Button btnTranscode;
     }
 }

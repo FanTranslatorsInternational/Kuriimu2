@@ -33,6 +33,7 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.pbMain = new Cyotek.Windows.Forms.ImageBox();
+            this.btnDecode = new System.Windows.Forms.Button();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.tbHeight = new System.Windows.Forms.TextBox();
             this.tbWidth = new System.Windows.Forms.TextBox();
@@ -78,7 +79,7 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
@@ -93,6 +94,7 @@
             // splMain.Panel1
             // 
             this.splMain.Panel1.Controls.Add(this.pbMain);
+            this.splMain.Panel1.Controls.Add(this.btnDecode);
             this.splMain.Panel1.Padding = new System.Windows.Forms.Padding(5);
             // 
             // splMain.Panel2
@@ -109,8 +111,19 @@
             this.pbMain.GridCellSize = 16;
             this.pbMain.Location = new System.Drawing.Point(5, 5);
             this.pbMain.Name = "pbMain";
-            this.pbMain.Size = new System.Drawing.Size(512, 420);
+            this.pbMain.Size = new System.Drawing.Size(512, 397);
             this.pbMain.TabIndex = 0;
+            // 
+            // btnDecode
+            // 
+            this.btnDecode.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.btnDecode.Location = new System.Drawing.Point(5, 402);
+            this.btnDecode.Name = "btnDecode";
+            this.btnDecode.Size = new System.Drawing.Size(512, 23);
+            this.btnDecode.TabIndex = 1;
+            this.btnDecode.Text = "Decode";
+            this.btnDecode.UseVisualStyleBackColor = true;
+            this.btnDecode.Click += new System.EventHandler(this.BtnDecode_Click);
             // 
             // splProperties
             // 
@@ -148,7 +161,6 @@
             this.tbHeight.Size = new System.Drawing.Size(100, 20);
             this.tbHeight.TabIndex = 11;
             this.tbHeight.Text = "1";
-            this.tbHeight.TextChanged += new System.EventHandler(this.TbHeight_TextChanged);
             // 
             // tbWidth
             // 
@@ -157,7 +169,6 @@
             this.tbWidth.Size = new System.Drawing.Size(100, 20);
             this.tbWidth.TabIndex = 10;
             this.tbWidth.Text = "1";
-            this.tbWidth.TextChanged += new System.EventHandler(this.TbWidth_TextChanged);
             // 
             // heightLabel
             // 
@@ -211,7 +222,6 @@
             this.tbOffset.Size = new System.Drawing.Size(100, 20);
             this.tbOffset.TabIndex = 2;
             this.tbOffset.Text = "0";
-            this.tbOffset.TextChanged += new System.EventHandler(this.TbOffset_TextChanged);
             // 
             // cbSwizzle
             // 
@@ -287,5 +297,6 @@
         private System.Windows.Forms.TextBox tbWidth;
         private System.Windows.Forms.Label heightLabel;
         private System.Windows.Forms.Label widthLabel;
+        private System.Windows.Forms.Button btnDecode;
     }
 }

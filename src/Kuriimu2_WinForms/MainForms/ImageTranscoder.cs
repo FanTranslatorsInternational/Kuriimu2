@@ -93,6 +93,7 @@ namespace Kuriimu2_WinForms.MainForms
             cbEncoding.Enabled = cbEncoding.Items.Count > 0;
             cbSwizzle.Enabled = cbSwizzle.Items.Count > 0;
             exportToolStripMenuItem.Enabled = _imgLoaded;
+            btnTranscode.Enabled = _imgLoaded;
         }
 
         private void UpdateExtendedProperties()
@@ -242,8 +243,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedColorEncodingAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, value);
-
-            TranscodeImage();
         }
 
         private void SwizzlePropertyTextBox_TextChanged(object sender, EventArgs e)
@@ -257,8 +256,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedSwizzleAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, value);
-
-            TranscodeImage();
         }
 
         private void AddEnumProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler indexChangedEvent, int width, int x, int y)
@@ -304,8 +301,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedColorEncodingAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, format.Value);
-
-            TranscodeImage();
         }
 
         private void SwizzlePropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -319,8 +314,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedSwizzleAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, format.Value);
-
-            TranscodeImage();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -343,7 +336,8 @@ namespace Kuriimu2_WinForms.MainForms
             _imgStream = File.OpenRead(imgFile);
             pbSource.Image = (Bitmap)Image.FromStream(_imgStream);
             _imgLoaded = true;
-            exportToolStripMenuItem.Enabled = true;
+
+            UpdateForm();
         }
 
         private async void TranscodeImage()
@@ -386,6 +380,7 @@ namespace Kuriimu2_WinForms.MainForms
             cbSwizzle.Enabled = toggle;
             openToolStripMenuItem.Enabled = toggle;
             exportToolStripMenuItem.Enabled = toggle;
+            btnTranscode.Enabled = toggle;
         }
 
         private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
@@ -405,6 +400,11 @@ namespace Kuriimu2_WinForms.MainForms
                 return;
 
             pbTarget.Image.Save(sfd.FileName);
+        }
+
+        private void BtnTranscode_Click(object sender, EventArgs e)
+        {
+            TranscodeImage();
         }
     }
 }

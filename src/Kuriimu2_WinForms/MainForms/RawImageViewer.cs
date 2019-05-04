@@ -90,6 +90,7 @@ namespace Kuriimu2_WinForms.MainForms
             cbEncoding.Enabled = cbEncoding.Items.Count > 0;
             cbSwizzle.Enabled = cbSwizzle.Items.Count > 0;
             tbOffset.Enabled = true;
+            btnDecode.Enabled = _fileLoaded;
         }
 
         private void UpdateExtendedProperties()
@@ -239,8 +240,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedColorEncodingAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, value);
-
-            LoadImage();
         }
 
         private void SwizzlePropertyTextBox_TextChanged(object sender, EventArgs e)
@@ -254,8 +253,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedSwizzleAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, value);
-
-            LoadImage();
         }
 
         private void AddEnumProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler indexChangedEvent, int width, int x, int y)
@@ -301,8 +298,6 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedColorEncodingAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedColorEncodingAdapter, format.Value);
-
-            LoadImage();
         }
 
         private void SwizzlePropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -316,16 +311,9 @@ namespace Kuriimu2_WinForms.MainForms
             var adapterProperty = SelectedSwizzleAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
             adapterProperty?.SetValue(SelectedSwizzleAdapter, format.Value);
-
-            LoadImage();
         }
 
         #endregion
-
-        private void TbOffset_TextChanged(object sender, EventArgs e)
-        {
-            LoadImage();
-        }
 
         private async void LoadImage()
         {
@@ -370,6 +358,7 @@ namespace Kuriimu2_WinForms.MainForms
             cbEncoding.Enabled = toggle;
             cbSwizzle.Enabled = toggle;
             openToolStripMenuItem.Enabled = toggle;
+            btnDecode.Enabled = toggle;
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -396,12 +385,7 @@ namespace Kuriimu2_WinForms.MainForms
             _fileLoaded = true;
         }
 
-        private void TbWidth_TextChanged(object sender, EventArgs e)
-        {
-            LoadImage();
-        }
-
-        private void TbHeight_TextChanged(object sender, EventArgs e)
+        private void BtnDecode_Click(object sender, EventArgs e)
         {
             LoadImage();
         }
