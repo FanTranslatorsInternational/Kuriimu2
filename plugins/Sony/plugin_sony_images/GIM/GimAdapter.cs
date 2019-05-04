@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
-using Kontract;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
+using Kontract.Models;
+using Kontract.Models.Image;
 
 namespace plugin_sony_images.GIM
 {
@@ -26,7 +28,7 @@ namespace plugin_sony_images.GIM
         [FormFieldIgnore]
         public IList<BitmapInfo> BitmapInfos => _bitmapInfos;
 
-        public IList<FormatInfo> FormatInfos => throw new NotImplementedException();
+        public IList<EncodingInfo> ImageEncodingInfos => Support.Formats.Select(f => new EncodingInfo((int)f.Key, f.Value.FormatName)).ToList();
 
         public bool LeaveOpen { get; set; }
 
@@ -57,10 +59,10 @@ namespace plugin_sony_images.GIM
                 throw new Exception("No stream was provided to load from.");
 
             _format = new GIM(inputs[0]);
-            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo(i.First().Item1, new FormatInfo(0, "")) { Name = $"{index}", MipMaps = i.Select(p => p.Item1).Skip(1).ToList() }).ToList();
+            _bitmapInfos = _format.Images.Select((i, index) => new BitmapInfo(i.First().Item1, new EncodingInfo(0, "")) { Name = $"{index}", MipMaps = i.Select(p => p.Item1).Skip(1).ToList() }).ToList();
         }
 
-        public async Task<bool> Encode(BitmapInfo bitmapInfo, FormatInfo formatInfo, IProgress<ProgressReport> progress)
+        public async Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo, IProgress<ProgressReport> progress)
         {
             throw new NotImplementedException();
         }

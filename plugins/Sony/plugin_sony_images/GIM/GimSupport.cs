@@ -3,9 +3,11 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kanvas;
-using Kanvas.Format;
+using Kanvas.Encoding;
+using Kanvas.Encoding.Support.DXT.Models;
+using Kanvas.IndexEncoding;
 using Kanvas.Interface;
-using Kanvas.Palette;
+using Kanvas.Models;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -47,7 +49,7 @@ namespace plugin_sony_images.GIM
             }
         }
 
-        public void Save(Stream output, List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> bmps)
+        public void Save(Stream output, List<List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)>> bmps)
         {
             var headerOffset = output.Position;
             var header = new GIMChunk();
@@ -92,7 +94,7 @@ namespace plugin_sony_images.GIM
             }
         }
 
-        public void Save(Stream output, List<List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>> bmps)
+        public void Save(Stream output, List<List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)>> bmps)
         {
             int index = 0;
             foreach (var picture in bmps)
@@ -128,13 +130,13 @@ namespace plugin_sony_images.GIM
         private long _absoluteBlockPosition;
 
         private bool _paletteUsed;
-        private List<Color> _palette;
-        private IImageFormat _paletteFormat;
+        private byte[] _palette;
+        private IColorEncoding _paletteFormat;
         private ImageBlockMeta _paletteMeta;
         private long _paletteBlockEnd;
 
-        public List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)> Bitmaps =
-            new List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)>();
+        public List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)> Bitmaps =
+            new List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)>();
 
         public void Load(Stream input)
         {
@@ -155,7 +157,7 @@ namespace plugin_sony_images.GIM
 
                     var paletteBlock = new PaletteBlock();
                     paletteBlock.Load(input);
-                    _palette = paletteBlock.Palette;
+                    _palette = paletteBlock.PaletteData;
                     _paletteFormat = paletteBlock.Format;
                     _paletteMeta = paletteBlock.ImageMeta;
 
@@ -165,25 +167,34 @@ namespace plugin_sony_images.GIM
 
                 (int Width, int Height) = Support.SwizzleAlign(_imageMeta.Width, _imageMeta.Height, _imageMeta.Bpp);
 
-                var settings = new ImageSettings
-                {
-                    Height = _imageMeta.Height,
-                    Width = _imageMeta.Width,
-                    Format = Support.Formats[_imageMeta.ImageFormat],
-                    Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
-                };
+                ImageSettings settings;
 
-                if (_paletteUsed)
-                    (settings.Format as IPaletteFormat)?.SetPalette(_palette);
+                if (!_paletteUsed)
+                    settings = new ImageSettings(Support.Formats[_imageMeta.ImageFormat], _imageMeta.Width, _imageMeta.Height)
+                    {
+                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
+                    };
+                else
+                    settings = new IndexedImageSettings(Support.IndexFormats[_imageMeta.ImageFormat], _paletteFormat, _imageMeta.Width, _imageMeta.Height)
+                    {
+                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
+                    };
+
+                var nextWidth = _imageMeta.Width;
+                var nextHeight = _imageMeta.Height;
 
                 for (var i = 0; i < _imageMeta.LevelCount; i++)
                 {
-                    var data = br.ReadBytes(Width * Height * _imageMeta.Bpp / 8);
-                    Bitmaps.Add((Common.Load(data, settings), Support.Formats[_imageMeta.ImageFormat], _imageMeta, _paletteFormat, _paletteMeta));
+                    var texture = br.ReadBytes(Width * Height * _imageMeta.Bpp / 8);
 
-                    settings.Height >>= 1;
-                    settings.Width >>= 1;
-                    settings.Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(settings.Width, settings.Height, _imageMeta.Bpp) : null;
+                    if (!_paletteUsed)
+                        Bitmaps.Add((Kolors.Load(texture, settings), Support.Formats[_imageMeta.ImageFormat], _imageMeta, _paletteFormat, _paletteMeta));
+                    else
+                        Bitmaps.Add((Kolors.Load(texture, _palette, (IndexedImageSettings)settings).image, _paletteFormat, _imageMeta, _paletteFormat, _paletteMeta));
+
+                    nextWidth >>= 1;
+                    nextHeight >>= 1;
+                    settings.Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(nextWidth, nextHeight, _imageMeta.Bpp) : null;
                 }
 
                 if (_paletteUsed)
@@ -191,7 +202,7 @@ namespace plugin_sony_images.GIM
             }
         }
 
-        public void Save(Stream output, List<(Bitmap, IImageFormat, ImageBlockMeta, IImageFormat, ImageBlockMeta)> bmps, bool last)
+        public void Save(Stream output, List<(Bitmap, IColorEncoding, ImageBlockMeta, IColorEncoding, ImageBlockMeta)> bmps, bool last)
         {
             int index = 0;
             foreach (var image in bmps)
@@ -213,14 +224,11 @@ namespace plugin_sony_images.GIM
 
                 (int Width, int Height) = Support.SwizzleAlign(meta.Width, meta.Height, meta.Bpp);
 
-                var settings = new ImageSettings
+                var settings = new ImageSettings(Support.Formats[meta.ImageFormat], meta.Width, meta.Height)
                 {
-                    Width = meta.Width,
-                    Height = meta.Height,
-                    Swizzle = meta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, meta.Bpp) : null,
-                    Format = Support.Formats[meta.ImageFormat]
+                    Swizzle = meta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, meta.Bpp) : null
                 };
-                var data = Common.Save(image.Item1, settings);
+                var data = Kolors.Save(image.Item1, settings);
 
                 meta.PixelEnd = data.Length + meta.PixelStart;
                 header.BlockSize = (0x10 + 0x40 + data.Length + 0xF) & ~0xF;
@@ -253,8 +261,9 @@ namespace plugin_sony_images.GIM
         public ImageBlockMeta ImageMeta;
         private long _absoluteBlockPosition;
 
+        public byte[] PaletteData;
         public List<Color> Palette;
-        public IImageFormat Format;
+        public IColorEncoding Format;
 
         public void Load(Stream input)
         {
@@ -265,11 +274,12 @@ namespace plugin_sony_images.GIM
                 ImageMeta = br.ReadType<ImageBlockMeta>();
 
                 Format = Support.Formats[ImageMeta.ImageFormat];
-                Palette = Format.Load(br.ReadBytes(ImageMeta.Width * ImageMeta.Height * ImageMeta.Bpp / 8)).ToList();
+                PaletteData = br.ReadBytes(ImageMeta.Width * ImageMeta.Height * ImageMeta.Bpp / 8);
+                Palette = Format.Load(PaletteData).ToList();
             }
         }
 
-        public void Save(Stream output, IEnumerable<Color> palette, IImageFormat format, ImageBlockMeta meta, bool last)
+        public void Save(Stream output, IEnumerable<Color> palette, IColorEncoding format, ImageBlockMeta meta, bool last)
         {
             var headerOffset = output.Position;
             var header = new GIMChunk();
@@ -376,19 +386,23 @@ namespace plugin_sony_images.GIM
 
     public sealed class Support
     {
-        public static Dictionary<ImageFormat, IImageFormat> Formats = new Dictionary<ImageFormat, IImageFormat>
+        public static Dictionary<ImageFormat, IColorEncoding> Formats = new Dictionary<ImageFormat, IColorEncoding>
         {
             [ImageFormat.RGB565] = new RGBA(5, 6, 5, 0) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
             [ImageFormat.RGBA5551] = new RGBA(5, 5, 5, 1) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
             [ImageFormat.RGBA4444] = new RGBA(4, 4, 4, 4) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
             [ImageFormat.RGBA8888] = new RGBA(8, 8, 8, 8) { IsAlphaFirst = true, ShouldSwapColorChannels = true },
-            [ImageFormat.Palette_4] = new Palette(4),
-            [ImageFormat.Palette_8] = new Palette(8),
             //[6] = new AI(8,8),    ??
             //[7] = new AI(24,8),   ??
-            [ImageFormat.DXT1] = new DXT(DXT.Format.DXT1),
-            [ImageFormat.DXT3] = new DXT(DXT.Format.DXT3),
-            [ImageFormat.DXT5] = new DXT(DXT.Format.DXT5),
+            [ImageFormat.DXT1] = new DXT(DxtFormat.DXT1),
+            [ImageFormat.DXT3] = new DXT(DxtFormat.DXT3),
+            [ImageFormat.DXT5] = new DXT(DxtFormat.DXT5),
+        };
+
+        public static Dictionary<ImageFormat, IIndexEncoding> IndexFormats = new Dictionary<ImageFormat, IIndexEncoding>
+        {
+            [ImageFormat.Palette_4] = new Index(4, false),
+            [ImageFormat.Palette_8] = new Index(8, false)
         };
 
         public static (int, int) SwizzleAlign(int Width, int Height, int Bpp)
@@ -430,7 +444,7 @@ namespace plugin_sony_images.GIM
                     break;
             }
 
-            _master = new MasterSwizzle(Width, new Point(0, 0), bitField);
+            _master = new MasterSwizzle(Width, new Point(0, 0), bitField.ToArray());
         }
 
         public int Width { get; }
