@@ -172,12 +172,14 @@ namespace plugin_sony_images.GIM
                 if (!_paletteUsed)
                     settings = new ImageSettings(Support.Formats[_imageMeta.ImageFormat], _imageMeta.Width, _imageMeta.Height)
                     {
-                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
+                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null,
+                        PadWidth = _imageMeta.Width + (_imageMeta.PitchAlign - _imageMeta.Width % _imageMeta.PitchAlign)
                     };
                 else
                     settings = new IndexedImageSettings(Support.IndexFormats[_imageMeta.ImageFormat], _paletteFormat, _imageMeta.Width, _imageMeta.Height)
                     {
-                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null
+                        Swizzle = _imageMeta.PixelOrder == 1 ? new GIMSwizzle(Width, Height, _imageMeta.Bpp) : null,
+                        PadWidth = _imageMeta.Width + (_imageMeta.PitchAlign - _imageMeta.Width % _imageMeta.PitchAlign)
                     };
 
                 var nextWidth = _imageMeta.Width;
