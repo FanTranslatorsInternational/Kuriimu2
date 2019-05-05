@@ -88,15 +88,17 @@ namespace Kanvas.Encoding
             var colors = ktx.GetImageColors().Reverse().ToList();
             ktx.Dispose();
 
-            File.Delete("tmp.ktx");
+            //File.Delete("tmp.ktx");
 
             return colors;
         }
 
         private void CreateTempASTCFile(string astcFile, byte[] texData)
         {
-            using (var bw = new BinaryWriter(File.Create(astcFile), System.Text.Encoding.ASCII, true))
+            var astc = File.Create(astcFile);
+            using (var bw = new BinaryWriter(astc, System.Text.Encoding.ASCII, true))
             {
+                bw.Write(0x5CA1AB13);   // magic val
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
@@ -105,6 +107,8 @@ namespace Kanvas.Encoding
                 bw.Write(Convert.ToByteArray(1, 3, ByteOrder));
                 bw.Write(texData);
             }
+            astc.Dispose();
+            astc.Close();
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -115,7 +119,10 @@ namespace Kanvas.Encoding
             CreateTempPNG("tmp.png", colors);
 
             var wrapper = new ASTCContext();
-            wrapper.Encode("tmp.png", "tmp.astc", _blockMode);
+            var result = wrapper.Encode("tmp.png", "tmp.astc", _blockMode);
+            if (result == ConvertImageResult.Error)
+                return null;
+
             File.Delete("tmp.png");
 
             byte[] encodedData;
@@ -139,6 +146,8 @@ namespace Kanvas.Encoding
                 var index = 0;
                 foreach (var color in colors)
                 {
+                    if (index / 4 == Width * Height)
+                        break;
                     pointer[index++] = color.B;
                     pointer[index++] = color.G;
                     pointer[index++] = color.R;

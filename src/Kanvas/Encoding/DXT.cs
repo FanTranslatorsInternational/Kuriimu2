@@ -67,7 +67,7 @@ namespace Kanvas.Encoding
                 foreach (var color in colors)
                     dxtEncoder.Set(color, data =>
                     {
-                        if (_format == DxtFormat.DXT5)
+                        if (_format == DxtFormat.DXT5 || _format == DxtFormat.DXT3)
                             bw.Write(Convert.ToByteArray(data.alpha, 8, ByteOrder));
                         bw.Write(Convert.ToByteArray(data.block, 8, ByteOrder));
                     });

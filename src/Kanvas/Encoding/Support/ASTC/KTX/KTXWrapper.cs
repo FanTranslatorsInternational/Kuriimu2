@@ -48,7 +48,7 @@ namespace Kanvas.Encoding.Support.ASTC.KTX
         {
             _reader.BaseStream.Position = 0xC;
 
-            _byteOrder = ReadInt32() == 0x04030201 ? ByteOrder.LittleEndian : ByteOrder.BigEndian;
+            _byteOrder = ReadInt32() == 0x04030201 ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
         }
 
         private void ParseHeader()
