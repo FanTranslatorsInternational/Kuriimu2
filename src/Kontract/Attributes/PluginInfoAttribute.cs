@@ -3,10 +3,10 @@ using Kontract.Interfaces.Common;
 
 namespace Kontract.Attributes
 {
-    /// <inheritdoc />
     /// <summary>
     /// This attribute is used to define general information about a plugin.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
     public class PluginInfoAttribute : Attribute, IPluginMetadata
     {
         // TODO: Determine how to handle plugin selection when two plugins have the same ID.
@@ -47,11 +47,11 @@ namespace Kontract.Attributes
         /// </summary>
         public string About { get; }
 
-        /// <inheritdoc />
+        // TODO: Remove optional parameters from attribute ctor
         /// <summary>
-        /// Initializes a new PluginInfoAttribute with the provided values.
+        /// Initializes a new <see cref="PluginInfoAttribute"/> with the provided values.
         /// </summary>
-        /// <param name="id">GUID</param>
+        /// <param name="id">GUID.</param>
         /// <param name="name">The plugin name.</param>
         /// <param name="shortName">The plugin short name.</param>
         /// <param name="author">The plugin author(s).</param>

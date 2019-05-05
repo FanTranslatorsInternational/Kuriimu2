@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Windows.Controls;
 
 namespace Kontract.Attributes
 {
-    /// <inheritdoc />
     /// <summary>
     /// This attribute is used to prepare class members for display as form fields.
     /// </summary>
@@ -20,22 +20,23 @@ namespace Kontract.Attributes
         public string DisplayName { get; }
 
         /// <summary>
-        /// The minimum length of the string that is expected in the TextBox.
+        /// The minimum length of the string that is expected in the <see cref="TextBox"/>.
         /// </summary>
         public int MinLength { get; }
 
         /// <summary>
-        /// The maximum length of the string that is expected in the TextBox.
+        /// The maximum length of the string that is expected in the <see cref="TextBox"/>.
         /// </summary>
         public int MaxLength { get; }
 
+        // TODO: Remove optional parameters from attribute ctor
         /// <summary>
-        /// Initializes a new FormFieldAttribute.
+        /// Create a new instance of <see cref="FormFieldAttribute"/>.
         /// </summary>
         /// <param name="type">The data type that the form will cast to and from.</param>
         /// <param name="displayName">The display name of the member on the form field label.</param>
-        /// <param name="minLength">The minimum length of the string that is expected in the TextBox.</param>
-        /// <param name="maxLength">The maximum length of the string that is expected in the TextBox.</param>
+        /// <param name="minLength">The minimum length of the string that is expected in the <see cref="TextBox"/>.</param>
+        /// <param name="maxLength">The maximum length of the string that is expected in the <see cref="TextBox"/>.</param>
         public FormFieldAttribute(Type type, string displayName = "", int minLength = 0, int maxLength = 0)
         {
             Type = type;
@@ -44,11 +45,4 @@ namespace Kontract.Attributes
             MaxLength = maxLength;
         }
     }
-
-    /// <inheritdoc />
-    /// <summary>
-    /// Marker attribute that makes fields invisible to the property editor.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class FormFieldIgnoreAttribute : Attribute { }
 }

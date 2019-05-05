@@ -1,18 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.Exceptions
 {
+    /// <summary>
+    /// An exception thrown by <see cref="PluginLoader"/> if loaded plugins create inconsistencies.
+    /// </summary>
     public class PluginInconsistencyException : Exception
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginInconsistencyException"/>.
+        /// </summary>
+        /// <param name="pluginNames">A list of all plugins that create inconsistencies.</param>
         public PluginInconsistencyException(params string[] pluginNames) : base(CreateInconsistentList(pluginNames))
         {
 
         }
 
+        /// <summary>
+        /// Serializes a message containing all inconsistent plugins.
+        /// </summary>
+        /// <param name="pluginNames">Names of the plugins.</param>
+        /// <returns>A serialized message.</returns>
         private static string CreateInconsistentList(string[] pluginNames)
         {
             if (pluginNames == null || !pluginNames.Any())

@@ -3,10 +3,10 @@ using Kontract.Interfaces.Common;
 
 namespace Kontract.Attributes
 {
-    /// <inheritdoc />
     /// <summary>
-    /// This attribute is used to define the extension(s) that a plugin works with.
+    /// This attribute is used to define the extensions that a plugin works with.
     /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
     public class PluginExtensionInfoAttribute : Attribute, IPluginMetadata
     {
         /// <summary>
@@ -15,11 +15,11 @@ namespace Kontract.Attributes
         /// </summary>
         public string Extension { get; }
 
-        /// <inheritdoc />
+        // TODO: Make this a params input
         /// <summary>
-        /// Initializes a new ExtensionInfoAttribute with the provided extension(s).
+        /// Initializes a new <see cref="PluginExtensionInfoAttribute"/> with the provided extensions.
         /// </summary>
-        /// <param name="extension"></param>
+        /// <param name="extension">Provided extensions for a plugin.</param>
         public PluginExtensionInfoAttribute(string extension)
         {
             Extension = extension;

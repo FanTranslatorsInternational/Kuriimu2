@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.Attributes;
@@ -15,6 +17,7 @@ using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
 using Kontract.Models;
 using Kontract.Models.Intermediate;
+using Kontract.Providers.Models;
 using Kore;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
@@ -45,16 +48,9 @@ namespace Kuriimu2_WinForms.MainForms
         {
             InitializeComponent();
 
-            try
-            {
-                _kore = new KoreManager();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Load += (s, evt) => Close();
-                return;
-            }
+            _kore = new KoreManager();
+            if (_kore.PluginLoader.CompositionErrors?.Any() ?? false)
+                DisplayCompositionErrors(_kore.PluginLoader.CompositionErrors);
 
             _timer = new Timer { Interval = 14 };
             _timer.Tick += _timer_Tick;
@@ -70,6 +66,21 @@ namespace Kuriimu2_WinForms.MainForms
 
             LoadExtensions();
             LoadImageViews();
+        }
+
+        private void DisplayCompositionErrors(IList<ExportErrorReport> reports)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Following plugins produced errors and are not available:");
+            foreach (var report in reports)
+            {
+                var reportMsg = report.ComposablePartDefinition.ToString();
+                reportMsg += Environment.NewLine;
+                reportMsg += $" --> {report.Exception.Message}";
+                sb.AppendLine(reportMsg);
+            }
+
+            MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void _timer_Tick(object sender, EventArgs e)

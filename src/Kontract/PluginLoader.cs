@@ -8,7 +8,8 @@ using System.Reflection;
 using Kontract.Exceptions;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
-using Kontract.Models;
+using Kontract.Providers;
+using Kontract.Providers.Models;
 
 namespace Kontract
 {
@@ -32,38 +33,60 @@ namespace Kontract
         /// Re/Loads a plugin container for a given parent object.
         /// </summary>
         /// <param name="parent">The parent object to load plugins for.</param>
-        /// <param name="pluginDirectory">The directory to load plugins from</param>
+        /// <param name="pluginDirectory">The directory to load plugins from.</param>
+        /// <param name="errors">List of occured composition errors.</param>
+        /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on composition.</exception>
+        /// <returns>Was composition successful.</returns>
+        public static bool TryComposePlugins(object parent, string pluginDirectory, out IList<ExportErrorReport> errors)
+            => TryComposePlugins(parent, pluginDirectory, null, out errors);
+
+        /// <summary>
+        /// Re/Loads a plugin container for a given parent object.
+        /// </summary>
+        /// <param name="parent">The parent object to load plugins for.</param>
+        /// <param name="pluginDirectory">The directory to load plugins from.</param>
         /// <param name="types">Extra types to load plugins from.</param>
+        /// <param name="errors">List of occured composition errors.</param>
         /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on load.</exception>
-        public static void ComposePlugins(object parent, string pluginDirectory = "plugins", params Type[] types)
+        /// <returns>Was composition successful.</returns>
+        public static bool TryComposePlugins(object parent, string pluginDirectory, Type[] types, out IList<ExportErrorReport> errors)
         {
+            errors = new List<ExportErrorReport>();
+
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
 
             // Loads plugins from the Assembly of the given types.
-            foreach (var type in types)
-                catalog.Catalogs.Add(new AssemblyCatalog(type.Assembly));
+            if (types != null)
+                foreach (var type in types)
+                    catalog.Catalogs.Add(new AssemblyCatalog(type.Assembly));
 
             // Loads plugins from all DLLs found in the plugin directory.
             if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
                 catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
 
             // Create the CompositionContainer with the parts in the catalog.
-            var container = new CompositionContainer(catalog);
+            var exportProvider = new KuriimuExportProvider(catalog);
+            var container = new CompositionContainer(exportProvider);
 
-            // Fill the imports of this object.
             try
             {
+                // Fill the imports of the parent object.
                 container.ComposeParts(parent);
-            }
-            catch (TypeLoadException e)
-            {
-                throw new PluginInconsistencyException();
             }
             catch (Exception e)
             {
-                throw new PluginInconsistencyException();
+                errors.Add(new ExportErrorReport(e));
+                return false;
             }
+
+            if (exportProvider.HasErrorReports)
+            {
+                errors = exportProvider.ErrorReports;
+                return false;
+            }
+
+            return true;
         }
 
         #region Imports
@@ -82,6 +105,11 @@ namespace Kontract
         public string PluginFolder { get; }
 
         /// <summary>
+        /// Provides a list of possible composition errors.
+        /// </summary>
+        public IList<ExportErrorReport> CompositionErrors { get; }
+
+        /// <summary>
         /// Instantiates a new instance of the <see cref="PluginLoader"/> and composes all of the plugins found in the <see cref="PluginFolder"/> sub directory.
         /// </summary>
         /// <param name="pluginFolder"></param>
@@ -90,7 +118,8 @@ namespace Kontract
         {
             PluginFolder = Path.GetFullPath(pluginFolder);
 
-            ComposePlugins(this, PluginFolder);
+            if (!TryComposePlugins(this, PluginFolder, out var errors))
+                CompositionErrors = errors;
         }
 
         /// <summary>

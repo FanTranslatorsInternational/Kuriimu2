@@ -1,26 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.Exceptions
 {
     /// <summary>
-    /// Exception thrown by plugins trying to load other plugins.
+    /// Exception thrown by <see cref="PluginLoader"/> trying to load non-existing plugin.
     /// </summary>
     [Serializable]
     public class PluginNotFoundException : Exception
     {
-        public string Adapter { get; private set; }
+        /// <summary>
+        /// Name of the plugin that was not found.
+        /// </summary>
+        public string Adapter { get; }
 
-        public override string Message => $"The {Adapter} could not be found.";
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginNotFoundException"/>.
+        /// </summary>
+        /// <param name="adapter">Name of the plugin not found.</param>
+        public PluginNotFoundException(string adapter) : base($"The {adapter} could not be found.")
+        {
+            Adapter = adapter;
+        }
 
-        //public PluginNotFoundException() { }
-        public PluginNotFoundException(string adapter) { Adapter = adapter; }
-        //public PluginNotFoundException(string message) : base(message) { }
-        //public PluginNotFoundException(string message, Exception innerException) : base(message, innerException) { }
-        protected PluginNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        /// <inheritdoc cref="ISerializable.GetObjectData(SerializationInfo,StreamingContext)"/>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            info.AddValue(nameof(Adapter), Adapter);
+            base.GetObjectData(info, context);
+        }
     }
 }

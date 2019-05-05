@@ -32,13 +32,13 @@
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
             this.operationProgress = new Kuriimu2_WinForms.Controls.InfoToolStripProgressBar();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
-            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.operationStatusBar.SuspendLayout();
@@ -67,9 +67,16 @@
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // openWithPluginToolStripMenuItem
+            // 
+            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
+            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.openWithPluginToolStripMenuItem.Text = "Open with &Plugin";
+            this.openWithPluginToolStripMenuItem.Click += new System.EventHandler(this.openWithPluginToolStripMenuItem_Click);
             // 
             // openFiles
             // 
@@ -124,13 +131,6 @@
             // 
             this.operationTimer.Name = "operationTimer";
             this.operationTimer.Size = new System.Drawing.Size(0, 17);
-            // 
-            // openWithPluginToolStripMenuItem
-            // 
-            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
-            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.openWithPluginToolStripMenuItem.Text = "Open with &Plugin";
-            this.openWithPluginToolStripMenuItem.Click += new System.EventHandler(this.openWithPluginToolStripMenuItem_Click);
             // 
             // Kuriimu2
             // 
