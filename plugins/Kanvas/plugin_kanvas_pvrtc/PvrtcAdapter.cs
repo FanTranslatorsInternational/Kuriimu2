@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Kanvas.Encoding;
+using Kanvas.Encoding.Support.PVRTC.Models;
 using Kanvas.Interface;
 using Kanvas.Models;
 using Kontract.Interfaces.Intermediate;
@@ -11,14 +12,11 @@ using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces;
 using Kontract.Models;
 
-namespace plugin_kanvas_rgba
+namespace plugin_kanvas_pvrtc
 {
     [Export(typeof(IPlugin))]
-    [Property(nameof(Red), typeof(byte), 8)]
-    [Property(nameof(Green), typeof(byte), 8)]
-    [Property(nameof(Blue), typeof(byte), 8)]
-    [Property(nameof(Alpha), typeof(byte), 8)]
-    public class RgbaAdapter : IColorEncodingAdapter
+    [Property(nameof(Format), typeof(PvrtcFormat), PvrtcFormat.PVRTC_4bpp)]
+    public class PvrtcAdapter : IColorEncodingAdapter
     {
         private IImageSwizzle GetSwizzle()
         {
@@ -30,37 +28,45 @@ namespace plugin_kanvas_rgba
             return (IImageSwizzle)swizzleProp?.GetValue(Swizzle);
         }
 
-        public byte Red { get; set; }
-        public byte Green { get; set; }
-        public byte Blue { get; set; }
-        public byte Alpha { get; set; }
+        public PvrtcFormat Format { get; set; }
 
-        public string Name => "RGBA";
+        public string Name => "PVRTC";
         public IImageSwizzleAdapter Swizzle { get; set; }
 
         public int CalculateLength(int width, int height)
         {
-            var bitDepth = Red + Green + Blue + Alpha;
-            var byteDepth = bitDepth + (8 - bitDepth % 8) / 8;
-            return width * height * byteDepth;
+            var bitDepth = Format == PvrtcFormat.PVRTC2_4bpp ||
+                Format == PvrtcFormat.PVRTCA_4bpp ||
+                Format == PvrtcFormat.PVRTC_4bpp ? 4 : 2;
+            var byteDepth = bitDepth * 16 / 8;
+            return (Align(width, 4) / 4) * (Align(height, 4) / 4) * byteDepth;
         }
 
         public Task<Bitmap> Decode(byte[] imgData, int width, int height, IProgress<ProgressReport> progress)
         {
-            var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), width, height)
+            var settings = new ImageSettings(new PVRTC(Format), width, height)
             {
-                Swizzle = GetSwizzle()
+                Swizzle = GetSwizzle(),
+                PadWidth = Align(width, 4),
+                PadHeight = Align(height, 4)
             };
             return Task.Factory.StartNew(() => Kanvas.Kolors.Load(imgData, settings));
         }
 
         public Task<byte[]> Encode(Bitmap img, IProgress<ProgressReport> progress)
         {
-            var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), img.Width, img.Height)
+            var settings = new ImageSettings(new PVRTC(Format), img.Width, img.Height)
             {
-                Swizzle = GetSwizzle()
+                Swizzle = GetSwizzle(),
+                PadWidth = Align(img.Width, 4),
+                PadHeight = Align(img.Height, 4)
             };
             return Task.Factory.StartNew(() => Kanvas.Kolors.Save(img, settings));
+        }
+
+        private int Align(int value, int align)
+        {
+            return value + (align - value % align);
         }
     }
 }

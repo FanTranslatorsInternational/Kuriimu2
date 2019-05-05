@@ -11,14 +11,12 @@ using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces;
 using Kontract.Models;
 
-namespace plugin_kanvas_rgba
+namespace plugin_kanvas_la
 {
     [Export(typeof(IPlugin))]
-    [Property(nameof(Red), typeof(byte), 8)]
-    [Property(nameof(Green), typeof(byte), 8)]
-    [Property(nameof(Blue), typeof(byte), 8)]
+    [Property(nameof(Luminence), typeof(byte), 8)]
     [Property(nameof(Alpha), typeof(byte), 8)]
-    public class RgbaAdapter : IColorEncodingAdapter
+    public class LaAdapter : IColorEncodingAdapter
     {
         private IImageSwizzle GetSwizzle()
         {
@@ -30,24 +28,22 @@ namespace plugin_kanvas_rgba
             return (IImageSwizzle)swizzleProp?.GetValue(Swizzle);
         }
 
-        public byte Red { get; set; }
-        public byte Green { get; set; }
-        public byte Blue { get; set; }
+        public byte Luminence { get; set; }
         public byte Alpha { get; set; }
 
-        public string Name => "RGBA";
+        public string Name => "LA";
         public IImageSwizzleAdapter Swizzle { get; set; }
 
         public int CalculateLength(int width, int height)
         {
-            var bitDepth = Red + Green + Blue + Alpha;
+            var bitDepth = Luminence + Alpha;
             var byteDepth = bitDepth + (8 - bitDepth % 8) / 8;
-            return width * height * byteDepth;
+            return width * height *byteDepth;
         }
 
         public Task<Bitmap> Decode(byte[] imgData, int width, int height, IProgress<ProgressReport> progress)
         {
-            var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), width, height)
+            var settings = new ImageSettings(new LA(Luminence, Alpha), width, height)
             {
                 Swizzle = GetSwizzle()
             };
@@ -56,7 +52,7 @@ namespace plugin_kanvas_rgba
 
         public Task<byte[]> Encode(Bitmap img, IProgress<ProgressReport> progress)
         {
-            var settings = new ImageSettings(new RGBA(Red, Green, Blue, Alpha), img.Width, img.Height)
+            var settings = new ImageSettings(new LA(Luminence, Alpha), img.Width, img.Height)
             {
                 Swizzle = GetSwizzle()
             };
