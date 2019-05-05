@@ -36,7 +36,19 @@
             this.pnlImage = new System.Windows.Forms.Panel();
             this.splImage = new System.Windows.Forms.SplitContainer();
             this.pbSource = new Cyotek.Windows.Forms.ImageBox();
+            this.tslPbPropertiesSource = new System.Windows.Forms.ToolStrip();
+            this.tslZoomSource = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthSource = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthLabelSource = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightSource = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightLabelSource = new System.Windows.Forms.ToolStripLabel();
             this.pbTarget = new Cyotek.Windows.Forms.ImageBox();
+            this.tslPbPropertiesTarget = new System.Windows.Forms.ToolStrip();
+            this.tslZoomTarget = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthTarget = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthLabelTarget = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightTarget = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightLabelTarget = new System.Windows.Forms.ToolStripLabel();
             this.btnTranscode = new System.Windows.Forms.Button();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.swizzleLabel = new System.Windows.Forms.Label();
@@ -54,6 +66,8 @@
             this.splImage.Panel1.SuspendLayout();
             this.splImage.Panel2.SuspendLayout();
             this.splImage.SuspendLayout();
+            this.tslPbPropertiesSource.SuspendLayout();
+            this.tslPbPropertiesTarget.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splProperties)).BeginInit();
             this.splProperties.Panel1.SuspendLayout();
             this.splProperties.Panel2.SuspendLayout();
@@ -99,8 +113,7 @@
             // splMain
             // 
             this.splMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splMain.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.splMain.IsSplitterFixed = true;
+            this.splMain.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splMain.Location = new System.Drawing.Point(0, 24);
             this.splMain.Name = "splMain";
             this.splMain.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -112,8 +125,8 @@
             // splMain.Panel2
             // 
             this.splMain.Panel2.Controls.Add(this.splProperties);
-            this.splMain.Size = new System.Drawing.Size(664, 525);
-            this.splMain.SplitterDistance = 448;
+            this.splMain.Size = new System.Drawing.Size(664, 547);
+            this.splMain.SplitterDistance = 415;
             this.splMain.TabIndex = 1;
             // 
             // pnlImage
@@ -123,7 +136,7 @@
             this.pnlImage.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlImage.Location = new System.Drawing.Point(0, 0);
             this.pnlImage.Name = "pnlImage";
-            this.pnlImage.Size = new System.Drawing.Size(664, 448);
+            this.pnlImage.Size = new System.Drawing.Size(664, 415);
             this.pnlImage.TabIndex = 1;
             // 
             // splImage
@@ -135,13 +148,15 @@
             // splImage.Panel1
             // 
             this.splImage.Panel1.Controls.Add(this.pbSource);
+            this.splImage.Panel1.Controls.Add(this.tslPbPropertiesSource);
             this.splImage.Panel1.Padding = new System.Windows.Forms.Padding(3, 3, 0, 3);
             // 
             // splImage.Panel2
             // 
             this.splImage.Panel2.Controls.Add(this.pbTarget);
+            this.splImage.Panel2.Controls.Add(this.tslPbPropertiesTarget);
             this.splImage.Panel2.Padding = new System.Windows.Forms.Padding(0, 3, 3, 3);
-            this.splImage.Size = new System.Drawing.Size(664, 425);
+            this.splImage.Size = new System.Drawing.Size(664, 392);
             this.splImage.SplitterDistance = 331;
             this.splImage.TabIndex = 0;
             // 
@@ -152,8 +167,58 @@
             this.pbSource.GridCellSize = 16;
             this.pbSource.Location = new System.Drawing.Point(3, 3);
             this.pbSource.Name = "pbSource";
-            this.pbSource.Size = new System.Drawing.Size(328, 419);
+            this.pbSource.Size = new System.Drawing.Size(328, 361);
             this.pbSource.TabIndex = 0;
+            this.pbSource.ZoomChanged += new System.EventHandler(this.PbSource_ZoomChanged);
+            // 
+            // tslPbPropertiesSource
+            // 
+            this.tslPbPropertiesSource.BackColor = System.Drawing.Color.Transparent;
+            this.tslPbPropertiesSource.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tslPbPropertiesSource.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tslPbPropertiesSource.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslZoomSource,
+            this.tslPbWidthSource,
+            this.tslPbWidthLabelSource,
+            this.tslPbHeightSource,
+            this.tslPbHeightLabelSource});
+            this.tslPbPropertiesSource.Location = new System.Drawing.Point(3, 364);
+            this.tslPbPropertiesSource.Name = "tslPbPropertiesSource";
+            this.tslPbPropertiesSource.Size = new System.Drawing.Size(328, 25);
+            this.tslPbPropertiesSource.TabIndex = 3;
+            this.tslPbPropertiesSource.Text = "toolStrip1";
+            // 
+            // tslZoomSource
+            // 
+            this.tslZoomSource.Name = "tslZoomSource";
+            this.tslZoomSource.Size = new System.Drawing.Size(73, 22);
+            this.tslZoomSource.Text = "Zoom: 100%";
+            // 
+            // tslPbWidthSource
+            // 
+            this.tslPbWidthSource.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthSource.Name = "tslPbWidthSource";
+            this.tslPbWidthSource.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbWidthLabelSource
+            // 
+            this.tslPbWidthLabelSource.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthLabelSource.Name = "tslPbWidthLabelSource";
+            this.tslPbWidthLabelSource.Size = new System.Drawing.Size(42, 22);
+            this.tslPbWidthLabelSource.Text = "Width:";
+            // 
+            // tslPbHeightSource
+            // 
+            this.tslPbHeightSource.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightSource.Name = "tslPbHeightSource";
+            this.tslPbHeightSource.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbHeightLabelSource
+            // 
+            this.tslPbHeightLabelSource.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightLabelSource.Name = "tslPbHeightLabelSource";
+            this.tslPbHeightLabelSource.Size = new System.Drawing.Size(46, 22);
+            this.tslPbHeightLabelSource.Text = "Height:";
             // 
             // pbTarget
             // 
@@ -162,13 +227,63 @@
             this.pbTarget.GridCellSize = 16;
             this.pbTarget.Location = new System.Drawing.Point(0, 3);
             this.pbTarget.Name = "pbTarget";
-            this.pbTarget.Size = new System.Drawing.Size(326, 419);
+            this.pbTarget.Size = new System.Drawing.Size(326, 361);
             this.pbTarget.TabIndex = 0;
+            this.pbTarget.ZoomChanged += new System.EventHandler(this.PbTarget_ZoomChanged);
+            // 
+            // tslPbPropertiesTarget
+            // 
+            this.tslPbPropertiesTarget.BackColor = System.Drawing.Color.Transparent;
+            this.tslPbPropertiesTarget.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tslPbPropertiesTarget.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tslPbPropertiesTarget.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslZoomTarget,
+            this.tslPbWidthTarget,
+            this.tslPbWidthLabelTarget,
+            this.tslPbHeightTarget,
+            this.tslPbHeightLabelTarget});
+            this.tslPbPropertiesTarget.Location = new System.Drawing.Point(0, 364);
+            this.tslPbPropertiesTarget.Name = "tslPbPropertiesTarget";
+            this.tslPbPropertiesTarget.Size = new System.Drawing.Size(326, 25);
+            this.tslPbPropertiesTarget.TabIndex = 3;
+            this.tslPbPropertiesTarget.Text = "toolStrip1";
+            // 
+            // tslZoomTarget
+            // 
+            this.tslZoomTarget.Name = "tslZoomTarget";
+            this.tslZoomTarget.Size = new System.Drawing.Size(73, 22);
+            this.tslZoomTarget.Text = "Zoom: 100%";
+            // 
+            // tslPbWidthTarget
+            // 
+            this.tslPbWidthTarget.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthTarget.Name = "tslPbWidthTarget";
+            this.tslPbWidthTarget.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbWidthLabelTarget
+            // 
+            this.tslPbWidthLabelTarget.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthLabelTarget.Name = "tslPbWidthLabelTarget";
+            this.tslPbWidthLabelTarget.Size = new System.Drawing.Size(42, 22);
+            this.tslPbWidthLabelTarget.Text = "Width:";
+            // 
+            // tslPbHeightTarget
+            // 
+            this.tslPbHeightTarget.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightTarget.Name = "tslPbHeightTarget";
+            this.tslPbHeightTarget.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbHeightLabelTarget
+            // 
+            this.tslPbHeightLabelTarget.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightLabelTarget.Name = "tslPbHeightLabelTarget";
+            this.tslPbHeightLabelTarget.Size = new System.Drawing.Size(46, 22);
+            this.tslPbHeightLabelTarget.Text = "Height:";
             // 
             // btnTranscode
             // 
             this.btnTranscode.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.btnTranscode.Location = new System.Drawing.Point(0, 425);
+            this.btnTranscode.Location = new System.Drawing.Point(0, 392);
             this.btnTranscode.Name = "btnTranscode";
             this.btnTranscode.Size = new System.Drawing.Size(664, 23);
             this.btnTranscode.TabIndex = 1;
@@ -179,7 +294,7 @@
             // splProperties
             // 
             this.splProperties.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splProperties.IsSplitterFixed = true;
+            this.splProperties.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splProperties.Location = new System.Drawing.Point(0, 0);
             this.splProperties.Name = "splProperties";
             this.splProperties.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -194,8 +309,8 @@
             // splProperties.Panel2
             // 
             this.splProperties.Panel2.Controls.Add(this.splExtendedProperties);
-            this.splProperties.Size = new System.Drawing.Size(664, 73);
-            this.splProperties.SplitterDistance = 25;
+            this.splProperties.Size = new System.Drawing.Size(664, 128);
+            this.splProperties.SplitterDistance = 28;
             this.splProperties.TabIndex = 1;
             // 
             // swizzleLabel
@@ -235,17 +350,19 @@
             // splExtendedProperties
             // 
             this.splExtendedProperties.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splExtendedProperties.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splExtendedProperties.Location = new System.Drawing.Point(0, 0);
             this.splExtendedProperties.Name = "splExtendedProperties";
-            this.splExtendedProperties.Size = new System.Drawing.Size(664, 44);
-            this.splExtendedProperties.SplitterDistance = 330;
+            this.splExtendedProperties.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splExtendedProperties.Size = new System.Drawing.Size(664, 96);
+            this.splExtendedProperties.SplitterDistance = 48;
             this.splExtendedProperties.TabIndex = 0;
             // 
             // ImageTranscoder
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(664, 549);
+            this.ClientSize = new System.Drawing.Size(664, 571);
             this.Controls.Add(this.splMain);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -259,9 +376,15 @@
             this.splMain.ResumeLayout(false);
             this.pnlImage.ResumeLayout(false);
             this.splImage.Panel1.ResumeLayout(false);
+            this.splImage.Panel1.PerformLayout();
             this.splImage.Panel2.ResumeLayout(false);
+            this.splImage.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splImage)).EndInit();
             this.splImage.ResumeLayout(false);
+            this.tslPbPropertiesSource.ResumeLayout(false);
+            this.tslPbPropertiesSource.PerformLayout();
+            this.tslPbPropertiesTarget.ResumeLayout(false);
+            this.tslPbPropertiesTarget.PerformLayout();
             this.splProperties.Panel1.ResumeLayout(false);
             this.splProperties.Panel1.PerformLayout();
             this.splProperties.Panel2.ResumeLayout(false);
@@ -292,5 +415,17 @@
         private System.Windows.Forms.ToolStripMenuItem exportToolStripMenuItem;
         private System.Windows.Forms.Panel pnlImage;
         private System.Windows.Forms.Button btnTranscode;
+        private System.Windows.Forms.ToolStrip tslPbPropertiesSource;
+        private System.Windows.Forms.ToolStripLabel tslZoomSource;
+        private System.Windows.Forms.ToolStripLabel tslPbWidthSource;
+        private System.Windows.Forms.ToolStripLabel tslPbWidthLabelSource;
+        private System.Windows.Forms.ToolStripLabel tslPbHeightSource;
+        private System.Windows.Forms.ToolStripLabel tslPbHeightLabelSource;
+        private System.Windows.Forms.ToolStrip tslPbPropertiesTarget;
+        private System.Windows.Forms.ToolStripLabel tslZoomTarget;
+        private System.Windows.Forms.ToolStripLabel tslPbWidthTarget;
+        private System.Windows.Forms.ToolStripLabel tslPbWidthLabelTarget;
+        private System.Windows.Forms.ToolStripLabel tslPbHeightTarget;
+        private System.Windows.Forms.ToolStripLabel tslPbHeightLabelTarget;
     }
 }

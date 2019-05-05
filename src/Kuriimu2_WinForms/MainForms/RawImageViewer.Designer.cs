@@ -33,6 +33,7 @@
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.pbMain = new Cyotek.Windows.Forms.ImageBox();
+            this.tslPbProperties = new System.Windows.Forms.ToolStrip();
             this.btnDecode = new System.Windows.Forms.Button();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.tbHeight = new System.Windows.Forms.TextBox();
@@ -46,11 +47,17 @@
             this.cbSwizzle = new System.Windows.Forms.ComboBox();
             this.cbEncoding = new System.Windows.Forms.ComboBox();
             this.splExtendedProperties = new System.Windows.Forms.SplitContainer();
+            this.tslZoom = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidth = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthLabel = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeight = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightLabel = new System.Windows.Forms.ToolStripLabel();
             this.mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
             this.splMain.Panel1.SuspendLayout();
             this.splMain.Panel2.SuspendLayout();
             this.splMain.SuspendLayout();
+            this.tslPbProperties.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splProperties)).BeginInit();
             this.splProperties.Panel1.SuspendLayout();
             this.splProperties.Panel2.SuspendLayout();
@@ -94,14 +101,15 @@
             // splMain.Panel1
             // 
             this.splMain.Panel1.Controls.Add(this.pbMain);
+            this.splMain.Panel1.Controls.Add(this.tslPbProperties);
             this.splMain.Panel1.Controls.Add(this.btnDecode);
             this.splMain.Panel1.Padding = new System.Windows.Forms.Padding(5);
             // 
             // splMain.Panel2
             // 
             this.splMain.Panel2.Controls.Add(this.splProperties);
-            this.splMain.Size = new System.Drawing.Size(522, 535);
-            this.splMain.SplitterDistance = 430;
+            this.splMain.Size = new System.Drawing.Size(522, 622);
+            this.splMain.SplitterDistance = 463;
             this.splMain.TabIndex = 1;
             // 
             // pbMain
@@ -111,13 +119,31 @@
             this.pbMain.GridCellSize = 16;
             this.pbMain.Location = new System.Drawing.Point(5, 5);
             this.pbMain.Name = "pbMain";
-            this.pbMain.Size = new System.Drawing.Size(512, 397);
+            this.pbMain.Size = new System.Drawing.Size(512, 405);
             this.pbMain.TabIndex = 0;
+            this.pbMain.ZoomChanged += new System.EventHandler(this.PbMain_ZoomChanged);
+            // 
+            // tslPbProperties
+            // 
+            this.tslPbProperties.BackColor = System.Drawing.Color.Transparent;
+            this.tslPbProperties.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tslPbProperties.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.tslPbProperties.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tslZoom,
+            this.tslPbWidth,
+            this.tslPbWidthLabel,
+            this.tslPbHeight,
+            this.tslPbHeightLabel});
+            this.tslPbProperties.Location = new System.Drawing.Point(5, 410);
+            this.tslPbProperties.Name = "tslPbProperties";
+            this.tslPbProperties.Size = new System.Drawing.Size(512, 25);
+            this.tslPbProperties.TabIndex = 2;
+            this.tslPbProperties.Text = "toolStrip1";
             // 
             // btnDecode
             // 
             this.btnDecode.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.btnDecode.Location = new System.Drawing.Point(5, 402);
+            this.btnDecode.Location = new System.Drawing.Point(5, 435);
             this.btnDecode.Name = "btnDecode";
             this.btnDecode.Size = new System.Drawing.Size(512, 23);
             this.btnDecode.TabIndex = 1;
@@ -128,8 +154,7 @@
             // splProperties
             // 
             this.splProperties.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splProperties.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.splProperties.IsSplitterFixed = true;
+            this.splProperties.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splProperties.Location = new System.Drawing.Point(0, 0);
             this.splProperties.Name = "splProperties";
             this.splProperties.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -150,8 +175,8 @@
             // splProperties.Panel2
             // 
             this.splProperties.Panel2.Controls.Add(this.splExtendedProperties);
-            this.splProperties.Size = new System.Drawing.Size(522, 101);
-            this.splProperties.SplitterDistance = 56;
+            this.splProperties.Size = new System.Drawing.Size(522, 155);
+            this.splProperties.SplitterDistance = 55;
             this.splProperties.TabIndex = 0;
             // 
             // tbHeight
@@ -244,17 +269,51 @@
             // splExtendedProperties
             // 
             this.splExtendedProperties.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splExtendedProperties.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splExtendedProperties.Location = new System.Drawing.Point(0, 0);
             this.splExtendedProperties.Name = "splExtendedProperties";
-            this.splExtendedProperties.Size = new System.Drawing.Size(522, 41);
-            this.splExtendedProperties.SplitterDistance = 261;
+            this.splExtendedProperties.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.splExtendedProperties.Size = new System.Drawing.Size(522, 96);
+            this.splExtendedProperties.SplitterDistance = 48;
             this.splExtendedProperties.TabIndex = 0;
+            // 
+            // tslZoom
+            // 
+            this.tslZoom.Name = "tslZoom";
+            this.tslZoom.Size = new System.Drawing.Size(73, 22);
+            this.tslZoom.Text = "Zoom: 100%";
+            // 
+            // tslPbWidth
+            // 
+            this.tslPbWidth.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidth.Name = "tslPbWidth";
+            this.tslPbWidth.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbWidthLabel
+            // 
+            this.tslPbWidthLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthLabel.Name = "tslPbWidthLabel";
+            this.tslPbWidthLabel.Size = new System.Drawing.Size(42, 22);
+            this.tslPbWidthLabel.Text = "Width:";
+            // 
+            // tslPbHeight
+            // 
+            this.tslPbHeight.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeight.Name = "tslPbHeight";
+            this.tslPbHeight.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbHeightLabel
+            // 
+            this.tslPbHeightLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightLabel.Name = "tslPbHeightLabel";
+            this.tslPbHeightLabel.Size = new System.Drawing.Size(46, 22);
+            this.tslPbHeightLabel.Text = "Height:";
             // 
             // RawImageViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(522, 559);
+            this.ClientSize = new System.Drawing.Size(522, 646);
             this.Controls.Add(this.splMain);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
@@ -263,9 +322,12 @@
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
             this.splMain.Panel1.ResumeLayout(false);
+            this.splMain.Panel1.PerformLayout();
             this.splMain.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).EndInit();
             this.splMain.ResumeLayout(false);
+            this.tslPbProperties.ResumeLayout(false);
+            this.tslPbProperties.PerformLayout();
             this.splProperties.Panel1.ResumeLayout(false);
             this.splProperties.Panel1.PerformLayout();
             this.splProperties.Panel2.ResumeLayout(false);
@@ -298,5 +360,11 @@
         private System.Windows.Forms.Label heightLabel;
         private System.Windows.Forms.Label widthLabel;
         private System.Windows.Forms.Button btnDecode;
+        private System.Windows.Forms.ToolStrip tslPbProperties;
+        private System.Windows.Forms.ToolStripLabel tslZoom;
+        private System.Windows.Forms.ToolStripLabel tslPbWidth;
+        private System.Windows.Forms.ToolStripLabel tslPbWidthLabel;
+        private System.Windows.Forms.ToolStripLabel tslPbHeight;
+        private System.Windows.Forms.ToolStripLabel tslPbHeightLabel;
     }
 }

@@ -109,6 +109,7 @@ namespace Kuriimu2_WinForms.MainForms
                     50,
                     EncodingPropertyTextBox_TextChanged,
                     EncodingPropertyComboBox_SelectedIndexChanged,
+                    EncodingPropertyCheckBox_CheckedChanged,
                     SelectedColorEncodingAdapter.
                         GetType().
                         GetCustomAttributes(typeof(PropertyAttribute), false).
@@ -126,6 +127,7 @@ namespace Kuriimu2_WinForms.MainForms
                     50,
                     SwizzlePropertyTextBox_TextChanged,
                     SwizzlePropertyComboBox_SelectedIndexChanged,
+                    SwizzlePropertyCheckBox_CheckedChanged,
                     SelectedSwizzleAdapter.
                         GetType().
                         GetCustomAttributes(typeof(PropertyAttribute), false).
@@ -133,12 +135,17 @@ namespace Kuriimu2_WinForms.MainForms
                         ToArray());
         }
 
-        private void UpdateExtendedPropertiesWith(SplitterPanel panel, int width, EventHandler textChangedEvent, EventHandler indexChangedEvent, params PropertyAttribute[] propAttributes)
+        private void UpdateExtendedPropertiesWith(SplitterPanel panel, int width, EventHandler textChangedEvent,
+            EventHandler indexChangedEvent, EventHandler checkedChangedEvent, params PropertyAttribute[] propAttributes)
         {
             int x = 3;
             foreach (var attr in propAttributes)
             {
-                if (attr.PropertyType.IsPrimitive)
+                if (attr.PropertyType == typeof(bool))
+                {
+                    AddBooleanProperty(attr, _pnlEncodingProperties, checkedChangedEvent, width, x, 0);
+                }
+                else if (attr.PropertyType.IsPrimitive)
                 {
                     AddPrimitiveProperty(attr, _pnlEncodingProperties, textChangedEvent, width, x, 0);
                 }
@@ -255,6 +262,26 @@ namespace Kuriimu2_WinForms.MainForms
             adapterProperty?.SetValue(SelectedSwizzleAdapter, value);
         }
 
+        private void EncodingPropertyCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            var cb = (CheckBox)sender;
+            var propAttr = (PropertyAttribute)cb.Tag;
+
+            var adapterProperty = SelectedColorEncodingAdapter.GetType()
+                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
+            adapterProperty?.SetValue(SelectedColorEncodingAdapter, cb.Checked);
+        }
+
+        private void SwizzlePropertyCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            var cb = (CheckBox)sender;
+            var propAttr = (PropertyAttribute)cb.Tag;
+
+            var adapterProperty = SelectedSwizzleAdapter.GetType()
+                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
+            adapterProperty?.SetValue(SelectedSwizzleAdapter, cb.Checked);
+        }
+
         private void AddEnumProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler indexChangedEvent, int width, int x, int y)
         {
             if (!propAttr.PropertyType.IsEnum)
@@ -281,10 +308,40 @@ namespace Kuriimu2_WinForms.MainForms
             comboBox.Items.AddRange(formatWrappers);
 
             comboBox.SelectedIndexChanged += indexChangedEvent;
-            comboBox.SelectedIndex = 0;
+            var defaultIndex = formatWrappers.ToList().IndexOf(
+                formatWrappers.ToList().FirstOrDefault(fw =>
+                    (fw as FormatWrapper)?.Name == Enum.GetName(propAttr.PropertyType, propAttr.DefaultValue)));
+            comboBox.SelectedIndex = defaultIndex < 0 ? 0 : defaultIndex;
 
             panel.Controls.Add(label);
             panel.Controls.Add(comboBox);
+        }
+
+        private void AddBooleanProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler checkedChanged,
+            int width, int x, int y)
+        {
+            if (propAttr.PropertyType != typeof(bool))
+                return;
+
+            var label = new Label
+            {
+                // ReSharper disable once LocalizableElement
+                Text = $"{propAttr.PropertyName}:",
+                Location = new Point(x, y),
+                Size = new Size(width, 15)
+            };
+            var checkBox = new CheckBox
+            {
+                Location = new Point(x, y + label.Height),
+                //Size = new Size(width, 20),
+                Tag = propAttr
+            };
+
+            checkBox.CheckedChanged += checkedChanged;
+            checkBox.Checked = Convert.ToBoolean(propAttr.DefaultValue);
+
+            panel.Controls.Add(label);
+            panel.Controls.Add(checkBox);
         }
 
         private void EncodingPropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -336,7 +393,17 @@ namespace Kuriimu2_WinForms.MainForms
             _openedFile.Read(imgData, 0, imgData.Length);
 
             var progress = new Progress<ProgressReport>();
-            pbMain.Image = await SelectedColorEncodingAdapter.Decode(imgData, width, height, progress);
+            try
+            {
+                pbMain.Image = await SelectedColorEncodingAdapter.Decode(imgData, width, height, progress);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            tslPbWidth.Text = pbMain.Width.ToString();
+            tslPbHeight.Text = pbMain.Height.ToString();
 
             ToggleProperties(true);
             ToggleForm(true);
@@ -346,11 +413,25 @@ namespace Kuriimu2_WinForms.MainForms
         {
             var textBoxes = splExtendedProperties.Panel1.Controls.OfType<TextBox>();
             var comboBoxes = splExtendedProperties.Panel1.Controls.OfType<ComboBox>();
+            var checkBoxes = splExtendedProperties.Panel1.Controls.OfType<CheckBox>();
 
             foreach (var textBox in textBoxes)
                 textBox.Enabled = toggle;
             foreach (var comboBox in comboBoxes)
                 comboBox.Enabled = toggle;
+            foreach (var checkBox in checkBoxes)
+                checkBox.Enabled = toggle;
+
+            textBoxes = splExtendedProperties.Panel2.Controls.OfType<TextBox>();
+            comboBoxes = splExtendedProperties.Panel2.Controls.OfType<ComboBox>();
+            checkBoxes = splExtendedProperties.Panel2.Controls.OfType<CheckBox>();
+
+            foreach (var textBox in textBoxes)
+                textBox.Enabled = toggle;
+            foreach (var comboBox in comboBoxes)
+                comboBox.Enabled = toggle;
+            foreach (var checkBox in checkBoxes)
+                checkBox.Enabled = toggle;
         }
 
         private void ToggleForm(bool toggle)
@@ -388,6 +469,12 @@ namespace Kuriimu2_WinForms.MainForms
         private void BtnDecode_Click(object sender, EventArgs e)
         {
             LoadImage();
+        }
+
+        private void PbMain_ZoomChanged(object sender, EventArgs e)
+        {
+            // ReSharper disable once LocalizableElement
+            tslZoom.Text = $"Zoom: {pbMain.Zoom}%";
         }
     }
 }
