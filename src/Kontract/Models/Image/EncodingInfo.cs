@@ -16,16 +16,9 @@
             EncodingName = encodingName;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="encodingIndex"></param>
-        /// <param name="encodingName"></param>
-        public EncodingInfo(int encodingIndex, string encodingName, int variant)
+        public EncodingInfo(int encodingIndex, string encodingName, bool isIndexed) : this(encodingIndex, encodingName)
         {
-            EncodingIndex = encodingIndex;
-            EncodingName = encodingName;
-            Variant = variant;
+            IsIndexed = isIndexed;
         }
 
         /// <summary>
@@ -34,13 +27,14 @@
         public int EncodingIndex { get; }
 
         /// <summary>
-        /// The name of the format used; Doesn't need to be unique
+        /// The name of the format used
         /// </summary>
+        /// <remarks>Doesn't need to be unique.</remarks>
         public string EncodingName { get; }
 
         /// <summary>
-        /// The variation value; Usable for distiguishing the purpose of this <see cref="EncodingInfo"/>.
+        /// Indicates if described encoding is an index based one.
         /// </summary>
-        public int Variant { get; }
+        public bool IsIndexed { get; }
     }
 }

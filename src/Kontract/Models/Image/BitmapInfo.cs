@@ -59,11 +59,6 @@ namespace Kontract.Models.Image
         /// The image format information for encoding and decoding purposes
         /// </summary>
         [Browsable(false)]
-        public EncodingInfo ImageEncoding { get; private set; }
-
-        public virtual void SetImageEncoding(EncodingInfo imageEnc)
-        {
-            ImageEncoding = imageEnc;
-        }
+        public EncodingInfo ImageEncoding { get; set; }
     }
 }

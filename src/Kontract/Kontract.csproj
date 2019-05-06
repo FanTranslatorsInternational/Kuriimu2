@@ -65,6 +65,8 @@
     <Compile Include="Interfaces\Archive\IArchiveRenameFiles.cs" />
     <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
+    <Compile Include="Interfaces\Image\BaseImageAdapter.cs" />
+    <Compile Include="Interfaces\Image\BaseIndexImageAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IImageSwizzleAdapter.cs" />
     <Compile Include="Interfaces\IPlugin.cs" />
@@ -79,6 +81,7 @@
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\Common\ICreateFiles.cs" />
+    <Compile Include="Models\Image\TranscodeResult.cs" />
     <Compile Include="Providers\KuriimuExportProvider.cs" />
     <Compile Include="Models\Image\BitmapInfo.cs" />
     <Compile Include="Models\Image\EncodingInfo.cs" />

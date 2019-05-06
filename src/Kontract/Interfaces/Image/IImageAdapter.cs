@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
 using Kontract.Models;
 using Kontract.Models.Image;
@@ -23,13 +24,21 @@ namespace Kontract.Interfaces.Image
         IList<EncodingInfo> ImageEncodingInfos { get; }
 
         /// <summary>
-        /// Instructs the plugin to encode the bitmaps and report progress as it goes.
+        /// Instructs the plugin to transcode a given image into a new encoding.
         /// </summary>
-        /// <param name="bitmapInfo">The <see cref="BitmapInfo"/> to be encoded.</param>
-        /// <param name="encodingInfo">The <see cref="EncodingInfo"/> to encode into.</param>
+        /// <param name="info">The <see cref="BitmapInfo"/>containing the image to be transcoded.</param>
+        /// <param name="imageEncoding">The <see cref="EncodingInfo"/> to transcode the image into.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
-        /// <returns>True if the bitmaps were successfully encoded, False otherwise.</returns>
-        /// <remarks><see cref="EncodingInfo"/> should be updated in the given <see cref="BitmapInfo"/> here.</remarks>
-        Task<bool> Encode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo, IProgress<ProgressReport> progress);
+        /// <returns>Transcoded image and if the operation was successful.</returns>
+        Task<TranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, IProgress<ProgressReport> progress);
+
+        /// <summary>
+        /// Instructs the plugin to update the <see cref="BitmapInfo"/> accordingly with the new information.
+        /// </summary>
+        /// <param name="info">The <see cref="BitmapInfo"/> to be updated.</param>
+        /// <param name="image">Image to commit.</param>
+        /// <param name="imageEncoding"><see cref="EncodingInfo"/> the image is encoded in.</param>
+        /// <returns>Is commitment successful.</returns>
+        bool Commit(BitmapInfo info, Bitmap image, EncodingInfo imageEncoding);
     }
 }
