@@ -114,7 +114,9 @@ namespace Kuriimu2_WinForms.FormatForms
             if (_selectedBitmapInfo.ImageEncoding.EncodingIndex != ((EncodingInfo)tsb.Tag).EncodingIndex)
             {
                 _selectedBitmapInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
-                var result = await ImageEncode(_selectedBitmapInfo, (EncodingInfo)tsb.Tag);
+                var indexInfo = _selectedBitmapInfo as IndexedBitmapInfo;
+                var indexAdapter = _imageAdapter as IIndexedImageAdapter;
+                var result = await ImageEncode(_selectedBitmapInfo, (EncodingInfo)tsb.Tag, indexInfo?.PaletteEncoding ?? indexAdapter?.PaletteEncodingInfos.FirstOrDefault());
 
                 if (result)
                 {
@@ -133,7 +135,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 if (indexInfo.PaletteEncoding.EncodingIndex != ((EncodingInfo)tsb.Tag).EncodingIndex)
                 {
                     indexInfo.Image = (Bitmap)_bestBitmaps[_selectedImageIndex].Clone();
-                    var result = await ImageEncode(indexInfo, (EncodingInfo)tsb.Tag);
+                    var result = await ImageEncode(indexInfo, indexInfo.ImageEncoding, (EncodingInfo)tsb.Tag);
 
                     if (result)
                     {
@@ -210,7 +212,8 @@ namespace Kuriimu2_WinForms.FormatForms
             {
                 _selectedBitmapInfo.Image = new Bitmap(filename);
                 _bestBitmaps[_selectedImageIndex] = (Bitmap)_selectedBitmapInfo.Image.Clone();
-                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.ImageEncoding);
+                var indexInfo = _selectedBitmapInfo as IndexedBitmapInfo;
+                await ImageEncode(_selectedBitmapInfo, _selectedBitmapInfo.ImageEncoding, indexInfo?.PaletteEncoding);
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -220,20 +223,53 @@ namespace Kuriimu2_WinForms.FormatForms
             }
         }
 
-        private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, EncodingInfo encodingInfo)
+        private async Task<bool> ImageEncode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, EncodingInfo paletteEncoding)
         {
             if (!tsbFormat.Enabled && !tsbPalette.Enabled)
                 return false;
+            if (_imageAdapter is IIndexedImageAdapter && imageEncoding.IsIndexed &&
+                paletteEncoding == null)
+                return false;
+
+            var report = new Progress<ProgressReport>();
+            report.ProgressChanged += Report_ProgressChanged;
 
             DisablePaletteControls();
             DisableImageControls();
 
-            var report = new Progress<ProgressReport>();
-            report.ProgressChanged += Report_ProgressChanged;
-            bool result;
+            bool commitResult;
             try
             {
-                result = await _imageAdapter.Encode(bitmapInfo, encodingInfo, report);
+                TranscodeResult result;
+                if (_imageAdapter is IIndexedImageAdapter indexAdapter && imageEncoding.IsIndexed)
+                {
+                    result =
+                        await indexAdapter.TranscodeImage(bitmapInfo, imageEncoding, paletteEncoding, false, report);
+                    if (!result.Result)
+                    {
+                        MessageBox.Show(result.Exception?.ToString() ?? "Encoding was not successful.",
+                            "Encoding was not successful", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        UpdateForm();
+                        return result.Result;
+                    }
+
+                    commitResult = indexAdapter.Commit(bitmapInfo, result.TranscodedImage, imageEncoding, result.Palette,
+                        paletteEncoding);
+                }
+                else
+                {
+                    result =
+                        await _imageAdapter.TranscodeImage(bitmapInfo, imageEncoding, report);
+                    if (!result.Result)
+                    {
+                        MessageBox.Show(result.Exception?.ToString() ?? "Encoding was not successful.",
+                            "Encoding was not successful", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        UpdateForm();
+                        return result.Result;
+                    }
+
+                    commitResult = _imageAdapter.Commit(bitmapInfo, result.TranscodedImage, imageEncoding);
+                }
             }
             catch (Exception ex)
             {
@@ -242,18 +278,11 @@ namespace Kuriimu2_WinForms.FormatForms
                 return false;
             }
 
-            if (!result)
-            {
-                MessageBox.Show("Encoding was not successful.", "Encoding was unsuccessful", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateForm();
-                return result;
-            }
-
             UpdateForm();
             UpdatePreview();
             UpdateImageList();
 
-            return result;
+            return commitResult;
         }
 
         private void Report_ProgressChanged(object sender, ProgressReport e)
@@ -635,10 +664,20 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var progress = new Progress<ProgressReport>();
             progress.ProgressChanged += Report_ProgressChanged;
-            bool result;
+            bool commitRes;
             try
             {
-                result = await indexAdapter.SetColorInPalette(indexInfo, clrDialog.Color, index, progress);
+                var result = await indexAdapter.SetColorInPalette(indexInfo, index, clrDialog.Color, progress);
+                if (!result.Result)
+                {
+                    MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UpdateForm();
+                    return;
+                }
+
+                commitRes = indexAdapter.Commit(indexInfo, result.TranscodedImage, indexInfo.ImageEncoding,
+                    result.Palette, indexInfo.PaletteEncoding);
             }
             catch (Exception ex)
             {
@@ -647,7 +686,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 return;
             }
 
-            if (!result)
+            if (!commitRes)
             {
                 MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -711,10 +750,20 @@ namespace Kuriimu2_WinForms.FormatForms
 
             var progress = new Progress<ProgressReport>();
             progress.ProgressChanged += Report_ProgressChanged;
-            bool result;
+            bool commitRes;
             try
             {
-                result = await indexAdapter.SetPalette(indexInfo, colors, progress);
+                var result = await indexAdapter.SetPalette(indexInfo, colors, progress);
+                if (!result.Result)
+                {
+                    MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UpdateForm();
+                    return;
+                }
+
+                commitRes = indexAdapter.Commit(indexInfo, result.TranscodedImage, indexInfo.ImageEncoding,
+                    colors, indexInfo.PaletteEncoding);
             }
             catch (Exception ex)
             {
@@ -723,7 +772,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 return;
             }
 
-            if (!result)
+            if (!commitRes)
             {
                 MessageBox.Show("Setting color in palette was not successful.", "Set color unsuccessful",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
