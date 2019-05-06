@@ -66,7 +66,7 @@
     <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
     <Compile Include="Interfaces\Image\BaseImageAdapter.cs" />
-    <Compile Include="Interfaces\Image\BaseIndexImageAdapter.cs" />
+    <Compile Include="Interfaces\Image\BaseIndexedImageAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IImageSwizzleAdapter.cs" />
     <Compile Include="Interfaces\IPlugin.cs" />

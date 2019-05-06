@@ -10,7 +10,7 @@ using EncodingInfo = Kontract.Models.Image.EncodingInfo;
 
 namespace Kontract.Interfaces.Image
 {
-    public abstract class BaseIndexImageAdapter : BaseImageAdapter, IIndexedImageAdapter
+    public abstract class BaseIndexedImageAdapter : BaseImageAdapter, IIndexedImageAdapter
     {
         protected abstract (Bitmap newImg, IList<Color> palette) Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, EncodingInfo paletteEncoding);
         protected abstract Bitmap TranscodeWithPalette(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, IList<Color> palette, EncodingInfo paletteEncoding);
