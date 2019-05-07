@@ -24,10 +24,27 @@ namespace Kuriimu2_WinForms.MainForms
         private readonly SplitterPanel _pnlEncodingProperties;
         private readonly SplitterPanel _pnlSwizzleProperties;
 
-        private IColorEncodingAdapter SelectedColorEncodingAdapter =>
-            (cbEncoding.Items[_selectedEncodingIndex] as EncodingWrapper)?.EncodingAdapter;
-        private IImageSwizzleAdapter SelectedSwizzleAdapter =>
-            (cbSwizzle.Items[_selectedSwizzleIndex] as SwizzleWrapper)?.SwizzleAdapter;
+        private IColorEncodingAdapter SelectedColorEncodingAdapter
+        {
+            get
+            {
+                if (_selectedEncodingIndex < cbEncoding.Items.Count)
+                    return (cbEncoding.Items[_selectedEncodingIndex] as EncodingWrapper)?.EncodingAdapter;
+
+                return null;
+            }
+        }
+
+        private IImageSwizzleAdapter SelectedSwizzleAdapter
+        {
+            get
+            {
+                if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
+                    return (cbSwizzle.Items[_selectedSwizzleIndex] as SwizzleWrapper)?.SwizzleAdapter;
+
+                return null;
+            }
+        }
 
         public RawImageViewer(PluginLoader loader)
         {
@@ -58,7 +75,8 @@ namespace Kuriimu2_WinForms.MainForms
             // Populate encoding dropdown
             foreach (var adapter in _loader.GetAdapters<IColorEncodingAdapter>())
                 cbEncoding.Items.Add(new EncodingWrapper(adapter));
-            cbEncoding.SelectedIndex = _selectedEncodingIndex;
+            if (_selectedEncodingIndex < cbEncoding.Items.Count)
+                cbEncoding.SelectedIndex = _selectedEncodingIndex;
         }
 
         private void LoadSwizzles()
@@ -67,7 +85,8 @@ namespace Kuriimu2_WinForms.MainForms
             cbSwizzle.Items.Add(new SwizzleWrapper(null));
             foreach (var adapter in _loader.GetAdapters<IImageSwizzleAdapter>())
                 cbSwizzle.Items.Add(new SwizzleWrapper(adapter));
-            cbSwizzle.SelectedIndex = _selectedSwizzleIndex;
+            if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
+                cbSwizzle.SelectedIndex = _selectedSwizzleIndex;
         }
 
         private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
