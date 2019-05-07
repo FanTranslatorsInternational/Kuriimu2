@@ -240,7 +240,7 @@ namespace Kuriimu2_WinForms.FormatForms
             bool commitResult;
             try
             {
-                TranscodeResult result;
+                ImageTranscodeResult result;
                 if (_imageAdapter is IIndexedImageAdapter indexAdapter && imageEncoding.IsIndexed)
                 {
                     result =

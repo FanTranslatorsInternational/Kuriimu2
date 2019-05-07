@@ -55,6 +55,8 @@
     <Compile Include="Attributes\Intermediate\IgnoreEncryptionAttribute.cs" />
     <Compile Include="Attributes\MenuStripExtensionAttribute.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
+    <Compile Include="Exceptions\Image\EncodingNotSupported.cs" />
+    <Compile Include="Exceptions\Image\IndexedEncodingNotSupported.cs" />
     <Compile Include="Exceptions\PluginInconsistencyException.cs" />
     <Compile Include="Exceptions\PluginNotFoundException.cs" />
     <Compile Include="FileSystem\CloseStreamEventArgs.cs" />
@@ -81,7 +83,7 @@
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\Common\ICreateFiles.cs" />
-    <Compile Include="Models\Image\TranscodeResult.cs" />
+    <Compile Include="Models\Image\ImageTranscodeResult.cs" />
     <Compile Include="Providers\KuriimuExportProvider.cs" />
     <Compile Include="Models\Image\BitmapInfo.cs" />
     <Compile Include="Models\Image\EncodingInfo.cs" />

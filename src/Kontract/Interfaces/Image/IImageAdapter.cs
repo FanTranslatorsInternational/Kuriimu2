@@ -24,13 +24,13 @@ namespace Kontract.Interfaces.Image
         IList<EncodingInfo> ImageEncodingInfos { get; }
 
         /// <summary>
-        /// Instructs the plugin to transcode a given image into a new encoding.
+        /// Instructs the plugin to transcode a given image into a non-index based encoding.
         /// </summary>
         /// <param name="info">The <see cref="BitmapInfo"/>containing the image to be transcoded.</param>
         /// <param name="imageEncoding">The <see cref="EncodingInfo"/> to transcode the image into.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>Transcoded image and if the operation was successful.</returns>
-        Task<TranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, IProgress<ProgressReport> progress);
+        Task<ImageTranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Instructs the plugin to update the <see cref="BitmapInfo"/> accordingly with the new information.

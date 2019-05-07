@@ -18,15 +18,14 @@ namespace Kontract.Interfaces.Image
         IList<EncodingInfo> PaletteEncodingInfos { get; }
 
         /// <summary>
-        /// Instructs the plugin to transcode a given image into a new encoding.
+        /// Instructs the plugin to transcode a given image into an index based encoding.
         /// </summary>
         /// <param name="image">The image to be transcoded.</param>
-        /// <param name="imageEncoding">The <see cref="EncodingInfo"/> to transcode the image into.</param>
-        /// <param name="paletteEncoding">The <see cref="EncodingInfo"/> to transcode the palette into.</param>
-        /// <param name="palette">Palette to update.</param>
+        /// <param name="newImageEncoding">The indexed <see cref="EncodingInfo"/> to transcode the image into.</param>
+        /// <param name="paletteEncoding">The non-indexed <see cref="EncodingInfo"/> to transcode the palette into.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>Transcoded image and if the operation was successful.</returns>
-        Task<TranscodeResult> TranscodeImage(BitmapInfo image, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IList<Color> palette, IProgress<ProgressReport> progress);
+        Task<ImageTranscodeResult> TranscodeIndexedImage(BitmapInfo image, EncodingInfo newImageEncoding, EncodingInfo paletteEncoding, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Instructs the plugin to update the <see cref="BitmapInfo"/> accordingly with the new information.
@@ -46,7 +45,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="palette">The palette to set.</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the palette was set successfully, False otherwise.</returns>
-        Task<TranscodeResult> SetPalette(IndexedBitmapInfo info, IList<Color> palette, IProgress<ProgressReport> progress);
+        Task<ImageTranscodeResult> SetPalette(IndexedBitmapInfo info, IList<Color> palette, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Sets a single color in the palette.
@@ -56,6 +55,6 @@ namespace Kontract.Interfaces.Image
         /// <param name="color">The color to set in the palette.</param>
         /// <param name="progress">The progress object to report progress through.</param>
         /// <returns>True if the palette was set successfully, False otherwise.</returns>
-        Task<TranscodeResult> SetColorInPalette(IndexedBitmapInfo info, int index, Color color, IProgress<ProgressReport> progress);
+        Task<ImageTranscodeResult> SetColorInPalette(IndexedBitmapInfo info, int index, Color color, IProgress<ProgressReport> progress);
     }
 }
