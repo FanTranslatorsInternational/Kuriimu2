@@ -23,10 +23,10 @@ namespace Kontract.Interfaces.Image
         /// <param name="image">The image to be transcoded.</param>
         /// <param name="imageEncoding">The <see cref="EncodingInfo"/> to transcode the image into.</param>
         /// <param name="paletteEncoding">The <see cref="EncodingInfo"/> to transcode the palette into.</param>
-        /// <param name="updatePalette">If the palette should be updated.</param>
+        /// <param name="palette">Palette to update.</param>
         /// <param name="progress">The <see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>Transcoded image and if the operation was successful.</returns>
-        Task<TranscodeResult> TranscodeImage(BitmapInfo image, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, bool updatePalette, IProgress<ProgressReport> progress);
+        Task<TranscodeResult> TranscodeImage(BitmapInfo image, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IList<Color> palette, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Instructs the plugin to update the <see cref="BitmapInfo"/> accordingly with the new information.

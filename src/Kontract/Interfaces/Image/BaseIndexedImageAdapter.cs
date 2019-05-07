@@ -19,7 +19,7 @@ namespace Kontract.Interfaces.Image
 
         public override Task<TranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, IProgress<ProgressReport> progress)
         {
-            return TranscodeImage(info, imageEncoding, null, false, progress);
+            return TranscodeImage(info, imageEncoding, null, null, progress);
         }
 
         public override bool Commit(BitmapInfo info, Bitmap image, EncodingInfo imageEncoding)
@@ -30,7 +30,7 @@ namespace Kontract.Interfaces.Image
         #endregion
 
         public abstract IList<EncodingInfo> PaletteEncodingInfos { get; }
-        public Task<TranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, bool updatePalette, IProgress<ProgressReport> progress)
+        public Task<TranscodeResult> TranscodeImage(BitmapInfo info, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IList<Color> palette, IProgress<ProgressReport> progress)
         {
             if (info == null) throw new ArgumentNullException(nameof(info));
             if (imageEncoding == null) throw new ArgumentNullException(nameof(imageEncoding));
@@ -43,13 +43,13 @@ namespace Kontract.Interfaces.Image
             if (paletteEncoding != null && !PaletteEncodingInfos.Contains(paletteEncoding))
                 throw new ArgumentException(nameof(paletteEncoding));
 
-            if (updatePalette)
+            if (palette != null)
                 return Task.Factory.StartNew(() =>
                 {
                     try
                     {
-                        var newImg = TranscodeWithPalette(info, imageEncoding, (info as IndexedBitmapInfo)?.Palette, paletteEncoding);
-                        return new TranscodeResult(true, newImg) { Palette = (info as IndexedBitmapInfo)?.Palette };
+                        var newImg = TranscodeWithPalette(info, imageEncoding, palette, paletteEncoding);
+                        return new TranscodeResult(true, newImg) { Palette = palette };
                     }
                     catch (Exception e)
                     {
@@ -104,7 +104,7 @@ namespace Kontract.Interfaces.Image
             if (info.ImageEncoding == imageEncoding && indexInfo == null)
                 return true;
             if (info.ImageEncoding == imageEncoding && indexInfo != null &&
-                indexInfo.PaletteEncoding == paletteEncoding)
+                indexInfo.PaletteEncoding == paletteEncoding && ReferenceEquals(indexInfo.Palette, palette))
                 return true;
 
             // If format changed from indexed to non-indexed or vice versa
@@ -139,8 +139,7 @@ namespace Kontract.Interfaces.Image
             // TODO: Allow different color counts
             if (palette.Count != info.ColorCount) throw new ArgumentException(nameof(palette.Count));
 
-            info.Palette = palette;
-            return TranscodeImage(info, info.ImageEncoding, info.PaletteEncoding, true, progress);
+            return TranscodeImage(info, info.ImageEncoding, info.PaletteEncoding, palette, progress);
         }
 
         public Task<TranscodeResult> SetColorInPalette(IndexedBitmapInfo info, int index, Color color, IProgress<ProgressReport> progress)
@@ -150,8 +149,10 @@ namespace Kontract.Interfaces.Image
                 throw new ArgumentException(nameof(info));
             if (index < 0 || index >= info.ColorCount) throw new ArgumentOutOfRangeException(nameof(index));
 
-            info.Palette[index] = color;
-            return TranscodeImage(info, info.ImageEncoding, info.PaletteEncoding, true, progress);
+            var newPalette = new Color[info.Palette.Count];
+            info.Palette.CopyTo(newPalette, 0);
+            newPalette[index] = color;
+            return TranscodeImage(info, info.ImageEncoding, info.PaletteEncoding, newPalette, progress);
         }
     }
 }

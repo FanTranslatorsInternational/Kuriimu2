@@ -244,7 +244,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 if (_imageAdapter is IIndexedImageAdapter indexAdapter && imageEncoding.IsIndexed)
                 {
                     result =
-                        await indexAdapter.TranscodeImage(bitmapInfo, imageEncoding, paletteEncoding, false, report);
+                        await indexAdapter.TranscodeImage(bitmapInfo, imageEncoding, paletteEncoding, null, report);
                     if (!result.Result)
                     {
                         MessageBox.Show(result.Exception?.ToString() ?? "Encoding was not successful.",

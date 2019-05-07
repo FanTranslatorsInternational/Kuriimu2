@@ -20,7 +20,7 @@ namespace plugin_yuusha_shisu.BTX
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_btx", "Death of a Hero", "BTX", "IcySon55")]
     [PluginExtensionInfo("*.btx")]
-    public class BtxAdapter : BaseIndexImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public class BtxAdapter : BaseIndexedImageAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private BTX _format;
         private List<BitmapInfo> _bitmapInfos;
@@ -66,11 +66,13 @@ namespace plugin_yuusha_shisu.BTX
             EncodingInfo paletteEncoding)
         {
             var img = bitmapInfo.Image;
-            var colorList = Kanvas.Kolors.DecomposeImage(img);
+            var indexInfo = bitmapInfo as IndexedBitmapInfo;
             var indexEncoding = BTX.IndexEncodings[imageEncoding.EncodingIndex];
-            var (indices, pal) = indexEncoding.Decompose(colorList);
-            var newColorList = indexEncoding.Compose(indices, palette);
-            return Kanvas.Kolors.ComposeImage(colorList, img.Width, img.Height);
+
+            var colorList = Kanvas.Kolors.DecomposeImage(img);
+            var indices = indexEncoding.DecomposeWithPalette(colorList, indexInfo?.Palette);
+            var newColorList = indexEncoding.Compose(indices, palette).ToList();
+            return Kanvas.Kolors.ComposeImage(newColorList, img.Width, img.Height);
         }
 
         #endregion
