@@ -44,7 +44,7 @@ namespace Kontract.Interfaces.Image
             if (!ImageEncodingInfos.Contains(imageEncoding)) throw new ArgumentException(nameof(imageEncoding));
             if (imageEncoding.IsIndexed) throw new IndexedEncodingNotSupported(imageEncoding);
 
-            // If encodings unchanged, don't transcode
+            // If encodings unchanged, don't transcode.
             if (bitmapInfo.ImageEncoding == imageEncoding)
                 return Task.Factory.StartNew(() => new ImageTranscodeResult(bitmapInfo.Image));
 

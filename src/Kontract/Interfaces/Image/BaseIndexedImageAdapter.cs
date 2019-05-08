@@ -21,7 +21,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="paletteEncoding">The <see cref="EncodingInfo"/> to transcode the palette into.</param>
         /// <param name="progress"><see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns>Transcoded image and palette.</returns>
-        // TODO: Add possibilities of giving quantization information
+        // TODO: Add possibilities of giving quantization information.
         protected abstract (Bitmap Image, IList<Color> Palette) Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IProgress<ProgressReport> progress);
 
         /// <inheritdoc cref="IIndexedImageAdapter.PaletteEncodingInfos"/>
@@ -36,7 +36,7 @@ namespace Kontract.Interfaces.Image
         /// <param name="progress"><see cref="IProgress{ProgressReport}"/> to report progress through.</param>
         /// <returns><see cref="ImageTranscodeResult"/> which holds the transcoded information or the exception of this process.</returns>
         /// <remarks>Implements necessary null checks, exception catching and task handling.</remarks>
-        // TODO: Add possibilities of giving quantization information
+        // TODO: Add possibilities of giving quantization information.
         public virtual Task<ImageTranscodeResult> TranscodeImage(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IProgress<ProgressReport> progress)
         {
             // Validity checks
@@ -49,7 +49,7 @@ namespace Kontract.Interfaces.Image
             if (!imageEncoding.IsIndexed) throw new EncodingNotSupported(imageEncoding);
             if (paletteEncoding.IsIndexed) throw new IndexedEncodingNotSupported(paletteEncoding);
 
-            // If encodings unchanged, don't transcode
+            // If encodings unchanged, don't transcode.
             if (bitmapInfo.ImageEncoding == imageEncoding)
             {
                 if (!(bitmapInfo is IndexedBitmapInfo indexInfo))
@@ -135,13 +135,13 @@ namespace Kontract.Interfaces.Image
         #endregion
 
         /// <inheritdoc cref="IIndexedImageAdapter.Commit(BitmapInfo,Bitmap,EncodingInfo,IList{Color},EncodingInfo)"/>
-        public virtual bool Commit(BitmapInfo info, Bitmap image, EncodingInfo imageEncoding, IList<Color> palette, EncodingInfo paletteEncoding)
+        public virtual bool Commit(BitmapInfo bitmapIndo, Bitmap image, EncodingInfo imageEncoding, IList<Color> palette, EncodingInfo paletteEncoding)
         {
             // Validity checks
-            if (info == null) throw new ArgumentNullException(nameof(info));
+            if (bitmapIndo == null) throw new ArgumentNullException(nameof(bitmapIndo));
             if (image == null) throw new ArgumentNullException(nameof(image));
             if (imageEncoding == null) throw new ArgumentNullException(nameof(imageEncoding));
-            if (!BitmapInfos.Contains(info)) throw new ArgumentException(nameof(info));
+            if (!BitmapInfos.Contains(bitmapIndo)) throw new ArgumentException(nameof(bitmapIndo));
             if (!ImageEncodingInfos.Contains(imageEncoding)) throw new ArgumentException(nameof(imageEncoding));
             if (!imageEncoding.IsIndexed) throw new EncodingNotSupported(imageEncoding);
             if (imageEncoding.IsIndexed)
@@ -152,20 +152,18 @@ namespace Kontract.Interfaces.Image
                 if (paletteEncoding.IsIndexed) throw new IndexedEncodingNotSupported(paletteEncoding);
             }
 
-            // If format changed from indexed to non-indexed or vice versa
-            if (info.ImageEncoding.IsIndexed != imageEncoding.IsIndexed)
+            // If format changed from indexed to non-indexed or vice versa.
+            if (bitmapIndo.ImageEncoding.IsIndexed != imageEncoding.IsIndexed)
             {
-                var infoIndex = BitmapInfos.IndexOf(info);
-                BitmapInfos[infoIndex] = imageEncoding.IsIndexed ?
+                BitmapInfos[BitmapInfos.IndexOf(bitmapIndo)] = imageEncoding.IsIndexed ?
                     new IndexedBitmapInfo(image, imageEncoding, palette, paletteEncoding) :
                     new BitmapInfo(image, imageEncoding);
             }
-            // If format changed without having its "type" changed
-            else
+            else // If format changed without having its "type" changed.
             {
-                info.Image = image;
-                info.ImageEncoding = imageEncoding;
-                if (info is IndexedBitmapInfo indexInfo)
+                bitmapIndo.Image = image;
+                bitmapIndo.ImageEncoding = imageEncoding;
+                if (bitmapIndo is IndexedBitmapInfo indexInfo)
                 {
                     indexInfo.Palette = palette;
                     indexInfo.PaletteEncoding = paletteEncoding;
