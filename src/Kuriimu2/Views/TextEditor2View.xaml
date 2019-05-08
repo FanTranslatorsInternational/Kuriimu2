@@ -115,17 +115,20 @@
                             <Button Name="AddEntry" ToolTip="Add Text Entry" IsEnabled="{Binding AddButtonEnabled}">
                                 <Image Source="/Images/menu-add.png" Width="16" />
                             </Button>
-                            <Button Name="EntryProperties" ToolTip="Entry Properties">
-                                <Image Source="/Images/menu-properties.png" Width="16" />
+                            <Button Name="DeleteEntry" ToolTip="Delete Text Entry" IsEnabled="{Binding DeleteButtonEnabled}">
+                                <Image Source="/Images/menu-delete.png" Width="16" />
                             </Button>
                         </ToolBar>
                     </ToolBarPanel>
 
                     <ToolBarPanel Grid.Column="0">
                         <ToolBar HorizontalAlignment="Right" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
+                            <Button Name="EntryProperties" ToolTip="Entry Properties">
+                                <Image Source="/Images/menu-properties.png" Width="16" />
+                            </Button>
                         </ToolBar>
                     </ToolBarPanel>
-                    <Label Grid.Column="1" Content="{Binding EntryCount, FallbackValue='1 Entry'}" />
+                    <Label Grid.Column="1" Content="{Binding EntryCount, FallbackValue='1 Entry'}" Margin="4 0 0 0" />
                 </Grid>
                 <DataGrid ItemsSource="{Binding Entries}" local:DataGridProperties.SelectingItem="{Binding SelectedEntry}" SelectedItem="{Binding SelectedEntry, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserSortColumns="False" RowHeaderWidth="0">
                     <DataGrid.Resources>

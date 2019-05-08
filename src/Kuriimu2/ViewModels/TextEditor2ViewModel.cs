@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
@@ -63,11 +64,22 @@ namespace Kuriimu2.ViewModels
                 SelectedZoomLevel = 1;
             }
 
-            // Direct entry loading is now dead since GameAdapters have become a thing
-            //if (_adapter != null)
-            //    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
-
             SelectedEntry = Entries?.FirstOrDefault();
+        }
+
+        private void LoadEntries()
+        {
+            if (_gameAdapterInstance != null)
+            {
+                _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
+                _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
+                Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
+            }
+            else
+                Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
+            NotifyOfPropertyChange(() => Entries);
+            NotifyOfPropertyChange(() => EntryCount);
+            NotifyOfPropertyChange(() => PreviewImage);
         }
 
         public List<int> ZoomLevels { get; } = new List<int> { 1, 2, 3, 4, 5 };
@@ -91,7 +103,6 @@ namespace Kuriimu2.ViewModels
 
         #endregion
 
-
         public IList<GameAdapter> GameAdapters { get; }
 
         public GameAdapter SelectedGameAdapter
@@ -110,26 +121,13 @@ namespace Kuriimu2.ViewModels
                 // TODO: Implement game adapter persistence
 
                 // Entries
-                if (_gameAdapterInstance != null)
-                {
-                    _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
-                    if (_adapter != null)
-                        _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
-                    Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
-                }
-                else
-                {
-                    // Direct entry loading when no game adapters are present (not even the NoGameAdapter)
-                    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
-                }
+                LoadEntries();                
                 foreach (var entry in Entries)
                     entry.Edited += (sender, args) =>
                     {
                         KoreFile.HasChanges = true;
                         NotifyOfPropertyChange(() => PreviewImage);
                     };
-                NotifyOfPropertyChange(() => Entries);
-                NotifyOfPropertyChange(() => PreviewImage);
             }
         }
 
@@ -187,22 +185,31 @@ namespace Kuriimu2.ViewModels
             if (added)
             {
                 KoreFile.HasChanges = true;
-                if (_gameAdapterInstance != null)
-                {
-                    _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
-                    Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
-                }
-                else
-                    Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
+                LoadEntries();
                 foreach (var ent in Entries.Where(e => e.Name == entry.Name))
                     ent.Edited += (sender, args) =>
                     {
                         KoreFile.HasChanges = true;
                         NotifyOfPropertyChange(() => PreviewImage);
                     };
-                NotifyOfPropertyChange(() => Entries);
-                NotifyOfPropertyChange(() => EntryCount);
                 SelectedEntry = entry;
+            }
+        }
+
+        public void DeleteEntry()
+        {
+            if (!(_adapter is IDeleteEntries del)) return;
+
+            var index = Entries.IndexOf(SelectedEntry);
+
+            if (!del.DeleteEntry(SelectedEntry))
+                MessageBox.Show("The entry could not be removed.", "Delete Failed");
+            else
+            {
+                KoreFile.HasChanges = true;
+                LoadEntries();
+                if (Entries.Count > 0)
+                    SelectedEntry = Entries[Math.Min(index, Entries.Count - 1)];
             }
         }
 

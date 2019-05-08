@@ -21,7 +21,8 @@ namespace Kuriimu2.AttachedProperties
             grid.Dispatcher.InvokeAsync(() =>
             {
                 grid.UpdateLayout();
-                grid.ScrollIntoView(grid.SelectedItem, null);
+                if (grid.SelectedItem != null)
+                    grid.ScrollIntoView(grid.SelectedItem, null);
             });
         }
 
