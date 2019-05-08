@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Text;
-using Kontract.Interfaces.Image;
 
 namespace Kontract.Models.Image
 {

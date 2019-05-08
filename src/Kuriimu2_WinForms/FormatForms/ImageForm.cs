@@ -227,8 +227,7 @@ namespace Kuriimu2_WinForms.FormatForms
         {
             if (!tsbFormat.Enabled && !tsbPalette.Enabled)
                 return false;
-            if (_imageAdapter is IIndexedImageAdapter && imageEncoding.IsIndexed &&
-                paletteEncoding == null)
+            if (_imageAdapter is IIndexedImageAdapter && imageEncoding.IsIndexed && paletteEncoding == null)
                 return false;
 
             var report = new Progress<ProgressReport>();
@@ -243,8 +242,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 ImageTranscodeResult result;
                 if (_imageAdapter is IIndexedImageAdapter indexAdapter && imageEncoding.IsIndexed)
                 {
-                    result =
-                        await indexAdapter.TranscodeImage(bitmapInfo, imageEncoding, paletteEncoding, null, report);
+                    result = await indexAdapter.TranscodeImage(bitmapInfo, imageEncoding, paletteEncoding, report);
                     if (!result.Result)
                     {
                         MessageBox.Show(result.Exception?.ToString() ?? "Encoding was not successful.",
@@ -253,13 +251,11 @@ namespace Kuriimu2_WinForms.FormatForms
                         return result.Result;
                     }
 
-                    commitResult = indexAdapter.Commit(bitmapInfo, result.TranscodedImage, imageEncoding, result.Palette,
-                        paletteEncoding);
+                    commitResult = indexAdapter.Commit(bitmapInfo, result.Image, imageEncoding, result.Palette, paletteEncoding);
                 }
                 else
                 {
-                    result =
-                        await _imageAdapter.TranscodeImage(bitmapInfo, imageEncoding, report);
+                    result = await _imageAdapter.TranscodeImage(bitmapInfo, imageEncoding, report);
                     if (!result.Result)
                     {
                         MessageBox.Show(result.Exception?.ToString() ?? "Encoding was not successful.",
@@ -268,12 +264,12 @@ namespace Kuriimu2_WinForms.FormatForms
                         return result.Result;
                     }
 
-                    commitResult = _imageAdapter.Commit(bitmapInfo, result.TranscodedImage, imageEncoding);
+                    commitResult = _imageAdapter.Commit(bitmapInfo, result.Image, imageEncoding);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), "Exception Caught", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 UpdateForm();
                 return false;
             }
@@ -676,7 +672,7 @@ namespace Kuriimu2_WinForms.FormatForms
                     return;
                 }
 
-                commitRes = indexAdapter.Commit(indexInfo, result.TranscodedImage, indexInfo.ImageEncoding,
+                commitRes = indexAdapter.Commit(indexInfo, result.Image, indexInfo.ImageEncoding,
                     result.Palette, indexInfo.PaletteEncoding);
             }
             catch (Exception ex)
@@ -762,7 +758,7 @@ namespace Kuriimu2_WinForms.FormatForms
                     return;
                 }
 
-                commitRes = indexAdapter.Commit(indexInfo, result.TranscodedImage, indexInfo.ImageEncoding,
+                commitRes = indexAdapter.Commit(indexInfo, result.Image, indexInfo.ImageEncoding,
                     colors, indexInfo.PaletteEncoding);
             }
             catch (Exception ex)

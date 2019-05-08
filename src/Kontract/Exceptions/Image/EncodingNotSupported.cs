@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using Kontract.Models.Image;
 
 namespace Kontract.Exceptions.Image
 {
-    public class EncodingNotSupported:Exception
+    public class EncodingNotSupported : Exception
     {
         public EncodingInfo EncodingInfo { get; }
 
