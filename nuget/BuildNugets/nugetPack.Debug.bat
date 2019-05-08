@@ -22,4 +22,3 @@ echo ##################################
 echo       Build Nugets Complete
 echo ##################################
 echo.
-pause
