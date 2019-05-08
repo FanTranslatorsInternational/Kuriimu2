@@ -4,6 +4,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 
@@ -13,7 +14,7 @@ namespace plugin_metal_max.ARR
     [Export(typeof(IPlugin))]
     [PluginInfo("B6C58C25-4E1C-4B9C-ABCF-DE905B1BBF51", "Metal Max 3: ARR Credits Text", "ARR", "IcySon55, BuddyRoach", "", "This is the Metal Max 3 ARR credits text adapter for Kuriimu2.")]
     [PluginExtensionInfo("*.arr")]
-    public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddEntries
+    public sealed class ArrAdapter : ITextAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddEntries, IDeleteEntries
     {
         private ARR _format;
 
@@ -81,6 +82,12 @@ namespace plugin_metal_max.ARR
         public bool AddEntry(TextEntry entry)
         {
             _format.Entries.Add(entry);
+            return true;
+        }
+
+        public bool DeleteEntry(TextEntry entry)
+        {
+            _format.Entries.Remove(entry);
             return true;
         }
     }

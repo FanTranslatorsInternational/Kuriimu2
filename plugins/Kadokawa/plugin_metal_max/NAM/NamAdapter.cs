@@ -2,6 +2,7 @@
 using System.ComponentModel.Composition;
 using System.IO;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 
