@@ -74,9 +74,11 @@ namespace Kuriimu2_WinForms.MainForms
             sb.AppendLine("Following plugins produced errors and are not available:");
             foreach (var report in reports)
             {
-                var reportMsg = report.ComposablePartDefinition.ToString();
+                var reportMsg = report.ComposablePartDefinition?.ToString();
                 reportMsg += Environment.NewLine;
-                reportMsg += $" --> {report.Exception.Message}";
+                reportMsg += $"--> {report.Exception.Message}";
+                if (report.Exception is System.Reflection.ReflectionTypeLoadException rtle)
+                    reportMsg += $"{Environment.NewLine}--> --> {string.Join($"{Environment.NewLine}--> --> ", rtle.LoaderExceptions.Select(x => x.Message).ToArray())}";
                 sb.AppendLine(reportMsg);
             }
 
