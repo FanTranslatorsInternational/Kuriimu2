@@ -14,7 +14,7 @@ namespace plugin_yuusha_shisu.PAC
     [Export(typeof(IPlugin))]
     [PluginInfo("plugin_yuusha_shisu_pac", "Death of a Hero", "PAC", "StorMyu")]
     [PluginExtensionInfo("*.pac")]
-    public sealed class PacAdapter : IPlugin, IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IArchiveReplaceFiles
+    public sealed class PacAdapter : IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IArchiveReplaceFiles
     {
         private PAC _format;
 

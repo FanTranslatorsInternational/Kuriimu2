@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Drawing;
 using System.Linq;
-using System.Threading.Tasks;
 using Kanvas.Models;
-using Kanvas.Quantization.Quantizers;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.Interfaces;
@@ -43,7 +41,7 @@ namespace plugin_yuusha_shisu.BTX
 
         #region Transcoding
 
-        protected override Bitmap Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding)
+        protected override Bitmap Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, IProgress<ProgressReport> progress)
         {
             var img = bitmapInfo.Image;
             var settings = new ImageSettings(BTX.Encodings[imageEncoding.EncodingIndex], img.Width, img.Height);
@@ -51,8 +49,7 @@ namespace plugin_yuusha_shisu.BTX
             return Kanvas.Kolors.Load(data, settings);
         }
 
-        protected override (Bitmap newImg, IList<Color> palette) Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding,
-            EncodingInfo paletteEncoding)
+        protected override (Bitmap Image, IList<Color> Palette) Transcode(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, EncodingInfo paletteEncoding, IProgress<ProgressReport> progress)
         {
             var img = bitmapInfo.Image;
             var indexEncoding = BTX.IndexEncodings[imageEncoding.EncodingIndex];
@@ -62,12 +59,11 @@ namespace plugin_yuusha_shisu.BTX
             return Kanvas.Kolors.Load(data.indexData, data.paletteData, settings);
         }
 
-        protected override Bitmap TranscodeWithPalette(BitmapInfo bitmapInfo, EncodingInfo imageEncoding, IList<Color> palette,
-            EncodingInfo paletteEncoding)
+        protected override Bitmap TranscodeWithPalette(IndexedBitmapInfo bitmapInfo, IList<Color> palette, IProgress<ProgressReport> progress)
         {
             var img = bitmapInfo.Image;
             var indexInfo = bitmapInfo as IndexedBitmapInfo;
-            var indexEncoding = BTX.IndexEncodings[imageEncoding.EncodingIndex];
+            var indexEncoding = BTX.IndexEncodings[bitmapInfo.ImageEncoding.EncodingIndex];
 
             var colorList = Kanvas.Kolors.DecomposeImage(img);
             var indices = indexEncoding.DecomposeWithPalette(colorList, indexInfo?.Palette);
