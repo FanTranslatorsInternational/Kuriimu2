@@ -30,35 +30,59 @@ namespace Kontract.Providers
                 if (composablePartDefinition == null || exportDefinition == null)
                     continue;
 
-                composablePartDefinition.CreatePart().Activate();
-                yield return new Export(exportDefinition, () => GetExportedValue(composablePartDefinition, exportDefinition));
+                yield return new KuriimuExport(exportDefinition,
+                    () => GetExportedValue(composablePartDefinition, exportDefinition),
+                    ex => ReportError(ex, definition, exportDefinition, composablePartDefinition));
             }
         }
 
         private IEnumerable<Tuple<ComposablePartDefinition, ExportDefinition>> GetCatalogExports(ImportDefinition definition)
         {
-            var parts = _catalog.Parts;
-            foreach (var part in parts)
-                foreach (var exportDefinition in part.ExportDefinitions)
+            using (var enumerator = _catalog.Parts.GetEnumerator())
+            {
+                while (true)
                 {
-                    bool result = false;
+                    bool moveResult;
                     try
                     {
-                        result = definition.IsConstraintSatisfiedBy(exportDefinition);
+                        moveResult = enumerator.MoveNext();
                     }
                     catch (Exception e)
                     {
-                        ErrorReports.Add(new ExportErrorReport(e, definition, exportDefinition, part));
+                        ReportError(e, definition, null, null);
+                        continue;
                     }
+                    if (!moveResult)
+                        break;
 
-                    var retValue = new Tuple<ComposablePartDefinition, ExportDefinition>(part, exportDefinition);
-                    yield return result ? retValue : new Tuple<ComposablePartDefinition, ExportDefinition>(null, null);
+                    var part = enumerator.Current;
+                    foreach (var exportDefinition in part.ExportDefinitions)
+                    {
+                        bool result = false;
+                        try
+                        {
+                            result = definition.IsConstraintSatisfiedBy(exportDefinition);
+                        }
+                        catch (Exception e)
+                        {
+                            ReportError(e, definition, exportDefinition, part);
+                        }
+
+                        var retValue = new Tuple<ComposablePartDefinition, ExportDefinition>(part, exportDefinition);
+                        yield return result ? retValue : new Tuple<ComposablePartDefinition, ExportDefinition>(null, null);
+                    }
                 }
+            }
         }
 
         private object GetExportedValue(ComposablePartDefinition composablePartDefinition, ExportDefinition exportDefinition)
         {
             return composablePartDefinition.CreatePart().GetExportedValue(exportDefinition);
+        }
+
+        private void ReportError(Exception e, ImportDefinition definition, ExportDefinition exportDefinition, ComposablePartDefinition part)
+        {
+            ErrorReports.Add(new ExportErrorReport(e, definition, exportDefinition, part));
         }
     }
 }

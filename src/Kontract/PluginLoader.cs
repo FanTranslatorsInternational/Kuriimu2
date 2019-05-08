@@ -120,6 +120,8 @@ namespace Kontract
 
             if (!TryComposePlugins(this, PluginFolder, out var errors))
                 CompositionErrors = errors;
+            if (_plugins == null)
+                _plugins = new List<IPlugin>();
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -74,11 +75,25 @@ namespace Kuriimu2_WinForms.MainForms
             sb.AppendLine("Following plugins produced errors and are not available:");
             foreach (var report in reports)
             {
-                var reportMsg = report.ComposablePartDefinition?.ToString();
+                string reportMsg = Environment.NewLine;
+                if (report.Exception is ReflectionTypeLoadException rtle)
+                {
+                    foreach (var loaderEx in rtle.LoaderExceptions)
+                        if (loaderEx is TypeLoadException tle)
+                        {
+                            reportMsg += tle.TypeName;
+                            reportMsg += Environment.NewLine;
+                            reportMsg += $"--> {tle.Message}";
+                        }
+                    sb.AppendLine(reportMsg);
+                    continue;
+                }
+
+                reportMsg = report.ComposablePartDefinition?.ToString();
                 reportMsg += Environment.NewLine;
                 reportMsg += $"--> {report.Exception.Message}";
-                if (report.Exception is System.Reflection.ReflectionTypeLoadException rtle)
-                    reportMsg += $"{Environment.NewLine}--> --> {string.Join($"{Environment.NewLine}--> --> ", rtle.LoaderExceptions.Select(x => x.Message).ToArray())}";
+                //if (report.Exception is System.Reflection.ReflectionTypeLoadException rtle)
+                //    reportMsg += $"{Environment.NewLine}--> --> {string.Join($"{Environment.NewLine}--> --> ", rtle.LoaderExceptions.Select(x => x.Message).ToArray())}";
                 sb.AppendLine(reportMsg);
             }
 
