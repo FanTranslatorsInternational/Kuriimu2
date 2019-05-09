@@ -8,6 +8,11 @@ using System.Reflection;
 using Kontract.Exceptions;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
+using Kontract.MEF;
+using Kontract.MEF.Catalogs;
+using Kontract.MEF.ErrorReports;
+using Kontract.MEF.Interfaces;
+using Kontract.MEF.Providers;
 using Kontract.Providers;
 using Kontract.Providers.Models;
 
@@ -37,7 +42,7 @@ namespace Kontract
         /// <param name="errors">List of occured composition errors.</param>
         /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on composition.</exception>
         /// <returns>Was composition successful.</returns>
-        public static bool TryComposePlugins(object parent, string pluginDirectory, out IList<ExportErrorReport> errors)
+        public static bool TryComposePlugins(object parent, string pluginDirectory, out IList<IErrorReport> errors)
             => TryComposePlugins(parent, pluginDirectory, null, out errors);
 
         /// <summary>
@@ -49,9 +54,9 @@ namespace Kontract
         /// <param name="errors">List of occured composition errors.</param>
         /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on load.</exception>
         /// <returns>Was composition successful.</returns>
-        public static bool TryComposePlugins(object parent, string pluginDirectory, Type[] types, out IList<ExportErrorReport> errors)
+        public static bool TryComposePlugins(object parent, string pluginDirectory, Type[] types, out IList<IErrorReport> errors)
         {
-            errors = new List<ExportErrorReport>();
+            errors = new List<IErrorReport>();
 
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
@@ -62,8 +67,8 @@ namespace Kontract
                     catalog.Catalogs.Add(new AssemblyCatalog(type.Assembly));
 
             // Loads plugins from all DLLs found in the plugin directory.
-            if (Directory.Exists(pluginDirectory) && Directory.GetFiles(pluginDirectory, "*.dll").Length > 0)
-                catalog.Catalogs.Add(new DirectoryCatalog(pluginDirectory));
+            if (Directory.Exists(pluginDirectory) && Directory.EnumerateFiles(pluginDirectory, "*.dll").Any())
+                catalog.Catalogs.Add(new KuriimuDirectoryCatalog(pluginDirectory, "*.dll"));
 
             // Create the CompositionContainer with the parts in the catalog.
             var exportProvider = new KuriimuExportProvider(catalog);
@@ -76,7 +81,7 @@ namespace Kontract
             }
             catch (Exception e)
             {
-                errors.Add(new ExportErrorReport(e));
+                errors.Add(new DefaultErrorReport(e));
                 return false;
             }
 
@@ -107,7 +112,7 @@ namespace Kontract
         /// <summary>
         /// Provides a list of possible composition errors.
         /// </summary>
-        public IList<ExportErrorReport> CompositionErrors { get; }
+        public IList<IErrorReport> CompositionErrors { get; }
 
         /// <summary>
         /// Instantiates a new instance of the <see cref="PluginLoader"/> and composes all of the plugins found in the <see cref="PluginFolder"/> sub directory.

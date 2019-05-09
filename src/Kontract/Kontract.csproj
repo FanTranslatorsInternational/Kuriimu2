@@ -83,8 +83,11 @@
     <Compile Include="Interfaces\IFormatConverter.cs" />
     <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
     <Compile Include="Interfaces\Common\ICreateFiles.cs" />
+    <Compile Include="MEF\ErrorReports\DefaultErrorReport.cs" />
+    <Compile Include="MEF\Interfaces\IErrorReport.cs" />
     <Compile Include="Models\Image\ImageTranscodeResult.cs" />
-    <Compile Include="Providers\KuriimuExportProvider.cs" />
+    <Compile Include="MEF\Catalogs\KuriimuDirectoryCatalog.cs" />
+    <Compile Include="MEF\Providers\KuriimuExportProvider.cs" />
     <Compile Include="Models\Image\BitmapInfo.cs" />
     <Compile Include="Models\Image\EncodingInfo.cs" />
     <Compile Include="Interfaces\Image\IImageAdapter.cs" />
@@ -116,12 +119,14 @@
     <Compile Include="Models\ProgressReport.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Providers\Models\ExportErrorReport.cs" />
-    <Compile Include="Providers\Models\KuriimuExport.cs" />
+    <Compile Include="MEF\ErrorReports\AssemblyTypeErrorReport.cs" />
+    <Compile Include="MEF\ErrorReports\ExportErrorReport.cs" />
+    <Compile Include="MEF\Models\KuriimuExport.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Kontract.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -16,6 +16,7 @@ using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Intermediate;
 using Kontract.Interfaces.Text;
+using Kontract.MEF.Interfaces;
 using Kontract.Models;
 using Kontract.Models.Intermediate;
 using Kontract.Providers.Models;
@@ -69,32 +70,13 @@ namespace Kuriimu2_WinForms.MainForms
             LoadImageViews();
         }
 
-        private void DisplayCompositionErrors(IList<ExportErrorReport> reports)
+        private void DisplayCompositionErrors(IList<IErrorReport> reports)
         {
             var sb = new StringBuilder();
             sb.AppendLine("Following plugins produced errors and are not available:");
             foreach (var report in reports)
             {
-                string reportMsg = Environment.NewLine;
-                if (report.Exception is ReflectionTypeLoadException rtle)
-                {
-                    foreach (var loaderEx in rtle.LoaderExceptions)
-                        if (loaderEx is TypeLoadException tle)
-                        {
-                            reportMsg += tle.TypeName;
-                            reportMsg += Environment.NewLine;
-                            reportMsg += $"--> {tle.Message}";
-                        }
-                    sb.AppendLine(reportMsg);
-                    continue;
-                }
-
-                reportMsg = report.ComposablePartDefinition?.ToString();
-                reportMsg += Environment.NewLine;
-                reportMsg += $"--> {report.Exception.Message}";
-                //if (report.Exception is System.Reflection.ReflectionTypeLoadException rtle)
-                //    reportMsg += $"{Environment.NewLine}--> --> {string.Join($"{Environment.NewLine}--> --> ", rtle.LoaderExceptions.Select(x => x.Message).ToArray())}";
-                sb.AppendLine(reportMsg);
+                sb.AppendLine(report.ToString());
             }
 
             MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
