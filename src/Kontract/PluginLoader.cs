@@ -67,8 +67,12 @@ namespace Kontract
                     catalog.Catalogs.Add(new AssemblyCatalog(type.Assembly));
 
             // Loads plugins from all DLLs found in the plugin directory.
+            KuriimuDirectoryCatalog dirCatalog = null;
             if (Directory.Exists(pluginDirectory) && Directory.EnumerateFiles(pluginDirectory, "*.dll").Any())
-                catalog.Catalogs.Add(new KuriimuDirectoryCatalog(pluginDirectory, "*.dll"));
+            {
+                dirCatalog = new KuriimuDirectoryCatalog(pluginDirectory, "*.dll");
+                catalog.Catalogs.Add(dirCatalog);
+            }
 
             // Create the CompositionContainer with the parts in the catalog.
             var exportProvider = new KuriimuExportProvider(catalog);
@@ -85,13 +89,18 @@ namespace Kontract
                 return false;
             }
 
+            if (dirCatalog != null && dirCatalog.ErrorReports.Any())
+            {
+                foreach (var e in dirCatalog.ErrorReports)
+                    errors.Add(e);
+            }
             if (exportProvider.HasErrorReports)
             {
-                errors = exportProvider.ErrorReports;
-                return false;
+                foreach (var e in exportProvider.ErrorReports)
+                    errors.Add(e);
             }
 
-            return true;
+            return !errors.Any();
         }
 
         #region Imports

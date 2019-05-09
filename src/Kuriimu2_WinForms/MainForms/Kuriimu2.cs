@@ -76,7 +76,7 @@ namespace Kuriimu2_WinForms.MainForms
             sb.AppendLine("Following plugins produced errors and are not available:");
             foreach (var report in reports)
             {
-                sb.AppendLine(report.ToString());
+                sb.AppendLine($"{Environment.NewLine}{report}");
             }
 
             MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);

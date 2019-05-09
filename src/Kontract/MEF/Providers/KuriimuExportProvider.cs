@@ -14,12 +14,12 @@ namespace Kontract.MEF.Providers
         private readonly ComposablePartCatalog _catalog;
 
         public bool HasErrorReports => ErrorReports.Any();
-        public IList<IErrorReport> ErrorReports { get; }
+        public IList<ExportErrorReport> ErrorReports { get; }
 
         public KuriimuExportProvider(ComposablePartCatalog catalog)
         {
             _catalog = catalog;
-            ErrorReports = new List<IErrorReport>();
+            ErrorReports = new List<ExportErrorReport>();
         }
 
         protected override IEnumerable<Export> GetExportsCore(ImportDefinition definition, AtomicComposition atomicComposition)
@@ -66,7 +66,9 @@ namespace Kontract.MEF.Providers
 
         private void ReportError(Exception e, ImportDefinition definition, ExportDefinition exportDefinition, ComposablePartDefinition part)
         {
-            ErrorReports.Add(new ExportErrorReport(e, definition, exportDefinition, part));
+            // Check if error already existing (somehow this export provider gets called multiple times)
+            if (!ErrorReports.Any(er => er.ImportDefinition == definition && er.ExportDefinition == exportDefinition))
+                ErrorReports.Add(new ExportErrorReport(e, definition, exportDefinition, part));
         }
     }
 }
