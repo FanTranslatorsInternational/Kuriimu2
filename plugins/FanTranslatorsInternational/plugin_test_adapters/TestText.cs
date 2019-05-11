@@ -8,7 +8,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Text;
 
-namespace plugin_test_adapters.Text
+namespace plugin_test_adapters
 {
     [Export(typeof(IPlugin))]
     [PluginExtensionInfo("*.text")]

@@ -4,15 +4,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
+using Kontract.Attributes;
+using Kontract.FileSystem2.Nodes.Abstract;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.FileSystem;
-using WinFormsTest.Archive.Models;
+using plugin_test_adapters.Archive.Models;
 
 namespace plugin_test_adapters.Archive
 {
     [Export(typeof(IPlugin))]
+    [PluginExtensionInfo("*.test")]
     public class TestArchive : IArchiveAdapter, IMultipleFiles, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         public bool Identify(StreamInfo file)
@@ -31,7 +34,7 @@ namespace plugin_test_adapters.Archive
         public bool LeaveOpen { get; set; }
         public void Load(StreamInfo input)
         {
-            var dataStream = FileSystem.OpenFile("archivetest.data");
+            var dataStream = FileSystem.GetFileNode("archive.data").Open();
 
             using (var br = new BinaryReaderX(input.FileData, LeaveOpen))
             {
@@ -49,7 +52,7 @@ namespace plugin_test_adapters.Archive
 
         public void Save(StreamInfo output, int versionIndex = 0)
         {
-            var dataStream = FileSystem.CreateFile("archivetest.data");
+            var dataStream = FileSystem.GetFileNode("archive.data").Open();
 
             using (var bwData = new BinaryWriterX(dataStream, false))
             using (var bw = new BinaryWriterX(output.FileData, LeaveOpen))
@@ -79,6 +82,6 @@ namespace plugin_test_adapters.Archive
 
         public List<ArchiveFileInfo> Files { get; private set; }
         public bool FileHasExtendedProperties => false;
-        public IFileSystem FileSystem { get; set; }
+        public BaseDirectoryNode FileSystem { get; set; }
     }
 }

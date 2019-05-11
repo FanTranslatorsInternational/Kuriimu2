@@ -7,7 +7,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 
-namespace plugin_test_adapters.Game
+namespace plugin_test_adapters
 {
     [Export(typeof(IPlugin))]
     [PluginInfo("Test-Game-Id", "WinForms TestPreview")]
