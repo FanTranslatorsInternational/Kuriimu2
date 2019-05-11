@@ -2,8 +2,8 @@
 using System.IO;
 using System.Linq;
 using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem2.Nodes.Afi;
 using Kontract.FileSystem2.Nodes.Physical;
-using Kontract.FileSystem2.Nodes.Virtual;
 using Kontract.Interfaces.Archive;
 
 namespace Kontract.FileSystem2
@@ -11,15 +11,13 @@ namespace Kontract.FileSystem2
     public static class NodeFactory
     {
         /// <summary>
-        /// Create a file node from a given file.
+        /// Create a file node from a given file. Creates the file if not present yet.
         /// </summary>
         /// <param name="fileName">File to create a node from.</param>
         /// <returns>Created file node.</returns>
-        public static BaseFileNode FromFile(string fileName)
+        public static PhysicalFileNode FromFile(string fileName)
         {
-            if (!File.Exists(fileName)) throw new FileNotFoundException(fileName);
-
-            return new PhysicalFileNode(Path.GetFileName(fileName));
+            return new PhysicalFileNode(Path.GetFileName(fileName), Path.GetDirectoryName(fileName));
         }
 
         /// <summary>
@@ -27,30 +25,43 @@ namespace Kontract.FileSystem2
         /// </summary>
         /// <param name="directory">Directory to create a node tree from.</param>
         /// <returns>Created directory node tree.</returns>
-        public static BaseDirectoryNode FromDirectory(string directory)
+        public static PhysicalDirectoryNode FromDirectory(string directory)
         {
-            if (!Directory.Exists(directory)) throw new DirectoryNotFoundException(directory);
-
             var unified = Common.UnifyPath(directory).TrimStart('/', '\\');
-            return CreatePhysicalNodeTree(unified);
+            return CreatePhysicalNodeTree(Path.GetFullPath(unified));
         }
 
-        private static PhysicalDirectoryNode CreatePhysicalNodeTree(string directory)
+        private static PhysicalDirectoryNode CreatePhysicalNodeTree(string directory, bool setRoot = true)
         {
             var split = directory.Split(Path.DirectorySeparatorChar);
 
-            var result = new PhysicalDirectoryNode($"{Path.DirectorySeparatorChar}{split[0]}");
+            var result = setRoot ?
+                new PhysicalDirectoryNode(split.Last(), string.Join(Path.DirectorySeparatorChar.ToString(), split.Take(split.Length - 1).ToArray())) :
+                new PhysicalDirectoryNode(split.Last());
+            if (!Directory.Exists(directory))
+                return result;
+
             foreach (var dir in Directory.EnumerateDirectories(directory))
             {
-                result.Add(CreatePhysicalNodeTree(dir));
+                result.Add(CreatePhysicalNodeTree(dir, false));
             }
 
             foreach (var file in Directory.EnumerateFiles(directory))
             {
-                result.Add(new PhysicalFileNode(file));
+                result.Add(new PhysicalFileNode(Path.GetFileName(file)));
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Creates a directory node tree from a given <see cref="ArchiveFileInfo"/>.
+        /// </summary>
+        /// <param name="afi"><see cref="ArchiveFileInfo"/>.</param>
+        /// <returns>Created directory node tree.</returns>
+        public static BaseNode FromArchiveFileInfo(ArchiveFileInfo afi)
+        {
+            return FromArchiveFileInfos(new List<ArchiveFileInfo> { afi }).Children.FirstOrDefault();
         }
 
         /// <summary>
@@ -58,27 +69,29 @@ namespace Kontract.FileSystem2
         /// </summary>
         /// <param name="afis">Collection of <see cref="ArchiveFileInfo"/>s.</param>
         /// <returns>Created directory node tree.</returns>
-        public static BaseDirectoryNode FromArchiveFileInfos(IList<ArchiveFileInfo> afis)
+        public static AfiDirectoryNode FromArchiveFileInfos(IList<ArchiveFileInfo> afis)
         {
-            var result = new VirtualDirectoryNode("");
+            var result = new AfiDirectoryNode("");
             foreach (var afi in afis)
             {
                 var dir = Path.GetDirectoryName(afi.FileName);
                 if (result.ContainsDirectory(dir))
-                    result.Add(new VirtualFileNode(Path.GetFileName(afi.FileName), afi));
+                {
+                    var dirNode = result.GetDirectoryNode(dir);
+                    dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
+                }
                 else
                 {
-                    var split = Path.GetDirectoryName(afi.FileName).Split('/', '\\');
+                    var split = dir.Split('/', '\\');
                     BaseDirectoryNode dirNode = result;
-                    foreach (var dirName in split.Take(split.Length - 1))
+                    foreach (var dirName in split)
                     {
-                        var localDir = new VirtualDirectoryNode(dirName);
+                        var localDir = new AfiDirectoryNode(dirName);
                         dirNode.Add(localDir);
                         dirNode = localDir;
                     }
 
-                    var file = split.Last();
-                    dirNode.Add(new VirtualFileNode(file, afi));
+                    dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
                 }
             }
 

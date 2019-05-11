@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.Attributes;
 using Kontract.FileSystem;
+using Kontract.FileSystem2;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
@@ -448,7 +449,7 @@ namespace Kuriimu2_WinForms.MainForms
                     {
                         kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
                         {
-                            FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename)),
+                            FileSystem = NodeFactory.FromDirectory(Path.GetDirectoryName(filename)),
                             Adapter = pluginChooser.ChosenAdapter
                         });
                     }
@@ -465,7 +466,7 @@ namespace Kuriimu2_WinForms.MainForms
                     {
                         kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
                         {
-                            FileSystem = new PhysicalFileSystem(Path.GetDirectoryName(filename))
+                            FileSystem = NodeFactory.FromDirectory(Path.GetDirectoryName(filename))
                         });
                     }
                     catch (Exception e)

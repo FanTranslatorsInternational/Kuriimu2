@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kontract.Exceptions.FileSystem;
 
 namespace Kontract.FileSystem2.Nodes.Abstract
 {
@@ -27,6 +28,8 @@ namespace Kontract.FileSystem2.Nodes.Abstract
             Children = new List<BaseNode>();
         }
 
+        #region Containment
+
         /// <summary>
         /// Decides if a directory is contained down the node tree.
         /// </summary>
@@ -34,6 +37,8 @@ namespace Kontract.FileSystem2.Nodes.Abstract
         /// <returns>Is directory contained.</returns>
         public bool ContainsDirectory(string directory)
         {
+            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+
             try
             {
                 GetDirectoryNode(directory);
@@ -44,6 +49,28 @@ namespace Kontract.FileSystem2.Nodes.Abstract
                 return false;
             }
         }
+
+        /// <summary>
+        /// Decides if a file is contained down the node tree.
+        /// </summary>
+        /// <param name="filePath">File to search down the node tree.</param>
+        /// <returns>Is file contained.</returns>
+        public bool ContainsFile(string filePath)
+        {
+            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+
+            try
+            {
+                GetFileNode(filePath);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
 
         #region Enumeration
 
@@ -56,7 +83,7 @@ namespace Kontract.FileSystem2.Nodes.Abstract
             if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
 
             // ReSharper disable once SuspiciousTypeConversion.Global
-            return Children.Select(x => x.IsDirectory).Cast<BaseDirectoryNode>();
+            return Children.Where(x => x.IsDirectory).Cast<BaseDirectoryNode>();
         }
 
         /// <summary>
@@ -68,7 +95,7 @@ namespace Kontract.FileSystem2.Nodes.Abstract
             if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
 
             // ReSharper disable once SuspiciousTypeConversion.Global
-            return Children.Select(x => !x.IsDirectory).Cast<BaseFileNode>();
+            return Children.Where(x => !x.IsDirectory).Cast<BaseFileNode>();
         }
 
         #endregion
@@ -147,9 +174,22 @@ namespace Kontract.FileSystem2.Nodes.Abstract
         {
             if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
             if (node == null) throw new ArgumentNullException(nameof(node));
+            if (ContainsFile(node.Name))
+                throw new NodeFoundException(node);
+            if (ContainsDirectory(node.Name))
+            {
+                var dirNode = GetDirectoryNode(node.Name);
+                foreach (var child in (node as BaseDirectoryNode).Children)
+                {
+                    dirNode.Add(child);
+                }
+            }
+            else
+            {
+                Children.Add(node);
+            }
 
             node.Parent = this;
-            Children.Add(node);
         }
 
         /// <summary>

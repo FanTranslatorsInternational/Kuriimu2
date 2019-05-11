@@ -54,6 +54,7 @@ namespace Kontract.FileSystem2.IO
             if (disposing)
             {
                 Closed?.Invoke(this, new EventArgs());
+                _baseStream.Dispose();
             }
 
             base.Dispose(disposing);
@@ -62,6 +63,7 @@ namespace Kontract.FileSystem2.IO
         public override void Close()
         {
             Closed?.Invoke(this, new EventArgs());
+            _baseStream.Close();
             base.Close();
         }
     }

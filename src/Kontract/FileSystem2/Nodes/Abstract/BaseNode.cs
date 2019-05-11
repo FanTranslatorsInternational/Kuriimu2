@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Kontract.FileSystem2.Nodes.Abstract
 {
     /// <summary>
     /// The base node.
     /// </summary>
+    [DebuggerDisplay("{Path}")]
     public abstract class BaseNode : IDisposable
     {
         /// <summary>
@@ -20,7 +22,7 @@ namespace Kontract.FileSystem2.Nodes.Abstract
         /// <summary>
         /// The concatinated path of this node and its parent.
         /// </summary>
-        public string Path => $"{Parent?.Path}{System.IO.Path.DirectorySeparatorChar}{Name}";
+        public virtual string Path => BuildPath();
 
         /// <summary>
         /// The parent of this node.
@@ -36,6 +38,14 @@ namespace Kontract.FileSystem2.Nodes.Abstract
             Name = name;
         }
 
+        private string BuildPath()
+        {
+            var result = Parent?.Path ?? string.Empty;
+            if (!string.IsNullOrEmpty(Name))
+                result += $"{System.IO.Path.DirectorySeparatorChar}{Name}";
+            return result;
+        }
+
         #region IDisposable Support
 
         public bool Disposed { get; private set; }
@@ -47,7 +57,6 @@ namespace Kontract.FileSystem2.Nodes.Abstract
 
             if (disposing)
             {
-                Parent.Dispose();
                 Parent = null;
             }
 

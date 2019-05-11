@@ -56,6 +56,8 @@
     <Compile Include="Attributes\MenuStripExtensionAttribute.cs" />
     <Compile Include="Attributes\PluginInfoAttribute.cs" />
     <Compile Include="Exceptions\FileSystem\FileAlreadyOpenException.cs" />
+    <Compile Include="Exceptions\FileSystem\NotSupportedNodeTypeException.cs" />
+    <Compile Include="Exceptions\FileSystem\NodeFoundException.cs" />
     <Compile Include="Exceptions\Image\EncodingNotSupported.cs" />
     <Compile Include="Exceptions\Image\IndexedEncodingNotSupported.cs" />
     <Compile Include="Exceptions\PluginInconsistencyException.cs" />
@@ -69,8 +71,8 @@
     <Compile Include="FileSystem2\Nodes\Abstract\BaseNode.cs" />
     <Compile Include="FileSystem2\Nodes\Physical\PhysicalDirectoryNode.cs" />
     <Compile Include="FileSystem2\Nodes\Physical\PhysicalFileNode.cs" />
-    <Compile Include="FileSystem2\Nodes\Virtual\VirtualDirectoryNode.cs" />
-    <Compile Include="FileSystem2\Nodes\Virtual\VirtualFileNode.cs" />
+    <Compile Include="FileSystem2\Nodes\Afi\AfiDirectoryNode.cs" />
+    <Compile Include="FileSystem2\Nodes\Afi\AfiFileNode.cs" />
     <Compile Include="FileSystem\CloseStreamEventArgs.cs" />
     <Compile Include="Interfaces\Archive\ArchiveFileInfo.cs" />
     <Compile Include="Interfaces\Archive\IArchiveAdapter.cs" />

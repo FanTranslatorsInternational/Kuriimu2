@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kontract.Exceptions.FileSystem;
+﻿using System.IO;
 using Kontract.FileSystem2.IO;
 using Kontract.FileSystem2.Nodes.Abstract;
 using Kontract.Interfaces.Archive;
 
-namespace Kontract.FileSystem2.Nodes.Virtual
+namespace Kontract.FileSystem2.Nodes.Afi
 {
-    internal sealed class VirtualFileNode : BaseFileNode
+    public sealed class AfiFileNode : BaseFileNode
     {
         public ArchiveFileInfo ArchiveFileInfo { get; }
 
-        public VirtualFileNode(string name, ArchiveFileInfo afi) : base(name)
+        public AfiFileNode(string name, ArchiveFileInfo afi) : base(name)
         {
             ArchiveFileInfo = afi;
         }

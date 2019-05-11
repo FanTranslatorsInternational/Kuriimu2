@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kontract.FileSystem2.Nodes.Abstract;
 
 namespace Kore
 {
@@ -16,7 +17,7 @@ namespace Kore
 
         public ILoadFiles Adapter { get; set; }
 
-        public IFileSystem FileSystem { get; set; }
+        public BaseDirectoryNode FileSystem { get; set; }
         public bool LeaveOpen { get; set; }
         public bool TrackFile { get; set; } = true;
 

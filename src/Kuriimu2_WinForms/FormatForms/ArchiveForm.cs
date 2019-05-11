@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
+using Kontract.FileSystem2;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;
@@ -436,7 +437,7 @@ namespace Kuriimu2_WinForms.FormatForms
                     //var imageFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IImageAdapter>().Contains(ext);
                     //var archiveFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IArchiveAdapter>().Contains(ext);
 
-                    ////TODO
+                    //TODO
                     //if (false) ext = "tree-text-file";
                     //if (false) ext = "tree-image-file";
                     //if (false) ext = "tree-archive-file";
@@ -836,9 +837,14 @@ namespace Kuriimu2_WinForms.FormatForms
 
         private bool OpenAfi(ArchiveFileInfo afi, ILoadFiles adapter)
         {
-            var fs = new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
+            var fs = NodeFactory.FromArchiveFileInfos(_archiveAdapter.Files);
+            //new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
 
-            var args = new OpenTabEventArgs(afi, Kfi, fs) { PreselectedAdapter = adapter, LeaveOpen = true };
+            var args = new OpenTabEventArgs(afi, Kfi, fs)
+            {
+                PreselectedAdapter = adapter,
+                LeaveOpen = true
+            };
             OpenTab?.Invoke(this, args);
 
             if (args.EventResult && args.OpenedTabPage != null)

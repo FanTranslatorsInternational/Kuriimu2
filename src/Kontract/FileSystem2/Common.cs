@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.FileSystem2
 {
-    static class Common
+    public static class Common
     {
         /// <summary>
         /// Unify all directory separators in a given path.

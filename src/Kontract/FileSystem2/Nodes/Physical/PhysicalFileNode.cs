@@ -10,26 +10,39 @@ using Kontract.FileSystem2.Nodes.Abstract;
 
 namespace Kontract.FileSystem2.Nodes.Physical
 {
-    internal sealed class PhysicalFileNode : BaseFileNode
+    public sealed class PhysicalFileNode : BaseFileNode
     {
+        public string RootDir { get; }
+        public string RootPath => $"{RootDir}{System.IO.Path.DirectorySeparatorChar}{Name}";
+
         public bool IsOpened { get; private set; }
 
         public PhysicalFileNode(string name) : base(name)
         {
         }
 
+        public PhysicalFileNode(string name, string root) : base(name)
+        {
+            RootDir = root;
+        }
+
         public override Stream Open()
         {
-            if (!File.Exists(Path)) throw new FileNotFoundException(Path);
-            if (IsOpened) throw new FileAlreadyOpenException(Path);
+            if (IsOpened) throw new FileAlreadyOpenException(RootPath);
 
-            var report = new ReportCloseStream(File.Open(Path, FileMode.Open));
-            report.Closed += Undisposable_Closed;
+            var dir = System.IO.Path.GetDirectoryName(RootPath);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            var report = !File.Exists(RootPath) ?
+                new ReportCloseStream(File.Create(RootPath)) :
+                new ReportCloseStream(File.Open(RootPath, FileMode.Open));
+            report.Closed += Report_Closed;
             IsOpened = true;
             return report;
         }
 
-        private void Undisposable_Closed(object sender, System.EventArgs e)
+        private void Report_Closed(object sender, System.EventArgs e)
         {
             IsOpened = false;
         }
