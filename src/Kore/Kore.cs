@@ -53,6 +53,7 @@ namespace Kore
         public class IdentificationFailedEventArgs : EventArgs
         {
             public List<ILoadFiles> BlindAdapters;
+            public string FileName;
             public ILoadFiles SelectedAdapter = null;
         }
 
@@ -133,7 +134,7 @@ namespace Kore
                 var adapter = SelectAdapter(kli);
 
                 // Ask the user to select a plugin directly.
-                adapter = adapter ?? SelectAdapterManually();
+                adapter = adapter ?? SelectAdapterManually(kli);
 
                 if (adapter == null) return null;
                 kli.Adapter = adapter;
@@ -191,7 +192,7 @@ namespace Kore
            - 5. Execute LoadFile of KFI.Adapter on new KFI.StreamFileInfo
            - 6. Reopen dependent files from parent to child
         */
-        public KoreFileInfo SaveFile(KoreSaveInfo ksi) => 
+        public KoreFileInfo SaveFile(KoreSaveInfo ksi) =>
             SaveFile(ksi, true);
 
         private KoreFileInfo SaveFile(KoreSaveInfo ksi, bool firstIteration)
@@ -231,8 +232,8 @@ namespace Kore
             }
 
             // Reopen files recursively from parent to child
-            return firstIteration ? 
-                ReopenFiles(kfi.ParentKfi ?? kfi, fullPathTree, tempFolder, kfi.ParentKfi != null) : 
+            return firstIteration ?
+                ReopenFiles(kfi.ParentKfi ?? kfi, fullPathTree, tempFolder, kfi.ParentKfi != null) :
                 null;
         }
 
@@ -522,13 +523,13 @@ namespace Kore
         /// <returns>Returns if the adapter was capable of identifying the file.</returns>
         private bool CheckAdapter(ILoadFiles adapter, KoreLoadInfo kli)
         {
-            if (!(adapter is IIdentifyFiles))
+            if (!(adapter is IIdentifyFiles iif))
                 return false;
             adapter.LeaveOpen = true;
 
             kli.FileData.Position = 0;
             var info = new StreamInfo { FileData = kli.FileData, FileName = kli.FileName };
-            var res = ((IIdentifyFiles)adapter).Identify(info);
+            var res = iif.Identify(info);
 
             if (!kli.FileData.CanRead)
                 throw new InvalidOperationException($"Plugin with ID '{PluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID}' closed the stream(s) while identifying the file(s).");
@@ -540,11 +541,11 @@ namespace Kore
         /// Toggles an event for the UI to let the user select a blind adapter manually.
         /// </summary>
         /// <returns>The selected adapter or null.</returns>
-        private ILoadFiles SelectAdapterManually()
+        private ILoadFiles SelectAdapterManually(KoreLoadInfo kli)
         {
             var blindAdapters = PluginLoader.GetAdapters<ILoadFiles>().Where(a => !(a is IIdentifyFiles)).ToList();
 
-            var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters };
+            var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters, FileName = kli.FileName };
             IdentificationFailed?.Invoke(this, args);
 
             return args.SelectedAdapter;
