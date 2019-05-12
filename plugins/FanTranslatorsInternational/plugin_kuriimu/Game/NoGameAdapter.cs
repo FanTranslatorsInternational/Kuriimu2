@@ -3,13 +3,14 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Reflection;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 
 namespace plugin_kuriimu.Game
 {
+    [Export(typeof(IPlugin))]
     [Export(typeof(NoGameAdapter))]
-    [Export(typeof(IGameAdapter))]
     [PluginInfo("68CC696C-E169-456C-AFAC-4DC61C577CD6", "No Game", "NGA", "IcySon55")]
     public sealed class NoGameAdapter : IGameAdapter
     {

@@ -9,7 +9,7 @@ using Kontract.Interfaces.Text;
 
 namespace plugin_test_adapters
 {
-    [Export(typeof(IPlugin))]
+    //[Export(typeof(IPlugin))]
     [PluginInfo("Test-Game-Id", "WinForms TestPreview")]
     public class TestGame : IGameAdapter, IGenerateGamePreviews
     {
@@ -36,12 +36,12 @@ namespace plugin_test_adapters
 
         public void LoadEntries(IEnumerable<TextEntry> entries)
         {
-            throw new NotImplementedException();
+            
         }
 
         public IEnumerable<TextEntry> SaveEntries()
         {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }
