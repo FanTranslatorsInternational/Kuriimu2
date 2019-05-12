@@ -431,7 +431,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 {
                     // Get the items from the file system, and add each of them to the ListView,
                     // complete with their corresponding name and icon indices.
-                    //var ext = Path.GetExtension(file.FileName).ToLower();
+                    //var ext = RelativePath.GetExtension(file.FileName).ToLower();
                     //TODO
                     //var textFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<ITextAdapter>().Contains(ext);
                     //var imageFile = ext.Length > 0 && PluginLoader.Global.FileExtensionsByType<IImageAdapter>().Contains(ext);
@@ -838,7 +838,7 @@ namespace Kuriimu2_WinForms.FormatForms
         private bool OpenAfi(ArchiveFileInfo afi, ILoadFiles adapter)
         {
             var fs = NodeFactory.FromArchiveFileInfos(_archiveAdapter.Files);
-            //new VirtualFileSystem(_archiveAdapter, Path.Combine(_tempFolder, _subFolder));
+            //new VirtualFileSystem(_archiveAdapter, RelativePath.Combine(_tempFolder, _subFolder));
 
             var args = new OpenTabEventArgs(afi, Kfi, fs)
             {

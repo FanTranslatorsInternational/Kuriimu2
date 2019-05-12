@@ -11,7 +11,7 @@ namespace Kontract.FileSystem2
         /// <summary>
         /// Unify all directory separators in a given path.
         /// </summary>
-        /// <param name="path">Path to unify.</param>
+        /// <param name="path">RelativePath to unify.</param>
         /// <returns>Unified path.</returns>
         public static string UnifyPath(string path)
         {

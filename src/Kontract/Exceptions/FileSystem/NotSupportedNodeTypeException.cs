@@ -4,16 +4,16 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem2.Interfaces;
 
 namespace Kontract.Exceptions.FileSystem
 {
     [Serializable]
-    public class NotSupportedNodeTypeException : Exception
+    public class NotSupportedNodeTypeException<T> : Exception
     {
-        public BaseNode Node { get; }
+        public INode<T> Node { get; }
 
-        public NotSupportedNodeTypeException(BaseNode node) : base($"Node type {node.GetType().FullName} is invalid.")
+        public NotSupportedNodeTypeException(INode<T> node) : base($"Node type {node.GetType().FullName} is invalid.")
         {
             Node = node;
         }
@@ -34,7 +34,7 @@ namespace Kontract.Exceptions.FileSystem
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue(nameof(Node), Node.Path);
+            info.AddValue(nameof(Node), Node.RelativePath);
             base.GetObjectData(info, context);
         }
     }

@@ -63,12 +63,17 @@
     <Compile Include="Exceptions\PluginInconsistencyException.cs" />
     <Compile Include="Exceptions\PluginNotFoundException.cs" />
     <Compile Include="FileSystem2\Common.cs" />
+    <Compile Include="FileSystem2\Interfaces\IFileNode.cs" />
+    <Compile Include="FileSystem2\Interfaces\INode.cs" />
+    <Compile Include="FileSystem2\Interfaces\IDirectoryNode.cs" />
+    <Compile Include="FileSystem2\Interfaces\IPhysical.cs" />
     <Compile Include="FileSystem2\IO\ReportCloseStream.cs" />
     <Compile Include="FileSystem2\IO\UndisposableStream.cs" />
     <Compile Include="FileSystem2\NodeFactory.cs" />
     <Compile Include="FileSystem2\Nodes\Abstract\BaseDirectoryNode.cs" />
     <Compile Include="FileSystem2\Nodes\Abstract\BaseFileNode.cs" />
     <Compile Include="FileSystem2\Nodes\Abstract\BaseNode.cs" />
+    <Compile Include="FileSystem2\Nodes\Physical\PhysicalBaseNode.cs" />
     <Compile Include="FileSystem2\Nodes\Physical\PhysicalDirectoryNode.cs" />
     <Compile Include="FileSystem2\Nodes\Physical\PhysicalFileNode.cs" />
     <Compile Include="FileSystem2\Nodes\Afi\AfiDirectoryNode.cs" />

@@ -72,7 +72,7 @@ namespace Kore.Batch
                 //                //TODO
                 //                Utilities.Text.ExportFile((ITextAdapter)kore.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false }).Adapter, outFile);
                 //                current++;
-                //                progress.Report(new ProgressReport { Message = $"Exported {Path.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
+                //                progress.Report(new ProgressReport { Message = $"Exported {RelativePath.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
                 //            }
                 //            catch (Exception e)
                 //            {

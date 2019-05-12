@@ -1,255 +1,225 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Kontract.Exceptions.FileSystem;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.IO;
+//using System.Linq;
+//using Kontract.Exceptions.FileSystem;
 
-namespace Kontract.FileSystem2.Nodes.Abstract
-{
-    /// <summary>
-    /// The base directory node.
-    /// </summary>
-    public abstract class BaseDirectoryNode : BaseNode
-    {
-        /// <inheritdoc cref="BaseNode.IsDirectory"/>
-        public override bool IsDirectory => true;
+//namespace Kontract.FileSystem2.Nodes.Abstract
+//{
+//    /// <summary>
+//    /// The base directory node.
+//    /// </summary>
+//    public abstract class BaseDirectoryNode<T> : BaseNode<T> where T : BaseNode<T>
+//    {
+//        /// <inheritdoc cref="BaseNode{T}.IsDirectory"/>
+//        public override bool IsDirectory => true;
 
-        /// <summary>
-        /// The children nodes this directory node holds.
-        /// </summary>
-        public IList<BaseNode> Children { get; }
+//        /// <summary>
+//        /// The children nodes this directory node holds.
+//        /// </summary>
+//        public abstract IEnumerable<T> Children { get; }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="BaseDirectoryNode"/>.
-        /// </summary>
-        /// <param name="name">The name of this node.</param>
-        protected BaseDirectoryNode(string name) : base(name)
-        {
-            Children = new List<BaseNode>();
-        }
+//        /// <summary>
+//        /// Creates a new instance of <see cref="BaseDirectoryNode{T}"/>.
+//        /// </summary>
+//        /// <param name="name">The name of this node.</param>
+//        protected BaseDirectoryNode(string name) : base(name)
+//        {
+//            if (name == null) throw new ArgumentNullException(nameof(name));
+//        }
 
-        #region Containment
+//        #region Containment
 
-        /// <summary>
-        /// Decides if a directory is contained down the node tree.
-        /// </summary>
-        /// <param name="directory">Directory to search down the node tree.</param>
-        /// <returns>Is directory contained.</returns>
-        public bool ContainsDirectory(string directory)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+//        /// <summary>
+//        /// Decides if a directory is contained down the node tree.
+//        /// </summary>
+//        /// <param name="directory">Directory to search down the node tree.</param>
+//        /// <returns>Is directory contained.</returns>
+//        public bool ContainsDirectory(string directory)
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
 
-            try
-            {
-                GetDirectoryNode(directory);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+//            try
+//            {
+//                GetDirectoryNode(directory);
+//                return true;
+//            }
+//            catch
+//            {
+//                return false;
+//            }
+//        }
 
-        /// <summary>
-        /// Decides if a file is contained down the node tree.
-        /// </summary>
-        /// <param name="filePath">File to search down the node tree.</param>
-        /// <returns>Is file contained.</returns>
-        public bool ContainsFile(string filePath)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+//        /// <summary>
+//        /// Decides if a file is contained down the node tree.
+//        /// </summary>
+//        /// <param name="filePath">File to search down the node tree.</param>
+//        /// <returns>Is file contained.</returns>
+//        public bool ContainsFile(string filePath)
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
 
-            try
-            {
-                GetFileNode(filePath);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+//            try
+//            {
+//                GetFileNode(filePath);
+//                return true;
+//            }
+//            catch
+//            {
+//                return false;
+//            }
+//        }
 
-        #endregion
+//        #endregion
 
-        #region Enumeration
+//        #region Enumeration
 
-        /// <summary>
-        /// Enumerate all directory nodes in this node.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<BaseDirectoryNode> EnumerateDirectories()
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+//        /// <summary>
+//        /// Enumerate all directory nodes in this node.
+//        /// </summary>
+//        /// <returns></returns>
+//        public IEnumerable<BaseDirectoryNode<T>> EnumerateDirectories()
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
 
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            return Children.Where(x => x.IsDirectory).Cast<BaseDirectoryNode>();
-        }
+//            return Children.Where(x => x is BaseDirectoryNode<T>).Cast<BaseDirectoryNode<T>>();
+//        }
 
-        /// <summary>
-        /// Enumerate all file nodes in this node.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<BaseFileNode> EnumerateFiles()
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
+//        /// <summary>
+//        /// Enumerate all file nodes in this node.
+//        /// </summary>
+//        /// <returns></returns>
+//        public IEnumerable<BaseFileNode<T>> EnumerateFiles()
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
 
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            return Children.Where(x => !x.IsDirectory).Cast<BaseFileNode>();
-        }
+//            return Children.Where(x => x is BaseFileNode<T>).Cast<BaseFileNode<T>>();
+//        }
 
-        #endregion
+//        #endregion
 
-        #region Get nodes
+//        #region Get nodes
 
-        /// <summary>
-        /// Gets a directory node with the given path relative to this node.
-        /// </summary>
-        /// <param name="relativePath">Relative path.</param>
-        /// <returns>Found directory node.</returns>
-        public BaseDirectoryNode GetDirectoryNode(string relativePath)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-            if (string.IsNullOrEmpty(relativePath)) throw new ArgumentException(nameof(relativePath));
+//        /// <summary>
+//        /// Gets a directory node with the given path relative to this node.
+//        /// </summary>
+//        /// <param name="relativePath">Relative path.</param>
+//        /// <returns>Found directory node.</returns>
+//        public BaseDirectoryNode<T> GetDirectoryNode(string relativePath)
+//        {
+//            BaseDirectoryNode<T> Matcher(string name)
+//            {
+//                var matchingFile = EnumerateDirectories().FirstOrDefault(x => x.Name == name);
+//                return matchingFile ?? throw new DirectoryNotFoundException($"{RelativePath}{Path.DirectorySeparatorChar}{name}");
+//            }
 
-            var unifiedPath = Common.UnifyPath(relativePath);
-            var split = unifiedPath.Split(System.IO.Path.DirectorySeparatorChar);
-            if (split.Length > 1)
-            {
-                var matchingDir = GetDirectoryNode(split[0]);
-                if (matchingDir == null)
-                    throw new DirectoryNotFoundException($"{Path}{System.IO.Path.DirectorySeparatorChar}{split[0]}");
+//            return GetNode(relativePath,
+//                (matchingDir, newRelativePath) => matchingDir.GetDirectoryNode(newRelativePath),
+//                Matcher);
+//        }
 
-                // Iterate down to retrieve the directory
-                return matchingDir.GetDirectoryNode(string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), split.Skip(1).ToArray()));
-            }
-            else
-            {
-                var matchingDir = Children.Where(x => x.IsDirectory).FirstOrDefault(x => x.Name == split[0]);
-                if (matchingDir == null)
-                    throw new DirectoryNotFoundException($"{Path}{System.IO.Path.DirectorySeparatorChar}{split[0]}");
+//        /// <summary>
+//        /// Gets a file node with the given path relative to this node.
+//        /// </summary>
+//        /// <param name="relativePath">Relative path.</param>
+//        /// <returns>Found file node.</returns>
+//        public BaseFileNode<T> GetFileNode(string relativePath)
+//        {
+//            BaseFileNode<T> Matcher(string name)
+//            {
+//                var matchingFile = EnumerateFiles().FirstOrDefault(x => x.Name == name);
+//                return matchingFile ?? throw new FileNotFoundException($"{RelativePath}{Path.DirectorySeparatorChar}{name}");
+//            }
 
-                return (BaseDirectoryNode)matchingDir;
-            }
-        }
+//            return GetNode(relativePath,
+//                (matchingDir, newRelativePath) => matchingDir.GetFileNode(newRelativePath),
+//                Matcher);
+//        }
 
-        /// <summary>
-        /// Gets a file node with the given path relative to this node.
-        /// </summary>
-        /// <param name="relativePath">Relative path.</param>
-        /// <returns>Found file node.</returns>
-        public BaseFileNode GetFileNode(string relativePath)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-            if (string.IsNullOrEmpty(relativePath)) throw new ArgumentException(nameof(relativePath));
+//        private TNode GetNode<TNode>(string relativePath, Func<BaseDirectoryNode<T>, string, TNode> iterator, Func<string, TNode> matcher)
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
+//            if (string.IsNullOrEmpty(relativePath)) throw new ArgumentException(nameof(relativePath));
 
-            var unifiedPath = Common.UnifyPath(relativePath);
-            var split = unifiedPath.Split(System.IO.Path.DirectorySeparatorChar);
-            if (split.Length > 1)
-            {
-                var matchingDir = GetDirectoryNode(split[0]);
-                if (matchingDir == null)
-                    throw new DirectoryNotFoundException($"{Path}{System.IO.Path.DirectorySeparatorChar}{split[0]}");
+//            var unifiedPath = Common.UnifyPath(relativePath);
+//            var split = unifiedPath.Split(Path.DirectorySeparatorChar);
+//            if (split.Length > 1)
+//            {
+//                var matchingDir = GetDirectoryNode(split[0]);
+//                if (matchingDir == null)
+//                    throw new DirectoryNotFoundException($"{RelativePath}{Path.DirectorySeparatorChar}{split[0]}");
 
-                // Iterate down to retrieve the directory
-                return matchingDir.GetFileNode(string.Join(System.IO.Path.DirectorySeparatorChar.ToString(), split.Skip(1).ToArray()));
-            }
+//                // Iterate down to retrieve the directory
+//                return iterator(matchingDir,
+//                    string.Join(Path.DirectorySeparatorChar.ToString(), split.Skip(1).ToArray()));
+//            }
 
-            var matchingFile = Children.Where(x => !x.IsDirectory).FirstOrDefault(x => x.Name == split[0]);
-            if (matchingFile == null)
-                throw new FileNotFoundException($"{Path}{System.IO.Path.DirectorySeparatorChar}{split[0]}");
+//            return matcher(split[0]);
+//        }
 
-            return (BaseFileNode)matchingFile;
-        }
+//        #endregion
 
-        #endregion
+//        #region Add nodes
 
-        #region Add
+//        /// <summary>
+//        /// Add a collection of nodes to the children nodes.
+//        /// </summary>
+//        /// <param name="nodes">Nodes to add.</param>
+//        public void AddRange(IEnumerable<T> nodes)
+//        {
+//            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
+//            if (nodes == null) throw new ArgumentNullException(nameof(nodes));
 
-        /// <summary>
-        /// Add any <see cref="BaseNode"/> to the children nodes.
-        /// </summary>
-        /// <param name="node">Node to add.</param>
-        public void Add(BaseNode node)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-            if (node == null) throw new ArgumentNullException(nameof(node));
-            if (ContainsFile(node.Name))
-                throw new NodeFoundException(node);
-            if (ContainsDirectory(node.Name))
-            {
-                var dirNode = GetDirectoryNode(node.Name);
-                foreach (var child in (node as BaseDirectoryNode).Children)
-                {
-                    dirNode.Add(child);
-                }
-            }
-            else
-            {
-                Children.Add(node);
-            }
+//            foreach (var node in nodes)
+//                AddNode(node);
+//        }
 
-            node.Parent = this;
-        }
+//        /// <summary>
+//        /// Add any <see cref="BaseNode{T}"/> to the children nodes.
+//        /// </summary>
+//        /// <param name="node">Node to add.</param>
+//        public abstract void AddNode(T node);
+//        //{
+//        //if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
+//        //if (node == null) throw new ArgumentNullException(nameof(node));
+//        //if (ContainsFile(node.Name))
+//        //    throw new NodeFoundException<T>(node);
+//        //if (ContainsDirectory(node.Name))
+//        //{
+//        //    var containingDirNode = GetDirectoryNode(node.Name);
+//        //    var children = (node as BaseDirectoryNode<T>)?.Children;
+//        //    if (children == null) throw new ArgumentNullException(nameof(children));
+//        //    foreach (var child in children)
+//        //    {
+//        //        containingDirNode.Add(child);
+//        //    }
+//        //}
+//        //else
+//        //{
+//        //    Children.Add(node);
+//        //}
 
-        /// <summary>
-        /// Add a collection of nodes to the children nodes.
-        /// </summary>
-        /// <param name="nodes">Nodes to add.</param>
-        public void AddRange(IEnumerable<BaseNode> nodes)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-            if (nodes == null) throw new ArgumentNullException(nameof(nodes));
+//        //SetParent(node);
+//        // node.Parent = (T)this;
+//        //}
 
-            foreach (var node in nodes)
-                Add(node);
-        }
+//        #endregion
 
-        #endregion
+//        #region Remove nodes
 
-        #region Remove
+//        /// <summary>
+//        /// Remove node from children nodes.
+//        /// </summary>
+//        /// <param name="node"></param>
+//        /// <returns></returns>
+//        public abstract bool RemoveNode(T node);
+//        //{
+//        //    if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode<T>));
+//        //    if (node == null) throw new ArgumentNullException(nameof(node));
 
-        /// <summary>
-        /// Remove node from children nodes.
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public bool Remove(BaseNode node)
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-            if (node == null) throw new ArgumentNullException(nameof(node));
+//        //    return Children.Remove(node);
+//        //}
 
-            return Children.Remove(node);
-        }
-
-        /// <summary>
-        /// Clear all children nodes.
-        /// </summary>
-        public void ClearChildren()
-        {
-            if (Disposed) throw new ObjectDisposedException(nameof(BaseDirectoryNode));
-
-            Children.Clear();
-        }
-
-        #endregion
-
-        #region Dispose
-
-        protected override void Dispose(bool disposing)
-        {
-            if (Disposed)
-                return;
-
-            if (disposing)
-            {
-                foreach (var child in Children)
-                    child.Dispose();
-                ClearChildren();
-            }
-            base.Dispose(disposing);
-        }
-
-        #endregion
-    }
-}
+//        #endregion
+//    }
+//}

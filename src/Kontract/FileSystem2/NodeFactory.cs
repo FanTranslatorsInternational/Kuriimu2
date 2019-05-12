@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.FileSystem2.Nodes.Abstract;
-using Kontract.FileSystem2.Nodes.Afi;
 using Kontract.FileSystem2.Nodes.Physical;
 using Kontract.Interfaces.Archive;
 
@@ -59,43 +57,45 @@ namespace Kontract.FileSystem2
         /// </summary>
         /// <param name="afi"><see cref="ArchiveFileInfo"/>.</param>
         /// <returns>Created directory node tree.</returns>
-        public static BaseNode FromArchiveFileInfo(ArchiveFileInfo afi)
-        {
-            return FromArchiveFileInfos(new List<ArchiveFileInfo> { afi }).Children.FirstOrDefault();
-        }
+        // TODO
+        //public static BaseNode FromArchiveFileInfo(ArchiveFileInfo afi)
+        //{
+        //    return FromArchiveFileInfos(new List<ArchiveFileInfo> { afi }).Children.FirstOrDefault();
+        //}
 
         /// <summary>
         /// Creates a directory node tree from a given collection of <see cref="ArchiveFileInfo"/>s.
         /// </summary>
         /// <param name="afis">Collection of <see cref="ArchiveFileInfo"/>s.</param>
         /// <returns>Created directory node tree.</returns>
-        public static AfiDirectoryNode FromArchiveFileInfos(IList<ArchiveFileInfo> afis)
-        {
-            var result = new AfiDirectoryNode("");
-            foreach (var afi in afis)
-            {
-                var dir = Path.GetDirectoryName(afi.FileName);
-                if (result.ContainsDirectory(dir))
-                {
-                    var dirNode = result.GetDirectoryNode(dir);
-                    dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
-                }
-                else
-                {
-                    var split = dir.Split('/', '\\');
-                    BaseDirectoryNode dirNode = result;
-                    foreach (var dirName in split)
-                    {
-                        var localDir = new AfiDirectoryNode(dirName);
-                        dirNode.Add(localDir);
-                        dirNode = localDir;
-                    }
+        // TODO
+        //public static AfiDirectoryNode FromArchiveFileInfos(IList<ArchiveFileInfo> afis)
+        //{
+        //    var result = new AfiDirectoryNode("");
+        //    foreach (var afi in afis)
+        //    {
+        //        var dir = Path.GetDirectoryName(afi.FileName);
+        //        if (result.ContainsDirectory(dir))
+        //        {
+        //            var dirNode = result.GetDirectoryNode(dir);
+        //            dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
+        //        }
+        //        else
+        //        {
+        //            var split = dir.Split('/', '\\');
+        //            BaseDirectoryNode dirNode = result;
+        //            foreach (var dirName in split)
+        //            {
+        //                var localDir = new AfiDirectoryNode(dirName);
+        //                dirNode.Add(localDir);
+        //                dirNode = localDir;
+        //            }
 
-                    dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
-                }
-            }
+        //            dirNode.Add(new AfiFileNode(Path.GetFileName(afi.FileName), afi));
+        //        }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
     }
 }

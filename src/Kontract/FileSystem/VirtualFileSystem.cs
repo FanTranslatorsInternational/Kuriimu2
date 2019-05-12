@@ -121,7 +121,7 @@ namespace Kontract.FileSystem
 
         //public void ExtractFile(string filename)
         //{
-        //    var resolvedFilepath = ResolvePath(Path.Combine(RootDir, filename));
+        //    var resolvedFilepath = ResolvePath(RelativePath.Combine(RootDir, filename));
 
         //    // Try getting file to open
         //    var afi = _files.FirstOrDefault(x => UnifyPathDelimiters(x.FileName) == resolvedFilepath);
@@ -129,12 +129,12 @@ namespace Kontract.FileSystem
         //        throw new FileNotFoundException(resolvedFilepath);
 
         //    // Check if temporary directoy exists
-        //    var tempPath = Path.Combine(_tempFolder, Path.GetDirectoryName(resolvedFilepath));
+        //    var tempPath = RelativePath.Combine(_tempFolder, RelativePath.GetDirectoryName(resolvedFilepath));
         //    if (!Directory.Exists(tempPath))
         //        Directory.CreateDirectory(tempPath);
 
         //    // Extract file to temporary path
-        //    var file = File.Create(Path.Combine(_tempFolder, resolvedFilepath));
+        //    var file = File.Create(RelativePath.Combine(_tempFolder, resolvedFilepath));
 
         //    var bk = afi.FileData.Position;
         //    afi.FileData.Position = 0;
@@ -159,7 +159,7 @@ namespace Kontract.FileSystem
                 {
                     case "..":
                         if (result.Count <= 0)
-                            throw new InvalidOperationException("Path out of virtual root.");
+                            throw new InvalidOperationException("RelativePath out of virtual root.");
                         else
                             result.RemoveAt(result.Count - 1);
                         break;

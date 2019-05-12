@@ -4,16 +4,16 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem2.Interfaces;
 
 namespace Kontract.Exceptions.FileSystem
 {
     [Serializable]
-    public class NodeFoundException : Exception
+    public class NodeFoundException<T> : Exception
     {
-        public BaseNode Node { get; }
+        public INode<T> Node { get; }
 
-        public NodeFoundException(BaseNode node) : base($"Node {node.Name} already exists.")
+        public NodeFoundException(INode<T> node) : base($"Node {node.Name} already exists.")
         {
             Node = node;
         }
@@ -34,7 +34,7 @@ namespace Kontract.Exceptions.FileSystem
 
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            info.AddValue(nameof(Node), Node.Path);
+            info.AddValue(nameof(Node), Node.RelativePath);
             base.GetObjectData(info, context);
         }
     }

@@ -300,13 +300,13 @@ namespace Kore
         {
             // Loop through all directories
             foreach (var dir in physicalFs.EnumerateDirectories())
-                ReplaceFilesInAdapter(parentAdapter, physicalFs.GetDirectoryNode(dir.Path), root);
+                ReplaceFilesInAdapter(parentAdapter, physicalFs.GetDirectoryNode(dir.RelativePath), root);
 
             // Update files of this directory
             foreach (var file in physicalFs.EnumerateFiles())
             {
                 var openedFile = file.Open();
-                var afi = parentAdapter.Files.FirstOrDefault(x => Kontract.FileSystem2.Common.UnifyPath(x.FileName) == file.Path);
+                var afi = parentAdapter.Files.FirstOrDefault(x => Kontract.FileSystem2.Common.UnifyPath(x.FileName) == file.RelativePath);
                 if (afi != null)
                 {
                     afi.FileData.Dispose();
@@ -320,12 +320,12 @@ namespace Kore
         {
             // Loop through all directories
             foreach (var dir in physicalFs.EnumerateDirectories())
-                ReplaceFilesInFolder(newSaveLocation, (PhysicalDirectoryNode)physicalFs.GetDirectoryNode(dir.Path), root);
+                ReplaceFilesInFolder(newSaveLocation, (PhysicalDirectoryNode)physicalFs.GetDirectoryNode(dir.RelativePath), root);
 
             // Update files of this directory
             foreach (var file in physicalFs.EnumerateFiles())
             {
-                var relativeFileName = file.Path;
+                var relativeFileName = file.RelativePath;
                 var openedFile = physicalFs.CreateFile(relativeFileName);
 
                 if (!Directory.Exists(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName) ?? string.Empty)))
@@ -341,7 +341,7 @@ namespace Kore
 
         //private string UnifyPathDelimiters(string path)
         //{
-        //    return path.Replace(Path.DirectorySeparatorChar == '/' ? '\\' : '/', Path.DirectorySeparatorChar);
+        //    return path.Replace(RelativePath.DirectorySeparatorChar == '/' ? '\\' : '/', RelativePath.DirectorySeparatorChar);
         //}
 
         private KoreFileInfo ReopenFiles(KoreFileInfo kfi, FullPathNode fullPathTree, string tempFolder, bool isChild)
@@ -393,24 +393,24 @@ namespace Kore
         //{
         //    // Save data with the adapter
         //    var guid = Guid.NewGuid().ToString();
-        //    var fs = new PhysicalFileSystem(Path.Combine(tempFolder, guid));
+        //    var fs = new PhysicalFileSystem(RelativePath.Combine(tempFolder, guid));
         //    if (kfi.Adapter is IMultipleFiles multFileAdapter)
         //        multFileAdapter.FileSystem = fs;
         //    kfi.Adapter.LeaveOpen = false;
-        //    var streaminfo = new StreamInfo { FileData = fs.CreateFile(Path.GetFileName(kfi.StreamFileInfo.FileName)), FileName = Path.GetFileName(kfi.StreamFileInfo.FileName) };
+        //    var streaminfo = new StreamInfo { FileData = fs.CreateFile(RelativePath.GetFileName(kfi.StreamFileInfo.FileName)), FileName = RelativePath.GetFileName(kfi.StreamFileInfo.FileName) };
         //    (kfi.Adapter as ISaveFiles).Save(streaminfo, ksi.Version);
 
         //    // Replace files in adapter
         //    if (kfi.ParentKfi != null)
         //    {
         //        var parentArchiveAdapter = kfi.ParentKfi.Adapter as IArchiveAdapter;
-        //        RecursiveUpdate(parentArchiveAdapter, fs, Path.Combine(Path.GetFullPath(tempFolder), guid));
+        //        RecursiveUpdate(parentArchiveAdapter, fs, RelativePath.Combine(RelativePath.GetFullPath(tempFolder), guid));
         //    }
         //    else
         //    {
         //        // TODO: Implement save if no parent is given
         //        // Get intial directory
-        //        var initialDir = Path.GetDirectoryName(ksi.Kfi.FullPath);
+        //        var initialDir = RelativePath.GetDirectoryName(ksi.Kfi.FullPath);
 
         //        // Close current initial file
         //        ksi.Kfi.StreamFileInfo.FileData.Close();

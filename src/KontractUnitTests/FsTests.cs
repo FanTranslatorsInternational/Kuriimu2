@@ -28,7 +28,7 @@ namespace KontractUnitTests
             Assert.IsInstanceOfType(dir.Children[1], typeof(BaseDirectoryNode));
             Assert.IsInstanceOfType(dir.Children[2], typeof(BaseDirectoryNode));
             Assert.IsInstanceOfType(dir.Children[3], typeof(BaseFileNode));
-            Assert.AreEqual("\\filesystem\\folder1\\Class1.cs", (dir.Children[0] as BaseDirectoryNode).Children[1].Path);
+            Assert.AreEqual("\\filesystem\\folder1\\Class1.cs", (dir.Children[0] as BaseDirectoryNode).Children[1].RelativePath);
 
             Assert.AreEqual("Class6.cs", file.Name);
 
