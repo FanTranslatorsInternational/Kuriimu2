@@ -12,6 +12,7 @@ using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
 using Kore.Utilities;
+using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Microsoft.Win32;
 
@@ -31,10 +32,29 @@ namespace Kuriimu2.ViewModels
         {
             DisplayName = "Kuriimu2";
 
+            // Assign plugin loading event handler.
+            _kore.IdentificationFailed += _kore_IdentificationFailed;
+
             // Load passed-in file
             // TODO: Somehow handle multiple files via delayed asynchronous loading
             if (AppBootstrapper.Args.Length > 0 && File.Exists(AppBootstrapper.Args[0]))
                 LoadFile(AppBootstrapper.Args[0]);
+        }
+
+        private void _kore_IdentificationFailed(object sender, KoreManager.IdentificationFailedEventArgs e)
+        {
+            var pe = new SelectAdapterViewModel(e.BlindAdapters, _kore, e.FileName);
+            _windows.Add(pe);
+
+            if (_wm.ShowDialog(pe) == true)
+            {
+                e.SelectedAdapter = pe.Adapter;
+
+                if (pe.RememberMySelection)
+                {
+                    // Do magic
+                }
+            }
         }
 
         public void ExitMenu()
@@ -44,13 +64,13 @@ namespace Kuriimu2.ViewModels
             Application.Current.Shutdown();
         }
 
-        public async void OpenButton()
+        public void OpenButton()
         {
             var ofd = new OpenFileDialog { Filter = _kore.FileFilters, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
-                await LoadFile(file);
+                LoadFile(file);
         }
 
         //public async void OpenTypeButton()
@@ -68,14 +88,14 @@ namespace Kuriimu2.ViewModels
         //    }
         //}
 
-        public async void FileDrop(DragEventArgs e)
+        public void FileDrop(DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files == null) return;
 
             foreach (var file in files)
-                await LoadFile(file);
+                LoadFile(file);
         }
 
         public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
@@ -174,13 +194,13 @@ namespace Kuriimu2.ViewModels
 
         #region Private Methods
 
-        private async Task LoadFile(string filename)
+        private bool LoadFile(string filename)
         {
             KoreFileInfo kfi = null;
 
             try
             {
-                await Task.Run(() => { kfi = _kore.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename)); });
+                kfi = _kore.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename));
             }
             catch (LoadFileException ex)
             {
@@ -188,6 +208,8 @@ namespace Kuriimu2.ViewModels
             }
 
             ActivateTab(kfi);
+
+            return true;
         }
 
         private void ActivateTab(KoreFileInfo kfi)

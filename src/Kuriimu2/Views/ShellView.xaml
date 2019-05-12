@@ -8,16 +8,33 @@
         d:DesignHeight="510" d:DesignWidth="680"
         Icon="/Images/kuriimu2.ico" Background="#F0F0F0" cal:Message.Attach="[Event Closing] = [Action CloseAllTabs]" SnapsToDevicePixels="True">
     <DockPanel Name="Root" AllowDrop="True" cal:Message.Attach="[Event Drop] = [Action FileDrop($eventArgs)]">
-        <Menu DockPanel.Dock="Top">
+        <Menu Name="Menu" DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New" Name="NewMenu" IsEnabled="False" cal:Message.Attach="[Event Click] = [Action NewButton]">
                     <MenuItem.Icon>
                         <Image Source="/Images/menu-new.png" />
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="_Open" Name="OpenMenu" cal:Message.Attach="[Event Click] = [Action OpenButton]">
+                <MenuItem Header="_Open" Name="OpenMenu" InputGestureText="Ctrl+O" cal:Message.Attach="[Event Click] = [Action OpenButton]">
                     <MenuItem.Icon>
                         <Image Source="/Images/menu-open.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Open _Type" Name="OpenTypeMenu" cal:Message.Attach="[Event Click] = [Action OpenTypeButton]">
+                    <MenuItem.Icon>
+                        <Image Source="/Images/menu-open-type.png" />
+                    </MenuItem.Icon>
+                    <MenuItem Header="SubItem 1"></MenuItem>
+                    <MenuItem Header="SubItem 2"></MenuItem>
+                </MenuItem>
+                <MenuItem Header="_Save" Name="SaveMenu" cal:Message.Attach="[Event Click] = [Action SaveButton]">
+                    <MenuItem.Icon>
+                        <Image Source="/Images/menu-save.png" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Save _As..." Name="SaveAsMenu" cal:Message.Attach="[Event Click] = [Action SaveAsButton]">
+                    <MenuItem.Icon>
+                        <Image Source="/Images/menu-save-as.png" />
                     </MenuItem.Icon>
                 </MenuItem>
                 <Separator />
@@ -37,9 +54,9 @@
                 <Button Name="OpenButton">
                     <Image Source="/Images/menu-open.png" />
                 </Button>
-                <!--<Button Name="OpenTypeButton">
-                    <Image Source="/Images/menu-open.png" />
-                </Button>-->
+                <Button Name="OpenTypeButton">
+                    <Image Source="/Images/menu-open-type.png" />
+                </Button>
                 <Button Name="SaveButton" IsEnabled="{Binding SaveButtonsEnabled}">
                     <Image Source="/Images/menu-save.png" />
                 </Button>

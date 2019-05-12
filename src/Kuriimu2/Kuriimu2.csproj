@@ -87,6 +87,7 @@
     <Compile Include="Controls\TrackableTextBox.cs" />
     <Compile Include="Controls\ZoomBorder.cs" />
     <Compile Include="Dialogs\Common\Enumerations.cs" />
+    <Compile Include="Dialogs\ViewModels\SelectAdapterViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\NewFileViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\AddTextEntryViewModel.cs" />
@@ -111,6 +112,10 @@
     <Compile Include="Views\ImageEditorView.xaml.cs">
       <DependentUpon>ImageEditorView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Dialogs\Views\SelectAdapterView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Dialogs\Views\BitmapFontGeneratorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -281,6 +286,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\add-text-entry.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\menu-open-type.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\select-plugin.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
