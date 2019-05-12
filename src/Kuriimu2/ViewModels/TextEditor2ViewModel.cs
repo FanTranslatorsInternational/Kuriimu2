@@ -196,6 +196,8 @@ namespace Kuriimu2.ViewModels
             }
         }
 
+        public bool DeleteButtonEnabled => _adapter is IDeleteEntries;
+
         public void DeleteEntry()
         {
             if (!(_adapter is IDeleteEntries del)) return;
