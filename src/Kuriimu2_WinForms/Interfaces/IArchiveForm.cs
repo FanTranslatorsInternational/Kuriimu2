@@ -27,7 +27,7 @@ namespace Kuriimu2_WinForms.Interfaces
 
     public class OpenTabEventArgs : EventArgs
     {
-        public OpenTabEventArgs(ArchiveFileInfo afi, KoreFileInfo kfi, BaseDirectoryNode fs)
+        public OpenTabEventArgs(ArchiveFileInfo afi, KoreFileInfo kfi, BaseReadOnlyDirectoryNode fs)
         {
             Afi = afi;
             Kfi = kfi;
@@ -36,7 +36,7 @@ namespace Kuriimu2_WinForms.Interfaces
 
         public ArchiveFileInfo Afi { get; }
         public KoreFileInfo Kfi { get; }
-        public BaseDirectoryNode FileSystem { get; }
+        public BaseReadOnlyDirectoryNode FileSystem { get; }
         public ILoadFiles PreselectedAdapter { get; set; }
         public bool LeaveOpen { get; set; }
 

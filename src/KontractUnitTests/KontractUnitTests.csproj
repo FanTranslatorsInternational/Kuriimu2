@@ -68,7 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="filesystem\folder1\subfolder1_1\" />
-    <Folder Include="virtualTemp\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

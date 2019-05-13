@@ -17,7 +17,7 @@ namespace Kore
 
         public ILoadFiles Adapter { get; set; }
 
-        public BaseDirectoryNode FileSystem { get; set; }
+        public BaseReadOnlyDirectoryNode FileSystem { get; set; }
         public bool LeaveOpen { get; set; }
         public bool TrackFile { get; set; } = true;
 

@@ -296,7 +296,7 @@ namespace Kore
                 streamInfo.FileData.Dispose();
         }
 
-        private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, BaseDirectoryNode physicalFs, string root)
+        private void ReplaceFilesInAdapter(IArchiveAdapter parentAdapter, BaseReadOnlyDirectoryNode physicalFs, string root)
         {
             // Loop through all directories
             foreach (var dir in physicalFs.EnumerateDirectories())
