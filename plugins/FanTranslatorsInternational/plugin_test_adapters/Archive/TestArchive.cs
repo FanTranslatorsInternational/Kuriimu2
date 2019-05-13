@@ -82,6 +82,6 @@ namespace plugin_test_adapters.Archive
 
         public List<ArchiveFileInfo> Files { get; private set; }
         public bool FileHasExtendedProperties => false;
-        public BaseDirectoryNode FileSystem { get; set; }
+        public BaseReadOnlyDirectoryNode FileSystem { get; set; }
     }
 }

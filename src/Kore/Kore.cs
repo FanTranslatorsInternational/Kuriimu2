@@ -221,13 +221,13 @@ namespace Kore
             // Replace data in parent KFI or physical folder
             fs = new PhysicalDirectoryNode(guid, Path.Combine(Path.GetFullPath(ksi.TempFolder)));
             if (kfi.ParentKfi != null)
-                ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootDir);
+                ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootPath);
             else
             {
                 var newLocation = string.IsNullOrEmpty(ksi.NewSaveFile) ? kfi.FullPath : ksi.NewSaveFile;
                 var newSaveDir = Path.GetDirectoryName(newLocation);
 
-                ReplaceFilesInFolder(newSaveDir, fs, fs.RootDir);
+                ReplaceFilesInFolder(newSaveDir, fs, fs.RootPath);
                 UpdateFullPathTree(fullPathTree, newSaveDir, newSaveDir);
             }
 
@@ -285,9 +285,11 @@ namespace Kore
             kfi.Adapter.LeaveOpen = false;
 
             var newFilename = string.IsNullOrEmpty(ksi.NewSaveFile) ? Path.GetFileName(kfi.StreamFileInfo.FileName) : Path.GetFileName(ksi.NewSaveFile);
+            fs.AddFile(newFilename);
+            var fileNode = fs.GetFileNode(newFilename);
             var streamInfo = new StreamInfo
             {
-                FileData = fs.CreateFile(newFilename),
+                FileData = fileNode.Open(),
                 FileName = newFilename
             };
             (kfi.Adapter as ISaveFiles)?.Save(streamInfo, ksi.Version);
@@ -326,7 +328,8 @@ namespace Kore
             foreach (var file in physicalFs.EnumerateFiles())
             {
                 var relativeFileName = file.RelativePath;
-                var openedFile = physicalFs.CreateFile(relativeFileName);
+                physicalFs.AddFile(relativeFileName);
+                var openedFile = physicalFs.GetFileNode(relativeFileName).Open();
 
                 if (!Directory.Exists(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName) ?? string.Empty)))
                     Directory.CreateDirectory(Path.Combine(newSaveLocation, Path.GetDirectoryName(relativeFileName) ?? string.Empty));

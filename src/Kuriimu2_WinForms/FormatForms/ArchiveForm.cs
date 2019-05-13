@@ -187,17 +187,22 @@ namespace Kuriimu2_WinForms.FormatForms
             openFileToolStripMenuItem.Tag = afi;
 
             openWithPluginToolStripMenuItem.DropDownItems.Clear();
-            openWithPluginToolStripMenuItem.Visible = afi.PluginNames != null && afi.PluginNames.Length > 0;
             if (afi.PluginNames != null)
                 foreach (var id in afi.PluginNames)
                 {
                     var args = new GetAdapterInformationByIdEventArgs(id);
                     GetAdapterById?.Invoke(this, args);
 
-                    var item = new ToolStripMenuItem(args.PluginMetaData?.Name ?? "<unknown>") { Tag = (args.SelectedPlugin, afi) };
-                    item.Click += Item_Click;
-                    openWithPluginToolStripMenuItem.DropDownItems.Add(item);
+                    if (args.SelectedPlugin != null)
+                    {
+                        var item = new ToolStripMenuItem(args.PluginMetaData?.Name ?? "<unknown>")
+                        { Tag = (args.SelectedPlugin, afi) };
+                        item.Click += Item_Click;
+                        openWithPluginToolStripMenuItem.DropDownItems.Add(item);
+                    }
                 }
+
+            openWithPluginToolStripMenuItem.Visible = openWithPluginToolStripMenuItem.DropDownItems.Count > 0;
         }
 
         private void Item_Click(object sender, EventArgs e)
