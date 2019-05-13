@@ -154,11 +154,11 @@ namespace Kore
 
             try
             {
-                if (kli.Adapter is IMultipleFiles multiFileAdapter)
-                    multiFileAdapter.FileSystem = kli.FileSystem;
+                //if (kli.Adapter is IMultipleFiles multiFileAdapter)
+                //    multiFileAdapter.FileSystem = kli.FileSystem;
 
                 kli.Adapter.LeaveOpen = kli.LeaveOpen;
-                kli.Adapter.Load(streamInfo);
+                kli.Adapter.Load(streamInfo, kli.FileSystem);
             }
             catch (Exception ex)
             {
@@ -219,7 +219,7 @@ namespace Kore
             CloseFile(kfi, kfi.ParentKfi != null, firstIteration);
 
             // Replace data in parent KFI or physical folder
-            fs = new PhysicalDirectoryNode(guid, Path.Combine(Path.GetFullPath(ksi.TempFolder)));
+            fs = new PhysicalDirectoryNode("", Path.Combine(Path.GetFullPath(ksi.TempFolder), guid));
             if (kfi.ParentKfi != null)
                 ReplaceFilesInAdapter(kfi.ParentKfi.Adapter as IArchiveAdapter, fs, fs.RootPath);
             else
@@ -228,7 +228,7 @@ namespace Kore
                 var newSaveDir = Path.GetDirectoryName(newLocation);
 
                 ReplaceFilesInFolder(newSaveDir, fs, fs.RootPath);
-                UpdateFullPathTree(fullPathTree, newSaveDir, newSaveDir);
+                UpdateFullPathTree(fullPathTree, Path.GetDirectoryName(kfi.FullPath), newSaveDir);
             }
 
             // Reopen files recursively from parent to child
@@ -280,8 +280,8 @@ namespace Kore
         {
             var kfi = ksi.Kfi;
 
-            if (kfi.Adapter is IMultipleFiles multFileAdapter)
-                multFileAdapter.FileSystem = fs;
+            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
+            //    multFileAdapter.FileSystem = fs;
             kfi.Adapter.LeaveOpen = false;
 
             var newFilename = string.IsNullOrEmpty(ksi.NewSaveFile) ? Path.GetFileName(kfi.StreamFileInfo.FileName) : Path.GetFileName(ksi.NewSaveFile);
@@ -292,7 +292,7 @@ namespace Kore
                 FileData = fileNode.Open(),
                 FileName = newFilename
             };
-            (kfi.Adapter as ISaveFiles)?.Save(streamInfo, ksi.Version);
+            (kfi.Adapter as ISaveFiles)?.Save(streamInfo, fs, ksi.Version);
 
             if (streamInfo.FileData.CanRead)
                 streamInfo.FileData.Dispose();
@@ -475,8 +475,8 @@ namespace Kore
             kfi.Adapter.Dispose();
             if (!leaveFileStreamOpen)
                 kfi.StreamFileInfo.FileData.Close();
-            if (kfi.Adapter is IMultipleFiles multFileAdapter)
-                multFileAdapter.FileSystem.Dispose();
+            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
+            //    multFileAdapter.FileSystem.Dispose();
 
             if (firstIteration)
             {
@@ -512,8 +512,8 @@ namespace Kore
                     ToLower().TrimEnd(';').Split(';').Any(s => kli.FileName.ToLower().EndsWith(s.TrimStart('*')))
                 ).Select(x =>
                 {
-                    if (x is IMultipleFiles y)
-                        y.FileSystem = kli.FileSystem;
+                    //if (x is IMultipleFiles y)
+                    //    y.FileSystem = kli.FileSystem;
                     return x;
                 }).FirstOrDefault(adapter => CheckAdapter(adapter, kli));
         }
@@ -532,7 +532,7 @@ namespace Kore
 
             kli.FileData.Position = 0;
             var info = new StreamInfo { FileData = kli.FileData, FileName = kli.FileName };
-            var res = iif.Identify(info);
+            var res = iif.Identify(info, kli.FileSystem);
 
             if (!kli.FileData.CanRead)
                 throw new InvalidOperationException($"Plugin with ID '{PluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID}' closed the stream(s) while identifying the file(s).");

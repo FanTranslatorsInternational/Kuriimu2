@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Kontract.FileSystem2.Nodes.Abstract;
 
 namespace Kontract.Interfaces.Common
 {
@@ -15,7 +16,9 @@ namespace Kontract.Interfaces.Common
         /// Loads the given file stream.
         /// </summary>
         /// <param name="input">The file stream to be loaded.</param>
-        void Load(StreamInfo input);
+        /// <param name="fileSystem">A file system object for the folder the input file was opened from.</param>
+        /// <remarks><paramref name="fileSystem"/> is read-only.</remarks>
+        void Load(StreamInfo input,BaseReadOnlyDirectoryNode fileSystem);
     }
 
     /// <summary>

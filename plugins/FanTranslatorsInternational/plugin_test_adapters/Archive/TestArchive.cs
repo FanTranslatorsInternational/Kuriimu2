@@ -6,19 +6,19 @@ using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
 using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem2.Nodes.Physical;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
-using Kontract.Interfaces.FileSystem;
 using plugin_test_adapters.Archive.Models;
 
 namespace plugin_test_adapters.Archive
 {
     [Export(typeof(IPlugin))]
     [PluginExtensionInfo("*.test")]
-    public class TestArchive : IArchiveAdapter, IMultipleFiles, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public class TestArchive : IArchiveAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles
     {
-        public bool Identify(StreamInfo file)
+        public bool Identify(StreamInfo file, BaseReadOnlyDirectoryNode fileSystem)
         {
             using (var br = new BinaryReaderX(file.FileData, LeaveOpen))
                 return br.ReadString(8) == "ARC TEST";
@@ -32,9 +32,9 @@ namespace plugin_test_adapters.Archive
         }
 
         public bool LeaveOpen { get; set; }
-        public void Load(StreamInfo input)
+        public void Load(StreamInfo input, BaseReadOnlyDirectoryNode fileSystem)
         {
-            var dataStream = FileSystem.GetFileNode("archive.data").Open();
+            var dataStream = fileSystem.GetFileNode("archive.data").Open();
 
             using (var br = new BinaryReaderX(input.FileData, LeaveOpen))
             {
@@ -45,14 +45,15 @@ namespace plugin_test_adapters.Archive
                 {
                     FileName = x.name,
                     FileData = new SubStream(dataStream, x.offset, x.size),
-                    PluginNames = new[] { "WinFormsTest.Archive.TestArchive" }
+                    PluginNames = new[] { "plugin_test_adapters.Archive.TestArchive" }
                 }).ToList();
             }
         }
 
-        public void Save(StreamInfo output, int versionIndex = 0)
+        public void Save(StreamInfo output, PhysicalDirectoryNode fileSystem, int versionIndex = 0)
         {
-            var dataStream = FileSystem.GetFileNode("archive.data").Open();
+            fileSystem.AddFile("archive.data");
+            var dataStream = fileSystem.GetFileNode("archive.data").Open();
 
             using (var bwData = new BinaryWriterX(dataStream, false))
             using (var bw = new BinaryWriterX(output.FileData, LeaveOpen))
@@ -63,7 +64,7 @@ namespace plugin_test_adapters.Archive
                 var offset = 0;
                 foreach (var file in Files)
                 {
-                    file.FileData.CopyTo(bw.BaseStream);
+                    file.FileData.CopyTo(bwData.BaseStream);
                     entries.Add(new FileEntry
                     {
                         offset = offset,
@@ -82,6 +83,5 @@ namespace plugin_test_adapters.Archive
 
         public List<ArchiveFileInfo> Files { get; private set; }
         public bool FileHasExtendedProperties => false;
-        public BaseReadOnlyDirectoryNode FileSystem { get; set; }
     }
 }

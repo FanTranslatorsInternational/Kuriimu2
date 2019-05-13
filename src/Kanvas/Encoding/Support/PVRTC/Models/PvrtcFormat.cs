@@ -1,6 +1,6 @@
 ﻿namespace Kanvas.Encoding.Support.PVRTC.Models
 {
-    public enum PvrtcFormat : int
+    public enum PvrtcFormat : ulong
     {
         PVRTC_2bpp,
         PVRTCA_2bpp,

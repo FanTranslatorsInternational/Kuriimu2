@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Kontract.Attributes;
+using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem2.Nodes.Physical;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
@@ -37,7 +39,7 @@ namespace plugin_kuriimu.KUP
 
         #endregion
 
-        public bool Identify(StreamInfo input)
+        public bool Identify(StreamInfo input, BaseReadOnlyDirectoryNode fileSystem)
         {
             var result = true;
 
@@ -63,12 +65,12 @@ namespace plugin_kuriimu.KUP
             _format = new KUP();
         }
 
-        public void Load(StreamInfo input)
+        public void Load(StreamInfo input, BaseReadOnlyDirectoryNode fileSystem)
         {
             _format = KUP.Load(input.FileData);
         }
 
-        public void Save(StreamInfo output, int versionIndex = 0)
+        public void Save(StreamInfo output, PhysicalDirectoryNode fileSystem, int versionIndex = 0)
         {
             _format.Save(output.FileData);
         }

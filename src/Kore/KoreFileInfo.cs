@@ -33,7 +33,7 @@ namespace Kore
         /// <summary>
         /// If the plugin, the file was loaded with, can open more files than the one in this KoreFileInfo
         /// </summary>
-        public bool CanRequestFiles => Adapter is IMultipleFiles;
+        //public bool CanRequestFiles => Adapter is IMultipleFiles;
 
         /// <summary>
         /// If the plugin, the file was loaded with, can save

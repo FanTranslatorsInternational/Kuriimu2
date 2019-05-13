@@ -35,7 +35,8 @@ namespace Kore.Utilities
                 }
 
                 // Save the file
-                (newAdapter as ISaveFiles)?.Save(new StreamInfo(File.Create(outputFileName), outputFileName));
+                // TODO: Inject file system
+                (newAdapter as ISaveFiles)?.Save(new StreamInfo(File.Create(outputFileName), outputFileName), null);
             }
         }
 
