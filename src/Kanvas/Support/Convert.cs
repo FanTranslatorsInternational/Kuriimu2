@@ -15,12 +15,12 @@ namespace Kanvas.Support
             if (TryToNumber<TOut>(input, byteOrder, out var res))
                 return res;
 
-            return default;
+            return default(TOut);
         }
 
         private static bool TryToNumber<T>(byte[] data, ByteOrder byteOrder, out T result)
         {
-            result = default;
+            result = default(T);
 
             var typeCode = Type.GetTypeCode(typeof(T));
             object value;
