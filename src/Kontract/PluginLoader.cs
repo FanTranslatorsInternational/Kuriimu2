@@ -149,7 +149,7 @@ namespace Kontract
             var adapter = _plugins.FirstOrDefault(x => x.GetType().FullName == fqn);
 
             if (adapter == null)
-                return default;
+                return default(T);
 
             return (T)Activator.CreateInstance(adapter.GetType());
         }
@@ -166,7 +166,7 @@ namespace Kontract
             var chosenAdapter = _plugins.FirstOrDefault(x => x.GetType() == adapterType && x is T);
 
             if (chosenAdapter == null)
-                return default;
+                return default(T);
 
             return (T)Activator.CreateInstance(adapterType);
         }

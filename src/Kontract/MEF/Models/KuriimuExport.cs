@@ -21,7 +21,7 @@ namespace Kontract.Providers.Models
             catch (Exception e)
             {
                 ReportGetterExceptionCore(e);
-                return default;
+                return null;
             }
         }
 
