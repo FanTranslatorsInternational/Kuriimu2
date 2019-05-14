@@ -13,6 +13,7 @@ using Kontract.Interfaces.Image;
 using Kontract.Models;
 using Kontract.Models.Image;
 using Kore;
+using Kore.Files;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;
@@ -25,7 +26,7 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly KoreManager _kore;
+        private readonly FileManager _fileManager;
         private readonly IImageAdapter _adapter;
 
         // Image View
@@ -48,9 +49,9 @@ namespace Kuriimu2.ViewModels
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
 
         // Constructor
-        public ImageEditorViewModel(KoreManager kore, KoreFileInfo koreFile)
+        public ImageEditorViewModel(FileManager fileManager, KoreFileInfo koreFile)
         {
-            _kore = kore;
+            _fileManager = fileManager;
             KoreFile = koreFile;
 
             _adapter = KoreFile.Adapter as IImageAdapter;
@@ -233,7 +234,7 @@ namespace Kuriimu2.ViewModels
                 ProgressActionName = $"Batch Export PNG ({current} / {max})";
             });
 
-            var result = await batchExport.Export(_kore, progress);
+            var result = await batchExport.Export(_fileManager, progress);
         }
 
         public void ImageProperties()

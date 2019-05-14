@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Caliburn.Micro;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Common;
 using Kore;
+using Kore.Files;
 using Kuriimu2.Dialogs.Common;
 
 namespace Kuriimu2.Dialogs.ViewModels
@@ -26,10 +28,10 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public SelectAdapterViewModel(List<ILoadFiles> adapters, KoreManager kore, string fileName)
+        public SelectAdapterViewModel(List<ILoadFiles> adapters, FileManager fileManager, PluginLoader pluginLoader, string fileName)
         {
             foreach (var adapter in adapters)
-                Adapters.Add(new SelectableAdapter(adapter, kore));
+                Adapters.Add(new SelectableAdapter(adapter, fileManager, pluginLoader));
 
             SelectedAdapter = Adapters.FirstOrDefault();
 
@@ -95,13 +97,13 @@ namespace Kuriimu2.Dialogs.ViewModels
         public string About { get; }
         public string Version { get; }
 
-        public SelectableAdapter(ILoadFiles adapter, Kore.KoreManager kore)
+        public SelectableAdapter(ILoadFiles adapter, FileManager fileManager, PluginLoader pluginLoader)
         {
             Adapter = adapter;
 
             try
             {
-                var attr = kore.GetMetadata<PluginInfoAttribute>(Adapter);
+                var attr = pluginLoader.GetMetadata<PluginInfoAttribute>(Adapter);
 
                 ID = attr.ID;
                 Name = attr.Name;

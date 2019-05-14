@@ -69,7 +69,7 @@ namespace Kuriimu2.ViewModels
             //NotifyOfPropertyChange(nameof(Entries));
         }
 
-        //public void Save(KoreManager kore, string filename = "")
+        //public void Save(FileManager fileManager, string filename = "")
         //{
         //    try
         //    {
@@ -77,7 +77,7 @@ namespace Kuriimu2.ViewModels
         //            return;
 
         //        var ksi = new KoreSaveInfo(KoreFile, "temp") { NewSaveFile = filename };
-        //        var savedKfi = kore.SaveFile(ksi);
+        //        var savedKfi = fileManager.SaveFile(ksi);
 
         //        if (savedKfi.ParentKfi != null)
         //            savedKfi.ParentKfi.HasChanges = true;

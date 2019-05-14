@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
 using Kontract.Interfaces.Archive;
@@ -21,6 +22,7 @@ using Kontract.Models;
 using Kontract.Models.Intermediate;
 using Kontract.Providers.Models;
 using Kore;
+using Kore.Files;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
@@ -29,7 +31,8 @@ namespace Kuriimu2_WinForms.MainForms
 {
     public partial class Kuriimu2 : Form
     {
-        private KoreManager _kore;
+        private FileManager _fileManager;
+        private PluginLoader _pluginLoader;
         private Random _rand = new Random();
         private string _tempFolder = "temp";
 
@@ -50,9 +53,11 @@ namespace Kuriimu2_WinForms.MainForms
         {
             InitializeComponent();
 
-            _kore = new KoreManager();
-            if (_kore.PluginLoader.CompositionErrors?.Any() ?? false)
-                DisplayCompositionErrors(_kore.PluginLoader.CompositionErrors);
+            _pluginLoader = new PluginLoader("plugins");
+            if (_pluginLoader.CompositionErrors?.Any() ?? false)
+                DisplayCompositionErrors(_pluginLoader.CompositionErrors);
+
+            _fileManager = new FileManager(_pluginLoader);
 
             _timer = new Timer { Interval = 14 };
             _timer.Tick += _timer_Tick;
@@ -60,8 +65,8 @@ namespace Kuriimu2_WinForms.MainForms
 
             Icon = Resources.kuriimu2winforms;
 
-            _rawImgViewer = new RawImageViewer(_kore.PluginLoader);
-            _transcodeImgViewer = new ImageTranscoder(_kore.PluginLoader);
+            _rawImgViewer = new RawImageViewer(_pluginLoader);
+            _transcodeImgViewer = new ImageTranscoder(_pluginLoader);
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
@@ -102,7 +107,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void LoadCiphers()
         {
-            var ciphers = _kore.PluginLoader.GetAdapters<ICipherAdapter>();
+            var ciphers = _pluginLoader.GetAdapters<ICipherAdapter>();
             var cipherMenuBuilder = new ToolStripMenuBuilder<ICipherAdapter>(ciphers, AddCipherDelegates);
 
             _cipherToolStrip = new ToolStripMenuItem("Ciphers");
@@ -113,7 +118,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         //private void LoadHashes()
         //{
-        //    var hashes = _kore.PluginLoader.GetAdapters<IHashAdapter>();
+        //    var hashes = _fileManager.PluginLoader.GetAdapters<IHashAdapter>();
         //    var hashMenuBuilder = new ToolStripMenuBuilder<IHashAdapter>(hashes, AddHashDelegates);
 
         //    _hashToolStrip = new ToolStripMenuItem("Hashes");
@@ -124,7 +129,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         //private void LoadCompressions()
         //{
-        //    var compressions = _kore.PluginLoader.GetAdapters<ICompressionAdapter>();
+        //    var compressions = _fileManager.PluginLoader.GetAdapters<ICompressionAdapter>();
         //    var compMenuBuilder = new ToolStripMenuBuilder<ICompressionAdapter>(compressions, AddCompressionDelegates);
 
         //    _compToolStrip = new ToolStripMenuItem("Compressions");
@@ -135,7 +140,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void LoadRawImageViewer()
         {
-            var imgAdapters = _kore.PluginLoader.GetAdapters<IColorEncodingAdapter>();
+            var imgAdapters = _pluginLoader.GetAdapters<IColorEncodingAdapter>();
 
             _imgDecToolStrip = new ToolStripMenuItem("Raw Image Viewer");
             _imgDecToolStrip.Click += _imgDecToolStrip_Click;
@@ -151,7 +156,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void LoadImageTranscoder()
         {
-            var imgAdapters = _kore.PluginLoader.GetAdapters<IColorEncodingAdapter>();
+            var imgAdapters = _pluginLoader.GetAdapters<IColorEncodingAdapter>();
 
             _imgTransToolStrip = new ToolStripMenuItem("Image Transcoder");
             _imgTransToolStrip.Click += _imgTransToolStrip_Click;
@@ -280,14 +285,14 @@ namespace Kuriimu2_WinForms.MainForms
         #region mainMenuStrip
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
+            var ofd = new OpenFileDialog() { Filter = _fileManager.FileFilters };
             if (ofd.ShowDialog() == DialogResult.OK)
                 OpenFile(ofd.FileName, false);
         }
 
         private void openWithPluginToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog() { Filter = _kore.FileFilters };
+            var ofd = new OpenFileDialog() { Filter = _fileManager.FileFilters };
             if (ofd.ShowDialog() == DialogResult.OK)
                 OpenFile(ofd.FileName, true);
         }
@@ -299,7 +304,7 @@ namespace Kuriimu2_WinForms.MainForms
             var openedTabPage = GetTabPageForKfi(GetKfiForFullPath(Path.Combine(e.Kfi.FullPath, e.Afi.FileName)));
             if (openedTabPage == null)
             {
-                var newKfi = _kore.LoadFile(new KoreLoadInfo(e.Afi.FileData, e.Afi.FileName)
+                var newKfi = _fileManager.LoadFile(new KoreLoadInfo(e.Afi.FileData, e.Afi.FileName)
                 {
                     Adapter = e.PreselectedAdapter,
                     LeaveOpen = e.LeaveOpen,
@@ -313,7 +318,7 @@ namespace Kuriimu2_WinForms.MainForms
                 if (newTabPage == null)
                 {
                     newKfi.ParentKfi = null;
-                    _kore.CloseFile(newKfi, e.LeaveOpen);
+                    _fileManager.CloseFile(newKfi, e.LeaveOpen);
                     return;
                 }
 
@@ -409,7 +414,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         #region Open File
         /// <summary>
-        /// Opens a file with KoreManager and opens a corresponding tab
+        /// Opens a file with FileManager and opens a corresponding tab
         /// </summary>
         /// <param name="filename"></param>
         private void OpenFile(string filename, bool shouldChoosePlugin)
@@ -436,7 +441,7 @@ namespace Kuriimu2_WinForms.MainForms
                 KoreFileInfo kfi = null;
                 if (shouldChoosePlugin)
                 {
-                    var pluginChooser = new ChoosePluginForm(_kore.PluginLoader);
+                    var pluginChooser = new ChoosePluginForm(_pluginLoader);
                     if (pluginChooser.ShowDialog() != DialogResult.OK)
                     {
                         MessageBox.Show($"No plugin was selected.");
@@ -446,7 +451,7 @@ namespace Kuriimu2_WinForms.MainForms
 
                     try
                     {
-                        kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                        kfi = _fileManager.LoadFile(new KoreLoadInfo(openFile, filename)
                         {
                             FileSystem = NodeFactory.FromDirectory(Path.GetDirectoryName(filename)),
                             Adapter = pluginChooser.ChosenAdapter
@@ -463,7 +468,7 @@ namespace Kuriimu2_WinForms.MainForms
                 {
                     try
                     {
-                        kfi = _kore.LoadFile(new KoreLoadInfo(openFile, filename)
+                        kfi = _fileManager.LoadFile(new KoreLoadInfo(openFile, filename)
                         {
                             FileSystem = NodeFactory.FromDirectory(Path.GetDirectoryName(filename))
                         });
@@ -486,7 +491,7 @@ namespace Kuriimu2_WinForms.MainForms
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
                 var newTabPage = AddTabPage(kfi, tabColor);
                 if (newTabPage == null)
-                    _kore.CloseFile(kfi);
+                    _fileManager.CloseFile(kfi);
             }
         }
 
@@ -502,12 +507,12 @@ namespace Kuriimu2_WinForms.MainForms
             try
             {
                 if (kfi.Adapter is ITextAdapter)
-                    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _kore.GetAdapters<IGameAdapter>());
+                    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _pluginLoader.GetAdapters<IGameAdapter>());
                 else if (kfi.Adapter is IImageAdapter)
                     tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
                 else if (kfi.Adapter is IArchiveAdapter)
                 {
-                    tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _kore.PluginLoader);
+                    tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _pluginLoader);
                     (tabControl as IArchiveForm).OpenTab += Kuriimu2_OpenTab;
                     (tabControl as IArchiveForm).GetAdapterById += Kuriimu2_GetAdapterById;
                 }
@@ -538,10 +543,10 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void Kuriimu2_GetAdapterById(object sender, GetAdapterInformationByIdEventArgs e)
         {
-            e.SelectedPlugin = _kore.PluginLoader.CreateNewAdapter<ILoadFiles>(e.PluginName);
+            e.SelectedPlugin = _pluginLoader.CreateNewAdapter<ILoadFiles>(e.PluginName);
             if (e.SelectedPlugin == null)
                 return;
-            e.PluginMetaData = _kore.GetMetadata<PluginInfoAttribute>(e.SelectedPlugin);
+            e.PluginMetaData = _pluginLoader.GetMetadata<PluginInfoAttribute>(e.SelectedPlugin);
         }
         #endregion
 
@@ -556,7 +561,7 @@ namespace Kuriimu2_WinForms.MainForms
 
             // Save files
             var ksi = new KoreSaveInfo(kfi, _tempFolder) { Version = version, NewSaveFile = newSaveLocation };
-            var savedKfi = _kore.SaveFile(ksi);
+            var savedKfi = _fileManager.SaveFile(ksi);
 
             if (savedKfi.ParentKfi != null)
                 savedKfi.ParentKfi.HasChanges = true;
@@ -625,7 +630,7 @@ namespace Kuriimu2_WinForms.MainForms
             }
 
             // Close all KFIs
-            return _kore.CloseFile(kfi, leaveOpen);
+            return _fileManager.CloseFile(kfi, leaveOpen);
         }
 
         private void CloseOpenTabs(KoreFileInfo kfi)
@@ -647,7 +652,7 @@ namespace Kuriimu2_WinForms.MainForms
         #region Getter
         private KoreFileInfo GetKfiForFullPath(string fullPath)
         {
-            return _kore.GetOpenedFile(fullPath);
+            return _fileManager.GetOpenedFile(fullPath);
         }
 
         private TabPage GetTabPageForKfi(KoreFileInfo kfi)

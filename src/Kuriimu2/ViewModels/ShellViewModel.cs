@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
+using Kontract;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kore.Files;
 using Kore.Utilities;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
@@ -24,7 +26,8 @@ namespace Kuriimu2.ViewModels
 
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private KoreManager _kore = new KoreManager();
+        private PluginLoader _pluginLoader = new PluginLoader("plugins");
+        private FileManager _fileManager;
 
         #endregion
 
@@ -33,7 +36,8 @@ namespace Kuriimu2.ViewModels
             DisplayName = "Kuriimu2";
 
             // Assign plugin loading event handler.
-            _kore.IdentificationFailed += _kore_IdentificationFailed;
+            _fileManager = new FileManager(_pluginLoader);
+            _fileManager.IdentificationFailed += FileIdentificationFailed;
 
             // Load passed-in file
             // TODO: Somehow handle multiple files via delayed asynchronous loading
@@ -41,9 +45,9 @@ namespace Kuriimu2.ViewModels
                 LoadFile(AppBootstrapper.Args[0]);
         }
 
-        private void _kore_IdentificationFailed(object sender, KoreManager.IdentificationFailedEventArgs e)
+        private void FileIdentificationFailed(object sender, IdentificationFailedEventArgs e)
         {
-            var pe = new SelectAdapterViewModel(e.BlindAdapters, _kore, e.FileName);
+            var pe = new SelectAdapterViewModel(e.BlindAdapters.ToList(), _fileManager, _pluginLoader, e.FileName);
             _windows.Add(pe);
 
             if (_wm.ShowDialog(pe) == true)
@@ -52,7 +56,7 @@ namespace Kuriimu2.ViewModels
 
                 if (pe.RememberMySelection)
                 {
-                    // Do magic
+                    // TODO: Do magic
                 }
             }
         }
@@ -66,7 +70,7 @@ namespace Kuriimu2.ViewModels
 
         public void OpenButton()
         {
-            var ofd = new OpenFileDialog { Filter = _kore.FileFilters, Multiselect = true };
+            var ofd = new OpenFileDialog { Filter = _fileManager.FileFilters, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
@@ -75,7 +79,7 @@ namespace Kuriimu2.ViewModels
 
         //public async void OpenTypeButton()
         //{
-        //    var pe = new OpenTypeViewModel(_kore)
+        //    var pe = new OpenTypeViewModel(_fileManager)
         //    {
         //        Title = "Open File by Type",
         //        Message = ""
@@ -122,7 +126,7 @@ namespace Kuriimu2.ViewModels
 
         public void DebugButton()
         {
-            //_kore.Debug();
+            //_fileManager.Debug();
         }
 
         #region ToolBar Visibility
@@ -139,7 +143,7 @@ namespace Kuriimu2.ViewModels
             var editor = (IFileEditor)ActiveItem;
             if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
 
-            var creators = _kore.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
+            var creators = _pluginLoader.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
 
             var sfd = new SaveFileDialog
             {
@@ -157,10 +161,10 @@ namespace Kuriimu2.ViewModels
             var editor = (IFileEditor)ActiveItem;
             if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
 
-            var ofd = new OpenFileDialog { Filter = _kore.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
+            var ofd = new OpenFileDialog { Filter = _fileManager.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
             if (ofd.ShowDialog() != true) return;
 
-            editor.KoreFile.HasChanges = _kore.ImportFile(adapter, ofd.FileName);
+            editor.KoreFile.HasChanges = _fileManager.ImportFile(adapter, ofd.FileName);
         }
 
         // Tabs
@@ -181,7 +185,7 @@ namespace Kuriimu2.ViewModels
             switch (tab)
             {
                 case IFileEditor editor:
-                    _kore.CloseFile(editor.KoreFile);
+                    _fileManager.CloseFile(editor.KoreFile);
                     break;
             }
         }
@@ -200,7 +204,7 @@ namespace Kuriimu2.ViewModels
 
             try
             {
-                kfi = _kore.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename));
+                kfi = _fileManager.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename));
             }
             catch (LoadFileException ex)
             {
@@ -219,10 +223,10 @@ namespace Kuriimu2.ViewModels
             switch (kfi.Adapter)
             {
                 case ITextAdapter txt2:
-                    ActivateItem(new TextEditor2ViewModel(_kore, kfi));
+                    ActivateItem(new TextEditor2ViewModel(_fileManager, _pluginLoader, kfi));
                     break;
                 case IImageAdapter img:
-                    ActivateItem(new ImageEditorViewModel(_kore, kfi));
+                    ActivateItem(new ImageEditorViewModel(_fileManager, kfi));
                     break;
                 case IFontAdapter fnt:
                     ActivateItem(new FontEditorViewModel(kfi));
@@ -246,7 +250,7 @@ namespace Kuriimu2.ViewModels
                     return;
 
                 var ksi = new KoreSaveInfo(currentTab.KoreFile, "temp") { NewSaveFile = filename };
-                var savedKfi = _kore.SaveFile(ksi);
+                var savedKfi = _fileManager.SaveFile(ksi);
 
                 if (savedKfi.ParentKfi != null)
                     savedKfi.ParentKfi.HasChanges = true;

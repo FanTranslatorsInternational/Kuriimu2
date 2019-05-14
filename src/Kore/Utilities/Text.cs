@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
+using Kore.Files;
 
 namespace Kore.Utilities
 {
@@ -43,15 +44,15 @@ namespace Kore.Utilities
         /// <summary>
         /// Imports the text from any supported text file into the adapter provided.
         /// </summary>
-        /// <param name="kore">An instance of kore that will be used to load the input file.</param>
+        /// <param name="fileManagerstance of fileManager that will be used to load the input file.</param>
         /// <param name="adapter">The adapter that will be imported into.</param>
         /// <param name="inputFileName">The input file to be imported from.</param>
-        public static bool ImportFile(this KoreManager kore, ITextAdapter adapter, string inputFileName)
+        public static bool ImportFile(this FileManager fileManager, ITextAdapter adapter, string inputFileName)
         {
             var result = false;
 
             //TODO
-            var kfi = kore.LoadFile(new KoreLoadInfo(File.Open(inputFileName, FileMode.Open), inputFileName) { TrackFile = false });
+            var kfi = fileManager.LoadFile(new KoreLoadInfo(File.Open(inputFileName, FileMode.Open), inputFileName) { TrackFile = false });
             if (!(kfi.Adapter is ITextAdapter inAdapter)) return false;
 
             foreach (var inEntry in inAdapter.Entries)

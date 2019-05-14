@@ -10,6 +10,7 @@ using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Models;
+using Kore.Files;
 
 namespace Kore.Batch
 {
@@ -25,9 +26,9 @@ namespace Kore.Batch
 
         public bool OverwriteDestinationFiles { get; set; } = true;
 
-        public async Task<bool> Export(KoreManager kore, IProgress<ProgressReport> progress)
+        public async Task<bool> Export(FileManager fileManager, IProgress<ProgressReport> progress)
         {
-            if (kore == null)
+            if (fileManager == null)
             {
                 progress.Report(new ProgressReport { Message = "Kore was not initialized.", Percentage = 0 });
                 return false;
@@ -58,7 +59,7 @@ namespace Kore.Batch
             switch (typeof(T).Name)
             {
                 //case nameof(ITextAdapter):
-                //    patterns = kore.FileExtensionsByType<ITextAdapter>();
+                //    patterns = fileManager.FileExtensionsByType<ITextAdapter>();
                 //    files = Directory.EnumerateFiles(InputDirectory, "*", SearchOption).Where(f => patterns.Any(p => f.EndsWith(p, StringComparison.OrdinalIgnoreCase))).ToList();
                 //    max = files.Count;
 
@@ -70,7 +71,7 @@ namespace Kore.Batch
                 //            {
                 //                var outFile = file + Utilities.Common.GetAdapterExtension<KupAdapter>();
                 //                //TODO
-                //                Utilities.Text.ExportFile((ITextAdapter)kore.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false }).Adapter, outFile);
+                //                Utilities.Text.ExportFile((ITextAdapter)fileManager.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false }).Adapter, outFile);
                 //                current++;
                 //                progress.Report(new ProgressReport { Message = $"Exported {RelativePath.GetFileName(outFile)}...", Percentage = current / max * 100, Data = ((int)current, (int)max) });
                 //            }
@@ -83,7 +84,7 @@ namespace Kore.Batch
                 //    }
                 //    break;
                 case nameof(IImageAdapter):
-                    patterns = kore.FileExtensionsByType<IImageAdapter>();
+                    patterns = fileManager.FileExtensionsByType<IImageAdapter>();
                     files = Directory.EnumerateFiles(InputDirectory, "*", SearchOption).Where(f => patterns.Any(p => f.EndsWith(p, StringComparison.OrdinalIgnoreCase))).ToList();
                     max = files.Count;
 
@@ -95,7 +96,7 @@ namespace Kore.Batch
                             {
                                 // TODO: Make an image export utility function out of this code
                                 //TODO
-                                var kfi = kore.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false });
+                                var kfi = fileManager.LoadFile(new KoreLoadInfo(File.Open(file, FileMode.Open), file) { TrackFile = false });
                                 var adapter = (IImageAdapter)kfi.Adapter;
 
                                 foreach (var info in adapter.BitmapInfos)

@@ -9,10 +9,12 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
+using Kontract;
 using Kontract.Attributes;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kore.Files;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
@@ -25,7 +27,8 @@ namespace Kuriimu2.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly KoreManager _kore;
+        private readonly FileManager _fileManager;
+        private readonly PluginLoader _pluginLoader;
         private readonly ITextAdapter _adapter;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
@@ -41,13 +44,14 @@ namespace Kuriimu2.ViewModels
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         // Constructor
-        public TextEditor2ViewModel(KoreManager kore, KoreFileInfo koreFile)
+        public TextEditor2ViewModel(FileManager fileManager, PluginLoader pluginLoader, KoreFileInfo koreFile)
         {
-            _kore = kore;
+            _fileManager = fileManager;
+            _pluginLoader = pluginLoader;
             KoreFile = koreFile;
 
             _adapter = KoreFile.Adapter as ITextAdapter;
-            GameAdapters = _kore.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
+            GameAdapters = _pluginLoader.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
             SelectedGameAdapter = GameAdapters.FirstOrDefault();
@@ -121,7 +125,7 @@ namespace Kuriimu2.ViewModels
                 // TODO: Implement game adapter persistence
 
                 // Entries
-                LoadEntries();                
+                LoadEntries();
                 foreach (var entry in Entries)
                     entry.Edited += (sender, args) =>
                     {
@@ -220,7 +224,7 @@ namespace Kuriimu2.ViewModels
             var prop = new Dialogs.ViewModels.PropertyEditorViewModel<TextEntry>
             {
                 Message = "",
-                Object =  SelectedEntry
+                Object = SelectedEntry
             };
             _windows.Add(prop);
 

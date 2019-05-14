@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
+using Kontract;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
+using Kore.Files;
 using Kuriimu2.Dialogs.Common;
 using Microsoft.Win32;
 
@@ -15,7 +17,8 @@ namespace Kuriimu2.Dialogs.ViewModels
 {
     public sealed class OpenTypeViewModel : Screen
     {
-        private readonly Kore.KoreManager _kore;
+        private readonly FileManager _fileManager;
+        private readonly PluginLoader _pluginLoader;
 
         private string _selectedPluginType;
         private ILoadFiles _selectedFormatType;
@@ -29,14 +32,15 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public OpenTypeViewModel(Kore.KoreManager kore)
+        public OpenTypeViewModel(FileManager fileManager, PluginLoader pluginLoader)
         {
-            _kore = kore;
+            _fileManager = fileManager;
+            _pluginLoader = pluginLoader;
 
             SelectedPluginType = nameof(ITextAdapter);
         }
 
-        public List<string> PluginTypes => _kore.GetFileLoadingAdapterNames();
+        public List<string> PluginTypes => _fileManager.GetFileLoadingAdapterNames();
 
         public string SelectedPluginType
         {
@@ -58,11 +62,11 @@ namespace Kuriimu2.Dialogs.ViewModels
                 switch (SelectedPluginType)
                 {
                     case nameof(ITextAdapter):
-                        return _kore.GetAdapters<ITextAdapter>().Cast<ILoadFiles>().ToList();
+                        return _pluginLoader.GetAdapters<ITextAdapter>().Cast<ILoadFiles>().ToList();
                     case nameof(IImageAdapter):
-                        return _kore.GetAdapters<IImageAdapter>().Cast<ILoadFiles>().ToList();
+                        return _pluginLoader.GetAdapters<IImageAdapter>().Cast<ILoadFiles>().ToList();
                     case nameof(IFontAdapter):
-                        return _kore.GetAdapters<IFontAdapter>().Cast<ILoadFiles>().ToList();
+                        return _pluginLoader.GetAdapters<IFontAdapter>().Cast<ILoadFiles>().ToList();
                     default:
                         return null;
                 }

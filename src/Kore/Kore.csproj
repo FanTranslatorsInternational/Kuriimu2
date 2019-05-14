@@ -57,9 +57,10 @@
     <Compile Include="Exceptions\KPal\UnsupportedKPalVersionException.cs" />
     <Compile Include="Exceptions\RiffPal\InvalidRiffPalException.cs" />
     <Compile Include="Exceptions\RiffPal\UnsupportedRiffPaletteException.cs" />
+    <Compile Include="Files\IdentificationFailedEventArgs.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
     <Compile Include="Generators\Common.cs" />
-    <Compile Include="Kore.cs" />
+    <Compile Include="Files\FileManager.cs" />
     <Compile Include="KoreFileInfo.cs" />
     <Compile Include="KoreLoadInfo.cs" />
     <Compile Include="KoreSaveInfo.cs" />

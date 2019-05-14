@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using Kontract;
@@ -15,25 +13,15 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
-using Kontract.Interfaces.FileSystem;
 
-namespace Kore
+namespace Kore.Files
 {
     /// <summary>
-    /// Kore is the main brain library of Kuriimu. It performs all of the important and UI agnostic functions of Kuriimu.
+    /// The file manager is the main class for all file related operations.
     /// </summary>
-    public sealed class KoreManager : IDisposable
+    public sealed class FileManager : IDisposable
     {
-        /// <summary>
-        /// Stores the plugin directory that was set at construction time.
-        /// </summary>
-        private readonly string _pluginDirectory;
-
-        /// <summary>
-        /// Retrieves the PluginLoader of this Kore instance
-        /// </summary>
-        /// <returns></returns>
-        public PluginLoader PluginLoader { get; }
+        private readonly PluginLoader _pluginLoader;
 
         /// <summary>
         /// The list of currently open files being tracked by Kore.
@@ -45,59 +33,46 @@ namespace Kore
         /// </summary>
         public event EventHandler<IdentificationFailedEventArgs> IdentificationFailed;
 
-        /// <inheritdoc />
         /// <summary>
-        /// Allows the UI to display a list of blind plugins and to return one selected by the user.
+        /// Initializes a new instance of <see cref="FileManager"/>.
         /// </summary>
-        public class IdentificationFailedEventArgs : EventArgs
+        public FileManager()
         {
-            public List<ILoadFiles> BlindAdapters;
-            public string FileName;
-            public ILoadFiles SelectedAdapter = null;
+            _pluginLoader = PluginLoader.Instance;
         }
 
         /// <summary>
-        /// Initializes a new Kore instance.
+        /// Initializes a new instance of <see cref="FileManager"/> with the given <see cref="PluginLoader"/>.
         /// </summary>
-        public KoreManager()
+        /// <param name="pluginLoader">The plugin loader to use.</param>
+        public FileManager(PluginLoader pluginLoader)
         {
-            PluginLoader = PluginLoader.Instance;
-            _pluginDirectory = PluginLoader.PluginFolder;
-        }
-
-        /// <summary>
-        /// Initializes a new Kore instance with the given plugin directory.
-        /// </summary>
-        /// <param name="pluginDirectory"></param>
-        public KoreManager(string pluginDirectory)
-        {
-            PluginLoader = new PluginLoader(pluginDirectory);
-            _pluginDirectory = PluginLoader.PluginFolder;
+            _pluginLoader = pluginLoader;
         }
 
         // TEMPORARY
-        public static void ComposeSamplePlugins(object parent, CompositionContainer container)
-        {
-            // An aggregate catalog that combines multiple catalogs.
-            var catalog = new AggregateCatalog();
+        //public static void ComposeSamplePlugins(object parent, CompositionContainer container)
+        //{
+        //    // An aggregate catalog that combines multiple catalogs.
+        //    var catalog = new AggregateCatalog();
 
-            // Adds all the parts found in the same assembly as the Kore class.
-            catalog.Catalogs.Add(new AssemblyCatalog(typeof(KoreManager).Assembly));
+        //    // Adds all the parts found in the same assembly as the Kore class.
+        //    catalog.Catalogs.Add(new AssemblyCatalog(typeof(FileManager).Assembly));
 
-            // Create the CompositionContainer with the parts in the catalog if it doesn't exist.
-            if (container == null)
-                container = new CompositionContainer(catalog);
+        //    // Create the CompositionContainer with the parts in the catalog if it doesn't exist.
+        //    if (container == null)
+        //        container = new CompositionContainer(catalog);
 
-            // Fill the imports of this object.
-            container.ComposeParts(parent);
-        }
+        //    // Fill the imports of this object.
+        //    container.ComposeParts(parent);
+        //}
 
         /// <summary>
         /// Returns the currently loaded list of T type adapters.
         /// </summary>
         /// <typeparam name="T">Adapter type.</typeparam>
         /// <returns>List of adapters of type T.</returns>
-        public List<T> GetAdapters<T>() => PluginLoader.GetAdapters<T>();
+        //public List<T> GetAdapters<T>() => PluginLoader.GetAdapters<T>();
 
         /// <summary>
         /// Returns the metadata with the specified type
@@ -105,7 +80,7 @@ namespace Kore
         /// <typeparam name="T"></typeparam>
         /// <param name="adapter">Adapter to get metadata from</param>
         /// <returns></returns>
-        public T GetMetadata<T>(object adapter) where T : Attribute, IPluginMetadata => PluginLoader.GetMetadata<T>(adapter);
+        //public T GetMetadata<T>(object adapter) where T : Attribute, IPluginMetadata => PluginLoader.GetMetadata<T>(adapter);
 
         /// <summary>
         /// Returns a list of the plugin interface type names that load files.
@@ -129,21 +104,21 @@ namespace Kore
         {
             if (kli.Adapter == null)
             {
-                // Select adapter automatically
-                var adapter = SelectAdapter(kli);
+                // Select adapter automatically and if failed select it manually
+                var adapter = SelectAdapter(kli) ?? SelectAdapterManually(kli);
 
-                // Ask the user to select a plugin directly.
-                adapter = adapter ?? SelectAdapterManually(kli);
-
+                // If still no adapter was chosen, return
                 if (adapter == null) return null;
+
                 kli.Adapter = adapter;
             }
 
             // Instantiate a new instance of the adapter
             // ReSharper disable once SuspiciousTypeConversion.Global
-            kli.Adapter = PluginLoader.CreateNewAdapter<ILoadFiles>((IPlugin)kli.Adapter);
+            kli.Adapter = _pluginLoader.CreateNewAdapter<ILoadFiles>((IPlugin)kli.Adapter);
 
             // Load files(s)
+            // TODO: Make KLI contain a StreamInfo of the given file
             kli.FileData.Position = 0;
             var streamInfo = new StreamInfo
             {
@@ -153,22 +128,23 @@ namespace Kore
 
             try
             {
-                //if (kli.Adapter is IMultipleFiles multiFileAdapter)
-                //    multiFileAdapter.FileSystem = kli.FileSystem;
-
+                // TODO: Subject to remove
                 kli.Adapter.LeaveOpen = kli.LeaveOpen;
+                // Try to load the file via adapter
                 kli.Adapter.Load(streamInfo, kli.FileSystem);
             }
             catch (Exception ex)
             {
-                var pi = PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter);
+                // Catch any exception thrown by the plugin and expose it
+                var pi = _pluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter);
                 var msg = $"The {pi?.Name} plugin failed to load \"{Path.GetFileName(kli.FileName)}\".";
                 throw new LoadFileException(msg, ex);
             }
 
+            // TODO: Subject to remove
             // Check if the stream still follows the LeaveOpen restriction
             if (!kli.FileData.CanRead && kli.LeaveOpen)
-                throw new InvalidOperationException($"Plugin with ID {PluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID} closed the streams while loading the file.");
+                throw new InvalidOperationException($"Plugin with ID {_pluginLoader.GetMetadata<PluginInfoAttribute>(kli.Adapter).ID} closed the streams while loading the file.");
 
             // Create a KoreFileInfo to keep track of the now open file.
             var kfi = new KoreFileInfo
@@ -279,8 +255,6 @@ namespace Kore
         {
             var kfi = ksi.Kfi;
 
-            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
-            //    multFileAdapter.FileSystem = fs;
             kfi.Adapter.LeaveOpen = false;
 
             var newFilename = string.IsNullOrEmpty(ksi.NewSaveFile) ? Path.GetFileName(kfi.StreamFileInfo.FileName) : Path.GetFileName(ksi.NewSaveFile);
@@ -340,11 +314,6 @@ namespace Kore
                 openedFile.Close();
             }
         }
-
-        //private string UnifyPathDelimiters(string path)
-        //{
-        //    return path.Replace(RelativePath.DirectorySeparatorChar == '/' ? '\\' : '/', RelativePath.DirectorySeparatorChar);
-        //}
 
         private KoreFileInfo ReopenFiles(KoreFileInfo kfi, FullPathNode fullPathTree, string tempFolder, bool isChild)
         {
@@ -449,19 +418,13 @@ namespace Kore
         /// Closes an open file.
         /// </summary>
         /// <param name="kfi">The file to be closed.</param>
+        /// <param name="leaveFileStreamOpen">If the file stream should be left open.</param>
         /// <returns>True if file was closed, False otherwise.</returns>
         public bool CloseFile(KoreFileInfo kfi, bool leaveFileStreamOpen = false)
         {
             return CloseFile(kfi, leaveFileStreamOpen, true);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="kfi"></param>
-        /// <param name="leaveFileStreamOpen"></param>
-        /// <param name="firstIteration"></param>
-        /// <returns></returns>
         private bool CloseFile(KoreFileInfo kfi, bool leaveFileStreamOpen, bool firstIteration)
         {
             if (kfi.ChildKfi != null && kfi.ChildKfi.Count > 0)
@@ -474,8 +437,6 @@ namespace Kore
             kfi.Adapter.Dispose();
             if (!leaveFileStreamOpen)
                 kfi.StreamFileInfo.FileData.Close();
-            //if (kfi.Adapter is IMultipleFiles multFileAdapter)
-            //    multFileAdapter.FileSystem.Dispose();
 
             if (firstIteration)
             {
@@ -501,20 +462,15 @@ namespace Kore
         /// <summary>
         /// Attempts to select a compatible adapter that is capable of identifying files.
         /// </summary>
-        /// <param name="file">The file to be selected against.</param>
+        /// <param name="kli">The file to be selected against.</param>
         /// <returns>Returns a working ILoadFiles plugin or null.</returns>
         private ILoadFiles SelectAdapter(KoreLoadInfo kli)
         {
             // Return an adapter that can Identify, whose extension matches that of our filename and successfully identifies the file.
-            return PluginLoader.GetAdapters<ILoadFiles>().
-                Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Where(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
+            return _pluginLoader.GetAdapters<ILoadFiles>().
+                Where(x => _pluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x) != null).Where(x => _pluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.
                     ToLower().TrimEnd(';').Split(';').Any(s => kli.FileName.ToLower().EndsWith(s.TrimStart('*')))
-                ).Select(x =>
-                {
-                    //if (x is IMultipleFiles y)
-                    //    y.FileSystem = kli.FileSystem;
-                    return x;
-                }).FirstOrDefault(adapter => CheckAdapter(adapter, kli));
+                ).FirstOrDefault(adapter => CheckAdapter(adapter, kli));
         }
 
         /// <summary>
@@ -534,7 +490,7 @@ namespace Kore
             var res = iif.Identify(info, kli.FileSystem);
 
             if (!kli.FileData.CanRead)
-                throw new InvalidOperationException($"Plugin with ID '{PluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID}' closed the stream(s) while identifying the file(s).");
+                throw new InvalidOperationException($"Plugin with ID '{_pluginLoader.GetMetadata<PluginInfoAttribute>(adapter).ID}' closed the stream(s) while identifying the file(s).");
 
             return res;
         }
@@ -545,9 +501,9 @@ namespace Kore
         /// <returns>The selected adapter or null.</returns>
         private ILoadFiles SelectAdapterManually(KoreLoadInfo kli)
         {
-            var blindAdapters = PluginLoader.GetAdapters<ILoadFiles>().Where(a => !(a is IIdentifyFiles)).ToList();
+            var blindAdapters = _pluginLoader.GetAdapters<ILoadFiles>().Where(a => !(a is IIdentifyFiles)).ToList();
 
-            var args = new IdentificationFailedEventArgs { BlindAdapters = blindAdapters, FileName = kli.FileName };
+            var args = new IdentificationFailedEventArgs(kli.FileName, blindAdapters);
             IdentificationFailed?.Invoke(this, args);
 
             return args.SelectedAdapter;
@@ -561,12 +517,12 @@ namespace Kore
             get
             {
                 // Add all of the adapter filters
-                var allTypes = PluginLoader.
+                var allTypes = _pluginLoader.
                     GetAdapters<ILoadFiles>().
                     Select(x => new
                     {
-                        Name = PluginLoader.GetMetadata<PluginInfoAttribute>(x)?.Name,
-                        Extension = PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x)?.Extension.ToLower()
+                        Name = _pluginLoader.GetMetadata<PluginInfoAttribute>(x)?.Name,
+                        Extension = _pluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x)?.Extension.ToLower()
                     }).
                     OrderBy(o => o.Name).ToList();
 
@@ -591,7 +547,7 @@ namespace Kore
         public string FileFiltersByType<T>(string allSupportedFiles = "", bool includeAllFiles = false)
         {
             // Add all of the adapter filters
-            var allTypes = PluginLoader.GetAdapters<T>().Select(x => new { PluginLoader.GetMetadata<PluginInfoAttribute>(x).Name, Extension = PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
+            var allTypes = _pluginLoader.GetAdapters<T>().Select(x => new { _pluginLoader.GetMetadata<PluginInfoAttribute>(x).Name, Extension = _pluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower() }).OrderBy(o => o.Name).ToList();
 
             // Add the special all supported files filter
             if (allTypes.Count > 0 && !string.IsNullOrEmpty(allSupportedFiles))
@@ -611,7 +567,7 @@ namespace Kore
         /// <returns></returns>
         public IEnumerable<string> FileExtensionsByType<T>()
         {
-            return PluginLoader.GetAdapters<T>().Select(x => PluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower().TrimStart('*')).OrderBy(o => o);
+            return _pluginLoader.GetAdapters<T>().Select(x => _pluginLoader.GetMetadata<PluginExtensionInfoAttribute>(x).Extension.ToLower().TrimStart('*')).OrderBy(o => o);
         }
 
         /// <inheritdoc />
@@ -626,7 +582,7 @@ namespace Kore
 
         private List<ILoadFiles> Debug()
         {
-            return PluginLoader.GetAdapters<ILoadFiles>();
+            return _pluginLoader.GetAdapters<ILoadFiles>();
             //var sb = new StringBuilder();
 
             //foreach (var adapter in _fileAdapters)

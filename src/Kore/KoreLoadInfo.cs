@@ -10,6 +10,7 @@ using Kontract.FileSystem.Nodes.Abstract;
 
 namespace Kore
 {
+    // TODO: Documentation and proper creation of the object
     public class KoreLoadInfo
     {
         public string FileName { get; }
