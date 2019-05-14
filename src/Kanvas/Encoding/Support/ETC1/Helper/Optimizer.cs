@@ -219,7 +219,7 @@ namespace Kanvas.Encoding.Support.ETC1.Helper
                 }
             }
 
-            block = default;
+            block = new Block();
             return false;
         }
 

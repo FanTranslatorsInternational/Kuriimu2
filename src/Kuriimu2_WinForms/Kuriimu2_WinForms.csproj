@@ -37,7 +37,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>images\kuriimu2winforms.ico</ApplicationIcon>
+    <ApplicationIcon>Images\kuriimu2winforms.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cyotek.Windows.Forms.ImageBox, Version=1.2.0.0, Culture=neutral, PublicKeyToken=58daa28b0b2de221, processorArchitecture=MSIL">
@@ -182,95 +182,95 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-batch-archive.png" />
+    <None Include="Images\menu-batch-archive.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-batch-extract.png" />
+    <None Include="Images\menu-batch-extract.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-find.png" />
+    <None Include="Images\menu-find.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-new.png" />
+    <None Include="Images\menu-new.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-properties.png" />
+    <None Include="Images\menu-properties.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-save.png" />
+    <None Include="Images\menu-save.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-save-as.png" />
+    <None Include="Images\menu-save-as.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-directory-open.png" />
+    <None Include="Images\tree-directory-open.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-archive-file.png" />
+    <None Include="Images\tree-archive-file.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-archive-file-32.png" />
+    <None Include="Images\tree-archive-file-32.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-directory.png" />
+    <None Include="Images\tree-directory.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-directory-32.png" />
+    <None Include="Images\tree-directory-32.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-image-file.png" />
+    <None Include="Images\tree-image-file.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-image-file-32.png" />
+    <None Include="Images\tree-image-file-32.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-text-file.png" />
+    <None Include="Images\tree-text-file.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\tree-text-file-32.png" />
+    <None Include="Images\tree-text-file-32.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-delete.png" />
+    <None Include="Images\menu-delete.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-export.png" />
+    <None Include="Images\menu-export.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-field-properties.png" />
+    <None Include="Images\menu-field-properties.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-import.png" />
+    <None Include="Images\menu-import.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-add.png" />
+    <None Include="Images\menu-add.png" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="images\image-export.png" />
+    <None Include="Images\image-export.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\import-import.png" />
+    <None Include="Images\import-import.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-batch-export.png" />
+    <None Include="Images\menu-batch-export.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-batch-import.png" />
+    <None Include="Images\menu-batch-import.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-border-drop-shadow.png" />
+    <None Include="Images\menu-border-drop-shadow.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-border-glow-shadow.png" />
+    <None Include="Images\menu-border-glow-shadow.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-border-none.png" />
+    <None Include="Images\menu-border-none.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\menu-border-simple.png" />
+    <None Include="Images\menu-border-simple.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\kuriimu2winforms.ico" />
+    <None Include="Images\kuriimu2winforms.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

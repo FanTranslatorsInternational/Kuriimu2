@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Controls;
 
 namespace Kontract.Attributes
 {
@@ -20,12 +19,12 @@ namespace Kontract.Attributes
         public string DisplayName { get; }
 
         /// <summary>
-        /// The minimum length of the string that is expected in the <see cref="TextBox"/>.
+        /// The minimum length of the string that is expected in the TextBox.
         /// </summary>
         public int MinLength { get; }
 
         /// <summary>
-        /// The maximum length of the string that is expected in the <see cref="TextBox"/>.
+        /// The maximum length of the string that is expected in the TextBox
         /// </summary>
         public int MaxLength { get; }
 
@@ -35,8 +34,8 @@ namespace Kontract.Attributes
         /// </summary>
         /// <param name="type">The data type that the form will cast to and from.</param>
         /// <param name="displayName">The display name of the member on the form field label.</param>
-        /// <param name="minLength">The minimum length of the string that is expected in the <see cref="TextBox"/>.</param>
-        /// <param name="maxLength">The maximum length of the string that is expected in the <see cref="TextBox"/>.</param>
+        /// <param name="minLength">The minimum length of the string that is expected in the TextBox.</param>
+        /// <param name="maxLength">The maximum length of the string that is expected in the TextBox.</param>
         public FormFieldAttribute(Type type, string displayName = "", int minLength = 0, int maxLength = 0)
         {
             Type = type;
