@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Kontract.FileSystem2.Exceptions;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Exceptions;
+using Kontract.FileSystem.Nodes.Abstract;
 
 [assembly: InternalsVisibleTo("KontractUnitTests")]
 
-namespace Kontract.FileSystem2.Nodes.Physical
+namespace Kontract.FileSystem.Nodes.Physical
 {
     public sealed class PhysicalDirectoryNode : BaseDirectoryNode<string, string>
     {

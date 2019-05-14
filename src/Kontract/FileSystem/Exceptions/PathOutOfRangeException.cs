@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Kontract.FileSystem2.Exceptions
+namespace Kontract.FileSystem.Exceptions
 {
     [Serializable]
     public class PathOutOfRangeException : Exception

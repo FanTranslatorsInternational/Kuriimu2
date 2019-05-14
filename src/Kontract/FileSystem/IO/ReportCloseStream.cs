@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Kontract.FileSystem2.IO
+namespace Kontract.FileSystem.IO
 {
     /// <summary>
     /// A <see cref="Stream"/> which reports a closing action.

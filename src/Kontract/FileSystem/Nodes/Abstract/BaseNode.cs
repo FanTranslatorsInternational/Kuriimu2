@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Kontract.FileSystem2.Nodes.Abstract
+namespace Kontract.FileSystem.Nodes.Abstract
 {
     /// <summary>
     /// The base node.

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Abstract;
 
 namespace Kontract.Interfaces.Common
 {

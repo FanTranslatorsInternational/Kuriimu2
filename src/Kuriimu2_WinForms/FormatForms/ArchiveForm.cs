@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
-using Kontract.FileSystem2;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Image;

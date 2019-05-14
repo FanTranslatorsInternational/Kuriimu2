@@ -1,4 +1,4 @@
-﻿using Kontract.FileSystem2.Nodes.Physical;
+﻿using Kontract.FileSystem.Nodes.Physical;
 
 namespace Kontract.Interfaces.Common
 {

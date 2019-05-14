@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Kontract.FileSystem2.Exceptions;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Exceptions;
+using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces.Archive;
 
-namespace Kontract.FileSystem2.Nodes.Afi
+namespace Kontract.FileSystem.Nodes.Afi
 {
     public sealed class AfiDirectoryNode : BaseDirectoryNode<AfiDirectoryNode, ArchiveFileInfo>
     {

@@ -7,9 +7,8 @@ using System.Linq;
 using Kontract;
 using Kontract.Attributes;
 using Kontract.FileSystem;
-using Kontract.FileSystem2;
-using Kontract.FileSystem2.Nodes.Abstract;
-using Kontract.FileSystem2.Nodes.Physical;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Physical;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
@@ -308,7 +307,7 @@ namespace Kore
             foreach (var file in physicalFs.EnumerateFiles())
             {
                 var openedFile = file.Open();
-                var afi = parentAdapter.Files.FirstOrDefault(x => Kontract.FileSystem2.Common.UnifyPath(x.FileName) == file.RelativePath);
+                var afi = parentAdapter.Files.FirstOrDefault(x => Common.UnifyPath(x.FileName) == file.RelativePath);
                 if (afi != null)
                 {
                     afi.FileData.Dispose();

@@ -57,7 +57,6 @@
     <Compile Include="filesystem\folder2\subfolder1_2\Class4.cs" />
     <Compile Include="filesystem\folder3\subfolder1_3\Class5.cs" />
     <Compile Include="FsTests.cs" />
-    <Compile Include="VirtualFS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

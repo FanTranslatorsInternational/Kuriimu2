@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Abstract;
 
 namespace Kore
 {

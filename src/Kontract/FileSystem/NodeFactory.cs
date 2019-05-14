@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.FileSystem2.Nodes.Abstract;
-using Kontract.FileSystem2.Nodes.Afi;
-using Kontract.FileSystem2.Nodes.Physical;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Afi;
+using Kontract.FileSystem.Nodes.Physical;
 using Kontract.Interfaces.Archive;
 
-namespace Kontract.FileSystem2
+namespace Kontract.FileSystem
 {
     public static class NodeFactory
     {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Kontract.FileSystem2;
-using Kontract.FileSystem2.Exceptions;
-using Kontract.FileSystem2.Nodes.Abstract;
-using Kontract.FileSystem2.Nodes.Afi;
+using Kontract.FileSystem;
+using Kontract.FileSystem.Exceptions;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Afi;
 using Kontract.Interfaces.Archive;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

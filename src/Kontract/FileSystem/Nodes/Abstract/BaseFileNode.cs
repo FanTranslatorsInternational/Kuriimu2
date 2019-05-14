@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Kontract.FileSystem2.Nodes.Abstract
+namespace Kontract.FileSystem.Nodes.Abstract
 {
     /// <summary>
     /// The base file node.

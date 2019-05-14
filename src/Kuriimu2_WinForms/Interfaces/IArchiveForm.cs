@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces;
 
 namespace Kuriimu2_WinForms.Interfaces

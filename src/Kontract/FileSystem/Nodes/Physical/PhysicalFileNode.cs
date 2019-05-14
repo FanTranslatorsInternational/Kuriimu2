@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
-using Kontract.FileSystem2.Exceptions;
-using Kontract.FileSystem2.IO;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Exceptions;
+using Kontract.FileSystem.IO;
+using Kontract.FileSystem.Nodes.Abstract;
 
-namespace Kontract.FileSystem2.Nodes.Physical
+namespace Kontract.FileSystem.Nodes.Physical
 {
     public sealed class PhysicalFileNode : BaseFileNode
     {

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using Kontract.FileSystem2.Exceptions;
+using Kontract.FileSystem.Exceptions;
 
-namespace Kontract.FileSystem2.Nodes.Abstract
+namespace Kontract.FileSystem.Nodes.Abstract
 {
     /// <summary>
     /// The base directory node.

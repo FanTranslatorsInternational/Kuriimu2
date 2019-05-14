@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
-using Kontract.FileSystem2.IO;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.IO;
+using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces.Archive;
 
-namespace Kontract.FileSystem2.Nodes.Afi
+namespace Kontract.FileSystem.Nodes.Afi
 {
     public sealed class AfiFileNode : BaseFileNode
     {

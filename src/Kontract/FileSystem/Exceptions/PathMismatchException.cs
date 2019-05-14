@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces.Archive;
 
-namespace Kontract.FileSystem2.Exceptions
+namespace Kontract.FileSystem.Exceptions
 {
     [Serializable]
     public class PathMismatchException : Exception
