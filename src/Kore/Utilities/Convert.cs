@@ -188,8 +188,10 @@ namespace Kore.Utilities
 
         public static int ChangeBitDepth(int value, int bitDepthFrom, int bitDepthTo)
         {
-            if (bitDepthTo < 0 || bitDepthFrom < 0)
-                throw new Exception("BitDepths can't be negative!");
+            if (bitDepthTo < 0)
+                throw new ArgumentOutOfRangeException(nameof(bitDepthTo));
+            if (bitDepthFrom < 0)
+                throw new ArgumentOutOfRangeException(nameof(bitDepthFrom));
             if (bitDepthFrom == 0 || bitDepthTo == 0)
                 return 0;
             if (bitDepthFrom == bitDepthTo)

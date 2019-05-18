@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 using Kore.Files;
+using Kore.Files.Models;
 
 namespace Kore.Utilities
 {

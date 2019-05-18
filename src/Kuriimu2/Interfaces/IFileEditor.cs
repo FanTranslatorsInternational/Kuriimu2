@@ -1,4 +1,5 @@
 ﻿using Kore;
+using Kore.Files.Models;
 
 namespace Kuriimu2.Interfaces
 {

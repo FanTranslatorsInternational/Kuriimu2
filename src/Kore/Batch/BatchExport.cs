@@ -11,6 +11,7 @@ using Kontract.Interfaces.Text;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Models;
 using Kore.Files;
+using Kore.Files.Models;
 
 namespace Kore.Batch
 {

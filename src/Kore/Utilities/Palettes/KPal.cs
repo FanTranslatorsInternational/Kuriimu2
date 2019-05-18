@@ -5,7 +5,7 @@ using System.Text;
 using Kore.Exceptions.KPal;
 using Kore.Utilities.Models;
 
-namespace Kore.Utilities
+namespace Kore.Utilities.Palettes
 {
     public class KPal
     {

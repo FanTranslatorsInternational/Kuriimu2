@@ -14,6 +14,7 @@ using Kontract.Models;
 using Kontract.Models.Image;
 using Kore;
 using Kore.Files;
+using Kore.Files.Models;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;
 using Kuriimu2.Tools;

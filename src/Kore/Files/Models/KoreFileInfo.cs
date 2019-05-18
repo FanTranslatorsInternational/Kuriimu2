@@ -2,11 +2,10 @@
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
 
-namespace Kore
+namespace Kore.Files.Models
 {
     /// <inheritdoc />
     /// <summary>

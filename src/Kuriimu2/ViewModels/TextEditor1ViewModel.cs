@@ -7,6 +7,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kore.Files.Models;
 using Kuriimu2.Interfaces;
 
 namespace Kuriimu2.ViewModels

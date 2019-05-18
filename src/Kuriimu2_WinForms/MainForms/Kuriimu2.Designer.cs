@@ -33,6 +33,14 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.textSequenceSearcherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.batchProcessorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ciphersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compressionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.rawImageViewerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.imageTranscoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
@@ -47,7 +55,13 @@
             // mnuMain
             // 
             this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem});
+            this.fileToolStripMenuItem,
+            this.toolsToolStripMenuItem,
+            this.ciphersToolStripMenuItem,
+            this.hashesToolStripMenuItem,
+            this.compressionsToolStripMenuItem,
+            this.rawImageViewerToolStripMenuItem,
+            this.imageTranscoderToolStripMenuItem});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
             this.mnuMain.Padding = new System.Windows.Forms.Padding(2, 2, 0, 2);
@@ -77,6 +91,66 @@
             this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.openWithPluginToolStripMenuItem.Text = "Open with &Plugin";
             this.openWithPluginToolStripMenuItem.Click += new System.EventHandler(this.openWithPluginToolStripMenuItem_Click);
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.textSequenceSearcherToolStripMenuItem,
+            this.batchProcessorToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // textSequenceSearcherToolStripMenuItem
+            // 
+            this.textSequenceSearcherToolStripMenuItem.Name = "textSequenceSearcherToolStripMenuItem";
+            this.textSequenceSearcherToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.textSequenceSearcherToolStripMenuItem.Text = "Text Sequence Searcher";
+            this.textSequenceSearcherToolStripMenuItem.Click += new System.EventHandler(this.TextSequenceSearcherToolStripMenuItem_Click);
+            // 
+            // batchProcessorToolStripMenuItem
+            // 
+            this.batchProcessorToolStripMenuItem.Enabled = false;
+            this.batchProcessorToolStripMenuItem.Name = "batchProcessorToolStripMenuItem";
+            this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.batchProcessorToolStripMenuItem.Text = "Batch Processor";
+            // 
+            // ciphersToolStripMenuItem
+            // 
+            this.ciphersToolStripMenuItem.Enabled = false;
+            this.ciphersToolStripMenuItem.Name = "ciphersToolStripMenuItem";
+            this.ciphersToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
+            this.ciphersToolStripMenuItem.Text = "Ciphers";
+            // 
+            // hashesToolStripMenuItem
+            // 
+            this.hashesToolStripMenuItem.Enabled = false;
+            this.hashesToolStripMenuItem.Name = "hashesToolStripMenuItem";
+            this.hashesToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
+            this.hashesToolStripMenuItem.Text = "Hashes";
+            // 
+            // compressionsToolStripMenuItem
+            // 
+            this.compressionsToolStripMenuItem.Enabled = false;
+            this.compressionsToolStripMenuItem.Name = "compressionsToolStripMenuItem";
+            this.compressionsToolStripMenuItem.Size = new System.Drawing.Size(94, 20);
+            this.compressionsToolStripMenuItem.Text = "Compressions";
+            // 
+            // rawImageViewerToolStripMenuItem
+            // 
+            this.rawImageViewerToolStripMenuItem.Enabled = false;
+            this.rawImageViewerToolStripMenuItem.Name = "rawImageViewerToolStripMenuItem";
+            this.rawImageViewerToolStripMenuItem.Size = new System.Drawing.Size(115, 20);
+            this.rawImageViewerToolStripMenuItem.Text = "Raw Image Viewer";
+            this.rawImageViewerToolStripMenuItem.Click += new System.EventHandler(this._imgDecToolStrip_Click);
+            // 
+            // imageTranscoderToolStripMenuItem
+            // 
+            this.imageTranscoderToolStripMenuItem.Enabled = false;
+            this.imageTranscoderToolStripMenuItem.Name = "imageTranscoderToolStripMenuItem";
+            this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(113, 20);
+            this.imageTranscoderToolStripMenuItem.Text = "Image Transcoder";
+            this.imageTranscoderToolStripMenuItem.Click += new System.EventHandler(this._imgTransToolStrip_Click);
             // 
             // openFiles
             // 
@@ -169,6 +243,14 @@
         private Controls.InfoToolStripProgressBar operationProgress;
         private System.Windows.Forms.ToolStripStatusLabel operationTimer;
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem textSequenceSearcherToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem batchProcessorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ciphersToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem hashesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem compressionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem rawImageViewerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem imageTranscoderToolStripMenuItem;
     }
 }
 

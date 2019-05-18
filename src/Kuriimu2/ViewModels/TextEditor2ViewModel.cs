@@ -15,6 +15,7 @@ using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using Kore;
 using Kore.Files;
+using Kore.Files.Models;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;

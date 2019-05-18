@@ -1,13 +1,6 @@
-﻿using Kontract.Interfaces.Archive;
-using Kontract.Interfaces.FileSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kore
+﻿namespace Kore.Files.Models
 {
+    // TODO: Documentation and proper creation of the object
     public class KoreSaveInfo
     {
         public KoreSaveInfo(KoreFileInfo kfi, string tempFolder)

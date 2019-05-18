@@ -1,14 +1,8 @@
-﻿using Kontract.Interfaces.Common;
-using Kontract.Interfaces.FileSystem;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.Interfaces.Common;
 
-namespace Kore
+namespace Kore.Files.Models
 {
     // TODO: Documentation and proper creation of the object
     public class KoreLoadInfo

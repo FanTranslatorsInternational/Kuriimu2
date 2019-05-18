@@ -14,6 +14,7 @@ using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Text;
 using Kontract.Models;
 using Kore;
+using Kore.Files.Models;
 using Kuriimu2_WinForms.Interfaces;
 
 namespace Kuriimu2_WinForms.FormatForms

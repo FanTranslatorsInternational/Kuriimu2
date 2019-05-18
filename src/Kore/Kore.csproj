@@ -51,27 +51,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Batch\BatchExport.cs" />
-    <Compile Include="Enumerations.cs" />
-    <Compile Include="Exceptions.cs" />
+    <Compile Include="Exceptions\FileManager\LoadFileExceptions.cs" />
     <Compile Include="Exceptions\KPal\InvalidKPalException.cs" />
     <Compile Include="Exceptions\KPal\UnsupportedKPalVersionException.cs" />
     <Compile Include="Exceptions\RiffPal\InvalidRiffPalException.cs" />
     <Compile Include="Exceptions\RiffPal\UnsupportedRiffPaletteException.cs" />
-    <Compile Include="Files\IdentificationFailedEventArgs.cs" />
+    <Compile Include="Files\Models\IdentificationFailedEventArgs.cs" />
     <Compile Include="Generators\BitmapFontGeneratorGdi.cs" />
     <Compile Include="Generators\Common.cs" />
     <Compile Include="Files\FileManager.cs" />
-    <Compile Include="KoreFileInfo.cs" />
-    <Compile Include="KoreLoadInfo.cs" />
-    <Compile Include="KoreSaveInfo.cs" />
+    <Compile Include="Files\Models\KoreFileInfo.cs" />
+    <Compile Include="Files\Models\KoreLoadInfo.cs" />
+    <Compile Include="Files\Models\KoreSaveInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Common.cs" />
     <Compile Include="Utilities\Convert.cs" />
     <Compile Include="Utilities\Image.cs" />
-    <Compile Include="Utilities\KPal.cs" />
+    <Compile Include="Utilities\KmpSearcher.cs" />
+    <Compile Include="Utilities\Models\SequenceSearchResult.cs" />
+    <Compile Include="Utilities\Palettes\KPal.cs" />
     <Compile Include="Utilities\Models\ByteOrder.cs" />
-    <Compile Include="Utilities\RiffPal.cs" />
+    <Compile Include="Utilities\Palettes\RiffPal.cs" />
     <Compile Include="Utilities\Text.cs" />
+    <Compile Include="Utilities\TextSequenceSearcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Kontract\Kontract.csproj">

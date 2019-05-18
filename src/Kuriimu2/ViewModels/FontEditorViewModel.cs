@@ -12,6 +12,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kore;
+using Kore.Files.Models;
 using Kuriimu2.Dialogs.Common;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;

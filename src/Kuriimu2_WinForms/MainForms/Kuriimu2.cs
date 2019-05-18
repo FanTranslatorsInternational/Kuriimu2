@@ -23,6 +23,7 @@ using Kontract.Models.Intermediate;
 using Kontract.Providers.Models;
 using Kore;
 using Kore.Files;
+using Kore.Files.Models;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
@@ -39,13 +40,7 @@ namespace Kuriimu2_WinForms.MainForms
         private Timer _timer;
         private Stopwatch _globalOperationWatch;
 
-        private ToolStripMenuItem _cipherToolStrip;
-        private ToolStripMenuItem _hashToolStrip;
-        private ToolStripMenuItem _compToolStrip;
-
-        private ToolStripMenuItem _imgDecToolStrip;
-        private ToolStripMenuItem _imgTransToolStrip;
-
+        private SequenceSearcher _sequenceSearcher;
         private RawImageViewer _rawImgViewer;
         private ImageTranscoder _transcodeImgViewer;
 
@@ -65,6 +60,7 @@ namespace Kuriimu2_WinForms.MainForms
 
             Icon = Resources.kuriimu2winforms;
 
+            _sequenceSearcher = new SequenceSearcher();
             _rawImgViewer = new RawImageViewer(_pluginLoader);
             _transcodeImgViewer = new ImageTranscoder(_pluginLoader);
 
@@ -110,43 +106,31 @@ namespace Kuriimu2_WinForms.MainForms
             var ciphers = _pluginLoader.GetAdapters<ICipherAdapter>();
             var cipherMenuBuilder = new ToolStripMenuBuilder<ICipherAdapter>(ciphers, AddCipherDelegates);
 
-            _cipherToolStrip = new ToolStripMenuItem("Ciphers");
-            cipherMenuBuilder.AddTreeToMenuStrip(_cipherToolStrip);
-            mnuMain.Items.Add(_cipherToolStrip);
-            _cipherToolStrip.Enabled = _cipherToolStrip.DropDownItems.Count > 0;
+            cipherMenuBuilder.AddTreeToMenuStrip(ciphersToolStripMenuItem);
+            ciphersToolStripMenuItem.Enabled = ciphersToolStripMenuItem.DropDownItems.Count > 0;
         }
 
         //private void LoadHashes()
         //{
-        //    var hashes = _fileManager.PluginLoader.GetAdapters<IHashAdapter>();
+        //    var hashes = _pluginLoader.GetAdapters<IHashAdapter>();
         //    var hashMenuBuilder = new ToolStripMenuBuilder<IHashAdapter>(hashes, AddHashDelegates);
 
-        //    _hashToolStrip = new ToolStripMenuItem("Hashes");
-        //    hashMenuBuilder.AddTreeToMenuStrip(_hashToolStrip);
-        //mnuMain.Items.Add(_hashToolStrip);
-        //_hashToolStrip.Enabled = _hashToolStrip.DropDownItems.Count > 0;
+        //    hashMenuBuilder.AddTreeToMenuStrip(hashesToolStripMenuItem);
+        //    hashesToolStripMenuItem.Enabled = hashesToolStripMenuItem.DropDownItems.Count > 0;
         //}
 
         //private void LoadCompressions()
         //{
-        //    var compressions = _fileManager.PluginLoader.GetAdapters<ICompressionAdapter>();
+        //    var compressions = _pluginLoader.GetAdapters<ICompressionAdapter>();
         //    var compMenuBuilder = new ToolStripMenuBuilder<ICompressionAdapter>(compressions, AddCompressionDelegates);
 
-        //    _compToolStrip = new ToolStripMenuItem("Compressions");
-        //    compMenuBuilder.AddTreeToMenuStrip(_compToolStrip);
-        //mnuMain.Items.Add(_compToolStrip);
-        //_compToolStrip.Enabled = _compToolStrip.DropDownItems.Count > 0;
+        //    compMenuBuilder.AddTreeToMenuStrip(compressionsToolStripMenuItem);
+        //    compressionsToolStripMenuItem.Enabled = compressionsToolStripMenuItem.DropDownItems.Count > 0;
         //}
 
         private void LoadRawImageViewer()
         {
-            var imgAdapters = _pluginLoader.GetAdapters<IColorEncodingAdapter>();
-
-            _imgDecToolStrip = new ToolStripMenuItem("Raw Image Viewer");
-            _imgDecToolStrip.Click += _imgDecToolStrip_Click;
-            _imgDecToolStrip.Enabled = imgAdapters.Any();
-
-            mnuMain.Items.Add(_imgDecToolStrip);
+            rawImageViewerToolStripMenuItem.Enabled = _pluginLoader.GetAdapters<IColorEncodingAdapter>().Any();
         }
 
         private void _imgDecToolStrip_Click(object sender, EventArgs e)
@@ -156,13 +140,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void LoadImageTranscoder()
         {
-            var imgAdapters = _pluginLoader.GetAdapters<IColorEncodingAdapter>();
-
-            _imgTransToolStrip = new ToolStripMenuItem("Image Transcoder");
-            _imgTransToolStrip.Click += _imgTransToolStrip_Click;
-            _imgTransToolStrip.Enabled = imgAdapters.Any();
-
-            mnuMain.Items.Add(_imgTransToolStrip);
+            imageTranscoderToolStripMenuItem.Enabled = _pluginLoader.GetAdapters<IColorEncodingAdapter>().Any();
         }
 
         private void _imgTransToolStrip_Click(object sender, EventArgs e)
@@ -352,6 +330,7 @@ namespace Kuriimu2_WinForms.MainForms
         #region Utilities
 
         #region Ciphers
+
         private async void DoCipher(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> cipherFunc)
         {
             // File to open
@@ -370,7 +349,7 @@ namespace Kuriimu2_WinForms.MainForms
                 return;
             }
 
-            _cipherToolStrip.Enabled = false;
+            ciphersToolStripMenuItem.Enabled = false;
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
 
@@ -387,7 +366,7 @@ namespace Kuriimu2_WinForms.MainForms
             openFileStream.Close();
             saveFileStream.Close();
 
-            _cipherToolStrip.Enabled = true;
+            ciphersToolStripMenuItem.Enabled = true;
         }
 
         private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher, bool ignoreDecrypt, bool ignoreEncrypt)
@@ -410,6 +389,7 @@ namespace Kuriimu2_WinForms.MainForms
                 item?.DropDownItems.Add(encItem);
             }
         }
+
         #endregion
 
         #region Open File
@@ -670,5 +650,10 @@ namespace Kuriimu2_WinForms.MainForms
         #endregion
 
         #endregion
+
+        private void TextSequenceSearcherToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _sequenceSearcher.ShowDialog();
+        }
     }
 }

@@ -13,6 +13,7 @@ using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
 using Kore.Files;
+using Kore.Files.Models;
 using Kore.Utilities;
 using Kuriimu2.Dialogs.ViewModels;
 using Kuriimu2.Interfaces;

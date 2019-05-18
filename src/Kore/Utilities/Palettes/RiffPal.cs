@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Kore.Exceptions;
 using Kore.Exceptions.RiffPal;
 using Kore.Utilities.Models;
 
-namespace Kore.Utilities
+namespace Kore.Utilities.Palettes
 {
     public class RiffPal
     {

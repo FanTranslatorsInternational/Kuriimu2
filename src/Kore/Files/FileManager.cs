@@ -13,6 +13,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
+using Kore.Files.Models;
 
 namespace Kore.Files
 {

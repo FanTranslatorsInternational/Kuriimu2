@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces;
+using Kore.Files.Models;
 
 namespace Kuriimu2_WinForms.Interfaces
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Kontract.Interfaces.Common;
 
-namespace Kore.Files
+namespace Kore.Files.Models
 {
     /// <summary>
     /// Allows the UI to display a list of blind plugins and to return one selected by the user.
