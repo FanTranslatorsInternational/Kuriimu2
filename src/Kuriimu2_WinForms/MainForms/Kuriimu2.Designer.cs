@@ -114,6 +114,7 @@
             this.batchProcessorToolStripMenuItem.Name = "batchProcessorToolStripMenuItem";
             this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.batchProcessorToolStripMenuItem.Text = "Batch Processor";
+            this.batchProcessorToolStripMenuItem.Click += new System.EventHandler(this.BatchProcessorToolStripMenuItem_Click);
             // 
             // ciphersToolStripMenuItem
             // 

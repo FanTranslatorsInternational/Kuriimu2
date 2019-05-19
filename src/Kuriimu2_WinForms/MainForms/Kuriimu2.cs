@@ -655,5 +655,10 @@ namespace Kuriimu2_WinForms.MainForms
         {
             _sequenceSearcher.ShowDialog();
         }
+
+        private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

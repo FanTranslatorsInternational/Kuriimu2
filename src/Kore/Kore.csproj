@@ -51,6 +51,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Batch\BatchExport.cs" />
+    <Compile Include="Batch\BatchProcessor.cs" />
+    <Compile Include="Batch\ProcessElement.cs" />
+    <Compile Include="Batch\Processors\DecryptProcessor.cs" />
+    <Compile Include="Batch\Processors\EncryptProcessor.cs" />
+    <Compile Include="Batch\Processors\IBatchProcessor.cs" />
     <Compile Include="Exceptions\FileManager\LoadFileExceptions.cs" />
     <Compile Include="Exceptions\KPal\InvalidKPalException.cs" />
     <Compile Include="Exceptions\KPal\UnsupportedKPalVersionException.cs" />
