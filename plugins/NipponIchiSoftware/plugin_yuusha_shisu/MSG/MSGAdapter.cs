@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Kontract.Attributes;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Physical;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
@@ -29,12 +31,12 @@ namespace plugin_yuusha_shisu.MSG
 
         #endregion
 
-        public void Load(StreamInfo input)
+        public void Load(StreamInfo input, BaseReadOnlyDirectoryNode node)
         {
             _format = new MSG(input.FileData);
         }
 
-        public void Save(StreamInfo output, int versionIndex = 0)
+        public void Save(StreamInfo output, PhysicalDirectoryNode node, int versionIndex = 0)
         {
             _format.Save(output.FileData);
         }

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Physical;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Archive;
 using Kontract.Interfaces.Common;
-using System.Linq;
-using Kontract.Interfaces;
 
 namespace plugin_yuusha_shisu.PAC
 {
@@ -25,7 +27,7 @@ namespace plugin_yuusha_shisu.PAC
 
         #endregion
 
-        public bool Identify(StreamInfo fileInfo)
+        public bool Identify(StreamInfo fileInfo, BaseReadOnlyDirectoryNode node)
         {
             try
             {
@@ -37,7 +39,7 @@ namespace plugin_yuusha_shisu.PAC
             }
         }
 
-        void ILoadFiles.Load(StreamInfo fileInfo)
+        void ILoadFiles.Load(StreamInfo fileInfo, BaseReadOnlyDirectoryNode node)
         {
             _format = new PAC(fileInfo.FileData);
 
@@ -47,7 +49,7 @@ namespace plugin_yuusha_shisu.PAC
                     afi.PluginNames = new string[] { "plugin_yuusha_shisu_msg" };
         }
 
-        public void Save(StreamInfo primaryFile, int versionIndex = 0)
+        public void Save(StreamInfo primaryFile, PhysicalDirectoryNode node, int versionIndex = 0)
         {
             _format.Save(primaryFile.FileData);
         }
