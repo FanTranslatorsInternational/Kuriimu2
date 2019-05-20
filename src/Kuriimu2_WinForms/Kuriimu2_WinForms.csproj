@@ -134,7 +134,9 @@
     <Compile Include="MainForms\RawImageViewer.Designer.cs">
       <DependentUpon>RawImageViewer.cs</DependentUpon>
     </Compile>
-    <Compile Include="ToolStripMenuBuilder.cs" />
+    <Compile Include="ToolStripMenuBuilders\CipherToolStripMenuBuilder.cs" />
+    <Compile Include="ToolStripMenuBuilders\CompressionToolStripMenuBuilder.cs" />
+    <Compile Include="ToolStripMenuBuilders\HashToolStripMenuBuilder.cs" />
     <EmbeddedResource Include="MainForms\Batch.resx">
       <DependentUpon>Batch.cs</DependentUpon>
       <SubType>Designer</SubType>

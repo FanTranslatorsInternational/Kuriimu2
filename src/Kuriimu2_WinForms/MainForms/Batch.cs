@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract;
 using Kontract.Attributes.Intermediate;
@@ -11,7 +9,6 @@ using Kontract.Interfaces.Intermediate;
 using Kontract.Models;
 using Kore.Batch;
 using Kore.Batch.Processors;
-using Kore.Utilities;
 using Kuriimu2_WinForms.MainForms.Models;
 using Kuriimu2_WinForms.Properties;
 
@@ -48,10 +45,10 @@ namespace Kuriimu2_WinForms.MainForms
 
             if (_pluginLoader.GetAdapters<ICipherAdapter>().Any())
                 cmbBatchType.Items.Add(new ComboBoxElement(typeof(ICipherAdapter), "Cipher"));
-            //if (_pluginLoader.GetAdapters<ICompressionAdapter>().Any())
-            //cmbBatchType.Items.Add(new ComboBoxElement(typeof(ICompressionAdapter), "Compression"));
-            //if (_pluginLoader.GetAdapters<IHashAdapter>().Any())
-            //cmbBatchType.Items.Add(new ComboBoxElement(typeof(IHashAdapter), "Hash"));
+            if (_pluginLoader.GetAdapters<ICompressionAdapter>().Any())
+                cmbBatchType.Items.Add(new ComboBoxElement(typeof(ICompressionAdapter), "Compression"));
+            if (_pluginLoader.GetAdapters<IHashAdapter>().Any())
+                cmbBatchType.Items.Add(new ComboBoxElement(typeof(IHashAdapter), "Hash"));
 
             var count = cmbBatchType.Items.Count;
             cmbBatchType.Enabled = count > 0;
@@ -63,19 +60,22 @@ namespace Kuriimu2_WinForms.MainForms
         {
             cmbBatchVariant.Items.Clear();
 
+            // TODO: Use plugin loader methods that take in a type
             if ((Type)_selectedBatchType.Value == typeof(ICipherAdapter))
             {
                 foreach (var cipher in _pluginLoader.GetAdapters<ICipherAdapter>())
                     cmbBatchVariant.Items.Add(new ComboBoxElement(cipher, cipher.Name));
             }
-            //else if ((Type)_selectedBatchType.Value == typeof(ICompressionAdapter))
-            //{
-
-            //}
-            //else if((Type)_selectedBatchType.Value == typeof(IHashAdapter))
-            //{
-
-            //}
+            else if ((Type)_selectedBatchType.Value == typeof(ICompressionAdapter))
+            {
+                foreach (var cipher in _pluginLoader.GetAdapters<ICompressionAdapter>())
+                    cmbBatchVariant.Items.Add(new ComboBoxElement(cipher, cipher.Name));
+            }
+            else if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
+            {
+                foreach (var cipher in _pluginLoader.GetAdapters<IHashAdapter>())
+                    cmbBatchVariant.Items.Add(new ComboBoxElement(cipher, cipher.Name));
+            }
 
             var count = cmbBatchVariant.Items.Count;
             cmbBatchVariant.Enabled = count > 0;
@@ -91,14 +91,14 @@ namespace Kuriimu2_WinForms.MainForms
             {
                 SetCipherMethods();
             }
-            //else if ((Type)_selectedBatchType.Value == typeof(ICompressionAdapter))
-            //{
-
-            //}
-            //else if((Type)_selectedBatchType.Value == typeof(IHashAdapter))
-            //{
-
-            //}
+            else if ((Type)_selectedBatchType.Value == typeof(ICompressionAdapter))
+            {
+                SetCompressionMethods();
+            }
+            else if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
+            {
+                SetHashMethods();
+            }
 
             var count = cmbBatchMethod.Items.Count;
             cmbBatchMethod.Enabled = count > 0;
@@ -125,6 +125,37 @@ namespace Kuriimu2_WinForms.MainForms
             if (!ignoreEncryption)
                 cmbBatchMethod.Items.Add(new ComboBoxElement(
                     null, nameof(ICipherAdapter.Encrypt)));
+        }
+
+        private void SetCompressionMethods()
+        {
+            var variant = _selectedBatchVariant?.Value as ICompressionAdapter;
+            if (variant == null)
+                return;
+
+            var ignoreDecompression = variant.GetType().
+                GetCustomAttributes(typeof(IgnoreDecompressionAttribute), false).
+                Any();
+            var ignoreCompression = variant.GetType().
+                GetCustomAttributes(typeof(IgnoreCompressionAttribute), false).
+                Any();
+
+            if (!ignoreDecompression)
+                cmbBatchMethod.Items.Add(new ComboBoxElement(
+                    null, nameof(ICompressionAdapter.Decompress)));
+            if (!ignoreCompression)
+                cmbBatchMethod.Items.Add(new ComboBoxElement(
+                    null, nameof(ICompressionAdapter.Compress)));
+        }
+
+        private void SetHashMethods()
+        {
+            var variant = _selectedBatchVariant?.Value as IHashAdapter;
+            if (variant == null)
+                return;
+
+            cmbBatchMethod.Items.Add(new ComboBoxElement(
+                null, nameof(IHashAdapter.Compute)));
         }
 
         private void BtnBrowseInput_Click(object sender, EventArgs e)

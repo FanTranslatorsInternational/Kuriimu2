@@ -50,6 +50,8 @@
     <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
     <Compile Include="Attributes\FormFieldAttributes.cs" />
     <Compile Include="Attributes\FormFieldIgnoreAttribute.cs" />
+    <Compile Include="Attributes\Intermediate\IgnoreCompressionAttribute.cs" />
+    <Compile Include="Attributes\Intermediate\IgnoreDecompressionAttribute.cs" />
     <Compile Include="Attributes\Intermediate\PropertyAttribute.cs" />
     <Compile Include="Attributes\Intermediate\IgnoreDecryptionAttribute.cs" />
     <Compile Include="Attributes\Intermediate\IgnoreEncryptionAttribute.cs" />
@@ -84,6 +86,8 @@
     <Compile Include="Interfaces\Image\BaseImageAdapter.cs" />
     <Compile Include="Interfaces\Image\BaseIndexedImageAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
+    <Compile Include="Interfaces\Intermediate\ICompressionAdapter.cs" />
+    <Compile Include="Interfaces\Intermediate\IHashAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IImageSwizzleAdapter.cs" />
     <Compile Include="Interfaces\IPlugin.cs" />
     <Compile Include="Interfaces\Font\FontCharacter.cs" />

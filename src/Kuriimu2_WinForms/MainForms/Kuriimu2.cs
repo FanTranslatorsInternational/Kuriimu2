@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,14 +19,12 @@ using Kontract.Interfaces.Text;
 using Kontract.MEF.Interfaces;
 using Kontract.Models;
 using Kontract.Models.Intermediate;
-using Kontract.Providers.Models;
-using Kore;
-using Kore.Batch;
 using Kore.Files;
 using Kore.Files.Models;
 using Kuriimu2_WinForms.FormatForms;
 using Kuriimu2_WinForms.Interfaces;
 using Kuriimu2_WinForms.Properties;
+using Kuriimu2_WinForms.ToolStripMenuBuilders;
 
 namespace Kuriimu2_WinForms.MainForms
 {
@@ -40,11 +37,6 @@ namespace Kuriimu2_WinForms.MainForms
 
         private Timer _timer;
         private Stopwatch _globalOperationWatch;
-
-        private SequenceSearcher _sequenceSearcher;
-        private Batch _batchForm;
-        private RawImageViewer _rawImgViewer;
-        private ImageTranscoder _transcodeImgViewer;
 
         public Kuriimu2()
         {
@@ -62,13 +54,9 @@ namespace Kuriimu2_WinForms.MainForms
 
             Icon = Resources.kuriimu2winforms;
 
-            _batchForm = new Batch(_pluginLoader);
-            batchProcessorToolStripMenuItem.Enabled = _pluginLoader.GetAdapters<ICipherAdapter>().Any() /*|| 
-                                                      _pluginLoader.GetAdapters<ICompressionAdapter>().Any() || 
-                                                      _pluginLoader.GetAdapters<IHashAdapter>().Any()*/;
-            _sequenceSearcher = new SequenceSearcher();
-            _rawImgViewer = new RawImageViewer(_pluginLoader);
-            _transcodeImgViewer = new ImageTranscoder(_pluginLoader);
+            batchProcessorToolStripMenuItem.Enabled = _pluginLoader.GetAdapters<ICipherAdapter>().Any() ||
+                                                      _pluginLoader.GetAdapters<ICompressionAdapter>().Any() ||
+                                                      _pluginLoader.GetAdapters<IHashAdapter>().Any();
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
@@ -97,8 +85,8 @@ namespace Kuriimu2_WinForms.MainForms
         private void LoadExtensions()
         {
             LoadCiphers();
-            //LoadHashes();
-            //LoadCompressions();
+            LoadHashes();
+            LoadCompressions();
         }
 
         private void LoadImageViews()
@@ -110,29 +98,29 @@ namespace Kuriimu2_WinForms.MainForms
         private void LoadCiphers()
         {
             var ciphers = _pluginLoader.GetAdapters<ICipherAdapter>();
-            var cipherMenuBuilder = new ToolStripMenuBuilder<ICipherAdapter>(ciphers, AddCipherDelegates);
+            var cipherMenuBuilder = new CipherToolStripMenuBuilder(ciphers, AddCipherDelegates);
 
             cipherMenuBuilder.AddTreeToMenuStrip(ciphersToolStripMenuItem);
             ciphersToolStripMenuItem.Enabled = ciphersToolStripMenuItem.DropDownItems.Count > 0;
         }
 
-        //private void LoadHashes()
-        //{
-        //    var hashes = _pluginLoader.GetAdapters<IHashAdapter>();
-        //    var hashMenuBuilder = new ToolStripMenuBuilder<IHashAdapter>(hashes, AddHashDelegates);
+        private void LoadHashes()
+        {
+            var hashes = _pluginLoader.GetAdapters<IHashAdapter>();
+            var hashMenuBuilder = new HashToolStripMenuBuilder(hashes, AddHashDelegates);
 
-        //    hashMenuBuilder.AddTreeToMenuStrip(hashesToolStripMenuItem);
-        //    hashesToolStripMenuItem.Enabled = hashesToolStripMenuItem.DropDownItems.Count > 0;
-        //}
+            hashMenuBuilder.AddTreeToMenuStrip(hashesToolStripMenuItem);
+            hashesToolStripMenuItem.Enabled = hashesToolStripMenuItem.DropDownItems.Count > 0;
+        }
 
-        //private void LoadCompressions()
-        //{
-        //    var compressions = _pluginLoader.GetAdapters<ICompressionAdapter>();
-        //    var compMenuBuilder = new ToolStripMenuBuilder<ICompressionAdapter>(compressions, AddCompressionDelegates);
+        private void LoadCompressions()
+        {
+            var compressions = _pluginLoader.GetAdapters<ICompressionAdapter>();
+            var compMenuBuilder = new CompressionToolStripMenuBuilder(compressions, AddCompressionDelegates);
 
-        //    compMenuBuilder.AddTreeToMenuStrip(compressionsToolStripMenuItem);
-        //    compressionsToolStripMenuItem.Enabled = compressionsToolStripMenuItem.DropDownItems.Count > 0;
-        //}
+            compMenuBuilder.AddTreeToMenuStrip(compressionsToolStripMenuItem);
+            compressionsToolStripMenuItem.Enabled = compressionsToolStripMenuItem.DropDownItems.Count > 0;
+        }
 
         private void LoadRawImageViewer()
         {
@@ -141,7 +129,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void _imgDecToolStrip_Click(object sender, EventArgs e)
         {
-            _rawImgViewer.ShowDialog();
+            new RawImageViewer(_pluginLoader).ShowDialog();
         }
 
         private void LoadImageTranscoder()
@@ -151,7 +139,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void _imgTransToolStrip_Click(object sender, EventArgs e)
         {
-            _transcodeImgViewer.ShowDialog();
+            new ImageTranscoder(_pluginLoader).ShowDialog();
         }
 
         #region Events
@@ -219,6 +207,32 @@ namespace Kuriimu2_WinForms.MainForms
             DoCipher(cipher.Decrypt);
             cipher.RequestData -= Cipher_RequestData;
         }
+        #endregion
+
+        #region Compression
+
+        private void CompressItem_Click(object sender, EventArgs e)
+        {
+            var compressor = (sender as ToolStripItem).Tag as ICompressionAdapter;
+            DoCompression(compressor.Compress);
+        }
+
+        private void DecompressItem_Click(object sender, EventArgs e)
+        {
+            var compressor = (sender as ToolStripItem).Tag as ICompressionAdapter;
+            DoCompression(compressor.Decompress);
+        }
+
+        #endregion
+
+        #region Hash
+
+        private void Hash_Click(object sender, EventArgs e)
+        {
+            var hash = (sender as ToolStripItem).Tag as IHashAdapter;
+            DoHash(hash.Compute);
+        }
+
         #endregion
 
         #region Tab Item
@@ -396,6 +410,115 @@ namespace Kuriimu2_WinForms.MainForms
                 encItem.Tag = cipher;
                 item?.DropDownItems.Add(encItem);
             }
+        }
+
+        #endregion
+
+        #region Compression
+
+        private async void DoCompression(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> compFunc)
+        {
+            // File to open
+            var openFile = new OpenFileDialog();
+            if (openFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // File to save
+            var saveFile = new SaveFileDialog();
+            if (saveFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            compressionsToolStripMenuItem.Enabled = false;
+            var report = new Progress<ProgressReport>();
+            report.ProgressChanged += Report_ProgressChanged;
+
+            var openFileStream = openFile.OpenFile();
+            var saveFileStream = saveFile.OpenFile();
+
+            _timer.Start();
+            _globalOperationWatch.Reset();
+            _globalOperationWatch.Start();
+            await compFunc(openFileStream, saveFileStream, report);
+            _globalOperationWatch.Stop();
+            _timer.Stop();
+
+            openFileStream.Close();
+            saveFileStream.Close();
+
+            compressionsToolStripMenuItem.Enabled = true;
+        }
+
+        private void AddCompressionDelegates(ToolStripMenuItem item, ICompressionAdapter compressor, bool ignoreDecompression, bool ignoreCompression)
+        {
+            if (!ignoreDecompression)
+            {
+                var decItem = new ToolStripMenuItem("Decompress");
+                decItem.Click += DecompressItem_Click;
+                decItem.Tag = compressor;
+                item?.DropDownItems.Add(decItem);
+            }
+
+            if (!ignoreCompression)
+            {
+                var compItem = new ToolStripMenuItem("Compress");
+                compItem.Click += CompressItem_Click;
+                compItem.Tag = compressor;
+                item?.DropDownItems.Add(compItem);
+            }
+        }
+
+        #endregion
+
+        #region Hash
+
+        private async void DoHash(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> hashFunc)
+        {
+            // File to open
+            var openFile = new OpenFileDialog();
+            if (openFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // File to save
+            var saveFile = new SaveFileDialog();
+            if (saveFile.ShowDialog() != DialogResult.OK)
+            {
+                //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            hashesToolStripMenuItem.Enabled = false;
+            var report = new Progress<ProgressReport>();
+            report.ProgressChanged += Report_ProgressChanged;
+
+            var openFileStream = openFile.OpenFile();
+            var saveFileStream = saveFile.OpenFile();
+
+            _timer.Start();
+            _globalOperationWatch.Reset();
+            _globalOperationWatch.Start();
+            await hashFunc(openFileStream, saveFileStream, report);
+            _globalOperationWatch.Stop();
+            _timer.Stop();
+
+            openFileStream.Close();
+            saveFileStream.Close();
+
+            hashesToolStripMenuItem.Enabled = true;
+        }
+
+        private void AddHashDelegates(ToolStripMenuItem item, IHashAdapter hash)
+        {
+            item.Click += Hash_Click;
+            item.Tag = hash;
         }
 
         #endregion
@@ -661,12 +784,12 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void TextSequenceSearcherToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _sequenceSearcher.ShowDialog();
+            new SequenceSearcher().ShowDialog();
         }
 
         private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _batchForm.ShowDialog();
+            new Batch(_pluginLoader).ShowDialog();
         }
     }
 }

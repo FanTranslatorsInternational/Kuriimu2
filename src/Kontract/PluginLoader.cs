@@ -18,6 +18,8 @@ using Kontract.Providers.Models;
 
 namespace Kontract
 {
+    // TODO: Make methods enumerable
+    // TODO: Let methods take in a type and not just being generic
     /// <summary>
     /// <see cref="PluginLoader"/> is used to load in all available plugins.
     /// </summary>

@@ -1,22 +1,21 @@
-﻿using Kontract.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Forms;
+using Kontract.Attributes;
 using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces.Intermediate;
 using Kuriimu2_WinForms.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
-namespace Kuriimu2_WinForms
+namespace Kuriimu2_WinForms.ToolStripMenuBuilders
 {
-    class ToolStripMenuBuilder<TAdapter> where TAdapter : IIntermediate
+    // TODO: Combine ToolStripBuilders
+    class CompressionToolStripMenuBuilder
     {
-        private List<ToolStripMenuItem> _tree;
-        private Action<ToolStripMenuItem, TAdapter, bool, bool> _addItemDelegates;
+        private readonly List<ToolStripMenuItem> _tree;
+        private readonly Action<ToolStripMenuItem, ICompressionAdapter, bool, bool> _addItemDelegates;
 
-        public ToolStripMenuBuilder(IEnumerable<TAdapter> adapters, Action<ToolStripMenuItem, TAdapter, bool, bool> addItemDelegates)
+        public CompressionToolStripMenuBuilder(IEnumerable<ICompressionAdapter> adapters, Action<ToolStripMenuItem, ICompressionAdapter, bool, bool> addItemDelegates)
         {
             _addItemDelegates = addItemDelegates;
             _tree = CreateTree(adapters).ToList();
@@ -28,7 +27,7 @@ namespace Kuriimu2_WinForms
                 adapterItem.DropDownItems.Add(node);
         }
 
-        private IEnumerable<ToolStripMenuItem> CreateTree(IEnumerable<TAdapter> adapters)
+        public IEnumerable<ToolStripMenuItem> CreateTree(IEnumerable<ICompressionAdapter> adapters)
         {
             var result = new List<ToolStripMenuItem>();
 
@@ -36,10 +35,10 @@ namespace Kuriimu2_WinForms
             {
                 var attr = adapter.GetType().GetCustomAttributes(typeof(MenuStripExtensionAttribute), false).Cast<MenuStripExtensionAttribute>().FirstOrDefault();
 
-                var ignoreEnc = adapter.GetType().GetCustomAttributes(typeof(IgnoreEncryptionAttribute), false).Any();
-                var ignoreDec = adapter.GetType().GetCustomAttributes(typeof(IgnoreDecryptionAttribute), false).Any();
+                var ignoreComp = adapter.GetType().GetCustomAttributes(typeof(IgnoreCompressionAttribute), false).Any();
+                var ignoreDec = adapter.GetType().GetCustomAttributes(typeof(IgnoreDecompressionAttribute), false).Any();
 
-                if (ignoreDec && ignoreEnc)
+                if (ignoreDec && ignoreComp)
                     continue;
 
                 if (attr == null)
@@ -52,7 +51,7 @@ namespace Kuriimu2_WinForms
                     }
 
                     var cipherItem = new ToolStripMenuItem(adapter.Name);
-                    _addItemDelegates(cipherItem, adapter, ignoreDec, ignoreEnc);
+                    _addItemDelegates(cipherItem, adapter, ignoreDec, ignoreComp);
 
                     nodeItem.DropDownItems.Add(cipherItem);
                 }
@@ -86,7 +85,7 @@ namespace Kuriimu2_WinForms
                         items = internalItem.DropDownItems;
                     }
 
-                    _addItemDelegates(internalItem, adapter, ignoreDec, ignoreEnc);
+                    _addItemDelegates(internalItem, adapter, ignoreDec, ignoreComp);
                 }
             }
 
