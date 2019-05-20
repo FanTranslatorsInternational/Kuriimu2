@@ -1,18 +1,15 @@
-﻿using Kontract;
-using Kontract.Attributes;
-using Kontract.Interfaces.Common;
+﻿using Kontract.Attributes;
 using Kontract.Interfaces.Intermediate;
-using plugin_krypto_nintendo.Nca;
 using plugin_krypto_nintendo.Nca.Factories;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Kontract.Interfaces;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
-namespace plugin_krypto_nintendo.Adapters
+namespace plugin_krypto_nintendo.Nca
 {
     [Export(typeof(IPlugin))]
     [MenuStripExtension("Nintendo", "Nca")]
@@ -22,8 +19,8 @@ namespace plugin_krypto_nintendo.Adapters
 
         public event EventHandler<RequestDataEventArgs> RequestData;
 
-        private string OnRequestFile(string message, out string error)
-            => RequestMethods.RequestFile((args) => RequestData?.Invoke(this, args), message, out error);
+        private string OnRequestFile(string message, string requestId, out string error)
+            => RequestMethods.RequestFile((args) => RequestData?.Invoke(this, args), message, requestId, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -37,7 +34,9 @@ namespace plugin_krypto_nintendo.Adapters
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var keyFile = OnRequestFile("Select Switch key file...", out var error);
+            var requestId = Guid.NewGuid().ToString("N");
+
+            var keyFile = OnRequestFile("Select Switch key file...", requestId, out var error);
             if (!string.IsNullOrEmpty(error))
             {
                 return Task.Factory.StartNew(() =>
@@ -50,7 +49,7 @@ namespace plugin_krypto_nintendo.Adapters
             var factory = new NcaFactory(input, keyFile);
             if (factory.UseTitleKeyEncryption)
             {
-                var titleKeyFile = OnRequestFile("Select Switch title key file...", out error);
+                var titleKeyFile = OnRequestFile("Select Switch title key file...", requestId, out error);
                 if (!string.IsNullOrEmpty(error))
                 {
                     return Task.Factory.StartNew(() =>

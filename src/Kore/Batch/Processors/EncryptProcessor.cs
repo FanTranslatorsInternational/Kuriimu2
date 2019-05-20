@@ -18,10 +18,15 @@ namespace Kore.Batch.Processors
             _cipherAdapter = cipherAdapter ?? throw new ArgumentNullException(nameof(cipherAdapter));
         }
 
-        public void Process(ProcessElement processElement, IProgress<ProgressReport> progress)
+        public async void Process(ProcessElement processElement, IProgress<ProgressReport> progress)
         {
-            _cipherAdapter.Encrypt(File.OpenRead(processElement.InputFilename),
-                File.OpenWrite(processElement.OutputFilename), progress);
+            var read = File.OpenRead(processElement.InputFilename);
+            var write = File.Create(processElement.OutputFilename);
+
+            await _cipherAdapter.Encrypt(read, write, progress);
+
+            read.Close();
+            write.Close();
         }
     }
 }

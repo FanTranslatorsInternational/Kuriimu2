@@ -1,15 +1,13 @@
-﻿using Kontract;
-using Kontract.Attributes;
-using Kontract.Interfaces.Common;
+﻿using Kontract.Attributes;
 using Kontract.Interfaces.Intermediate;
 using Kryptography;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Kontract.Interfaces;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_rot
 {
@@ -17,6 +15,7 @@ namespace plugin_krypto_rot
     [MenuStripExtension("General", "Rot13")]
     public class Rot13Adapter : ICipherAdapter
     {
+        // ReSharper disable once MissingXmlDoc
         public event EventHandler<RequestDataEventArgs> RequestData;
 
         public string Name => "Rot13";

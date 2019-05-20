@@ -1,21 +1,16 @@
 ﻿using Komponent.IO;
-using Kontract.Interfaces.Intermediate;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_xor
 {
     internal static class RequestMethods
     {
-        public static byte[] RequestKey(Action<RequestDataEventArgs> requestEvent, string message, int keyLength, out string error)
+        public static byte[] RequestKey(Action<RequestDataEventArgs> requestEvent, string message, int keyLength, string requestId, out string error)
         {
             error = string.Empty;
 
-            var eventArgs = new RequestDataEventArgs(message, keyLength < 0 ? -1 : keyLength * 2, false);
+            var eventArgs = new RequestDataEventArgs(message, keyLength < 0 ? -1 : keyLength * 2, false, requestId);
             requestEvent(eventArgs);
 
             if (eventArgs.Data == null)

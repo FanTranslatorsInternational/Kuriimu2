@@ -50,6 +50,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Batch\BatchErrorReport.cs" />
     <Compile Include="Batch\BatchExport.cs" />
     <Compile Include="Batch\BatchProcessor.cs" />
     <Compile Include="Batch\ProcessElement.cs" />

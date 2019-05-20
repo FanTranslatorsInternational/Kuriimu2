@@ -118,5 +118,29 @@ namespace Kuriimu2_WinForms.Properties {
                 this["SequenceSearchDirectory"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BatchInputDirectory {
+            get {
+                return ((string)(this["BatchInputDirectory"]));
+            }
+            set {
+                this["BatchInputDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BatchOutputDirectory {
+            get {
+                return ((string)(this["BatchOutputDirectory"]));
+            }
+            set {
+                this["BatchOutputDirectory"] = value;
+            }
+        }
     }
 }

@@ -1,15 +1,13 @@
-﻿using Kontract;
-using Kontract.Attributes;
-using Kontract.Interfaces.Common;
+﻿using Kontract.Attributes;
 using Kontract.Interfaces.Intermediate;
 using Kryptography;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Kontract.Interfaces;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_xor
 {
@@ -21,8 +19,8 @@ namespace plugin_krypto_xor
 
         public string Name => "Xor";
 
-        private byte[] OnRequestKey(string message, int keyLength, out string error)
-            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
+        private byte[] OnRequestKey(string message, int keyLength,string requestId, out string error)
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, requestId, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -36,7 +34,9 @@ namespace plugin_krypto_xor
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("XOR Key", -1, out var error);
+            var requestId = Guid.NewGuid().ToString("N");
+
+            var key = OnRequestKey("XOR Key", -1, requestId, out var error);
             if (key == null)
                 return Task.Factory.StartNew(() =>
                 {

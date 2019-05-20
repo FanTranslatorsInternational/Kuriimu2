@@ -22,6 +22,7 @@ using Kontract.Models;
 using Kontract.Models.Intermediate;
 using Kontract.Providers.Models;
 using Kore;
+using Kore.Batch;
 using Kore.Files;
 using Kore.Files.Models;
 using Kuriimu2_WinForms.FormatForms;
@@ -41,6 +42,7 @@ namespace Kuriimu2_WinForms.MainForms
         private Stopwatch _globalOperationWatch;
 
         private SequenceSearcher _sequenceSearcher;
+        private Batch _batchForm;
         private RawImageViewer _rawImgViewer;
         private ImageTranscoder _transcodeImgViewer;
 
@@ -60,6 +62,10 @@ namespace Kuriimu2_WinForms.MainForms
 
             Icon = Resources.kuriimu2winforms;
 
+            _batchForm = new Batch(_pluginLoader);
+            batchProcessorToolStripMenuItem.Enabled = _pluginLoader.GetAdapters<ICipherAdapter>().Any() /*|| 
+                                                      _pluginLoader.GetAdapters<ICompressionAdapter>().Any() || 
+                                                      _pluginLoader.GetAdapters<IHashAdapter>().Any()*/;
             _sequenceSearcher = new SequenceSearcher();
             _rawImgViewer = new RawImageViewer(_pluginLoader);
             _transcodeImgViewer = new ImageTranscoder(_pluginLoader);
@@ -186,9 +192,9 @@ namespace Kuriimu2_WinForms.MainForms
                 }
                 else
                 {
-                    if (input.ShowDialog() == DialogResult.OK && input.Text.Length == e.DataSize)
+                    if (input.ShowDialog() == DialogResult.OK && input.InputText.Length == e.DataSize)
                     {
-                        e.Data = input.Text;
+                        e.Data = input.InputText;
                         _globalOperationWatch.Start();
                         return;
                     }
@@ -201,13 +207,17 @@ namespace Kuriimu2_WinForms.MainForms
         private void EncItem_Click(object sender, EventArgs e)
         {
             var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
-            DoCipher(new Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>>(cipher.Encrypt));
+            cipher.RequestData += Cipher_RequestData;
+            DoCipher(cipher.Encrypt);
+            cipher.RequestData -= Cipher_RequestData;
         }
 
         private void DecItem_Click(object sender, EventArgs e)
         {
             var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
-            DoCipher(new Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>>(cipher.Decrypt));
+            cipher.RequestData += Cipher_RequestData;
+            DoCipher(cipher.Decrypt);
+            cipher.RequestData -= Cipher_RequestData;
         }
         #endregion
 
@@ -371,8 +381,6 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher, bool ignoreDecrypt, bool ignoreEncrypt)
         {
-            cipher.RequestData += Cipher_RequestData;
-
             if (!ignoreDecrypt)
             {
                 var decItem = new ToolStripMenuItem("Decrypt");
@@ -658,7 +666,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            _batchForm.ShowDialog();
         }
     }
 }

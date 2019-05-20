@@ -110,7 +110,6 @@
             // 
             // batchProcessorToolStripMenuItem
             // 
-            this.batchProcessorToolStripMenuItem.Enabled = false;
             this.batchProcessorToolStripMenuItem.Name = "batchProcessorToolStripMenuItem";
             this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.batchProcessorToolStripMenuItem.Text = "Batch Processor";

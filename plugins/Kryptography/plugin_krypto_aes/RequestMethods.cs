@@ -1,21 +1,17 @@
 ﻿using Komponent.IO;
-using Kontract.Interfaces.Intermediate;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_aes
 {
     internal static class RequestMethods
     {
-        public static byte[] RequestKey(Action<RequestDataEventArgs> requestEvent, string message, int keyLength, out string error)
+        public static byte[] RequestKey(Action<RequestDataEventArgs> requestEvent, string message, int keyLength, string requestId, out string error)
         {
             error = string.Empty;
 
-            var eventArgs = new RequestDataEventArgs(message, keyLength * 2, false);
+            var eventArgs = new RequestDataEventArgs(message, keyLength * 2, false, requestId);
             requestEvent(eventArgs);
 
             if (eventArgs.Data == null)
@@ -32,11 +28,11 @@ namespace plugin_krypto_aes
             return eventArgs.Data.Hexlify();
         }
 
-        public static long RequestNumber(Action<RequestDataEventArgs> requestEvent, string message, long defaultValue, out string error)
+        public static long RequestNumber(Action<RequestDataEventArgs> requestEvent, string message, long defaultValue, string requestId, out string error)
         {
             error = string.Empty;
 
-            var eventArgs = new RequestDataEventArgs(message, -1, false);
+            var eventArgs = new RequestDataEventArgs(message, -1, false, requestId);
             requestEvent(eventArgs);
 
             if (eventArgs.Data == null)
@@ -53,11 +49,11 @@ namespace plugin_krypto_aes
             return Convert.ToInt64(eventArgs.Data);
         }
 
-        public static string RequestFile(Action<RequestDataEventArgs> requestEvent, string message, out string error)
+        public static string RequestFile(Action<RequestDataEventArgs> requestEvent, string message, string requestId, out string error)
         {
             error = string.Empty;
 
-            var eventArgs = new RequestDataEventArgs(message, -1, true);
+            var eventArgs = new RequestDataEventArgs(message, -1, true, requestId);
             requestEvent(eventArgs);
 
             if (eventArgs.Data == null)

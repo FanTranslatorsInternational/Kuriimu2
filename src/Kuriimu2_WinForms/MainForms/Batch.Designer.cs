@@ -41,6 +41,9 @@
             this.btnBatchProcess = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.cmbBatchVariant = new System.Windows.Forms.ComboBox();
+            this.chkSubDirectories = new System.Windows.Forms.CheckBox();
+            this.txtTaskCount = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnBrowseInput
@@ -115,12 +118,10 @@
             // 
             // cmbBatchType
             // 
-            this.cmbBatchType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbBatchType.FormattingEnabled = true;
             this.cmbBatchType.Location = new System.Drawing.Point(89, 64);
             this.cmbBatchType.Name = "cmbBatchType";
-            this.cmbBatchType.Size = new System.Drawing.Size(410, 21);
+            this.cmbBatchType.Size = new System.Drawing.Size(225, 21);
             this.cmbBatchType.TabIndex = 24;
             // 
             // label3
@@ -174,19 +175,50 @@
             // 
             // cmbBatchVariant
             // 
-            this.cmbBatchVariant.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.cmbBatchVariant.FormattingEnabled = true;
             this.cmbBatchVariant.Location = new System.Drawing.Point(89, 91);
             this.cmbBatchVariant.Name = "cmbBatchVariant";
-            this.cmbBatchVariant.Size = new System.Drawing.Size(410, 21);
+            this.cmbBatchVariant.Size = new System.Drawing.Size(225, 21);
             this.cmbBatchVariant.TabIndex = 30;
+            // 
+            // chkSubDirectories
+            // 
+            this.chkSubDirectories.AutoSize = true;
+            this.chkSubDirectories.Location = new System.Drawing.Point(323, 66);
+            this.chkSubDirectories.Name = "chkSubDirectories";
+            this.chkSubDirectories.Size = new System.Drawing.Size(125, 17);
+            this.chkSubDirectories.TabIndex = 31;
+            this.chkSubDirectories.Text = "Batch sub directories";
+            this.chkSubDirectories.UseVisualStyleBackColor = true;
+            this.chkSubDirectories.CheckedChanged += new System.EventHandler(this.CheckBox1_CheckedChanged);
+            // 
+            // txtTaskCount
+            // 
+            this.txtTaskCount.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtTaskCount.Location = new System.Drawing.Point(391, 91);
+            this.txtTaskCount.Name = "txtTaskCount";
+            this.txtTaskCount.Size = new System.Drawing.Size(108, 20);
+            this.txtTaskCount.TabIndex = 32;
+            this.txtTaskCount.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TxtTaskCount_KeyPress);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(320, 94);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(65, 13);
+            this.label6.TabIndex = 33;
+            this.label6.Text = "Task Count:";
             // 
             // Batch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(512, 450);
+            this.ClientSize = new System.Drawing.Size(512, 176);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.txtTaskCount);
+            this.Controls.Add(this.chkSubDirectories);
             this.Controls.Add(this.cmbBatchVariant);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.btnBatchProcess);
@@ -222,5 +254,8 @@
         private System.Windows.Forms.Button btnBatchProcess;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ComboBox cmbBatchVariant;
+        private System.Windows.Forms.CheckBox chkSubDirectories;
+        private System.Windows.Forms.TextBox txtTaskCount;
+        private System.Windows.Forms.Label label6;
     }
 }

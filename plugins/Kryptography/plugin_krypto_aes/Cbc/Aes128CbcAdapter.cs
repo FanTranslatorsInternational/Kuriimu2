@@ -1,16 +1,13 @@
-﻿using Kontract;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Intermediate;
+﻿using Kontract.Interfaces.Intermediate;
 using Kryptography.AES;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 using Kontract.Attributes;
+using Kontract.Interfaces;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_aes.Cbc
 {
@@ -22,8 +19,8 @@ namespace plugin_krypto_aes.Cbc
 
         public string Name => "Aes128 CBC";
 
-        private byte[] OnRequestKey(string message, int keyLength, out string error)
-            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
+        private byte[] OnRequestKey(string message, int keyLength, string requestId, out string error)
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, requestId, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -37,7 +34,9 @@ namespace plugin_krypto_aes.Cbc
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 CBC Key", 16, out var error);
+            var requestId = Guid.NewGuid().ToString("N");
+
+            var key = OnRequestKey("AES128 CBC Key", 16, requestId,out var error);
             if (key == null)
                 return Task.Factory.StartNew(() =>
                 {
@@ -45,7 +44,7 @@ namespace plugin_krypto_aes.Cbc
                     return false;
                 });
 
-            var iv = OnRequestKey("AES128 CBC IV", 16, out error);
+            var iv = OnRequestKey("AES128 CBC IV", 16, requestId, out error);
             if (iv == null)
                 return Task.Factory.StartNew(() =>
                 {

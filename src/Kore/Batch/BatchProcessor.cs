@@ -19,8 +19,11 @@ namespace Kore.Batch
 
         public int TaskCount { get; set; } = 8;
 
+        public IList<BatchErrorReport> ErrorReports { get; private set; }
+
         public Task Process(string inputDirectory, string outputDirectory, IBatchProcessor processor, IProgress<ProgressReport> progress)
         {
+            ErrorReports = new List<BatchErrorReport>();
             return ProcessParallel(EnumerateAllFiles(inputDirectory, outputDirectory), progress, processor.Process);
         }
 
@@ -39,16 +42,22 @@ namespace Kore.Batch
 
         private Task ProcessParallel(IEnumerable<ProcessElement> toProcess, IProgress<ProgressReport> progress, Action<ProcessElement, IProgress<ProgressReport>> taskDelegate)
         {
-            var activeTasks = new Task[TaskCount];
+            var activeTasks = new (Task task, ProcessElement element)?[TaskCount];
             var enumerator = toProcess.GetEnumerator();
+            var moveResult = enumerator.MoveNext();
+            if (!moveResult)
+                return Task.CompletedTask;
 
-            while (enumerator.Current != null || activeTasks.Any(x => x != null))
+            while (moveResult || activeTasks.Any(x => x != null))
             {
                 for (int i = 0; i < TaskCount; i++)
                 {
-                    if (activeTasks[i]?.IsCompleted ?? false)
+                    if (activeTasks[i]?.task?.IsCompleted ?? false)
                     {
-                        activeTasks[i].Dispose();
+                        if (activeTasks[i]?.task?.IsFaulted ?? false)
+                            ErrorReports.Add(new BatchErrorReport(activeTasks[i]?.element, activeTasks[i]?.task.Exception));
+
+                        activeTasks[i]?.task.Dispose();
                         activeTasks[i] = null;
                     }
                 }
@@ -56,10 +65,9 @@ namespace Kore.Batch
                 var freeSlots = TaskCount - activeTasks.Count(x => x != null);
                 for (int i = 0; i < freeSlots; i++)
                 {
-                    if (enumerator.Current == null)
+                    if (!moveResult)
                         break;
 
-                    enumerator.MoveNext();
                     var element = enumerator.Current;
                     var task = new Task(() => taskDelegate(element, progress));
 
@@ -71,8 +79,10 @@ namespace Kore.Batch
                             break;
                         }
 
-                    activeTasks[index] = task;
+                    activeTasks[index] = (task, element);
                     task.Start();
+
+                    moveResult = enumerator.MoveNext();
                 }
             }
 

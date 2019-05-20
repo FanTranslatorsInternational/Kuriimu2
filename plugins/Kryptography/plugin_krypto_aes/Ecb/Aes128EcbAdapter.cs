@@ -1,16 +1,13 @@
-﻿using Kontract;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Intermediate;
+﻿using Kontract.Interfaces.Intermediate;
 using Kryptography.AES;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Threading;
 using Kontract.Attributes;
+using Kontract.Interfaces;
+using Kontract.Models;
+using Kontract.Models.Intermediate;
 
 namespace plugin_krypto_aes.Ecb
 {
@@ -20,10 +17,10 @@ namespace plugin_krypto_aes.Ecb
     {
         public event EventHandler<RequestDataEventArgs> RequestData;
 
-        public string Name => throw new NotImplementedException();
+        public string Name => "Aes128 ECB";
 
-        private byte[] OnRequestKey(string message, int keyLength, out string error)
-            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, out error);
+        private byte[] OnRequestKey(string message, int keyLength, string requestId, out string error)
+            => RequestMethods.RequestKey((args) => RequestData?.Invoke(this, args), message, keyLength, requestId, out error);
 
         public Task<bool> Decrypt(Stream toDecrypt, Stream decryptInto, IProgress<ProgressReport> progress)
         {
@@ -37,7 +34,9 @@ namespace plugin_krypto_aes.Ecb
 
         private Task<bool> DoCipher(Stream input, Stream output, IProgress<ProgressReport> progress, bool decrypt)
         {
-            var key = OnRequestKey("AES128 ECB Key", 16, out var error);
+            var requestId = Guid.NewGuid().ToString("N");
+
+            var key = OnRequestKey("AES128 ECB Key", 16, requestId, out var error);
             if (key == null)
                 return Task.Factory.StartNew(() =>
                 {

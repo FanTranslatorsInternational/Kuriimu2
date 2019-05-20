@@ -16,10 +16,10 @@ namespace Kuriimu2_WinForms.MainForms
                 Text = formText;
 
             if (!string.IsNullOrEmpty(defaultValue))
-                textBox.Text = defaultValue;
+                txtInput.Text = defaultValue;
         }
 
-        public string InputText { get => textBox.Text; }
+        public string InputText { get => txtInput.Text; }
 
         private void textBox_KeyUp(object sender, KeyEventArgs e)
         {
