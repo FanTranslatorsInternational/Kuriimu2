@@ -11,7 +11,7 @@ namespace Kontract.Attributes
     {
         // TODO: Determine how to handle plugin selection when two plugins have the same ID.
         /// <summary>
-        /// This is the unique GUID of the plugin.
+        /// This is the unique ID of the plugin.
         /// "82FAE4B0-9734-4802-A3C6-1594EE8C6EEA"
         /// </summary>
         public string ID { get; }
@@ -31,7 +31,7 @@ namespace Kontract.Attributes
 
         /// <summary>
         /// This is the list of author names.
-        /// "IcySon55, NeoBeo, onepiecefreak"
+        /// "IcySon55, onepiecefreak, NeoBeo"
         /// </summary>
         public string Author { get; }
 
