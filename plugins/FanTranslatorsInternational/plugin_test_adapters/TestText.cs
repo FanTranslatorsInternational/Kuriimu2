@@ -3,7 +3,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.Text;
 using Kontract.Attributes;
-using Kontract.FileSystem2.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;

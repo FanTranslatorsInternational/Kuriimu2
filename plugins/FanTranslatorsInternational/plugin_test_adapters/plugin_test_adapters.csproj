@@ -61,6 +61,7 @@
     <Compile Include="Image\TestIndexImage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestGame.cs" />
+    <Compile Include="TestLayout.cs" />
     <Compile Include="TestText.cs" />
   </ItemGroup>
   <ItemGroup>

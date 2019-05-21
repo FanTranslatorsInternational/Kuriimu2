@@ -65,6 +65,12 @@
     </Compile>
     <Compile Include="Extensions\LinqExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="FormatForms\LayoutForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FormatForms\LayoutForm.Designer.cs">
+      <DependentUpon>LayoutForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainForms\Batch.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -137,6 +143,9 @@
     <Compile Include="ToolStripMenuBuilders\CipherToolStripMenuBuilder.cs" />
     <Compile Include="ToolStripMenuBuilders\CompressionToolStripMenuBuilder.cs" />
     <Compile Include="ToolStripMenuBuilders\HashToolStripMenuBuilder.cs" />
+    <EmbeddedResource Include="FormatForms\LayoutForm.resx">
+      <DependentUpon>LayoutForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForms\Batch.resx">
       <DependentUpon>Batch.cs</DependentUpon>
       <SubType>Designer</SubType>

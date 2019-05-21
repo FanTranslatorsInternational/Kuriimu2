@@ -15,6 +15,7 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Game;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Intermediate;
+using Kontract.Interfaces.Layout;
 using Kontract.Interfaces.Text;
 using Kontract.MEF.Interfaces;
 using Kontract.Models;
@@ -621,6 +622,8 @@ namespace Kuriimu2_WinForms.MainForms
                     tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _pluginLoader.GetAdapters<IGameAdapter>());
                 else if (kfi.Adapter is IImageAdapter)
                     tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
+                else if (kfi.Adapter is ILayoutAdapter)
+                    tabControl = new LayoutForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
                 else if (kfi.Adapter is IArchiveAdapter)
                 {
                     tabControl = new ArchiveForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _tempFolder, _pluginLoader);

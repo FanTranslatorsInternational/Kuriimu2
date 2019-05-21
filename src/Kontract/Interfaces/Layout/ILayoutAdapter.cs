@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Kontract.Interfaces.Common;
+using Kontract.Models.Layout;
 
 namespace Kontract.Interfaces.Layout
 {
@@ -9,9 +10,9 @@ namespace Kontract.Interfaces.Layout
     public interface ILayoutAdapter : IPlugin
     {
         /// <summary>
-        /// The list of items provided by the layout adapter to the UI.
+        /// The layout tree provided to the UI.
         /// </summary>
-        IList<LayoutItem> Items { get; }
+        RootLayoutElement Layout { get; }
     }
 
     ///// <summary>

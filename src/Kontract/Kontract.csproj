@@ -123,7 +123,6 @@
     <Compile Include="Models\Intermediate\RequestDataEventArgs.cs" />
     <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
     <Compile Include="Interfaces\Game\IGameAdapter.cs" />
-    <Compile Include="Interfaces\Layout\LayoutItem.cs" />
     <Compile Include="Interfaces\Text\ITextEntriesHaveExtendedProperties.cs" />
     <Compile Include="Interfaces\Text\ITextAdapter.cs" />
     <Compile Include="Interfaces\FileSystem\IFileSystem.cs" />
@@ -131,6 +130,11 @@
     <Compile Include="Interfaces\Text\ITextDeleteEntries.cs" />
     <Compile Include="Interfaces\Text\ITextRenameEntries.cs" />
     <Compile Include="Interfaces\Text\TextEntry.cs" />
+    <Compile Include="Models\Layout\LayoutElement.cs" />
+    <Compile Include="Models\Layout\LeafLayoutElement.cs" />
+    <Compile Include="Models\Layout\LocationAnchor.cs" />
+    <Compile Include="Models\Layout\ParentLayoutElement.cs" />
+    <Compile Include="Models\Layout\RootLayoutElement.cs" />
     <Compile Include="Models\ProgressReport.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
