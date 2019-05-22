@@ -11,12 +11,12 @@ namespace Kontract.Models.Layout
         {
         }
 
-        public override void Draw(Graphics gr)
+        public override void Draw(Graphics gr,bool drawBorder)
         {
-            base.Draw(gr);
+            base.Draw(gr, drawBorder);
             foreach (var child in Children)
             {
-                child.Draw(gr);
+                child.Draw(gr, drawBorder);
             }
         }
 

@@ -68,7 +68,7 @@ namespace plugin_test_adapters.Layout
                 case 2:
                     var element2 = br.ReadType<WindowElement>();
 
-                    if (element2.childrenCount > 0)
+                    if (element2.childrenCount <= 0)
                     {
                         var window = new LeafLayoutElement(new Size(element2.width, element2.height), new Point(element2.x, element2.y), parent);
                         switch (element2.anchor)

@@ -16,9 +16,10 @@ namespace Kontract.Models.Layout
             RelativeLocation = location;
         }
 
-        public virtual void Draw(Graphics gr)
+        public virtual void Draw(Graphics gr, bool drawBorder)
         {
-            gr.DrawRectangle(new Pen(Brushes.Black, 3), new Rectangle(GetAbsoluteLocation(), Size));
+            if (drawBorder)
+                gr.DrawRectangle(new Pen(Brushes.Black, 2), new Rectangle(GetAbsoluteLocation(), Size));
         }
 
         public abstract Point GetAbsoluteLocation();

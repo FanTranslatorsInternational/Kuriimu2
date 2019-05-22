@@ -64,7 +64,15 @@ namespace Kuriimu2_WinForms.FormatForms
         private void UpdateLayout()
         {
             var g = Graphics.FromImage(imgLayout.Image);
-            _layoutAdapter.Layout.Draw(g);
+            g.Clear(Color.Transparent);
+            _layoutAdapter.Layout.Draw(g, chkBorder.Checked);
+            imgLayout.Zoom -= 1;
+            imgLayout.Zoom += 1;
+        }
+
+        private void ChkBorder_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateLayout();
         }
     }
 }

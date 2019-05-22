@@ -31,7 +31,9 @@
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.imgLayout = new Cyotek.Windows.Forms.ImageBox();
+            this.chkBorder = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
+            this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.SuspendLayout();
@@ -52,6 +54,10 @@
             this.splitContainer1.Location = new System.Drawing.Point(0, 25);
             this.splitContainer1.Name = "splitContainer1";
             // 
+            // splitContainer1.Panel1
+            // 
+            this.splitContainer1.Panel1.Controls.Add(this.chkBorder);
+            // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.imgLayout);
@@ -69,6 +75,17 @@
             this.imgLayout.Size = new System.Drawing.Size(622, 446);
             this.imgLayout.TabIndex = 0;
             // 
+            // chkBorder
+            // 
+            this.chkBorder.AutoSize = true;
+            this.chkBorder.Location = new System.Drawing.Point(4, 4);
+            this.chkBorder.Name = "chkBorder";
+            this.chkBorder.Size = new System.Drawing.Size(85, 17);
+            this.chkBorder.TabIndex = 0;
+            this.chkBorder.Text = "Draw Border";
+            this.chkBorder.UseVisualStyleBackColor = true;
+            this.chkBorder.CheckedChanged += new System.EventHandler(this.ChkBorder_CheckedChanged);
+            // 
             // LayoutForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -77,6 +94,8 @@
             this.Controls.Add(this.toolStrip1);
             this.Name = "LayoutForm";
             this.Size = new System.Drawing.Size(789, 471);
+            this.splitContainer1.Panel1.ResumeLayout(false);
+            this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
@@ -90,5 +109,6 @@
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private Cyotek.Windows.Forms.ImageBox imgLayout;
+        private System.Windows.Forms.CheckBox chkBorder;
     }
 }
