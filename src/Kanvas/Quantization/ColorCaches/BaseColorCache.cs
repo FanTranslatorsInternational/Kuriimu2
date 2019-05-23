@@ -19,11 +19,14 @@ namespace Kanvas.Quantization.ColorCaches
 
         public IList<Color> Palette { get; private set; }
 
-        protected ColorModel _colorModel = ColorModel.RGB;
+        public ColorModel ColorModel { get; private set; } = ColorModel.RGB;
 
-        public void Prepare(ColorModel model)
+        public int AlphaThreshold { get; private set; }
+
+        public void Prepare(ColorModel model, int alphaThreshold = 0)
         {
-            _colorModel = model;
+            ColorModel = model;
+            AlphaThreshold = alphaThreshold;
             OnPrepare();
         }
 

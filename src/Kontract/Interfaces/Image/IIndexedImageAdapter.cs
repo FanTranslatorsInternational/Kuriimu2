@@ -44,8 +44,18 @@ namespace Kontract.Interfaces.Image
         /// <param name="index">The index to set the color to in the palette.</param>
         /// <param name="color">The color to set in the palette.</param>
         /// <param name="progress">The progress object to report progress through.</param>
-        /// <returns>True if the palette was set successfully, False otherwise.</returns>
+        /// <returns><see langword="true"/> if the palette was set successfully, <see langword="false"/> otherwise.</returns>
         Task<ImageTranscodeResult> SetColorInPalette(IndexedBitmapInfo bitmapInfo, int index, Color color, IProgress<ProgressReport> progress);
+
+        /// <summary>
+        /// Resets the index at a given point in the image.
+        /// </summary>
+        /// <param name="bitmapInfo">The image info to set the index in.</param>
+        /// <param name="pointInImg">The point at which to set the index.</param>
+        /// <param name="newIndex">The new index to set at <param name="pointInImg">.</param></param>
+        /// <param name="progress">The progress object to report progress through.</param>
+        /// <returns><see langword="true"/> if the index was successfully set, <see langword="false"/> otherwise.</returns>
+        Task<ImageTranscodeResult> SetIndexInImage(IndexedBitmapInfo bitmapInfo, Point pointInImg, int newIndex, IProgress<ProgressReport> progress);
 
         /// <summary>
         /// Instructs the plugin to update the <see cref="BitmapInfo"/> accordingly with the new information.

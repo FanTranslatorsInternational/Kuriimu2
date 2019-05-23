@@ -98,6 +98,16 @@ namespace Kanvas.IndexEncoding
                 var colorKey = c.ToArgb();
                 if (!_allowAlpha)
                     colorKey &= 0x00FFFFFF;
+                else
+                {
+                    if (c.A >= 0x80)
+                        colorKey &= 0x00000000;
+                    else
+                        unchecked
+                        {
+                            colorKey |= (int)0xFF000000;
+                        }
+                }
 
                 palette.AddOrUpdate(colorKey, key => c, (key, color) => c);
                 var index = palette.Keys.ToList().IndexOf(colorKey);

@@ -86,8 +86,8 @@ namespace Kanvas.Quantization.ColorCaches
             {
                 int index = 0;
                 int colorIndex =
-                    ColorModelHelper.GetSmallestEuclideanDistanceIndex(_colorModel, color,
-                        bucket.Colors.Values.ToList());
+                    ColorModelHelper.GetSmallestEuclideanDistanceIndex(ColorModel, color,
+                        bucket.Colors.Values.ToList(),AlphaThreshold);
 
                 foreach (var colorPaletteIndex in bucket.Colors.Keys)
                 {
@@ -107,17 +107,17 @@ namespace Kanvas.Quantization.ColorCaches
         private long GetColorBucketIndex(Color color)
         {
             float normalizedDistance;
-            switch (_colorModel)
+            switch (ColorModel)
             {
                 case ColorModel.RGB: normalizedDistance = NormalizedDistanceRgb; break;
                 case ColorModel.RGBA: normalizedDistance = NormalizedDistanceRgba; break;
                 //case ColorModel.HueSaturationLuminance: normalizedDistance = NormalizedDistanceHSL; break;
                 //case ColorModel.LabColorSpace: normalizedDistance = NormalizedDistanceLab; break;
                 default:
-                    throw new InvalidOperationException($"ColorModel {_colorModel} not supported.");
+                    throw new InvalidOperationException($"ColorModel {ColorModel} not supported.");
             }
 
-            float distance = ColorModelHelper.GetEuclideanDistance(ColorModelHelper.GetColorComponents(_colorModel, color));
+            float distance = ColorModelHelper.GetEuclideanDistance(ColorModelHelper.GetColorComponents(ColorModel, color));
             float normalized = distance * normalizedDistance * MaximalDistance;
             long resultHash = (long)normalized / _bucketSize;
 

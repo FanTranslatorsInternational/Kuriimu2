@@ -64,11 +64,11 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.treBitmaps = new System.Windows.Forms.TreeView();
             this.imlBitmaps = new System.Windows.Forms.ImageList(this.components);
+            this.pbPalette = new Kuriimu2_WinForms.Controls.PictureBoxWithInterpolationMode();
             this.tlsPalette = new System.Windows.Forms.ToolStrip();
             this.tslPaletteLabel = new System.Windows.Forms.ToolStripLabel();
             this.tsbPaletteImport = new System.Windows.Forms.ToolStripButton();
             this.tsbPaletteExport = new System.Windows.Forms.ToolStripButton();
-            this.pbPalette = new Kuriimu2_WinForms.Controls.PictureBoxWithInterpolationMode();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -82,8 +82,8 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties.Panel1.SuspendLayout();
             this.splProperties.Panel2.SuspendLayout();
             this.splProperties.SuspendLayout();
-            this.tlsPalette.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).BeginInit();
+            this.tlsPalette.SuspendLayout();
             this.SuspendLayout();
             // 
             // tlsMain
@@ -396,6 +396,25 @@ namespace Kuriimu2_WinForms.FormatForms
             this.imlBitmaps.ImageSize = new System.Drawing.Size(94, 64);
             this.imlBitmaps.TransparentColor = System.Drawing.Color.Transparent;
             // 
+            // pbPalette
+            // 
+            this.pbPalette.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pbPalette.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbPalette.ErrorImage = null;
+            this.pbPalette.InitialImage = null;
+            this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            this.pbPalette.Location = new System.Drawing.Point(0, 25);
+            this.pbPalette.Name = "pbPalette";
+            this.pbPalette.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            this.pbPalette.Size = new System.Drawing.Size(215, 181);
+            this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pbPalette.TabIndex = 0;
+            this.pbPalette.TabStop = false;
+            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PbPalette_MouseClick);
+            this.pbPalette.MouseEnter += new System.EventHandler(this.PbPalette_MouseEnter);
+            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.PbPalette_KeyDown);
+            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.PbPalette_KeyUp);
+            // 
             // tlsPalette
             // 
             this.tlsPalette.BackColor = System.Drawing.Color.Transparent;
@@ -437,22 +456,6 @@ namespace Kuriimu2_WinForms.FormatForms
             this.tsbPaletteExport.Size = new System.Drawing.Size(23, 22);
             this.tsbPaletteExport.Click += new System.EventHandler(this.TsbPaletteExport_Click);
             // 
-            // pbPalette
-            // 
-            this.pbPalette.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbPalette.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPalette.ErrorImage = null;
-            this.pbPalette.InitialImage = null;
-            this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            this.pbPalette.Location = new System.Drawing.Point(0, 0);
-            this.pbPalette.Name = "pbPalette";
-            this.pbPalette.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-            this.pbPalette.Size = new System.Drawing.Size(215, 206);
-            this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pbPalette.TabIndex = 0;
-            this.pbPalette.TabStop = false;
-            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PbPalette_MouseClick);
-            // 
             // ImageForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -479,9 +482,9 @@ namespace Kuriimu2_WinForms.FormatForms
             this.splProperties.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splProperties)).EndInit();
             this.splProperties.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).EndInit();
             this.tlsPalette.ResumeLayout(false);
             this.tlsPalette.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

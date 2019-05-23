@@ -35,7 +35,7 @@ namespace Kanvas.Quantization.ColorCaches
             var result = 0;
             int index = 0;
             int colorIndex =
-                ColorModelHelper.GetSmallestEuclideanDistanceIndex(_colorModel, color, candidates.Values.ToList());
+                ColorModelHelper.GetSmallestEuclideanDistanceIndex(ColorModel, color, candidates.Values.ToList(), AlphaThreshold);
 
             foreach (var colorPaletteIndex in candidates.Keys)
             {

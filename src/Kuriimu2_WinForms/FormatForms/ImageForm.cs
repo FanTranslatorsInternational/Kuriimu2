@@ -566,6 +566,7 @@ namespace Kuriimu2_WinForms.FormatForms
             imbPreview.Focus();
         }
 
+        private bool _setIndexInImage;
         private void imbPreview_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space)
@@ -573,6 +574,11 @@ namespace Kuriimu2_WinForms.FormatForms
                 imbPreview.SelectionMode = ImageBoxSelectionMode.None;
                 imbPreview.Cursor = Cursors.SizeAll;
                 tslTool.Text = "Tool: Pan";
+            }
+
+            if (e.KeyCode == Keys.Shift)
+            {
+                _setIndexInImage = true;
             }
         }
 
@@ -583,6 +589,11 @@ namespace Kuriimu2_WinForms.FormatForms
                 imbPreview.SelectionMode = ImageBoxSelectionMode.Zoom;
                 imbPreview.Cursor = Cursors.Default;
                 tslTool.Text = "Tool: Zoom";
+            }
+
+            if (e.KeyCode == Keys.Shift)
+            {
+                _setIndexInImage = false;
             }
         }
 
@@ -629,14 +640,21 @@ namespace Kuriimu2_WinForms.FormatForms
                 Import(files[0]);
         }
 
+        private int _paletteChosenColorIndex = -1;
         private void PbPalette_MouseClick(object sender, MouseEventArgs e)
         {
-            SetColorInPalette(GetPaletteIndex, e.Location);
+            if (_paletteChooseColor)
+                _paletteChosenColorIndex = GetPaletteIndex(e.Location);
+            else
+                SetColorInPalette(GetPaletteIndex, e.Location);
         }
 
         private void ImbPreview_MouseClick(object sender, MouseEventArgs e)
         {
-            SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
+            if (_setIndexInImage && _paletteChosenColorIndex >= 0)
+                SetIndexInImage(e.Location, _paletteChosenColorIndex);
+            else
+                SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
         }
 
         private async void SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
@@ -700,6 +718,63 @@ namespace Kuriimu2_WinForms.FormatForms
             UpdateImageList();
         }
 
+        private async void SetIndexInImage(Point controlPoint, int newIndex)
+        {
+            if (!(_imageAdapter is IIndexedImageAdapter indexAdapter) || !(_selectedBitmapInfo is IndexedBitmapInfo indexInfo))
+                return;
+            if (newIndex >= indexInfo.ColorCount)
+                return;
+
+            DisablePaletteControls();
+            DisableImageControls();
+
+            var pointInImg = GetPointInImage(controlPoint);
+            if (pointInImg == Point.Empty)
+            {
+                UpdateForm();
+                return;
+            }
+
+            var progress = new Progress<ProgressReport>();
+            progress.ProgressChanged += Report_ProgressChanged;
+            bool commitRes;
+            try
+            {
+                var result = await indexAdapter.SetIndexInImage(indexInfo, pointInImg, newIndex,progress);
+                if (!result.Result)
+                {
+                    MessageBox.Show("Setting index in image was not successful.", "Set index unsuccessful",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UpdateForm();
+                    return;
+                }
+
+                commitRes = indexAdapter.Commit(indexInfo, result.Image, indexInfo.ImageEncoding,
+                    result.Palette, indexInfo.PaletteEncoding);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            if (!commitRes)
+            {
+                MessageBox.Show("Setting index in image was not successful.", "Set color unsuccessful",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UpdateForm();
+                return;
+            }
+
+            // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
+            _bestBitmaps[_selectedImageIndex] = indexInfo.Image;
+
+            UpdateForm();
+            UpdatePreview();
+            UpdateImageList();
+        }
+
         private void DisablePaletteControls()
         {
             pbPalette.Enabled = false;
@@ -718,12 +793,19 @@ namespace Kuriimu2_WinForms.FormatForms
             return yIndex * pbPalette.Image.Width + xIndex;
         }
 
+        private Point GetPointInImage(Point controlPoint)
+        {
+            if (!imbPreview.IsPointInImage(controlPoint))
+                return Point.Empty;
+
+            return imbPreview.PointToImage(controlPoint);
+        }
+
         private int GetPaletteIndexByImageLocation(Point point)
         {
-            if (!imbPreview.IsPointInImage(point))
+            var pointInImg = GetPointInImage(point);
+            if (pointInImg == Point.Empty)
                 return -1;
-
-            var pointInImg = imbPreview.PointToImage(point);
             var pixelColor = _selectedBitmapInfo.Image.GetPixel(pointInImg.X, pointInImg.Y);
 
             return (_selectedBitmapInfo as IndexedBitmapInfo)?.Palette.IndexOf(pixelColor) ?? -1;
@@ -872,6 +954,24 @@ namespace Kuriimu2_WinForms.FormatForms
                 MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
+        }
+
+        private void PbPalette_MouseEnter(object sender, EventArgs e)
+        {
+            pbPalette.Focus();
+        }
+
+        private bool _paletteChooseColor;
+        private void PbPalette_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Shift)
+                _paletteChooseColor = true;
+        }
+
+        private void PbPalette_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Shift)
+                _paletteChooseColor = false;
         }
     }
 }

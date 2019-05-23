@@ -20,10 +20,21 @@ namespace Kanvas.Quantization.Interfaces
         IList<Color> Palette { get; }
 
         /// <summary>
+        /// The ColorModel for this cache.
+        /// </summary>
+        ColorModel ColorModel { get; }
+
+        /// <summary>
+        /// If <see cref="ColorModel"/> is RGBA, this value decides the threshold for alpha cutting.
+        /// </summary>
+        int AlphaThreshold { get; }
+
+        /// <summary>
         /// Prepares the cache.
         /// </summary>
         /// <param name="model">The color model to use for index calculations.</param>
-        void Prepare(ColorModel model);
+        /// <param name="alphaThreshold">The value at which the alpha colors gets distinguished from opaque colors.</param>
+        void Prepare(ColorModel model, int alphaThreshold = 0);
 
         /// <summary>
         /// Caches a list of colors.

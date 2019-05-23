@@ -24,8 +24,13 @@ namespace Kanvas.Quantization.Helper
             }
         }
 
-        public static int GetSmallestEuclideanDistanceIndex(ColorModel model, Color sourceColor, IList<Color> colorList)
+        public static int GetSmallestEuclideanDistanceIndex(ColorModel model, Color sourceColor, IList<Color> colorList, int alphaThreshold)
         {
+            if (model == ColorModel.RGBA)
+                if (sourceColor.A < alphaThreshold)
+                    return colorList.IndexOf(Color.Transparent);
+            model = ColorModel.RGB;
+
             long leastDistance = long.MaxValue;
             int result = 0;
             for (int i = 0; i < colorList.Count; i++)

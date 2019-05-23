@@ -33,6 +33,11 @@ namespace Kanvas.Models
         public ColorModel ColorModel { get; set; }
 
         /// <summary>
+        /// The value at which the alpha colors gets distinguished from opaque colors.
+        /// </summary>
+        public int AlphaThreshold { get; set; }
+
+        /// <summary>
         /// The count of colors to quantize to. 
         /// </summary>
         public int ColorCount { get; set; }

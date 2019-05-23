@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas.Quantization.Models.ColorCache;
 using Kanvas.Quantization.Models.Parallel;
 using Kanvas.Quantization.Models.Quantizer;
 using Kanvas.Support;
@@ -83,6 +84,8 @@ namespace Kanvas.Quantization.Quantizers
                 for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
                 {
                     var color = taskModel.Input[i];
+                    if (_colorCache.ColorModel == ColorModel.RGBA)
+                        color = color.A >= _colorCache.AlphaThreshold ? Color.FromArgb(255, color.R, color.G, color.B) : Color.Transparent;
                     taskModel.Output.AddOrUpdate((uint)color.ToArgb(), key => new DistinctColorInfo(color),
                         (key, info) => info.IncreaseCount());
                 }
@@ -118,6 +121,15 @@ namespace Kanvas.Quantization.Quantizers
                 OrderBy(info => random.Next(foundColorCount)).
                 ToList();
 
+            bool usedTransparency = false;
+            if (_colorCache.ColorModel == ColorModel.RGBA)
+                if (colorInfoList.Exists(x => x.Color == Color.Transparent.ToArgb()))
+                {
+                    colorInfoList.RemoveAll(x => x.Color == Color.Transparent.ToArgb());
+                    usedTransparency = true;
+                    maxColorCount--;
+                }
+
             DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
             colorInfoList.Remove(background);
             maxColorCount--;
@@ -141,6 +153,8 @@ namespace Kanvas.Quantization.Quantizers
             {
                 Color.FromArgb(background.Color)
             };
+            if (usedTransparency)
+                palette.Add(Color.Transparent);
             palette.AddRange(colorInfoList.Select(colorInfo => Color.FromArgb(colorInfo.Color)));
 
             return palette;

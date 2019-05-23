@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using Kanvas.IndexEncoding.Models;
+using Kanvas.Quantization.Models.ColorCache;
 
 namespace Kanvas
 {
@@ -272,7 +273,7 @@ namespace Kanvas
 
             // Prepare objects
             settings.Ditherer?.Prepare(settings.Quantizer, settings.Width, settings.Height);
-            settings.ColorCache?.Prepare(settings.ColorModel);
+            settings.ColorCache?.Prepare(settings.ColorModel, settings.ColorModel == ColorModel.RGBA ? settings.AlphaThreshold : 0);
 
             if (settings.Quantizer.UsesColorCache)
                 settings.Quantizer.SetColorCache(settings.ColorCache);

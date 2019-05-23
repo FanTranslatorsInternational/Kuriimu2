@@ -40,7 +40,7 @@ namespace Kanvas.Quantization.ColorCaches
 
         private int CalculatePaletteIndexInternal(Color color)
         {
-            return ColorModelHelper.GetSmallestEuclideanDistanceIndex(_colorModel, color, Palette);
+            return ColorModelHelper.GetSmallestEuclideanDistanceIndex(ColorModel, color, Palette, AlphaThreshold);
         }
     }
 }
