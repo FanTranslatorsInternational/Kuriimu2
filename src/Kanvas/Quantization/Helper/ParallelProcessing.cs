@@ -74,6 +74,8 @@ namespace Kanvas.Quantization.Helper
                 {
                     if (activeTasks[i]?.IsCompleted ?? false)
                     {
+                        if (activeTasks[i]?.IsFaulted ?? false)
+                            Debugger.Break();
                         activeTasks[i].Dispose();
                         activeTasks[i] = null;
                     }

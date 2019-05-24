@@ -52,6 +52,11 @@
     <Compile Include="Exceptions\ColorEncodingException.cs" />
     <Compile Include="Models\BitOrder.cs" />
     <Compile Include="Models\QuantizationSettings.cs" />
+    <Compile Include="Quantization\Models\Quantizer\Wu\Wu3DHistogram.cs" />
+    <Compile Include="Quantization\Models\Quantizer\Wu\WuCommon.cs" />
+    <Compile Include="Quantization\Models\Quantizer\Wu\WuColorCube.cs" />
+    <Compile Include="Quantization\Models\Quantizer\Wu\WuColorBox.cs" />
+    <Compile Include="Quantization\Quantizers\WuColorQuantizer.cs" />
     <Compile Include="Swizzle\Models\CtrTransformation.cs" />
     <Compile Include="Swizzle\Models\SwitchFormat.cs" />
     <Compile Include="Encoding\ASTC.cs" />
@@ -156,10 +161,10 @@
     <Compile Include="Quantization\Models\Ditherer\ColorComponentError.cs" />
     <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionElement.cs" />
     <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionList.cs" />
-    <Compile Include="Quantization\Models\Quantizer\DistinctColorInfo.cs" />
+    <Compile Include="Quantization\Models\Quantizer\DistinctSelection\DistinctColorInfo.cs" />
     <Compile Include="Quantization\Models\Parallel\DelayedLineTask.cs" />
     <Compile Include="Quantization\Models\Parallel\LineTask.cs" />
-    <Compile Include="Quantization\Quantizers\DistinctSelectionQuantizer.cs" />
+    <Compile Include="Quantization\Quantizers\DistinctSelectionColorQuantizer.cs" />
     <Compile Include="Swizzle\BCSwizzle.cs" />
     <Compile Include="Swizzle\CTRSwizzle.cs" />
     <Compile Include="Swizzle\LinearSwizzle.cs" />

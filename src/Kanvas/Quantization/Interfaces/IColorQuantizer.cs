@@ -23,6 +23,11 @@ namespace Kanvas.Quantization.Interfaces
         bool UsesVariableColorCount { get; }
 
         /// <summary>
+        /// Determines if alpha is supported for quantization.
+        /// </summary>
+        bool SupportsAlpha { get; }
+
+        /// <summary>
         /// Determines if the quantizer allows parallel processing.
         /// </summary>
         bool AllowParallel { get; }
