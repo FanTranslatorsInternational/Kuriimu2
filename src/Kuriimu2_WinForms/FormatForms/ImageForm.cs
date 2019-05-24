@@ -389,6 +389,8 @@ namespace Kuriimu2_WinForms.FormatForms
             if (_imageAdapter.BitmapInfos.Count > 0)
             {
                 imbPreview.Image = _selectedBitmapInfo.Image;
+                imbPreview.Zoom -= 1;
+                imbPreview.Zoom += 1;
                 //pptImageProperties.SelectedObject = _selectedBitmapInfo;
             }
 
@@ -576,7 +578,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 tslTool.Text = "Tool: Pan";
             }
 
-            if (e.KeyCode == Keys.Shift)
+            if (e.KeyCode == Keys.ShiftKey)
             {
                 _setIndexInImage = true;
             }
@@ -591,7 +593,7 @@ namespace Kuriimu2_WinForms.FormatForms
                 tslTool.Text = "Tool: Zoom";
             }
 
-            if (e.KeyCode == Keys.Shift)
+            if (e.KeyCode == Keys.ShiftKey)
             {
                 _setIndexInImage = false;
             }
@@ -740,7 +742,7 @@ namespace Kuriimu2_WinForms.FormatForms
             bool commitRes;
             try
             {
-                var result = await indexAdapter.SetIndexInImage(indexInfo, pointInImg, newIndex,progress);
+                var result = await indexAdapter.SetIndexInImage(indexInfo, pointInImg, newIndex, progress);
                 if (!result.Result)
                 {
                     MessageBox.Show("Setting index in image was not successful.", "Set index unsuccessful",
@@ -964,13 +966,13 @@ namespace Kuriimu2_WinForms.FormatForms
         private bool _paletteChooseColor;
         private void PbPalette_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Shift)
+            if (e.KeyCode == Keys.ShiftKey)
                 _paletteChooseColor = true;
         }
 
         private void PbPalette_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Shift)
+            if (e.KeyCode == Keys.ShiftKey)
                 _paletteChooseColor = false;
         }
     }
