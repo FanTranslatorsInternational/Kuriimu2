@@ -11,7 +11,6 @@ using Kanvas.Models;
 
 namespace Kanvas.IndexEncoding
 {
-    // TODO: Remove or merge later on; Only temporary
     /// <summary>
     /// Defines the default index-only encoding.
     /// </summary>

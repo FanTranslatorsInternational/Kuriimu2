@@ -7,6 +7,7 @@ using Kanvas.Encoding;
 using Kanvas.IndexEncoding;
 using Kanvas.Interface;
 using Kanvas.Models;
+using Kanvas.Quantization.Quantizers;
 using Komponent.IO;
 
 namespace plugin_yuusha_shisu.BTX
@@ -116,7 +117,14 @@ namespace plugin_yuusha_shisu.BTX
                 // Setup
                 if (Header.Format == ImageFormat.Palette_8)
                 {
-                    var settings = new IndexedImageSettings(IndexEncodings[(int)Header.Format], PaletteEncodings[(int)Header.Format], Header.Width, Header.Height);
+                    var settings = new IndexedImageSettings(IndexEncodings[(int)Header.Format], PaletteEncodings[(int)Header.Format], Header.Width, Header.Height)
+                    {
+                        QuantizationSettings = new QuantizationSettings(new WuColorQuantizer(6, 3), Header.Width, Header.Height)
+                        {
+                            ColorCount = 256,
+                            ParallelCount = 8
+                        }
+                    };
                     var data = Kolors.Save(Texture, settings);
 
                     bw.Write(data.indexData);
