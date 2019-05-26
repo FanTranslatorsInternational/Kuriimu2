@@ -10,6 +10,7 @@ using Kanvas.Quantization.Models.ColorCache;
 
 namespace Kanvas
 {
+    // TODO: Add parallelization to image encodings
     /// <summary>
     /// Main processor for different <see cref="IColorEncoding"/>.
     /// </summary>

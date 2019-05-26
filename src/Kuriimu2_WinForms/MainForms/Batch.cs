@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using Kontract;
@@ -58,6 +59,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void UpdateBatchVariants()
         {
+            cmbBatchVariant.SelectedIndexChanged -= CmbBatchVariant_SelectedIndexChanged;
             cmbBatchVariant.Items.Clear();
 
             // TODO: Use plugin loader methods that take in a type
@@ -81,10 +83,13 @@ namespace Kuriimu2_WinForms.MainForms
             cmbBatchVariant.Enabled = count > 0;
             if (count > 0)
                 cmbBatchVariant.SelectedIndex = 0;
+
+            cmbBatchVariant.SelectedIndexChanged += CmbBatchVariant_SelectedIndexChanged;
         }
 
         private void UpdateBatchMethods()
         {
+            cmbBatchMethod.SelectedIndexChanged -= CmbBatchMethod_SelectedIndexChanged;
             cmbBatchMethod.Items.Clear();
 
             if ((Type)_selectedBatchType.Value == typeof(ICipherAdapter))
@@ -104,6 +109,8 @@ namespace Kuriimu2_WinForms.MainForms
             cmbBatchMethod.Enabled = count > 0;
             if (count > 0)
                 cmbBatchMethod.SelectedIndex = 0;
+
+            cmbBatchMethod.SelectedIndexChanged += CmbBatchMethod_SelectedIndexChanged;
         }
 
         private void SetCipherMethods()
@@ -194,9 +201,17 @@ namespace Kuriimu2_WinForms.MainForms
 
         private async void BtnBatchProcess_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtBatchInputDirectory.Text) || string.IsNullOrEmpty(txtBatchOutputDirectory.Text))
+            if (string.IsNullOrEmpty(txtBatchInputDirectory.Text))
             {
-                MessageBox.Show("Choose an input and output directory.", "Missing paths", MessageBoxButtons.OK,
+                MessageBox.Show("Choose an input directory.", "Missing paths", MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            if ((Type)_selectedBatchType.Value == typeof(IHashAdapter) &&
+                string.IsNullOrEmpty(txtBatchOutputDirectory.Text))
+            {
+                MessageBox.Show("Choose an output directory.", "Missing paths", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
             }
@@ -232,9 +247,6 @@ namespace Kuriimu2_WinForms.MainForms
                 await batchProcessor.Process(txtBatchInputDirectory.Text, txtBatchOutputDirectory.Text,
                     processor, progress);
 
-                if (batchProcessor.ErrorReports.Any())
-                    Debugger.Break();
-
                 adapter.RequestData -= CipherAdapter_RequestData;
 
                 _cipherRequestedData = new List<string>();
@@ -244,10 +256,26 @@ namespace Kuriimu2_WinForms.MainForms
             //{
 
             //}
-            //else if((Type)_selectedBatchType.Value == typeof(IHashAdapter))
-            //{
+            else if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
+            {
+                var adapter = _selectedBatchVariant.Value as IHashAdapter;
+                if (adapter == null)
+                    return;
 
-            //}
+                var processor = new ComputeHashProcessor(adapter);
+                var batchHashProcessor=new BatchHashProcessor();
+                batchHashProcessor.SearchSubDirectories = chkSubDirectories.Checked;
+                if (int.TryParse(txtTaskCount.Text, out taskCount))
+                    batchHashProcessor.TaskCount = taskCount;
+
+                lstHash.Items.Clear();
+                var hashResults = await batchHashProcessor.Process(txtBatchInputDirectory.Text, processor, progress);
+                foreach (var hashResult in hashResults)
+                {
+                    lstHash.Items.Add(new ListViewItem(new[]
+                        {hashResult.File, $"0x{hashResult.Result.Aggregate("", (a, b) => a + b.ToString("X2"))}"}));
+                }
+            }
 
             btnBatchProcess.Enabled = true;
             txtTaskCount.Enabled = true;
@@ -315,15 +343,26 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void CmbBatchType_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
+            {
+                pnlHash.Visible = true;
+                Size = new Size(Size.Width, 430);
+                txtBatchOutputDirectory.Enabled = false;
+                btnBrowseOutput.Enabled = false;
+            }
+            else
+            {
+                pnlHash.Visible = false;
+                Size = new Size(Size.Width, 215);
+                txtBatchOutputDirectory.Enabled = true;
+                btnBrowseOutput.Enabled = true;
+            }
 
+            UpdateBatchVariants();
+            UpdateBatchMethods();
         }
 
         private void CmbBatchVariant_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void CheckBox1_CheckedChanged(object sender, EventArgs e)
         {
 
         }

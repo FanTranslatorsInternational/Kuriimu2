@@ -85,6 +85,7 @@
     <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
     <Compile Include="Interfaces\Image\BaseImageAdapter.cs" />
     <Compile Include="Interfaces\Image\BaseIndexedImageAdapter.cs" />
+    <Compile Include="Interfaces\Intermediate\HashResult.cs" />
     <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\ICompressionAdapter.cs" />
     <Compile Include="Interfaces\Intermediate\IHashAdapter.cs" />

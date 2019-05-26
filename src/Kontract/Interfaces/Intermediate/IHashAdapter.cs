@@ -17,9 +17,8 @@ namespace Kontract.Interfaces.Intermediate
         /// Compute a hash from a file.
         /// </summary>
         /// <param name="toHash"></param>
-        /// <param name="hashInto"></param>
         /// <param name="progress"></param>
         /// <returns></returns>
-        Task<bool> Compute(Stream toHash, Stream hashInto, IProgress<ProgressReport> progress);
+        Task<HashResult> Compute(Stream toHash, IProgress<ProgressReport> progress);
     }
 }

@@ -44,6 +44,11 @@
             this.chkSubDirectories = new System.Windows.Forms.CheckBox();
             this.txtTaskCount = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
+            this.pnlHash = new System.Windows.Forms.Panel();
+            this.lstHash = new System.Windows.Forms.ListView();
+            this.clmFile = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clmHash = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.pnlHash.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnBrowseInput
@@ -190,7 +195,6 @@
             this.chkSubDirectories.TabIndex = 31;
             this.chkSubDirectories.Text = "Batch sub directories";
             this.chkSubDirectories.UseVisualStyleBackColor = true;
-            this.chkSubDirectories.CheckedChanged += new System.EventHandler(this.CheckBox1_CheckedChanged);
             // 
             // txtTaskCount
             // 
@@ -211,11 +215,52 @@
             this.label6.TabIndex = 33;
             this.label6.Text = "Task Count:";
             // 
+            // pnlHash
+            // 
+            this.pnlHash.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.pnlHash.Controls.Add(this.lstHash);
+            this.pnlHash.Location = new System.Drawing.Point(12, 174);
+            this.pnlHash.Name = "pnlHash";
+            this.pnlHash.Size = new System.Drawing.Size(488, 205);
+            this.pnlHash.TabIndex = 34;
+            this.pnlHash.Visible = false;
+            // 
+            // lstHash
+            // 
+            this.lstHash.Activation = System.Windows.Forms.ItemActivation.OneClick;
+            this.lstHash.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.clmFile,
+            this.clmHash});
+            this.lstHash.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lstHash.FullRowSelect = true;
+            this.lstHash.GridLines = true;
+            this.lstHash.Location = new System.Drawing.Point(0, 0);
+            this.lstHash.MultiSelect = false;
+            this.lstHash.Name = "lstHash";
+            this.lstHash.ShowGroups = false;
+            this.lstHash.ShowItemToolTips = true;
+            this.lstHash.Size = new System.Drawing.Size(488, 205);
+            this.lstHash.TabIndex = 4;
+            this.lstHash.UseCompatibleStateImageBehavior = false;
+            this.lstHash.View = System.Windows.Forms.View.Details;
+            // 
+            // clmFile
+            // 
+            this.clmFile.Text = "Filename";
+            this.clmFile.Width = 263;
+            // 
+            // clmHash
+            // 
+            this.clmHash.Text = "Hash";
+            this.clmHash.Width = 201;
+            // 
             // Batch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(512, 176);
+            this.ClientSize = new System.Drawing.Size(512, 391);
+            this.Controls.Add(this.pnlHash);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.txtTaskCount);
             this.Controls.Add(this.chkSubDirectories);
@@ -234,6 +279,7 @@
             this.Controls.Add(this.label1);
             this.Name = "Batch";
             this.Text = "Batch Processor";
+            this.pnlHash.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -257,5 +303,9 @@
         private System.Windows.Forms.CheckBox chkSubDirectories;
         private System.Windows.Forms.TextBox txtTaskCount;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Panel pnlHash;
+        private System.Windows.Forms.ListView lstHash;
+        private System.Windows.Forms.ColumnHeader clmFile;
+        private System.Windows.Forms.ColumnHeader clmHash;
     }
 }

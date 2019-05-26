@@ -52,10 +52,14 @@
   <ItemGroup>
     <Compile Include="Batch\BatchErrorReport.cs" />
     <Compile Include="Batch\BatchExport.cs" />
+    <Compile Include="Batch\BatchHashProcessor.cs" />
+    <Compile Include="Batch\BatchHashResult.cs" />
     <Compile Include="Batch\BatchProcessor.cs" />
     <Compile Include="Batch\ProcessElement.cs" />
+    <Compile Include="Batch\Processors\ComputeHashProcessor.cs" />
     <Compile Include="Batch\Processors\DecryptProcessor.cs" />
     <Compile Include="Batch\Processors\EncryptProcessor.cs" />
+    <Compile Include="Batch\Processors\IBatchHashProcessor.cs" />
     <Compile Include="Batch\Processors\IBatchProcessor.cs" />
     <Compile Include="Exceptions\FileManager\LoadFileExceptions.cs" />
     <Compile Include="Exceptions\KPal\InvalidKPalException.cs" />

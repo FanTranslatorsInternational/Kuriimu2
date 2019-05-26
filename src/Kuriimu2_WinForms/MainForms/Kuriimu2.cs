@@ -478,7 +478,7 @@ namespace Kuriimu2_WinForms.MainForms
 
         #region Hash
 
-        private async void DoHash(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> hashFunc)
+        private async void DoHash(Func<Stream, IProgress<ProgressReport>, Task<HashResult>> hashFunc)
         {
             // File to open
             var openFile = new OpenFileDialog();
@@ -488,30 +488,28 @@ namespace Kuriimu2_WinForms.MainForms
                 return;
             }
 
-            // File to save
-            var saveFile = new SaveFileDialog();
-            if (saveFile.ShowDialog() != DialogResult.OK)
-            {
-                //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
             hashesToolStripMenuItem.Enabled = false;
             var report = new Progress<ProgressReport>();
             report.ProgressChanged += Report_ProgressChanged;
 
             var openFileStream = openFile.OpenFile();
-            var saveFileStream = saveFile.OpenFile();
 
             _timer.Start();
             _globalOperationWatch.Reset();
             _globalOperationWatch.Start();
-            await hashFunc(openFileStream, saveFileStream, report);
+            var hashResult = await hashFunc(openFileStream, report);
             _globalOperationWatch.Stop();
             _timer.Stop();
 
             openFileStream.Close();
-            saveFileStream.Close();
+
+            if (hashResult.IsSuccessful)
+            {
+                return;
+            }
+
+            MessageBox.Show(
+                $"The hash of {openFile.FileName} is:{Environment.NewLine}{hashResult.Result.Aggregate("", (a, b) => a + b.ToString("X2"))}");
 
             hashesToolStripMenuItem.Enabled = true;
         }

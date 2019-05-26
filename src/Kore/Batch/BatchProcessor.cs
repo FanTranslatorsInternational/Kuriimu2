@@ -19,11 +19,11 @@ namespace Kore.Batch
 
         public int TaskCount { get; set; } = 8;
 
-        public IList<BatchErrorReport> ErrorReports { get; private set; }
+        public IList<BatchErrorReport<ProcessElement>> ErrorReports { get; private set; }
 
         public Task Process(string inputDirectory, string outputDirectory, IBatchProcessor processor, IProgress<ProgressReport> progress)
         {
-            ErrorReports = new List<BatchErrorReport>();
+            ErrorReports = new List<BatchErrorReport<ProcessElement>>();
             return ProcessParallel(EnumerateAllFiles(inputDirectory, outputDirectory), progress, processor.Process);
         }
 
@@ -55,7 +55,7 @@ namespace Kore.Batch
                     if (activeTasks[i]?.task?.IsCompleted ?? false)
                     {
                         if (activeTasks[i]?.task?.IsFaulted ?? false)
-                            ErrorReports.Add(new BatchErrorReport(activeTasks[i]?.element, activeTasks[i]?.task.Exception));
+                            ErrorReports.Add(new BatchErrorReport<ProcessElement>(activeTasks[i]?.element, activeTasks[i]?.task.Exception));
 
                         activeTasks[i]?.task.Dispose();
                         activeTasks[i] = null;

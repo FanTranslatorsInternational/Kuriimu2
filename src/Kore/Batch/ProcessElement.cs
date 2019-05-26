@@ -16,5 +16,12 @@ namespace Kore.Batch
             InputFilename = inputFilename;
             OutputFilename = outputFilename;
         }
+
+        public override string ToString()
+        {
+            var msg = $"{Environment.NewLine}Input File: {InputFilename}";
+            msg += $"{Environment.NewLine}Output File: {OutputFilename}";
+            return msg;
+        }
     }
 }

@@ -6,23 +6,22 @@ using System.Threading.Tasks;
 
 namespace Kore.Batch
 {
-    public class BatchErrorReport
+    public class BatchErrorReport<TErrorObject>
     {
-        public ProcessElement ProcessElement { get; }
+        public TErrorObject ErrorObject { get; }
 
         public Exception CatchedException { get; }
 
-        public BatchErrorReport(ProcessElement processElement, Exception exception)
+        public BatchErrorReport(TErrorObject errorObject, Exception exception)
         {
-            ProcessElement = processElement;
+            ErrorObject = errorObject;
             CatchedException = exception;
         }
 
         public override string ToString()
         {
             var msg = CatchedException.Message;
-            msg += $"{Environment.NewLine}Input File: {ProcessElement.InputFilename}";
-            msg += $"{Environment.NewLine}Output File: {ProcessElement.OutputFilename}";
+            msg += $"{Environment.NewLine}{ErrorObject.ToString()}";
 
             return msg;
         }
