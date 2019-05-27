@@ -11,6 +11,7 @@ namespace Kompression.LempelZiv
 {
     internal static class Common
     {
+        // TODO: Parallelize and use streams
         public static unsafe List<LzResult> FindOccurrences(byte[] input, int windowSize, int minOccurenceSize, int maxOccurenceSize)
         {
             var result = new List<LzResult>();
@@ -32,7 +33,7 @@ namespace Kompression.LempelZiv
                         while (*(displacementPtr + walk) == *(position + walk))
                         {
                             walk++;
-                            if (walk >= maxOccurenceSize || *(position + walk) >= input.Length)
+                            if (walk >= maxOccurenceSize || position - ptr + walk >= input.Length)
                                 break;
                         }
 

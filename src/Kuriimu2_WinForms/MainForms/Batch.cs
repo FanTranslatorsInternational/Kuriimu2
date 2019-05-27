@@ -38,6 +38,26 @@ namespace Kuriimu2_WinForms.MainForms
             cmbBatchType.SelectedIndexChanged += CmbBatchType_SelectedIndexChanged;
             cmbBatchMethod.SelectedIndexChanged += CmbBatchMethod_SelectedIndexChanged;
             cmbBatchVariant.SelectedIndexChanged += CmbBatchVariant_SelectedIndexChanged;
+
+            UpdateForm();
+        }
+
+        private void UpdateForm()
+        {
+            if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
+            {
+                pnlHash.Visible = true;
+                Size = new Size(Size.Width, 430);
+                txtBatchOutputDirectory.Enabled = false;
+                btnBrowseOutput.Enabled = false;
+            }
+            else
+            {
+                pnlHash.Visible = false;
+                Size = new Size(Size.Width, 215);
+                txtBatchOutputDirectory.Enabled = true;
+                btnBrowseOutput.Enabled = true;
+            }
         }
 
         private void UpdateBatchTypes()
@@ -343,23 +363,9 @@ namespace Kuriimu2_WinForms.MainForms
 
         private void CmbBatchType_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if ((Type)_selectedBatchType.Value == typeof(IHashAdapter))
-            {
-                pnlHash.Visible = true;
-                Size = new Size(Size.Width, 430);
-                txtBatchOutputDirectory.Enabled = false;
-                btnBrowseOutput.Enabled = false;
-            }
-            else
-            {
-                pnlHash.Visible = false;
-                Size = new Size(Size.Width, 215);
-                txtBatchOutputDirectory.Enabled = true;
-                btnBrowseOutput.Enabled = true;
-            }
-
             UpdateBatchVariants();
             UpdateBatchMethods();
+            UpdateForm();
         }
 
         private void CmbBatchVariant_SelectedIndexChanged(object sender, EventArgs e)
