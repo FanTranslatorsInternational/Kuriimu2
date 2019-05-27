@@ -11,7 +11,8 @@ namespace Kompression.LempelZiv
 {
     internal static class Common
     {
-        // TODO: Parallelize and use streams
+        // TODO: Parallelize occurrence search
+        // TODO: Use streams
         public static unsafe List<LzResult> FindOccurrences(byte[] input, int windowSize, int minOccurenceSize, int maxOccurenceSize)
         {
             var result = new List<LzResult>();

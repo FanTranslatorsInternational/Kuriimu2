@@ -102,7 +102,7 @@ namespace Kompression.LempelZiv
             }
             else    // >= 0010
             {
-                length = HandleRemainingCompressedBlock(byte1, input, output);
+                length = byte1 & 0xF;
             }
 
             var bufferIndex = windowBufferOffset + windowBuffer.Length - displacement;
@@ -136,13 +136,6 @@ namespace Kompression.LempelZiv
             var byte3 = input.ReadByte();
             var byte4 = input.ReadByte();
             var length = ((byte4 << 8) | byte3) + 0x110; // max 0xFFFF + 0x110 = 0x1010F
-
-            return length;
-        }
-
-        private static int HandleRemainingCompressedBlock(byte byte1, Stream input, Stream output)
-        {
-            var length = byte1 & 0xF;  // max 0xF
 
             return length;
         }
@@ -183,7 +176,7 @@ namespace Kompression.LempelZiv
             // mark the next block as compressed
             blockBuffer[0] |= (byte)(1 << (7 - bufferedBlocks));
 
-            // the last 1.5 bytes are always the disp
+            // the last 1.5 bytes are always the displacement
             blockBuffer[blockBufferLength] = (byte)((lzResult.Displacement & 0x0F) << 4);
             blockBuffer[blockBufferLength + 1] = (byte)((lzResult.Displacement >> 4) & 0xFF);
 
@@ -195,7 +188,7 @@ namespace Kompression.LempelZiv
                 blockBuffer[blockBufferLength++] = (byte)((lzResult.Length - 0x110) & 0xFF);
                 blockBuffer[blockBufferLength] = (byte)(((lzResult.Length - 0x110) >> 8) & 0xFF);
             }
-            else if (lzResult.Length > 0x10)
+            else if (lzResult.Length > 0xF)
             {
                 // case 0; (A)0 (CD) (EF) + (0x0)(0x10) = (DISP = A-C-D)(LEN = E-F)
                 blockBuffer[blockBufferLength] |= 0x00;
