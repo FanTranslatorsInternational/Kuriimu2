@@ -30,6 +30,9 @@ namespace Kompression.LempelZiv
                     var length = -1;
                     while (displacementPtr < position)
                     {
+                        if (length >= maxOccurenceSize)
+                            break;
+
                         var walk = 0;
                         while (*(displacementPtr + walk) == *(position + walk))
                         {
