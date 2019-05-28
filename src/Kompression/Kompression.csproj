@@ -43,6 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitOrder.cs" />
+    <Compile Include="BitReader.cs" />
+    <Compile Include="BitWriter.cs" />
     <Compile Include="Exceptions\DisplacementException.cs" />
     <Compile Include="Exceptions\InvalidCompressionException.cs" />
     <Compile Include="Exceptions\StreamTooShortException.cs" />
@@ -51,6 +54,7 @@
     <Compile Include="LempelZiv\LZ11.cs" />
     <Compile Include="LempelZiv\LZ40.cs" />
     <Compile Include="LempelZiv\LZ60.cs" />
+    <Compile Include="LempelZiv\LZ77.cs" />
     <Compile Include="LempelZiv\LzResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

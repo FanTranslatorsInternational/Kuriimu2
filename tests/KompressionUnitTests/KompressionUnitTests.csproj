@@ -49,6 +49,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitReaderTests.cs" />
+    <Compile Include="BitWriterTests.cs" />
     <Compile Include="LempelZivTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -13,7 +13,7 @@ namespace Kompression.LempelZiv
     {
         // TODO: Parallelize occurrence search
         // TODO: Use streams
-        public static unsafe List<LzResult> FindOccurrences(byte[] input, int windowSize, int minOccurenceSize, int maxOccurenceSize)
+        public static unsafe List<LzResult> FindOccurrences(byte[] input, int windowSize, int minOccurenceSize, int maxOccurenceSize, int postDiscrepancySize = 0)
         {
             var result = new List<LzResult>();
 
@@ -28,10 +28,13 @@ namespace Kompression.LempelZiv
 
                     var displacement = -1L;
                     var length = -1;
+                    byte[] discrepancy = null;
                     while (displacementPtr < position)
                     {
                         if (length >= maxOccurenceSize)
                             break;
+
+                        #region Find max occurence from displacementPtr onwards
 
                         var walk = 0;
                         while (*(displacementPtr + walk) == *(position + walk))
@@ -45,15 +48,20 @@ namespace Kompression.LempelZiv
                         {
                             length = walk;
                             displacement = position - displacementPtr;
+                            discrepancy = new byte[postDiscrepancySize];
+                            for (int i = 0; i < discrepancy.Length; i++)
+                                discrepancy[i] = *(position + walk + i);
                         }
+
+                        #endregion
 
                         displacementPtr++;
                     }
 
                     if (length >= minOccurenceSize)
                     {
-                        result.Add(new LzResult(position - ptr, displacement, length));
-                        position += length;
+                        result.Add(new LzResult(position - ptr, displacement, length, discrepancy));
+                        position += length + postDiscrepancySize;
                     }
                     else
                     {
