@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/* Is more LZSS through the flag denoting if following data is compressed or raw.
+   Though the format is denoted as LZ77 with the magic num? (Issue 517)*/
+
 namespace Kompression.LempelZiv
 {
     public static class LZ77
