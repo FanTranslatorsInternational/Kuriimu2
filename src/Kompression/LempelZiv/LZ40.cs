@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Kompression.Exceptions;
 
+/* The same as LZ40 just with another magic num */
+
 namespace Kompression.LempelZiv
 {
     public static class LZ40
@@ -14,7 +16,7 @@ namespace Kompression.LempelZiv
         {
             var compressionHeader = new byte[4];
             input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x40 && compressionHeader[0] != 0x60)   // 0x60 for LZ60, which seems to be the same as LZ40
+            if (compressionHeader[0] != 0x40)
                 throw new InvalidCompressionException(nameof(LZ40));
 
             var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);

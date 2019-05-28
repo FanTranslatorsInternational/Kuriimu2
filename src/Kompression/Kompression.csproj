@@ -56,6 +56,8 @@
     <Compile Include="LempelZiv\LZ60.cs" />
     <Compile Include="LempelZiv\LZ77.cs" />
     <Compile Include="LempelZiv\LzResult.cs" />
+    <Compile Include="LempelZiv\LZSS.cs" />
+    <Compile Include="LempelZiv\LZSSVLC.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -39,21 +39,13 @@ namespace Kompression.LempelZiv
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
 
-            var inputBuffer = new byte[input.Length - input.Position];
-            var inputPosBk = input.Position;
-            input.Read(inputBuffer, 0, inputBuffer.Length);
-            input.Position = inputPosBk;
-            var lzResults = Common.FindOccurrences(inputBuffer, 0x1000, 3, 0x12).
-                OrderBy(x => x.Position).
-                ToList();
-
             var compressionHeader = new byte[] { 0x10, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            WriteCompressedData(input, output, lzResults);
+            WriteCompressedData(input, output);
         }
 
-        private static void ReadCompressedData(Stream input, Stream output, int decompressedSize)
+        internal static void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
             int bufferLength = 0x1000, bufferOffset = 0;
             byte[] buffer = new byte[bufferLength];
@@ -120,8 +112,10 @@ namespace Kompression.LempelZiv
             return windowBufferOffset;
         }
 
-        private static void WriteCompressedData(Stream input, Stream output, IList<LzResult> lzResults)
+        internal static void WriteCompressedData(Stream input, Stream output)
         {
+            var lzResults = GetLzResults(input);
+
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 2 + 1];
 
@@ -149,6 +143,17 @@ namespace Kompression.LempelZiv
             }
 
             WriteBlockBuffer(output, blockBuffer, blockBufferLength);
+        }
+
+        private static IList<LzResult> GetLzResults(Stream input)
+        {
+            var inputBuffer = new byte[input.Length - input.Position];
+            var inputPosBk = input.Position;
+            input.Read(inputBuffer, 0, inputBuffer.Length);
+            input.Position = inputPosBk;
+            return Common.FindOccurrences(inputBuffer, 0x1000, 3, 0x12).
+                OrderBy(x => x.Position).
+                ToList();
         }
 
         private static int WriteCompressedBlockToBuffer(LzResult lzResult, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
