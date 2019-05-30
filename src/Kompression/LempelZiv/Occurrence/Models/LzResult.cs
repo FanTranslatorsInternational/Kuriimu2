@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kompression.LempelZiv
+﻿namespace Kompression.LempelZiv.Occurrence.Models
 {
     class LzResult
     {

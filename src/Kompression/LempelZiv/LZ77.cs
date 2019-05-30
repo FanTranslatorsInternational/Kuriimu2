@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kompression.LempelZiv.Occurrence;
+using Kompression.LempelZiv.Occurrence.Models;
 
 /* Is more LZSS,described by wikipedia, through the flag denoting if following data is compressed or raw.
    Though the format is denoted as LZ77 with the magic num? (Issue 517)*/
@@ -59,13 +61,8 @@ namespace Kompression.LempelZiv
 
         public static void Compress(Stream input, Stream output)
         {
-            var inputBuffer = new byte[input.Length - input.Position];
-            var inputPosBk = input.Position;
-            input.Read(inputBuffer, 0, inputBuffer.Length);
-            input.Position = inputPosBk;
-            var lzResults = Common.FindOccurrences(inputBuffer, 0xFF, 1, 0xFF, 1).
-                OrderBy(x => x.Position).
-                ToList();
+            var lzFinder = new LzOccurrenceFinder(LzMode.Naive, 0xFF, 1, 0xFF);
+            var lzResults = lzFinder.Process(input,1).OrderBy(x => x.Position).ToList();
 
             WriteCompressedData(input, output, lzResults);
         }
