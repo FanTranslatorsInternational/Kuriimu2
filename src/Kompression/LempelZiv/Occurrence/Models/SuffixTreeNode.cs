@@ -11,7 +11,9 @@ namespace Kompression.LempelZiv.Occurrence.Models
     [DebuggerDisplay("Length: {Length}")]
     class SuffixTreeNode
     {
-        public SuffixTreeNode[] Children { get; } = new SuffixTreeNode[256];
+        private readonly Lazy<List<SuffixTreeChild>> _children = new Lazy<List<SuffixTreeChild>>(() => new List<SuffixTreeChild>());
+
+        public List<SuffixTreeChild> Children => SuffixLink == null ? _children.Value : SuffixLink.Children;
 
         public SuffixTreeNode SuffixLink { get; set; }
 
@@ -24,7 +26,7 @@ namespace Kompression.LempelZiv.Occurrence.Models
 
         public bool IsLeaf => SuffixIndex >= 0;
 
-        public int Length => End.Value - Start + 1;
+        public int Length => IsRoot ? 0 : End.Value - Start + 1;
 
         // Path label is the combination of values from start to end inclusive of this node
 
