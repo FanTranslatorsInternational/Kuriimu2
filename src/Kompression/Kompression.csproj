@@ -61,6 +61,7 @@
     <Compile Include="LempelZiv\Occurrence\Models\LzResult.cs" />
     <Compile Include="LempelZiv\LZSS.cs" />
     <Compile Include="LempelZiv\LZSSVLC.cs" />
+    <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeChild.cs" />
     <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeNode.cs" />
     <Compile Include="LempelZiv\Occurrence\SuffixTreeBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Linq;
+using System.Xml;
 using Kompression.LempelZiv.Occurrence.Models;
 
 /* A suffix tree parses a file into patterns which are then directly accessible through a root node.
@@ -58,9 +60,10 @@ namespace Kompression.LempelZiv.Occurrence
                 if (_activeLength == 0)
                     _activeEdge = pos;
 
-                if (_activeNode.Children[_inputArray[_activeEdge]] == null)
+                if (_activeNode.Children.All(x => x.Index != _inputArray[_activeEdge]))
                 {
-                    _activeNode.Children[_inputArray[_activeEdge]] = new SuffixTreeNode(pos, _leafEnd, _root);
+                    var newNode = new SuffixTreeNode(pos, _leafEnd, _root);
+                    _activeNode.Children.Add(new SuffixTreeChild(_inputArray[_activeEdge], newNode));
 
                     if (_lastNewNode != null)
                     {
@@ -70,7 +73,7 @@ namespace Kompression.LempelZiv.Occurrence
                 }
                 else
                 {
-                    var next = _activeNode.Children[_inputArray[_activeEdge]];
+                    var next = _activeNode.Children.First(x => x.Index == _inputArray[_activeEdge]).Node;
                     if (TryWalkDown(next))
                         continue;
 
@@ -89,11 +92,21 @@ namespace Kompression.LempelZiv.Occurrence
                     _splitEnd = new IntValue(next.Start + _activeLength - 1);
 
                     var split = new SuffixTreeNode(next.Start, _splitEnd, _root);
-                    _activeNode.Children[_inputArray[_activeEdge]] = split;
+                    if (_activeNode.Children.Any(x => x.Index == _inputArray[_activeEdge]))
+                        _activeNode.Children.First(x => x.Index == _inputArray[_activeEdge]).Node = split;
+                    else
+                        _activeNode.Children.Add(new SuffixTreeChild(_inputArray[_activeEdge], split));
 
-                    split.Children[_inputArray[pos]] = new SuffixTreeNode(pos, _leafEnd, _root);
+                    if (split.Children.Any(x => x.Index == _inputArray[pos]))
+                        split.Children.First(x => x.Index == _inputArray[pos]).Node = new SuffixTreeNode(pos, _leafEnd, _root);
+                    else
+                        split.Children.Add(new SuffixTreeChild(_inputArray[pos], new SuffixTreeNode(pos, _leafEnd, _root)));
+
                     next.Start += _activeLength;
-                    split.Children[_inputArray[next.Start]] = next;
+                    if (split.Children.Any(x => x.Index == _inputArray[next.Start]))
+                        split.Children.First(x => x.Index == _inputArray[next.Start]).Node = next;
+                    else
+                        split.Children.Add(new SuffixTreeChild(_inputArray[next.Start], next));
 
                     if (_lastNewNode != null)
                         _lastNewNode.SuffixLink = split;
@@ -130,10 +143,11 @@ namespace Kompression.LempelZiv.Occurrence
             var leaf = true;
             for (int i = 0; i < 256; i++)
             {
-                if (node.Children[i] != null)
+                if (node.Children.Any(x => x.Index == i))
                 {
                     leaf = false;
-                    SetSuffixIndexByDFS(node.Children[i], labelHeight + node.Children[i].Length);
+                    var first = node.Children.First(x => x.Index == i);
+                    SetSuffixIndexByDFS(first.Node, labelHeight + first.Node.Length);
                 }
             }
 
