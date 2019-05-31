@@ -11,7 +11,9 @@ namespace Kompression.LempelZiv.Occurrence.Models
     [DebuggerDisplay("Length: {Length}")]
     class SuffixTreeNode
     {
-        public SuffixTreeNode[] Children { get; } = new SuffixTreeNode[256];
+        private Lazy<SuffixTreeNode[]> _children = new Lazy<SuffixTreeNode[]>(() => new SuffixTreeNode[256]);
+
+        public SuffixTreeNode[] Children => _children.Value;//SuffixLink == null ? _children.Value : SuffixLink.Children;
 
         public SuffixTreeNode SuffixLink { get; set; }
 

@@ -42,7 +42,7 @@ namespace Kompression.LempelZiv.Occurrence
                 ExtendTree(i);
 
             var labelHeight = 0;
-            SetSuffixIndexByDFS(_root, labelHeight);
+            //SetSuffixIndexByDFS(_root, labelHeight);
 
             return _root;
         }

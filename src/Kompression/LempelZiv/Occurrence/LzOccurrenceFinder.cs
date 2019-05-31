@@ -133,6 +133,7 @@ namespace Kompression.LempelZiv.Occurrence
             var suffixTreeBuilder = new SuffixTreeBuilder();
             var tree = suffixTreeBuilder.Build(input);
 
+            var bkPos = input.Position;
             for (long i = input.Position + MinOccurrenceSize; i < input.Length; i++)
             {
                 input.Position = i;
@@ -143,6 +144,8 @@ namespace Kompression.LempelZiv.Occurrence
                     i += lzResult.Length - 1;
                 }
             }
+
+            input.Position = bkPos;
 
             return result;
         }
