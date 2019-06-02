@@ -3,6 +3,7 @@
     internal enum LzMode
     {
         Naive,
-        SuffixTrie
+        SuffixTree,
+        SuffixArray
     }
 }

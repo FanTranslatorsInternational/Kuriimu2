@@ -55,6 +55,8 @@
     <Compile Include="LempelZiv\LZ40.cs" />
     <Compile Include="LempelZiv\LZ60.cs" />
     <Compile Include="LempelZiv\LZ77.cs" />
+    <Compile Include="LempelZiv\LZMA.cs" />
+    <Compile Include="LempelZiv\Models\LzmaProperties.cs" />
     <Compile Include="LempelZiv\Occurrence\Models\IntValue.cs" />
     <Compile Include="LempelZiv\Occurrence\Models\LzMode.cs" />
     <Compile Include="LempelZiv\Occurrence\LzOccurrenceFinder.cs" />
@@ -63,6 +65,8 @@
     <Compile Include="LempelZiv\LZSSVLC.cs" />
     <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeChild.cs" />
     <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeNode.cs" />
+    <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeNodeCollection.cs" />
+    <Compile Include="LempelZiv\Occurrence\SuffixArray.cs" />
     <Compile Include="LempelZiv\Occurrence\SuffixTreeBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

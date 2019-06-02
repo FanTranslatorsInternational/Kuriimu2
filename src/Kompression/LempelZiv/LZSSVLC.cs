@@ -54,16 +54,15 @@ namespace Kompression.LempelZiv
         public static void Compress(Stream input, Stream output)
         {
             var decompressedSize = CreateVlc((int)input.Length);
-            // TODO: Find out what's written in unk1 of sample files
-            var unk1 = CreateVlc(2);
-            var unk2 = CreateVlc(1);
+            var unk1 = CreateVlc(0x19);
+            var unk2 = CreateVlc(0);
 
             output.Write(decompressedSize, 0, decompressedSize.Length);
             output.Write(unk1, 0, unk1.Length);
             output.Write(unk2, 0, unk2.Length);
 
-            var lzFinder = new LzOccurrenceFinder(LzMode.SuffixTrie, (int)input.Length, 1, (int)input.Length);
-            var lzResults = lzFinder.Process(input).OrderBy(x => x.Position).ToList();
+            var lzFinder = new LzOccurrenceFinder(LzMode.Naive, 0x1000, 4, 100110);
+            var lzResults = lzFinder.Process(input)/*.OrderBy(x => x.Position).ToList()*/;
 
             WriteCompressedData(input, output, lzResults);
         }
@@ -122,7 +121,7 @@ namespace Kompression.LempelZiv
                     var compressedBlocks = 0;
                     var positionOffset = 0;
                     while (lzIndex + compressedBlocks < lzResults.Count &&
-                           lzResults[lzIndex + compressedBlocks].Position == input.Position + positionOffset)
+                           lzResults[lzIndex + compressedBlocks].Position == input.Position + rawSize + positionOffset)
                     {
                         positionOffset += lzResults[lzIndex + compressedBlocks].Length;
                         compressedBlocks++;

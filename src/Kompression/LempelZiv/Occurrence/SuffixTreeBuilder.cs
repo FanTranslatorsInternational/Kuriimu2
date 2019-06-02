@@ -43,7 +43,7 @@ namespace Kompression.LempelZiv.Occurrence
             for (int i = 0; i < _size; i++)
                 ExtendTree(i);
 
-            var labelHeight = 0;
+            //var labelHeight = 0;
             //SetSuffixIndexByDFS(_root, labelHeight);
 
             return _root;
@@ -60,10 +60,9 @@ namespace Kompression.LempelZiv.Occurrence
                 if (_activeLength == 0)
                     _activeEdge = pos;
 
-                if (_activeNode.Children.All(x => x.Index != _inputArray[_activeEdge]))
+                if (_activeNode.Children[_inputArray[_activeEdge]] == null)
                 {
-                    var newNode = new SuffixTreeNode(pos, _leafEnd, _root);
-                    _activeNode.Children.Add(new SuffixTreeChild(_inputArray[_activeEdge], newNode));
+                    _activeNode.Children[_inputArray[_activeEdge]] = new SuffixTreeNode(pos, _leafEnd, _root);
 
                     if (_lastNewNode != null)
                     {
@@ -73,7 +72,7 @@ namespace Kompression.LempelZiv.Occurrence
                 }
                 else
                 {
-                    var next = _activeNode.Children.First(x => x.Index == _inputArray[_activeEdge]).Node;
+                    var next = _activeNode.Children[_inputArray[_activeEdge]];
                     if (TryWalkDown(next))
                         continue;
 
@@ -92,21 +91,12 @@ namespace Kompression.LempelZiv.Occurrence
                     _splitEnd = new IntValue(next.Start + _activeLength - 1);
 
                     var split = new SuffixTreeNode(next.Start, _splitEnd, _root);
-                    if (_activeNode.Children.Any(x => x.Index == _inputArray[_activeEdge]))
-                        _activeNode.Children.First(x => x.Index == _inputArray[_activeEdge]).Node = split;
-                    else
-                        _activeNode.Children.Add(new SuffixTreeChild(_inputArray[_activeEdge], split));
+                    _activeNode.Children[_inputArray[_activeEdge]] = split;
 
-                    if (split.Children.Any(x => x.Index == _inputArray[pos]))
-                        split.Children.First(x => x.Index == _inputArray[pos]).Node = new SuffixTreeNode(pos, _leafEnd, _root);
-                    else
-                        split.Children.Add(new SuffixTreeChild(_inputArray[pos], new SuffixTreeNode(pos, _leafEnd, _root)));
+                    split.Children[_inputArray[pos]] = new SuffixTreeNode(pos, _leafEnd, _root);
 
                     next.Start += _activeLength;
-                    if (split.Children.Any(x => x.Index == _inputArray[next.Start]))
-                        split.Children.First(x => x.Index == _inputArray[next.Start]).Node = next;
-                    else
-                        split.Children.Add(new SuffixTreeChild(_inputArray[next.Start], next));
+                    split.Children[_inputArray[next.Start]] = next;
 
                     if (_lastNewNode != null)
                         _lastNewNode.SuffixLink = split;
@@ -136,23 +126,23 @@ namespace Kompression.LempelZiv.Occurrence
             return true;
         }
 
-        private void SetSuffixIndexByDFS(SuffixTreeNode node, int labelHeight)
-        {
-            if (node == null) return;
+        //private void SetSuffixIndexByDFS(SuffixTreeNode node, int labelHeight)
+        //{
+        //    if (node == null) return;
 
-            var leaf = true;
-            for (int i = 0; i < 256; i++)
-            {
-                if (node.Children.Any(x => x.Index == i))
-                {
-                    leaf = false;
-                    var first = node.Children.First(x => x.Index == i);
-                    SetSuffixIndexByDFS(first.Node, labelHeight + first.Node.Length);
-                }
-            }
+        //    var leaf = true;
+        //    for (int i = 0; i < 256; i++)
+        //    {
+        //        if (node.Children.Any(x => x.Index == i))
+        //        {
+        //            leaf = false;
+        //            var first = node.Children.First(x => x.Index == i);
+        //            SetSuffixIndexByDFS(first.Node, labelHeight + first.Node.Length);
+        //        }
+        //    }
 
-            if (leaf)
-                node.SuffixIndex = _size - labelHeight;
-        }
+        //    if (leaf)
+        //        node.SuffixIndex = _size - labelHeight;
+        //}
     }
 }

@@ -1,19 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace Kompression.LempelZiv.Occurrence.Models
 {
     [DebuggerDisplay("Length: {Length}")]
     class SuffixTreeNode
     {
-        private Lazy<SuffixTreeNode[]> _children = new Lazy<SuffixTreeNode[]>(() => new SuffixTreeNode[256]);
-
-        public SuffixTreeNode[] Children => _children.Value;//SuffixLink == null ? _children.Value : SuffixLink.Children;
+        public SuffixTreeNodeCollection Children { get; }= new SuffixTreeNodeCollection(0);
 
         public SuffixTreeNode SuffixLink { get; set; }
 

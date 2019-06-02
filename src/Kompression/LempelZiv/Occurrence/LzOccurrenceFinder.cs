@@ -48,15 +48,17 @@ namespace Kompression.LempelZiv.Occurrence
 
         public List<LzResult> Process(Stream input, int postDiscrepancySize = 0)
         {
-            if (WindowSize != input.Length && LzMode == LzMode.SuffixTrie)
+            if (WindowSize != input.Length && LzMode == LzMode.SuffixTree)
                 throw new NotSupportedException("Using suffix trie with window size smaller as the input.");
 
             switch (LzMode)
             {
                 case LzMode.Naive:
                     return ProcessNaive(input, postDiscrepancySize);
-                case LzMode.SuffixTrie:
+                case LzMode.SuffixTree:
                     return ProcessSuffixTrie(input);
+                case LzMode.SuffixArray:
+                    return ProcessSuffixArray(input);
                 default:
                     throw new NotSupportedException(LzMode.ToString());
             }
@@ -151,6 +153,82 @@ namespace Kompression.LempelZiv.Occurrence
             return result;
         }
 
+        /* Paper reference: https://arxiv.org/pdf/0912.5449.pdf */
+        private List<LzResult> ProcessSuffixArray(Stream input)
+        {
+            //var result = new List<LzResult>();
+
+            //var startPosition = input.Position;
+            //var streamSize = input.Position - input.Length;
+
+            //var dictionary = new byte[WindowSize];
+            //var dictionarySize = 0;
+            //var dictionarySize = Math.Min(WindowSize, MinOccurrenceSize);
+            //input.Read(dictionary, 0, dictionarySize);
+
+            //var lookAheadBuffer = new byte[MaxOccurrenceSize];
+            //var lookAheadSize = (int)Math.Min(streamSize, MaxOccurrenceSize);
+            //input.Read(lookAheadBuffer, 0, lookAheadSize);
+
+            //SuffixArray suffixArray = null;
+            //while (input.Position < input.Length)
+            //{
+            //    // Slide lookAhead into dictionary
+            //    if (dictionarySize == 0)
+            //    {
+            //        var slideSize = Math.Min(lookAheadSize, MinOccurrenceSize);
+            //        Array.Copy(lookAheadBuffer, 0, dictionary, 0, slideSize);
+            //        dictionarySize += slideSize;
+            //        Array.Copy(lookAheadBuffer, dictionarySize, lookAheadBuffer, 0, lookAheadSize - dictionarySize);
+            //        lookAheadSize -= dictionarySize;
+            //    }
+            //    else if (dictionarySize<dictionary.Length)
+            //    {
+            //        var slideSize = Math.Min(dictionary.Length - dictionarySize, lookAheadSize);
+            //        Array.Copy(lookAheadBuffer,0,dictionary,);
+            //    }
+
+            //    // Read next lookAhead parts
+
+            //    // Stage 1: Fill lookAhead and slide in to dictionary
+            //    if (look)
+
+            //        // Stage 1: Fill or update dictionary and suffix array
+            //        if (dictionarySize < dictionary.Length)
+            //        {
+            //            suffixArray = SuffixArray.Create(dictionary, dictionarySize);
+            //        }
+            //        else
+            //        {
+            //            UpdateSuffixArray();
+            //        }
+
+            //    // Stage 2: Go through lookAhead
+            //    for (int i = 0; i < lookAheadSize; i++)
+            //    {
+            //        var leftIndex = suffixArray.IndexLeft[lookAheadBuffer[i]];
+            //    }
+            //}
+
+            //var suffixArray = SuffixArray.Create(input);
+
+            //var bkPos = input.Position;
+            //for (var i = input.Position + MinOccurrenceSize; i < input.Length; i++)
+            //{
+            //    input.Position = i;
+            //    var lzResult = TraverseSuffixArray(input,suffixArray);
+            //    if (lzResult != null)
+            //    {
+            //        result.Add(lzResult);
+            //        i += lzResult.Length - 1;
+            //    }
+            //}
+
+            //input.Position = bkPos;
+
+            return null;
+        }
+
         private LzResult TraverseTree(SuffixTreeNode node, Stream input)
         {
             var startPosition = input.Position;
@@ -174,14 +252,13 @@ namespace Kompression.LempelZiv.Occurrence
             input.Position--;
 
             start = node.IsRoot ?
-                node.Children.First(x => x.Index == childValue).Node.Start :
+                node.Children[childValue].Start :
                 node.Start;
 
-            if (node.Children.Any(x => x.Index == childValue))
+            if (node.Children[childValue] != null)
             {
-                var first = node.Children.First(x => x.Index == childValue);
-                if (first.Node.Start != startPosition)
-                    TraverseTreeInternal(first.Node, input, ref start, ref length);
+                if (node.Children[childValue].Start != startPosition)
+                    TraverseTreeInternal(node.Children[childValue], input, ref start, ref length);
             }
 
             if (length >= MinOccurrenceSize && length <= MaxOccurrenceSize)
@@ -200,11 +277,10 @@ namespace Kompression.LempelZiv.Occurrence
             var childValue = input.ReadByte();
             input.Position--;
 
-            if (node.Children.Any(x => x.Index == childValue))
+            if (node.Children[childValue] != null)
             {
-                var first = node.Children.First(x => x.Index == childValue);
-                if (first.Node.Start != input.Position)
-                    TraverseTreeInternal(first.Node, input, ref start, ref length);
+                if (node.Children[childValue].Start != input.Position)
+                    TraverseTreeInternal(node.Children[childValue], input, ref start, ref length);
             }
         }
 
