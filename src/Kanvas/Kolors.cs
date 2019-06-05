@@ -194,6 +194,7 @@ namespace Kanvas
                     colors.Add(Color.FromArgb(imagePtr[y * bmp.Width + x]));
                 }
             }
+            bmp.UnlockBits(data);
 
             // Decompose/Quantize colors
             var (indices, palette) = settings.QuantizationSettings != null ?
