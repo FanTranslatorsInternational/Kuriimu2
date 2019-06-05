@@ -16,6 +16,12 @@
             EncodingName = encodingName;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="encodingIndex"></param>
+        /// <param name="encodingName"></param>
+        /// <param name="isIndexed"></param>
         public EncodingInfo(int encodingIndex, string encodingName, bool isIndexed) : this(encodingIndex, encodingName)
         {
             IsIndexed = isIndexed;
@@ -36,5 +42,11 @@
         /// Indicates if described encoding is an index based one.
         /// </summary>
         public bool IsIndexed { get; }
+
+        /// <summary>
+        /// Returns the <see cref="EncodingName"/>.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString() => EncodingName;
     }
 }

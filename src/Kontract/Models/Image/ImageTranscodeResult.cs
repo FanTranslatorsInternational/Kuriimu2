@@ -51,10 +51,8 @@ namespace Kontract.Models.Image
             Result = image != null && palette != null;
             Image = image;
             Palette = palette;
-            if (image == null && palette == null)
-                Exception = new AggregateException(new ArgumentNullException(nameof(image)), new ArgumentNullException(nameof(palette)));
-            else
-                Exception = image == null ? new ArgumentNullException(nameof(image)) : new ArgumentNullException(nameof(palette));
+            if (image == null)
+                Exception = new ArgumentNullException(nameof(image));
         }
 
         /// <summary>
