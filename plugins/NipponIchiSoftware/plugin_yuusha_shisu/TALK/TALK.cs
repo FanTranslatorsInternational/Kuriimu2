@@ -10,7 +10,7 @@ namespace plugin_yuusha_shisu.TALK
     public class TALK
     {
         private TALKContent _content;
-
+        private List<DrawingFrame> _drawingFrames;
         public List<TextEntry> Entries;
 
         public TALK(Stream input)
@@ -19,18 +19,17 @@ namespace plugin_yuusha_shisu.TALK
             {
                 // Read
                 _content = br.ReadType<TALKContent>();
-                var DrawFrame = new List<DrawingFrame>();
-                DrawFrame = br.ReadMultiple<DrawingFrame>(_content.NumberSection);
-                var Color = new List<ColorStruct>();
-                Color = br.ReadMultiple<ColorStruct>(_content.NumberSection);
+                _drawingFrames = br.ReadMultiple<DrawingFrame>(_content.NumberSection);               
+                var color = br.ReadMultiple<ColorStruct>(_content.NumberSection);
+                var text = br.ReadString(_content.CharacterDataSize, Encoding.UTF8);
 
                 Entries = new List<TextEntry>
                 {
                     new TextEntry
                     {
                         Name = "content",
-                        EditedText = "",
-                        OriginalText = ""
+                        EditedText = text,
+                        OriginalText = text
                     }
                 };
             }
@@ -54,13 +53,13 @@ namespace plugin_yuusha_shisu.TALK
         public short NumberSection;
         public short CharacterCount;
         public short CharacterDataSize;
-        public int ExtraMagic;
+        public int Null;
     }
 
     public class DrawingFrame
     {
-        public const int Indicator = 0x0200;
-        public int FrameCounter;
+        public short Indicator = 0x0200;
+        public short FrameCounter;
     }
 
     public class ColorStruct
