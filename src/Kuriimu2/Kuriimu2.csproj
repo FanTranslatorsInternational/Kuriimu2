@@ -87,6 +87,7 @@
     <Compile Include="Controls\TrackableTextBox.cs" />
     <Compile Include="Controls\ZoomBorder.cs" />
     <Compile Include="Dialogs\Common\Enumerations.cs" />
+    <Compile Include="Dialogs\ViewModels\EncodeImageViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\SelectAdapterViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\BitmapFontGeneratorViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\NewFileViewModel.cs" />
@@ -94,6 +95,9 @@
     <Compile Include="Dialogs\ViewModels\OpenTypeViewModel.cs" />
     <Compile Include="Dialogs\ViewModels\PropertyEditorViewModel.cs" />
     <Compile Include="Dialogs\Common\Common.cs" />
+    <Compile Include="Dialogs\Views\EncodeImageView.xaml.cs">
+      <DependentUpon>EncodeImageView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Interfaces\IArchiveEditor.cs" />
     <Compile Include="Interfaces\IFileEditor.cs" />
     <Compile Include="Interfaces\ITextEditor.cs" />
@@ -112,6 +116,10 @@
     <Compile Include="Views\ImageEditorView.xaml.cs">
       <DependentUpon>ImageEditorView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Dialogs\Views\EncodeImageView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Dialogs\Views\SelectAdapterView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -292,6 +300,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\select-plugin.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\encode-image.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\menu-preview.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
