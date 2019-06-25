@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Kontract;
 using Kontract.Attributes.Intermediate;
@@ -83,6 +86,11 @@ namespace Kuriimu2_WinForms.MainForms
         {
             // Populate swizzle dropdown
             cbSwizzle.Items.Add(new SwizzleWrapper(null));
+
+            var customSwizzle = _loader.GetAdapters<IImageSwizzleAdapter>().FirstOrDefault(x => x.Name == "Custom");
+            if (customSwizzle != null)
+                cbSwizzle.Items.Add(customSwizzle);
+
             foreach (var adapter in _loader.GetAdapters<IImageSwizzleAdapter>())
                 cbSwizzle.Items.Add(new SwizzleWrapper(adapter));
             if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
@@ -92,6 +100,7 @@ namespace Kuriimu2_WinForms.MainForms
         private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
         {
             _selectedEncodingIndex = cbEncoding.SelectedIndex;
+            SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
             UpdateEncodingProperties();
         }
 
@@ -125,7 +134,7 @@ namespace Kuriimu2_WinForms.MainForms
             if (SelectedColorEncodingAdapter != null)
                 UpdateExtendedPropertiesWith(
                     _pnlEncodingProperties,
-                    50,
+                    80,
                     EncodingPropertyTextBox_TextChanged,
                     EncodingPropertyComboBox_SelectedIndexChanged,
                     EncodingPropertyCheckBox_CheckedChanged,
@@ -139,11 +148,36 @@ namespace Kuriimu2_WinForms.MainForms
         private void UpdateSwizzleProperty()
         {
             _pnlSwizzleProperties.Controls.Clear();
+            tbWidth.TextChanged -= SwizzlePropertyTextBox_TextChanged;
+            tbWidth.Tag = null;
+            tbHeight.TextChanged -= SwizzlePropertyTextBox_TextChanged;
+            tbHeight.Tag = null;
+
+            if (SelectedSwizzleAdapter != null && SelectedSwizzleAdapter.Name == "Custom")
+            {
+                var label = new Label
+                {
+                    // ReSharper disable once LocalizableElement
+                    Text = "Bit Field:",
+                    Location = new Point(3, 0),
+                    Size = new Size(200, 15)
+                };
+                var textBox = new TextBox
+                {
+                    Location = new Point(3, 0 + label.Height),
+                    Size = new Size(200, 20),
+                    Tag = SelectedSwizzleAdapter.GetType().GetProperty("BitField")
+                };
+
+                _pnlSwizzleProperties.Controls.Add(label);
+                _pnlSwizzleProperties.Controls.Add(textBox);
+                textBox.TextChanged += CustomSwizzleBitField_TextChanged;
+            }
 
             if (SelectedSwizzleAdapter != null)
                 UpdateExtendedPropertiesWith(
                     _pnlSwizzleProperties,
-                    50,
+                    80,
                     SwizzlePropertyTextBox_TextChanged,
                     SwizzlePropertyComboBox_SelectedIndexChanged,
                     SwizzlePropertyCheckBox_CheckedChanged,
@@ -154,6 +188,22 @@ namespace Kuriimu2_WinForms.MainForms
                         ToArray());
         }
 
+        private void CustomSwizzleBitField_TextChanged(object sender, EventArgs e)
+        {
+            var tb = (TextBox)sender;
+            var prop = (PropertyInfo)tb.Tag;
+
+            var splitted = Regex.Split(tb.Text, "\\)[ ]*,[ ]*\\(").Select(x => Regex.Match(x, "\\d+[ ]*,[ ]*\\d+").Value).ToArray();
+            if (splitted.Any(x => string.IsNullOrEmpty(x)))
+                return;
+
+            prop.SetValue(SelectedSwizzleAdapter, splitted.Select(x =>
+            {
+                var internalSplit = Regex.Split(x, "[ ]*,[ ]*").ToArray();
+                return (int.Parse(internalSplit[0]), int.Parse(internalSplit[1]));
+            }).ToList());
+        }
+
         private void UpdateExtendedPropertiesWith(SplitterPanel panel, int width, EventHandler textChangedEvent,
             EventHandler indexChangedEvent, EventHandler checkedChangedEvent, params PropertyAttribute[] propAttributes)
         {
@@ -162,15 +212,31 @@ namespace Kuriimu2_WinForms.MainForms
             {
                 if (attr.PropertyType == typeof(bool))
                 {
-                    AddBooleanProperty(attr, _pnlEncodingProperties, checkedChangedEvent, width, x, 0);
+                    AddBooleanProperty(attr, panel, checkedChangedEvent, width, x, 0);
                 }
                 else if (attr.PropertyType.IsPrimitive)
                 {
-                    AddPrimitiveProperty(attr, _pnlEncodingProperties, textChangedEvent, width, x, 0);
+                    if (attr.PropertyName == "Width")
+                    {
+                        tbWidth.TextChanged += textChangedEvent;
+                        tbWidth.Tag = attr;
+                        tbWidth.Text = tbWidth.Text;
+                        continue;
+                    }
+
+                    if (attr.PropertyName == "Height")
+                    {
+                        tbHeight.TextChanged += textChangedEvent;
+                        tbHeight.Tag = attr;
+                        tbHeight.Text = tbHeight.Text;
+                        continue;
+                    }
+
+                    AddPrimitiveProperty(attr, panel, textChangedEvent, width, x, 0);
                 }
                 else if (attr.PropertyType.IsEnum)
                 {
-                    AddEnumProperty(attr, _pnlEncodingProperties, indexChangedEvent, width, x, 0);
+                    AddEnumProperty(attr, panel, indexChangedEvent, width, x, 0);
                 }
 
                 x += width + 3;
@@ -186,13 +252,13 @@ namespace Kuriimu2_WinForms.MainForms
             {
                 // ReSharper disable once LocalizableElement
                 Text = $"{propAttr.PropertyName}:",
-                Location = new Point(x, 0),
-                Size = new Size(50, 15)
+                Location = new Point(x, y),
+                Size = new Size(width, 15)
             };
             var textBox = new TextBox
             {
-                Location = new Point(x, label.Height),
-                Size = new Size(50, 20),
+                Location = new Point(x, y + label.Height),
+                Size = new Size(width, 20),
                 Tag = propAttr
             };
 
@@ -271,10 +337,62 @@ namespace Kuriimu2_WinForms.MainForms
         private void SwizzlePropertyTextBox_TextChanged(object sender, EventArgs e)
         {
             var tb = (TextBox)sender;
-            if (!int.TryParse(tb.Text, out var value))
-                return;
-
             var propAttr = (PropertyAttribute)tb.Tag;
+
+            object value;
+            switch (Type.GetTypeCode(propAttr.PropertyType))
+            {
+                case TypeCode.Byte:
+                    byte val1;
+                    if (!byte.TryParse(tb.Text, out val1))
+                        return;
+                    value = val1;
+                    break;
+                case TypeCode.SByte:
+                    sbyte val2;
+                    if (!sbyte.TryParse(tb.Text, out val2))
+                        return;
+                    value = val2;
+                    break;
+                case TypeCode.Int16:
+                    short val3;
+                    if (!short.TryParse(tb.Text, out val3))
+                        return;
+                    value = val3;
+                    break;
+                case TypeCode.UInt16:
+                    ushort val4;
+                    if (!ushort.TryParse(tb.Text, out val4))
+                        return;
+                    value = val4;
+                    break;
+                case TypeCode.Int32:
+                    int val5;
+                    if (!int.TryParse(tb.Text, out val5))
+                        return;
+                    value = val5;
+                    break;
+                case TypeCode.UInt32:
+                    uint val6;
+                    if (!uint.TryParse(tb.Text, out val6))
+                        return;
+                    value = val6;
+                    break;
+                case TypeCode.Int64:
+                    long val7;
+                    if (!long.TryParse(tb.Text, out val7))
+                        return;
+                    value = val7;
+                    break;
+                case TypeCode.UInt64:
+                    ulong val8;
+                    if (!ulong.TryParse(tb.Text, out val8))
+                        return;
+                    value = val8;
+                    break;
+                default:
+                    return;
+            }
 
             var adapterProperty = SelectedSwizzleAdapter.GetType()
                 .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
@@ -308,7 +426,7 @@ namespace Kuriimu2_WinForms.MainForms
 
             var formatWrappers = Enum.GetNames(propAttr.PropertyType).
                 Zip(Enum.GetValues(propAttr.PropertyType).Cast<object>(), Tuple.Create).
-                Select(enumValue => (object)new FormatWrapper(Convert.ToInt32(enumValue.Item2), enumValue.Item1)).
+                Select(enumValue => (object)new FormatWrapper(enumValue.Item2, enumValue.Item1)).
                 ToArray();
 
             var label = new Label
@@ -396,7 +514,10 @@ namespace Kuriimu2_WinForms.MainForms
             if (!_fileLoaded || _openedFile == null)
                 return;
 
-            if (!int.TryParse(tbOffset.Text, out var offset) || !int.TryParse(tbWidth.Text, out var width) || !int.TryParse(tbHeight.Text, out var height))
+            if (!int.TryParse(tbOffset.Text, out var offset) && 
+                !int.TryParse(tbOffset.Text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset) || 
+                !int.TryParse(tbWidth.Text, out var width) || 
+                !int.TryParse(tbHeight.Text, out var height))
                 return;
 
             if (offset < 0 || offset >= _openedFile.Length || width <= 0 || height <= 0)
