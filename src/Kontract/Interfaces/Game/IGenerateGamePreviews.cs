@@ -1,5 +1,5 @@
-﻿using System.Drawing;
-using Kontract.Interfaces.Text;
+﻿using Kontract.Interfaces.Text;
+using System.Drawing;
 
 namespace Kontract.Interfaces.Game
 {

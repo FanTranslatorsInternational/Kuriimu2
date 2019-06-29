@@ -1,12 +1,13 @@
-﻿using System;
+﻿#if !NET_CORE_21
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.Composition.Primitives;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.MEF.ErrorReports;
 using Kontract.MEF.Interfaces;
+using System.ComponentModel.Composition.Hosting;
+using System.ComponentModel.Composition.Primitives;
 
 // Source: https://stackoverflow.com/questions/4144683/handle-reflectiontypeloadexception-during-mef-composition
 namespace Kontract.MEF.Catalogs
@@ -62,3 +63,4 @@ namespace Kontract.MEF.Catalogs
         public override IQueryable<ComposablePartDefinition> Parts => _catalog.Parts;
     }
 }
+#endif

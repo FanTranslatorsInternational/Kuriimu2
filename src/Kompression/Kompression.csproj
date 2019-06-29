@@ -1,78 +1,62 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D170F614-83C8-4608-96EA-72D30B2AC77E}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Kompression</RootNamespace>
-    <AssemblyName>Kompression</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <PackageId>Kompression</PackageId>
+    <PackageVersion>2.0.0</PackageVersion>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageTags>Compression, Kuriimu2</PackageTags>
+    <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
+	<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>..\..\dist\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+
+  <ItemGroup>
+    <None Update="lib\bin32\ukkonen.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Update="lib\bin32\libukkonen.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Update="lib\bin64\ukkonen.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Update="lib\bin64\libukkonen.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>2.0.6</Version>
+    <Authors>onepiecefreak</Authors>
+    <Description>A library containing all compressions usable by the Kuriimu2 eco-system.</Description>
+    <Copyright>Copyright (c) 2019 onepiecefreak</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>..\..\dist\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
+    <OutputPath>..\..\dist\Debug</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BitOrder.cs" />
-    <Compile Include="BitReader.cs" />
-    <Compile Include="BitWriter.cs" />
-    <Compile Include="Exceptions\DisplacementException.cs" />
-    <Compile Include="Exceptions\InvalidCompressionException.cs" />
-    <Compile Include="Exceptions\StreamTooShortException.cs" />
-    <Compile Include="LempelZiv\LZ10.cs" />
-    <Compile Include="LempelZiv\LZ11.cs" />
-    <Compile Include="LempelZiv\LZ40.cs" />
-    <Compile Include="LempelZiv\LZ60.cs" />
-    <Compile Include="LempelZiv\LZ77.cs" />
-    <Compile Include="LempelZiv\LZMA.cs" />
-    <Compile Include="LempelZiv\Models\LzmaProperties.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\IntValue.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\LzMode.cs" />
-    <Compile Include="LempelZiv\Occurrence\LzOccurrenceFinder.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\LzResult.cs" />
-    <Compile Include="LempelZiv\LZSS.cs" />
-    <Compile Include="LempelZiv\LZSSVLC.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeChild.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeNode.cs" />
-    <Compile Include="LempelZiv\Occurrence\Models\SuffixTreeNodeCollection.cs" />
-    <Compile Include="LempelZiv\Occurrence\SuffixArray.cs" />
-    <Compile Include="LempelZiv\Occurrence\SuffixTreeBuilder.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Huffman\" />
-    <Folder Include="RunLengthEncoding\" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
+    <OutputPath>..\..\dist\Debug</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
+    <OutputPath>..\..\dist\Release</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.1|AnyCPU'">
+    <OutputPath>..\..\dist\Release</OutputPath>
+  </PropertyGroup>
 </Project>
