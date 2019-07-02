@@ -89,9 +89,9 @@ namespace Kuriimu2_WinForms.MainForms
 
             var customSwizzle = _loader.GetAdapters<IImageSwizzleAdapter>().FirstOrDefault(x => x.Name == "Custom");
             if (customSwizzle != null)
-                cbSwizzle.Items.Add(customSwizzle);
+                cbSwizzle.Items.Add(new SwizzleWrapper(customSwizzle));
 
-            foreach (var adapter in _loader.GetAdapters<IImageSwizzleAdapter>())
+            foreach (var adapter in _loader.GetAdapters<IImageSwizzleAdapter>().Where(x => x.Name != "Custom"))
                 cbSwizzle.Items.Add(new SwizzleWrapper(adapter));
             if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
                 cbSwizzle.SelectedIndex = _selectedSwizzleIndex;
@@ -514,9 +514,9 @@ namespace Kuriimu2_WinForms.MainForms
             if (!_fileLoaded || _openedFile == null)
                 return;
 
-            if (!int.TryParse(tbOffset.Text, out var offset) && 
-                !int.TryParse(tbOffset.Text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset) || 
-                !int.TryParse(tbWidth.Text, out var width) || 
+            if (!int.TryParse(tbOffset.Text, out var offset) &&
+                !int.TryParse(tbOffset.Text.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset) ||
+                !int.TryParse(tbWidth.Text, out var width) ||
                 !int.TryParse(tbHeight.Text, out var height))
                 return;
 
