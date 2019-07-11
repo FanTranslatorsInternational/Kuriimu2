@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kompression.Exceptions;
-using Kompression.LempelZiv.Occurrence;
-using Kompression.LempelZiv.Occurrence.Models;
+using Kompression.LempelZiv.Matcher;
+using Kompression.LempelZiv.Matcher.Models;
+using Kompression.LempelZiv.Models;
 
 /* The same as LZ40 just with another magic num */
 
@@ -31,8 +32,8 @@ namespace Kompression.LempelZiv
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
 
-            var lzFinder = new LzOccurrenceFinder(LzMode.Naive, 0xFFF, 3, 0x10010F);
-            var lzResults = lzFinder.Process(input).OrderBy(x => x.Position).ToList();
+            var lzFinder = new NaiveMatcher(3, 0x10010F, 0xFFF, 0);
+            var lzResults = lzFinder.FindMatches(input);
 
             var compressionHeader = new byte[] { 0x40, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
@@ -139,7 +140,7 @@ namespace Kompression.LempelZiv
             return length;
         }
 
-        internal static void WriteCompressedData(Stream input, Stream output, IList<LzResult> lzResults)
+        internal static void WriteCompressedData(Stream input, Stream output, IList<LzMatch> lzResults)
         {
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];
@@ -170,34 +171,34 @@ namespace Kompression.LempelZiv
             WriteBlockBuffer(output, blockBuffer, blockBufferLength);
         }
 
-        private static int WriteCompressedBlockToBuffer(LzResult lzResult, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
+        private static int WriteCompressedBlockToBuffer(LzMatch lzMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
         {
             // mark the next block as compressed
             blockBuffer[0] |= (byte)(1 << (7 - bufferedBlocks));
 
             // the last 1.5 bytes are always the displacement
-            blockBuffer[blockBufferLength] = (byte)((lzResult.Displacement & 0x0F) << 4);
-            blockBuffer[blockBufferLength + 1] = (byte)((lzResult.Displacement >> 4) & 0xFF);
+            blockBuffer[blockBufferLength] = (byte)((lzMatch.Displacement & 0x0F) << 4);
+            blockBuffer[blockBufferLength + 1] = (byte)((lzMatch.Displacement >> 4) & 0xFF);
 
-            if (lzResult.Length > 0x10F)
+            if (lzMatch.Length > 0x10F)
             {
                 // case 1: (A)1 (CD) (EF GH) + (0x0)(0x110) = (DISP = A-C-D)(LEN = E-F-G-H)
                 blockBuffer[blockBufferLength] |= 0x01;
                 blockBufferLength += 2;
-                blockBuffer[blockBufferLength++] = (byte)((lzResult.Length - 0x110) & 0xFF);
-                blockBuffer[blockBufferLength] = (byte)(((lzResult.Length - 0x110) >> 8) & 0xFF);
+                blockBuffer[blockBufferLength++] = (byte)((lzMatch.Length - 0x110) & 0xFF);
+                blockBuffer[blockBufferLength] = (byte)(((lzMatch.Length - 0x110) >> 8) & 0xFF);
             }
-            else if (lzResult.Length > 0xF)
+            else if (lzMatch.Length > 0xF)
             {
                 // case 0; (A)0 (CD) (EF) + (0x0)(0x10) = (DISP = A-C-D)(LEN = E-F)
                 blockBuffer[blockBufferLength] |= 0x00;
                 blockBufferLength += 2;
-                blockBuffer[blockBufferLength] = (byte)((lzResult.Length - 0x10) & 0xFF);
+                blockBuffer[blockBufferLength] = (byte)((lzMatch.Length - 0x10) & 0xFF);
             }
             else
             {
                 // case > 1: (A)(B) (CD) + (0x0)(0x0) = (DISP = A-C-D)(LEN = B)
-                blockBuffer[blockBufferLength++] |= (byte)(lzResult.Length & 0x0F);
+                blockBuffer[blockBufferLength++] |= (byte)(lzMatch.Length & 0x0F);
             }
 
             blockBufferLength++;

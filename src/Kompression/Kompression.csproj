@@ -8,21 +8,6 @@
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
 	<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Update="lib\bin32\ukkonen.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-	<None Update="lib\bin32\libukkonen.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-	<None Update="lib\bin64\ukkonen.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-	<None Update="lib\bin64\libukkonen.so">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
   
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -32,6 +17,10 @@
   
   <ItemGroup>
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 
   <PropertyGroup>
