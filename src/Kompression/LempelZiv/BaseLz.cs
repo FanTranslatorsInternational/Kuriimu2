@@ -18,16 +18,16 @@ namespace Kompression.LempelZiv
         protected abstract ILzEncoder CreateEncoder(ILzMatcher matcher, ILzMatchFinder matchFinder);
         protected abstract ILzDecoder CreateDecoder();
 
-        public Stream Decompress(Stream input)
+        public void Decompress(Stream input, Stream output)
         {
-            return CreateDecoder().Decode(input);
+            CreateDecoder().Decode(input, output);
         }
 
-        public Stream Compress(Stream input)
+        public void Compress(Stream input, Stream output)
         {
             var matchFinder = CreateMatchFinder();
             var encoder = CreateEncoder(CreateMatcher(matchFinder), matchFinder);
-            return encoder.Encode(input);
+            encoder.Encode(input, output);
         }
     }
 }

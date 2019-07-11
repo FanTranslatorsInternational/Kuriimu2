@@ -9,7 +9,7 @@ namespace Kompression
 {
     public interface ICompression
     {
-        Stream Decompress(Stream input);
-        Stream Compress(Stream input);
+        void Decompress(Stream input, Stream output);
+        void Compress(Stream input, Stream output);
     }
 }
