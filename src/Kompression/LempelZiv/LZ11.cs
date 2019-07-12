@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kompression.Exceptions;
-using Kompression.LempelZiv.Matcher;
-using Kompression.LempelZiv.Matcher.Models;
 using Kompression.LempelZiv.Models;
+using Kompression.LempelZiv.Parser;
 
 namespace Kompression.LempelZiv
 {
@@ -30,13 +29,23 @@ namespace Kompression.LempelZiv
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
 
-            var lzFinder = new NaiveMatcher(3, 0x100110, 0x1000, 0);
-            var lzResults = lzFinder.FindMatches(input);
+            var lzFinder = new NaiveParser(3, 0x100110, 0x1000);
+            var lzResults = lzFinder.Parse(ToArray(input));
 
             var compressionHeader = new byte[] { 0x11, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
             WriteCompressedData(input, output, lzResults);
+        }
+
+        private static byte[] ToArray(Stream input)
+        {
+            var bkPos = input.Position;
+            var inputArray = new byte[input.Length];
+            input.Read(inputArray, 0, inputArray.Length);
+            input.Position = bkPos;
+
+            return inputArray;
         }
 
         private static void ReadCompressedData(Stream input, Stream output, int decompressedSize)

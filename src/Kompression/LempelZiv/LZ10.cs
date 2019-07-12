@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
-using Kompression.LempelZiv.Matcher;
-using Kompression.LempelZiv.Matcher.Models;
 using Kompression.LempelZiv.Models;
+using Kompression.LempelZiv.Parser;
 
 namespace Kompression.LempelZiv
 {
@@ -150,8 +149,18 @@ namespace Kompression.LempelZiv
 
         private static IList<LzMatch> GetLzResults(Stream input)
         {
-            var lzFinder = new NaiveMatcher(3, 0x12, 0x1000, 0);
-            return lzFinder.FindMatches(input);
+            var lzFinder = new NaiveParser(3, 0x12, 0x1000);
+            return lzFinder.Parse(ToArray(input));
+        }
+
+        private static byte[] ToArray(Stream input)
+        {
+            var bkPos = input.Position;
+            var inputArray = new byte[input.Length];
+            input.Read(inputArray, 0, inputArray.Length);
+            input.Position = bkPos;
+
+            return inputArray;
         }
 
         private static int WriteCompressedBlockToBuffer(LzMatch lzMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)

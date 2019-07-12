@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 /* Induced sorting suffix array creation reference: https://sites.google.com/site/yuta256/sais */
 
-namespace Kompression.LempelZiv.Occurrence
+namespace Kompression.LempelZiv.MatchFinder.Models
 {
     internal class SuffixArray
     {
@@ -33,7 +27,7 @@ namespace Kompression.LempelZiv.Occurrence
             for (int i = 0; i < 256; i++)
                 indexLeft[i] = -1;
 
-            Build(new ByteArray(inputArray, 0), suffixes, 0, inputArray.Length, 256);
+            Build(new ByteArray(inputArray, 0), inputArray.Length, suffixes, 0, 256);
             // Build left indexes
             indexLeft[inputArray[suffixes[0]]] = 0;
             byte lastValue = inputArray[suffixes[0]];
@@ -47,7 +41,7 @@ namespace Kompression.LempelZiv.Occurrence
             return new SuffixArray(suffixes, indexLeft);
         }
 
-        public static SuffixArray Create(byte[] inputArray,int inputSize)
+        public static SuffixArray Create(byte[] inputArray, int inputSize)
         {
             if (inputArray == null)
                 throw new ArgumentNullException(nameof(inputArray));
@@ -57,7 +51,7 @@ namespace Kompression.LempelZiv.Occurrence
             for (int i = 0; i < 256; i++)
                 indexLeft[i] = -1;
 
-            Build(new ByteArray(inputArray, 0), suffixes, 0, inputSize, 256);
+            Build(new ByteArray(inputArray, 0), inputSize, suffixes, 0, 256);
             // Build left indexes
             indexLeft[inputArray[suffixes[0]]] = 0;
             byte lastValue = inputArray[suffixes[0]];
@@ -71,9 +65,9 @@ namespace Kompression.LempelZiv.Occurrence
             return new SuffixArray(suffixes, indexLeft);
         }
 
-        private static void Build(IArray input, int[] suffixes, int fs, int n, int k)
+        private static void Build(IArray input, int inputLength, int[] suffixes, int fs, int k)
         {
-            IntArray C, B, RA;
+            IntArray C, buckets, RA;
             int i, j, b, m, p, q, name, newfs;
             int c0, c1;
             uint flags = 0;
@@ -83,52 +77,52 @@ namespace Kompression.LempelZiv.Occurrence
                 C = new IntArray(new int[k], 0);
                 if (k <= fs)
                 {
-                    B = new IntArray(suffixes, n + fs - k);
+                    buckets = new IntArray(suffixes, inputLength + fs - k);
                     flags = 1;
                 }
                 else
                 {
-                    B = new IntArray(new int[k], 0);
+                    buckets = new IntArray(new int[k], 0);
                     flags = 3;
                 }
             }
             else if (k <= fs)
             {
-                C = new IntArray(suffixes, n + fs - k);
+                C = new IntArray(suffixes, inputLength + fs - k);
                 if (k <= fs - k)
                 {
-                    B = new IntArray(suffixes, n + fs - k * 2);
+                    buckets = new IntArray(suffixes, inputLength + fs - k * 2);
                     flags = 0;
                 }
                 else if (k <= MinBucketSize * 4)
                 {
-                    B = new IntArray(new int[k], 0);
+                    buckets = new IntArray(new int[k], 0);
                     flags = 2;
                 }
                 else
                 {
-                    B = C;
+                    buckets = C;
                     flags = 8;
                 }
             }
             else
             {
-                C = B = new IntArray(new int[k], 0);
+                C = buckets = new IntArray(new int[k], 0);
                 flags = 4 | 8;
             }
 
             /* stage 1: reduce the problem by at least 1/2
                sort all the LMS-substrings */
-            GetCounts(input, C, n, k);
-            GetBuckets(C, B, k, true); /* find ends of buckets */
-            for (i = 0; i < n; ++i)
+            GetCounts(input, C, inputLength, k);
+            GetBuckets(C, buckets, k, true); /* find ends of buckets */
+            for (i = 0; i < inputLength; ++i)
                 suffixes[i] = 0;
 
             b = -1;
-            i = n - 1;
-            j = n;
+            i = inputLength - 1;
+            j = inputLength;
             m = 0;
-            c0 = input[n - 1];
+            c0 = input[inputLength - 1];
             do
             {
                 c1 = c0;
@@ -145,7 +139,7 @@ namespace Kompression.LempelZiv.Occurrence
                     {
                         suffixes[b] = j;
                     }
-                    b = --B[c1];
+                    b = --buckets[c1];
                     j = i;
                     ++m;
                     do
@@ -156,8 +150,8 @@ namespace Kompression.LempelZiv.Occurrence
             }
             if (1 < m)
             {
-                LmsSort(input, suffixes, C, B, n, k);
-                name = LmsPostProcess(input, suffixes, n, m);
+                LmsSort(input, suffixes, C, buckets, inputLength, k);
+                name = LmsPostProcess(input, suffixes, inputLength, m);
             }
             else if (m == 1)
             {
@@ -173,21 +167,21 @@ namespace Kompression.LempelZiv.Occurrence
                recurse if names are not yet unique */
             if (name < m)
             {
-                if ((flags & 4) != 0) { C = null; B = null; }
-                if ((flags & 2) != 0) { B = null; }
-                newfs = (n + fs) - (m * 2);
+                if ((flags & 4) != 0) { C = null; buckets = null; }
+                if ((flags & 2) != 0) { buckets = null; }
+                newfs = (inputLength + fs) - (m * 2);
                 if ((flags & (1 | 4 | 8)) == 0)
                 {
                     if (k + name <= newfs) { newfs -= k; }
                     else { flags |= 8; }
                 }
-                for (i = m + (n >> 1) - 1, j = m * 2 + newfs - 1; m <= i; --i)
+                for (i = m + (inputLength >> 1) - 1, j = m * 2 + newfs - 1; m <= i; --i)
                 {
                     if (suffixes[i] != 0) { suffixes[j--] = suffixes[i] - 1; }
                 }
-                Build(new IntArray(suffixes, m + newfs), suffixes, newfs, m, name);
+                Build(new IntArray(suffixes, m + newfs), m, suffixes, newfs, name);
 
-                i = n - 1; j = m * 2 - 1; c0 = input[n - 1];
+                i = inputLength - 1; j = m * 2 - 1; c0 = input[inputLength - 1];
                 do { c1 = c0; } while ((0 <= --i) && ((c0 = input[i]) >= c1));
                 for (; 0 <= i;)
                 {
@@ -200,20 +194,20 @@ namespace Kompression.LempelZiv.Occurrence
                 }
 
                 for (i = 0; i < m; ++i) { suffixes[i] = suffixes[m + suffixes[i]]; }
-                if ((flags & 4) != 0) { C = B = new IntArray(new int[k], 0); }
-                if ((flags & 2) != 0) { B = new IntArray(new int[k], 0); }
+                if ((flags & 4) != 0) { C = buckets = new IntArray(new int[k], 0); }
+                if ((flags & 2) != 0) { buckets = new IntArray(new int[k], 0); }
             }
 
             /* stage 3: induce the result for the original problem */
-            if ((flags & 8) != 0) { GetCounts(input, C, n, k); }
+            if ((flags & 8) != 0) { GetCounts(input, C, inputLength, k); }
             /* put all left-most S characters into their buckets */
             if (1 < m)
             {
-                GetBuckets(C, B, k, true); /* find ends of buckets */
-                i = m - 1; j = n; p = suffixes[m - 1]; c1 = input[p];
+                GetBuckets(C, buckets, k, true); /* find ends of buckets */
+                i = m - 1; j = inputLength; p = suffixes[m - 1]; c1 = input[p];
                 do
                 {
-                    q = B[c0 = c1];
+                    q = buckets[c0 = c1];
                     while (q < j) { suffixes[--j] = 0; }
                     do
                     {
@@ -224,7 +218,7 @@ namespace Kompression.LempelZiv.Occurrence
                 } while (0 <= i);
                 while (0 < j) { suffixes[--j] = 0; }
             }
-            InduceSuffixArray(input, suffixes, C, B, n, k);
+            InduceSuffixArray(input, suffixes, C, buckets, inputLength, k);
         }
 
         private static void GetCounts(IArray input, IArray C, int n, int k)
@@ -238,21 +232,10 @@ namespace Kompression.LempelZiv.Occurrence
         private static void GetBuckets(IArray C, IArray B, int k, bool end)
         {
             var sum = 0;
-            if (end)
+            for (var i = 0; i < k; i++)
             {
-                for (var i = 0; i < k; i++)
-                {
-                    sum += C[i];
-                    B[i] = sum;
-                }
-            }
-            else
-            {
-                for (var i = 0; i < k; i++)
-                {
-                    sum += C[i];
-                    B[i] = sum - C[i];
-                }
+                sum += C[i];
+                B[i] = sum - (end ? 0 : C[i]);
             }
         }
 
@@ -304,7 +287,7 @@ namespace Kompression.LempelZiv.Occurrence
             bool diff;
 
             /* compact all the sorted substrings into the first m items of suffixes
-                2*m must be not larger than n (proveable) */
+                2*m must be not larger than inputLength (proveable) */
             for (i = 0; (p = suffixes[i]) < 0; ++i) { suffixes[i] = ~p; }
             if (i < m)
             {

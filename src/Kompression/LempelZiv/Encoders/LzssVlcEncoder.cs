@@ -1,20 +1,11 @@
 ﻿using System.IO;
-using Kompression.LempelZiv.Matcher;
-using Kompression.LempelZiv.Matcher.Models;
 using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.Encoders
 {
     class LzssVlcEncoder : ILzEncoder
     {
-        private readonly ILzMatcher _matcher;
-
-        public LzssVlcEncoder(ILzMatcher matcher)
-        {
-            _matcher = matcher;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output,LzMatch[] matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -23,8 +14,6 @@ namespace Kompression.LempelZiv.Encoders
             output.Write(decompressedSize, 0, decompressedSize.Length);
             output.Write(unk1, 0, unk1.Length);
             output.Write(unk2, 0, unk2.Length);
-
-            var matches = _matcher.FindMatches(input);
 
             WriteCompressedData(input, output, matches);
         }
@@ -140,9 +129,9 @@ namespace Kompression.LempelZiv.Encoders
             return returnValue;
         }
 
-        private static int GetBitCount(int value)
+        private static int GetBitCount(long value)
         {
-            int bitCount = 0;
+            var bitCount = 0;
             while (value > 0)
             {
                 bitCount++;
@@ -151,20 +140,32 @@ namespace Kompression.LempelZiv.Encoders
 
             return bitCount;
         }
-
-        #region Dispose
-
         public void Dispose()
         {
-            Dispose(true);
+            // nothing to dispose
         }
 
-        protected void Dispose(bool dispose)
+        public int CalculateLiteralLength(byte value)
         {
-            if (dispose)
-                _matcher.Dispose();
+            return 8;
         }
 
-        #endregion
+        public int CalculateMatchLength(LzMatch match)
+        {
+            var bitLength = 0;
+
+            var dispBitCount = GetBitCount(match.Displacement);
+            bitLength += dispBitCount + dispBitCount / 7 + (dispBitCount % 7 <= 3 ? 4 : 12);
+
+            if (match.Length <= 0xF)
+                bitLength += 4;
+            else
+            {
+                var lengthBitCount = GetBitCount(match.Length);
+                bitLength += 4 + lengthBitCount + lengthBitCount / 7 + (lengthBitCount % 7 > 0 ? 8 : 0);
+            }
+
+            return bitLength;
+        }
     }
 }

@@ -1,33 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Kompression.LempelZiv.Decoders;
 using Kompression.LempelZiv.Encoders;
-using Kompression.LempelZiv.Matcher;
 using Kompression.LempelZiv.MatchFinder;
+using Kompression.LempelZiv.Parser;
 
 namespace Kompression.LempelZiv
 {
     public abstract class BaseLz : ICompression
     {
-        protected abstract ILzMatchFinder CreateMatchFinder();
-        protected abstract ILzMatcher CreateMatcher(ILzMatchFinder matchFinder);
-        protected abstract ILzEncoder CreateEncoder(ILzMatcher matcher, ILzMatchFinder matchFinder);
+        protected abstract ILzMatchFinder CreateMatchFinder(int inputLength);
+        protected abstract ILzEncoder CreateEncoder();
+        protected abstract ILzParser CreateParser(ILzMatchFinder finder, ILzEncoder encoder);
         protected abstract ILzDecoder CreateDecoder();
 
         public void Decompress(Stream input, Stream output)
         {
-            CreateDecoder().Decode(input, output);
+            var decoder = CreateDecoder();
+            decoder.Decode(input, output);
         }
 
         public void Compress(Stream input, Stream output)
         {
-            var matchFinder = CreateMatchFinder();
-            var encoder = CreateEncoder(CreateMatcher(matchFinder), matchFinder);
-            encoder.Encode(input, output);
+            var encoder = CreateEncoder();
+            var parser = CreateParser(CreateMatchFinder((int)input.Length), encoder);
+            encoder.Encode(input, output, parser.Parse(ToArray(input)));
+        }
+
+        private byte[] ToArray(Stream input)
+        {
+            var bkPos = input.Position;
+            var inputArray = new byte[input.Length];
+            input.Read(inputArray, 0, inputArray.Length);
+            input.Position = bkPos;
+
+            return inputArray;
         }
     }
 }

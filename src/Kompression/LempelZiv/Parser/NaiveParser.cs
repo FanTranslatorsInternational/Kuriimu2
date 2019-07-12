@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Kompression.LempelZiv.Models;
 
-namespace Kompression.LempelZiv.Matcher
+namespace Kompression.LempelZiv.Parser
 {
     /// <summary>
     /// Naive greedy matching algorithm.
     /// </summary>
-    public class NaiveMatcher : ILzMatcher
+    public class NaiveParser : ILzParser
     {
         public int MinMatchingSize { get; }
 
@@ -16,18 +15,18 @@ namespace Kompression.LempelZiv.Matcher
 
         public int WindowSize { get; }
 
-        public NaiveMatcher(int minMatching, int maxMatching, int windowSize)
+        public NaiveParser(int minMatching, int maxMatching, int windowSize)
         {
             MinMatchingSize = minMatching;
             MaxMatchingSize = maxMatching;
             WindowSize = windowSize;
         }
 
-        public unsafe LzMatch[] FindMatches(Stream input)
+        public unsafe LzMatch[] Parse(Span<byte> input)
         {
             var result = new List<LzMatch>();
 
-            fixed (byte* ptr = ToArray(input))
+            fixed (byte* ptr = input)
             {
                 var position = ptr;
                 position += MinMatchingSize;
@@ -77,16 +76,6 @@ namespace Kompression.LempelZiv.Matcher
             }
 
             return result.ToArray();
-        }
-
-        private byte[] ToArray(Stream input)
-        {
-            var bkPos = input.Position;
-            var inputArray = new byte[input.Length];
-            input.Read(inputArray, 0, inputArray.Length);
-            input.Position = bkPos;
-
-            return inputArray;
         }
 
         public void Dispose()

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.LempelZiv.Matcher;
-using Kompression.LempelZiv.Matcher.Models;
 using Kompression.LempelZiv.Models;
+using Kompression.LempelZiv.Parser;
 
 /* Is more LZSS,described by wikipedia, through the flag denoting if following data is compressed or raw.
    Though the format is denoted as LZ77 with the magic num? (Issue 517)*/
@@ -60,12 +55,23 @@ namespace Kompression.LempelZiv
             }
         }
 
+        // TODO: Reimplement discrepancy for this one
         public static void Compress(Stream input, Stream output)
         {
-            var lzFinder = new NaiveMatcher(1, 0xFF, 0xFF, 1);
-            var lzResults = lzFinder.FindMatches(input);
+            var lzFinder = new NaiveParser(1, 0xFF, 0xFF);
+            var lzResults = lzFinder.Parse(ToArray(input));
 
             WriteCompressedData(input, output, lzResults);
+        }
+
+        private static byte[] ToArray(Stream input)
+        {
+            var bkPos = input.Position;
+            var inputArray = new byte[input.Length];
+            input.Read(inputArray, 0, inputArray.Length);
+            input.Position = bkPos;
+
+            return inputArray;
         }
 
         private static void WriteCompressedData(Stream input, Stream output, IList<LzMatch> lzResults)
@@ -80,8 +86,8 @@ namespace Kompression.LempelZiv
                     bw.WriteBit(1);
                     bw.WriteByte((byte)lzResults[lzIndex].Displacement);
                     bw.WriteByte(lzResults[lzIndex].Length);
-                    bw.WriteByte(lzResults[lzIndex].DiscrepancyBuffer[0]);
-                    input.Position += lzResults[lzIndex].Length + lzResults[lzIndex].DiscrepancyBuffer.Length;
+                    //bw.WriteByte(lzResults[lzIndex].DiscrepancyBuffer[0]);
+                    input.Position += lzResults[lzIndex].Length /*+ lzResults[lzIndex].DiscrepancyBuffer.Length*/;
                     lzIndex++;
                 }
                 else

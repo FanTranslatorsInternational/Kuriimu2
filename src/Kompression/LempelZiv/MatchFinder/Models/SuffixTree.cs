@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace Kompression.LempelZiv.Matcher.Models
+namespace Kompression.LempelZiv.MatchFinder.Models
 {
     class SuffixTree : IDisposable
     {
@@ -21,6 +21,8 @@ namespace Kompression.LempelZiv.Matcher.Models
 
         private int _remainingSuffixCount;
 
+        public bool IsBuilt { get; private set; }
+
         public SuffixTreeNode Root { get; private set; }
 
         public SuffixTree()
@@ -32,7 +34,7 @@ namespace Kompression.LempelZiv.Matcher.Models
             Marshal.WriteInt32(_leafEnd, -1);
         }
 
-        public void Build(byte[] input, int position)
+        public void Build(Span<byte> input, int position)
         {
             /*Root is a special node with start and end indices as -1,
             as it has no parent from where an edge comes to root*/
@@ -44,6 +46,8 @@ namespace Kompression.LempelZiv.Matcher.Models
             _suffixLinks = null;
             _activeNode = null;
             _lastNewNode = null;
+
+            IsBuilt = true;
         }
 
         public void FindLongestMatch(byte[] input, int position, ref int displacement, ref int length)
@@ -55,7 +59,7 @@ namespace Kompression.LempelZiv.Matcher.Models
             } while (nextNode != null);
         }
 
-        private void ExtendSuffixTree(byte[] input, int position)
+        private void ExtendSuffixTree(Span<byte> input, int position)
         {
             /*Extension Rule 1, this takes care of extending all
 	        leaves created so far in tree*/

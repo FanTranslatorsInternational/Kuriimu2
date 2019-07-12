@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace Kompression.LempelZiv.Matcher.Models
+namespace Kompression.LempelZiv.MatchFinder.Models
 {
     class SuffixTreeNode:IDisposable
     {

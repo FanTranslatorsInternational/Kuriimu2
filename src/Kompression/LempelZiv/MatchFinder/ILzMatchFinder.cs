@@ -5,6 +5,9 @@ namespace Kompression.LempelZiv.MatchFinder
 {
     public interface ILzMatchFinder : IDisposable
     {
-        LzMatch[] FindMatches(Span<byte> input, int position);
+        int MinMatchSize { get; }
+        int MaxMatchSize { get; }
+
+        LzMatch FindLongestMatch(Span<byte> input, int position);
     }
 }

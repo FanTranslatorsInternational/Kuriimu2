@@ -1,18 +1,17 @@
 ﻿using System;
-using System.IO;
-using Kompression.LempelZiv.Matcher.Models;
+using Kompression.LempelZiv.MatchFinder.Models;
 using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.MatchFinder
 {
-    public class SuffixTreeMatcher : ILzMatchFinder
+    public class SuffixTreeMatchFinder : ILzMatchFinder
     {
         private readonly SuffixTree _tree;
 
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
 
-        public SuffixTreeMatcher(int minMatchSize, int maxMatchSize)
+        public SuffixTreeMatchFinder(int minMatchSize, int maxMatchSize)
         {
             _tree = new SuffixTree();
 
@@ -20,10 +19,64 @@ namespace Kompression.LempelZiv.MatchFinder
             MaxMatchSize = maxMatchSize;
         }
 
-        // TODO: Implement finding matches at certain position
-        public LzMatch[] FindMatches(Span<byte> input, int position)
+        public LzMatch FindLongestMatch(Span<byte> input, int position)
         {
-            throw new NotImplementedException();
+            if (!_tree.IsBuilt)
+                _tree.Build(input.ToArray(), position);
+
+            var displacement = 0;
+            var length = 0;
+
+            var node = _tree.Root;
+            do
+            {
+                node = Traverse(node, input, ref position, ref displacement, ref length);
+            } while (node != null && length < MaxMatchSize);
+
+            return displacement > 0 && length >= MinMatchSize ? new LzMatch(position, displacement, length) : null;
+        }
+
+        private SuffixTreeNode Traverse(SuffixTreeNode node, Span<byte> input, ref int position, ref int displacement, ref int length)
+        {
+            if (node == null)
+                return null; // no match possible
+
+            //If node n is not root node, then traverse edge 
+            //from node n's parent to node n. 
+            if (node.Start != -1)
+            {
+                displacement = position - node.Start;
+                var res = TraverseEdge(node, input, position, input.Length, ref length);
+                if (res != 0)
+                    return null;  // matching stopped (res = -1) 
+
+                //Get the character index to search 
+                position += node.CalculateLength();
+            }
+
+            //If there is an edge from node n going out 
+            //with current character str[idx], traverse that edge 
+            if (node.Children[input[position]] != null)
+                if (node.Children[input[position]].Start < position)
+                    return node.Children[input[position]];
+
+            return null;  // no more children
+        }
+
+        private int TraverseEdge(SuffixTreeNode node, Span<byte> input, int position, int size, ref int length)
+        {
+            //Traverse the edge with character by character matching 
+            for (var k = node.Start; k <= node.End && position < size; k++, position++)
+            {
+                if (input[k] != input[position])
+                    return -1;  // stopped matching
+
+                length++;
+                if (length >= MaxMatchSize)
+                    return -1;  // stopped matching
+            }
+
+            return 0;  // matched whole node
         }
 
         #region Dispose
