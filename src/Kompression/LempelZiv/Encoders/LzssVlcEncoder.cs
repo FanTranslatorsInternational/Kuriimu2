@@ -1,11 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.Encoders
 {
     class LzssVlcEncoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output,LzMatch[] matches)
+        public void Encode(Stream input, Stream output, LzMatch[] matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -26,23 +27,7 @@ namespace Kompression.LempelZiv.Encoders
                 if (lzIndex >= matches.Length)
                 {
                     // If we have still uncompressed data, but no compressed blocks follow
-
-                    var rawSize = (int)(input.Length - input.Position);
-                    if (rawSize > 0 && rawSize < 0x10)
-                    {
-                        output.Write(new[] { (byte)rawSize, (byte)0x01 }, 0, 2);
-                    }
-                    else
-                    {
-                        var rawSizeVlc = CreateVlc(rawSize);
-                        output.WriteByte(0);
-                        output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
-                        output.WriteByte(0x01);
-                    }
-
-                    var rawData = new byte[rawSize];
-                    input.Read(rawData, 0, rawSize);
-                    output.Write(rawData, 0, rawSize);
+                    CompressLastRawBlock(input, output);
                 }
                 else
                 {
@@ -60,72 +45,115 @@ namespace Kompression.LempelZiv.Encoders
                         compressedBlocks++;
                     }
 
-                    byte descriptionByte = 0;
-                    if (rawSize > 0 && rawSize < 0x10)
-                        descriptionByte |= (byte)rawSize;
-                    if (compressedBlocks > 0 && compressedBlocks < 0x10)
-                        descriptionByte |= (byte)(compressedBlocks << 4);
-                    output.WriteByte(descriptionByte);
-
-                    if (rawSize == 0 || rawSize >= 0x10)
-                    {
-                        var rawSizeVlc = CreateVlc(rawSize);
-                        output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
-                    }
-
-                    if (compressedBlocks == 0 || compressedBlocks >= 0x10)
-                    {
-                        var compressedBlocksVlc = CreateVlc(compressedBlocks, 3);
-                        output.Write(compressedBlocksVlc, 0, compressedBlocksVlc.Length);
-                    }
-
-                    // Writing raw data
-                    var rawData = new byte[rawSize];
-                    input.Read(rawData, 0, rawSize);
-                    output.Write(rawData, 0, rawData.Length);
-
-                    // Writing compressed data now
-                    for (var i = 0; i < compressedBlocks; i++)
-                    {
-                        var length = matches[lzIndex + i].Length - 1;
-                        var displacementVlc = CreateVlc((int)matches[lzIndex + i].Displacement, 3);
-
-                        // Variable length encode length and displacement
-                        descriptionByte = 0;
-                        if (length > 0 && length < 0x10)
-                            descriptionByte |= (byte)(length << 4);
-                        descriptionByte |= displacementVlc[0];
-                        output.WriteByte(descriptionByte);
-
-                        output.Write(displacementVlc, 1, displacementVlc.Length - 1);
-                        if (length == 0 || length >= 0x10)
-                        {
-                            var lengthVlc = CreateVlc(length);
-                            output.Write(lengthVlc, 0, lengthVlc.Length);
-                        }
-
-                        input.Position += matches[lzIndex + i].Length;
-                    }
+                    WriteBlockSizes(output, rawSize, compressedBlocks);
+                    WriteBlocks(input, output, rawSize, new Span<LzMatch>(matches, lzIndex, compressedBlocks));
 
                     lzIndex += compressedBlocks;
                 }
             }
         }
 
+        private void CompressLastRawBlock(Stream input, Stream output)
+        {
+            var rawSize = (int)(input.Length - input.Position);
+            if (rawSize > 0 && rawSize < 0x10)
+            {
+                output.Write(new[] { (byte)rawSize, (byte)0x01 }, 0, 2);
+            }
+            else
+            {
+                var rawSizeVlc = CreateVlc(rawSize);
+                output.WriteByte(0);    // write Vlc base byte
+                output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
+                output.WriteByte(0x01); // write Vlc for 0 compressedBlocks
+            }
+
+            var rawData = new byte[rawSize];
+            input.Read(rawData, 0, rawSize);
+            output.Write(rawData, 0, rawSize);
+        }
+
+        private void WriteBlockSizes(Stream output, int rawSize, int compressedBlocks)
+        {
+            byte descriptionByte = 0;
+
+            if (rawSize > 0 && rawSize < 0x10)
+                descriptionByte |= (byte)rawSize;
+
+            if (compressedBlocks > 0 && compressedBlocks < 0x10)
+                descriptionByte |= (byte)(compressedBlocks << 4);
+
+            output.WriteByte(descriptionByte);
+
+            if (rawSize == 0 || rawSize >= 0x10)
+            {
+                var rawSizeVlc = CreateVlc(rawSize);
+                output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
+            }
+
+            if (compressedBlocks == 0 || compressedBlocks >= 0x10)
+            {
+                var compressedBlocksVlc = CreateVlc(compressedBlocks);
+                output.Write(compressedBlocksVlc, 0, compressedBlocksVlc.Length);
+            }
+        }
+
+        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<LzMatch> matches)
+        {
+            // Writing raw data
+            var rawData = new byte[rawSize];
+            input.Read(rawData, 0, rawSize);
+            output.Write(rawData, 0, rawData.Length);
+
+            // Writing compressed data
+            foreach (var match in matches)
+            {
+                var length = match.Length - 1;  // Length is always >0; therefore this specification stores the length reduced by 1
+                var displacementVlc = CreateVlc((int)match.Displacement, 3);
+
+                // Variable length encode length and displacement
+
+                // Write description byte
+                byte descriptionByte = 0;
+
+                descriptionByte |= displacementVlc[0];  // the displacement is the only value vlc encoded differently
+                                                        // the 3 MSB are always encoded in this description block
+
+                if (length > 0 && length < 0x10)
+                    descriptionByte |= (byte)(length << 4);
+
+                output.WriteByte(descriptionByte);
+
+                // Write left over displacement value
+                output.Write(displacementVlc, 1, displacementVlc.Length - 1);
+
+                if (length == 0 || length >= 0x10)
+                {
+                    var lengthVlc = CreateVlc(length);
+                    output.Write(lengthVlc, 0, lengthVlc.Length);
+                }
+
+                input.Position += match.Length;
+            }
+        }
+
+        #region Helper
+
         private byte[] CreateVlc(int value, int maxBitsInMsb = 7)
         {
-            int bitCount = GetBitCount(value);
-            var returnValue = new byte[bitCount / 7 + (bitCount % 7 <= maxBitsInMsb ? 1 : 2)];
+            var bitCount = GetBitCount(value);
+            var valueLength = bitCount / 7 + (bitCount % 7 <= maxBitsInMsb ? 1 : 2);
+            var returnValue = new byte[valueLength];
 
-            for (var i = 0; i < returnValue.Length; i++)
+            for (var i = 0; i < valueLength; i++)
             {
-                var partialShift = i == returnValue.Length - 1 ? maxBitsInMsb : 7;
+                var partialShift = i == valueLength-1 ? maxBitsInMsb : 7;
                 byte partialValue = (byte)((value & ((1 << partialShift) - 1)) << 1);
-                returnValue[returnValue.Length - 1 - i] = partialValue;
+                returnValue[valueLength - 1 - i] = partialValue;
                 value >>= 7;
             }
 
-            returnValue[returnValue.Length - 1] |= 0x1;
+            returnValue[valueLength - 1] |= 0x1;
             return returnValue;
         }
 
@@ -140,6 +168,9 @@ namespace Kompression.LempelZiv.Encoders
 
             return bitCount;
         }
+
+        #endregion
+
         public void Dispose()
         {
             // nothing to dispose
@@ -155,14 +186,14 @@ namespace Kompression.LempelZiv.Encoders
             var bitLength = 0;
 
             var dispBitCount = GetBitCount(match.Displacement);
-            bitLength += dispBitCount + dispBitCount / 7 + (dispBitCount % 7 <= 3 ? 4 : 12);
+            bitLength += dispBitCount / 7 * 8 + (dispBitCount % 7 <= 3 ? 4 : 12);
 
             if (match.Length <= 0xF)
                 bitLength += 4;
             else
             {
                 var lengthBitCount = GetBitCount(match.Length);
-                bitLength += 4 + lengthBitCount + lengthBitCount / 7 + (lengthBitCount % 7 > 0 ? 8 : 0);
+                bitLength += 4 + lengthBitCount / 7 * 8 + (lengthBitCount % 7 > 0 ? 8 : 0);
             }
 
             return bitLength;

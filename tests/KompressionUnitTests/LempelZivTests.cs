@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Kompression.LempelZiv;
-using Kompression.LempelZiv.Occurrence;
-using Kompression.LempelZiv.Occurrence.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace KompressionUnitTests
@@ -11,68 +10,68 @@ namespace KompressionUnitTests
     [TestClass]
     public class LempelZivTests
     {
-        [TestMethod]
-        public void FindOccurences_Naive_IsCorrect()
-        {
-            var input = new byte[]
-                {0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00};
+        //[TestMethod]
+        //public void FindOccurences_Naive_IsCorrect()
+        //{
+        //    var input = new byte[]
+        //        {0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00};
 
-            var lzFinder = new LzOccurrenceFinder(LzMode.Naive, 8, 4, 16);
-            var results = lzFinder.Process(new MemoryStream(input)).OrderBy(x => x.Position).ToList();
+        //    var lzFinder = new LzOccurrenceFinder(LzMode.Naive, 8, 4, 16);
+        //    var results = lzFinder.Process(new MemoryStream(input)).OrderBy(x => x.Position).ToList();
 
-            Assert.AreEqual(1, results.Count);
-            Assert.AreEqual(7, results[0].Position);
-            Assert.AreEqual(8, results[0].Length);
-            Assert.AreEqual(7, results[0].Displacement);
-        }
+        //    Assert.AreEqual(1, results.Count);
+        //    Assert.AreEqual(7, results[0].Position);
+        //    Assert.AreEqual(8, results[0].Length);
+        //    Assert.AreEqual(7, results[0].Displacement);
+        //}
 
-        [TestMethod]
-        public void FindOccurences_SuffixTree_IsCorrect()
-        {
-            var input = new byte[]
-                {0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x02, 0x03, 0x00, 0x00, 0x00};
+        //[TestMethod]
+        //public void FindOccurences_SuffixTree_IsCorrect()
+        //{
+        //    var input = new byte[]
+        //        {0x00, 0x01, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x02, 0x03, 0x00, 0x00, 0x00};
 
-            var lzFinder = new LzOccurrenceFinder(LzMode.SuffixTree, input.Length, 1, 8);
-            var results = lzFinder.Process(new MemoryStream(input)).OrderBy(x => x.Position).ToList();
+        //    var lzFinder = new LzOccurrenceFinder(LzMode.SuffixTree, input.Length, 1, 8);
+        //    var results = lzFinder.Process(new MemoryStream(input)).OrderBy(x => x.Position).ToList();
 
-            Assert.AreEqual(5, results.Count);
-            Assert.AreEqual(12, (int)results[4].Position);
-            Assert.AreEqual(8, (int)results[4].Displacement);
-            Assert.AreEqual(3, results[4].Length);
-        }
+        //    Assert.AreEqual(5, results.Count);
+        //    Assert.AreEqual(12, (int)results[4].Position);
+        //    Assert.AreEqual(8, (int)results[4].Displacement);
+        //    Assert.AreEqual(3, results[4].Length);
+        //}
 
-        [TestMethod]
-        public void SuffixArray_IsCorrect()
-        {
-            var input = new byte[]
-                {0x6d, 0x69, 0x73, 0x73, 0x69, 0x73, 0x73, 0x69, 0x70, 0x70, 0x69};
+        //[TestMethod]
+        //public void SuffixArray_IsCorrect()
+        //{
+        //    var input = new byte[]
+        //        {0x6d, 0x69, 0x73, 0x73, 0x69, 0x73, 0x73, 0x69, 0x70, 0x70, 0x69};
 
-            var array = SuffixArray.Create(new MemoryStream(input));
+        //    var array = SuffixArray.Create(new MemoryStream(input));
 
-            Assert.AreEqual(10, array.Suffixes[0]);
-            Assert.AreEqual(7, array.Suffixes[1]);
-            Assert.AreEqual(4, array.Suffixes[2]);
-            Assert.AreEqual(1, array.Suffixes[3]);
-            Assert.AreEqual(0, array.Suffixes[4]);
-            Assert.AreEqual(9, array.Suffixes[5]);
-            Assert.AreEqual(8, array.Suffixes[6]);
-            Assert.AreEqual(6, array.Suffixes[7]);
-            Assert.AreEqual(3, array.Suffixes[8]);
-            Assert.AreEqual(5, array.Suffixes[9]);
-            Assert.AreEqual(2, array.Suffixes[10]);
-        }
+        //    Assert.AreEqual(10, array.Suffixes[0]);
+        //    Assert.AreEqual(7, array.Suffixes[1]);
+        //    Assert.AreEqual(4, array.Suffixes[2]);
+        //    Assert.AreEqual(1, array.Suffixes[3]);
+        //    Assert.AreEqual(0, array.Suffixes[4]);
+        //    Assert.AreEqual(9, array.Suffixes[5]);
+        //    Assert.AreEqual(8, array.Suffixes[6]);
+        //    Assert.AreEqual(6, array.Suffixes[7]);
+        //    Assert.AreEqual(3, array.Suffixes[8]);
+        //    Assert.AreEqual(5, array.Suffixes[9]);
+        //    Assert.AreEqual(2, array.Suffixes[10]);
+        //}
 
-        [TestMethod]
-        public void FindOccurrences_SuffixArray_IsCorrect()
-        {
-            var input = new byte[]
-                {0x6d, 0x69, 0x73, 0x73, 0x69, 0x73, 0x73, 0x69, 0x70, 0x70, 0x69};
+        //[TestMethod]
+        //public void FindOccurrences_SuffixArray_IsCorrect()
+        //{
+        //    var input = new byte[]
+        //        {0x6d, 0x69, 0x73, 0x73, 0x69, 0x73, 0x73, 0x69, 0x70, 0x70, 0x69};
 
-            var finder = new LzOccurrenceFinder(LzMode.SuffixArray, input.Length, 1, input.Length);
-            var results = finder.Process(new MemoryStream(input));
+        //    var finder = new LzOccurrenceFinder(LzMode.SuffixArray, input.Length, 1, input.Length);
+        //    var results = finder.Process(new MemoryStream(input));
 
-            ;
-        }
+        //    ;
+        //}
 
 
         [TestMethod]
@@ -288,9 +287,9 @@ namespace KompressionUnitTests
             var compStream = new MemoryStream();
             var decompStream = new MemoryStream();
 
-            LZSSVLC.Compress(new MemoryStream(input), compStream);
+            new LzssVlc().Compress(new MemoryStream(input), compStream);
             compStream.Position = 0;
-            LZSSVLC.Decompress(compStream, decompStream);
+            new LzssVlc().Decompress(compStream, decompStream);
             compStream.Position = decompStream.Position = 0;
 
             Assert.IsTrue(input.SequenceEqual(decompStream.ToArray()));
@@ -303,7 +302,12 @@ namespace KompressionUnitTests
             var str = File.OpenRead(file);
             var save = File.Create(file + ".new2");
 
-            LZSSVLC.Compress(str, save);
+            var watch = new Stopwatch();
+            watch.Start();
+            new LzssVlc().Compress(str, save);
+            watch.Stop();
+
+            save.Close();
         }
 
         [TestMethod]
@@ -314,7 +318,9 @@ namespace KompressionUnitTests
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
-            LZSSVLC.Decompress(str, save);
+            new LzssVlc().Decompress(str, save);
+
+            save.Close();
         }
     }
 }

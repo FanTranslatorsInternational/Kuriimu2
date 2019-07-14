@@ -8,6 +8,7 @@ namespace Kompression.LempelZiv.MatchFinder.Models
     {
         private Dictionary<SuffixTreeNode, SuffixTreeNode> _suffixLinks =
             new Dictionary<SuffixTreeNode, SuffixTreeNode>();
+        private Dictionary<byte, List<int>> _offsetDictionary = new Dictionary<byte, List<int>>();
 
         private readonly IntPtr _rootEnd;
         private readonly IntPtr _leafEnd;
@@ -34,6 +35,11 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             Marshal.WriteInt32(_leafEnd, -1);
         }
 
+        public List<int> GetOffsets(byte value)
+        {
+            return _offsetDictionary[value];
+        }
+
         public void Build(Span<byte> input, int position)
         {
             /*Root is a special node with start and end indices as -1,
@@ -41,7 +47,12 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             _activeNode = Root = new SuffixTreeNode(-1, _rootEnd);
 
             for (var i = position; i < input.Length; i++)
+            {
                 ExtendSuffixTree(input, i);
+                if (!_offsetDictionary.ContainsKey(input[i]))
+                    _offsetDictionary[input[i]] = new List<int>();
+                _offsetDictionary[input[i]].Add(i);
+            }
 
             _suffixLinks = null;
             _activeNode = null;

@@ -1,8 +1,10 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
 using Kompression.LempelZiv.Decoders;
 using Kompression.LempelZiv.Encoders;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
+[assembly:InternalsVisibleTo("KompressionUnitTests")]
 
 namespace Kompression.LempelZiv
 {

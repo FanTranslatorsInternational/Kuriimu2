@@ -4,7 +4,6 @@ using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
 
 /* Used in Super Robot Taizen Z and MTV archive */
-// TODO: Find out that PS2 game from IcySon55
 
 namespace Kompression.LempelZiv
 {
@@ -22,7 +21,7 @@ namespace Kompression.LempelZiv
 
         protected override ILzParser CreateParser(ILzMatchFinder finder, ILzEncoder encoder)
         {
-            return new OptimalParser(finder, encoder);
+            return new GreedyParser(finder);
         }
 
         protected override ILzDecoder CreateDecoder()
