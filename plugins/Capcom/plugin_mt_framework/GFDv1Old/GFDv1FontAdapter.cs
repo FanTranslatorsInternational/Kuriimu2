@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Physical;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
@@ -19,7 +21,7 @@ namespace plugin_mt_framework.GFDv1Old
     [Export(typeof(IPlugin))]
     [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font v1", "GFDv1", "IcySon55", "", "This is the GFDv1 font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
-    public sealed class GFDv1FontAdapter : IFontAdapter, /*IIdentifyFiles,*/ /*ILoadFiles,*/ /*ISaveFiles,*/ IAddCharacters, IDeleteCharacters
+    public sealed class GFDv1FontAdapter : IFontAdapter, IIdentifyFiles, ILoadFiles, ISaveFiles, IAddCharacters, IDeleteCharacters
     {
         private GFDv1 _gfd;
 
@@ -69,13 +71,13 @@ namespace plugin_mt_framework.GFDv1Old
 
         #endregion
 
-        public bool Identify(string filename)
+        public bool Identify(StreamInfo input, BaseReadOnlyDirectoryNode fs)
         {
             var result = true;
 
             try
             {
-                using (var br = new BinaryReaderX(File.OpenRead(filename)))
+                using (var br = new BinaryReaderX(input.FileData, LeaveOpen))
                 {
                     if (br.BaseStream.Length < 8)
                         result = false;
@@ -111,19 +113,16 @@ namespace plugin_mt_framework.GFDv1Old
         //    _gfdv1 = new GFDv1();
         //}
 
-        public void Load(string filename)
+        public void Load(StreamInfo input, BaseReadOnlyDirectoryNode fs)
         {
-            if (File.Exists(filename))
-            {
-                _gfd = new GFDv1(File.OpenRead(filename));
-            }
-            else
-                throw new FileNotFoundException();
+            _gfd = new GFDv1(input);
         }
 
-        public void Save(string filename, int versionIndex = 0)
+        public bool LeaveOpen { get; set; }
+
+        public void Save(StreamInfo output, PhysicalDirectoryNode fs, int versionIndex = 0)
         {
-            _gfd.Save(File.Create(filename));
+            _gfd.Save(output);
         }
 
         public FontCharacter NewCharacter(FontCharacter selectedCharacter = null)
