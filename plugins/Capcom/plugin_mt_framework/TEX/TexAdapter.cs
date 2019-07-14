@@ -15,6 +15,8 @@ using Kontract.Interfaces.Image;
 using Kontract.Models;
 using Kontract.Models.Image;
 
+// TODO: Add all image features
+
 namespace plugin_mt_framework.TEX
 {
     [Export(typeof(TexAdapter))]

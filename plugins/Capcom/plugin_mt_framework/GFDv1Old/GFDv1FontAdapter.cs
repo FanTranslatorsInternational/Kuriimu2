@@ -11,6 +11,8 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 
+// TODO: Add all image features
+
 namespace plugin_mt_framework.GFDv1Old
 {
     [Export(typeof(GFDv1FontAdapter))]

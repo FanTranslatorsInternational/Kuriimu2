@@ -11,6 +11,8 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 
+// TODO: Add all features
+
 namespace plugin_mt_framework.GFDv2
 {
     [Export(typeof(GFDv2FontAdapter))]
