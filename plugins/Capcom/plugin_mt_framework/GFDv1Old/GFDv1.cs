@@ -28,14 +28,7 @@ namespace plugin_mt_framework.GFDv1Old
 
         private string _sourceFile;
 
-        #region MT Texture Adapters
-
-        private CompositionContainer _container;
-
-        [ImportMany(typeof(IMtFrameworkTextureAdapter))]
         private List<IMtFrameworkTextureAdapter> _texAdapters;
-
-        #endregion
 
         public GFDv1()
         {
@@ -46,7 +39,7 @@ namespace plugin_mt_framework.GFDv1Old
             Textures = new List<Bitmap>();
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
         }
 
         public GFDv1(FileStream input)
@@ -54,12 +47,12 @@ namespace plugin_mt_framework.GFDv1Old
             _sourceFile = input.Name;
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
 
             using (var br = new BinaryReaderX(input))
             {
                 // Set endianess
-                if (br.PeekString(4,Encoding.ASCII) == "\0DFG")
+                if (br.PeekString(4, Encoding.ASCII) == "\0DFG")
                 {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
                     br.BitOrder = BitOrder = BitOrder.LSBFirst;

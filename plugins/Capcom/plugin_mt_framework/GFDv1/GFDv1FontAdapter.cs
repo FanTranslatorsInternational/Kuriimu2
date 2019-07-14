@@ -6,6 +6,9 @@ using System.Drawing.Imaging;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.FileSystem.Nodes.Abstract;
+using Kontract.FileSystem.Nodes.Physical;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 
@@ -116,7 +119,7 @@ namespace plugin_mt_framework.GFDv1
 
         #endregion
 
-        public bool Identify(StreamInfo streamInfo)
+        public bool Identify(StreamInfo streamInfo, BaseReadOnlyDirectoryNode fs)
         {
             var result = true;
 
@@ -153,12 +156,12 @@ namespace plugin_mt_framework.GFDv1
             return result;
         }
 
-        public void Load(StreamInfo input)
+        public void Load(StreamInfo input, BaseReadOnlyDirectoryNode fs)
         {
             _gfd = new GFDv1(input);
         }
 
-        public void Save(StreamInfo output, int versionIndex = 0)
+        public void Save(StreamInfo output, PhysicalDirectoryNode fs, int versionIndex = 0)
         {
             _gfd.Save(output);
         }

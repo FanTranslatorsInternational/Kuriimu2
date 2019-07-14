@@ -28,14 +28,7 @@ namespace plugin_mt_framework.GFDv2
 
         private string _sourceFile;
 
-        #region MT Tex Adapter
-
-        private CompositionContainer _container;
-
-        [ImportMany(typeof(IMtFrameworkTextureAdapter))]
         private List<IMtFrameworkTextureAdapter> _texAdapters;
-
-        #endregion
 
         public GFDv2()
         {
@@ -46,7 +39,7 @@ namespace plugin_mt_framework.GFDv2
             Textures = new List<Bitmap>();
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
         }
 
         public GFDv2(FileStream input)
@@ -54,7 +47,7 @@ namespace plugin_mt_framework.GFDv2
             _sourceFile = input.Name;
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
 
             using (var br = new BinaryReaderX(input))
             {
