@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Kompression.LempelZiv.MatchFinder.Models
@@ -8,7 +9,7 @@ namespace Kompression.LempelZiv.MatchFinder.Models
     {
         private Dictionary<SuffixTreeNode, SuffixTreeNode> _suffixLinks =
             new Dictionary<SuffixTreeNode, SuffixTreeNode>();
-        private Dictionary<byte, List<int>> _offsetDictionary = new Dictionary<byte, List<int>>();
+        private readonly Dictionary<byte, List<int>> _offsetDictionary = new Dictionary<byte, List<int>>();
 
         private readonly IntPtr _rootEnd;
         private readonly IntPtr _leafEnd;
@@ -35,9 +36,9 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             Marshal.WriteInt32(_leafEnd, -1);
         }
 
-        public List<int> GetOffsets(byte value)
+        public int[] GetOffsets(byte value, int position)
         {
-            return _offsetDictionary[value];
+            return _offsetDictionary[value].Where(x => x < position).ToArray();
         }
 
         public void Build(Span<byte> input, int position)
@@ -51,8 +52,12 @@ namespace Kompression.LempelZiv.MatchFinder.Models
                 ExtendSuffixTree(input, i);
                 if (!_offsetDictionary.ContainsKey(input[i]))
                     _offsetDictionary[input[i]] = new List<int>();
-                _offsetDictionary[input[i]].Add(i);
+                _offsetDictionary[input[i]].Insert(0, i);
             }
+
+            // Descend order all offset lists
+            //for (byte i = 0; i < _offsetDictionary.Count; i++)
+            //    _offsetDictionary[i] = _offsetDictionary[i].OrderByDescending(x => x).ToList();
 
             _suffixLinks = null;
             _activeNode = null;

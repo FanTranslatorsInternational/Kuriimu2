@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Models;
 
@@ -17,11 +18,17 @@ namespace Kompression.LempelZiv.Parser
         public LzMatch[] Parse(Span<byte> input)
         {
             var results = new List<LzMatch>();
+            var inputArray = input.ToArray();
+            var stopwatch = new Stopwatch();
 
             for (var i = 0; i < input.Length; i++)
             {
                 // Get longest match at position i
-                var match = _finder.FindLongestMatch(input, i);
+                stopwatch.Restart();
+                var match = _finder.FindLongestMatch(inputArray, i);
+                stopwatch.Stop();
+                Trace.WriteLine(stopwatch.Elapsed);
+
                 if (match == null)
                     continue;
 
