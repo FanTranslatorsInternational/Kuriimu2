@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Kompression.LempelZiv.MatchFinder;
 
 namespace Kompression.LempelZiv.Parser
@@ -9,16 +8,18 @@ namespace Kompression.LempelZiv.Parser
     {
         private readonly ILzMatchFinder _finder;
 
-        public GreedyParser(ILzMatchFinder finder)
+        public int SkipAfterMatch { get; }
+
+        public GreedyParser(ILzMatchFinder finder, int skipAfterMatch = 0)
         {
             _finder = finder;
+            SkipAfterMatch = skipAfterMatch;
         }
 
         public LzMatch[] Parse(Span<byte> input)
         {
             var results = new List<LzMatch>();
             var inputArray = input.ToArray();
-            var stopwatch = new Stopwatch();
 
             for (var i = 0; i < input.Length; i++)
             {
@@ -30,13 +31,13 @@ namespace Kompression.LempelZiv.Parser
 
                 // Skip the whole pattern
                 results.Add(match);
-                i += match.Length - 1;
+                i += match.Length + SkipAfterMatch - 1;
             }
 
             return results.ToArray();
         }
 
-        #region
+        #region Dispose
 
         public void Dispose()
         {

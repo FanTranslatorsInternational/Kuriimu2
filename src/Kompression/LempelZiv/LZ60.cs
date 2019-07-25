@@ -1,50 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.Exceptions;
+﻿using Kompression.LempelZiv.Decoders;
+using Kompression.LempelZiv.Encoders;
+using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
 
 namespace Kompression.LempelZiv
 {
-    public static class LZ60
+    public class LZ60:BaseLz
     {
-        public static void Decompress(Stream input, Stream output)
+        protected override ILzEncoder CreateEncoder()
         {
-            var compressionHeader = new byte[4];
-            input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x60)   // 0x60 for LZ60, which seems to be the same as LZ40
-                throw new InvalidCompressionException(nameof(LZ60));
-
-            var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
-
-            LZ40.ReadCompressedData(input, output, decompressedSize);
+            return new Lz60Encoder();
         }
 
-        public static void Compress(Stream input, Stream output)
+        protected override ILzParser CreateParser(int inputLength)
         {
-            if (input.Length > 0xFFFFFF)
-                throw new InvalidOperationException("Data to compress is too long.");
-
-            var lzFinder = new NaiveParser(3, 0x10010F, 0xFFF);
-            var lzResults = lzFinder.Parse(ToArray(input));
-
-            var compressionHeader = new byte[] { 0x60, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
-            output.Write(compressionHeader, 0, 4);
-
-            LZ40.WriteCompressedData(input, output, lzResults);
+            // TODO: Implement window based parser
+            //return new NaiveParser(3, 0x10010F, 0xFFF);
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(0x3, 0x10010F, 0xFFF));
         }
 
-        private static byte[] ToArray(Stream input)
+        protected override ILzDecoder CreateDecoder()
         {
-            var bkPos = input.Position;
-            var inputArray = new byte[input.Length];
-            input.Read(inputArray, 0, inputArray.Length);
-            input.Position = bkPos;
-
-            return inputArray;
+            return new Lz60Decoder();
         }
     }
 }

@@ -1,55 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.Exceptions;
+﻿using Kompression.LempelZiv.Decoders;
+using Kompression.LempelZiv.Encoders;
+using Kompression.LempelZiv.MatchFinder;
+using Kompression.LempelZiv.Parser;
 
-/* The same as LZ10 just with another compression header */
+/* The same as Lz10 just with another compression header */
 
 namespace Kompression.LempelZiv
 {
-    public static class LZSS
+    public class LZSS:BaseLz
     {
-        public static void Decompress(Stream input, Stream output)
+        protected override ILzEncoder CreateEncoder()
         {
-            var compressionHeader = new byte[4];
-            input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x53 ||
-                compressionHeader[1] != 0x53 ||
-                compressionHeader[2] != 0x5A ||
-                compressionHeader[3] != 0x4C)   // "SSZL"
-                throw new InvalidCompressionException(nameof(LZSS));
-
-            input.Position = 0xC;
-            var decompressedSizeBuffer = new byte[4];
-            input.Read(decompressedSizeBuffer, 0, 4);
-            var decompressedSize = decompressedSizeBuffer[0] | (decompressedSizeBuffer[1] << 8) | (decompressedSizeBuffer[2] << 16) | (decompressedSizeBuffer[3] << 24);
-
-            LZ10.ReadCompressedData(input, output, decompressedSize);
+            return new LzssEncoder();
         }
 
-        public static void Compress(Stream input, Stream output)
+        protected override ILzParser CreateParser(int inputLength)
         {
-            var outputStartPos = output.Position;
-            output.Position += 0x10;
-            LZ10.WriteCompressedData(input, output);
+            // TODO: Implement window based parser
+            //return new NaiveParser(3, 0x12, 0x1000);
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(0x3, 0x1000, 0x12));
+        }
 
-            var outputPos = output.Position;
-            output.Position = outputStartPos;
-            output.Write(new byte[] { 0x53, 0x53, 0x5A, 0x4C }, 0, 4);
-            output.Position += 8;
-            var decompressedSizeBuffer = new[]
-            {
-                (byte)input.Length,
-                (byte)((input.Length>>8)&0xFF),
-                (byte)((input.Length>>16)&0xFF),
-                (byte)((input.Length>>24)&0xFF),
-            };
-            output.Write(decompressedSizeBuffer, 0, 4);
-
-            output.Position = outputPos;
+        protected override ILzDecoder CreateDecoder()
+        {
+            return new LzssDecoder();
         }
     }
 }

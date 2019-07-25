@@ -12,13 +12,15 @@ namespace Kompression.LempelZiv.MatchFinder
 
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
+        public int WindowSize { get; }
 
-        public HybridSuffixTreeMatchFinder(int minMatchSize, int maxMatchSize)
+        public HybridSuffixTreeMatchFinder(int minMatchSize, int maxMatchSize, int windowSize)
         {
             _tree = new HybridSuffixTree();
 
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
+            WindowSize = windowSize;
         }
 
         /// <summary>
@@ -39,7 +41,7 @@ namespace Kompression.LempelZiv.MatchFinder
                 return null;
 
             var node = _tree.Root.Children[input[position]];
-            var offsets = _tree.GetOffsets(input[position], position);
+            var offsets = _tree.GetOffsets(input[position], position, WindowSize);
             do
             {
                 length += node.CalculateLength();
@@ -52,7 +54,7 @@ namespace Kompression.LempelZiv.MatchFinder
                 else
                     node = null;
 
-                if(node!=null)
+                if (node != null)
                     offsets = offsets.Where(x => input[x + length] == input[position]).ToArray();
             } while (node != null && length < MaxMatchSize);
 

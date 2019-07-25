@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kompression
 {
-    class BitWriter
+    class BitWriter : IDisposable
     {
         private readonly Stream _baseStream;
         private readonly BitOrder _bitOrder;
@@ -77,6 +73,20 @@ namespace Kompression
             }
 
             return result;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Flush();
+                _baseStream?.Dispose();
+            }
         }
     }
 }
