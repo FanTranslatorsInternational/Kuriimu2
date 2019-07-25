@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Kompression.LempelZiv.MatchFinder;
-using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.Parser
 {
@@ -24,10 +23,7 @@ namespace Kompression.LempelZiv.Parser
             for (var i = 0; i < input.Length; i++)
             {
                 // Get longest match at position i
-                stopwatch.Restart();
                 var match = _finder.FindLongestMatch(inputArray, i);
-                stopwatch.Stop();
-                Trace.WriteLine(stopwatch.Elapsed);
 
                 if (match == null)
                     continue;

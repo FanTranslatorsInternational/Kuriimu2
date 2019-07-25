@@ -1,4 +1,4 @@
-﻿namespace Kompression.LempelZiv.Models
+﻿namespace Kompression.LempelZiv
 {
     public class LzMatch
     {

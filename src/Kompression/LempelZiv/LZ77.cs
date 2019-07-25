@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Kompression.LempelZiv.Models;
 using Kompression.LempelZiv.Parser;
 
 /* Is more LZSS,described by wikipedia, through the flag denoting if following data is compressed or raw.

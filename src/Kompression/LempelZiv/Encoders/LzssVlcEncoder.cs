@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.Encoders
 {
@@ -174,29 +173,6 @@ namespace Kompression.LempelZiv.Encoders
         public void Dispose()
         {
             // nothing to dispose
-        }
-
-        public int CalculateLiteralLength(byte value)
-        {
-            return 8;
-        }
-
-        public int CalculateMatchLength(LzMatch match)
-        {
-            var bitLength = 0;
-
-            var dispBitCount = GetBitCount(match.Displacement);
-            bitLength += dispBitCount / 7 * 8 + (dispBitCount % 7 <= 3 ? 4 : 12);
-
-            if (match.Length <= 0xF)
-                bitLength += 4;
-            else
-            {
-                var lengthBitCount = GetBitCount(match.Length);
-                bitLength += 4 + lengthBitCount / 7 * 8 + (lengthBitCount % 7 > 0 ? 8 : 0);
-            }
-
-            return bitLength;
         }
     }
 }

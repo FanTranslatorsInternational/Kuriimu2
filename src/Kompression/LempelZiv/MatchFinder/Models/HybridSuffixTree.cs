@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Kompression.LempelZiv.MatchFinder.Models
 {
-    class SuffixTree : IDisposable
+    class HybridSuffixTree : IDisposable
     {
         private Dictionary<SuffixTreeNode, SuffixTreeNode> _suffixLinks =
             new Dictionary<SuffixTreeNode, SuffixTreeNode>();
+        private readonly Dictionary<byte, List<int>> _offsetDictionary = new Dictionary<byte, List<int>>();
 
         private readonly IntPtr _rootEnd;
         private readonly IntPtr _leafEnd;
@@ -25,13 +27,18 @@ namespace Kompression.LempelZiv.MatchFinder.Models
 
         public SuffixTreeNode Root { get; private set; }
 
-        public SuffixTree()
+        public HybridSuffixTree()
         {
             _rootEnd = Marshal.AllocHGlobal(sizeof(int));
             _leafEnd = Marshal.AllocHGlobal(sizeof(int));
 
             Marshal.WriteInt32(_rootEnd, -1);
             Marshal.WriteInt32(_leafEnd, -1);
+        }
+
+        public int[] GetOffsets(byte value, int position)
+        {
+            return _offsetDictionary[value].Where(x => x < position).ToArray();
         }
 
         public void Build(Span<byte> input, int position)
@@ -43,7 +50,14 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             for (var i = position; i < input.Length; i++)
             {
                 ExtendSuffixTree(input, i);
+                if (!_offsetDictionary.ContainsKey(input[i]))
+                    _offsetDictionary[input[i]] = new List<int>();
+                _offsetDictionary[input[i]].Insert(0, i);
             }
+
+            // Descend order all offset lists
+            //for (byte i = 0; i < _offsetDictionary.Count; i++)
+            //    _offsetDictionary[i] = _offsetDictionary[i].OrderByDescending(x => x).ToList();
 
             _suffixLinks = null;
             _activeNode = null;
@@ -216,7 +230,7 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             Dispose(true);
         }
 
-        ~SuffixTree()
+        ~HybridSuffixTree()
         {
             Dispose(false);
         }
@@ -228,12 +242,6 @@ namespace Kompression.LempelZiv.MatchFinder.Models
                 Marshal.FreeHGlobal(_rootEnd);
                 Marshal.FreeHGlobal(_leafEnd);
                 Marshal.FreeHGlobal(_splitEnd);
-            }
-            else
-            {
-                Root = null;
-                _activeNode = null;
-                _lastNewNode = null;
             }
         }
 

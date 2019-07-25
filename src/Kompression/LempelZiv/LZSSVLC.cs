@@ -9,19 +9,15 @@ namespace Kompression.LempelZiv
 {
     public class LzssVlc : BaseLz
     {
-        protected override ILzMatchFinder CreateMatchFinder(int inputLength)
-        {
-            return new SuffixTreeMatchFinder(4, inputLength);
-        }
-
         protected override ILzEncoder CreateEncoder()
         {
             return new LzssVlcEncoder();
         }
 
-        protected override ILzParser CreateParser(ILzMatchFinder finder, ILzEncoder encoder)
+        protected override ILzParser CreateParser(int inputLength)
         {
-            return new GreedyParser(finder);
+            //return new OptimalParser(new HybridSuffixTreeMatchFinder(4, inputLength), new LzssVlcPriceCalculator());
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(4, inputLength));
         }
 
         protected override ILzDecoder CreateDecoder()

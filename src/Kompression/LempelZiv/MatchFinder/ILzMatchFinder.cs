@@ -1,5 +1,4 @@
 ﻿using System;
-using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.MatchFinder
 {

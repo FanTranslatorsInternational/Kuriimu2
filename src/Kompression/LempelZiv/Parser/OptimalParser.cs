@@ -3,25 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Kompression.LempelZiv.Encoders;
 using Kompression.LempelZiv.MatchFinder;
-using Kompression.LempelZiv.Models;
+using Kompression.LempelZiv.PriceCalculators;
 
 namespace Kompression.LempelZiv.Parser
 {
     class OptimalParser : ILzParser
     {
         private readonly ILzMatchFinder _finder;
-        private readonly ILengthCalculator _calculator;
+        private readonly IPriceCalculator _calculator;
 
         private int[] _price;
         private int[] _len;
         private long[] _dist;
 
-        //private int[] _matchLen;
-        //private long[] _matchDist;
-        //private int[] _literalLen;
-        //private int[] _literals;
-
-        public OptimalParser(ILzMatchFinder finder, ILengthCalculator calculator)
+        public OptimalParser(ILzMatchFinder finder, IPriceCalculator calculator)
         {
             _finder = finder;
             _calculator = calculator;
@@ -32,11 +27,6 @@ namespace Kompression.LempelZiv.Parser
             _price = new int[input.Length + 1];
             _len = new int[input.Length + 1];
             _dist = new long[input.Length + 1];
-
-            //_matchDist = new long[input.Length];
-            //_matchLen = new int[input.Length];
-            //_literalLen = new int[input.Length];
-            //_literals = new int[input.Length];
 
             for (var i = 0; i < input.Length + 1; i++)
                 _price[i] = 999999999;
@@ -75,17 +65,6 @@ namespace Kompression.LempelZiv.Parser
                         _dist[i + match.Length] = match.Displacement;
                     }
                 }
-                //var match = _finder.FindLongestMatch(input, i);
-                //if (match != null)
-                //{
-                //    var matchCost = _price[i] + _calculator.CalculateMatchLength(match);
-                //    if (matchCost < _price[i + match.Length])
-                //    {
-                //        _price[i + match.Length] = matchCost;
-                //        _len[i + match.Length] = match.Length;
-                //        _dist[i + match.Length] = match.Displacement;
-                //    }
-                //}
             }
         }
 

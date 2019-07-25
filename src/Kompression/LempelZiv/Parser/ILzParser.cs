@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Kompression.LempelZiv.Models;
 
 namespace Kompression.LempelZiv.Parser
 {

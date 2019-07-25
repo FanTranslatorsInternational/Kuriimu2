@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kompression.Exceptions;
-using Kompression.LempelZiv.Models;
 using Kompression.LempelZiv.Parser;
 
 /* The same as LZ40 just with another magic num */

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
-using Kompression.LempelZiv.Models;
 using Kompression.LempelZiv.Parser;
 
 namespace Kompression.LempelZiv
