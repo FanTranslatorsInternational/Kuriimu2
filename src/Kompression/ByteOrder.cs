@@ -1,6 +1,6 @@
 ﻿namespace Kompression
 {
-    enum ByteOrder
+    public enum ByteOrder
     {
         LittleEndian,
         BigEndian

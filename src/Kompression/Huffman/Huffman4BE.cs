@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Kompression.Huffman.Decoders;
+using Kompression.Huffman.Encoders;
 
 namespace Kompression.Huffman
 {
-    public class Huffman4BE:ICompression
+    public class Huffman4Be : BaseHuffman
     {
-        public void Decompress(Stream input, Stream output)
+        protected override int BitDepth => 4;
+        protected override ByteOrder ByteOrder => ByteOrder.LittleEndian;
+
+        protected override IHuffmanEncoder CreateEncoder()
         {
-            throw new NotImplementedException();
+            return new NintendoHuffmanEncoder(BitDepth);
         }
 
-        public void Compress(Stream input, Stream output)
+        protected override IHuffmanDecoder CreateDecoder()
         {
-            throw new NotImplementedException();
+            return new NintendoHuffmanDecoder(BitDepth, ByteOrder);
         }
     }
 }

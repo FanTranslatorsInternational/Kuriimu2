@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Kompression.Exceptions;
 
-namespace Kompression.Huffman
+namespace Kompression.Huffman.Support
 {
     class HuffmanTree
     {

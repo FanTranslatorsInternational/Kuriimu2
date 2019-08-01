@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Kompression.Huffman
+namespace Kompression.Huffman.Support
 {
-    class HuffmanTreeNode
+    public class HuffmanTreeNode
     {
         public int Code { get; set; }
         public int Frequency { get; }
@@ -16,7 +16,10 @@ namespace Kompression.Huffman
             Frequency = frequency;
         }
 
-        public IEnumerable<(int, string)> GetHuffCodes(string seed = "") =>
+        public IEnumerable<(int, string)> GetHuffCodes() =>
+            GetHuffCodes("");
+
+        private IEnumerable<(int, string)> GetHuffCodes(string seed) =>
             Children?.SelectMany((child, i) => child.GetHuffCodes(seed + i)) ?? new[] { (Code, seed) };
     }
 }
