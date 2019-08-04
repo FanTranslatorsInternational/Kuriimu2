@@ -6,7 +6,7 @@ using Kompression.LempelZiv.MatchFinder.Models;
 namespace Kompression.LempelZiv.MatchFinder
 {
     // TODO: Implement using all offsets in tree
-    public class HybridSuffixTreeMatchFinder : ILzMatchFinder
+    public class HybridSuffixTreeMatchFinder : ILongestMatchFinder
     {
         private readonly HybridSuffixTree _tree;
 

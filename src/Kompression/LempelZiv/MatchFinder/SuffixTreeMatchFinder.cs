@@ -4,7 +4,7 @@ using Kompression.LempelZiv.MatchFinder.Models;
 
 namespace Kompression.LempelZiv.MatchFinder
 {
-    public class SuffixTreeMatchFinder : ILzMatchFinder
+    public class SuffixTreeMatchFinder : ILongestMatchFinder, IAllMatchFinder
     {
         private readonly SuffixTree _tree;
 

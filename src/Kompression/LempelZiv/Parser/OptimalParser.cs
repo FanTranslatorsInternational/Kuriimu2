@@ -8,14 +8,14 @@ namespace Kompression.LempelZiv.Parser
 {
     class OptimalParser : ILzParser
     {
-        private readonly ILzMatchFinder _finder;
+        private readonly IAllMatchFinder _finder;
         private readonly IPriceCalculator _calculator;
 
         private int[] _price;
         private int[] _len;
         private long[] _dist;
 
-        public OptimalParser(ILzMatchFinder finder, IPriceCalculator calculator)
+        public OptimalParser(IAllMatchFinder finder, IPriceCalculator calculator)
         {
             _finder = finder;
             _calculator = calculator;

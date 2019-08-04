@@ -6,11 +6,11 @@ namespace Kompression.LempelZiv.Parser
 {
     public class GreedyParser : ILzParser
     {
-        private readonly ILzMatchFinder _finder;
+        private readonly ILongestMatchFinder _finder;
 
         public int SkipAfterMatch { get; }
 
-        public GreedyParser(ILzMatchFinder finder, int skipAfterMatch = 0)
+        public GreedyParser(ILongestMatchFinder finder, int skipAfterMatch = 0)
         {
             _finder = finder;
             SkipAfterMatch = skipAfterMatch;
