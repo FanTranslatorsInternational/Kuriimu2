@@ -7,8 +7,8 @@ namespace Kompression.LempelZiv.Decoders
         public void Decode(Stream input, Stream output)
         {
             var decompressedSize = ReadVlc(input);
-            var unk1 = ReadVlc(input); // filetype maybe???
-            var unk2 = ReadVlc(input); // compression type = 1 (LZSS?)
+            ReadVlc(input); // filetype maybe???
+            ReadVlc(input); // compression type = 1 (LZSS?)
 
             while (output.Position < decompressedSize)
             {
@@ -58,6 +58,11 @@ namespace Kompression.LempelZiv.Decoders
                 output.Position = j;
                 output.WriteByte((byte)copyValue);
             }
+        }
+
+        public void Dispose()
+        {
+            // Nothing to dispose
         }
     }
 }

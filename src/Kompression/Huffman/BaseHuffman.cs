@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Kompression.Huffman.Decoders;
 using Kompression.Huffman.Encoders;
+using Kompression.Huffman.Support;
 
 namespace Kompression.Huffman
 {

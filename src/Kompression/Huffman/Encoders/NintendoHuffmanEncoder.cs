@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kompression.Huffman.Support;
 
 namespace Kompression.Huffman.Encoders
 {

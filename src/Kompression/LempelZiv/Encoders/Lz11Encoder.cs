@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Kompression.LempelZiv.Encoders
 {
-    class Lz11Encoder:ILzEncoder
+    class Lz11Encoder : ILzEncoder
     {
         public void Encode(Stream input, Stream output, LzMatch[] matches)
         {
@@ -32,7 +31,7 @@ namespace Kompression.LempelZiv.Encoders
                     blockBufferLength = 1;
                 }
 
-                if (lzIndex < lzResults.Count && input.Position == lzResults[lzIndex].Position)
+                if (lzIndex < lzResults.Length && input.Position == lzResults[lzIndex].Position)
                 {
                     blockBufferLength = WriteCompressedBlockToBuffer(lzResults[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
                     input.Position += lzResults[lzIndex++].Length;

@@ -17,7 +17,7 @@ namespace Kompression.LempelZiv
         protected override ILzParser CreateParser(int inputLength)
         {
             //return new OptimalParser(new HybridSuffixTreeMatchFinder(4, inputLength), new LzssVlcPriceCalculator());
-            return new GreedyParser(new HybridSuffixTreeMatchFinder(4, inputLength));
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(4, inputLength, inputLength));
         }
 
         protected override ILzDecoder CreateDecoder()
