@@ -9,6 +9,8 @@ namespace Kompression.LempelZiv
 {
     public class LZ40:BaseLz
     {
+        protected override bool IsBackwards => false;
+
         protected override ILzEncoder CreateEncoder()
         {
             return new Lz40Encoder();
@@ -18,7 +20,7 @@ namespace Kompression.LempelZiv
         {
             // TODO: Implement window based parser
             //return new NaiveParser(3, 0x10010F, 0xFFF);
-            return new GreedyParser(new HybridSuffixTreeMatchFinder(0x3, 0x10010F, 0xFFF));
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(0x3, 0x10010F, 0xFFF,1));
         }
 
         protected override ILzDecoder CreateDecoder()

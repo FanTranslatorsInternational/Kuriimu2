@@ -4,20 +4,24 @@ namespace Kompression.LempelZiv.MatchFinder
 {
     public class NeedleHaystackMatchFinder : ILongestMatchFinder
     {
+        private int[] _badCharHeuristic;
+
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
         public int WindowSize { get; }
+        public int MinDisplacement { get; }
 
-        public NeedleHaystackMatchFinder(int minMatchSize, int maxMatchSize, int windowSize)
+        public NeedleHaystackMatchFinder(int minMatchSize, int maxMatchSize, int windowSize, int minDisplacement)
         {
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
             WindowSize = windowSize;
+            MinDisplacement = minDisplacement;
         }
 
         public LzMatch FindLongestMatch(byte[] input, int position)
         {
-            var searchResult = Search(input, position, input.Length, MaxMatchSize);
+            var searchResult = Search(input, position, input.Length);
             if (searchResult.Equals(default))
                 return null;
 
@@ -26,86 +30,103 @@ namespace Kompression.LempelZiv.MatchFinder
 
         public void Dispose()
         {
-            // nothing to dispose
+            Array.Clear(_badCharHeuristic, 0, _badCharHeuristic.Length);
+            _badCharHeuristic = null;
         }
 
         /// <summary>
-        /// 
+        /// Search for a match by the given restrictions in a given set of data.
         /// </summary>
-        /// <param name="data">input data</param>
-        /// <param name="pos">position at which to find match</param>
-        /// <param name="sz">size of input</param>
-        /// <param name="cap">max match length</param>
-        public (int hitp, int hitl) Search(byte[] data, int pos, long sz, int cap)
+        /// <param name="data">Input data.</param>
+        /// <param name="dataPosition">Position at which to find a match.</param>
+        /// <param name="dataSize">Size of input data.</param>
+        private (int hitp, int hitl) Search(byte[] data, int dataPosition, long dataSize)
         {
-            var ml = Math.Min(cap, sz - pos);
-            if (ml < MinMatchSize)
+            var maxLength = Math.Min(MaxMatchSize, dataSize - dataPosition);
+            if (maxLength < MinMatchSize)
                 return default;
 
-            var mp = Math.Max(0, pos - WindowSize);
-            var hitp = 0;
-            var hitl = 3;
+            var maxPosition = Math.Max(0, dataPosition - WindowSize);
 
-            if (mp < pos)
+            var hitPosition = 0;
+            var hitLength = MinMatchSize;
+
+            if (maxPosition < dataPosition)
             {
-                var hl = (int)FirstIndexOfNeedleInHaystack(new Span<byte>(data, mp, pos + hitl - mp), new Span<byte>(data, pos, hitl));
-                while (hl < pos - mp)
+                var needleIndex = 0;
+                while (needleIndex <= dataPosition - maxPosition - MinDisplacement)
                 {
-                    while (hitl < ml && data[pos + hitl] == data[mp + hl + hitl])
-                        hitl++;
+                    // The initial needle has a length of MinMatchSize, since anything below is invalid
+                    needleIndex = (int)FirstIndexOfNeedleInHaystack(
+                        new Span<byte>(data, maxPosition, dataPosition + hitLength - maxPosition),
+                        new Span<byte>(data, dataPosition, hitLength));
 
-                    mp += hl;
-                    hitp = mp;
-                    if (hitl == ml)
-                        return (hitp, hitl);
+                    // Increase hitLength while values are still equal
+                    // We do that to increase the needleLength in future searches to maximize found matches
+                    while (hitLength < maxLength && data[dataPosition + hitLength] == data[maxPosition + needleIndex + hitLength])
+                        hitLength++;
 
-                    mp++;
-                    hitl++;
-                    if (mp >= pos)
+                    maxPosition += needleIndex;
+                    hitPosition = maxPosition;
+
+                    // hitLength is guaranteed to never exceed maxLength
+                    // If we reached maxLength, we can already return
+                    if (hitLength == maxLength)
+                        return (hitPosition, hitLength);
+
+                    maxPosition++;
+                    hitLength++;
+                    if (maxPosition > dataPosition - MinDisplacement)
                         break;
-
-                    hl = (int)FirstIndexOfNeedleInHaystack(new Span<byte>(data, mp, pos + hitl - mp), new Span<byte>(data, pos, hitl));
                 }
             }
 
-            if (hitl < 4)
-                hitl = 1;
+            if (hitLength < 4)
+                hitLength = 1;
 
-            hitl--;
-            return (hitp, hitl);
+            hitLength--;
+            return (hitPosition, hitLength);
         }
 
-        public long FirstIndexOfNeedleInHaystack(Span<byte> haystack, Span<byte> needle)
+        private long FirstIndexOfNeedleInHaystack(Span<byte> haystack, Span<byte> needle)
         {
-            var badChar = CreateBadCharHeuristic(needle, needle.Length);
+            FillBadCharHeuristic(needle, needle.Length);
 
-            var s = 0;
-            while (s <= haystack.Length - needle.Length)
+            var haystackPosition = 0;
+            // Compare needle in haystack until end of needle can't be part of haystack anymore
+            // We want to match the whole needle at best backwards
+            while (haystackPosition <= haystack.Length - needle.Length)
             {
-                var j = needle.Length - 1;
-                while (j >= 0 && needle[j] == haystack[s + j])
-                    j--;
+                // Match needle backwards in the haystack
+                var lengthToMatch = needle.Length - 1;
+                while (lengthToMatch >= 0 && needle[lengthToMatch] == haystack[haystackPosition + lengthToMatch])
+                    lengthToMatch--;
 
-                if (j < 0)
-                    return s;
+                // If whole needle could already be matched
+                // lengthToMatch is always -1 if the needle could be completely matched
+                if (lengthToMatch < 0)
+                    return haystackPosition;
 
-                s += Math.Max(1, j - badChar[haystack[s + j]]);
+                // Else go forward in the haystack and try finding a longer match
+                // Either advance in the haystack by 1 or depending on the rest of the needle needing matching
+                haystackPosition += Math.Max(1, lengthToMatch - _badCharHeuristic[haystack[haystackPosition + lengthToMatch]]);
             }
 
             return -1;
         }
 
-        private int[] CreateBadCharHeuristic(Span<byte> input, int size)
+        private void FillBadCharHeuristic(Span<byte> input, int size)
         {
-            var badChar = new int[256];
+            if (_badCharHeuristic == null)
+                _badCharHeuristic = new int[256];
 
+            // Reset bad char heuristic
             for (var i = 0; i < 256; i++)
-                badChar[i] = -1;
+                _badCharHeuristic[i] = -1;
 
+            // Set highest position of a value in bad char heuristic
             for (var i = 0; i < size; i++)
-                badChar[input[i]] = i;
-
-            return badChar;
+                _badCharHeuristic[input[i]] = i;
         }
     }
 }

@@ -3,11 +3,11 @@ using Kompression.IO;
 
 namespace Kompression.LempelZiv.Decoders
 {
-    public class RevLz77Decoder : ILzDecoder
+    public class BackwardLz77Decoder : ILzDecoder
     {
         private readonly ByteOrder _byteOrder;
 
-        public RevLz77Decoder(ByteOrder byteOrder)
+        public BackwardLz77Decoder(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
         }

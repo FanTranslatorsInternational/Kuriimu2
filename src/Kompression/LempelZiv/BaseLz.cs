@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Kompression.LempelZiv.Decoders;
 using Kompression.LempelZiv.Encoders;
@@ -9,6 +11,7 @@ namespace Kompression.LempelZiv
 {
     public abstract class BaseLz : ICompression
     {
+        protected abstract bool IsBackwards { get; }
         protected abstract ILzEncoder CreateEncoder();
         protected abstract ILzParser CreateParser(int inputLength);
         protected abstract ILzDecoder CreateDecoder();
@@ -27,7 +30,10 @@ namespace Kompression.LempelZiv
             var encoder = CreateEncoder();
             var parser = CreateParser((int)input.Length);
 
-            encoder.Encode(input, output, parser.Parse(ToArray(input)));
+            var inputArray = ToArray(input);
+            if (IsBackwards)
+                Array.Reverse(inputArray);
+            encoder.Encode(input, output, parser.Parse(inputArray));
 
             encoder.Dispose();
             parser.Dispose();

@@ -10,13 +10,15 @@ namespace Kompression.LempelZiv.MatchFinder
 
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
+        public int MinDisplacement { get; }
 
-        public SuffixTreeMatchFinder(int minMatchSize, int maxMatchSize)
+        public SuffixTreeMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement)
         {
             _tree = new SuffixTree();
 
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
+            MinDisplacement = minDisplacement;
         }
 
         /// <summary>
@@ -49,7 +51,7 @@ namespace Kompression.LempelZiv.MatchFinder
                     node = null;
             } while (node != null && length < MaxMatchSize);
 
-            if (displacement > 0 && length >= MinMatchSize)
+            if (displacement >= MinDisplacement && length >= MinMatchSize)
                 return new LzMatch(originalPosition, displacement, Math.Min(Math.Min(length, input.Length - originalPosition), MaxMatchSize));
 
             return null;
@@ -72,7 +74,7 @@ namespace Kompression.LempelZiv.MatchFinder
             {
                 var addMatch = oldStart != node.Start - length;
 
-                if (addMatch && displacement > 0 && length >= MinMatchSize && length < MaxMatchSize)
+                if (addMatch && displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
                     results.Add(new LzMatch(originalPosition, displacement, length));
 
                 displacement = position - node.Start;
@@ -88,7 +90,7 @@ namespace Kompression.LempelZiv.MatchFinder
                     node = null;
             } while (node != null && length < MaxMatchSize);
 
-            if (displacement > 0 && length >= MinMatchSize && length < MaxMatchSize)
+            if (displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
                 results.Add(new LzMatch(originalPosition, displacement, length));
 
             return results.ToArray();

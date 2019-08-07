@@ -9,6 +9,8 @@ namespace Kompression.LempelZiv
 {
     public class LzssVlc : BaseLz
     {
+        protected override bool IsBackwards => false;
+
         protected override ILzEncoder CreateEncoder()
         {
             return new LzssVlcEncoder();
@@ -17,7 +19,7 @@ namespace Kompression.LempelZiv
         protected override ILzParser CreateParser(int inputLength)
         {
             //return new OptimalParser(new HybridSuffixTreeMatchFinder(4, inputLength), new LzssVlcPriceCalculator());
-            return new GreedyParser(new HybridSuffixTreeMatchFinder(4, inputLength, inputLength));
+            return new GreedyParser(new HybridSuffixTreeMatchFinder(4, inputLength, inputLength,1));
         }
 
         protected override ILzDecoder CreateDecoder()

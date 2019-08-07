@@ -7,8 +7,15 @@ using System.Threading.Tasks;
 
 namespace Kompression.LempelZiv.Encoders
 {
-    public class RevLz77Encoder : ILzEncoder
+    public class BackwardLz77Encoder : ILzEncoder
     {
+        private readonly ByteOrder _byteOrder;
+
+        public BackwardLz77Encoder(ByteOrder byteOrder)
+        {
+            _byteOrder = byteOrder;
+        }
+
         public void Encode(Stream input, Stream output, LzMatch[] matches)
         {
             // Matches are backward relative to the end of input
@@ -21,7 +28,7 @@ namespace Kompression.LempelZiv.Encoders
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            // Nothing to dispose
         }
     }
 }
