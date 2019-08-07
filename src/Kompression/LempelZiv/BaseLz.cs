@@ -1,11 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Kompression.LempelZiv.Decoders;
 using Kompression.LempelZiv.Encoders;
 using Kompression.LempelZiv.Parser;
-[assembly: InternalsVisibleTo("KompressionUnitTests")]
 
 namespace Kompression.LempelZiv
 {
@@ -33,7 +30,15 @@ namespace Kompression.LempelZiv
             var inputArray = ToArray(input);
             if (IsBackwards)
                 Array.Reverse(inputArray);
-            encoder.Encode(input, output, parser.Parse(inputArray));
+            var matches = parser.Parse(inputArray);
+            if (IsBackwards)
+            {
+                Array.Reverse(matches);
+                foreach (var match in matches)
+                    match.SetPosition(input.Length - match.Position - 1);
+            }
+
+            encoder.Encode(input, output, matches);
 
             encoder.Dispose();
             parser.Dispose();

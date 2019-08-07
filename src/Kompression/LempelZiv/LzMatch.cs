@@ -2,7 +2,7 @@
 {
     public class LzMatch
     {
-        public long Position { get; }
+        public long Position { get; private set; }
         public long Displacement { get; }
         public int Length { get; }
 
@@ -11,6 +11,11 @@
             Position = position;
             Displacement = displacement;
             Length = length;
+        }
+
+        public void SetPosition(long position)
+        {
+            Position = position;
         }
     }
 }

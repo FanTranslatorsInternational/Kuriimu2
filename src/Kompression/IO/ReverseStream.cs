@@ -6,7 +6,7 @@ namespace Kompression.IO
 {
     public class ReverseStream : Stream
     {
-        private readonly Stream _baseStream;
+        private Stream _baseStream;
 
         public ReverseStream(Stream baseStream)
         {
@@ -50,5 +50,12 @@ namespace Kompression.IO
         }
 
         public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                _baseStream = null;
+            base.Dispose(disposing);
+        }
     }
 }

@@ -79,7 +79,7 @@ namespace Kompression.LempelZiv.Encoders
 
         private void WriteAndResetBuffer(Stream output)
         {
-            // if codeBlock is full, write data to output
+            // Write data to output
             output.WriteByte(_codeBlock);
             output.Write(_buffer, 0, _bufferLength);
 
@@ -119,7 +119,8 @@ namespace Kompression.LempelZiv.Encoders
 
         public void Dispose()
         {
-            // Nothing to dispose
+            Array.Clear(_buffer,0,_buffer.Length);
+            _buffer = null;
         }
     }
 }
