@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kompression.LempelZiv.Encoders
 {
@@ -74,8 +70,28 @@ namespace Kompression.LempelZiv.Encoders
 
         private void WriteFooterInformation(Stream input, Stream output)
         {
-            // TODO: Pad output to 4 bytes and fill the padding with 0xFF
-            // TODO: Write the footer
+            // Remember count of padding bytes
+            var padding = 0;
+            if (output.Position % 4 != 0)
+                padding = (int)(4 - output.Position % 4);
+
+            // Write padding
+            for (var i = 0; i < padding; i++)
+                output.WriteByte(0xFF);
+
+            // Write footer
+            var compressedSize = output.Position + 8;
+            var bufferTopAndBottomInt = ((8 + padding) << 24) | (int)(compressedSize & 0xFFFFFF);
+            var originalBottomInt = (int)(input.Length - compressedSize);
+
+            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian
+                ? GetLittleEndian(bufferTopAndBottomInt)
+                : GetBigEndian(bufferTopAndBottomInt);
+            var originalBottom = _byteOrder == ByteOrder.LittleEndian
+                ? GetLittleEndian(originalBottomInt)
+                : GetBigEndian(originalBottomInt);
+            output.Write(bufferTopAndBottom, 0, 4);
+            output.Write(originalBottom, 0, 4);
         }
 
         private void WriteAndResetBuffer(Stream output)
@@ -89,6 +105,16 @@ namespace Kompression.LempelZiv.Encoders
             _codeBlockPosition = 8;
             Array.Clear(_buffer, 0, _bufferLength);
             _bufferLength = 0;
+        }
+
+        private byte[] GetLittleEndian(int value)
+        {
+            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+        }
+
+        private byte[] GetBigEndian(int value)
+        {
+            return new[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
         }
 
         public void Dispose()
