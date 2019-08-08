@@ -74,12 +74,12 @@ namespace Kompression.LempelZiv.Decoders
 
         private int GetLittleEndian(byte[] data)
         {
-            return data[3] | data[2] | data[1] | data[0];
+            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
         }
 
         private int GetBigEndian(byte[] data)
         {
-            return data[0] | data[1] | data[2] | data[3];
+            return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         public void Dispose()

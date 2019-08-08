@@ -8,6 +8,7 @@ namespace Kompression.LempelZiv
     public class BackwardLz77 : BaseLz
     {
         protected override bool IsBackwards => true;
+
         protected override ILzEncoder CreateEncoder()
         {
             return new BackwardLz77Encoder(ByteOrder.LittleEndian);

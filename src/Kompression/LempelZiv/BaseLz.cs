@@ -8,7 +8,9 @@ namespace Kompression.LempelZiv
 {
     public abstract class BaseLz : ICompression
     {
-        protected abstract bool IsBackwards { get; }
+        protected virtual bool IsBackwards => false;
+        protected virtual int PreBufferLength => 0;
+
         protected abstract ILzEncoder CreateEncoder();
         protected abstract ILzParser CreateParser(int inputLength);
         protected abstract ILzDecoder CreateDecoder();
@@ -27,10 +29,11 @@ namespace Kompression.LempelZiv
             var encoder = CreateEncoder();
             var parser = CreateParser((int)input.Length);
 
+            // Allocate array for input
             var inputArray = ToArray(input);
-            if (IsBackwards)
-                Array.Reverse(inputArray);
-            var matches = parser.Parse(inputArray);
+
+            // Parse matches
+            var matches = parser.Parse(inputArray, PreBufferLength);
             if (IsBackwards)
             {
                 Array.Reverse(matches);
@@ -38,8 +41,10 @@ namespace Kompression.LempelZiv
                     match.SetPosition(input.Length - match.Position - 1);
             }
 
+            // Encode matches and remaining raw data
             encoder.Encode(input, output, matches);
 
+            // Dispose of objects
             encoder.Dispose();
             parser.Dispose();
         }
@@ -47,10 +52,14 @@ namespace Kompression.LempelZiv
         private byte[] ToArray(Stream input)
         {
             var bkPos = input.Position;
-            var inputArray = new byte[input.Length];
-            input.Read(inputArray, 0, inputArray.Length);
-            input.Position = bkPos;
+            var inputArray = new byte[input.Length + PreBufferLength];
+            var offset = IsBackwards ? 0 : PreBufferLength;
 
+            input.Read(inputArray, offset, inputArray.Length-offset);
+            if (IsBackwards)
+                Array.Reverse(inputArray);
+
+            input.Position = bkPos;
             return inputArray;
         }
     }

@@ -9,8 +9,6 @@ namespace Kompression.LempelZiv
 {
     public class LZ40:BaseLz
     {
-        protected override bool IsBackwards => false;
-
         protected override ILzEncoder CreateEncoder()
         {
             return new Lz40Encoder();

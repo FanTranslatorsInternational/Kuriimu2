@@ -8,8 +8,6 @@ namespace Kompression.LempelZiv
 {
     public class Mio0LE : BaseLz
     {
-        protected override bool IsBackwards => false;
-
         protected override ILzEncoder CreateEncoder()
         {
             return new Mio0Encoder(ByteOrder.LittleEndian);

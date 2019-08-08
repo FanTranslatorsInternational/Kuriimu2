@@ -53,13 +53,18 @@ namespace Kompression.LempelZiv.MatchFinder
 
             if (maxPosition < dataPosition)
             {
-                var needleIndex = 0;
+                var needleIndex = -1;
                 while (needleIndex <= dataPosition - maxPosition - MinDisplacement)
                 {
                     // The initial needle has a length of MinMatchSize, since anything below is invalid
-                    needleIndex = (int)FirstIndexOfNeedleInHaystack(
-                        new Span<byte>(data, maxPosition, dataPosition + hitLength - maxPosition),
+                    var firstIndex = (int)FirstIndexOfNeedleInHaystack(new Span<byte>(data, maxPosition, dataPosition + hitLength - maxPosition),
                         new Span<byte>(data, dataPosition, hitLength));
+
+                    if (firstIndex == -1 && needleIndex == -1)
+                        return default;
+                    if (firstIndex == -1 && needleIndex >= 0)
+                        return (hitPosition, hitLength - 1);
+                    needleIndex = firstIndex;
 
                     // Increase hitLength while values are still equal
                     // We do that to increase the needleLength in future searches to maximize found matches
@@ -81,8 +86,8 @@ namespace Kompression.LempelZiv.MatchFinder
                 }
             }
 
-            if (hitLength < 4)
-                hitLength = 1;
+            if (hitLength <= MinMatchSize)
+                return default;
 
             hitLength--;
             return (hitPosition, hitLength);
@@ -95,7 +100,7 @@ namespace Kompression.LempelZiv.MatchFinder
             var haystackPosition = 0;
             // Compare needle in haystack until end of needle can't be part of haystack anymore
             // We want to match the whole needle at best backwards
-            while (haystackPosition <= haystack.Length - needle.Length)
+            while (haystackPosition <= haystack.Length - needle.Length - MinDisplacement)
             {
                 // Match needle backwards in the haystack
                 var lengthToMatch = needle.Length - 1;
