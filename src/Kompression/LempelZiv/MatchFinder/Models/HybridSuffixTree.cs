@@ -36,9 +36,9 @@ namespace Kompression.LempelZiv.MatchFinder.Models
             Marshal.WriteInt32(_leafEnd, -1);
         }
 
-        public int[] GetOffsets(byte value, int position, int windowSize,int minDisplacement)
+        public int[] GetOffsets(byte value, int position, int windowSize, int minDisplacement)
         {
-            return _offsetDictionary[value].Where(x => x-minDisplacement <= position && x >= position - windowSize).ToArray();
+            return _offsetDictionary[value].Where(x => x <= position - minDisplacement && x >= position - windowSize).ToArray();
         }
 
         public void Build(Span<byte> input, int position)

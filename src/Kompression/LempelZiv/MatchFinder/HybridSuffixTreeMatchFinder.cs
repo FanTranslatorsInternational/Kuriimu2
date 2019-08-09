@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Kompression.LempelZiv.MatchFinder.Models;
 
 namespace Kompression.LempelZiv.MatchFinder
@@ -42,7 +43,7 @@ namespace Kompression.LempelZiv.MatchFinder
 
             var node = _tree.Root.Children[input[position]];
             var offsets = _tree.GetOffsets(input[position], position, WindowSize, MinDisplacement);
-            do
+            while (node != null && length < MaxMatchSize && offsets.Length > 0)
             {
                 length += node.CalculateLength();
                 position += node.CalculateLength();
@@ -56,10 +57,10 @@ namespace Kompression.LempelZiv.MatchFinder
 
                 if (node != null)
                     offsets = offsets.Where(x => input[x + length] == input[position]).ToArray();
-            } while (node != null && length < MaxMatchSize);
+            }
 
-            if (length >= MinMatchSize)
-                return new LzMatch(originalPosition, originalPosition - offsets[0], length);
+            if (length >= MinMatchSize && offsets.Length > 0)
+                return new LzMatch(originalPosition, originalPosition - offsets[0], Math.Min(MaxMatchSize, length));
 
             return null;
         }

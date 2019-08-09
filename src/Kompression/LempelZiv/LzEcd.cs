@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.LempelZiv.Decoders;
+﻿using Kompression.LempelZiv.Decoders;
 using Kompression.LempelZiv.Encoders;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
@@ -12,11 +7,11 @@ namespace Kompression.LempelZiv
 {
     public class LzEcd : BaseLz
     {
-        protected override int PreBufferLength => 0x3BE;
+        protected override int PreBufferLength => 0x3BE;    // Taken from reverse engineered code
 
         protected override ILzEncoder CreateEncoder()
         {
-            return new LzEcdEncoder();
+            return new LzEcdEncoder(PreBufferLength);
         }
 
         protected override ILzParser CreateParser(int inputLength)
@@ -26,7 +21,7 @@ namespace Kompression.LempelZiv
 
         protected override ILzDecoder CreateDecoder()
         {
-            return new LzEcdDecoder();
+            return new LzEcdDecoder(PreBufferLength);
         }
     }
 }

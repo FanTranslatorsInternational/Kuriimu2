@@ -9,6 +9,13 @@ namespace Kompression.LempelZiv.Decoders
 {
     class LzEcdDecoder : ILzDecoder
     {
+        private readonly int _preBufferLength;
+
+        public LzEcdDecoder(int preBufferLength)
+        {
+            _preBufferLength = preBufferLength;
+        }
+
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -30,7 +37,7 @@ namespace Kompression.LempelZiv.Decoders
             var uncompressedLength = GetBigEndian(buffer);
 
             var windowBuffer = new byte[0x400];
-            var windowBufferPosition = 0x3BE;   // Taken from reverse engineered code
+            var windowBufferPosition = _preBufferLength;
 
             // Read initial data
             for (var i = 0; i < skipData; i++)
