@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
+using Kompression.IO;
 
 namespace Kompression.LempelZiv.Decoders
 {
@@ -36,7 +37,7 @@ namespace Kompression.LempelZiv.Decoders
 
             var bitLayout = new byte[compressedTableOffset - 0x10];
             input.Read(bitLayout, 0, bitLayout.Length);
-            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MSBFirst))
+            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MSBFirst, 1, ByteOrder.BigEndian))
             {
                 while (output.Length < uncompressedLength)
                 {

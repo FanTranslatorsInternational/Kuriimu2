@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Kompression.IO;
 
 namespace Kompression.LempelZiv.Decoders
 {
@@ -9,7 +10,7 @@ namespace Kompression.LempelZiv.Decoders
             var windowBuffer = new byte[0xFF];
             var windowBufferOffset = 0;
 
-            var bitReader = new BitReader(input, BitOrder.LSBFirst);
+            var bitReader = new BitReader(input, BitOrder.LSBFirst, 1, ByteOrder.BigEndian);
             while (bitReader.Length - bitReader.Position >= 9)
             {
                 if (bitReader.ReadBit() == 0)

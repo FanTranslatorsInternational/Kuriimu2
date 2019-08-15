@@ -1,32 +1,36 @@
 ﻿using System;
 using System.IO;
 
-namespace Kompression
+namespace Kompression.IO
 {
     class BitWriter : IDisposable
     {
         private readonly Stream _baseStream;
+        private readonly ByteOrder _byteOrder;
         private readonly BitOrder _bitOrder;
+        private readonly int _blockSize;
 
-        private byte _buffer;
+        private long _buffer;
         private byte _bufferBitPosition;
 
         public long Position => _baseStream.Position * 8 + _bufferBitPosition;
 
         public long Length => _baseStream.Length * 8 + _bufferBitPosition;
 
-        public BitWriter(Stream baseStream, BitOrder bitOrder)
+        public BitWriter(Stream baseStream, BitOrder bitOrder, int blockSize, ByteOrder byteOrder)
         {
             _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
             _bitOrder = bitOrder;
+            _blockSize = blockSize;
+            _byteOrder = byteOrder;
         }
 
         public void WriteBit(int value)
         {
-            if (_bufferBitPosition >= 8)
+            if (_bufferBitPosition >= _blockSize * 8)
                 WriteBuffer();
 
-            _buffer |= (byte)((value & 0x1) << _bufferBitPosition++);
+            _buffer |= (long)((value & 0x1) << _bufferBitPosition++);
         }
 
         public void WriteByte(int value)
@@ -51,7 +55,13 @@ namespace Kompression
         {
             if (_bitOrder == BitOrder.MSBFirst)
                 _buffer = ReverseBits(_buffer);
-            _baseStream.WriteByte(_buffer);
+
+            for (var i = 0; i < _blockSize; i++)
+                if (_byteOrder == ByteOrder.BigEndian)
+                    _baseStream.WriteByte((byte)(_buffer >> ((_blockSize - 1 - i) * 8)));
+                else
+                    _baseStream.WriteByte((byte)(_buffer >> (i * 8)));
+
             ResetBuffer();
         }
 
@@ -61,11 +71,11 @@ namespace Kompression
             _bufferBitPosition = 0;
         }
 
-        private byte ReverseBits(byte value)
+        private long ReverseBits(long value)
         {
-            byte result = 0;
+            long result = 0;
 
-            for (var i = 0; i < 8; i++)
+            for (var i = 0; i < _blockSize * 8; i++)
             {
                 result <<= 1;
                 result |= (byte)(value & 1);

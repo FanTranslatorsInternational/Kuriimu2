@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Kompression.Huffman.Support;
+using Kompression.IO;
 
 namespace Kompression.Huffman.Encoders
 {
@@ -36,7 +37,7 @@ namespace Kompression.Huffman.Encoders
                 }
 
                 // Write bits to stream
-                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MSBFirst))
+                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MSBFirst,1, ByteOrder.BigEndian))
                 {
                     foreach (var bit in input.SelectMany(b => bitCodes[b]))
                         bitWriter.WriteBit(bit - '0');

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Kompression.LempelZiv.MatchFinder.Models;
 
 namespace Kompression.LempelZiv.MatchFinder
@@ -57,12 +58,18 @@ namespace Kompression.LempelZiv.MatchFinder
             return null;
         }
 
-        public LzMatch[] FindAllMatches(Span<byte> input, int position)
+        public IEnumerable<LzMatch> FindAllMatches(byte[] input, int position, int limit = -1)
+        {
+            var searchResults = FindAllMatchesInternal(input, position);
+            if (limit >= 0)
+                searchResults = searchResults.Take(limit);
+            return searchResults;
+        }
+
+        private IEnumerable<LzMatch> FindAllMatchesInternal(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
-                _tree.Build(input.ToArray(), position);
-
-            var results = new List<LzMatch>();
+                _tree.Build(input, position);
 
             var originalPosition = position;
             var displacement = 0;
@@ -75,7 +82,7 @@ namespace Kompression.LempelZiv.MatchFinder
                 var addMatch = oldStart != node.Start - length;
 
                 if (addMatch && displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
-                    results.Add(new LzMatch(originalPosition, displacement, length));
+                    yield return new LzMatch(originalPosition, displacement, length);
 
                 displacement = position - node.Start;
                 length += node.CalculateLength();
@@ -91,9 +98,7 @@ namespace Kompression.LempelZiv.MatchFinder
             } while (node != null && length < MaxMatchSize);
 
             if (displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
-                results.Add(new LzMatch(originalPosition, displacement, length));
-
-            return results.ToArray();
+                yield return new LzMatch(originalPosition, displacement, length);
         }
 
         #region Dispose

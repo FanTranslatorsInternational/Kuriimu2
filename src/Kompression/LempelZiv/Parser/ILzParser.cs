@@ -5,6 +5,6 @@ namespace Kompression.LempelZiv.Parser
 {
     public interface ILzParser : IDisposable
     {
-        LzMatch[] Parse(Span<byte> input,int startPosition);
+        LzMatch[] Parse(byte[] input,int startPosition);
     }
 }

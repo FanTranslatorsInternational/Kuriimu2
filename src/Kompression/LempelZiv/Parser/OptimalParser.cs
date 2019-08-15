@@ -21,7 +21,7 @@ namespace Kompression.LempelZiv.Parser
             _calculator = calculator;
         }
 
-        public LzMatch[] Parse(Span<byte> input, int startPosition)
+        public LzMatch[] Parse(byte[] input, int startPosition)
         {
             _price = new int[input.Length + 1];
             _len = new int[input.Length + 1];
@@ -36,7 +36,7 @@ namespace Kompression.LempelZiv.Parser
             return BackwardPass(input, startPosition);
         }
 
-        private void ForwardPass(Span<byte> input, int startPosition)
+        private void ForwardPass(byte[] input, int startPosition)
         {
             for (var i = startPosition; i < input.Length; ++i)
             {
@@ -50,7 +50,7 @@ namespace Kompression.LempelZiv.Parser
 
                 // Don't try matches close to end of buffer.
                 if (i + _finder.MinMatchSize >= input.Length)
-                    continue;
+                    break;
 
                 // Get all matches and set prices for each
                 var matches = _finder.FindAllMatches(input, i);

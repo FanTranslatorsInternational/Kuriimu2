@@ -16,15 +16,14 @@ namespace Kompression.LempelZiv.Parser
             SkipAfterMatch = skipAfterMatch;
         }
 
-        public LzMatch[] Parse(Span<byte> input,int startPosition)
+        public LzMatch[] Parse(byte[] input,int startPosition)
         {
             var results = new List<LzMatch>();
-            var inputArray = input.ToArray();
 
             for (var i = startPosition; i < input.Length; i++)
             {
                 // Get longest match at position i
-                var match = _finder.FindLongestMatch(inputArray, i);
+                var match = _finder.FindLongestMatch(input, i);
 
                 if (match == null)
                     continue;

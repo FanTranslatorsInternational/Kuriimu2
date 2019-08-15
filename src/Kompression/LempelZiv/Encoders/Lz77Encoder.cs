@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Kompression.IO;
 
 namespace Kompression.LempelZiv.Encoders
 {
@@ -11,7 +12,7 @@ namespace Kompression.LempelZiv.Encoders
 
         private void WriteCompressedData(Stream input, Stream output, LzMatch[] lzResults)
         {
-            using (var bw = new BitWriter(output, BitOrder.LSBFirst))
+            using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.BigEndian))
             {
                 var lzIndex = 0;
                 while (input.Position < input.Length)

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Kompression.LempelZiv.MatchFinder
 {
     public interface IAllMatchFinder : IMatchFinder, IDisposable
     {
-        LzMatch[] FindAllMatches(Span<byte> input, int position);
+        IEnumerable<LzMatch> FindAllMatches(byte[] input, int position, int limit = -1);
     }
 }
