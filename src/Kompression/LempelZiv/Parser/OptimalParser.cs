@@ -38,6 +38,7 @@ namespace Kompression.LempelZiv.Parser
 
         private void ForwardPass(byte[] input, int startPosition)
         {
+            // TODO: Do threading here
             for (var i = startPosition; i < input.Length; ++i)
             {
                 var literalCost = _price[i] + _calculator.CalculateLiteralLength(input[i]);
@@ -53,6 +54,7 @@ namespace Kompression.LempelZiv.Parser
                     break;
 
                 // Get all matches and set prices for each
+                // TODO: Do threading here
                 var matches = _finder.FindAllMatches(input, i);
                 foreach (var match in matches)
                 {
@@ -81,6 +83,14 @@ namespace Kompression.LempelZiv.Parser
             }
 
             return results.OrderBy(x => x.Position).ToArray();
+        }
+
+        /// <summary>
+        /// Method called in thread to parallel calculate prices in a specific position.
+        /// </summary>
+        private void CalculateMatchPricesOnPosition(byte[] input, int position)
+        {
+
         }
 
         #region Dispose

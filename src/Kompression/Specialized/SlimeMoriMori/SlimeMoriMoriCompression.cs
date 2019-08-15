@@ -1,5 +1,6 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using Kompression.LempelZiv.MatchFinder;
+using Kompression.LempelZiv.Parser;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 using Kompression.Specialized.SlimeMoriMori.Deobfuscators;
 using Kompression.Specialized.SlimeMoriMori.Huffman;
@@ -21,20 +22,27 @@ namespace Kompression.Specialized.SlimeMoriMori
                 var decoder = CreateDecoder(identByte & 0x7, huffmanReader);
                 decoder.Decode(input, output);
 
-                // TODO: Implement deobfuscation
-                //var deobfuscator = CreateDeobfuscator((identByte >> 5) & 0x7);
-                //if (deobfuscator != null)
-                //{
-                //    output.Position = 0;
-                //    deobfuscator.Deobfuscate(output);
-                //}
+                var deobfuscator = CreateDeobfuscator((identByte >> 5) & 0x7);
+                if (deobfuscator != null)
+                {
+                    output.Position = 0;
+                    deobfuscator.Deobfuscate(output);
+                }
             }
         }
 
         public void Compress(Stream input, Stream output)
         {
-            throw new NotImplementedException();
+            // Optimal parse all LZ matches
+            var parser = new OptimalParser(
+                new NeedleHaystackMatchFinder(3, (int)input.Length, (int)input.Length, 1),
+                new SlimePriceCalculator(2));
+
+            var array = ToArray(input);
+            var matches = parser.Parse(array, 0);
         }
+
+        #region Create methods
 
         private ISlimeHuffmanReader CreateHuffmanReader(int huffmanMode)
         {
@@ -66,15 +74,34 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        //private ISlimeDeobfuscator CreateDeobfuscator(int deobfuscateMode)
-        //{
-        //    switch (deobfuscateMode)
-        //    {
-        //        case 1:
-        //            break;
-        //    }
+        private ISlimeDeobfuscator CreateDeobfuscator(int deobfuscateMode)
+        {
+            switch (deobfuscateMode)
+            {
+                case 1:
+                    return new SlimeMode1Deobfuscator();
+                case 2:
+                    return new SlimeMode2Deobfuscator();
+                case 3:
+                    return new SlimeMode3Deobfuscator();
+                case 4:
+                    return new SlimeMode4Deobfuscator();
+            }
 
-        //    return null;
-        //}
+            return null;
+        }
+
+        #endregion
+
+        private byte[] ToArray(Stream input)
+        {
+            var bkPos = input.Position;
+            var inputArray = new byte[input.Length];
+
+            input.Read(inputArray, 0, inputArray.Length);
+
+            input.Position = bkPos;
+            return inputArray;
+        }
     }
 }

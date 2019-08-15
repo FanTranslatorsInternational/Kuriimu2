@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Kompression.LempelZiv;
+using Kompression.Specialized.SlimeMoriMori;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace KompressionUnitTests
@@ -296,15 +297,15 @@ namespace KompressionUnitTests
         }
 
         [TestMethod]
-        public void Stub_LZECD_Compress()
+        public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\test_ecd.bin.decomp";
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new LzEcd().Compress(str, save);
+            new SlimeMoriMoriCompression().Compress(str, save);
             watch.Stop();
 
             save.Close();
