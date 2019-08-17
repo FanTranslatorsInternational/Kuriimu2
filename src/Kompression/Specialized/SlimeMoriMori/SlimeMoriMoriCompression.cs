@@ -7,6 +7,9 @@ using Kompression.Specialized.SlimeMoriMori.Huffman;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
+    /// <summary>
+    /// The <see cref="ICompression"/> for the compression in Slime Mori Mori for the GBA.
+    /// </summary>
     public class SlimeMoriMoriCompression : ICompression
     {
         public void Decompress(Stream input, Stream output)
@@ -34,9 +37,10 @@ namespace Kompression.Specialized.SlimeMoriMori
         public void Compress(Stream input, Stream output)
         {
             // Optimal parse all LZ matches
-            var parser = new OptimalParser(
-                new NeedleHaystackMatchFinder(3, (int)input.Length, (int)input.Length, 1),
-                new SlimePriceCalculator(2));
+            var parser = new PlusOneGreedyParser(new NeedleHaystackMatchFinder(3, (int)input.Length, (int)input.Length, 1));
+            //var parser = new OptimalParser(
+            //    new NeedleHaystackMatchFinder(3, (int)input.Length, (int)input.Length, 1),
+            //    new SlimePriceCalculator(2, 3));
 
             var array = ToArray(input);
             var matches = parser.Parse(array, 0);
@@ -93,6 +97,11 @@ namespace Kompression.Specialized.SlimeMoriMori
 
         #endregion
 
+        /// <summary>
+        /// Converts a stream to an array.
+        /// </summary>
+        /// <param name="input">The input stream.</param>
+        /// <returns>The converted array.</returns>
         private byte[] ToArray(Stream input)
         {
             var bkPos = input.Position;

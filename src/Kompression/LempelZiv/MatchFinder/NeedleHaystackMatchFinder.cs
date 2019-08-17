@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Kompression.LempelZiv.MatchFinder
 {
+    /// <summary>
+    /// Finds pattern matches by utilizing bad char heuristics and backward comparison of a given needle.
+    /// </summary>
     public class NeedleHaystackMatchFinder : ILongestMatchFinder, IAllMatchFinder
     {
         private int[] _badCharHeuristic;
@@ -13,6 +16,13 @@ namespace Kompression.LempelZiv.MatchFinder
         public int WindowSize { get; }
         public int MinDisplacement { get; }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="NeedleHaystackMatchFinder"/>.
+        /// </summary>
+        /// <param name="minMatchSize">The minimum size a match must have.</param>
+        /// <param name="maxMatchSize">The maximum size a match must have.</param>
+        /// <param name="windowSize">The window in which to search for matches.</param>
+        /// <param name="minDisplacement">The minimum displacement to find matches at.</param>
         public NeedleHaystackMatchFinder(int minMatchSize, int maxMatchSize, int windowSize, int minDisplacement)
         {
             MinMatchSize = minMatchSize;
@@ -21,22 +31,25 @@ namespace Kompression.LempelZiv.MatchFinder
             MinDisplacement = minDisplacement;
         }
 
+        /// <inheritdoc cref="FindLongestMatch"/>
         public LzMatch FindLongestMatch(byte[] input, int position)
         {
-            var searchResult = SearchLongest(input, position, input.Length);
+            var searchResult = SearchLongest(input, position);
             if (searchResult.Equals(default))
                 return null;
 
             return new LzMatch(position, position - searchResult.hitp, searchResult.hitl);
         }
+
+        /// <inheritdoc cref="FindAllMatches"/>
         public IEnumerable<LzMatch> FindAllMatches(byte[] input, int position, int limit = -1)
         {
-            var searchResults = SearchAll(input, position, input.Length).Select(x => new LzMatch(position, position - x.hitp, x.hitl));
+            var searchResults = SearchAll(input, position).Select(x => new LzMatch(position, position - x.hitp, x.hitl));
             if (limit >= 0)
                 searchResults = searchResults.Take(limit);
+
             return searchResults;
         }
-
 
         public void Dispose()
         {
@@ -46,9 +59,15 @@ namespace Kompression.LempelZiv.MatchFinder
 
         #region Finding all matches
 
-        private IEnumerable<(int hitp, int hitl)> SearchAll(byte[] data, int dataPosition, long dataSize)
+        /// <summary>
+        /// Searches all matches at a given position.
+        /// </summary>
+        /// <param name="data">The input data.</param>
+        /// <param name="dataPosition">The position to search matches at.</param>
+        /// <returns>All matches at the given position.</returns>
+        private IEnumerable<(int hitp, int hitl)> SearchAll(byte[] data, int dataPosition)
         {
-            var maxLength = (int)Math.Min(MaxMatchSize, dataSize - dataPosition);
+            var maxLength = Math.Min(MaxMatchSize, data.Length - dataPosition);
             if (maxLength < MinMatchSize)
                 yield break;
 
@@ -66,41 +85,50 @@ namespace Kompression.LempelZiv.MatchFinder
                         throw new InvalidOperationException("NeedleIndex can't be beyond dataPosition.");
 
                     var hitLength = MinMatchSize;
+                    yield return (needleIndex, hitLength);
                     while (hitLength < maxLength &&
                            data[dataPosition + hitLength] == data[maxPosition + needleIndex + hitLength])
-                        hitLength++;
-                    yield return (needleIndex, hitLength);
+                        yield return (needleIndex, ++hitLength);
                 }
             }
         }
 
-        private IEnumerable<int> AllIndexesOfNeedleInHaystack(byte[] input, int haystackPosition, int hayStackLength, int needlePosition, int needleLength)
+        /// <summary>
+        /// Finds all indexes a given needle could be at.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="haystackPosition">The position of the haystack.</param>
+        /// <param name="haystackLength">The length of the haystack.</param>
+        /// <param name="needlePosition">The position of the needle.</param>
+        /// <param name="needleLength">The length of the needle.</param>
+        /// <returns>All needle indexes.</returns>
+        private IEnumerable<int> AllIndexesOfNeedleInHaystack(byte[] input, int haystackPosition, int haystackLength, int needlePosition, int needleLength)
         {
-            FillBadCharHeuristic(input, needlePosition, needleLength);
+            InitializeBadCharHeuristic(input, needlePosition, needleLength);
 
-            var haystackPositionCounter = 0;
+            var haystackOffset = 0;
             // Compare needle in haystack until end of needle can't be part of haystack anymore
             // We want to match the whole needle at best backwards
-            while (haystackPositionCounter + haystackPosition < needlePosition && haystackPositionCounter <= hayStackLength - needleLength - MinDisplacement)
+            while (haystackOffset + haystackPosition < needlePosition && haystackOffset <= haystackLength - needleLength - MinDisplacement)
             {
                 // Match needle backwards in the haystack
                 var lengthToMatch = needleLength - 1;
                 while (lengthToMatch >= 0 &&
-                       input[needlePosition + lengthToMatch] == input[haystackPosition + haystackPositionCounter + lengthToMatch])
+                       input[needlePosition + lengthToMatch] == input[haystackPosition + haystackOffset + lengthToMatch])
                     lengthToMatch--;
 
                 // If whole needle could already be matched
                 // lengthToMatch is always -1 if the needle could be completely matched
                 if (lengthToMatch < 0)
                 {
-                    yield return haystackPositionCounter;
-                    haystackPositionCounter++;
+                    yield return haystackOffset;
+                    haystackOffset++;
                     continue;
                 }
 
                 // Else go forward in the haystack and try finding a longer match
                 // Either advance in the haystack by 1 or depending on the rest of the needle needing matching
-                haystackPositionCounter += Math.Max(1, lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackPositionCounter + lengthToMatch]]);
+                haystackOffset += Math.Max(1, lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]]);
             }
         }
 
@@ -109,14 +137,13 @@ namespace Kompression.LempelZiv.MatchFinder
         #region Finding longest match
 
         /// <summary>
-        /// SearchLongest for a match by the given restrictions in a given set of data.
+        /// Searches for the longest match at a given position.
         /// </summary>
-        /// <param name="data">Input data.</param>
-        /// <param name="dataPosition">Position at which to find a match.</param>
-        /// <param name="dataSize">Size of input data.</param>
-        private (int hitp, int hitl) SearchLongest(byte[] data, int dataPosition, long dataSize)
+        /// <param name="data">The input data.</param>
+        /// <param name="dataPosition">The position to find the match at.</param>
+        private (int hitp, int hitl) SearchLongest(byte[] data, int dataPosition)
         {
-            var maxLength = Math.Min(MaxMatchSize, dataSize - dataPosition);
+            var maxLength = Math.Min(MaxMatchSize, data.Length - dataPosition);
             if (maxLength < MinMatchSize)
                 return default;
 
@@ -168,28 +195,37 @@ namespace Kompression.LempelZiv.MatchFinder
             return (hitPosition, hitLength);
         }
 
+        /// <summary>
+        /// Finds all indexes a given needle could be at.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="haystackPosition">The position of the haystack.</param>
+        /// <param name="haystackLength">The length of the haystack.</param>
+        /// <param name="needlePosition">The position of the needle.</param>
+        /// <param name="needleLength">The length of the needle.</param>
+        /// <returns>The needle index of the longest match.</returns>
         private long FirstIndexOfNeedleInHaystack(byte[] input, int haystackPosition, int haystackLength, int needlePosition, int needleLength)
         {
-            FillBadCharHeuristic(input, needlePosition, needleLength);
+            InitializeBadCharHeuristic(input, needlePosition, needleLength);
 
-            var haystackPositionCounter = 0;
+            var haystackOffset = 0;
             // Compare needle in haystack until end of needle can't be part of haystack anymore
             // We want to match the whole needle at best backwards
-            while (haystackPositionCounter + haystackPosition < needlePosition && haystackPositionCounter <= haystackLength - needleLength - MinDisplacement)
+            while (haystackOffset + haystackPosition < needlePosition && haystackOffset <= haystackLength - needleLength - MinDisplacement)
             {
                 // Match needle backwards in the haystack
                 var lengthToMatch = needleLength - 1;
-                while (lengthToMatch >= 0 && input[needlePosition + lengthToMatch] == input[haystackPosition + haystackPositionCounter + lengthToMatch])
+                while (lengthToMatch >= 0 && input[needlePosition + lengthToMatch] == input[haystackPosition + haystackOffset + lengthToMatch])
                     lengthToMatch--;
 
                 // If whole needle could already be matched
                 // lengthToMatch is always -1 if the needle could be completely matched
                 if (lengthToMatch < 0)
-                    return haystackPositionCounter;
+                    return haystackOffset;
 
                 // Else go forward in the haystack and try finding a longer match
                 // Either advance in the haystack by 1 or depending on the rest of the needle needing matching
-                haystackPositionCounter += Math.Max(1, lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackPositionCounter + lengthToMatch]]);
+                haystackOffset += Math.Max(1, lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]]);
             }
 
             return -1;
@@ -197,7 +233,13 @@ namespace Kompression.LempelZiv.MatchFinder
 
         #endregion
 
-        private void FillBadCharHeuristic(byte[] input, int position, int size)
+        /// <summary>
+        /// Initializes the bad char heuristic table.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="position">The position the needle starts at.</param>
+        /// <param name="size">The size the needle has.</param>
+        private void InitializeBadCharHeuristic(byte[] input, int position, int size)
         {
             if (_badCharHeuristic == null)
                 _badCharHeuristic = new int[256];

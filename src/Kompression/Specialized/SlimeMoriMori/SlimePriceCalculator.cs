@@ -1,23 +1,34 @@
 ﻿using System;
 using Kompression.LempelZiv;
 using Kompression.LempelZiv.PriceCalculators;
+using Kompression.Specialized.SlimeMoriMori.Decoders;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
     class SlimePriceCalculator : IPriceCalculator
     {
         private readonly int _compressionMode;
+        private readonly int _huffmanMode;
 
-        public SlimePriceCalculator(int compressionMode)
+        public SlimePriceCalculator(int compressionMode,int huffmanMode)
         {
             _compressionMode = compressionMode;
+            _huffmanMode = huffmanMode;
         }
 
         public int CalculateLiteralLength(byte value)
         {
             // 1 flag bit
             // 6 bit value (huffman approximation)
-            return 6 + 1;
+            switch (_huffmanMode)
+            {
+                case 1:
+                    return 4;
+                case 2:
+                    return 7;
+                default:
+                    return 9;
+            }
         }
 
         public int CalculateMatchLength(LzMatch match)
@@ -25,7 +36,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             switch (_compressionMode)
             {
                 case 2:
-                    if (match.Length > 15 + 3)
+                    if (match.Length > 18)
                     {
                         // variable length encoded match length
                         // an LZ match always encodes at least 4 bits outside the vle value
@@ -45,7 +56,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // n bits vle match length
                         // 1 flag bit
                         // 3 displacement index bits
-                        // approximate 3 bits for displacement
+                        // plain displacement (we don't approximate or calculate anything, we just roll with lower displacement equals better match)
                         return 1 + 3 + result + 1 + 3 + 3;
                     }
                     else
@@ -53,7 +64,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // 1 flag bit
                         // 3 displacement index bits
                         // 4 match length bits
-                        // approximate 3 bits for displacement
+                        // plain displacement (we don't approximate or calculate anything, we just roll with lower displacement equals better match)
                         return 1 + 3 + 4 + 3;
                     }
                 default:
