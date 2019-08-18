@@ -1,22 +1,20 @@
-﻿using System.IO;
-
-namespace Kompression.Specialized.SlimeMoriMori.Obfuscators
+﻿namespace Kompression.Specialized.SlimeMoriMori.Obfuscators
 {
-    class SlimeMode3Obfuscator:ISlimeObfuscator
+    class SlimeMode3Obfuscator : ISlimeObfuscator
     {
-        public void Obfuscate(Stream input)
+        public void Obfuscate(byte[] input)
         {
+            var position = 0;
             var seed = 0;
-            while (input.Position < input.Length)
+            while (position < input.Length)
             {
-                var short1 = (input.ReadByte() << 8) | input.ReadByte();
+                var short1 = (input[position] << 8) | input[position + 1];
 
                 var short1New = short1 - seed;
                 seed = short1;
 
-                input.Position -= 2;
-                input.WriteByte((byte)(short1New >> 8));
-                input.WriteByte((byte)short1New);
+                input[position++] = (byte)(short1New >> 8);
+                input[position++] = (byte)short1New;
             }
         }
     }

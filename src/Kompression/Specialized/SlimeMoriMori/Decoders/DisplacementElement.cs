@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kompression.Specialized.SlimeMoriMori.Decoders
+﻿namespace Kompression.Specialized.SlimeMoriMori.Decoders
 {
     class DisplacementElement
     {
-        public byte ReadBits { get; }
-        public short DisplacementStart { get; }
+        public int ReadBits { get; }
+        public int DisplacementStart { get; }
 
-        public DisplacementElement(byte readBits, short dispalcementStart)
+        public DisplacementElement(int readBits, int dispalcementStart)
         {
             ReadBits = readBits;
             DisplacementStart = dispalcementStart;

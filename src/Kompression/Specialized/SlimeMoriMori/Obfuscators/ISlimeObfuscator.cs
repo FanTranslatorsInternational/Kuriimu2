@@ -1,9 +1,7 @@
-﻿using System.IO;
-
-namespace Kompression.Specialized.SlimeMoriMori.Obfuscators
+﻿namespace Kompression.Specialized.SlimeMoriMori.Obfuscators
 {
     interface ISlimeObfuscator
     {
-        void Obfuscate(Stream input);
+        void Obfuscate(byte[] input);
     }
 }

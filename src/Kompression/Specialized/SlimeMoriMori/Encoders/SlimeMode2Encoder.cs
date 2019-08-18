@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Kompression.IO;
 using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
 {
-    class SlimeMode2Encoder : ISlimeEncoder
+    class SlimeMode2Encoder : SlimeEncoder
     {
         private IValueWriter _valueWriter;
 
@@ -18,9 +15,11 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, LzMatch[] matches)
         {
-
+            CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 7);
+            WriteDisplacementTable(bw);
+            ;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Kompression.Huffman.Support;
+using Kompression.IO;
 using Kompression.LempelZiv;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
@@ -68,25 +69,43 @@ namespace Kompression.Specialized.SlimeMoriMori
 
             var inputArray = ToArray(input);
 
-            // Find all Lz matches
-            var matches = FindMatches(inputArray);
-
-            // Create huffman tree and value writer
-            var tree = CreateHuffmanTree(inputArray, _huffmanMode);
-            var valueWriter = CreateValueWriter(_huffmanMode, tree);
-
-            // TODO: Write the huffman tree
-
-            // Encode the input data
-            var encoder = CreateEncoder(_compressionMode, valueWriter);
-            encoder.Encode(input, output, matches);
-
             // Obfuscate the data
             var obfuscator = CreateObfuscator(_obfuscationMode);
             if (obfuscator != null)
             {
                 output.Position = 0;
-                obfuscator.Obfuscate(output);
+                obfuscator.Obfuscate(inputArray);
+                output.Position = 0;
+            }
+
+            // Find all Lz matches
+            var matches = FindMatches(inputArray);
+
+            // Create huffman tree and value writer based on match filtered values
+            var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
+            var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
+            var valueWriter = CreateValueWriter(_huffmanMode, tree);
+
+            using (var bw = new BitWriter(output, BitOrder.MSBFirst, 4, ByteOrder.LittleEndian))
+            {
+                // Write header data
+                bw.WriteBits((int)input.Length, 0x18);
+                bw.WriteByte(0x70);
+
+                var identByte = _compressionMode & 0x7;
+                identByte |= (_huffmanMode & 0x3) << 3;
+                identByte |= (_obfuscationMode & 0x7) << 5;
+                bw.WriteByte(identByte);
+
+                // Write huffman tree
+                WriteHuffmanTree(bw, tree, _huffmanMode);
+
+                // Encode the input data
+                var encoder = CreateEncoder(_compressionMode, valueWriter);
+                encoder.Encode(input, bw, matches);
+
+                // Flush the buffer
+                bw.Flush();
             }
         }
 
@@ -98,6 +117,64 @@ namespace Kompression.Specialized.SlimeMoriMori
                 new SlimePriceCalculator(_compressionMode, _huffmanMode));
 
             return parser.Parse(input, 0);
+        }
+
+        private void WriteHuffmanTree(BitWriter bw, HuffmanTreeNode rootNode, int huffmanMode)
+        {
+            int bitDepth;
+            switch (huffmanMode)
+            {
+                case 1:
+                    bitDepth = 4;
+                    break;
+                case 2:
+                    bitDepth = 8;
+                    break;
+                default:
+                    return;
+            }
+
+            IList<HuffmanTreeNode> depthList = rootNode.Children;
+            for (var i = 0; i < 16; i++)
+            {
+                var valuesWithBitCount = depthList.Count(x => x.IsLeaf);
+                bw.WriteByte(valuesWithBitCount);
+
+                if (valuesWithBitCount == 0)
+                {
+                    depthList = depthList.SelectMany(x => x.Children).ToList();
+                }
+                else
+                {
+                    foreach (var value in depthList.Where(x => x.IsLeaf).Select(x => x.Code))
+                    {
+                        bw.WriteBits(value, bitDepth);
+                    }
+
+                    depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToList();
+                }
+            }
+        }
+
+        private byte[] RemoveMatchesFromInput(byte[] input, LzMatch[] matches)
+        {
+            var huffmanInput = new byte[input.Length - matches.Sum(x => x.Length)];
+
+            var huffmanInputPosition = 0;
+            var inputArrayPosition = 0;
+            foreach (var match in matches)
+            {
+                for (var i = inputArrayPosition; i < match.Position; i++)
+                    huffmanInput[huffmanInputPosition++] = input[i];
+
+                inputArrayPosition += (int)match.Position - inputArrayPosition;
+                inputArrayPosition += match.Length;
+            }
+
+            for (var i = inputArrayPosition; i < input.Length; i++)
+                huffmanInput[huffmanInputPosition++] = input[i];
+
+            return huffmanInput;
         }
 
         #region Create methods
