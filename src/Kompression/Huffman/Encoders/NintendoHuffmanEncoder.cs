@@ -15,8 +15,11 @@ namespace Kompression.Huffman.Encoders
             _bitDepth = bitDepth;
         }
 
-        public void Encode(byte[] input, List<HuffmanTreeNode> labelList, Stream output)
+        public void Encode(byte[] input, HuffmanTreeNode rootNode, Stream output)
         {
+            // For a more even distribution of the children over the branches, we'll label the tree nodes
+            var labelList = LabelTreeNodes(rootNode);
+
             // Create huffman bit codes
             var bitCodes = labelList[0].GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
@@ -44,6 +47,36 @@ namespace Kompression.Huffman.Encoders
                     bitWriter.Flush();
                 }
             }
+        }
+
+        private List<HuffmanTreeNode> LabelTreeNodes(HuffmanTreeNode rootNode)
+        {
+            var labelList = new List<HuffmanTreeNode>();
+            var frequencies = new List<HuffmanTreeNode> { rootNode };
+
+            while (frequencies.Any())
+            {
+                // Assign a score to each frequency node in the root
+                var scores = frequencies.Select((freq, i) => new { Node = freq, Score = freq.Code - i });
+
+                // Get node with lowest score
+                var node = scores.OrderBy(freq => freq.Score).First().Node;
+
+                // Remove that node from the tree root
+                frequencies.Remove(node);
+
+                // TODO: Understand what this portion does
+                node.Code = labelList.Count - node.Code;
+                labelList.Add(node);
+                // Loop through all children that aren't leaves
+                foreach (var child in node.Children.Reverse().Where(child => !child.IsLeaf))
+                {
+                    child.Code = labelList.Count;
+                    frequencies.Add(child);
+                }
+            }
+
+            return labelList;
         }
 
         public void Dispose()

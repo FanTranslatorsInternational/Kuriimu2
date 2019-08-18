@@ -27,10 +27,10 @@ namespace Kompression.Huffman
             var inputArray = ToArray(input);
 
             var tree = new HuffmanTree(BitDepth, ByteOrder);
-            var labelList = tree.Build(inputArray);
+            var rootNode = tree.Build(inputArray);
 
             var encoder = CreateEncoder();
-            encoder.Encode(inputArray, labelList, output);
+            encoder.Encode(inputArray, rootNode, output);
             encoder.Dispose();
         }
 

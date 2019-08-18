@@ -8,9 +8,9 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
     {
         private DisplacementElement[] _displacementTable;
 
-        protected readonly ISlimeHuffmanReader HuffmanReader;
+        protected readonly IValueReader HuffmanReader;
 
-        protected SlimeDecoder(ISlimeHuffmanReader huffmanReader)
+        protected SlimeDecoder(IValueReader huffmanReader)
         {
             HuffmanReader = huffmanReader;
         }

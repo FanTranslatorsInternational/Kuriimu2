@@ -6,7 +6,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
 {
     class SlimeMode2Decoder : SlimeDecoder
     {
-        public SlimeMode2Decoder(ISlimeHuffmanReader huffmanReader) : base(huffmanReader)
+        public SlimeMode2Decoder(IValueReader huffmanReader) : base(huffmanReader)
         {
         }
 

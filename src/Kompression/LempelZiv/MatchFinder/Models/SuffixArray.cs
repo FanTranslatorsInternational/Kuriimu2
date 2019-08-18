@@ -28,7 +28,7 @@ namespace Kompression.LempelZiv.MatchFinder.Models
                 indexLeft[i] = -1;
 
             Build(new ByteArray(inputArray, 0), inputArray.Length, suffixes, 0, 256);
-            // Build left indexes
+            // Read left indexes
             indexLeft[inputArray[suffixes[0]]] = 0;
             byte lastValue = inputArray[suffixes[0]];
             for (int i = 1; i < suffixes.Length; i++)
@@ -52,7 +52,7 @@ namespace Kompression.LempelZiv.MatchFinder.Models
                 indexLeft[i] = -1;
 
             Build(new ByteArray(inputArray, 0), inputSize, suffixes, 0, 256);
-            // Build left indexes
+            // Read left indexes
             indexLeft[inputArray[suffixes[0]]] = 0;
             byte lastValue = inputArray[suffixes[0]];
             for (int i = 1; i < suffixes.Length; i++)

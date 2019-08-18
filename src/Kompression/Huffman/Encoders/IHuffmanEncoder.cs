@@ -7,6 +7,6 @@ namespace Kompression.Huffman.Encoders
 {
     public interface IHuffmanEncoder : IDisposable
     {
-        void Encode(byte[] input, List<HuffmanTreeNode> labelList, Stream output);
+        void Encode(byte[] input, HuffmanTreeNode rootNode, Stream output);
     }
 }

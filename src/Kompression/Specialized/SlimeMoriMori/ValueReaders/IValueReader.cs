@@ -7,7 +7,7 @@ using Kompression.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori.Huffman
 {
-    interface ISlimeHuffmanReader
+    interface IValueReader : IDisposable
     {
         void BuildTree(BitReader br);
 

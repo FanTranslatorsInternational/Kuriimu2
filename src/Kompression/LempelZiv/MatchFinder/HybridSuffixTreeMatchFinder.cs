@@ -71,7 +71,7 @@ namespace Kompression.LempelZiv.MatchFinder
         //    throw new NotImplementedException();
 
         //    if (!_tree.IsBuilt)
-        //        _tree.Build(input.ToArray(), position);
+        //        _tree.Read(input.ToArray(), position);
 
         //    var results = new List<LzMatch>();
 

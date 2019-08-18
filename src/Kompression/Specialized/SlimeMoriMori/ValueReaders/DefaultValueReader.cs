@@ -2,19 +2,21 @@
 
 namespace Kompression.Specialized.SlimeMoriMori.Huffman
 {
-    class SlimeHuffman8Reader : ISlimeHuffmanReader
+    class DefaultValueReader : IValueReader
     {
-        private HuffmanTree _tree;
-
         public void BuildTree(BitReader br)
         {
-            _tree = new HuffmanTree(8);
-            _tree.Build(br);
+            // We don't have a tree here
         }
 
         public byte ReadValue(BitReader br)
         {
-            return _tree.GetValue(br);
+            return br.ReadBits<byte>(8);
+        }
+
+        public void Dispose()
+        {
+            // Nothing to dispose
         }
     }
 }

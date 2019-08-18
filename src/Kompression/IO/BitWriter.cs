@@ -45,6 +45,12 @@ namespace Kompression.IO
                 WriteBit((value >> (31 - i)) & 0x1);
         }
 
+        public void WriteBits(int value, int count)
+        {
+            for (var i = 0; i < count; i++)
+                WriteBit(value >> (count - 1 - i));
+        }
+
         public void Flush()
         {
             if (_bufferBitPosition > 0)

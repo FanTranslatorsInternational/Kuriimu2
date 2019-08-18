@@ -33,7 +33,7 @@ namespace Kompression.Huffman.Support
             _byteOrder = byteOrder;
         }
 
-        public List<HuffmanTreeNode> Build(byte[] input)
+        public HuffmanTreeNode Build(byte[] input)
         {
             // Get value frequencies of input
             var frequencies = GetFrequencies(input, _bitDepth, _byteOrder).ToList();
@@ -44,12 +44,9 @@ namespace Kompression.Huffman.Support
                 frequencies.Add(new HuffmanTreeNode(0) { Code = input[0] + 1 });
 
             // Create and sort the tree of frequencies
-            frequencies = CreateAndSortTree(frequencies);
+            var rootNode = CreateAndSortTree(frequencies);
 
-            // For a more even distribution of the children over the branches, we'll label the tree nodes
-            var labelList = LabelTreeNodes(frequencies);
-
-            return labelList;
+            return rootNode;
         }
 
         private static bool IsPowerOf2(int value)
@@ -77,7 +74,7 @@ namespace Kompression.Huffman.Support
             return groupedElements.Select(group => new HuffmanTreeNode(group.Count()) { Code = group.Key });
         }
 
-        private static List<HuffmanTreeNode> CreateAndSortTree(List<HuffmanTreeNode> frequencies)
+        private static HuffmanTreeNode CreateAndSortTree(List<HuffmanTreeNode> frequencies)
         {
             //Sort and create the tree
             while (frequencies.Count > 1)
@@ -95,7 +92,7 @@ namespace Kompression.Huffman.Support
                 frequencies = frequencies.Skip(2).Concat(new[] { leastFrequencyNode }).ToList();
 
                 // This ultimately results in a tree like structure where the most frequent elements are closer to the root;
-                // while less frequent elements are closer to the leafs
+                // while less frequent elements are farther from the root
 
                 // Example:
                 // (F:4)
@@ -105,36 +102,7 @@ namespace Kompression.Huffman.Support
                 //   (F:1)
             }
 
-            return frequencies;
-        }
-
-        private static List<HuffmanTreeNode> LabelTreeNodes(List<HuffmanTreeNode> frequencies)
-        {
-            var labelList = new List<HuffmanTreeNode>();
-
-            while (frequencies.Any())
-            {
-                // Assign a score to each frequency node in the root
-                var scores = frequencies.Select((freq, i) => new { Node = freq, Score = freq.Code - i });
-
-                // Get node with lowest score
-                var node = scores.OrderBy(freq => freq.Score).First().Node;
-
-                // Remove that node from the tree root
-                frequencies.Remove(node);
-
-                // TODO: Understand what this portion does
-                node.Code = labelList.Count - node.Code;
-                labelList.Add(node);
-                // Loop through all children that aren't leaves
-                foreach (var child in node.Children.Reverse().Where(child => !child.IsLeaf))
-                {
-                    child.Code = labelList.Count;
-                    frequencies.Add(child);
-                }
-            }
-
-            return labelList;
+            return frequencies.First();
         }
     }
 }
