@@ -5,10 +5,10 @@
         public int ReadBits { get; }
         public int DisplacementStart { get; }
 
-        public DisplacementElement(int readBits, int dispalcementStart)
+        public DisplacementElement(int readBits, int displacementStart)
         {
             ReadBits = readBits;
-            DisplacementStart = dispalcementStart;
+            DisplacementStart = displacementStart;
         }
     }
 }
