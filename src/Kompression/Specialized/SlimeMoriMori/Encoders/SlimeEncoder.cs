@@ -83,7 +83,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 throw new InvalidOperationException("Displacement table has to be initialized.");
 
             foreach (var entry in _displacementTable)
-                bw.WriteBits(entry.ReadBits, 4);
+                bw.WriteBits(entry.ReadBits - 1, 4);
         }
 
         protected int GetDisplacementIndex(long displacement)
@@ -96,6 +96,11 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                     break;
 
             return index;
+        }
+
+        protected DisplacementElement GetDisplacementEntry(int dispIndex)
+        {
+            return _displacementTable[dispIndex];
         }
     }
 }

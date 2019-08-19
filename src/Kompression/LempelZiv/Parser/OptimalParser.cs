@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser.Models;
 using Kompression.LempelZiv.PriceCalculators;
@@ -70,12 +69,31 @@ namespace Kompression.LempelZiv.Parser
                 foreach (var match in matches)
                 {
                     var matchCost = _priceHistory[i].Price + _calculator.CalculateMatchLength(match);
-                    if (_priceHistory[i + match.Length].Price < 0 || matchCost < _priceHistory[i + match.Length].Price)
+                    var priceEntry = _priceHistory[i + match.Length];
+                    if (priceEntry.Price < 0 || matchCost < priceEntry.Price)
                     {
-                        _priceHistory[i + match.Length].Price = matchCost;
-                        _priceHistory[i + match.Length].Displacement = match.Displacement;
-                        _priceHistory[i + match.Length].Length = match.Length;
+                        priceEntry.Price = matchCost;
+                        priceEntry.Displacement = match.Displacement;
+                        priceEntry.Length = match.Length;
                     }
+                    else if (matchCost == priceEntry.Price)
+                    {
+                        if (priceEntry.Length == match.Length)
+                            priceEntry.Displacement = Math.Min(priceEntry.Displacement, match.Displacement);
+                        else
+                        {
+                            if (match.Length > priceEntry.Length)
+                            {
+                                priceEntry.Length = match.Length;
+                                priceEntry.Displacement = match.Displacement;
+                            }
+                        }
+                    }
+                    //else if (matchCost == priceEntry.Price &&
+                    //         match.Length == priceEntry.Length)
+                    //{
+                    //    priceEntry.Displacement = Math.Min(priceEntry.Displacement, match.Displacement);
+                    //}
                 }
             }
         }
