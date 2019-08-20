@@ -1,6 +1,6 @@
 ﻿using Kompression.IO;
 
-namespace Kompression.Specialized.SlimeMoriMori.Huffman
+namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {
     class DefaultValueReader : IValueReader
     {

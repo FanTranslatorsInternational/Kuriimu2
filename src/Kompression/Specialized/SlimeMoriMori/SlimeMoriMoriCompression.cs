@@ -10,8 +10,8 @@ using Kompression.LempelZiv.Parser;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 using Kompression.Specialized.SlimeMoriMori.Deobfuscators;
 using Kompression.Specialized.SlimeMoriMori.Encoders;
-using Kompression.Specialized.SlimeMoriMori.Huffman;
 using Kompression.Specialized.SlimeMoriMori.Obfuscators;
+using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori
@@ -140,19 +140,11 @@ namespace Kompression.Specialized.SlimeMoriMori
                 var valuesWithBitCount = depthList.Count(x => x.IsLeaf);
                 bw.WriteByte(valuesWithBitCount);
 
-                if (valuesWithBitCount == 0)
+                foreach (var value in depthList.Where(x => x.IsLeaf).Select(x => x.Code))
                 {
-                    depthList = depthList.SelectMany(x => x.Children).ToList();
+                    bw.WriteBits(value, bitDepth);
                 }
-                else
-                {
-                    foreach (var value in depthList.Where(x => x.IsLeaf).Select(x => x.Code))
-                    {
-                        bw.WriteBits(value, bitDepth);
-                    }
-
-                    depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToList();
-                }
+                depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToList();
             }
         }
 

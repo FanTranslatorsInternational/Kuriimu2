@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Kompression.IO;
-using Kompression.Specialized.SlimeMoriMori.Huffman;
+using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 
 namespace Kompression.Specialized.SlimeMoriMori.Decoders
 {

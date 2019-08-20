@@ -1,4 +1,4 @@
-﻿namespace Kompression.Specialized.SlimeMoriMori.Huffman
+﻿namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {
     class TreeNode
     {

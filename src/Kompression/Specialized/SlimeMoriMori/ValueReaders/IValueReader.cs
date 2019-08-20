@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Kompression.IO;
 
-namespace Kompression.Specialized.SlimeMoriMori.Huffman
+namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {
     interface IValueReader : IDisposable
     {

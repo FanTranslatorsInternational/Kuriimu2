@@ -43,9 +43,8 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 // Write raw data with length pre written
                 bw.WriteBit(1);
                 bw.WriteBits(0x7, 3);
-                bw.WriteBit(0);
-
                 WriteVleValue(bw, (int)rawLength - 1, vleBits);
+                bw.WriteBit(0);
 
                 for (var i = 0; i < rawLength; i++)
                     _valueWriter.WriteValue(bw, (byte)input.ReadByte());
@@ -83,18 +82,17 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 bw.WriteBit(1);
                 bw.WriteBits(dispIndex, 3);
                 bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits(match.Length & 0xF, 4);
+                bw.WriteBits((match.Length - 3) & 0xF, 4);
             }
         }
 
         private int GetVleBitCount(int value)
         {
-            var vleLength = value;
             var vleBits = 0;
-            while (vleLength > 0)
+            while (value > 0)
             {
                 vleBits += 4;
-                vleLength >>= 3;
+                value >>= 3;
             }
 
             return vleBits;
@@ -102,6 +100,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
         private void WriteVleValue(BitWriter bw, int value, int vleBits)
         {
+            // TODO: Fix vle writing
             var valueBits = vleBits / 4 * 3;
             while (valueBits > 0)
             {

@@ -1,6 +1,6 @@
 ﻿using Kompression.IO;
 
-namespace Kompression.Specialized.SlimeMoriMori.Huffman
+namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {
     class HuffmanReader : IValueReader
     {
@@ -24,7 +24,8 @@ namespace Kompression.Specialized.SlimeMoriMori.Huffman
             for (var i = 0; i < 16; i++)
             {
                 treePath <<= 1;
-                for (var j = 0; j < br.ReadBits<int>(8); j++)
+                var huffmanValueCount = br.ReadBits<int>(8);
+                for (var j = 0; j < huffmanValueCount; j++)
                 {
                     // Traverse tree to hit value node
                     var node = Root;
@@ -38,7 +39,6 @@ namespace Kompression.Specialized.SlimeMoriMori.Huffman
                         if (node.Children[childIndex] == null)
                         {
                             node.Children[childIndex] = new TreeNode();
-                            node = node.Children[childIndex];
                             //tableIndex = tableIndex2 + 4;
 
                             //// Reference to another node
@@ -46,12 +46,15 @@ namespace Kompression.Specialized.SlimeMoriMori.Huffman
                             //_table[newTableIndex + 1] = (byte)(tableIndex >> 8);
                             //tableIndex2 = tableIndex;
                         }
+                        node = node.Children[childIndex];
                     }
 
-                    var value = br.ReadBits<byte>(_bitDepth);
-
                     // Set value in tree
-                    node.Children[treePath & 0x1].Value = value;
+                    var value = br.ReadBits<int>(_bitDepth);
+                    node.Children[treePath & 0x1] = new TreeNode
+                    {
+                        Value = value
+                    };
                     //_table[(treePath & 0x1) * 2 + tableIndex] = (byte)~value;
                     //_table[(treePath & 0x1) * 2 + tableIndex + 1] = (byte)(~value >> 8);
 

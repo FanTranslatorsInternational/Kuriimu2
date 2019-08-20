@@ -312,6 +312,21 @@ namespace KompressionUnitTests
         }
 
         [TestMethod]
+        public void Stub_Slime_Decompress()
+        {
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp.comp";
+            var str = File.OpenRead(file);
+            var save = File.Create(file + ".decomp");
+
+            var watch = new Stopwatch();
+            watch.Start();
+            new SlimeMoriMoriCompression(2, 2).Decompress(str, save);
+            watch.Stop();
+
+            save.Close();
+        }
+
+        [TestMethod]
         public void Stub_LZECD_Decompress()
         {
             var file = @"D:\Users\Kirito\Desktop\test_ecd.bin";
