@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using Kompression.IO;
 using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 
@@ -52,6 +53,11 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
                 var position = output.Position;
                 for (var j = 0; j < bytesToRead; j++)
                 {
+                    //if (position - displacement < 0)
+                    //    Debugger.Break();
+                    //if(position>=0x1ac)
+                    //    Debugger.Break();
+
                     output.Position = position - displacement;
                     var matchValue = (byte)output.ReadByte();
 

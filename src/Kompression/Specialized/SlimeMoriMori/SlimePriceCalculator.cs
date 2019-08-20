@@ -1,7 +1,6 @@
 ﻿using System;
 using Kompression.LempelZiv;
 using Kompression.LempelZiv.PriceCalculators;
-using Kompression.Specialized.SlimeMoriMori.Decoders;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -10,7 +9,7 @@ namespace Kompression.Specialized.SlimeMoriMori
         private readonly int _compressionMode;
         private readonly int _huffmanMode;
 
-        public SlimePriceCalculator(int compressionMode,int huffmanMode)
+        public SlimePriceCalculator(int compressionMode, int huffmanMode)
         {
             _compressionMode = compressionMode;
             _huffmanMode = huffmanMode;
@@ -19,7 +18,7 @@ namespace Kompression.Specialized.SlimeMoriMori
         public int CalculateLiteralLength(byte value)
         {
             // 1 flag bit
-            // 6 bit value (huffman approximation)
+            // n bit value (huffman approximation)
             switch (_huffmanMode)
             {
                 case 1:
@@ -66,6 +65,38 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // 4 match length bits
                         // plain displacement (we don't approximate or calculate anything, we just roll with lower displacement equals better match)
                         return 1 + 3 + 4 + 3;
+                    }
+                case 3:
+                    if (match.Length > 18)
+                    {
+                        // variable length encoded match length
+                        // an LZ match always encodes at least 3 bits outside the vle value
+                        var length = (match.Length / 2 - 2) >> 3;
+
+                        var result = 3;
+                        while (length > 0)
+                        {
+                            // 3 bits per vle part
+                            result += 3;
+                            // 2 bits are actual value part
+                            length >>= 2;
+                        }
+
+                        // 1 flag bit
+                        // 2 set flag bits to mark vle match length
+                        // n bits vle match length
+                        // 1 flag bit
+                        // 2 displacement index bits
+                        // approximate displacement with 3 bits
+                        return 1 + 2 + result + 1 + 2 + 3;
+                    }
+                    else
+                    {
+                        // 1 flag bit
+                        // 2 displacement index bits
+                        // 3 match length bits
+                        // approximate displacement with 3 bits
+                        return 1 + 2 + 3 + 3;
                     }
                 default:
                     throw new InvalidOperationException("Compression mode not supported for price calculation.");

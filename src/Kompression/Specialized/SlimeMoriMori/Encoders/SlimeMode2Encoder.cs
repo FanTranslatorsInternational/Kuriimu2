@@ -103,7 +103,6 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
         private void WriteVleValue(BitWriter bw, int value, int vleBits)
         {
-            // TODO: Fix vle writing
             var valueBits = vleBits / 4 * 3;
             while (valueBits > 0)
             {

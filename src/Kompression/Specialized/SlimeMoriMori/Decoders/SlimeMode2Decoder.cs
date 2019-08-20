@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using Kompression.IO;
 using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 

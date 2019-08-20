@@ -12,11 +12,14 @@ namespace Kompression.LempelZiv.MatchFinder
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
         public int MinDisplacement { get; }
+        public int UnitLength { get; }
 
         public SuffixTreeMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement)
         {
             _tree = new SuffixTree();
 
+            // TODO: Support other unit lengths
+            UnitLength = 1;
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
             MinDisplacement = minDisplacement;

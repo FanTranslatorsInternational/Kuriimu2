@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser.Models;
 using Kompression.LempelZiv.PriceCalculators;
@@ -66,6 +67,7 @@ namespace Kompression.LempelZiv.Parser
 
                 // Get all matches and set prices for each
                 var matches = _finder.FindAllMatches(input, startPosition + i);
+                var matchSet = false;
                 foreach (var match in matches)
                 {
                     var matchCost = _priceHistory[i].Price + _calculator.CalculateMatchLength(match);
@@ -75,9 +77,15 @@ namespace Kompression.LempelZiv.Parser
                         priceEntry.Price = matchCost;
                         priceEntry.Displacement = match.Displacement;
                         priceEntry.Length = match.Length;
+
+                        // This switch is to disallow future replacement of displacement and length,
+                        // if the previous match doesn't belong to this position
+                        matchSet = true;
                     }
-                    else if (matchCost == priceEntry.Price)
+                    else if (matchCost == priceEntry.Price && matchSet)
                     {
+                        // Otherwise code executed here will replace match data that isn't associated to the current position
+                        // Which leads to a wrong pattern stored
                         if (priceEntry.Length == match.Length)
                             priceEntry.Displacement = Math.Min(priceEntry.Displacement, match.Displacement);
                         else
@@ -89,11 +97,6 @@ namespace Kompression.LempelZiv.Parser
                             }
                         }
                     }
-                    //else if (matchCost == priceEntry.Price &&
-                    //         match.Length == priceEntry.Length)
-                    //{
-                    //    priceEntry.Displacement = Math.Min(priceEntry.Displacement, match.Displacement);
-                    //}
                 }
             }
         }
@@ -117,7 +120,7 @@ namespace Kompression.LempelZiv.Parser
                 }
                 else
                 {
-                    i--;
+                    i -= _finder.UnitLength;
                 }
             }
 

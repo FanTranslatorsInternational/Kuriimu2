@@ -9,6 +9,11 @@ namespace Kompression.LempelZiv.MatchFinder
     public interface IAllMatchFinder : IMatchFinder, IDisposable
     {
         /// <summary>
+        /// The length in bytes of the minimum unit to match.
+        /// </summary>
+        int UnitLength { get; }
+
+        /// <summary>
         /// Finds all possible pattern matches at a given position.
         /// </summary>
         /// <param name="input">The input data.</param>

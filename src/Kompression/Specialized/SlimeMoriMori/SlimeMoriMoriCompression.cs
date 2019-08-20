@@ -81,6 +81,31 @@ namespace Kompression.Specialized.SlimeMoriMori
             // Find all Lz matches
             var matches = FindMatches(inputArray);
 
+            //var totalLength = matches.Sum(x => x.Length);
+            //var outputArray = new byte[inputArray.Length];
+            //var outputPosition = 0;
+            //var inputPosition = 0;
+            //foreach (var match in matches)
+            //{
+            //    for (var i = outputPosition; i < match.Position; i++)
+            //        outputArray[i] = inputArray[inputPosition++];
+            //    outputPosition += (int)match.Position - outputPosition;
+
+            //    for (int i = 0; i < match.Length; i++)
+            //        outputArray[outputPosition + i] = outputArray[outputPosition + i - (int)match.Displacement];
+            //    outputPosition += match.Length;
+            //    inputPosition += match.Length;
+            //}
+            //for (var i = outputPosition; i < outputArray.Length; i++)
+            //    outputArray[i] = inputArray[inputPosition++];
+            //outputPosition += (int)outputArray.Length - outputPosition;
+
+            //for (int i = 0; i < inputArray.Length; i++)
+            //    if (outputArray[i] != inputArray[i])
+            //        ;
+
+            //return;
+
             // Create huffman tree and value writer based on match filtered values
             var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
@@ -112,9 +137,14 @@ namespace Kompression.Specialized.SlimeMoriMori
         private LzMatch[] FindMatches(byte[] input)
         {
             // Optimal parse all LZ matches
-            var parser = new OptimalParser(
-                new NeedleHaystackMatchFinder(3, input.Length, input.Length, 1),
-                new SlimePriceCalculator(_compressionMode, _huffmanMode));
+            ILzParser parser;
+            if (_compressionMode == 3)
+                parser = new OptimalParser(new NeedleHaystackMatchFinder(4, input.Length >> 1 << 1, input.Length >> 1 << 1, 2, 2),
+                    new SlimePriceCalculator(_compressionMode, _huffmanMode));
+            else
+                parser = new OptimalParser(
+                    new NeedleHaystackMatchFinder(3, input.Length, input.Length, 1),
+                    new SlimePriceCalculator(_compressionMode, _huffmanMode));
 
             return parser.Parse(input, 0);
         }

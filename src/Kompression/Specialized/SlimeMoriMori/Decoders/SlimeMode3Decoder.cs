@@ -27,7 +27,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
                         int displacement;
 
                         var dispIndex = br.ReadBits<byte>(2);
-                        if (dispIndex == (1 << 2) - 1)
+                        if (dispIndex == 3)
                         {
                             // 8098E4C
                             byte readValue;
@@ -36,7 +36,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
                             do
                             {
                                 readValue = br.ReadBits<byte>(3);
-                                matchLength = (matchLength << (2)) | (readValue >> 1);
+                                matchLength = (matchLength << 2) | (readValue >> 1);
                             } while ((readValue & 0x1) == 1);
 
                             if (br.ReadBit() == 1)

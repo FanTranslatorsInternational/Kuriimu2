@@ -13,6 +13,11 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
         public abstract void Encode(Stream input, BitWriter bw, LzMatch[] matches);
 
+        /// <summary>
+        /// Initializes and fills the displacement table.
+        /// </summary>
+        /// <param name="displacements">Displacements from all found matches.</param>
+        /// <param name="entryCount">The number of entries in the final table.</param>
         protected void CreateDisplacementTable(long[] displacements, int entryCount)
         {
             var distribution = CalculateDisplacementCoverage(displacements.Select(x => (double)x).ToArray(), entryCount);
@@ -27,11 +32,14 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 codeBits = (int)Math.Log(distribution[i + 1] - displacementStart, 2);
             }
 
+            if (1 << codeBits != (int)distribution[entryCount - 1] - displacementStart)
+                codeBits++;
+
             _displacementTable[entryCount - 1] = new DisplacementElement(codeBits, displacementStart);
         }
 
         /// <summary>
-        /// Calcualtes the coverage of the used displacements in percentile ranges.
+        /// Calculates the coverage of the used displacements in percentile ranges.
         /// </summary>
         /// <param name="displacements">The list of displacements.</param>
         /// <param name="rangeCount">The percentile ranges.</param>
