@@ -88,6 +88,9 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
         private int GetVleBitCount(int value)
         {
+            if (value == 0)
+                return 4;
+
             var vleBits = 0;
             while (value > 0)
             {
@@ -107,10 +110,8 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 valueBits -= 3;
                 var valuePart = (value >> valueBits) & 0x7;
                 bw.WriteBits(valuePart, 3);
-                if (valueBits > 0)
-                    bw.WriteBit(1);
+                bw.WriteBit(valueBits > 0 ? 1 : 0);
             }
-            bw.WriteBit(0);
         }
     }
 }
