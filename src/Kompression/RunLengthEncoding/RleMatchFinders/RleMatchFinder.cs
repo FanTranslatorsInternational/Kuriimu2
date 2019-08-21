@@ -1,41 +1,89 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Kompression.LempelZiv.MatchFinder;
 
 namespace Kompression.RunLengthEncoding.RleMatchFinders
 {
-    public class RleMatchFinder : IRleMatchFinder
+    public class RleMatchFinder : IAllMatchFinder, ILongestMatchFinder
     {
-        private readonly int _minMatchSize;
+        public int MinMatchSize { get; }
+        public int MaxMatchSize { get; }
+        public int UnitLength { get; }
 
-        public RleMatchFinder(int minMatchSize)
+        public RleMatchFinder(int minMatchSize, int maxMatchSize)
         {
-            _minMatchSize = minMatchSize;
+            MinMatchSize = minMatchSize;
+            MaxMatchSize = maxMatchSize;
+            UnitLength = 1;
         }
 
-        public IList<RleMatch> FindAllMatches(byte[] input)
+        public IEnumerable<IMatch> FindAllMatches(byte[] input, int position, int limit = -1)
         {
-            var results = new List<RleMatch>();
+            if (limit == 0 || input.Length - position < MinMatchSize)
+                yield break;
 
-            var value = input[0];
-            var repetition = 1;
-            for (int i = 1; i < input.Length; i++)
+            var found = 0;
+            for (var i = 0; i < Math.Min(MaxMatchSize, input.Length - position); i++)
             {
-                if (input[i] != value)
+                if (input[position] == input[position + i] && i >= MinMatchSize)
                 {
-                    if (repetition >= _minMatchSize)
-                        results.Add(new RleMatch(value, i - repetition, repetition));
-
-                    value = input[i];
-                    repetition = 1;
-                    continue;
+                    found++;
+                    yield return new RleMatch(input[position], position, i);
+                    if (limit > 0 && found == limit)
+                        break;
                 }
-
-                repetition++;
+                else
+                {
+                    break;
+                }
             }
 
-            if (repetition >= _minMatchSize)
-                results.Add(new RleMatch(value, input.Length - repetition, repetition));
+            //var value = input[0];
+            //var repetition = 1;
+            //var found = 0;
+            //for (var i = 1; i < Math.Min(MaxMatchSize, input.Length - position); i++)
+            //{
+            //    if (input[i] != value)
+            //    {
+            //        if (repetition >= MinMatchSize)
+            //        {
+            //            found++;
+            //            yield return new RleMatch(value, i - repetition, repetition);
+            //            if (found == limit)
+            //                yield break;
+            //        }
 
-            return results;
+            //        value = input[i];
+            //        repetition = 1;
+            //        continue;
+            //    }
+
+            //    repetition++;
+            //}
+
+            //if (repetition >= MinMatchSize)
+            //    yield return new RleMatch(value, input.Length - repetition, repetition);
+        }
+
+        public IMatch FindLongestMatch(byte[] input, int position)
+        {
+            if (input.Length - position < MinMatchSize)
+                return null;
+
+            var repetitions = 0;
+            for (var i = 0; i < Math.Min(MaxMatchSize, input.Length - position); i++)
+            {
+                if (input[position] == input[position + i])
+                {
+                    repetitions++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return new RleMatch(input[position], position, repetitions);
         }
 
         public void Dispose()

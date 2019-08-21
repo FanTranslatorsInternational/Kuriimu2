@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -15,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public override void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, IMatch[] matches)
         {
             CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 7);
             WriteDisplacementTable(bw);
@@ -60,7 +59,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             }
         }
 
-        private void WriteMatchData(BitWriter bw, LzMatch match)
+        private void WriteMatchData(BitWriter bw, IMatch match)
         {
             bw.WriteBit(1);
             var dispIndex = GetDisplacementIndex(match.Displacement);
@@ -70,19 +69,19 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             {
                 bw.WriteBits(dispIndex, 3);
                 bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits(match.Length - 3, 4);
+                bw.WriteBits((int)match.Length - 3, 4);
             }
             else
             {
                 bw.WriteBits(0x7, 3);
 
-                var vleBits = GetVleBitCount((match.Length - 3) >> 4);
-                WriteVleValue(bw, (match.Length - 3) >> 4, vleBits);
+                var vleBits = GetVleBitCount(((int)match.Length - 3) >> 4);
+                WriteVleValue(bw, ((int)match.Length - 3) >> 4, vleBits);
 
                 bw.WriteBit(1);
                 bw.WriteBits(dispIndex, 3);
                 bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits((match.Length - 3) & 0xF, 4);
+                bw.WriteBits(((int)match.Length - 3) & 0xF, 4);
             }
         }
 

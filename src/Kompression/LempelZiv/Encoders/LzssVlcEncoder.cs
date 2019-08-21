@@ -5,7 +5,7 @@ namespace Kompression.LempelZiv.Encoders
 {
     class LzssVlcEncoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public void Encode(Stream input, Stream output, IMatch[] matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -18,7 +18,7 @@ namespace Kompression.LempelZiv.Encoders
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, LzMatch[] matches)
+        private void WriteCompressedData(Stream input, Stream output, IMatch[] matches)
         {
             var lzIndex = 0;
             while (input.Position < input.Length)
@@ -40,12 +40,12 @@ namespace Kompression.LempelZiv.Encoders
                     while (lzIndex + compressedBlocks < matches.Length &&
                            matches[lzIndex + compressedBlocks].Position == input.Position + rawSize + positionOffset)
                     {
-                        positionOffset += matches[lzIndex + compressedBlocks].Length;
+                        positionOffset += (int)matches[lzIndex + compressedBlocks].Length;
                         compressedBlocks++;
                     }
 
                     WriteBlockSizes(output, rawSize, compressedBlocks);
-                    WriteBlocks(input, output, rawSize, new Span<LzMatch>(matches, lzIndex, compressedBlocks));
+                    WriteBlocks(input, output, rawSize, new Span<IMatch>(matches, lzIndex, compressedBlocks));
 
                     lzIndex += compressedBlocks;
                 }
@@ -97,7 +97,7 @@ namespace Kompression.LempelZiv.Encoders
             }
         }
 
-        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<LzMatch> matches)
+        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<IMatch> matches)
         {
             // Writing raw data
             var rawData = new byte[rawSize];
@@ -128,7 +128,7 @@ namespace Kompression.LempelZiv.Encoders
 
                 if (length == 0 || length >= 0x10)
                 {
-                    var lengthVlc = CreateVlc(length);
+                    var lengthVlc = CreateVlc((int)length);
                     output.Write(lengthVlc, 0, lengthVlc.Length);
                 }
 

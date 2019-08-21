@@ -19,7 +19,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public void Encode(Stream input, BitWriter bw, IMatch[] matches)
         {
 
         }

@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Kompression.IO;
-using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -14,7 +13,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public void Encode(Stream input, BitWriter bw, IMatch[] matches)
         {
             while (input.Position < input.Length)
             {

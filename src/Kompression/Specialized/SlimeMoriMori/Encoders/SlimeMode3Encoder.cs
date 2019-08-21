@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -15,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public override void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, IMatch[] matches)
         {
             CreateDisplacementTable(matches.Select(x => x.Displacement >> 1).ToArray(), 3);
             WriteDisplacementTable(bw);
@@ -65,7 +64,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             }
         }
 
-        private void WriteMatchData(BitWriter bw, LzMatch match)
+        private void WriteMatchData(BitWriter bw, IMatch match)
         {
             var displacement = match.Displacement>>1;
             var length = match.Length >>1;
@@ -78,19 +77,19 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             {
                 bw.WriteBits(dispIndex, 2);
                 bw.WriteBits((int)displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits(length - 2, 3);
+                bw.WriteBits((int)length - 2, 3);
             }
             else
             {
                 bw.WriteBits(0x3, 2);
 
-                var vleBits = GetVleBitCount((length - 2) >> 3);
-                WriteVleValue(bw, (length - 2) >> 3, vleBits);
+                var vleBits = GetVleBitCount(((int)length - 2) >> 3);
+                WriteVleValue(bw, ((int)length - 2) >> 3, vleBits);
 
                 bw.WriteBit(1);
                 bw.WriteBits(dispIndex, 2);
                 bw.WriteBits((int)displacement - entry.DisplacementStart, entry.ReadBits);
-                bw.WriteBits((length - 2) & 0x7, 3);
+                bw.WriteBits(((int)length - 2) & 0x7, 3);
             }
         }
 

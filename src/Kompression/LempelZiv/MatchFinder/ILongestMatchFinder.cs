@@ -13,6 +13,6 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search the match at.</param>
         /// <returns>The longest match.</returns>
-        LzMatch FindLongestMatch(byte[] input, int position);
+        IMatch FindLongestMatch(byte[] input, int position);
     }
 }

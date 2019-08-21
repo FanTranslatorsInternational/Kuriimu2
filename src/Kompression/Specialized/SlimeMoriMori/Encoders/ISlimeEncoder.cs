@@ -6,6 +6,6 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 {
     interface ISlimeEncoder
     {
-        void Encode(Stream input, BitWriter bw, LzMatch[] matches);
+        void Encode(Stream input, BitWriter bw, IMatch[] matches);
     }
 }

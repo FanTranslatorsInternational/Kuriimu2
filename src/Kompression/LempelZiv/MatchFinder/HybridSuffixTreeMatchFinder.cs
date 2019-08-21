@@ -30,7 +30,7 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="input"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public LzMatch FindLongestMatch(byte[] input, int position)
+        public IMatch FindLongestMatch(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
                 _tree.Build(input, 0);

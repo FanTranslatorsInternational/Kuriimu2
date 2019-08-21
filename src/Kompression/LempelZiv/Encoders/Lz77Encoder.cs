@@ -5,12 +5,12 @@ namespace Kompression.LempelZiv.Encoders
 {
     class Lz77Encoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public void Encode(Stream input, Stream output, IMatch[] matches)
         {
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, LzMatch[] lzResults)
+        private void WriteCompressedData(Stream input, Stream output, IMatch[] lzResults)
         {
             using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.BigEndian))
             {
@@ -21,7 +21,7 @@ namespace Kompression.LempelZiv.Encoders
                     {
                         bw.WriteBit(1);
                         bw.WriteByte((byte)lzResults[lzIndex].Displacement);
-                        bw.WriteByte(lzResults[lzIndex].Length);
+                        bw.WriteByte((int)lzResults[lzIndex].Length);
 
                         input.Position += lzResults[lzIndex].Length;
                         bw.WriteByte(input.ReadByte());

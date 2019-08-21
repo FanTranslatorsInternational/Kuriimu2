@@ -19,7 +19,7 @@ namespace Kompression.LempelZiv.Encoders
             _preBufferLength = preBufferLength;
         }
 
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public void Encode(Stream input, Stream output, IMatch[] matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;

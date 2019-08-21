@@ -37,7 +37,7 @@ namespace Kompression.LempelZiv.MatchFinder
         }
 
         /// <inheritdoc cref="FindLongestMatch"/>
-        public LzMatch FindLongestMatch(byte[] input, int position)
+        public IMatch FindLongestMatch(byte[] input, int position)
         {
             var searchResult = SearchLongest(input, position);
             if (searchResult.Equals(default))
@@ -47,7 +47,7 @@ namespace Kompression.LempelZiv.MatchFinder
         }
 
         /// <inheritdoc cref="FindAllMatches"/>
-        public IEnumerable<LzMatch> FindAllMatches(byte[] input, int position, int limit = -1)
+        public IEnumerable<IMatch> FindAllMatches(byte[] input, int position, int limit = -1)
         {
             var searchResults = SearchAll(input, position).Select(x => new LzMatch(position, position - x.hitp, x.hitl));
             if (limit >= 0)

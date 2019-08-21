@@ -20,6 +20,6 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="position">The position to search the matches at.</param>
         /// <param name="limit">An optional limit as to how many matches can be found.</param>
         /// <returns>All matches.</returns>
-        IEnumerable<LzMatch> FindAllMatches(byte[] input, int position, int limit = -1);
+        IEnumerable<IMatch> FindAllMatches(byte[] input, int position, int limit = -1);
     }
 }

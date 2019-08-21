@@ -13,7 +13,7 @@ namespace Kompression.LempelZiv.Encoders
             _byteOrder = byteOrder;
         }
 
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public void Encode(Stream input, Stream output, IMatch[] matches)
         {
             var bitLayoutStream = new MemoryStream();
             var compressedTableStream = new MemoryStream();

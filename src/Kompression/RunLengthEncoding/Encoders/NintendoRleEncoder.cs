@@ -8,7 +8,7 @@ namespace Kompression.RunLengthEncoding.Encoders
     {
         private byte[] _buffer;
 
-        public void Encode(Stream input, Stream output, IList<RleMatch> matches)
+        public void Encode(Stream input, Stream output, IList<IMatch> matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -26,7 +26,7 @@ namespace Kompression.RunLengthEncoding.Encoders
                 }
 
                 // Write matched data as compressed block
-                HandleCompressedBlock(output, match.Value, match.Length);
+                HandleCompressedBlock(output, (match as RleMatch).Value, (int)match.Length);
                 input.Position += match.Length;
             }
 

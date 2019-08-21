@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -15,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public override void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, IMatch[] matches)
         {
             CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 4);
             WriteDisplacementTable(bw);
@@ -43,7 +42,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             }
         }
 
-        private void WriteMatchData(BitWriter bw, LzMatch match)
+        private void WriteMatchData(BitWriter bw, IMatch match)
         {
             bw.WriteBit(1);
 
@@ -52,7 +51,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
             bw.WriteBits(dispIndex, 2);
             bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
-            bw.WriteBits(match.Length - 3, 4);
+            bw.WriteBits((int)match.Length - 3, 4);
         }
     }
 }

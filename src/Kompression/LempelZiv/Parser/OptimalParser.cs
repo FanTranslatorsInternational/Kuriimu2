@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser.Models;
 using Kompression.LempelZiv.PriceCalculators;
@@ -12,18 +12,18 @@ namespace Kompression.LempelZiv.Parser
     /// </summary>
     public class OptimalParser : ILzParser
     {
-        private IAllMatchFinder _finder;
+        private IAllMatchFinder[] _finders;
         private IPriceCalculator _calculator;
         private PriceHistoryElement[] _priceHistory;
 
-        public OptimalParser(IAllMatchFinder finder, IPriceCalculator calculator)
+        public OptimalParser(IPriceCalculator calculator, params IAllMatchFinder[] finders)
         {
-            _finder = finder;
             _calculator = calculator;
+            _finders = finders;
         }
 
         /// <inheritdoc cref="Parse"/>
-        public LzMatch[] Parse(byte[] input, int startPosition)
+        public IMatch[] Parse(byte[] input, int startPosition)
         {
             InitializePriceHistory(input.Length - startPosition + 1);
             ForwardPass(input, startPosition);
@@ -50,6 +50,7 @@ namespace Kompression.LempelZiv.Parser
         /// <param name="startPosition">The position to start at in the input data.</param>
         private void ForwardPass(byte[] input, int startPosition)
         {
+            var minMatchSize = _finders.Min(x => x.MinMatchSize);
             for (var i = 0; i < input.Length - startPosition; i++)
             {
                 // Calculate literal price
@@ -57,43 +58,43 @@ namespace Kompression.LempelZiv.Parser
                 if (_priceHistory[i + 1].Price < 0 || literalCost < _priceHistory[i + 1].Price)
                 {
                     _priceHistory[i + 1].Price = literalCost;
-                    _priceHistory[i + 1].Displacement = 0;
-                    _priceHistory[i + 1].Length = 1;
+                    _priceHistory[i + 1].Match = null;
                 }
 
                 // Don't try matches close to end of buffer.
-                if (startPosition + i + _finder.MinMatchSize > input.Length)
+                if (startPosition + i + minMatchSize > input.Length)
                     continue;
 
                 // Get all matches and set prices for each
-                var matches = _finder.FindAllMatches(input, startPosition + i);
-                var matchSet = false;
-                foreach (var match in matches)
+                foreach (var finder in _finders)
                 {
-                    var matchCost = _priceHistory[i].Price + _calculator.CalculateMatchLength(match);
-                    var priceEntry = _priceHistory[i + match.Length];
-                    if (priceEntry.Price < 0 || matchCost < priceEntry.Price)
+                    var matches = finder.FindAllMatches(input, startPosition + i);
+                    var matchSet = false;
+                    foreach (var match in matches)
                     {
-                        priceEntry.Price = matchCost;
-                        priceEntry.Displacement = match.Displacement;
-                        priceEntry.Length = match.Length;
-
-                        // This switch is to disallow future replacement of displacement and length,
-                        // if the previous match doesn't belong to this position
-                        matchSet = true;
-                    }
-                    else if (matchCost == priceEntry.Price && matchSet)
-                    {
-                        // Otherwise code executed here will replace match data that isn't associated to the current position
-                        // Which leads to a wrong pattern stored
-                        if (priceEntry.Length == match.Length)
-                            priceEntry.Displacement = Math.Min(priceEntry.Displacement, match.Displacement);
-                        else
+                        var matchCost = _priceHistory[i].Price + _calculator.CalculateMatchLength(match);
+                        var priceEntry = _priceHistory[i + match.Length];
+                        if (priceEntry.Price < 0 || matchCost < priceEntry.Price)
                         {
-                            if (match.Length > priceEntry.Length)
+                            priceEntry.Price = matchCost;
+                            priceEntry.Match = match;
+
+                            // This switch is to disallow future replacement of displacement and length,
+                            // if the previous match doesn't belong to this position
+                            matchSet = true;
+                        }
+                        else if (matchCost == priceEntry.Price && matchSet)
+                        {
+                            // Otherwise code executed here will replace match data that isn't associated to the current position
+                            // Which leads to a wrong pattern stored
+                            if (priceEntry.Match.Length == match.Length && match.Displacement < priceEntry.Match.Displacement)
+                                priceEntry.Match = match;
+                            else
                             {
-                                priceEntry.Length = match.Length;
-                                priceEntry.Displacement = match.Displacement;
+                                if (match.Length > priceEntry.Match.Length)
+                                {
+                                    priceEntry.Match = match;
+                                }
                             }
                         }
                     }
@@ -107,20 +108,22 @@ namespace Kompression.LempelZiv.Parser
         /// <param name="input">The input data.</param>
         /// <param name="startPosition">The position to start at in the input data.</param>
         /// <returns></returns>
-        private LzMatch[] BackwardPass(byte[] input, int startPosition)
+        private IMatch[] BackwardPass(byte[] input, int startPosition)
         {
-            var results = new List<LzMatch>();
+            var results = new List<IMatch>();
 
+            var minUnitLength = _finders.Min(x => x.UnitLength);
             for (var i = input.Length - startPosition; i > 0;)
             {
-                if (_priceHistory[i].Length > 1)
+                if (_priceHistory[i].Match != null)
                 {
-                    results.Add(new LzMatch(startPosition + i - _priceHistory[i].Length, _priceHistory[i].Displacement, (int)_priceHistory[i].Length));
-                    i -= (int)_priceHistory[i].Length;
+                    _priceHistory[i].Match.Position = startPosition + i - _priceHistory[i].Match.Length;
+                    results.Add(_priceHistory[i].Match);
+                    i -= (int)_priceHistory[i].Match.Length;
                 }
                 else
                 {
-                    i -= _finder.UnitLength;
+                    i -= minUnitLength;
                 }
             }
 
@@ -139,8 +142,9 @@ namespace Kompression.LempelZiv.Parser
         {
             if (dispose)
             {
-                _finder.Dispose();
-                _finder = null;
+                foreach (var finder in _finders)
+                    finder.Dispose();
+                _finders = null;
                 _calculator = null;
                 Array.Clear(_priceHistory, 0, _priceHistory.Length);
                 _priceHistory = null;

@@ -13,6 +13,6 @@ namespace Kompression.LempelZiv.Parser
         /// <param name="input">The input data.</param>
         /// <param name="startPosition">The position to start at in the input data.</param>
         /// <returns></returns>
-        LzMatch[] Parse(byte[] input, int startPosition);
+        IMatch[] Parse(byte[] input, int startPosition);
     }
 }

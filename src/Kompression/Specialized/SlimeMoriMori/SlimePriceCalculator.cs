@@ -1,5 +1,4 @@
 ﻿using System;
-using Kompression.LempelZiv;
 using Kompression.LempelZiv.PriceCalculators;
 
 namespace Kompression.Specialized.SlimeMoriMori
@@ -30,7 +29,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        public int CalculateMatchLength(LzMatch match)
+        public int CalculateMatchLength(IMatch match)
         {
             switch (_compressionMode)
             {

@@ -1,21 +1,16 @@
 ﻿namespace Kompression.LempelZiv
 {
-    public class LzMatch
+    public class LzMatch : IMatch
     {
-        public long Position { get; private set; }
-        public long Displacement { get; }
-        public int Length { get; }
+        public long Position { get; set; }
+        public long Displacement { get; set; }
+        public long Length { get; set; }
 
-        public LzMatch(long position, long displacement, int length)
+        public LzMatch(long position, long displacement, long length)
         {
             Position = position;
             Displacement = displacement;
             Length = length;
-        }
-
-        public void SetPosition(long position)
-        {
-            Position = position;
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -11,7 +10,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
     {
         private DisplacementElement[] _displacementTable;
 
-        public abstract void Encode(Stream input, BitWriter bw, LzMatch[] matches);
+        public abstract void Encode(Stream input, BitWriter bw, IMatch[] matches);
 
         /// <summary>
         /// Initializes and fills the displacement table.

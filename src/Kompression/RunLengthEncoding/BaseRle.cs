@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using Kompression.LempelZiv.MatchFinder;
 using Kompression.RunLengthEncoding.Decoders;
 using Kompression.RunLengthEncoding.Encoders;
 using Kompression.RunLengthEncoding.RleMatchFinders;
@@ -8,7 +10,7 @@ namespace Kompression.RunLengthEncoding
     public abstract class BaseRle : ICompression
     {
         protected abstract IRleEncoder CreateEncoder();
-        protected abstract IRleMatchFinder CreateMatchFinder();
+        protected abstract ILongestMatchFinder CreateMatchFinder();
         protected abstract IRleDecoder CreateDecoder();
 
         public void Decompress(Stream input, Stream output)
@@ -27,7 +29,22 @@ namespace Kompression.RunLengthEncoding
             var encoder = CreateEncoder();
             var matchFinder = CreateMatchFinder();
 
-            encoder.Encode(input, output, matchFinder.FindAllMatches(inputArray));
+            var matches = new List<IMatch>();
+            for (var i = 0; i < inputArray.Length;)
+            {
+                var match = matchFinder.FindLongestMatch(inputArray, i);
+                if (match != null)
+                {
+                    matches.Add(match);
+                    i += (int)match.Length;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            encoder.Encode(input, output, matches.ToArray());
 
             encoder.Dispose();
             matchFinder.Dispose();

@@ -5,7 +5,7 @@ namespace Kompression.LempelZiv.Encoders
 {
     class Lz10Encoder:ILzEncoder
     {
-        public void Encode(Stream input, Stream output, LzMatch[] matches)
+        public void Encode(Stream input, Stream output, IMatch[] matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -16,7 +16,7 @@ namespace Kompression.LempelZiv.Encoders
             WriteCompressedData(input, output,matches);
         }
 
-        internal void WriteCompressedData(Stream input, Stream output,LzMatch[] matches)
+        internal void WriteCompressedData(Stream input, Stream output, IMatch[] matches)
         {
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 2 + 1];
@@ -47,7 +47,7 @@ namespace Kompression.LempelZiv.Encoders
             WriteBlockBuffer(output, blockBuffer, blockBufferLength);
         }
 
-        private int WriteCompressedBlockToBuffer(LzMatch lzMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
+        private int WriteCompressedBlockToBuffer(IMatch lzMatch, byte[] blockBuffer, int blockBufferLength, int bufferedBlocks)
         {
             blockBuffer[0] |= (byte)(1 << (7 - bufferedBlocks));
 

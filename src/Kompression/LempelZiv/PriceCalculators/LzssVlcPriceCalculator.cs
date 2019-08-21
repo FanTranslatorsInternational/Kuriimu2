@@ -7,7 +7,7 @@
             return 8;
         }
 
-        public int CalculateMatchLength(LzMatch match)
+        public int CalculateMatchLength(IMatch match)
         {
             var bitLength = 0;
 

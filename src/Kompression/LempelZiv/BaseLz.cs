@@ -38,7 +38,7 @@ namespace Kompression.LempelZiv
             {
                 Array.Reverse(matches);
                 foreach (var match in matches)
-                    match.SetPosition(input.Length - match.Position - 1);
+                    match.Position = input.Length - match.Position - 1;
             }
 
             // Encode matches and remaining raw data
@@ -55,7 +55,7 @@ namespace Kompression.LempelZiv
             var inputArray = new byte[input.Length + PreBufferLength];
             var offset = IsBackwards ? 0 : PreBufferLength;
 
-            input.Read(inputArray, offset, inputArray.Length-offset);
+            input.Read(inputArray, offset, inputArray.Length - offset);
             if (IsBackwards)
                 Array.Reverse(inputArray);
 

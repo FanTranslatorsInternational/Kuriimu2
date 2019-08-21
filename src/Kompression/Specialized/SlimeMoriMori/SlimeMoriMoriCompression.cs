@@ -7,6 +7,7 @@ using Kompression.IO;
 using Kompression.LempelZiv;
 using Kompression.LempelZiv.MatchFinder;
 using Kompression.LempelZiv.Parser;
+using Kompression.RunLengthEncoding.RleMatchFinders;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 using Kompression.Specialized.SlimeMoriMori.Deobfuscators;
 using Kompression.Specialized.SlimeMoriMori.Encoders;
@@ -93,8 +94,8 @@ namespace Kompression.Specialized.SlimeMoriMori
 
             //    for (int i = 0; i < match.Length; i++)
             //        outputArray[outputPosition + i] = outputArray[outputPosition + i - (int)match.Displacement];
-            //    outputPosition += match.Length;
-            //    inputPosition += match.Length;
+            //    outputPosition += (int)match.Length;
+            //    inputPosition += (int)match.Length;
             //}
             //for (var i = outputPosition; i < outputArray.Length; i++)
             //    outputArray[i] = inputArray[inputPosition++];
@@ -134,30 +135,37 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private LzMatch[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
+        private IMatch[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
         {
-            ILzParser parser;
+            IAllMatchFinder[] matchFinders = null;
             switch (compressionMode)
             {
                 case 1:
-                    parser = new OptimalParser(new NeedleHaystackMatchFinder(3, 18, 0xFFFF, 1),
-                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                    matchFinders = new[] { new NeedleHaystackMatchFinder(3, 18, 0xFFFF, 1) };
+                    break;
+                case 2:
+                    matchFinders = new[] { new NeedleHaystackMatchFinder(3, input.Length, 0xFFFF, 1) };
                     break;
                 case 3:
                     var newLength = input.Length >> 1 << 1;
-                    parser = new OptimalParser(new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, 2),
-                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                    matchFinders = new[] { new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, 2) };
                     break;
                 case 4:
                     return Array.Empty<LzMatch>();
-                default:
-                    parser = new OptimalParser(
+                case 5:
+                    // TODO: Declare limits correctly
+                    matchFinders = new IAllMatchFinder[]
+                    {
                         new NeedleHaystackMatchFinder(3, input.Length, 0xFFFF, 1),
-                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                        new RleMatchFinder(3, input.Length)
+                    };
                     break;
+                default:
+                    throw new InvalidOperationException($"Unknown compression mode {compressionMode}.");
             }
 
             // Optimal parse all LZ matches
+            var parser = new OptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), matchFinders);
             return parser.Parse(input, 0);
         }
 
@@ -190,7 +198,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private byte[] RemoveMatchesFromInput(byte[] input, LzMatch[] matches)
+        private byte[] RemoveMatchesFromInput(byte[] input, IMatch[] matches)
         {
             var huffmanInput = new byte[input.Length - matches.Sum(x => x.Length)];
 
@@ -202,7 +210,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     huffmanInput[huffmanInputPosition++] = input[i];
 
                 inputArrayPosition += (int)match.Position - inputArrayPosition;
-                inputArrayPosition += match.Length;
+                inputArrayPosition += (int)match.Length;
             }
 
             for (var i = inputArrayPosition; i < input.Length; i++)
