@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kompression.IO;
 using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
 {
-    class SlimeMode1Encoder : ISlimeEncoder
+    class SlimeMode1Encoder : SlimeEncoder
     {
         private IValueWriter _valueWriter;
 
@@ -19,9 +15,44 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public void Encode(Stream input, BitWriter bw, LzMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, LzMatch[] matches)
         {
+            CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 4);
+            WriteDisplacementTable(bw);
 
+            foreach (var match in matches)
+            {
+                var rawLength = match.Position - input.Position;
+                if (rawLength > 0)
+                    WriteRawData(input, bw, rawLength);
+
+                WriteMatchData(bw, match);
+                input.Position += match.Length;
+            }
+
+            if (input.Length - input.Position > 0)
+                WriteRawData(input, bw, input.Length - input.Position);
+        }
+
+        private void WriteRawData(Stream input, BitWriter bw, long rawLength)
+        {
+            for (var i = 0; i < rawLength; i++)
+            {
+                bw.WriteBit(0);
+                _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+            }
+        }
+
+        private void WriteMatchData(BitWriter bw, LzMatch match)
+        {
+            bw.WriteBit(1);
+
+            var dispIndex = GetDisplacementIndex(match.Displacement);
+            var entry = GetDisplacementEntry(dispIndex);
+
+            bw.WriteBits(dispIndex, 2);
+            bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
+            bw.WriteBits(match.Length - 3, 4);
         }
     }
 }

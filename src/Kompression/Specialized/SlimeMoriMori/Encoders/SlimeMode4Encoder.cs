@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Kompression.IO;
 using Kompression.LempelZiv;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
@@ -21,7 +16,10 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
 
         public void Encode(Stream input, BitWriter bw, LzMatch[] matches)
         {
-
+            while (input.Position < input.Length)
+            {
+                _valueWriter.WriteValue(bw, (byte)input.ReadByte());
+            }
         }
     }
 }

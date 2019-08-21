@@ -79,7 +79,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Find all Lz matches
-            var matches = FindMatches(inputArray);
+            var matches = FindMatches(inputArray, _compressionMode, _huffmanMode);
 
             //var totalLength = matches.Sum(x => x.Length);
             //var outputArray = new byte[inputArray.Length];
@@ -134,18 +134,30 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private LzMatch[] FindMatches(byte[] input)
+        private LzMatch[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
         {
-            // Optimal parse all LZ matches
             ILzParser parser;
-            if (_compressionMode == 3)
-                parser = new OptimalParser(new NeedleHaystackMatchFinder(4, input.Length >> 1 << 1, input.Length >> 1 << 1, 2, 2),
-                    new SlimePriceCalculator(_compressionMode, _huffmanMode));
-            else
-                parser = new OptimalParser(
-                    new NeedleHaystackMatchFinder(3, input.Length, input.Length, 1),
-                    new SlimePriceCalculator(_compressionMode, _huffmanMode));
+            switch (compressionMode)
+            {
+                case 1:
+                    parser = new OptimalParser(new NeedleHaystackMatchFinder(3, 18, 0xFFFF, 1),
+                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                    break;
+                case 3:
+                    var newLength = input.Length >> 1 << 1;
+                    parser = new OptimalParser(new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, 2),
+                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                    break;
+                case 4:
+                    return Array.Empty<LzMatch>();
+                default:
+                    parser = new OptimalParser(
+                        new NeedleHaystackMatchFinder(3, input.Length, 0xFFFF, 1),
+                        new SlimePriceCalculator(compressionMode, huffmanMode));
+                    break;
+            }
 
+            // Optimal parse all LZ matches
             return parser.Parse(input, 0);
         }
 

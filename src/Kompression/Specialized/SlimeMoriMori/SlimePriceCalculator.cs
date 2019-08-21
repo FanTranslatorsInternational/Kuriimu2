@@ -34,6 +34,12 @@ namespace Kompression.Specialized.SlimeMoriMori
         {
             switch (_compressionMode)
             {
+                case 1:
+                    // 1 flag bit
+                    // 2 displacement index bits
+                    // 3 bit displacement approximation
+                    // 4 bits match length
+                    return 10;
                 case 2:
                     if (match.Length > 18)
                     {
@@ -55,7 +61,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // n bits vle match length
                         // 1 flag bit
                         // 3 displacement index bits
-                        // plain displacement (we don't approximate or calculate anything, we just roll with lower displacement equals better match)
+                        // approximate displacement with 3 bits
                         return 1 + 3 + result + 1 + 3 + 3;
                     }
                     else
@@ -63,7 +69,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // 1 flag bit
                         // 3 displacement index bits
                         // 4 match length bits
-                        // plain displacement (we don't approximate or calculate anything, we just roll with lower displacement equals better match)
+                        // approximate displacement with 3 bits
                         return 1 + 3 + 4 + 3;
                     }
                 case 3:
