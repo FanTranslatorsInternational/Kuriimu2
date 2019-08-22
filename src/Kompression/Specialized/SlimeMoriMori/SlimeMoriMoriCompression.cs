@@ -151,13 +151,12 @@ namespace Kompression.Specialized.SlimeMoriMori
                     matchFinders = new[] { new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, 2) };
                     break;
                 case 4:
-                    return Array.Empty<LzMatch>();
+                    return Array.Empty<IMatch>();
                 case 5:
-                    // TODO: Declare limits correctly
                     matchFinders = new IAllMatchFinder[]
                     {
-                        new NeedleHaystackMatchFinder(3, input.Length, 0xFFFF, 1),
-                        new RleMatchFinder(3, input.Length)
+                        new NeedleHaystackMatchFinder(3, 0x42, 0xFFFF, 1),
+                        new RleMatchFinder(1, 0x40)
                     };
                     break;
                 default:

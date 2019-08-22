@@ -299,13 +299,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp";
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 3).Compress(str, save);
+            new SlimeMoriMoriCompression(2, 5).Compress(str, save);
             watch.Stop();
 
             save.Close();
@@ -314,13 +314,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp.comp";
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 3).Decompress(str, save);
+            new SlimeMoriMoriCompression(2, 5).Decompress(str, save);
             watch.Stop();
 
             save.Close();

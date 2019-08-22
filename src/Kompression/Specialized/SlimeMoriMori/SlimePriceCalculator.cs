@@ -1,5 +1,7 @@
 ﻿using System;
+using Kompression.LempelZiv;
 using Kompression.LempelZiv.PriceCalculators;
+using Kompression.RunLengthEncoding;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -102,6 +104,22 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // 3 match length bits
                         // approximate displacement with 3 bits
                         return 1 + 2 + 3 + 3;
+                    }
+                case 5:
+                    switch (match)
+                    {
+                        case RleMatch rleMatch:
+                            // 2 flag bits
+                            // 6 bits match length
+                            // 8 bit static value
+                            return 2 + 6 + 8;
+                        case LzMatch lzMatch:
+                            // 2 displacement index bits
+                            // approximate displacement with 3 bits
+                            // 6 bits match length
+                            return 2 + 3 + 6;
+                        default:
+                            return -1;
                     }
                 default:
                     throw new InvalidOperationException("Compression mode not supported for price calculation.");
