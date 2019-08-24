@@ -4,7 +4,7 @@ namespace Kompression.LempelZiv.Encoders
 {
     class LzssEncoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;

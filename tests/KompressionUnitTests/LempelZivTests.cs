@@ -305,7 +305,7 @@ namespace KompressionUnitTests
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 5).Compress(str, save);
+            new SlimeMoriMoriCompression(2, 2).Compress(str, save);
             watch.Stop();
 
             save.Close();
@@ -320,7 +320,7 @@ namespace KompressionUnitTests
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 5).Decompress(str, save);
+            new SlimeMoriMoriCompression(2, 2).Decompress(str, save);
             watch.Stop();
 
             save.Close();

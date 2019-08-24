@@ -5,6 +5,6 @@ namespace Kompression.LempelZiv.Encoders
 {
     public interface ILzEncoder : IDisposable
     {
-        void Encode(Stream input, Stream output, IMatch[] matches);
+        void Encode(Stream input, Stream output, Match[] matches);
     }
 }

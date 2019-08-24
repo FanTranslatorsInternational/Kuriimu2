@@ -12,14 +12,14 @@ namespace Kompression.LempelZiv.MatchFinder
         public int MinMatchSize { get; }
         public int MaxMatchSize { get; }
         public int MinDisplacement { get; }
-        public int UnitLength { get; }
+        public DataType UnitLength { get; }
 
         public SuffixTreeMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement)
         {
             _tree = new SuffixTree();
 
             // TODO: Support other unit lengths
-            UnitLength = 1;
+            UnitLength = DataType.Byte;
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
             MinDisplacement = minDisplacement;
@@ -31,7 +31,7 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="input"></param>
         /// <param name="position"></param>
         /// <returns></returns>
-        public IMatch FindLongestMatch(byte[] input, int position)
+        public Match FindLongestMatch(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
                 _tree.Build(input, 0);
@@ -56,12 +56,12 @@ namespace Kompression.LempelZiv.MatchFinder
             } while (node != null && length < MaxMatchSize);
 
             if (displacement >= MinDisplacement && length >= MinMatchSize)
-                return new LzMatch(originalPosition, displacement, Math.Min(Math.Min(length, input.Length - originalPosition), MaxMatchSize));
+                return new Match(originalPosition, displacement, Math.Min(Math.Min(length, input.Length - originalPosition), MaxMatchSize));
 
             return null;
         }
 
-        public IEnumerable<IMatch> FindAllMatches(byte[] input, int position, int limit = -1)
+        public IEnumerable<Match> FindAllMatches(byte[] input, int position, int limit = -1)
         {
             var searchResults = FindAllMatchesInternal(input, position);
             if (limit >= 0)
@@ -69,7 +69,7 @@ namespace Kompression.LempelZiv.MatchFinder
             return searchResults;
         }
 
-        private IEnumerable<LzMatch> FindAllMatchesInternal(byte[] input, int position)
+        private IEnumerable<Match> FindAllMatchesInternal(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
                 _tree.Build(input, position);
@@ -85,7 +85,7 @@ namespace Kompression.LempelZiv.MatchFinder
                 var addMatch = oldStart != node.Start - length;
 
                 if (addMatch && displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
-                    yield return new LzMatch(originalPosition, displacement, length);
+                    yield return new Match(originalPosition, displacement, length);
 
                 displacement = position - node.Start;
                 length += node.CalculateLength();
@@ -101,7 +101,7 @@ namespace Kompression.LempelZiv.MatchFinder
             } while (node != null && length < MaxMatchSize);
 
             if (displacement >= MinDisplacement && length >= MinMatchSize && length < MaxMatchSize)
-                yield return new LzMatch(originalPosition, displacement, length);
+                yield return new Match(originalPosition, displacement, length);
         }
 
         #region Dispose

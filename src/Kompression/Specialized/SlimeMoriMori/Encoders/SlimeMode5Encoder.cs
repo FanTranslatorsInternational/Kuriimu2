@@ -2,8 +2,6 @@
 using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.LempelZiv;
-using Kompression.RunLengthEncoding;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
@@ -17,7 +15,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public override void Encode(Stream input, BitWriter bw, IMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, Match[] matches)
         {
             CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 2);
             WriteDisplacementTable(bw);
@@ -28,7 +26,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
                 if (rawLength > 0)
                     WriteRawData(input, bw, rawLength);
 
-                WriteMatchData(bw, match);
+                WriteMatchData(input, bw, match);
                 input.Position += match.Length;
             }
 
@@ -49,23 +47,29 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             }
         }
 
-        private void WriteMatchData(BitWriter bw, IMatch match)
+        private void WriteMatchData(Stream input, BitWriter bw, Match match)
         {
-            switch (match)
+            if (match.Displacement == 0)
             {
-                case RleMatch rleMatch:
-                    bw.WriteBits(3, 2);
-                    bw.WriteBits((int)rleMatch.Length - 1, 6);
-                    bw.WriteByte(rleMatch.Value);
-                    break;
-                case LzMatch lzMatch:
-                    var dispIndex = GetDisplacementIndex(match.Displacement);
-                    var entry = GetDisplacementEntry(dispIndex);
+                // RLE
+                bw.WriteBits(3, 2);
+                // Subtract 2 from length; 1 due to decoding specification and
+                // another one since the match starts at displacement 0 instead of 1 as per decoder specification
+                bw.WriteBits((int)match.Length - 2, 6);
+                bw.WriteByte(input.ReadByte());
 
-                    bw.WriteBits(dispIndex, 2);
-                    bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
-                    bw.WriteBits((int)lzMatch.Length - 3, 6);
-                    break;
+                // Go back 1, to not throw off the match jumping
+                input.Position--;
+            }
+            else
+            {
+                // LZ
+                var dispIndex = GetDisplacementIndex(match.Displacement);
+                var entry = GetDisplacementEntry(dispIndex);
+
+                bw.WriteBits(dispIndex, 2);
+                bw.WriteBits((int)match.Displacement - entry.DisplacementStart, entry.ReadBits);
+                bw.WriteBits((int)match.Length - 3, 6);
             }
         }
     }

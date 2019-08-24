@@ -10,7 +10,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
     {
         private DisplacementElement[] _displacementTable;
 
-        public abstract void Encode(Stream input, BitWriter bw, IMatch[] matches);
+        public abstract void Encode(Stream input, BitWriter bw, Match[] matches);
 
         /// <summary>
         /// Initializes and fills the displacement table.

@@ -5,12 +5,12 @@ namespace Kompression.LempelZiv.Encoders
 {
     class Lz77Encoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, IMatch[] lzResults)
+        private void WriteCompressedData(Stream input, Stream output, Match[] lzResults)
         {
             using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.BigEndian))
             {

@@ -14,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public override void Encode(Stream input, BitWriter bw, IMatch[] matches)
+        public override void Encode(Stream input, BitWriter bw, Match[] matches)
         {
             CreateDisplacementTable(matches.Select(x => x.Displacement).ToArray(), 7);
             WriteDisplacementTable(bw);
@@ -59,7 +59,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             }
         }
 
-        private void WriteMatchData(BitWriter bw, IMatch match)
+        private void WriteMatchData(BitWriter bw, Match match)
         {
             bw.WriteBit(1);
             var dispIndex = GetDisplacementIndex(match.Displacement);

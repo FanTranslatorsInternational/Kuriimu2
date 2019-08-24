@@ -23,7 +23,7 @@ namespace Kompression.LempelZiv.Parser
         }
 
         /// <inheritdoc cref="Parse"/>
-        public IMatch[] Parse(byte[] input, int startPosition)
+        public Match[] Parse(byte[] input, int startPosition)
         {
             InitializePriceHistory(input.Length - startPosition + 1);
             ForwardPass(input, startPosition);
@@ -58,7 +58,8 @@ namespace Kompression.LempelZiv.Parser
                 if (_priceHistory[i + 1].Price < 0 || literalCost < _priceHistory[i + 1].Price)
                 {
                     _priceHistory[i + 1].Price = literalCost;
-                    _priceHistory[i + 1].Match = null;
+                    _priceHistory[i + 1].Displacement = 0;
+                    _priceHistory[i + 1].Length = 1;
                 }
 
                 // Don't try matches close to end of buffer.
@@ -77,7 +78,8 @@ namespace Kompression.LempelZiv.Parser
                         if (priceEntry.Price < 0 || matchCost < priceEntry.Price)
                         {
                             priceEntry.Price = matchCost;
-                            priceEntry.Match = match;
+                            priceEntry.Length = match.Length;
+                            priceEntry.Displacement = match.Displacement;
 
                             // This switch is to disallow future replacement of displacement and length,
                             // if the previous match doesn't belong to this position
@@ -87,13 +89,16 @@ namespace Kompression.LempelZiv.Parser
                         {
                             // Otherwise code executed here will replace match data that isn't associated to the current position
                             // Which leads to a wrong pattern stored
-                            if (priceEntry.Match.Length == match.Length && match.Displacement < priceEntry.Match.Displacement)
-                                priceEntry.Match = match;
+                            if (priceEntry.Length == match.Length)
+                            {
+                                priceEntry.Displacement = Math.Min(match.Displacement, priceEntry.Displacement);
+                            }
                             else
                             {
-                                if (match.Length > priceEntry.Match.Length)
+                                if (match.Length > priceEntry.Length)
                                 {
-                                    priceEntry.Match = match;
+                                    priceEntry.Length = match.Length;
+                                    priceEntry.Displacement = match.Displacement;
                                 }
                             }
                         }
@@ -108,18 +113,17 @@ namespace Kompression.LempelZiv.Parser
         /// <param name="input">The input data.</param>
         /// <param name="startPosition">The position to start at in the input data.</param>
         /// <returns></returns>
-        private IMatch[] BackwardPass(byte[] input, int startPosition)
+        private Match[] BackwardPass(byte[] input, int startPosition)
         {
-            var results = new List<IMatch>();
+            var results = new List<Match>();
 
-            var minUnitLength = _finders.Min(x => x.UnitLength);
+            var minUnitLength = _finders.Min(x => (int)x.UnitLength);
             for (var i = input.Length - startPosition; i > 0;)
             {
-                if (_priceHistory[i].Match != null)
+                if (_priceHistory[i].Length > 1)
                 {
-                    _priceHistory[i].Match.Position = startPosition + i - _priceHistory[i].Match.Length;
-                    results.Add(_priceHistory[i].Match);
-                    i -= (int)_priceHistory[i].Match.Length;
+                    results.Add(new Match(startPosition + i - _priceHistory[i].Length, _priceHistory[i].Displacement, _priceHistory[i].Length));
+                    i -= (int)_priceHistory[i].Length;
                 }
                 else
                 {
@@ -144,8 +148,10 @@ namespace Kompression.LempelZiv.Parser
             {
                 foreach (var finder in _finders)
                     finder.Dispose();
+
                 _finders = null;
                 _calculator = null;
+
                 Array.Clear(_priceHistory, 0, _priceHistory.Length);
                 _priceHistory = null;
             }

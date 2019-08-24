@@ -6,7 +6,7 @@ namespace Kompression.LempelZiv.Encoders
 {
     class Lz60Encoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");

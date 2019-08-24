@@ -24,9 +24,9 @@ namespace Kompression.LempelZiv.Parser
         }
 
         /// <inheritdoc cref="Parse"/>
-        public IMatch[] Parse(byte[] input, int startPosition)
+        public Match[] Parse(byte[] input, int startPosition)
         {
-            var results = new List<IMatch>();
+            var results = new List<Match>();
 
             var positionOffset = 0;
             while (positionOffset + startPosition < input.Length)

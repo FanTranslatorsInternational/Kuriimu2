@@ -15,7 +15,7 @@ namespace Kompression.LempelZiv.MatchFinder
         public int MaxMatchSize { get; }
         public int WindowSize { get; }
         public int MinDisplacement { get; }
-        public int UnitLength { get; }
+        public DataType UnitLength { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="NeedleHaystackMatchFinder"/>.
@@ -24,11 +24,14 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="maxMatchSize">The maximum size a match must have.</param>
         /// <param name="windowSize">The window in which to search for matches.</param>
         /// <param name="minDisplacement">The minimum displacement to find matches at.</param>
-        /// <param name="unitLength">The length of matchable unit.</param>
-        public NeedleHaystackMatchFinder(int minMatchSize, int maxMatchSize, int windowSize, int minDisplacement, int unitLength = 1)
+        /// <param name="type">The type of a matchable unit.</param>
+        public NeedleHaystackMatchFinder(int minMatchSize, int maxMatchSize, int windowSize, int minDisplacement, DataType type = DataType.Byte)
         {
-            UnitLength = unitLength;
-            // TODO: Check that all upcoming values are dividable by unitLength
+            UnitLength = type;
+
+            if (type == DataType.Short)
+                if (MinMatchSize % 2 != 0 || MaxMatchSize % 2 != 0 || WindowSize % 2 != 0 || MinDisplacement % 2 != 0)
+                    throw new ArgumentException("All values need to be dividable by the unit type.");
 
             MinMatchSize = minMatchSize;
             MaxMatchSize = maxMatchSize;
@@ -37,19 +40,19 @@ namespace Kompression.LempelZiv.MatchFinder
         }
 
         /// <inheritdoc cref="FindLongestMatch"/>
-        public IMatch FindLongestMatch(byte[] input, int position)
+        public Match FindLongestMatch(byte[] input, int position)
         {
             var searchResult = SearchLongest(input, position);
             if (searchResult.Equals(default))
                 return null;
 
-            return new LzMatch(position, position - searchResult.hitp, searchResult.hitl);
+            return new Match(position, position - searchResult.hitp, searchResult.hitl);
         }
 
         /// <inheritdoc cref="FindAllMatches"/>
-        public IEnumerable<IMatch> FindAllMatches(byte[] input, int position, int limit = -1)
+        public IEnumerable<Match> FindAllMatches(byte[] input, int position, int limit = -1)
         {
-            var searchResults = SearchAll(input, position).Select(x => new LzMatch(position, position - x.hitp, x.hitl));
+            var searchResults = SearchAll(input, position).Select(x => new Match(position, position - x.hitp, x.hitl));
             if (limit >= 0)
                 searchResults = searchResults.Take(limit);
 
@@ -72,11 +75,18 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <returns>All matches at the given position.</returns>
         private IEnumerable<(int hitp, int hitl)> SearchAll(byte[] data, int dataPosition)
         {
-            var maxLength = Math.Min(MaxMatchSize, (data.Length - dataPosition) / UnitLength * UnitLength);
+            var remainingLength = data.Length - dataPosition;
+            if (UnitLength == DataType.Short)
+                remainingLength = remainingLength >> 1 << 1;
+
+            var maxLength = Math.Min(MaxMatchSize, remainingLength);
             if (maxLength < MinMatchSize)
                 yield break;
 
-            var maxPosition = Math.Max(dataPosition % UnitLength, dataPosition - WindowSize + dataPosition % UnitLength);
+            var minPosition = 0;
+            if (UnitLength == DataType.Short)
+                minPosition = dataPosition & 0x1;
+            var maxPosition = Math.Max(minPosition, dataPosition - WindowSize + minPosition);
 
             if (maxPosition < dataPosition)
             {
@@ -90,26 +100,18 @@ namespace Kompression.LempelZiv.MatchFinder
                         throw new InvalidOperationException("NeedleIndex can't be beyond dataPosition.");
 
                     var hitLength = MinMatchSize;
-                    yield return (needleIndex + dataPosition % UnitLength, hitLength);
+                    yield return (needleIndex + minPosition, hitLength);
 
                     while (hitLength < maxLength)
                     {
-                        var isMatchInUnit = true;
-                        for (var i = 0; i < UnitLength; i++)
-                        {
-                            if (data[dataPosition + hitLength + i] !=
-                                data[maxPosition + needleIndex + hitLength + i])
-                            {
-                                isMatchInUnit = false;
-                                break;
-                            }
-                        }
-
-                        if (!isMatchInUnit)
+                        if (data[dataPosition + hitLength] != data[maxPosition + needleIndex + hitLength])
                             break;
+                        if (UnitLength == DataType.Short)
+                            if (data[dataPosition + hitLength + 1] != data[maxPosition + needleIndex + hitLength + 1])
+                                break;
 
-                        hitLength += UnitLength;
-                        yield return (needleIndex + dataPosition % UnitLength, hitLength);
+                        hitLength += (int)UnitLength;
+                        yield return (needleIndex + minPosition, hitLength);
                     }
                 }
             }
@@ -134,24 +136,16 @@ namespace Kompression.LempelZiv.MatchFinder
             while (haystackPosition + haystackOffset < needlePosition && haystackOffset <= haystackLength - needleLength - MinDisplacement)
             {
                 // Match needle backwards in the haystack
-                var lengthToMatch = needleLength - UnitLength;
+                var lengthToMatch = needleLength - (int)UnitLength;
                 while (lengthToMatch >= 0)
                 {
-                    var isMatchInUnit = true;
-                    for (var i = 0; i < UnitLength; i++)
-                    {
-                        if (input[needlePosition + lengthToMatch + i] !=
-                            input[haystackPosition + haystackOffset + lengthToMatch + i])
-                        {
-                            isMatchInUnit = false;
-                            break;
-                        }
-                    }
-
-                    if (!isMatchInUnit)
+                    if (input[needlePosition + lengthToMatch] != input[haystackPosition + haystackOffset + lengthToMatch])
                         break;
+                    if (UnitLength == DataType.Short)
+                        if (input[needlePosition + lengthToMatch + 1] != input[haystackPosition + haystackOffset + lengthToMatch + 1])
+                            break;
 
-                    lengthToMatch -= UnitLength;
+                    lengthToMatch -= (int)UnitLength;
                 }
 
                 // If whole needle could already be matched
@@ -159,15 +153,16 @@ namespace Kompression.LempelZiv.MatchFinder
                 if (lengthToMatch < 0)
                 {
                     yield return haystackOffset;
-                    haystackOffset += UnitLength;
+                    haystackOffset += (int)UnitLength;
                     continue;
                 }
 
                 // Else go forward in the haystack and try finding a longer match
                 // Either advance in the haystack by unitLength or depending on the rest of the needle needing matching
-                haystackOffset += Math.Max(
-                    UnitLength,
-                    (lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]]) / UnitLength * UnitLength);
+                var badCharValue = lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]];
+                if (UnitLength == DataType.Short)
+                    badCharValue = badCharValue >> 1 << 1;
+                haystackOffset += Math.Max((int)UnitLength, badCharValue);
             }
         }
 
@@ -182,11 +177,18 @@ namespace Kompression.LempelZiv.MatchFinder
         /// <param name="dataPosition">The position to find the match at.</param>
         private (int hitp, int hitl) SearchLongest(byte[] data, int dataPosition)
         {
-            var maxLength = Math.Min(MaxMatchSize, (data.Length - dataPosition) / UnitLength * UnitLength);
+            var remainingLength = data.Length - dataPosition;
+            if (UnitLength == DataType.Short)
+                remainingLength = remainingLength >> 1 << 1;
+
+            var maxLength = Math.Min(MaxMatchSize, remainingLength);
             if (maxLength < MinMatchSize)
                 return default;
 
-            var maxPosition = Math.Max(dataPosition % UnitLength, dataPosition - WindowSize + dataPosition % UnitLength);
+            var minPosition = 0;
+            if (UnitLength == DataType.Short)
+                minPosition = dataPosition & 0x1;
+            var maxPosition = Math.Max(minPosition, dataPosition - WindowSize + minPosition);
 
             var hitPosition = 0;
             var hitLength = MinMatchSize;
@@ -204,28 +206,20 @@ namespace Kompression.LempelZiv.MatchFinder
                     if (firstIndex == -1 && needleIndex == -1)
                         return default;
                     if (firstIndex == -1 && needleIndex >= 0)
-                        return (hitPosition, hitLength - UnitLength);
+                        return (hitPosition, hitLength - (int)UnitLength);
                     needleIndex = (int)firstIndex;
 
                     // Increase hitLength while values are still equal
                     // We do that to increase the needleLength in future searches to maximize found matches
                     while (hitLength < maxLength)
                     {
-                        var isMatchInUnit = true;
-                        for (var i = 0; i < UnitLength; i++)
-                        {
-                            if (data[dataPosition + hitLength + i] !=
-                                data[maxPosition + needleIndex + hitLength + i])
-                            {
-                                isMatchInUnit = false;
-                                break;
-                            }
-                        }
-
-                        if (!isMatchInUnit)
+                        if (data[dataPosition + hitLength] != data[maxPosition + needleIndex + hitLength])
                             break;
+                        if (UnitLength == DataType.Short)
+                            if (data[dataPosition + hitLength + 1] != data[maxPosition + needleIndex + hitLength + 1])
+                                break;
 
-                        hitLength += UnitLength;
+                        hitLength += (int)UnitLength;
                     }
 
                     maxPosition += needleIndex;
@@ -236,8 +230,8 @@ namespace Kompression.LempelZiv.MatchFinder
                     if (hitLength == maxLength)
                         return (hitPosition, hitLength);
 
-                    maxPosition += UnitLength;
-                    hitLength += UnitLength;
+                    maxPosition += (int)UnitLength;
+                    hitLength += (int)UnitLength;
                     if (maxPosition > dataPosition - MinDisplacement)
                         break;
                 }
@@ -246,7 +240,7 @@ namespace Kompression.LempelZiv.MatchFinder
             if (hitLength <= MinMatchSize)
                 return default;
 
-            return (hitPosition, hitLength - UnitLength);
+            return (hitPosition, hitLength - (int)UnitLength);
         }
 
         /// <summary>
@@ -268,24 +262,16 @@ namespace Kompression.LempelZiv.MatchFinder
             while (haystackPosition + haystackOffset < needlePosition && haystackOffset <= haystackLength - needleLength - MinDisplacement)
             {
                 // Match needle backwards in the haystack
-                var lengthToMatch = needleLength - UnitLength;
+                var lengthToMatch = needleLength - (int)UnitLength;
                 while (lengthToMatch >= 0)
                 {
-                    var isMatchInUnit = true;
-                    for (var i = 0; i < UnitLength; i++)
-                    {
-                        if (input[needlePosition + lengthToMatch + i] !=
-                            input[haystackPosition + haystackOffset + lengthToMatch + i])
-                        {
-                            isMatchInUnit = false;
-                            break;
-                        }
-                    }
-
-                    if (!isMatchInUnit)
+                    if (input[needlePosition + lengthToMatch] != input[haystackPosition + haystackOffset + lengthToMatch])
                         break;
+                    if (UnitLength == DataType.Short)
+                        if (input[needlePosition + lengthToMatch + 1] != input[haystackPosition + haystackOffset + lengthToMatch + 1])
+                            break;
 
-                    lengthToMatch -= UnitLength;
+                    lengthToMatch -= (int)UnitLength;
                 }
 
                 // If whole needle could already be matched
@@ -295,9 +281,10 @@ namespace Kompression.LempelZiv.MatchFinder
 
                 // Else go forward in the haystack and try finding a longer match
                 // Either advance in the haystack by unitLength or depending on the rest of the needle needing matching
-                haystackOffset += Math.Max(
-                    UnitLength,
-                    (lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]]) / UnitLength * UnitLength);
+                var badCharValue = lengthToMatch - _badCharHeuristic[input[haystackPosition + haystackOffset + lengthToMatch]];
+                if (UnitLength == DataType.Short)
+                    badCharValue = badCharValue >> 1 << 1;
+                haystackOffset += Math.Max((int)UnitLength, badCharValue);
             }
 
             return -1;

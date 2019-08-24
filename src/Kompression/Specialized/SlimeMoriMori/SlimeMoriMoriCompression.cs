@@ -135,7 +135,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private IMatch[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
+        private Match[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
         {
             IAllMatchFinder[] matchFinders = null;
             switch (compressionMode)
@@ -148,10 +148,10 @@ namespace Kompression.Specialized.SlimeMoriMori
                     break;
                 case 3:
                     var newLength = input.Length >> 1 << 1;
-                    matchFinders = new[] { new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, 2) };
+                    matchFinders = new[] { new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, DataType.Short) };
                     break;
                 case 4:
-                    return Array.Empty<IMatch>();
+                    return Array.Empty<Match>();
                 case 5:
                     matchFinders = new IAllMatchFinder[]
                     {
@@ -197,7 +197,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private byte[] RemoveMatchesFromInput(byte[] input, IMatch[] matches)
+        private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)
         {
             var huffmanInput = new byte[input.Length - matches.Sum(x => x.Length)];
 

@@ -3,6 +3,6 @@
     public interface IPriceCalculator
     {
         int CalculateLiteralLength(byte value);
-        int CalculateMatchLength(IMatch match);
+        int CalculateMatchLength(Match match);
     }
 }

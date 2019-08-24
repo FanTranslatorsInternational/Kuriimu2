@@ -16,7 +16,7 @@ namespace Kompression.LempelZiv.Encoders
             _byteOrder = byteOrder;
         }
 
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             // Displacement goes to the end of the file relative to the match position
             // Length goes to the beginning of the file relative to the match position

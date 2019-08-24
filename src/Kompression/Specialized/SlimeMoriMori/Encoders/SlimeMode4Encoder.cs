@@ -13,7 +13,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
             _valueWriter = valueWriter;
         }
 
-        public void Encode(Stream input, BitWriter bw, IMatch[] matches)
+        public void Encode(Stream input, BitWriter bw, Match[] matches)
         {
             while (input.Position < input.Length)
             {

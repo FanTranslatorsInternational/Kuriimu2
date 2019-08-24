@@ -31,7 +31,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        public int CalculateMatchLength(IMatch match)
+        public int CalculateMatchLength(Match match)
         {
             switch (_compressionMode)
             {
@@ -106,21 +106,16 @@ namespace Kompression.Specialized.SlimeMoriMori
                         return 1 + 2 + 3 + 3;
                     }
                 case 5:
-                    switch (match)
-                    {
-                        case RleMatch rleMatch:
-                            // 2 flag bits
-                            // 6 bits match length
-                            // 8 bit static value
-                            return 2 + 6 + 8;
-                        case LzMatch lzMatch:
-                            // 2 displacement index bits
-                            // approximate displacement with 3 bits
-                            // 6 bits match length
-                            return 2 + 3 + 6;
-                        default:
-                            return -1;
-                    }
+                    if (match.Displacement == 0)
+                        // 2 flag bits
+                        // 6 bits match length
+                        // 8 bit static value
+                        return 2 + 6 + 8;
+                    else
+                        // 2 displacement index bits
+                        // approximate displacement with 3 bits
+                        // 6 bits match length
+                        return 2 + 3 + 6;
                 default:
                     throw new InvalidOperationException("Compression mode not supported for price calculation.");
             }

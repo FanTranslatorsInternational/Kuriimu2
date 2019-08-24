@@ -18,7 +18,7 @@ namespace Kompression.LempelZiv.Encoders
             _byteOrder = byteOrder;
         }
 
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;

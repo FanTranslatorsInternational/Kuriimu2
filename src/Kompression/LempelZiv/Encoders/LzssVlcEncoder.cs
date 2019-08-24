@@ -5,7 +5,7 @@ namespace Kompression.LempelZiv.Encoders
 {
     class LzssVlcEncoder : ILzEncoder
     {
-        public void Encode(Stream input, Stream output, IMatch[] matches)
+        public void Encode(Stream input, Stream output, Match[] matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -18,7 +18,7 @@ namespace Kompression.LempelZiv.Encoders
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, IMatch[] matches)
+        private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
             var lzIndex = 0;
             while (input.Position < input.Length)
@@ -45,7 +45,7 @@ namespace Kompression.LempelZiv.Encoders
                     }
 
                     WriteBlockSizes(output, rawSize, compressedBlocks);
-                    WriteBlocks(input, output, rawSize, new Span<IMatch>(matches, lzIndex, compressedBlocks));
+                    WriteBlocks(input, output, rawSize, new Span<Match>(matches, lzIndex, compressedBlocks));
 
                     lzIndex += compressedBlocks;
                 }
@@ -97,7 +97,7 @@ namespace Kompression.LempelZiv.Encoders
             }
         }
 
-        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<IMatch> matches)
+        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<Match> matches)
         {
             // Writing raw data
             var rawData = new byte[rawSize];

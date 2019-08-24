@@ -29,7 +29,7 @@ namespace Kompression.RunLengthEncoding
             var encoder = CreateEncoder();
             var matchFinder = CreateMatchFinder();
 
-            var matches = new List<IMatch>();
+            var matches = new List<Match>();
             for (var i = 0; i < inputArray.Length;)
             {
                 var match = matchFinder.FindLongestMatch(inputArray, i);

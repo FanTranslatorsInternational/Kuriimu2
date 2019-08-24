@@ -11,18 +11,13 @@
         public long Price { get; set; } = -1;
 
         /// <summary>
-        /// The match associated with this element.
+        /// The displacement for this element.
         /// </summary>
-        public IMatch Match { get; set; }
+        public long Displacement { get; set; }
 
-        ///// <summary>
-        ///// The displacement for this element.
-        ///// </summary>
-        //public long Displacement { get; set; }
-
-        ///// <summary>
-        ///// The length for this element.
-        ///// </summary>
-        //public long Length { get; set; }
+        /// <summary>
+        /// The length for this element.
+        /// </summary>
+        public long Length { get; set; }
     }
 }

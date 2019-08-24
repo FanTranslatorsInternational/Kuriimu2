@@ -6,6 +6,6 @@ namespace Kompression.RunLengthEncoding.Encoders
 {
     public interface IRleEncoder : IDisposable
     {
-        void Encode(Stream input, Stream output, IList<IMatch> matches);
+        void Encode(Stream input, Stream output, IList<Match> matches);
     }
 }
