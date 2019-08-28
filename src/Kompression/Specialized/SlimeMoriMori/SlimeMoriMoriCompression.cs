@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using Kompression.Huffman.Support;
 using Kompression.IO;
-using Kompression.LempelZiv;
-using Kompression.LempelZiv.MatchFinder;
-using Kompression.LempelZiv.Parser;
-using Kompression.RunLengthEncoding.RleMatchFinders;
+using Kompression.PatternMatch;
+using Kompression.PatternMatch.LempelZiv;
+using Kompression.PatternMatch.RunLength;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 using Kompression.Specialized.SlimeMoriMori.Deobfuscators;
 using Kompression.Specialized.SlimeMoriMori.Encoders;
@@ -26,6 +25,8 @@ namespace Kompression.Specialized.SlimeMoriMori
         private readonly int _compressionMode;
         private readonly int _obfuscationMode;
         private readonly bool _isCompressable;
+
+        public string[] Names => new[] { "Slime Mori Mori" };
 
         public SlimeMoriMoriCompression()
         {
@@ -82,31 +83,6 @@ namespace Kompression.Specialized.SlimeMoriMori
             // Find all Lz matches
             var matches = FindMatches(inputArray, _compressionMode, _huffmanMode);
 
-            //var totalLength = matches.Sum(x => x.Length);
-            //var outputArray = new byte[inputArray.Length];
-            //var outputPosition = 0;
-            //var inputPosition = 0;
-            //foreach (var match in matches)
-            //{
-            //    for (var i = outputPosition; i < match.Position; i++)
-            //        outputArray[i] = inputArray[inputPosition++];
-            //    outputPosition += (int)match.Position - outputPosition;
-
-            //    for (int i = 0; i < match.Length; i++)
-            //        outputArray[outputPosition + i] = outputArray[outputPosition + i - (int)match.Displacement];
-            //    outputPosition += (int)match.Length;
-            //    inputPosition += (int)match.Length;
-            //}
-            //for (var i = outputPosition; i < outputArray.Length; i++)
-            //    outputArray[i] = inputArray[inputPosition++];
-            //outputPosition += (int)outputArray.Length - outputPosition;
-
-            //for (int i = 0; i < inputArray.Length; i++)
-            //    if (outputArray[i] != inputArray[i])
-            //        ;
-
-            //return;
-
             // Create huffman tree and value writer based on match filtered values
             var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
@@ -137,25 +113,25 @@ namespace Kompression.Specialized.SlimeMoriMori
 
         private Match[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
         {
-            IAllMatchFinder[] matchFinders = null;
+            IMatchFinder[] matchFinders;
             switch (compressionMode)
             {
                 case 1:
-                    matchFinders = new[] { new NeedleHaystackMatchFinder(3, 18, 0xFFFF, 1) };
+                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(3, 18, 1, 0xFFFF) };
                     break;
                 case 2:
-                    matchFinders = new[] { new NeedleHaystackMatchFinder(3, input.Length, 0xFFFF, 1) };
+                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(3, input.Length, 1, 0xFFFF) };
                     break;
                 case 3:
                     var newLength = input.Length >> 1 << 1;
-                    matchFinders = new[] { new NeedleHaystackMatchFinder(4, newLength, 0xFFFF, 2, DataType.Short) };
+                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(4, newLength, 2, 0xFFFF, true, DataType.Short) };
                     break;
                 case 4:
                     return Array.Empty<Match>();
                 case 5:
-                    matchFinders = new IAllMatchFinder[]
+                    matchFinders = new IMatchFinder[]
                     {
-                        new NeedleHaystackMatchFinder(3, 0x42, 0xFFFF, 1),
+                        new HybridSuffixTreeMatchFinder(3, 0x42, 1,0xFFFF),
                         new RleMatchFinder(1, 0x40)
                     };
                     break;
@@ -164,8 +140,8 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Optimal parse all LZ matches
-            var parser = new OptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), matchFinders);
-            return parser.Parse(input, 0);
+            var parser = new NewOptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), 0, matchFinders);
+            return parser.ParseMatches(input, 0);
         }
 
         private void WriteHuffmanTree(BitWriter bw, HuffmanTreeNode rootNode, int huffmanMode)

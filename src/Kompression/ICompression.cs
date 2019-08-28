@@ -6,6 +6,8 @@ namespace Kompression
 {
     public interface ICompression
     {
+        string[] Names { get; }
+
         void Decompress(Stream input, Stream output);
         void Compress(Stream input, Stream output);
     }

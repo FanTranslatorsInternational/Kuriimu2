@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Kompression.LempelZiv;
+using System.Text;
+using Kompression.Implementations;
+using Kompression.PatternMatch.LempelZiv.Support;
 using Kompression.Specialized.SlimeMoriMori;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -299,13 +301,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp";
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 2).Compress(str, save);
+            new Lze().Compress(str, save);
             watch.Stop();
 
             save.Close();
@@ -314,13 +316,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob1.bin.decomp.comp";
+            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new SlimeMoriMoriCompression(2, 2).Decompress(str, save);
+            new Lze().Decompress(str, save);
             watch.Stop();
 
             save.Close();

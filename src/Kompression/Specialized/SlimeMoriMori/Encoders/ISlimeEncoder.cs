@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Kompression.IO;
-using Kompression.LempelZiv;
+using Kompression.PatternMatch;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
 {

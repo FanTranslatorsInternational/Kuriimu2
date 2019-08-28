@@ -1,7 +1,5 @@
 ﻿using System;
-using Kompression.LempelZiv;
-using Kompression.LempelZiv.PriceCalculators;
-using Kompression.RunLengthEncoding;
+using Kompression.PatternMatch;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -16,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             _huffmanMode = huffmanMode;
         }
 
-        public int CalculateLiteralLength(byte value)
+        public int CalculateLiteralPrice(int value)
         {
             // 1 flag bit
             // n bit value (huffman approximation)
@@ -31,7 +29,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        public int CalculateMatchLength(Match match)
+        public int CalculateMatchPrice(Match match)
         {
             switch (_compressionMode)
             {
