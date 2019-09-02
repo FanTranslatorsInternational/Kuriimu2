@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Kompression.IO
 {
-    class BitReader : IDisposable
+    public class BitReader : IDisposable
     {
         private readonly Stream _baseStream;
         private readonly BitOrder _bitOrder;
@@ -34,45 +34,48 @@ namespace Kompression.IO
             RefillBuffer();
         }
 
-        public int ReadBit()
-        {
-            if (_bufferBitPosition >= _blockSize * 8)
-                RefillBuffer();
+        public int ReadByte() => ReadBits<int>(8);
 
-            return (int)((_buffer >> _bufferBitPosition++) & 0x1);
-        }
+        public int ReadInt16() => ReadBits<int>(16);
 
-        public int ReadByte()
-        {
-            var result = 0;
-            for (var i = 0; i < 8; i++)
-            {
-                result <<= 1;
-                result |= ReadBit();
-            }
-
-            return result;
-        }
-
-        public int ReadInt32()
-        {
-            var result = 0;
-            for (var i = 0; i < 32; i++)
-            {
-                result <<= 1;
-                result |= ReadBit();
-            }
-
-            return result;
-        }
+        public int ReadInt32() => ReadBits<int>(32);
 
         public object ReadBits(int count)
         {
+            /*
+             * This method is designed with direct mapping in mind.
+             *
+             * Example:
+             * You have a byte 0x83, which in bits would be
+             * 0b1000 0011
+             *
+             * Assume we read 3 bits and 5 bits afterwards
+             *
+             * Assuming MSBFirst, we would now read the values
+             * 0b100 and 0b00011
+             *
+             * Assuming LSBFirst, we would now read the values
+             * 0b011 and 0b10000
+             *
+             * Even though the values themselves changed, the order of bits is still intact
+             *
+             * Combine 0b100 and 0b00011 and you get the original byte
+             * Combine 0b10000 and 0b011 and you also get the original byte
+             *
+             */
+
             long result = 0;
             for (var i = 0; i < count; i++)
             {
-                result <<= 1;
-                result |= (byte)ReadBit();
+                if (_bitOrder == BitOrder.MSBFirst)
+                {
+                    result <<= 1;
+                    result |= (byte)ReadBit();
+                }
+                else
+                {
+                    result |= (long)(ReadBit() << i);
+                }
             }
 
             return result;
@@ -92,6 +95,24 @@ namespace Kompression.IO
             return (T)Convert.ChangeType(value, typeof(T));
         }
 
+        public int ReadBit()
+        {
+            if (_bufferBitPosition >= _blockSize * 8)
+                RefillBuffer();
+
+            return (int)((_buffer >> _bufferBitPosition++) & 0x1);
+        }
+
+        public T SeekBits<T>(int count)
+        {
+            var originalPosition = Position;
+
+            var result = ReadBits<T>(count);
+            SetBitPosition(originalPosition);
+
+            return result;
+        }
+
         private void SetBitPosition(long bitPosition)
         {
             _baseStream.Position = bitPosition / (_blockSize * 8);
@@ -102,6 +123,8 @@ namespace Kompression.IO
         private void RefillBuffer()
         {
             _buffer = 0;
+
+            // Read buffer with blockSize bytes
             for (var i = 0; i < _blockSize; i++)
                 if (_byteOrder == ByteOrder.BigEndian)
                     _buffer = (_buffer << 8) | (byte)_baseStream.ReadByte();
@@ -109,16 +132,16 @@ namespace Kompression.IO
                     _buffer = _buffer | (long)((byte)_baseStream.ReadByte() << (i * 8));
 
             if (_bitOrder == BitOrder.MSBFirst)
-                _buffer = ReverseBits(_buffer);
+                _buffer = ReverseBits(_buffer, _blockSize * 8);
 
             _bufferBitPosition = 0;
         }
 
-        private long ReverseBits(long value)
+        private static long ReverseBits(long value, int bitCount)
         {
             long result = 0;
 
-            for (var i = 0; i < _blockSize * 8; i++)
+            for (var i = 0; i < bitCount; i++)
             {
                 result <<= 1;
                 result |= (byte)(value & 1);

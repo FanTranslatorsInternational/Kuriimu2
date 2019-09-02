@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kompression
 {
-    enum BitOrder
+    public enum BitOrder
     {
         MSBFirst,
         LSBFirst

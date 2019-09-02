@@ -25,30 +25,53 @@ namespace Kompression.IO
             _byteOrder = byteOrder;
         }
 
+        public void WriteByte(int value) => WriteBits(value, 8);
+
+        public void WriteInt16(int value) => WriteBits(value, 16);
+
+        public void WriteInt32(int value) => WriteBits(value, 32);
+
+        public void WriteBits(int value, int count)
+        {
+            /*
+             * This method is designed with direct mapping in mind.
+             *
+             * Example:
+             * You have two values 0x5 and 0x9, which in bits would be
+             * 0b101 and 0b10001
+             *
+             * Assume we write them as 3 and 5 bits
+             *
+             * Assuming MSBFirst, we would now write the values
+             * 0b101 and 0b10001
+             *
+             * Assuming LSBFirst, we would now write the values
+             * 0b10001 and 0b101
+             *
+             * Even though the values generate a different final byte,
+             * the order of bits in the values is still intact
+             *
+             */
+
+            for (var i = 0; i < count; i++)
+            {
+                if (_bitOrder == BitOrder.MSBFirst)
+                {
+                    WriteBit(value >> (count - 1 - i));
+                }
+                else
+                {
+                    WriteBit(value >> i);
+                }
+            }
+        }
+
         public void WriteBit(int value)
         {
             if (_bufferBitPosition >= _blockSize * 8)
                 WriteBuffer();
 
             _buffer |= (long)((value & 0x1) << _bufferBitPosition++);
-        }
-
-        public void WriteByte(int value)
-        {
-            for (var i = 0; i < 8; i++)
-                WriteBit((value >> (7 - i)) & 0x1);
-        }
-
-        public void WriteInt32(int value)
-        {
-            for (var i = 0; i < 32; i++)
-                WriteBit((value >> (31 - i)) & 0x1);
-        }
-
-        public void WriteBits(int value, int count)
-        {
-            for (var i = 0; i < count; i++)
-                WriteBit(value >> (count - 1 - i));
         }
 
         public void Flush()
@@ -60,7 +83,7 @@ namespace Kompression.IO
         private void WriteBuffer()
         {
             if (_bitOrder == BitOrder.MSBFirst)
-                _buffer = ReverseBits(_buffer);
+                _buffer = ReverseBits(_buffer, _blockSize * 8);
 
             for (var i = 0; i < _blockSize; i++)
                 if (_byteOrder == ByteOrder.BigEndian)
@@ -77,11 +100,11 @@ namespace Kompression.IO
             _bufferBitPosition = 0;
         }
 
-        private long ReverseBits(long value)
+        private static long ReverseBits(long value, int bitCount)
         {
             long result = 0;
 
-            for (var i = 0; i < _blockSize * 8; i++)
+            for (var i = 0; i < bitCount; i++)
             {
                 result <<= 1;
                 result |= (byte)(value & 1);
