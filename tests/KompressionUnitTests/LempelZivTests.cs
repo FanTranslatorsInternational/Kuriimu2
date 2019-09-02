@@ -301,13 +301,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp";
+            var file = @"D:\Users\Kirito\Desktop\toi_skit_sys.anm";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new Lze().Compress(str, save);
+            new TaikoLz80().Compress(str, save);
             watch.Stop();
 
             save.Close();
@@ -316,13 +316,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\compressedBlob2.bin.decomp.comp";
+            var file = @"D:\Users\Kirito\Desktop\toi_skit_sys.anm.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new Lze().Decompress(str, save);
+            new TaikoLz80().Decompress(str, save);
             watch.Stop();
 
             save.Close();
