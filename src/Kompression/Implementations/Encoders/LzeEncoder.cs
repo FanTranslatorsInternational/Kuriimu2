@@ -26,9 +26,6 @@ namespace Kompression.Implementations.Encoders
 
             foreach (var match in matches)
             {
-                if (match == matches[0x12d - 1])
-                    Debugger.Break();
-
                 // Compress raw data
                 if (input.Position < match.Position)
                     CompressRawData(input, output, (int)(match.Position - input.Position));
