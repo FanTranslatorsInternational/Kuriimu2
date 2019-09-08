@@ -6,6 +6,11 @@
     class PriceHistoryElement
     {
         /// <summary>
+        /// Determines if an element represents a literal.
+        /// </summary>
+        public bool IsLiteral { get; set; }
+
+        /// <summary>
         /// The price for this element.
         /// </summary>
         public long Price { get; set; } = -1;

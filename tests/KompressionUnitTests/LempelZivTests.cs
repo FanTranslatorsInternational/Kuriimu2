@@ -301,7 +301,7 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\toi_skit_sys.anm";
+            var file = @"D:\Users\Kirito\Desktop\711.dat";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
@@ -316,7 +316,7 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\toi_skit_sys.anm.comp";
+            var file = @"D:\Users\Kirito\Desktop\711.dat.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 

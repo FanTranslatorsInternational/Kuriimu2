@@ -44,13 +44,16 @@ namespace Kompression.Implementations.MatchFinders
         public IEnumerable<Match> FindMatches(byte[] input, int position)
         {
             if (_previousPosition == -1)
-                _previousPosition = position;
+            {
+                for (var i = 0; i < position; i += (int)DataType)
+                    SlideByte(input, i);
+            }
             else
             {
-                for (var i = 0; i < position - _previousPosition; i++)
+                for (var i = 0; i < position - _previousPosition; i += (int)DataType)
                     SlideByte(input, _previousPosition + i);
-                _previousPosition = position;
             }
+            _previousPosition = position;
 
             var displacement = 0;
             var maxSize = Math.Min(input.Length - position, MaxMatchSize);
@@ -86,8 +89,15 @@ namespace Kompression.Implementations.MatchFinders
                 if (!UseLookAhead)
                     nMaxSize = Math.Min(maxSize, position - search);
                 var nCurrentSize = MinMatchSize;
-                while (nCurrentSize < nMaxSize && input[search + nCurrentSize] == input[position + nCurrentSize])
-                    nCurrentSize++;
+                while (nCurrentSize < nMaxSize)
+                {
+                    if (input[search + nCurrentSize] != input[position + nCurrentSize])
+                        break;
+                    if (DataType == DataType.Short)
+                        if (input[search + nCurrentSize + 1] != input[position + nCurrentSize + 1])
+                            break;
+                    nCurrentSize += (int)DataType;
+                }
 
                 if (nCurrentSize > size)
                 {
@@ -200,12 +210,12 @@ namespace Kompression.Implementations.MatchFinders
 
             if (windowLen == MaxDisplacement)
             {
-                windowPos++;
+                windowPos+=(int)DataType;
                 windowPos %= MaxDisplacement;
             }
             else
             {
-                windowLen++;
+                windowLen += (int)DataType;
             }
         }
 

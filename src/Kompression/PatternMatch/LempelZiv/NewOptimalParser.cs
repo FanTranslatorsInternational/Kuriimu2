@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Kompression.PatternMatch.LempelZiv.Support;
 
@@ -43,6 +44,7 @@ namespace Kompression.PatternMatch.LempelZiv
                 // First get the compression length when the next byte is not compressed
                 _history[i] = new PriceHistoryElement
                 {
+                    IsLiteral = true,
                     Length = unitSize,
                     Price = _priceCalculator.CalculateLiteralPrice(input[i + startPosition])
                 };
@@ -68,6 +70,7 @@ namespace Kompression.PatternMatch.LempelZiv
 
                             if (newCompLen < _history[i].Price)
                             {
+                                _history[i].IsLiteral = false;
                                 _history[i].Displacement = match.Displacement;
                                 _history[i].Length = j;
                                 _history[i].Price = newCompLen;
@@ -89,15 +92,17 @@ namespace Kompression.PatternMatch.LempelZiv
             for (var i = 0; i < dataLength; i += unitSize)
             {
                 result[i] = new Match[_finders.Length];
-                var foundMatches = 0;
+                var matchIndex = 0;
 
                 foreach (var finder in _finders)
                 {
                     var match = finder.FindMatches(input, i + startPosition).FirstOrDefault();
                     if (match != null)
                     {
-                        result[i][foundMatches++] = match;
+                        result[i][matchIndex] = match;
                     }
+
+                    matchIndex++;
                 }
             }
 
@@ -109,7 +114,7 @@ namespace Kompression.PatternMatch.LempelZiv
             var unitSize = _finders.Min(x => (int)x.DataType);
             for (var i = 0; i < dataLength;)
             {
-                if (_history[i].Length == 1)
+                if (_history[i].IsLiteral)
                     i += unitSize;
                 else
                 {
