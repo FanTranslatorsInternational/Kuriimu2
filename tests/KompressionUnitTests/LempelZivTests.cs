@@ -316,13 +316,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\711.dat.comp";
+            var file = @"D:\Users\Kirito\Desktop\skit_sys.anm.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new TaikoLz80().Decompress(str, save);
+            new TalesOf01().Decompress(str, save);
             watch.Stop();
 
             save.Close();
