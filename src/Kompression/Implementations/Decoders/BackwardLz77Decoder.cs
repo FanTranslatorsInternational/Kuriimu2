@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
@@ -7,6 +8,7 @@ namespace Kompression.Implementations.Decoders
     public class BackwardLz77Decoder : IPatternMatchDecoder
     {
         private readonly ByteOrder _byteOrder;
+        private CircularBuffer _circularBuffer;
 
         public BackwardLz77Decoder(ByteOrder byteOrder)
         {
@@ -20,11 +22,13 @@ namespace Kompression.Implementations.Decoders
             using (var inputReverseStream = new ReverseStream(input))
             using (var outputReverseStream = new ReverseStream(output))
             {
-                inputReverseStream.Position = input.Length;
-                inputReverseStream.Read(buffer, 0, 4);
-                var originalBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
-                inputReverseStream.Read(buffer, 0, 4);
+                input.Position = input.Length - 8;
+
+                input.Read(buffer, 0, 4);
                 var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+
+                input.Read(buffer, 0, 4);
+                var originalBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
 
                 var sourcePosition = input.Length - (bufferTopAndBottom >> 24);
                 var destinationPosition = input.Length + originalBottom;
@@ -32,44 +36,49 @@ namespace Kompression.Implementations.Decoders
 
                 inputReverseStream.Position = sourcePosition;
                 outputReverseStream.Position = destinationPosition;
-
-                var windowBuffer = new byte[0x1002];
-                var windowBufferPosition = 0;
-                var codeBlock = inputReverseStream.ReadByte();
-                var codeBlockPosition = 8;
-                while (inputReverseStream.Position - endPosition > 0)
-                {
-                    if (codeBlockPosition == 0)
-                    {
-                        codeBlock = inputReverseStream.ReadByte();
-                        codeBlockPosition = 8;
-                    }
-
-                    var flag = (codeBlock >> --codeBlockPosition) & 0x1;
-                    if (flag == 0)
-                    {
-                        var value = (byte)inputReverseStream.ReadByte();
-                        outputReverseStream.WriteByte(value);
-                        windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
-                    }
-                    else
-                    {
-                        var byte1 = inputReverseStream.ReadByte();
-                        var byte2 = inputReverseStream.ReadByte();
-
-                        var length = (byte1 >> 4) + 3;
-                        var displacement = (((byte1 & 0xF) << 8) | byte2) + 3;
-
-                        var bufferIndex = windowBufferPosition + windowBuffer.Length - displacement;
-                        for (var i = 0; i < length; i++)
-                        {
-                            var value = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                            outputReverseStream.WriteByte(value);
-                            windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
-                        }
-                    }
-                }
+                ReadCompressedData(inputReverseStream, outputReverseStream, endPosition);
             }
+        }
+
+        private void ReadCompressedData(Stream input, Stream output, long endPosition)
+        {
+            _circularBuffer = new CircularBuffer(0x1002);
+
+            var codeBlock = input.ReadByte();
+            var codeBlockPosition = 8;
+            while (input.Position - endPosition > 0)
+            {
+                if (codeBlockPosition == 0)
+                {
+                    codeBlock = input.ReadByte();
+                    codeBlockPosition = 8;
+                }
+
+                var flag = (codeBlock >> --codeBlockPosition) & 0x1;
+                if (flag == 0)
+                    HandleUncompressedBlock(input, output);
+                else
+                    HandleCompressedBlock(input, output);
+            }
+        }
+
+        private void HandleUncompressedBlock(Stream input, Stream output)
+        {
+            var next = input.ReadByte();
+
+            output.WriteByte((byte)next);
+            _circularBuffer.WriteByte((byte)next);
+        }
+
+        private void HandleCompressedBlock(Stream input, Stream output)
+        {
+            var byte1 = input.ReadByte();
+            var byte2 = input.ReadByte();
+
+            var length = (byte1 >> 4) + 3;
+            var displacement = (((byte1 & 0xF) << 8) | byte2) + 3;
+
+            CircularBuffer.ArbitraryCopy(_circularBuffer, output, displacement, length);
         }
 
         private int GetLittleEndian(byte[] data)
@@ -84,7 +93,7 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            // Nothing to dispose
+            _circularBuffer?.Dispose();
         }
     }
 }

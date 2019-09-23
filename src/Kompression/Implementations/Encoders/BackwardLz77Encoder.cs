@@ -50,7 +50,7 @@ namespace Kompression.Implementations.Encoders
                             WriteAndResetBuffer(reverseOutputStream);
 
                         _codeBlockPosition--;
-                        _buffer[_buffer.Length - 1 - _bufferLength++] = (byte)reverseInputStream.ReadByte();
+                        _buffer[_bufferLength++] = (byte)reverseInputStream.ReadByte();
                     }
 
                     var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
@@ -60,8 +60,8 @@ namespace Kompression.Implementations.Encoders
                         WriteAndResetBuffer(reverseOutputStream);
 
                     _codeBlock |= (byte)(1 << --_codeBlockPosition);
-                    _buffer[_buffer.Length - 1 - _bufferLength++] = (byte)byte1;
-                    _buffer[_buffer.Length - 1 - _bufferLength++] = (byte)byte2;
+                    _buffer[_bufferLength++] = (byte)byte1;
+                    _buffer[_bufferLength++] = (byte)byte2;
 
                     reverseInputStream.Position -= match.Length;
                 }
@@ -73,7 +73,7 @@ namespace Kompression.Implementations.Encoders
                         WriteAndResetBuffer(reverseOutputStream);
 
                     _codeBlockPosition--;
-                    _buffer[_buffer.Length - 1 - _bufferLength++] = (byte)reverseInputStream.ReadByte();
+                    _buffer[_bufferLength++] = (byte)reverseInputStream.ReadByte();
                 }
 
                 // Flush remaining buffer to stream
@@ -164,7 +164,7 @@ namespace Kompression.Implementations.Encoders
         {
             // Write data to output
             output.WriteByte(_codeBlock);
-            output.Write(_buffer, _buffer.Length-_bufferLength, _bufferLength);
+            output.Write(_buffer, 0, _bufferLength);
 
             // Reset codeBlock and buffer
             _codeBlock = 0;

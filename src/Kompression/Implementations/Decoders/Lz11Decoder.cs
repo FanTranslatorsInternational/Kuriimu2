@@ -1,11 +1,14 @@
 ﻿using System.IO;
 using Kompression.Exceptions;
+using Kompression.IO;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class Lz11Decoder: IPatternMatchDecoder
+    class Lz11Decoder : IPatternMatchDecoder
     {
+        private CircularBuffer _circularBuffer;
+
         public void Decode(Stream input, Stream output)
         {
             var compressionHeader = new byte[4];
@@ -19,8 +22,7 @@ namespace Kompression.Implementations.Decoders
         }
         private void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
-            int bufferLength = 0x1000, bufferOffset = 0;
-            byte[] buffer = new byte[bufferLength];
+            _circularBuffer = new CircularBuffer(0x1000);
 
             int flags = 0, mask = 1;
             while (output.Length < decompressedSize)
@@ -37,24 +39,24 @@ namespace Kompression.Implementations.Decoders
                     mask >>= 1;
                 }
 
-                bufferOffset = (flags & mask) > 0 ?
-                    HandleCompressedBlock(input, output, buffer, bufferOffset) :
-                    HandleUncompressedBlock(input, output, buffer, bufferOffset);
+                if ((flags & mask) > 0)
+                    HandleCompressedBlock(input, output);
+                else
+                    HandleUncompressedBlock(input, output);
             }
         }
 
-        private int HandleUncompressedBlock(Stream input, Stream output, byte[] windowBuffer, int windowBufferOffset)
+        private void HandleUncompressedBlock(Stream input, Stream output)
         {
             var next = input.ReadByte();
             if (next < 0)
                 throw new StreamTooShortException();
 
             output.WriteByte((byte)next);
-            windowBuffer[windowBufferOffset] = (byte)next;
-            return (windowBufferOffset + 1) % windowBuffer.Length;
+            _circularBuffer.WriteByte((byte)next);
         }
 
-        private int HandleCompressedBlock(Stream input, Stream output, byte[] windowBuffer, int windowBufferOffset)
+        private void HandleCompressedBlock(Stream input, Stream output)
         {
             // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
@@ -77,16 +79,7 @@ namespace Kompression.Implementations.Decoders
                 (length, displacement) = HandleRemainingCompressedBlock(byte1, byte2, input, output);
             }
 
-            var bufferIndex = windowBufferOffset + windowBuffer.Length - displacement;
-            for (var i = 0; i < length; i++)
-            {
-                var next = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                output.WriteByte(next);
-                windowBuffer[windowBufferOffset] = next;
-                windowBufferOffset = (windowBufferOffset + 1) % windowBuffer.Length;
-            }
-
-            return windowBufferOffset;
+            CircularBuffer.ArbitraryCopy(_circularBuffer, output, displacement, length);
         }
 
         private (int length, int displacement) HandleZeroCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
@@ -133,7 +126,7 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            // Nothing to dispose
+            _circularBuffer?.Dispose();
         }
     }
 }

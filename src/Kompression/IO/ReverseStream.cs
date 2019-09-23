@@ -7,11 +7,13 @@ namespace Kompression.IO
     public class ReverseStream : Stream
     {
         private Stream _baseStream;
+        private bool _forwardIO;
 
-        public ReverseStream(Stream baseStream)
+        public ReverseStream(Stream baseStream, bool forwardIO = false)
         {
             // Assign private members
             _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+            _forwardIO = forwardIO;
         }
 
         public override long Position
@@ -34,8 +36,13 @@ namespace Kompression.IO
                 throw new BeginningOfStreamException();
 
             Position -= count;
-            var read = _baseStream.Read(buffer, offset, (int)Math.Min(count, _baseStream.Length - Position));
-            Position -= count;
+            var toRead = (int)Math.Min(count, _baseStream.Length - Position);
+            var read = _baseStream.Read(buffer, offset, toRead);
+            Position -= toRead;
+
+            if (!_forwardIO)
+                Array.Reverse(buffer, offset, toRead);
+
             return read;
         }
 
@@ -45,7 +52,17 @@ namespace Kompression.IO
                 throw new BeginningOfStreamException();
 
             Position -= count;
-            _baseStream.Write(buffer, offset, count);
+            if (!_forwardIO)
+            {
+                var reverseBuffer = new byte[count];
+                Array.Copy(buffer, offset, reverseBuffer, 0, count);
+                Array.Reverse(reverseBuffer);
+                _baseStream.Write(reverseBuffer, 0, count);
+            }
+            else
+            {
+                _baseStream.Write(buffer, offset, count);
+            }
             Position -= count;
         }
 

@@ -1,5 +1,6 @@
 ﻿using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Encoders;
+using Kompression.Implementations.MatchFinders;
 using Kompression.Implementations.PriceCalculators;
 using Kompression.PatternMatch;
 using Kompression.PatternMatch.LempelZiv;

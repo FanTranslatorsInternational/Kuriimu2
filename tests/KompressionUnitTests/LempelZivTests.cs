@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Kompression.Implementations;
+using Kompression.Implementations.Decoders;
+using Kompression.Implementations.Encoders;
 using Kompression.PatternMatch.LempelZiv.Support;
 using Kompression.Specialized.SlimeMoriMori;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -301,13 +303,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Compress()
         {
-            var file = @"D:\Users\Kirito\Desktop\711.dat";
+            var file = @"D:\Users\Kirito\Desktop\masterFile.decomp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".comp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new TaikoLz80().Compress(str, save);
+            new LZ11().Compress(str, save);
             watch.Stop();
 
             save.Close();
@@ -316,13 +318,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Stub_Slime_Decompress()
         {
-            var file = @"D:\Users\Kirito\Desktop\skit_sys.anm.comp";
+            var file = @"D:\Users\Kirito\Desktop\masterFile.decomp.comp";
             var str = File.OpenRead(file);
             var save = File.Create(file + ".decomp");
 
             var watch = new Stopwatch();
             watch.Start();
-            new TalesOf01().Decompress(str, save);
+            new LZ11().Decompress(str, save);
             watch.Stop();
 
             save.Close();
