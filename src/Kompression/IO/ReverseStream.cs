@@ -1,73 +1,91 @@
 ﻿using System;
 using System.IO;
-using Kompression.Exceptions;
 
 namespace Kompression.IO
 {
     public class ReverseStream : Stream
     {
         private Stream _baseStream;
-        private bool _forwardIO;
+        private readonly long _length;
 
-        public ReverseStream(Stream baseStream, bool forwardIO = false)
+        public ReverseStream(Stream baseStream, long length)
         {
             // Assign private members
             _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
-            _forwardIO = forwardIO;
+            _length = length;
         }
 
-        public override long Position
-        {
-            get => _baseStream.Position;
-            set => _baseStream.Position = value;
-        }
+        public override long Position { get; set; }
+        public override long Length => _length;
+        public override bool CanRead => true;
+        public override bool CanWrite => true;
+        public override bool CanSeek => true;
 
-        public override long Length => _baseStream.Length;
-        public override bool CanRead => _baseStream.CanRead;
-        public override bool CanWrite => _baseStream.CanWrite;
-        public override bool CanSeek => _baseStream.CanSeek;
-        public override void Flush() => _baseStream.Flush();
+        public override void Flush() { }
 
-        public override void SetLength(long value) => _baseStream.SetLength(value);
+        public override void SetLength(long value) => throw new NotSupportedException();
 
+        /// <inheritdoc cref="Read"/>
         public override int Read(byte[] buffer, int offset, int count)
         {
-            if (Position - count < 0)
-                throw new BeginningOfStreamException();
+            if (Position < 0)
+                throw new EndOfStreamException();
 
-            Position -= count;
-            var toRead = (int)Math.Min(count, _baseStream.Length - Position);
-            var read = _baseStream.Read(buffer, offset, toRead);
-            Position -= toRead;
+            var toRead = (int)Math.Min(count, Length - Position);
 
-            if (!_forwardIO)
-                Array.Reverse(buffer, offset, toRead);
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Length - Position - toRead;
+            _baseStream.Read(buffer, offset, toRead);
+            _baseStream.Position = bkPos;
 
-            return read;
+            Array.Reverse(buffer, offset, toRead);
+
+            Position += toRead;
+            return toRead;
         }
 
+        /// <inheritdoc cref="Write"/>
         public override void Write(byte[] buffer, int offset, int count)
         {
-            if (Position - count < 0)
-                throw new BeginningOfStreamException();
+            if (Position < 0)
+                throw new EndOfStreamException();
 
-            Position -= count;
-            if (!_forwardIO)
-            {
-                var reverseBuffer = new byte[count];
-                Array.Copy(buffer, offset, reverseBuffer, 0, count);
-                Array.Reverse(reverseBuffer);
-                _baseStream.Write(reverseBuffer, 0, count);
-            }
-            else
-            {
-                _baseStream.Write(buffer, offset, count);
-            }
-            Position -= count;
+            var toRead = (int)Math.Min(count, Length - Position);
+
+            var reverseBuffer = new byte[toRead];
+            Array.Copy(buffer, offset, reverseBuffer, 0, toRead);
+            Array.Reverse(reverseBuffer);
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = Length - Position - toRead;
+            _baseStream.Write(reverseBuffer, 0, toRead);
+            _baseStream.Position = bkPos;
+
+            Position += toRead;
         }
 
-        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
+        /// <inheritdoc cref="Seek"/>
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    Position = offset;
+                    break;
 
+                case SeekOrigin.Current:
+                    Position += offset;
+                    break;
+
+                case SeekOrigin.End:
+                    Position = Length + offset;
+                    break;
+            }
+
+            return Position;
+        }
+
+        /// <inheritdoc cref="Dispose"/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
@@ -25,8 +24,7 @@ namespace Kompression.Implementations.Encoders
             // Displacement goes to the end of the file relative to the match position
             // Length goes to the beginning of the file relative to the match position
 
-            var compressedLength = PrecalculateCompressedLength(input.Length, matches.Reverse());
-            var compressedDataPosition = compressedLength + 1;
+            var compressedLength = PrecalculateCompressedLength(input.Length, matches);
 
             _codeBlock = 0;
             _codeBlockPosition = 8;
@@ -35,16 +33,12 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[8 * 2];
             _bufferLength = 0;
 
-            using (var reverseInputStream = new ReverseStream(input))
-            using (var reverseOutputStream = new ReverseStream(output))
+            using (var reverseInputStream = new ReverseStream(input, input.Length))
+            using (var reverseOutputStream = new ReverseStream(output, compressedLength))
             {
-                reverseInputStream.Position = input.Length;
-                reverseOutputStream.Position = compressedDataPosition;
-
-                foreach (var match in matches.Reverse())
+                foreach (var match in matches)
                 {
-                    var matchStart = match.Position + 1;
-                    while (matchStart < reverseInputStream.Position)
+                    while (match.Position > reverseInputStream.Position)
                     {
                         if (_codeBlockPosition == 0)
                             WriteAndResetBuffer(reverseOutputStream);
@@ -63,11 +57,11 @@ namespace Kompression.Implementations.Encoders
                     _buffer[_bufferLength++] = (byte)byte1;
                     _buffer[_bufferLength++] = (byte)byte2;
 
-                    reverseInputStream.Position -= match.Length;
+                    reverseInputStream.Position += match.Length;
                 }
 
                 // Write any data after last match, to the buffer
-                while (reverseInputStream.Position > 0)
+                while (reverseInputStream.Position < reverseInputStream.Length)
                 {
                     if (_codeBlockPosition == 0)
                         WriteAndResetBuffer(reverseOutputStream);
@@ -79,7 +73,7 @@ namespace Kompression.Implementations.Encoders
                 // Flush remaining buffer to stream
                 WriteAndResetBuffer(reverseOutputStream);
 
-                output.Position = compressedDataPosition;
+                output.Position = compressedLength;
                 WriteFooterInformation(input, output);
             }
         }
@@ -91,45 +85,23 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 var rawLength = uncompressedLength - match.Position - 1;
-                for (var i = 0; i < rawLength; i++)
-                {
-                    if (writtenCodes == 8)
-                    {
-                        length++;
-                        writtenCodes = 0;
-                    }
 
-                    writtenCodes++;
-                    length++;
-                    uncompressedLength--;
-                }
+                // Raw data before match
+                length += (int)rawLength;
+                writtenCodes += (int)rawLength;
+                uncompressedLength -= rawLength;
 
-                if (writtenCodes == 8)
-                {
-                    length++;
-                    writtenCodes = 0;
-                }
-
+                // Match data
                 writtenCodes++;
                 length += 2;
                 uncompressedLength -= match.Length;
             }
 
-            for (var i = 0; i < uncompressedLength; i++)
-            {
-                if (writtenCodes == 8)
-                {
-                    length++;
-                    writtenCodes = 0;
-                }
+            length += (int)uncompressedLength;
+            writtenCodes += (int)uncompressedLength;
 
-                writtenCodes++;
-                length++;
-                uncompressedLength--;
-            }
-
-            if (writtenCodes == 8)
-                length++;
+            length += writtenCodes / 8;
+            length += writtenCodes % 8 > 0 ? 1 : 0;
 
             return length;
         }
@@ -138,7 +110,7 @@ namespace Kompression.Implementations.Encoders
         {
             // Remember count of padding bytes
             var padding = 0;
-            if (output.Position % 4 != 0)
+            if (output.Length % 4 != 0)
                 padding = (int)(4 - output.Position % 4);
 
             // Write padding

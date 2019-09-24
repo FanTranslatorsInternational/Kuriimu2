@@ -23,7 +23,7 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(null, 0, new BackwardLz77MatchFinder(0, 0, 0, 0));
+            return new NewOptimalParser(null, 0, new HistoryMatchFinder(0, 0, 0, 0));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

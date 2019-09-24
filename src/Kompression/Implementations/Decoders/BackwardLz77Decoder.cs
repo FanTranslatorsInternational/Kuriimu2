@@ -18,24 +18,21 @@ namespace Kompression.Implementations.Decoders
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
+            input.Position = input.Length - 8;
 
-            using (var inputReverseStream = new ReverseStream(input))
-            using (var outputReverseStream = new ReverseStream(output))
+            input.Read(buffer, 0, 4);
+            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+
+            input.Read(buffer, 0, 4);
+            var decompressedOffset = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+
+            var footerLength = bufferTopAndBottom >> 24;
+            var compressedSize = bufferTopAndBottom & 0xFFFFFF;
+
+            using (var inputReverseStream = new ReverseStream(input, input.Length - footerLength))
+            using (var outputReverseStream = new ReverseStream(output, input.Length + decompressedOffset))
             {
-                input.Position = input.Length - 8;
-
-                input.Read(buffer, 0, 4);
-                var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
-
-                input.Read(buffer, 0, 4);
-                var originalBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
-
-                var sourcePosition = input.Length - (bufferTopAndBottom >> 24);
-                var destinationPosition = input.Length + originalBottom;
-                var endPosition = input.Length - (bufferTopAndBottom & 0xFFFFFF);
-
-                inputReverseStream.Position = sourcePosition;
-                outputReverseStream.Position = destinationPosition;
+                var endPosition = compressedSize - footerLength;
                 ReadCompressedData(inputReverseStream, outputReverseStream, endPosition);
             }
         }
@@ -46,7 +43,7 @@ namespace Kompression.Implementations.Decoders
 
             var codeBlock = input.ReadByte();
             var codeBlockPosition = 8;
-            while (input.Position - endPosition > 0)
+            while (input.Position < endPosition)
             {
                 if (codeBlockPosition == 0)
                 {

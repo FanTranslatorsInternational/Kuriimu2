@@ -5,7 +5,7 @@ using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.MatchFinders
 {
-    class BackwardLz77MatchFinder : IMatchFinder
+    class HistoryMatchFinder : IMatchFinder
     {
         private int windowPos;
         private int windowLen;
@@ -22,7 +22,7 @@ namespace Kompression.Implementations.MatchFinders
         public DataType DataType { get; }
         public bool UseLookAhead { get; }
 
-        public BackwardLz77MatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement, int maxDisplacement,
+        public HistoryMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement, int maxDisplacement,
             bool lookAhead = true, DataType dataType = DataType.Byte)
         {
             if (minMatchSize % (int)dataType != 0 || maxMatchSize % (int)dataType != 0 ||

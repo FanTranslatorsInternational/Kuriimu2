@@ -1,5 +1,6 @@
 ﻿using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Encoders;
+using Kompression.Implementations.MatchFinders;
 using Kompression.Implementations.PriceCalculators;
 using Kompression.PatternMatch;
 using Kompression.PatternMatch.LempelZiv;
@@ -16,7 +17,7 @@ namespace Kompression.Implementations
         protected override IMatchParser CreateParser(int inputLength)
         {
             return new NewOptimalParser(new Lz40PriceCalculator(), 0,
-                new HybridSuffixTreeMatchFinder(0x3, 0x1010F, 1, 0xFFF));
+                new HistoryMatchFinder(0x3, 0x1010F, 1, 0xFFF));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

@@ -19,7 +19,7 @@ namespace Kompression.Implementations
         protected override IMatchParser CreateParser(int inputLength)
         {
             return new NewOptimalParser(new BackwardLz77PriceCalculator(), 0,
-                new BackwardLz77MatchFinder(3, 0x12, 3, 0x1002));
+                new HistoryMatchFinder(3, 0x12, 3, 0x1002));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

@@ -34,12 +34,6 @@ namespace Kompression.Implementations
 
             // Parse matches
             var matches = parser.ParseMatches(inputArray, PreBufferLength);
-            if (IsBackwards)
-            {
-                Array.Reverse(matches);
-                foreach (var match in matches)
-                    match.Position = input.Length - match.Position - 1;
-            }
 
             // Encode matches and remaining raw data
             encoder.Encode(input, output, matches);
