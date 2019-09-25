@@ -7,8 +7,11 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
+
+// TODO: Add all features
 
 namespace plugin_mt_framework.GFDv2
 {

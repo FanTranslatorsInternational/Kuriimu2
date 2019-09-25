@@ -1,13 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using Kanvas;
-using Kanvas.Format;
+using Kanvas.Encoding;
+using Kanvas.Encoding.Support.ATI.Models;
+using Kanvas.Encoding.Support.DXT.Models;
 using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Attributes;
+using Kontract.FileSystem;
 using Kontract.Interfaces.Image;
+using Kontract.Models.Image;
 
 namespace plugin_mt_framework.TEX
 {
@@ -91,64 +97,68 @@ namespace plugin_mt_framework.TEX
             public int Unknown3;
         }
 
-        public sealed class MTTexBitmapInfo : BitmapInfo
-        {
-            [Category("Properties")]
-            [ReadOnly(true)]
-            public string Format { get; set; }
+        //public sealed class MTTexBitmapInfo : BitmapInfo
+        //{
+        //    [Category("Properties")]
+        //    [ReadOnly(true)]
+        //    public string Format { get; set; }
 
-            public MTTexBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
-        }
+        //    public MTTexBitmapInfo(Bitmap image, FormatInfo formatInfo) : base(image, formatInfo) { }
+        //}
 
-        public static Dictionary<byte, IImageFormat> Formats = new Dictionary<byte, IImageFormat>
+        public static Dictionary<byte, IColorEncoding> Formats = new Dictionary<byte, IColorEncoding>
         {
             [1] = new RGBA(4, 4, 4, 4),
             [2] = new RGBA(5, 5, 5, 1),
             [3] = new RGBA(8, 8, 8, 8),
             [4] = new RGBA(5, 6, 5),
             [7] = new LA(8, 8),
-            [11] = new ETC1(false, true),
-            [12] = new ETC1(true, true),
+            [11] = new ETC1(false),
+            [12] = new ETC1(true),
             [14] = new LA(0, 4),
             [15] = new LA(4, 0),
             [16] = new LA(4, 4),
             [17] = new RGBA(8, 8, 8),
 
-            [19] = new DXT(DXT.Format.DXT1),
-            [20] = new DXT(DXT.Format.DXT3),
-            [23] = new DXT(DXT.Format.DXT5),
-            [25] = new DXT(DXT.Format.DXT1),
-            [33] = new DXT(DXT.Format.DXT5),
-            [39] = new DXT(DXT.Format.DXT5),
-            [42] = new DXT(DXT.Format.DXT5)
+            [19] = new DXT(DxtFormat.DXT1),
+            [20] = new DXT(DxtFormat.DXT3),
+            [23] = new DXT(DxtFormat.DXT5),
+            [25] = new DXT(DxtFormat.DXT1),
+            [33] = new DXT(DxtFormat.DXT5),
+            [39] = new DXT(DxtFormat.DXT5),
+            [42] = new DXT(DxtFormat.DXT5)
         };
 
-        public static Dictionary<byte, IImageFormat> SwitchFormats = new Dictionary<byte, IImageFormat>
+        public static EncodingInfo[] EncodingInfos=Formats.Select(x=>new EncodingInfo(x.Key,x.Value.FormatName)).ToArray();
+
+        public static Dictionary<byte, IColorEncoding> SwitchFormats = new Dictionary<byte, IColorEncoding>
         {
-            [0x07] = new RGBA(8, 8, 8, 8) { ByteOrder = ByteOrder.BigEndian },
-            [0x13] = new DXT(DXT.Format.DXT1),
-            [0x17] = new DXT(DXT.Format.DXT5),
-            [0x19] = new ATI(ATI.Format.ATI1A),
-            [0x1F] = new ATI(ATI.Format.ATI2)
+            [0x07] = new RGBA(8, 8, 8, 8) { ByteOrder = Kanvas.Models.ByteOrder.BigEndian },
+            [0x13] = new DXT(DxtFormat.DXT1),
+            [0x17] = new DXT(DxtFormat.DXT5),
+            [0x19] = new ATI(AtiFormat.ATI1A),
+            [0x1F] = new ATI(AtiFormat.ATI2)
         };
 
-        public class BlockSwizzle : IImageSwizzle
-        {
-            private MasterSwizzle _swizzle;
+        public static EncodingInfo[] SwitchEncodingInfos = SwitchFormats.Select(x => new EncodingInfo(x.Key, x.Value.FormatName)).ToArray();
 
-            public int Width { get; }
-            public int Height { get; }
+        //public class BlockSwizzle : IImageSwizzle
+        //{
+        //    private MasterSwizzle _swizzle;
 
-            public BlockSwizzle(int width, int height)
-            {
-                Width = (width + 3) & ~3;
-                Height = (height + 3) & ~3;
+        //    public int Width { get; }
+        //    public int Height { get; }
 
-                _swizzle = new MasterSwizzle(Width, new Point(0, 0), new[] { (1, 0), (2, 0), (0, 1), (0, 2) });
-            }
+        //    public BlockSwizzle(int width, int height)
+        //    {
+        //        Width = (width + 3) & ~3;
+        //        Height = (height + 3) & ~3;
 
-            public Point Get(Point point) => _swizzle.Get(point.Y * Width + point.X);
-        }
+        //        _swizzle = new MasterSwizzle(Width, new Point(0, 0), new[] { (1, 0), (2, 0), (0, 1), (0, 2) });
+        //    }
+
+        //    public Point Get(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        //}
 
         // Currently trying out YCbCr:
         // https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
@@ -163,9 +173,9 @@ namespace plugin_mt_framework.TEX
         {
             var (A, Y, Cb, Cr) = (c.G, c.A, c.B - CbCrThreshold, c.R - CbCrThreshold);
             return Color.FromArgb(A,
-                Common.Clamp(Y + 1.402 * Cr),
-                Common.Clamp(Y - 0.344136 * Cb - 0.714136 * Cr),
-                Common.Clamp(Y + 1.772 * Cb));
+                Clamp(Y + 1.402 * Cr, 0, 256),
+                Clamp(Y - 0.344136 * Cb - 0.714136 * Cr, 0, 256),
+                Clamp(Y + 1.772 * Cb, 0, 256));
         }
 
         public static Color ToOptimisedColors(Color c)
@@ -174,7 +184,12 @@ namespace plugin_mt_framework.TEX
                 0.299 * c.R + 0.587 * c.G + 0.114 * c.B,
                 CbCrThreshold - 0.168736 * c.R - 0.331264 * c.G + 0.5 * c.B,
                 CbCrThreshold + 0.5 * c.R - 0.418688 * c.G - 0.081312 * c.B);
-            return Color.FromArgb(Common.Clamp(Y), Common.Clamp(Cr), A, Common.Clamp(Cb));
+            return Color.FromArgb(Clamp(Y,0,256), Clamp(Cr, 0, 256), A, Clamp(Cb, 0, 256));
+        }
+
+        private static int Clamp(double value,int min,int max)
+        {
+            return (int)Math.Min(Math.Max(value, min), max - 1);
         }
     }
 }

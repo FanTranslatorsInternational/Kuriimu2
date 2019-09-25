@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Kontract.Exceptions;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
-using Kontract.MEF;
+using Kontract.MEF.Interfaces;
+
+#if NET_CORE_21
+using System.Composition;
+using System.Composition.Hosting;
+using System.Runtime.Loader;
+#else
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
+using Kontract.MEF.Providers;
 using Kontract.MEF.Catalogs;
 using Kontract.MEF.ErrorReports;
-using Kontract.MEF.Interfaces;
-using Kontract.MEF.Providers;
-using Kontract.Providers;
-using Kontract.Providers.Models;
+#endif
 
 namespace Kontract
 {
@@ -56,9 +60,28 @@ namespace Kontract
         /// <param name="errors">List of occured composition errors.</param>
         /// <exception cref="PluginInconsistencyException">If plugins demand types that can't be satisfied on load.</exception>
         /// <returns>Was composition successful.</returns>
+        // TODO: Adjust net core plugin composition
         public static bool TryComposePlugins(object parent, string pluginDirectory, Type[] types, out IList<IErrorReport> errors)
         {
             errors = new List<IErrorReport>();
+
+#if NET_CORE_21
+
+            if (!(parent is PluginLoader loader) || !Directory.Exists(pluginDirectory))
+                return false;
+
+            var assemblies = Directory
+                .GetFiles(pluginDirectory, "*.dll", SearchOption.AllDirectories)
+                .Select(AssemblyLoadContext.Default.LoadFromAssemblyPath)
+                .ToList();
+            var configuration = new ContainerConfiguration()
+                .WithAssemblies(assemblies);
+            using (var container = configuration.CreateContainer())
+            {
+                loader.Plugins = container.GetExports<IPlugin>();
+            }
+
+#else
 
             // An aggregate catalog that combines multiple catalogs.
             var catalog = new AggregateCatalog();
@@ -102,15 +125,21 @@ namespace Kontract
                     errors.Add(e);
             }
 
+#endif
+
             return !errors.Any();
         }
 
         #region Imports
 #pragma warning disable 0649, 0169
 
+#if NET_CORE_21
+        [ImportMany]
+        internal IEnumerable<IPlugin> Plugins { get; set; }
+#else
         [ImportMany(typeof(IPlugin))]
-        // ReSharper disable once CollectionNeverUpdated.Local
         private List<IPlugin> _plugins;
+#endif
 
 #pragma warning restore 0649, 0169
         #endregion
@@ -136,8 +165,14 @@ namespace Kontract
 
             if (!TryComposePlugins(this, PluginFolder, out var errors))
                 CompositionErrors = errors;
+
+#if NET_CORE_21
+            if (Plugins == null)
+                Plugins = new List<IPlugin>();
+#else
             if (_plugins == null)
                 _plugins = new List<IPlugin>();
+#endif
         }
 
         /// <summary>
@@ -148,10 +183,16 @@ namespace Kontract
         /// <returns>The new instance of the adapter.</returns>
         public T CreateNewAdapter<T>(string fqn)
         {
-            var adapter = _plugins.FirstOrDefault(x => x.GetType().FullName == fqn);
+#if NET_CORE_21
+            IEnumerable<IPlugin> plugins = Plugins;
+#else
+            IEnumerable<IPlugin> plugins = _plugins;
+#endif
+
+            var adapter = plugins.FirstOrDefault(x => x.GetType().FullName == fqn);
 
             if (adapter == null)
-                return default(T);
+                return default;
 
             return (T)Activator.CreateInstance(adapter.GetType());
         }
@@ -164,8 +205,14 @@ namespace Kontract
         /// <returns>The new instance of the adapter.</returns>
         public T CreateNewAdapter<T>(IPlugin adapter)
         {
+#if NET_CORE_21
+            IEnumerable<IPlugin> plugins = Plugins;
+#else
+            IEnumerable<IPlugin> plugins = _plugins;
+#endif
+
             var adapterType = adapter.GetType();
-            var chosenAdapter = _plugins.FirstOrDefault(x => x.GetType() == adapterType && x is T);
+            var chosenAdapter = plugins.FirstOrDefault(x => x.GetType() == adapterType && x is T);
 
             if (chosenAdapter == null)
                 return default(T);
@@ -178,7 +225,16 @@ namespace Kontract
         /// </summary>
         /// <typeparam name="T">Adapter type.</typeparam>
         /// <returns>List of adapters of type T.</returns>
-        public List<T> GetAdapters<T>() => _plugins.Where(p => p is T).Cast<T>().ToList();
+        public List<T> GetAdapters<T>()
+        {
+#if NET_CORE_21
+            IEnumerable<IPlugin> plugins = Plugins;
+#else
+            IEnumerable<IPlugin> plugins = _plugins;
+#endif
+
+            return plugins.Where(p => p is T).Cast<T>().ToList();
+        }
 
         /// <summary>
         /// Returns the given <see cref="T"/> metadata attribute that is attached to the adapter.

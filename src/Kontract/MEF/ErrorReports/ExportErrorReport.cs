@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET_CORE_21
+using System;
 using System.ComponentModel.Composition.Primitives;
 using Kontract.MEF.Interfaces;
 // ReSharper disable MemberCanBePrivate.Global
@@ -53,3 +54,4 @@ namespace Kontract.MEF.ErrorReports
         }
     }
 }
+#endif

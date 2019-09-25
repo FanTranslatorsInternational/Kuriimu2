@@ -8,10 +8,10 @@ namespace Kuriimu2_WinForms.MainForms.Models
 {
     internal class FormatWrapper
     {
-        public int Value { get; }
+        public object Value { get; }
         public string Name { get; }
 
-        public FormatWrapper(int value, string name)
+        public FormatWrapper(object value, string name)
         {
             Value = value;
             Name = name;

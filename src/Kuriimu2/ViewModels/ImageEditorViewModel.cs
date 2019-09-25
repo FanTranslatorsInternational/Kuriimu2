@@ -238,9 +238,27 @@ namespace Kuriimu2.ViewModels
             var result = await batchExport.Export(_fileManager, progress);
         }
 
+        public void ChangeFormat()
+        {
+            if (!(_adapter is IImageAdapter img)) return;
+
+            var ei = new EncodeImageViewModel(_fileManager, _adapter, _selectedBitmapEntry.BitmapInfo)
+            {
+                Title = $"Change Format",
+                SelectedZoomLevel = SelectedZoomLevel
+            };
+            _windows.Add(ei);
+            
+            if (_wm.ShowDialog(ei) != true) return;
+
+            NotifyOfPropertyChange(() => SelectedBitmap);
+            //if (ei.HasChanges)
+            //    KoreFile.HasChanges = true;
+        }
+
         public void ImageProperties()
         {
-            if (!(_adapter is IImageAdapter fnt)) return;
+            if (!(_adapter is IImageAdapter img)) return;
 
             var pe = new PropertyEditorViewModel<IImageAdapter>
             {

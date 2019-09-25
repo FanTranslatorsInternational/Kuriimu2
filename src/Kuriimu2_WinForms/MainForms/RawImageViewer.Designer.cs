@@ -34,6 +34,11 @@
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.pbMain = new Cyotek.Windows.Forms.ImageBox();
             this.tslPbProperties = new System.Windows.Forms.ToolStrip();
+            this.tslZoom = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidth = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbWidthLabel = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeight = new System.Windows.Forms.ToolStripLabel();
+            this.tslPbHeightLabel = new System.Windows.Forms.ToolStripLabel();
             this.btnDecode = new System.Windows.Forms.Button();
             this.splProperties = new System.Windows.Forms.SplitContainer();
             this.tbHeight = new System.Windows.Forms.TextBox();
@@ -47,11 +52,6 @@
             this.cbSwizzle = new System.Windows.Forms.ComboBox();
             this.cbEncoding = new System.Windows.Forms.ComboBox();
             this.splExtendedProperties = new System.Windows.Forms.SplitContainer();
-            this.tslZoom = new System.Windows.Forms.ToolStripLabel();
-            this.tslPbWidth = new System.Windows.Forms.ToolStripLabel();
-            this.tslPbWidthLabel = new System.Windows.Forms.ToolStripLabel();
-            this.tslPbHeight = new System.Windows.Forms.ToolStripLabel();
-            this.tslPbHeightLabel = new System.Windows.Forms.ToolStripLabel();
             this.mnuMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
             this.splMain.Panel1.SuspendLayout();
@@ -108,8 +108,8 @@
             // splMain.Panel2
             // 
             this.splMain.Panel2.Controls.Add(this.splProperties);
-            this.splMain.Size = new System.Drawing.Size(522, 622);
-            this.splMain.SplitterDistance = 463;
+            this.splMain.Size = new System.Drawing.Size(522, 628);
+            this.splMain.SplitterDistance = 469;
             this.splMain.TabIndex = 1;
             // 
             // pbMain
@@ -119,7 +119,7 @@
             this.pbMain.GridCellSize = 16;
             this.pbMain.Location = new System.Drawing.Point(5, 5);
             this.pbMain.Name = "pbMain";
-            this.pbMain.Size = new System.Drawing.Size(512, 405);
+            this.pbMain.Size = new System.Drawing.Size(512, 411);
             this.pbMain.TabIndex = 0;
             this.pbMain.ZoomChanged += new System.EventHandler(this.PbMain_ZoomChanged);
             // 
@@ -134,16 +134,48 @@
             this.tslPbWidthLabel,
             this.tslPbHeight,
             this.tslPbHeightLabel});
-            this.tslPbProperties.Location = new System.Drawing.Point(5, 410);
+            this.tslPbProperties.Location = new System.Drawing.Point(5, 416);
             this.tslPbProperties.Name = "tslPbProperties";
             this.tslPbProperties.Size = new System.Drawing.Size(512, 25);
             this.tslPbProperties.TabIndex = 2;
             this.tslPbProperties.Text = "toolStrip1";
             // 
+            // tslZoom
+            // 
+            this.tslZoom.Name = "tslZoom";
+            this.tslZoom.Size = new System.Drawing.Size(73, 22);
+            this.tslZoom.Text = "Zoom: 100%";
+            // 
+            // tslPbWidth
+            // 
+            this.tslPbWidth.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidth.Name = "tslPbWidth";
+            this.tslPbWidth.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbWidthLabel
+            // 
+            this.tslPbWidthLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbWidthLabel.Name = "tslPbWidthLabel";
+            this.tslPbWidthLabel.Size = new System.Drawing.Size(42, 22);
+            this.tslPbWidthLabel.Text = "Width:";
+            // 
+            // tslPbHeight
+            // 
+            this.tslPbHeight.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeight.Name = "tslPbHeight";
+            this.tslPbHeight.Size = new System.Drawing.Size(0, 22);
+            // 
+            // tslPbHeightLabel
+            // 
+            this.tslPbHeightLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tslPbHeightLabel.Name = "tslPbHeightLabel";
+            this.tslPbHeightLabel.Size = new System.Drawing.Size(46, 22);
+            this.tslPbHeightLabel.Text = "Height:";
+            // 
             // btnDecode
             // 
             this.btnDecode.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.btnDecode.Location = new System.Drawing.Point(5, 435);
+            this.btnDecode.Location = new System.Drawing.Point(5, 441);
             this.btnDecode.Name = "btnDecode";
             this.btnDecode.Size = new System.Drawing.Size(512, 23);
             this.btnDecode.TabIndex = 1;
@@ -277,43 +309,11 @@
             this.splExtendedProperties.SplitterDistance = 48;
             this.splExtendedProperties.TabIndex = 0;
             // 
-            // tslZoom
-            // 
-            this.tslZoom.Name = "tslZoom";
-            this.tslZoom.Size = new System.Drawing.Size(73, 22);
-            this.tslZoom.Text = "Zoom: 100%";
-            // 
-            // tslPbWidth
-            // 
-            this.tslPbWidth.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tslPbWidth.Name = "tslPbWidth";
-            this.tslPbWidth.Size = new System.Drawing.Size(0, 22);
-            // 
-            // tslPbWidthLabel
-            // 
-            this.tslPbWidthLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tslPbWidthLabel.Name = "tslPbWidthLabel";
-            this.tslPbWidthLabel.Size = new System.Drawing.Size(42, 22);
-            this.tslPbWidthLabel.Text = "Width:";
-            // 
-            // tslPbHeight
-            // 
-            this.tslPbHeight.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tslPbHeight.Name = "tslPbHeight";
-            this.tslPbHeight.Size = new System.Drawing.Size(0, 22);
-            // 
-            // tslPbHeightLabel
-            // 
-            this.tslPbHeightLabel.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.tslPbHeightLabel.Name = "tslPbHeightLabel";
-            this.tslPbHeightLabel.Size = new System.Drawing.Size(46, 22);
-            this.tslPbHeightLabel.Text = "Height:";
-            // 
             // RawImageViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(522, 646);
+            this.ClientSize = new System.Drawing.Size(522, 652);
             this.Controls.Add(this.splMain);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;

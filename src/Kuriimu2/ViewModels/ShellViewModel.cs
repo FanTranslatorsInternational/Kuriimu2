@@ -12,6 +12,7 @@ using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore;
+using Kore.Exceptions.FileManager;
 using Kore.Files;
 using Kore.Files.Models;
 using Kore.Utilities;

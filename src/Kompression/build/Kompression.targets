@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)..\runtimes\win-x86\native\ukkonen.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\ukkonen.dll</Link>
+      <Visible>false</Visible>
+    </Content>
+	<Content Include="$(MSBuildThisFileDirectory)..\runtimes\win-x64\native\ukkonen.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\ukkonen.dll</Link>
+      <Visible>false</Visible>
+    </Content>
+	<Content Include="$(MSBuildThisFileDirectory)..\runtimes\linux-x86\native\libukkonen.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\libukkonen.so</Link>
+      <Visible>false</Visible>
+    </Content>
+	<Content Include="$(MSBuildThisFileDirectory)..\runtimes\linux-x64\native\libukkonen.so">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>lib\libukkonen.so</Link>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+</Project>

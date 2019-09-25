@@ -9,6 +9,7 @@ namespace Kontract.Attributes
     [AttributeUsage(AttributeTargets.Class)]
     public class PluginExtensionInfoAttribute : Attribute, IPluginMetadata
     {
+        // TODO: Make this a list of extensions, not a concatinated string
         /// <summary>
         /// This is a semi-colon delimited list of file extensions supported by the plugin.
         /// "*.ext1;*.ext2"

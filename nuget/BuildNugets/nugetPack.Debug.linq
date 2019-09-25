@@ -18,33 +18,34 @@ void Main()
 	{
 		File.WriteAllText("version.txt", newVersion, Encoding.ASCII);
 
-		// The AssemblyInfo files to update with the new version.
-		var assemblies = new List<string> {
-			@"..\..\src\Kontract\Properties\AssemblyInfo.cs",
-			@"..\..\src\Komponent\Properties\AssemblyInfo.cs",
-			@"..\..\src\Kanvas\Properties\AssemblyInfo.cs",
-			@"..\..\src\Kryptography\Properties\AssemblyInfo.cs",
-			@"..\..\src\Kore\Properties\AssemblyInfo.cs"
+		// The project files to update with the new version.
+		var libraries = new List<string> {
+			@"..\..\src\Kontract\Kontract.csproj",
+			@"..\..\src\Komponent\Komponent.csproj",
+			@"..\..\src\Kanvas\Kanvas.csproj",
+			@"..\..\src\Kryptography\Kryptography.csproj",
+			@"..\..\src\Kompression\Kompression.csproj",
+			@"..\..\src\Kore\Kore.csproj"
 		};
 
-		// Set the new version in the AssemblyInfo files.
-		foreach (var assembly in assemblies)
+		// Set the new version in the project files.
+		foreach (var library in libraries)
 		{
-			var content = File.ReadAllText(assembly, Encoding.UTF8);
-			content = Regex.Replace(content, "\\(\"\\d\\.\\d\\.\\d\\.\\d\"\\)", "(\"" + newVersion + ".0\")");
-			File.WriteAllText(assembly, content, Encoding.UTF8);
+			var content = File.ReadAllText(library, Encoding.UTF8);
+			content = Regex.Replace(content, @"<PackageVersion>\d.\d.\d</PackageVersion>", "<PackageVersion>"+newVersion+"</PackageVersion>");
+			File.WriteAllText(library, content, Encoding.UTF8);
 		}
 
 		// Generate the NuGet packages.
-		var batch = Process.Start("cmd.exe", "/c nugetPack.Debug.bat");
+		var batch = Process.Start(@"nugetPack.Debug.bat");
 		batch.WaitForExit();
 
-		// Restore the AssemblyInfo files to v2.0.0.0.
-		foreach (var assembly in assemblies)
+		// Restore the project files to v2.0.0.
+		foreach (var library in libraries)
 		{
-			var content = File.ReadAllText(assembly, Encoding.UTF8);
-			content = Regex.Replace(content, "\\(\"\\d\\.\\d\\.\\d\\.\\d\"\\)", "(\"2.0.0.0\")");
-			File.WriteAllText(assembly, content, Encoding.UTF8);
+			var content = File.ReadAllText(library, Encoding.UTF8);
+			content = Regex.Replace(content, @"<PackageVersion>\d.\d.\d</PackageVersion>", "<PackageVersion>2.0.0</PackageVersion>");
+			File.WriteAllText(library, content, Encoding.UTF8);
 		}
 	}
 }

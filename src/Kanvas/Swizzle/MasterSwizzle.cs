@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using Kanvas.Interface;
 
 namespace Kanvas.Swizzle
 {
@@ -39,8 +40,8 @@ namespace Kanvas.Swizzle
 
             _init = init;
 
-            MacroTileWidth = bitFieldCoords.Select(p => p.Item1).Aggregate((x, y) => x | y) + 1;
-            MacroTileHeight = bitFieldCoords.Select(p => p.Item2).Aggregate((x, y) => x | y) + 1;
+            MacroTileWidth = bitFieldCoords.Select(p => p.Item1).Aggregate(0, (x, y) => x | y) + 1;
+            MacroTileHeight = bitFieldCoords.Select(p => p.Item2).Aggregate(0, (x, y) => x | y) + 1;
             _widthInTiles = (imageStride + MacroTileWidth - 1) / MacroTileWidth;
         }
 
