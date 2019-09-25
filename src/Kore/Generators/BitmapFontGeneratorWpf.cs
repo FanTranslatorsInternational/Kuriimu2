@@ -1,13 +1,13 @@
-﻿using System;
+﻿#if !NET_CORE_21
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Font;
 
 namespace Kore.Generators
 {
+    // TODO: Is this needed in Kore still?
     public class BitmapFontGeneratorWpf
     {
         // Input
@@ -138,3 +138,4 @@ namespace Kore.Generators
 
     }
 }
+#endif

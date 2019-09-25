@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET_CORE_21
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
@@ -72,3 +73,4 @@ namespace Kontract.MEF.Providers
         }
     }
 }
+#endif

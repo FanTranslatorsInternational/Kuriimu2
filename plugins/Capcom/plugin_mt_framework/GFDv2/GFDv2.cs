@@ -9,6 +9,7 @@ using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using plugin_mt_framework.TEX;
@@ -28,14 +29,7 @@ namespace plugin_mt_framework.GFDv2
 
         private string _sourceFile;
 
-        #region MT Tex Adapter
-
-        private CompositionContainer _container;
-
-        [ImportMany(typeof(IMtFrameworkTextureAdapter))]
         private List<IMtFrameworkTextureAdapter> _texAdapters;
-
-        #endregion
 
         public GFDv2()
         {
@@ -46,7 +40,7 @@ namespace plugin_mt_framework.GFDv2
             Textures = new List<Bitmap>();
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
         }
 
         public GFDv2(FileStream input)
@@ -54,7 +48,7 @@ namespace plugin_mt_framework.GFDv2
             _sourceFile = input.Name;
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
 
             using (var br = new BinaryReaderX(input))
             {
@@ -97,11 +91,11 @@ namespace plugin_mt_framework.GFDv2
                 Textures = new List<Bitmap>();
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    //TODO
-                    IMtFrameworkTextureAdapter texAdapter = null;//_texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    IMtFrameworkTextureAdapter texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).
+                        FirstOrDefault(adapter => ((IIdentifyFiles)adapter).
+                            Identify(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null));
                     if (texAdapter == null) continue;
-                    //TODO
-                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    ((ILoadFiles)texAdapter).Load(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                     Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Image);
                 }
             }
@@ -156,13 +150,13 @@ namespace plugin_mt_framework.GFDv2
                 // Textures
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    //TODO
-                    IMtFrameworkTextureAdapter texAdapter = null;// _texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    IMtFrameworkTextureAdapter texAdapter =_texAdapters.Where(adapter => adapter is IIdentifyFiles).
+                        FirstOrDefault(adapter => ((IIdentifyFiles)adapter).
+                            Identify(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null));
                     if (texAdapter == null) continue;
-                    //TODO
-                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    ((ILoadFiles)texAdapter).Load(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                     ((IImageAdapter)texAdapter).BitmapInfos[0].Image = Textures[i];
-                    //((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
+                    ((ISaveFiles)texAdapter).Save(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                 }
 
                 _sourceFile = output.Name;
@@ -251,7 +245,7 @@ namespace plugin_mt_framework.GFDv2
             }
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public class Block1
         {
             [BitField(12)]
@@ -262,7 +256,7 @@ namespace plugin_mt_framework.GFDv2
             public long TextureIndex;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public class Block2
         {
             [BitField(8)]
@@ -273,7 +267,7 @@ namespace plugin_mt_framework.GFDv2
             public long GlyphWidth;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public class Block3
         {
             [BitField(8)]

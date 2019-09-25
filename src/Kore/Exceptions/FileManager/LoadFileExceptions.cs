@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace Kore
+namespace Kore.Exceptions.FileManager
 {
     /// <summary>
     /// Exception thrown by the LoadFile function of Kore.

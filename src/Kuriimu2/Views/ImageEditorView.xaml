@@ -48,15 +48,10 @@
                             </VisualBrush>
                         </DockPanel.Background>
                         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" cal:Message.Attach="[Event PreviewMouseWheel] = [Action MouseWheel($eventArgs)]">
-                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" UseLayoutRounding="True">
-                                <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" Margin="0">
-                                    <Border.Effect>
-                                        <DropShadowEffect BlurRadius="3" ShadowDepth="0" Opacity="1" Color="Black" />
-                                    </Border.Effect>
-                                </Border>
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Margin="-1" UseLayoutRounding="True">
                                 <Image Source="{Binding SelectedImage}" RenderOptions.BitmapScalingMode="NearestNeighbor" cal:Message.Attach="[Event Drop] = [Action FileDrop($eventArgs)]">
                                     <Image.LayoutTransform>
-                                        <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}"></ScaleTransform>
+                                        <ScaleTransform ScaleX="{Binding SelectedZoomLevel}" ScaleY="{Binding SelectedZoomLevel}" />
                                     </Image.LayoutTransform>
                                 </Image>
                             </Grid>
@@ -90,7 +85,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"></RowDefinition>
                     <RowDefinition Height="Auto"></RowDefinition>
-                    <RowDefinition Height="Auto"></RowDefinition>
+                    <RowDefinition Height="2*"></RowDefinition>
                 </Grid.RowDefinitions>
 
                 <DockPanel Grid.Row="0">
@@ -124,6 +119,11 @@
                                 <Button Name="BatchExportPng" ToolTip="Batch Export">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="/Images/batch-export-image.png" Width="16" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Name="ChangeFormat" ToolTip="Change Format">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Source="/Images/encode-image.png" Width="16" />
                                     </StackPanel>
                                 </Button>
                             </ToolBar>
@@ -171,14 +171,20 @@
 
                 <Label Grid.Row="1" Height="0"></Label>
 
-                <DockPanel Grid.Row="2" Visibility="{Binding PaletteImageVisibility}">
+                
+                <Grid Grid.Row="2" Visibility="{Binding PaletteImageVisibility}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    
                     <ToolBarPanel DockPanel.Dock="Top">
                         <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
                             <Label Content="Palette"></Label>
                         </ToolBar>
                     </ToolBarPanel>
 
-                    <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray" VerticalAlignment="Top">
+                    <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="{Binding ActualHeight, RelativeSource={RelativeSource Self}}">
                         <Border.Background>
                             <VisualBrush TileMode="Tile" ViewportUnits="Absolute" Viewport="0 0 64 64">
                                 <VisualBrush.Visual>
@@ -186,9 +192,9 @@
                                 </VisualBrush.Visual>
                             </VisualBrush>
                         </Border.Background>
-                        <Image Grid.Column="0" Source="{Binding SelectedPaletteImage}" MinWidth="128" MinHeight="128" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+                        <Image Grid.Column="0" Source="{Binding SelectedPaletteImage}" RenderOptions.BitmapScalingMode="NearestNeighbor" MaxWidth="128" />
                     </Border>
-                </DockPanel>
+                </Grid>
                 
                 <!--<DockPanel Grid.Row="2">
                     --><!--<xc:PropertyGrid SelectedObject="{Binding SelectedBitmap}"></xc:PropertyGrid>-->
