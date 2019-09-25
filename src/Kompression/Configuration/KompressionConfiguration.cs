@@ -14,8 +14,8 @@ namespace Kompression.Configuration
         private Func<int[], IDecoder> _decoderFactory;
         private int[] _compressionModes;
 
-        private IMatchOptions _matchOptions;
-        private IHuffmanOptions _huffmanOptions;
+        private MatchOptions _matchOptions;
+        private HuffmanOptions _huffmanOptions;
 
         public KompressionConfiguration WithCompressionModes(params int[] modes)
         {
@@ -51,10 +51,26 @@ namespace Kompression.Configuration
             return this;
         }
 
-        public ICompression Build()
+        public Compressor Build()
         {
-            // TODO: Build the configuration into an executable ICompression implementation
-            return null;
+            var priceCalculator = _matchOptions?.PriceCalculatorFactory?.Invoke();
+            var limits = _matchOptions?.MatchFinderOptions?.LimitFactories?.Where(factory => factory != null)
+                .Select(factory => factory.Invoke()).ToList();
+            var matchFinders = _matchOptions?.MatchFinderOptions?.MatchFinderFactories?.
+                Where(factory => factory != null).Select(factory => factory.Invoke(limits)).ToList();
+            var skipAfterMatch = _matchOptions?.MatchParserOptions?.SkipAfterMatch ?? 0;
+            var matchParser = _matchOptions?.MatchParserOptions?.
+                MatchParserFactory?.Invoke(matchFinders, priceCalculator, skipAfterMatch);
+
+            var preBufferSize = _matchOptions?.MatchParserOptions?.PreBufferSize ?? 0;
+            var isBackwards = _matchOptions?.MatchFinderOptions?.FindBackwards ?? false;
+
+            var huffmanTreeBuilder = _huffmanOptions?.TreeBuilderFactory?.Invoke();
+
+            var decoder = _decoderFactory?.Invoke(_compressionModes);
+            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder, _compressionModes);
+
+            return new Compressor(encoder, decoder, preBufferSize, isBackwards);
         }
     }
 }

@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kompression.PatternMatch;
 
 namespace Kompression.Configuration
 {
     class MatchFinderOptions : IMatchFinderOptions
     {
-        public IList<Func<IMatchFinder>> _matchFinderFactories;
+        public IList<Func<IList<FindLimitations>, IMatchFinder>> MatchFinderFactories;
+        public IList<Func<FindLimitations>> LimitFactories;
         public bool FindBackwards { get; private set; }
 
         internal MatchFinderOptions() { }
@@ -20,12 +18,21 @@ namespace Kompression.Configuration
             return this;
         }
 
-        public IMatchFinderOptions FindMatchesWith(Func<IMatchFinder> matchFinderFactory)
+        public IMatchFinderOptions WithFindLimitations(Func<FindLimitations> limitFactory)
         {
-            if (_matchFinderFactories == null)
-                _matchFinderFactories = new List<Func<IMatchFinder>>();
+            if (LimitFactories == null)
+                LimitFactories = new List<Func<FindLimitations>>();
 
-            _matchFinderFactories.Add(matchFinderFactory);
+            LimitFactories.Add(limitFactory);
+            return this;
+        }
+
+        public IMatchFinderOptions FindMatchesWith(Func<IList<FindLimitations>, IMatchFinder> matchFinderFactory)
+        {
+            if (MatchFinderFactories == null)
+                MatchFinderFactories = new List<Func<IList<FindLimitations>, IMatchFinder>>();
+
+            MatchFinderFactories.Add(matchFinderFactory);
             return this;
         }
     }

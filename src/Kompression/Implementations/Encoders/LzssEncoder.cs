@@ -9,7 +9,8 @@ namespace Kompression.Implementations.Encoders
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;
-            new Lz10Encoder().WriteCompressedData(input, output, matches);
+            // TODO: Fix putting parser into encoder
+            new Lz10Encoder(null).WriteCompressedData(input, output, matches);
 
             var outputPos = output.Position;
             output.Position = outputStartPos;

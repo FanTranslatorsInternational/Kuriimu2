@@ -9,10 +9,11 @@ namespace Kompression.Configuration
 {
     class MatchOptions : IMatchOptions
     {
-        private IMatchFinderOptions _matchFinderOptions;
-        private IMatchParserOptions _matchParserOptions;
+        public MatchFinderOptions MatchFinderOptions { get; private set; }
 
-        public Func<IPriceCalculator> PriceCalculatorFactory;
+        public MatchParserOptions MatchParserOptions { get; private set; }
+
+        public Func<IPriceCalculator> PriceCalculatorFactory { get; private set; }
 
         internal MatchOptions() { }
 
@@ -24,17 +25,17 @@ namespace Kompression.Configuration
 
         public IMatchOptions WithMatchFinderOptions(Action<IMatchFinderOptions> configure)
         {
-            if (_matchFinderOptions == null)
-                _matchFinderOptions = new MatchFinderOptions();
-            configure(_matchFinderOptions);
+            if (MatchFinderOptions == null)
+                MatchFinderOptions = new MatchFinderOptions();
+            configure(MatchFinderOptions);
             return this;
         }
 
         public IMatchOptions WithMatchParserOptions(Action<IMatchParserOptions> configure)
         {
-            if (_matchParserOptions == null)
-                _matchParserOptions = new MatchParserOptions();
-            configure(_matchParserOptions);
+            if (MatchParserOptions == null)
+                MatchParserOptions = new MatchParserOptions();
+            configure(MatchParserOptions);
             return this;
         }
     }

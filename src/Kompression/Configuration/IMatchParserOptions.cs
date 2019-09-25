@@ -10,7 +10,7 @@ namespace Kompression.Configuration
     public interface IMatchParserOptions
     {
         IMatchParserOptions ParseMatchesWith(
-            Func<IMatchFinder, IPriceCalculator, IMatchParserOptions> matchParserFactory);
+            Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> matchParserFactory);
 
         IMatchParserOptions WithPreBufferSize(int size);
 

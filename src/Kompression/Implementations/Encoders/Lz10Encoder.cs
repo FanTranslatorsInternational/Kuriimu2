@@ -1,12 +1,21 @@
 ﻿using System;
 using System.IO;
+using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Lz10Encoder: IPatternMatchEncoder
+    class Lz10Encoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public Lz10Encoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -14,7 +23,8 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x10, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            WriteCompressedData(input, output,matches);
+            var matches = _matchParser.ParseMatches(input.ToArray(), (int)input.Position);
+            WriteCompressedData(input, output, matches);
         }
 
         internal void WriteCompressedData(Stream input, Stream output, Match[] matches)

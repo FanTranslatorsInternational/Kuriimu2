@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Kompression.Configuration;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.MatchFinders
 {
-    class HistoryMatchFinder : IMatchFinder
+    public class HistoryMatchFinder : IMatchFinder
     {
         private int windowPos;
         private int windowLen;
@@ -19,25 +20,29 @@ namespace Kompression.Implementations.MatchFinders
         public int MaxMatchSize { get; }
         public int MinDisplacement { get; }
         public int MaxDisplacement { get; }
+        public FindLimitations FindLimitations { get; }
         public DataType DataType { get; }
         public bool UseLookAhead { get; }
 
-        public HistoryMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement, int maxDisplacement,
+        public HistoryMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement, int maxDisplacement, bool lookAhead = true, DataType dataType = DataType.Byte)
+            : this(new FindLimitations(minMatchSize, maxMatchSize, minDisplacement, maxDisplacement), lookAhead, dataType)
+        {
+
+        }
+
+        public HistoryMatchFinder(FindLimitations limits,
             bool lookAhead = true, DataType dataType = DataType.Byte)
         {
-            if (minMatchSize % (int)dataType != 0 || maxMatchSize % (int)dataType != 0 ||
-                minDisplacement % (int)dataType != 0 || maxDisplacement % (int)dataType != 0)
+            if (limits.MinLength % (int)dataType != 0 || limits.MaxLength % (int)dataType != 0 ||
+                limits.MinDisplacement % (int)dataType != 0 || limits.MaxDisplacement % (int)dataType != 0)
                 throw new InvalidOperationException("All values must be dividable by data type.");
 
-            MinMatchSize = minMatchSize;
-            MaxMatchSize = maxMatchSize;
-            MinDisplacement = minDisplacement;
-            MaxDisplacement = maxDisplacement;
+            FindLimitations = limits;
             DataType = dataType;
             UseLookAhead = lookAhead;
 
-            _offsetTable = new int[MaxDisplacement];
-            _reversedOffsetTable = new int[MaxDisplacement];
+            _offsetTable = new int[limits.MaxDisplacement];
+            _reversedOffsetTable = new int[limits.MaxDisplacement];
         }
 
         private int _previousPosition = -1;
@@ -56,12 +61,12 @@ namespace Kompression.Implementations.MatchFinders
             _previousPosition = position;
 
             var displacement = 0;
-            var maxSize = Math.Min(input.Length - position, MaxMatchSize);
+            var maxSize = Math.Min(input.Length - position, FindLimitations.MaxLength);
 
-            if (maxSize < MinMatchSize)
+            if (maxSize < FindLimitations.MinLength)
                 yield break;
 
-            var size = MinMatchSize - 1;
+            var size = FindLimitations.MinLength - 1;
             for (var nOffset = _endTable[input[position]]; nOffset != -1; nOffset = _reversedOffsetTable[nOffset])
             {
                 var search = position + nOffset - windowPos;
@@ -70,13 +75,13 @@ namespace Kompression.Implementations.MatchFinders
                     search -= windowLen;
                 }
 
-                if (position - search < MinMatchSize)
+                if (position - search < FindLimitations.MinLength)
                 {
                     continue;
                 }
 
                 var isMatch = true;
-                for (var i = 1; i < MinMatchSize; i++)
+                for (var i = 1; i < FindLimitations.MinLength; i++)
                     if (input[search + i] != input[position + i])
                     {
                         isMatch = false;
@@ -88,7 +93,7 @@ namespace Kompression.Implementations.MatchFinders
                 var nMaxSize = maxSize;
                 if (!UseLookAhead)
                     nMaxSize = Math.Min(maxSize, position - search);
-                var nCurrentSize = MinMatchSize;
+                var nCurrentSize = FindLimitations.MinLength;
                 while (nCurrentSize < nMaxSize)
                 {
                     if (input[search + nCurrentSize] != input[position + nCurrentSize])
@@ -108,7 +113,7 @@ namespace Kompression.Implementations.MatchFinders
                 }
             }
 
-            if (size < MinMatchSize || displacement < MinDisplacement)
+            if (size < FindLimitations.MinLength || displacement < FindLimitations.MinDisplacement)
                 yield break;
 
             yield return new Match(position, displacement, size);
@@ -174,9 +179,9 @@ namespace Kompression.Implementations.MatchFinders
             byte uInData = input[position];
             int uInsertOffset;
 
-            if (windowLen == MaxDisplacement)
+            if (windowLen == FindLimitations.MaxDisplacement)
             {
-                var uOutData = input[position - MaxDisplacement];
+                var uOutData = input[position - FindLimitations.MaxDisplacement];
 
                 if ((_byteTable[uOutData] = _offsetTable[_byteTable[uOutData]]) == -1)
                 {
@@ -208,10 +213,10 @@ namespace Kompression.Implementations.MatchFinders
             _offsetTable[uInsertOffset] = -1;
             _reversedOffsetTable[uInsertOffset] = nOffset;
 
-            if (windowLen == MaxDisplacement)
+            if (windowLen == FindLimitations.MaxDisplacement)
             {
-                windowPos+=(int)DataType;
-                windowPos %= MaxDisplacement;
+                windowPos += (int)DataType;
+                windowPos %= FindLimitations.MaxDisplacement;
             }
             else
             {

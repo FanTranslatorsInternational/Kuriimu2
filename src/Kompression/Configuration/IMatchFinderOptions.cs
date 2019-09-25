@@ -11,6 +11,8 @@ namespace Kompression.Configuration
     {
         IMatchFinderOptions FindInBackwardOrder();
 
-        IMatchFinderOptions FindMatchesWith(Func<IMatchFinder> matchFinderFactory);
+        IMatchFinderOptions WithFindLimitations(Func<FindLimitations> limitFactory);
+
+        IMatchFinderOptions FindMatchesWith(Func<IList<FindLimitations>, IMatchFinder> matchFinderFactory);
     }
 }

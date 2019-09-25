@@ -6,6 +6,9 @@ using System.Text;
 using Kompression.Implementations;
 using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Encoders;
+using Kompression.Implementations.MatchFinders;
+using Kompression.NewImps;
+using Kompression.PatternMatch.LempelZiv;
 using Kompression.PatternMatch.LempelZiv.Support;
 using Kompression.Specialized.SlimeMoriMori;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -309,7 +312,14 @@ namespace KompressionUnitTests
 
             var watch = new Stopwatch();
             watch.Start();
-            new LZ11().Compress(str, save);
+
+            var config = Compressions.Lz10.WithMatchOptions(options => options.WithMatchParserOptions(parserOptions =>
+                  parserOptions.ParseMatchesWith(
+                      (finders, calculator, skip) => new GreedyParser(finders[0], skip))));
+            config.WithMatchOptions(options => options.WithMatchFinderOptions(finderOptions =>
+                finderOptions.FindMatchesWith(limits => new HistoryMatchFinder(limits[0]))));
+            config.Build().Compress(str, save);
+
             watch.Stop();
 
             save.Close();
@@ -324,7 +334,10 @@ namespace KompressionUnitTests
 
             var watch = new Stopwatch();
             watch.Start();
-            new LZ11().Decompress(str, save);
+
+            var config = Compressions.Lz10;
+            config.Build().Decompress(str, save);
+
             watch.Stop();
 
             save.Close();

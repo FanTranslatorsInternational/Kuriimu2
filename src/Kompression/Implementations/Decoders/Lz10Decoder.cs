@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.IO;
+using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Implementations;
 using Kompression.IO;
@@ -7,7 +8,7 @@ using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class Lz10Decoder : IPatternMatchDecoder
+    class Lz10Decoder : IDecoder
     {
         private CircularBuffer _circularBuffer;
 
@@ -16,7 +17,7 @@ namespace Kompression.Implementations.Decoders
             var compressionHeader = new byte[4];
             input.Read(compressionHeader, 0, 4);
             if (compressionHeader[0] != 0x10)
-                throw new InvalidCompressionException(nameof(Lz10));
+                throw new InvalidCompressionException("LZ10");
 
             var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
 

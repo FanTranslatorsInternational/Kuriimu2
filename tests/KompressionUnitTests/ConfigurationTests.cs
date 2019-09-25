@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 using Kompression.Configuration;
 using Kompression.Huffman;
-using Kompression.Huffman.Support;
 using Kompression.PatternMatch;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -18,10 +14,13 @@ namespace KompressionUnitTests
         [TestMethod]
         public void Configuration_Build_Successful()
         {
-            var decoder = new Moq.Mock<IDecoder>();
-            var priceCal = new Mock<IPriceCalculator>();
-            var matchfinder = new Mock<IMatchFinder>();
+            // Arrange
+            var decoder = new Mock<IDecoder>();
+            decoder.Setup(x => x.Decode(It.IsAny<Stream>(), It.IsAny<Stream>()));
+            var priceCalculator = new Mock<IPriceCalculator>();
+            var matchFinder = new Mock<IMatchFinder>();
             var huffmanTree = new Mock<IHuffmanTreeBuilder>();
+            var stream = new Mock<Stream>();
 
             var config = new KompressionConfiguration();
 
@@ -30,16 +29,19 @@ namespace KompressionUnitTests
 
             // Set match options
             config.WithMatchOptions(options =>
-                options.CalculatePricesWith(() => priceCal.Object).WithMatchFinderOptions(opt2 =>
-                    opt2.FindInBackwardOrder().FindMatchesWith(() => matchfinder.Object)
-                        .FindMatchesWith(() => matchfinder.Object)));
+                options.CalculatePricesWith(() => priceCalculator.Object).WithMatchFinderOptions(opt2 =>
+                    opt2.FindInBackwardOrder().FindMatchesWith(limits => matchFinder.Object)
+                        .FindMatchesWith(limits => matchFinder.Object)));
 
             // Set huffman options
             config.WithHuffmanOptions(options =>
                 options.BuildTreeWith(() => huffmanTree.Object));
 
-            // Assert no exceptions in building the config
-            config.Build();
+            // Act + Assert
+            var compressor = config.Build();
+
+            Assert.ThrowsException<InvalidOperationException>(() => compressor.Compress(stream.Object, stream.Object));
+            compressor.Decompress(stream.Object, stream.Object);
         }
     }
 }

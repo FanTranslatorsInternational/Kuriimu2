@@ -9,7 +9,7 @@ namespace Kompression.Configuration
 {
     class MatchParserOptions : IMatchParserOptions
     {
-        public Func<IMatchFinder, IPriceCalculator, IMatchParserOptions> MatchParserFactory { get; private set; }
+        public Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> MatchParserFactory { get; private set; }
 
         public int PreBufferSize { get; private set; }
 
@@ -17,7 +17,7 @@ namespace Kompression.Configuration
 
         internal MatchParserOptions() { }
 
-        public IMatchParserOptions ParseMatchesWith(Func<IMatchFinder, IPriceCalculator, IMatchParserOptions> matchParserFactory)
+        public IMatchParserOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> matchParserFactory)
         {
             MatchParserFactory = matchParserFactory;
             return this;
