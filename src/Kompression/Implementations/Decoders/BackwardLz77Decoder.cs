@@ -75,7 +75,7 @@ namespace Kompression.Implementations.Decoders
             var length = (byte1 >> 4) + 3;
             var displacement = (((byte1 & 0xF) << 8) | byte2) + 3;
 
-            CircularBuffer.ArbitraryCopy(_circularBuffer, output, displacement, length);
+            _circularBuffer.Copy(output, displacement, length);
         }
 
         private int GetLittleEndian(byte[] data)

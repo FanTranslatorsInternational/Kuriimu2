@@ -77,7 +77,7 @@ namespace Kompression.Implementations.Decoders
             if (displacement > output.Length)
                 throw new DisplacementException(displacement, output.Length, input.Position - 2);
 
-            CircularBuffer.ArbitraryCopy(_circularBuffer, output, displacement, length);
+            _circularBuffer.Copy(output, displacement, length);
         }
 
         public void Dispose()

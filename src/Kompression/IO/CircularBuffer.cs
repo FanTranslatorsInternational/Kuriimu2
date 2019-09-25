@@ -62,23 +62,23 @@ namespace Kompression.IO
             _buffer = null;
         }
 
-        public static void ArbitraryCopy(CircularBuffer circularBuffer, Stream output, int displacement, int length)
+        public void Copy(Stream output, int displacement, int length)
         {
-            var displacedPosition = circularBuffer.Position - displacement;
-            var outputPosition = circularBuffer.Position;
+            var displacedPosition = Position - displacement;
+            var outputPosition = Position;
 
             var buffer = new byte[displacement];
             for (int i = 0; i < length; i += displacement)
             {
                 var toCopy = Math.Min(displacement, length - i);
 
-                circularBuffer.Position = displacedPosition;
-                circularBuffer.Read(buffer, 0, toCopy);
+                Position = displacedPosition;
+                Read(buffer, 0, toCopy);
 
                 output.Write(buffer, 0, toCopy);
 
-                circularBuffer.Position = outputPosition;
-                circularBuffer.Write(buffer, 0, toCopy);
+                Position = outputPosition;
+                Write(buffer, 0, toCopy);
 
                 displacedPosition += toCopy;
                 outputPosition += toCopy;

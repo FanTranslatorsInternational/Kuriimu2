@@ -79,7 +79,7 @@ namespace Kompression.Implementations.Decoders
                 (length, displacement) = HandleRemainingCompressedBlock(byte1, byte2, input, output);
             }
 
-            CircularBuffer.ArbitraryCopy(_circularBuffer, output, displacement, length);
+            _circularBuffer.Copy(output, displacement, length);
         }
 
         private (int length, int displacement) HandleZeroCompressedBlock(byte byte1, byte byte2, Stream input, Stream output)
