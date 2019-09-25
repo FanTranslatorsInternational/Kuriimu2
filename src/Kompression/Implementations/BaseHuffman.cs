@@ -27,8 +27,7 @@ namespace Kompression.Implementations
         {
             var inputArray = ToArray(input);
 
-            var tree = new HuffmanTree(BitDepth, ByteOrder);
-            var rootNode = tree.Build(inputArray);
+            var rootNode = new HuffmanTreeBuilder().Build(inputArray, BitDepth, ByteOrder);
 
             var encoder = CreateEncoder();
             encoder.Encode(inputArray, rootNode, output);

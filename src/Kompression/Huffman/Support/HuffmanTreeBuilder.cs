@@ -5,38 +5,35 @@ using Kompression.Exceptions;
 
 namespace Kompression.Huffman.Support
 {
-    class HuffmanTree
+    public class HuffmanTreeBuilder : IHuffmanTreeBuilder
     {
-        private readonly int _bitDepth;
-        private readonly ByteOrder? _byteOrder;
+        //public HuffmanTreeBuilder(int bitDepth)
+        //{
+        //    if (bitDepth <= 0)
+        //        throw new InvalidOperationException("BitDepth needs to be > 0.");
+        //    if (bitDepth < 8)
+        //        throw new InvalidOperationException("ByteOrder is needed for BitDepths < 8.");
+        //    if (!IsPowerOf2(bitDepth))
+        //        throw new InvalidOperationException("BitDepth needs to be a power of 2.");
 
-        public HuffmanTree(int bitDepth)
-        {
-            if (bitDepth <= 0)
-                throw new InvalidOperationException("BitDepth needs to be > 0.");
-            if (bitDepth < 8)
-                throw new InvalidOperationException("ByteOrder is needed for BitDepths < 8.");
-            if (!IsPowerOf2(bitDepth))
-                throw new InvalidOperationException("BitDepth needs to be a power of 2.");
+        //    _bitDepth = bitDepth;
+        //}
 
-            _bitDepth = bitDepth;
-        }
+        //public HuffmanTreeBuilder(int bitDepth, ByteOrder byteOrder)
+        //{
+        //    if (bitDepth <= 0)
+        //        throw new InvalidOperationException("BitDepth needs to be > 0.");
+        //    if (!IsPowerOf2(bitDepth))
+        //        throw new InvalidOperationException("BitDepth needs to be a power of 2.");
 
-        public HuffmanTree(int bitDepth, ByteOrder byteOrder)
-        {
-            if (bitDepth <= 0)
-                throw new InvalidOperationException("BitDepth needs to be > 0.");
-            if (!IsPowerOf2(bitDepth))
-                throw new InvalidOperationException("BitDepth needs to be a power of 2.");
+        //    _bitDepth = bitDepth;
+        //    _byteOrder = byteOrder;
+        //}
 
-            _bitDepth = bitDepth;
-            _byteOrder = byteOrder;
-        }
-
-        public HuffmanTreeNode Build(byte[] input)
+        public HuffmanTreeNode Build(byte[] input, int bitDepth, ByteOrder byteOrder)
         {
             // Get value frequencies of input
-            var frequencies = GetFrequencies(input, _bitDepth, _byteOrder).ToList();
+            var frequencies = GetFrequencies(input, bitDepth, byteOrder).ToList();
 
             // Add a stub entry in the special case that there's only one item;
             // We want at least 2 elements in the tree to encode
@@ -49,12 +46,12 @@ namespace Kompression.Huffman.Support
             return rootNode;
         }
 
-        private static bool IsPowerOf2(int value)
-        {
-            return (value & (value - 1)) == 0;
-        }
+        //private static bool IsPowerOf2(int value)
+        //{
+        //    return (value & (value - 1)) == 0;
+        //}
 
-        private static IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, ByteOrder? byteOrder)
+        private IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, ByteOrder? byteOrder)
         {
             if (bitDepth != 4 && bitDepth != 8)
                 throw new BitDepthNotSupportedException(bitDepth);
@@ -74,7 +71,7 @@ namespace Kompression.Huffman.Support
             return groupedElements.Select(group => new HuffmanTreeNode(group.Count()) { Code = group.Key });
         }
 
-        private static HuffmanTreeNode CreateAndSortTree(List<HuffmanTreeNode> frequencies)
+        private HuffmanTreeNode CreateAndSortTree(List<HuffmanTreeNode> frequencies)
         {
             //Sort and create the tree
             while (frequencies.Count > 1)
@@ -92,7 +89,7 @@ namespace Kompression.Huffman.Support
                 frequencies = frequencies.Skip(2).Concat(new[] { leastFrequencyNode }).ToList();
 
                 // This ultimately results in a tree like structure where the most frequent elements are closer to the root;
-                // while less frequent elements are farther from the root
+                // while less frequent elements are farther from it
 
                 // Example:
                 // (F:4)

@@ -114,20 +114,20 @@ namespace Kompression.Implementations.Encoders
         {
             var inputArray = ToArray(input);
             var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
-            var tree = new HuffmanTree(8);
-            return tree.Build(inputArray);
+            var tree = new HuffmanTreeBuilder();
+            return tree.Build(inputArray, 8, ByteOrder.LittleEndian);
         }
 
         private HuffmanTreeNode CreateIndexValueTree()
         {
-            var tree = new HuffmanTree(8);
-            return tree.Build(_countIndexes);
+            var tree = new HuffmanTreeBuilder();
+            return tree.Build(_countIndexes, 8, ByteOrder.LittleEndian);
         }
 
         private HuffmanTreeNode CreateDispIndexTree()
         {
-            var tree = new HuffmanTree(8);
-            return tree.Build(_dispIndexes);
+            var tree = new HuffmanTreeBuilder();
+            return tree.Build(_dispIndexes, 8, ByteOrder.LittleEndian);
         }
 
         private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)

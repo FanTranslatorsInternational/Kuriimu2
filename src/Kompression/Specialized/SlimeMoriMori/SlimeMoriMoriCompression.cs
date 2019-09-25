@@ -248,13 +248,13 @@ namespace Kompression.Specialized.SlimeMoriMori
             switch (huffmanMode)
             {
                 case 1:
-                    var tree = new HuffmanTree(4);
-                    var rootNode = tree.Build(input);
+                    var tree = new HuffmanTreeBuilder();
+                    var rootNode = tree.Build(input, 4, ByteOrder.LittleEndian);
                     SortHuffmanTree(rootNode);
                     return rootNode;
                 case 2:
-                    tree = new HuffmanTree(8);
-                    rootNode = tree.Build(input);
+                    tree = new HuffmanTreeBuilder();
+                    rootNode = tree.Build(input, 8, ByteOrder.LittleEndian);
                     SortHuffmanTree(rootNode);
                     return rootNode;
                 default:
