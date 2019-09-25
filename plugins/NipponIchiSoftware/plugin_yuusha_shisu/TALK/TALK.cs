@@ -54,13 +54,20 @@ namespace plugin_yuusha_shisu.TALK
                 _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(Entries.First().EditedText);
                 bw.WriteType(_content);
                 bw.WriteType(_drawingFrames[0]);
-                for (var i = 1; i < Entries.First().EditedText.Trim().Length; i++)
+                short newFrame = _drawingFrames[0].FrameCounter;
+                string TextLength = Entries.First().EditedText.Trim();
+                TextLength = TextLength.Replace("\r","").Replace("\n", "");
+                for (var i = 1; i < TextLength.Length; i++)
                 {
-                    
+                    bw.WriteType(_drawingFrames[0].Indicator);
+                    newFrame += 0x0C;
+                    bw.Write(newFrame);
                 }
-
-
-                bw.Write((byte)0x0);
+                for (var i = 0; i < TextLength.Length; i++)
+                {
+                    bw.WriteType(_colorStructs[0]);
+                }
+                bw.WriteString(Entries.First().EditedText, Encoding.UTF8, false);
             }
         }
     }
@@ -84,7 +91,7 @@ namespace plugin_yuusha_shisu.TALK
     public class ColorStruct
     {
         public int Unk1 = 0x00000000;
-        public uint RGBA;
+        public uint RGBA= 0xFFFFFFFF;
         public int Unk2 = 0x00000001;
         public int Unk3 = 0x0000001A;
     }
