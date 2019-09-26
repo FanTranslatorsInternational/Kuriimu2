@@ -11,6 +11,7 @@ namespace plugin_yuusha_shisu.TALK
     {
         private TALKContent _content;
         private List<DrawingFrame> _drawingFrames;
+        private List<ColorStruct> _colorStructs;
         public List<TextEntry> Entries;
 
         public TALK(Stream input)
@@ -20,8 +21,19 @@ namespace plugin_yuusha_shisu.TALK
                 // Read
                 _content = br.ReadType<TALKContent>();
                 _drawingFrames = br.ReadMultiple<DrawingFrame>(_content.NumberSection);               
-                var color = br.ReadMultiple<ColorStruct>(_content.NumberSection);
+                _colorStructs = br.ReadMultiple<ColorStruct>(_content.NumberSection);
                 var text = br.ReadString(_content.CharacterDataSize, Encoding.UTF8);
+                /*var str = "";
+                var color= 0xFFFFFFFF;
+                for (var i = 0; i < text.Length ; i++)
+                {
+                    color = _colorStructs[i].RGBA;
+                    if (i < 0)
+                    {
+
+                    }
+                    str += text[i];
+                }*/
 
                 Entries = new List<TextEntry>
                 {
@@ -41,7 +53,21 @@ namespace plugin_yuusha_shisu.TALK
                 _content.CharacterCount = (short)Entries.First().EditedText.Trim().Length;
                 _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(Entries.First().EditedText);
                 bw.WriteType(_content);
-                bw.Write((byte)0x0);
+                bw.WriteType(_drawingFrames[0]);
+                short newFrame = _drawingFrames[0].FrameCounter;
+                string TextLength = Entries.First().EditedText.Trim();
+                TextLength = TextLength.Replace("\r","").Replace("\n", "");
+                for (var i = 1; i < TextLength.Length; i++)
+                {
+                    bw.WriteType(_drawingFrames[0].Indicator);
+                    newFrame += 0x0C;
+                    bw.Write(newFrame);
+                }
+                for (var i = 0; i < TextLength.Length; i++)
+                {
+                    bw.WriteType(_colorStructs[0]);
+                }
+                bw.WriteString(Entries.First().EditedText, Encoding.UTF8, false);
             }
         }
     }
@@ -58,15 +84,15 @@ namespace plugin_yuusha_shisu.TALK
 
     public class DrawingFrame
     {
-        public short Indicator = 0x0200;
+        public short Indicator = 0x0002;
         public short FrameCounter;
     }
 
     public class ColorStruct
     {
-        public int Unk1;
-        public int RGBA;
-        public int Unk2;
-        public int Unk3;
+        public int Unk1 = 0x00000000;
+        public uint RGBA= 0xFFFFFFFF;
+        public int Unk2 = 0x00000001;
+        public int Unk3 = 0x0000001A;
     }
 }
