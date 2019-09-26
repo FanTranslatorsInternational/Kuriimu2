@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Kompression.Extensions
 {
-    static class StreamExtensions
+    internal static class StreamExtensions
     {
         public static byte[] ToArray(this Stream input)
         {

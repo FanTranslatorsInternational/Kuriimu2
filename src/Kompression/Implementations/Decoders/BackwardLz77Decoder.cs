@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using Kompression.Configuration;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class BackwardLz77Decoder : IPatternMatchDecoder
+    public class BackwardLz77Decoder : IDecoder
     {
         private readonly ByteOrder _byteOrder;
         private CircularBuffer _circularBuffer;
