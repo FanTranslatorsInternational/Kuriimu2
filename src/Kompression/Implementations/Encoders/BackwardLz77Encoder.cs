@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class BackwardLz77Encoder : IPatternMatchEncoder
+    public class BackwardLz77Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
         private byte _codeBlock;
@@ -14,15 +16,17 @@ namespace Kompression.Implementations.Encoders
         private byte[] _buffer;
         private int _bufferLength;
 
-        public BackwardLz77Encoder(ByteOrder byteOrder)
+        private IMatchParser _matchParser;
+
+        public BackwardLz77Encoder(IMatchParser matchParser, ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
+            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        public void Encode(Stream input, Stream output)
         {
-            // Displacement goes to the end of the file relative to the match position
-            // Length goes to the beginning of the file relative to the match position
+            var matches = _matchParser.ParseMatches(input.ToArray(), (int)input.Position);
 
             var compressedLength = PrecalculateCompressedLength(input.Length, matches);
 
@@ -33,18 +37,17 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[8 * 2];
             _bufferLength = 0;
 
-            using (var reverseInputStream = new ReverseStream(input, input.Length))
             using (var reverseOutputStream = new ReverseStream(output, compressedLength))
             {
                 foreach (var match in matches)
                 {
-                    while (match.Position > reverseInputStream.Position)
+                    while (match.Position > input.Position)
                     {
                         if (_codeBlockPosition == 0)
                             WriteAndResetBuffer(reverseOutputStream);
 
                         _codeBlockPosition--;
-                        _buffer[_bufferLength++] = (byte)reverseInputStream.ReadByte();
+                        _buffer[_bufferLength++] = (byte)input.ReadByte();
                     }
 
                     var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
@@ -57,17 +60,17 @@ namespace Kompression.Implementations.Encoders
                     _buffer[_bufferLength++] = (byte)byte1;
                     _buffer[_bufferLength++] = (byte)byte2;
 
-                    reverseInputStream.Position += match.Length;
+                    input.Position += match.Length;
                 }
 
                 // Write any data after last match, to the buffer
-                while (reverseInputStream.Position < reverseInputStream.Length)
+                while (input.Position < input.Length)
                 {
                     if (_codeBlockPosition == 0)
                         WriteAndResetBuffer(reverseOutputStream);
 
                     _codeBlockPosition--;
-                    _buffer[_bufferLength++] = (byte)reverseInputStream.ReadByte();
+                    _buffer[_bufferLength++] = (byte)input.ReadByte();
                 }
 
                 // Flush remaining buffer to stream

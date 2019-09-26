@@ -8,7 +8,7 @@ using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class Lz10Decoder : IDecoder
+    public class Lz10Decoder : IDecoder
     {
         private CircularBuffer _circularBuffer;
 

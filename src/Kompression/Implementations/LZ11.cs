@@ -7,24 +7,24 @@ using Kompression.PatternMatch.LempelZiv;
 
 namespace Kompression.Implementations
 {
-    public class LZ11 : BaseLz
-    {
-        protected override IPatternMatchEncoder CreateEncoder()
-        {
-            return new Lz11Encoder();
-        }
+    //public class LZ11 : BaseLz
+    //{
+    //    protected override IPatternMatchEncoder CreateEncoder()
+    //    {
+    //        return new Lz11Encoder();
+    //    }
 
-        protected override IMatchParser CreateParser(int inputLength)
-        {
-            return new NewOptimalParser(new Lz11PriceCalculator(), 0,
-                new HybridSuffixTreeMatchFinder(3, 0x10110, 1, 0x1000));
-        }
+    //    protected override IMatchParser CreateParser(int inputLength)
+    //    {
+    //        return new NewOptimalParser(new Lz11PriceCalculator(), 0,
+    //            new HybridSuffixTreeMatchFinder(3, 0x10110, 1, 0x1000));
+    //    }
 
-        protected override IPatternMatchDecoder CreateDecoder()
-        {
-            return new Lz11Decoder();
-        }
+    //    protected override IPatternMatchDecoder CreateDecoder()
+    //    {
+    //        return new Lz11Decoder();
+    //    }
 
-        public override string[] Names => new[] { "Lz11" };
-    }
+    //    public override string[] Names => new[] { "Lz11" };
+    //}
 }

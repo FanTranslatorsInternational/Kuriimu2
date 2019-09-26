@@ -46,7 +46,12 @@ namespace Kompression.Configuration
             if (_isBackwards)
                 toEncode = new ReverseStream(input, input.Length);
             if (_preBufferSize > 0)
-                toEncode = new ConcatStream(new MemoryStream(new byte[_preBufferSize]), toEncode);
+            {
+                toEncode = new ConcatStream(new MemoryStream(new byte[_preBufferSize]), toEncode)
+                {
+                    Position = _preBufferSize
+                };
+            }
 
             _encoder.Encode(toEncode, output);
         }
