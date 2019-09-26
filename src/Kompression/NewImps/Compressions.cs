@@ -21,8 +21,7 @@ namespace Kompression.NewImps
 
                 config.DecodeWith(modes => new Lz10Decoder()).EncodeWith((parser, builder, modes) => new Lz10Encoder(parser));
                 config.WithMatchOptions(options =>
-                    options.WithMatchFinderOptions(finderOptions =>
-                        finderOptions.WithFindLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000))));
+                    options.WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000)));
 
                 return config;
             }

@@ -313,11 +313,10 @@ namespace KompressionUnitTests
             var watch = new Stopwatch();
             watch.Start();
 
-            var config = Compressions.Lz10.WithMatchOptions(options => options.WithMatchParserOptions(parserOptions =>
-                  parserOptions.ParseMatchesWith(
-                      (finders, calculator, skip) => new GreedyParser(finders[0], skip))));
-            config.WithMatchOptions(options => options.WithMatchFinderOptions(finderOptions =>
-                finderOptions.FindMatchesWith(limits => new HistoryMatchFinder(limits[0]))));
+            var config = Compressions.Lz10.WithMatchOptions(options => options.
+                ParseMatchesWith((finders, calculator, skip) => new GreedyParser(finders[0], skip)));
+            config.WithMatchOptions(options => options.
+                FindMatchesWith(limits => new HistoryMatchFinder(limits[0])));
             config.Build().Compress(str, save);
 
             watch.Stop();

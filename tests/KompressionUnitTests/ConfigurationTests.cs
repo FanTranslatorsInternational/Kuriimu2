@@ -29,9 +29,10 @@ namespace KompressionUnitTests
 
             // Set match options
             config.WithMatchOptions(options =>
-                options.CalculatePricesWith(() => priceCalculator.Object).WithMatchFinderOptions(opt2 =>
-                    opt2.FindInBackwardOrder().FindMatchesWith(limits => matchFinder.Object)
-                        .FindMatchesWith(limits => matchFinder.Object)));
+                options.CalculatePricesWith(() => priceCalculator.Object).
+                    FindInBackwardOrder().
+                    FindMatchesWith(limits => matchFinder.Object).
+                    FindMatchesWith(limits => matchFinder.Object));
 
             // Set huffman options
             config.WithHuffmanOptions(options =>

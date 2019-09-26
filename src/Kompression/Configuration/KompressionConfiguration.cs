@@ -54,16 +54,15 @@ namespace Kompression.Configuration
         public Compressor Build()
         {
             var priceCalculator = _matchOptions?.PriceCalculatorFactory?.Invoke();
-            var limits = _matchOptions?.MatchFinderOptions?.LimitFactories?.Where(factory => factory != null)
-                .Select(factory => factory.Invoke()).ToList();
-            var matchFinders = _matchOptions?.MatchFinderOptions?.MatchFinderFactories?.
-                Where(factory => factory != null).Select(factory => factory.Invoke(limits)).ToList();
-            var skipAfterMatch = _matchOptions?.MatchParserOptions?.SkipAfterMatch ?? 0;
-            var matchParser = _matchOptions?.MatchParserOptions?.
-                MatchParserFactory?.Invoke(matchFinders, priceCalculator, skipAfterMatch);
+            var limits = _matchOptions?.LimitFactories?.Where(factory => factory != null)
+                .Select(factory => factory()).ToList();
+            var matchFinders = _matchOptions?.MatchFinderFactories?.
+                Where(factory => factory != null).Select(factory => factory(limits)).ToList();
+            var skipAfterMatch = _matchOptions?.SkipAfterMatch ?? 0;
+            var matchParser = _matchOptions?.MatchParserFactory?.Invoke(matchFinders, priceCalculator, skipAfterMatch);
 
-            var preBufferSize = _matchOptions?.MatchParserOptions?.PreBufferSize ?? 0;
-            var isBackwards = _matchOptions?.MatchFinderOptions?.FindBackwards ?? false;
+            var preBufferSize = _matchOptions?.PreBufferSize ?? 0;
+            var isBackwards = _matchOptions?.FindBackwards ?? false;
 
             var huffmanTreeBuilder = _huffmanOptions?.TreeBuilderFactory?.Invoke();
 

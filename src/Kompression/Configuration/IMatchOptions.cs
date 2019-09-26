@@ -11,8 +11,16 @@ namespace Kompression.Configuration
     {
         IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory);
 
-        IMatchOptions WithMatchFinderOptions(Action<IMatchFinderOptions> configure);
+        IMatchOptions FindInBackwardOrder();
 
-        IMatchOptions WithMatchParserOptions(Action<IMatchParserOptions> configure);
+        IMatchOptions WithinLimitations(Func<FindLimitations> limitFactory);
+
+        IMatchOptions FindMatchesWith(Func<IList<FindLimitations>, IMatchFinder> matchFinderFactory);
+
+        IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> matchParserFactory);
+
+        IMatchOptions WithPreBufferSize(int size);
+
+        IMatchOptions SkipUnitsAfterMatch(int skip);
     }
 }
