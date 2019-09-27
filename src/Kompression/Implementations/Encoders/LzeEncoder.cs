@@ -4,17 +4,27 @@ using System.IO;
 using System.Text;
 using Kompression.PatternMatch;
 using System.Linq;
+using Kompression.Configuration;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzeEncoder : IPatternMatchEncoder
+    public class LzeEncoder : IEncoder
     {
+        private CircularBuffer _circularBuffer;
+        private IMatchParser _matchParser;
+
         private byte _codeBlock;
         private int _codeBlockPosition;
         private byte[] _buffer;
         private int _bufferLength;
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        public LzeEncoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             var originalOutputPosition = output.Position;
             output.Position += 6;
@@ -24,6 +34,7 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[4 * 3]; // each buffer can be at max 4 triplets of uncompressed data; a triplet is 3 bytes
             _bufferLength = 0;
 
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

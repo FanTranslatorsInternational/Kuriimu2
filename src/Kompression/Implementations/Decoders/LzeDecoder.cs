@@ -1,17 +1,18 @@
 ﻿using System.IO;
+using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class LzeDecoder : IPatternMatchDecoder
+    public class LzeDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
             input.Read(buffer, 0, 2);
             if (buffer[0] != 0x4c || buffer[1] != 0x65)
-                throw new InvalidCompressionException(nameof(Lze));
+                throw new InvalidCompressionException("Lze");
 
             input.Read(buffer, 0, 4);
             var decompressedSize = GetLittleEndian(buffer);

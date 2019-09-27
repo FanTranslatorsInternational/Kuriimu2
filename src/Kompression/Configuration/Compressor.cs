@@ -42,18 +42,7 @@ namespace Kompression.Configuration
             if (_encoder == null)
                 throw new InvalidOperationException("The encoder is not set.");
 
-            var toEncode = input;
-            if (_isBackwards)
-                toEncode = new ReverseStream(input, input.Length);
-            if (_preBufferSize > 0)
-            {
-                toEncode = new ConcatStream(new MemoryStream(new byte[_preBufferSize]), toEncode)
-                {
-                    Position = _preBufferSize
-                };
-            }
-
-            _encoder.Encode(toEncode, output);
+            _encoder.Encode(input, output);
         }
     }
 }

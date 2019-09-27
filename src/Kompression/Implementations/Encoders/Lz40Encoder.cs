@@ -1,13 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Kompression.Configuration;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Lz40Encoder: IPatternMatchEncoder
+    public class Lz40Encoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public Lz40Encoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -15,11 +23,13 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x40, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            WriteCompressedData(input, output, matches);
+            WriteCompressedData(input, output);
         }
 
-        internal void WriteCompressedData(Stream input, Stream output, IList<Match> lzResults)
+        internal void WriteCompressedData(Stream input, Stream output)
         {
+            var matches = _matchParser.ParseMatches(input);
+
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];
 
@@ -33,10 +43,10 @@ namespace Kompression.Implementations.Encoders
                     blockBufferLength = 1;
                 }
 
-                if (lzIndex < lzResults.Count && input.Position == lzResults[lzIndex].Position)
+                if (lzIndex < matches.Length && input.Position == matches[lzIndex].Position)
                 {
-                    blockBufferLength = WriteCompressedBlockToBuffer(lzResults[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
-                    input.Position += lzResults[lzIndex++].Length;
+                    blockBufferLength = WriteCompressedBlockToBuffer(matches[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
+                    input.Position += matches[lzIndex++].Length;
                 }
                 else
                 {

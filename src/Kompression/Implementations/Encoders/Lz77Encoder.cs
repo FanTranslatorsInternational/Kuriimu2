@@ -1,39 +1,50 @@
 ﻿using System.IO;
+using Kompression.Configuration;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Lz77Encoder : IPatternMatchEncoder
+    // TODO: Test this compression thoroughly
+    public class Lz77Encoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public Lz77Encoder(IMatchParser matchParser)
         {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
+        {
+            var matches = _matchParser.ParseMatches(input);
             WriteCompressedData(input, output, matches);
         }
 
-        private void WriteCompressedData(Stream input, Stream output, Match[] lzResults)
+        private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
             using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.BigEndian))
             {
-                var lzIndex = 0;
-                while (input.Position < input.Length)
+                foreach (var match in matches)
                 {
-                    if (lzIndex < lzResults.Length && input.Position == lzResults[lzIndex].Position)
-                    {
-                        bw.WriteBit(1);
-                        bw.WriteByte((byte)lzResults[lzIndex].Displacement);
-                        bw.WriteByte((int)lzResults[lzIndex].Length);
-
-                        input.Position += lzResults[lzIndex].Length;
-                        bw.WriteByte(input.ReadByte());
-
-                        lzIndex++;
-                    }
-                    else
+                    while (input.Position < match.Position)
                     {
                         bw.WriteBit(0);
-                        bw.WriteByte(input.ReadByte());
+                        bw.WriteByte((byte)input.ReadByte());
                     }
+
+                    bw.WriteBit(1);
+                    bw.WriteByte((byte)match.Displacement);
+                    bw.WriteByte((int)match.Length);
+
+                    input.Position += match.Length;
+                    bw.WriteByte(input.ReadByte());
+                }
+
+                while (input.Position < input.Length)
+                {
+                    bw.WriteBit(0);
+                    bw.WriteByte((byte)input.ReadByte());
                 }
             }
         }

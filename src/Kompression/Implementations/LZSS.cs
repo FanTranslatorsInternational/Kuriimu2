@@ -18,8 +18,9 @@ namespace Kompression.Implementations
         protected override IMatchParser CreateParser(int inputLength)
         {
             // Yes, we do use the Lz10 price calculator
-            return new NewOptimalParser(new Lz10PriceCalculator(), 0, 
-                new HybridSuffixTreeMatchFinder(0x3, 0x12, 1, 0x1000));
+            return null;
+            //return new NewOptimalParser(new Lz10PriceCalculator(), 0, 
+            //    new HybridSuffixTreeMatchFinder(0x3, 0x12, 1, 0x1000));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

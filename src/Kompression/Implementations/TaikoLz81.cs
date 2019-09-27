@@ -21,8 +21,9 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(new TaikoLz81PriceCalculator(), 0, 
-                new HistoryMatchFinder(1, 0x102, 2, 0x8000));
+            return null;
+            //return new NewOptimalParser(new TaikoLz81PriceCalculator(), 0, 
+            //    new HistoryMatchFinder(1, 0x102, 2, 0x8000));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

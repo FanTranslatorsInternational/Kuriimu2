@@ -54,7 +54,8 @@ namespace Kompression.IO
             if (Position >= Length)
                 return 0;
 
-            var cappedCount = (int)Math.Min(Length - Position, count);
+            int readBytes;
+            var cappedCount = readBytes = (int)Math.Min(Length - Position, count);
 
             if (Position < _baseStream1.Length)
             {
@@ -72,15 +73,17 @@ namespace Kompression.IO
 
             if (cappedCount > 0)
             {
-                var toRead = Math.Min(cappedCount, (int)(_baseStream2.Length - Position));
+                var toRead = Math.Min(cappedCount, (int)(_baseStream2.Length - (Position - _baseStream1.Length)));
 
                 var bkPos = _baseStream2.Position;
                 _baseStream2.Position = Position - _baseStream1.Length;
                 _baseStream2.Read(buffer, offset, toRead);
                 _baseStream2.Position = bkPos;
+
+                Position += toRead;
             }
 
-            return cappedCount;
+            return readBytes;
         }
 
         public override void Write(byte[] buffer, int offset, int count)

@@ -58,11 +58,12 @@ namespace Kompression.Configuration
                 .Select(factory => factory()).ToList();
             var matchFinders = _matchOptions?.MatchFinderFactories?.
                 Where(factory => factory != null).Select(factory => factory(limits)).ToList();
-            var skipAfterMatch = _matchOptions?.SkipAfterMatch ?? 0;
-            var matchParser = _matchOptions?.MatchParserFactory?.Invoke(matchFinders, priceCalculator, skipAfterMatch);
 
             var preBufferSize = _matchOptions?.PreBufferSize ?? 0;
             var isBackwards = _matchOptions?.FindBackwards ?? false;
+            var skipAfterMatch = _matchOptions?.SkipAfterMatch ?? 0;
+
+            var matchParser = _matchOptions?.MatchParserFactory?.Invoke(matchFinders, priceCalculator, isBackwards, preBufferSize, skipAfterMatch);
 
             var huffmanTreeBuilder = _huffmanOptions?.TreeBuilderFactory?.Invoke();
 

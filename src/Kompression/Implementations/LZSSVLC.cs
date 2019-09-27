@@ -17,8 +17,9 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(new LzssVlcPriceCalculator(), 0,
-                new HybridSuffixTreeMatchFinder(4, inputLength, 1, inputLength));
+            return null;
+            //return new NewOptimalParser(new LzssVlcPriceCalculator(), 0,
+            //    new HybridSuffixTreeMatchFinder(4, inputLength, 1, inputLength));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

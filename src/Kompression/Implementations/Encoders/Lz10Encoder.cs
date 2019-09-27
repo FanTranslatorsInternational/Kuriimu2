@@ -6,7 +6,7 @@ using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Lz10Encoder : IEncoder
+    public class Lz10Encoder : IEncoder
     {
         private IMatchParser _matchParser;
 
@@ -23,7 +23,7 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x10, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            var matches = _matchParser.ParseMatches(input.ToArray(), (int)input.Position);
+            var matches = _matchParser.ParseMatches(input);
             WriteCompressedData(input, output, matches);
         }
 

@@ -26,7 +26,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
-            var matches = _matchParser.ParseMatches(input.ToArray(), (int)input.Position);
+            var matches = _matchParser.ParseMatches(input);
 
             var compressedLength = PrecalculateCompressedLength(input.Length, matches);
 
@@ -37,17 +37,18 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[8 * 2];
             _bufferLength = 0;
 
+            using (var inputReverseStream = new ReverseStream(input, input.Length))
             using (var reverseOutputStream = new ReverseStream(output, compressedLength))
             {
                 foreach (var match in matches)
                 {
-                    while (match.Position > input.Position)
+                    while (match.Position > inputReverseStream.Position)
                     {
                         if (_codeBlockPosition == 0)
                             WriteAndResetBuffer(reverseOutputStream);
 
                         _codeBlockPosition--;
-                        _buffer[_bufferLength++] = (byte)input.ReadByte();
+                        _buffer[_bufferLength++] = (byte)inputReverseStream.ReadByte();
                     }
 
                     var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
@@ -60,17 +61,17 @@ namespace Kompression.Implementations.Encoders
                     _buffer[_bufferLength++] = (byte)byte1;
                     _buffer[_bufferLength++] = (byte)byte2;
 
-                    input.Position += match.Length;
+                    inputReverseStream.Position += match.Length;
                 }
 
                 // Write any data after last match, to the buffer
-                while (input.Position < input.Length)
+                while (inputReverseStream.Position < inputReverseStream.Length)
                 {
                     if (_codeBlockPosition == 0)
                         WriteAndResetBuffer(reverseOutputStream);
 
                     _codeBlockPosition--;
-                    _buffer[_bufferLength++] = (byte)input.ReadByte();
+                    _buffer[_bufferLength++] = (byte)inputReverseStream.ReadByte();
                 }
 
                 // Flush remaining buffer to stream

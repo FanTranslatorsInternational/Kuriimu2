@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using Kompression.Configuration;
 using Kompression.IO;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class Lz77Decoder : IPatternMatchDecoder
+    public class Lz77Decoder : IDecoder
     {
         private CircularBuffer _circularBuffer;
 

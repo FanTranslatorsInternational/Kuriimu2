@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using Kompression.Extensions;
+using Kompression.IO;
 using Kompression.PatternMatch.LempelZiv.Support;
 
 namespace Kompression.PatternMatch.LempelZiv
@@ -15,13 +18,35 @@ namespace Kompression.PatternMatch.LempelZiv
         private IPriceCalculator _priceCalculator;
         private IMatchFinder[] _finders;
 
+        public bool IsBackwards { get; }
+
+        public int PreBufferSize { get; }
+
         public int SkipAfterMatch { get; }
 
-        public NewOptimalParser(IPriceCalculator priceCalculator, int skipAfterMatch = 0, params IMatchFinder[] finders)
+        public NewOptimalParser(IPriceCalculator priceCalculator, bool isBackwards, int preBufferSize, int skipAfterMatch, params IMatchFinder[] finders)
         {
             SkipAfterMatch = skipAfterMatch;
+            PreBufferSize = preBufferSize;
+            IsBackwards = isBackwards;
+
             _priceCalculator = priceCalculator;
             _finders = finders;
+        }
+
+        public Match[] ParseMatches(Stream input)
+        {
+            var toParse = input;
+
+            if (PreBufferSize > 0)
+                toParse = IsBackwards ?
+                    new ConcatStream(input, new MemoryStream(new byte[PreBufferSize])) :
+                    new ConcatStream(new MemoryStream(new byte[PreBufferSize]), input);
+
+            if (IsBackwards)
+                toParse = new ReverseStream(toParse, toParse.Length);
+
+            return ParseMatches(toParse.ToArray(), PreBufferSize);
         }
 
         /// <inheritdoc cref="ParseMatches"/>

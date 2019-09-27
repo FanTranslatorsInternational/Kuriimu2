@@ -75,7 +75,7 @@ namespace Kompression.Implementations.MatchFinders
                     search -= windowLen;
                 }
 
-                if (position - search < FindLimitations.MinLength)
+                if (position - search < Math.Min(FindLimitations.MinLength, FindLimitations.MinDisplacement))
                 {
                     continue;
                 }

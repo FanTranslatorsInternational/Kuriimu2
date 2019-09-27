@@ -17,7 +17,7 @@ namespace Kompression.Configuration
 
         public Func<IPriceCalculator> PriceCalculatorFactory { get; private set; }
 
-        public Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> MatchParserFactory { get; private set; }
+        public Func<IList<IMatchFinder>, IPriceCalculator, bool, int, int, IMatchParser> MatchParserFactory { get; private set; }
 
         public int PreBufferSize { get; private set; }
 
@@ -55,7 +55,7 @@ namespace Kompression.Configuration
             return this;
         }
 
-        public IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> matchParserFactory)
+        public IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, bool, int, int, IMatchParser> matchParserFactory)
         {
             MatchParserFactory = matchParserFactory;
             return this;

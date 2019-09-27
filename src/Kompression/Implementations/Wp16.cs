@@ -23,8 +23,9 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(new Wp16PriceCalculator(), 0,
-                new HistoryMatchFinder(4, 0x42, 2, 0xFFE, true, DataType.Short));
+            return null;
+            //return new NewOptimalParser(new Wp16PriceCalculator(), 0,
+            //    new HistoryMatchFinder(4, 0x42, 2, 0xFFE, true, DataType.Short));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

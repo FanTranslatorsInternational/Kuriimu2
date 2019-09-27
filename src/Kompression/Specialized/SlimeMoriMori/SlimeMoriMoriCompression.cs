@@ -140,7 +140,8 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Optimal parse all LZ matches
-            var parser = new NewOptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), 0, matchFinders);
+            var parser = new NewOptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), false, 0, 
+                0, matchFinders);
             return parser.ParseMatches(input, 0);
         }
 

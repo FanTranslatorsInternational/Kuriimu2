@@ -67,10 +67,11 @@ namespace Kompression.IO
             var displacedPosition = Position - displacement;
             var outputPosition = Position;
 
-            var buffer = new byte[displacement];
-            for (int i = 0; i < length; i += displacement)
+            var absoluteDisplacement = Math.Abs(displacement);
+            var buffer = new byte[absoluteDisplacement];
+            for (int i = 0; i < length; i += absoluteDisplacement)
             {
-                var toCopy = Math.Min(displacement, length - i);
+                var toCopy = Math.Min(absoluteDisplacement, length - i);
 
                 Position = displacedPosition;
                 Read(buffer, 0, toCopy);

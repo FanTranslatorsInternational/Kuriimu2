@@ -15,9 +15,10 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
+            return null;
             // Yes, we do use the Yay0 price calculator
-            return new NewOptimalParser(new Yay0PriceCalculator(), 0,
-                new HybridSuffixTreeMatchFinder(3, 0x111, 1, 0x1000));
+            //return new NewOptimalParser(new Yay0PriceCalculator(), 0,
+            //    new HybridSuffixTreeMatchFinder(3, 0x111, 1, 0x1000));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

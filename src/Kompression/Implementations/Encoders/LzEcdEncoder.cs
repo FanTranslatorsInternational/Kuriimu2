@@ -1,26 +1,28 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Kompression.Configuration;
 using Kompression.PatternMatch;
+using System.Linq;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzEcdEncoder : IPatternMatchEncoder
+    public class LzEcdEncoder : IEncoder
     {
         private const int _windowBufferLength = 0x400;
-        private readonly int _preBufferLength;
+        private IMatchParser _matchParser;
 
         private byte _codeBlock;
         private int _codeBlockPosition;
         private byte[] _buffer;
         private int _bufferLength;
 
-        public LzEcdEncoder(int preBufferLength)
+        public LzEcdEncoder(IMatchParser matchParser)
         {
-            _preBufferLength = preBufferLength;
+            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        public void Encode(Stream input, Stream output)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
@@ -30,10 +32,11 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[8 * 2]; // each buffer can be at max 8 pairs of compressed matches; a compressed match is 2 bytes
             _bufferLength = 0;
 
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
-                while (input.Position < match.Position - _preBufferLength)
+                while (input.Position < match.Position - _matchParser.PreBufferSize)
                 {
                     if (_codeBlockPosition == 8)
                         WriteAndResetBuffer(output);

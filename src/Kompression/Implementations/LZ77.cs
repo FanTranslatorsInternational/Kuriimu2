@@ -10,24 +10,24 @@ using Kompression.PatternMatch.LempelZiv;
 
 namespace Kompression.Implementations
 {
-    public class LZ77 : BaseLz
-    {
-        protected override IPatternMatchEncoder CreateEncoder()
-        {
-            return new Lz77Encoder();
-        }
+    //public class LZ77 : BaseLz
+    //{
+    //    protected override IPatternMatchEncoder CreateEncoder()
+    //    {
+    //        return new Lz77Encoder();
+    //    }
 
-        protected override IMatchParser CreateParser(int inputLength)
-        {
-            return new NewOptimalParser(new Lz77PriceCalculator(), 1,
-                new HybridSuffixTreeMatchFinder(0x1, 0xFF, 1, 0xFF));
-        }
+    //    protected override IMatchParser CreateParser(int inputLength)
+    //    {
+    //        return new NewOptimalParser(new Lz77PriceCalculator(), 1,
+    //            new HybridSuffixTreeMatchFinder(0x1, 0xFF, 1, 0xFF));
+    //    }
 
-        protected override IPatternMatchDecoder CreateDecoder()
-        {
-            return new Lz77Decoder();
-        }
+    //    protected override IPatternMatchDecoder CreateDecoder()
+    //    {
+    //        return new Lz77Decoder();
+    //    }
 
-        public override string[] Names => new[] { "Lz77" };
-    }
+    //    public override string[] Names => new[] { "Lz77" };
+    //}
 }

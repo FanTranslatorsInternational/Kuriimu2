@@ -21,10 +21,11 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(new TaikoLz80PriceCalculator(), 0,
-                new HistoryMatchFinder(2, 5, 1, 0x10),
-                new HistoryMatchFinder(3, 0x12, 1, 0x400),
-                new HistoryMatchFinder(4, 0x83, 1, 0x8000));
+            return null;
+            //return new NewOptimalParser(new TaikoLz80PriceCalculator(), 0,
+            //    new HistoryMatchFinder(2, 5, 1, 0x10),
+            //    new HistoryMatchFinder(3, 0x12, 1, 0x400),
+            //    new HistoryMatchFinder(4, 0x83, 1, 0x8000));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()

@@ -17,7 +17,7 @@ namespace Kompression.Configuration
 
         IMatchOptions FindMatchesWith(Func<IList<FindLimitations>, IMatchFinder> matchFinderFactory);
 
-        IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, int, IMatchParser> matchParserFactory);
+        IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, bool, int, int, IMatchParser> matchParserFactory);
 
         IMatchOptions WithPreBufferSize(int size);
 

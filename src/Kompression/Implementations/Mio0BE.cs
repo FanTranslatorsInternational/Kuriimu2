@@ -15,8 +15,9 @@ namespace Kompression.Implementations
 
         protected override IMatchParser CreateParser(int inputLength)
         {
-            return new NewOptimalParser(new Mio0PriceCalculator(), 0,
-                new HybridSuffixTreeMatchFinder(3, 0x12, 1, 0x1000));
+            return null;
+            //return new NewOptimalParser(new Mio0PriceCalculator(), 0,
+            //    new HybridSuffixTreeMatchFinder(3, 0x12, 1, 0x1000));
         }
 
         protected override IPatternMatchDecoder CreateDecoder()
