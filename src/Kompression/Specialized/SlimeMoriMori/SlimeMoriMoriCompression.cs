@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kompression.Configuration;
+using Kompression.Extensions;
+using Kompression.Huffman;
 using Kompression.Huffman.Support;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
-using Kompression.PatternMatch.LempelZiv;
-using Kompression.PatternMatch.RunLength;
+using Kompression.MatchFinders;
+using Kompression.MatchParser;
+using Kompression.Models;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
 using Kompression.Specialized.SlimeMoriMori.Deobfuscators;
 using Kompression.Specialized.SlimeMoriMori.Encoders;
@@ -33,7 +37,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             _isCompressable = false;
         }
 
-        public SlimeMoriMoriCompression(int huffmanMode, int compressionMode, int obfuscationMode = 0)
+        public SlimeMoriMoriCompression(int huffmanMode, int compressionMode, int obfuscationMode)
         {
             _huffmanMode = huffmanMode;
             _compressionMode = compressionMode;
@@ -69,7 +73,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             if (!_isCompressable)
                 throw new InvalidOperationException("This instance doesn't allow for compression.");
 
-            var inputArray = ToArray(input);
+            var inputArray = input.ToArray();
 
             // Obfuscate the data
             var obfuscator = CreateObfuscator(_obfuscationMode);
@@ -81,7 +85,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Find all Lz matches
-            var matches = FindMatches(inputArray, _compressionMode, _huffmanMode);
+            var matches = FindMatches(new MemoryStream(inputArray), _compressionMode, _huffmanMode);
 
             // Create huffman tree and value writer based on match filtered values
             var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
@@ -111,28 +115,45 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        private Match[] FindMatches(byte[] input, int compressionMode, int huffmanMode)
+        private Match[] FindMatches(Stream input, int compressionMode, int huffmanMode)
         {
             IMatchFinder[] matchFinders;
             switch (compressionMode)
             {
                 case 1:
-                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(3, 18, 1, 0xFFFF) };
+                    matchFinders = new[]
+                    {
+                        new HybridSuffixTreeMatchFinder(
+                            new FindLimitations(3, 18, 1, 0xFFFF),
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                    };
                     break;
                 case 2:
-                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(3, input.Length, 1, 0xFFFF) };
+                    matchFinders = new[]
+                    {
+                        new HybridSuffixTreeMatchFinder(
+                            new FindLimitations(3, -1, 1, 0xFFFF),
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                    };
                     break;
                 case 3:
-                    var newLength = input.Length >> 1 << 1;
-                    matchFinders = new[] { new HybridSuffixTreeMatchFinder(4, newLength, 2, 0xFFFF, true, DataType.Short) };
+                    //var newLength = input.Length >> 1 << 1;
+                    matchFinders = new[]
+                    {
+                        new HybridSuffixTreeMatchFinder(
+                            new FindLimitations(4, -1, 2, 0xFFFF),
+                            new FindOptions(false, 0, 0, UnitSize.Short, 8))
+                    };
                     break;
                 case 4:
                     return Array.Empty<Match>();
                 case 5:
                     matchFinders = new IMatchFinder[]
                     {
-                        new HybridSuffixTreeMatchFinder(3, 0x42, 1,0xFFFF),
-                        new RleMatchFinder(1, 0x40)
+                        new HybridSuffixTreeMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8)),
+                        new RleMatchFinder(new FindLimitations(1, 0x40),
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
                     };
                     break;
                 default:
@@ -140,9 +161,11 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Optimal parse all LZ matches
-            var parser = new NewOptimalParser(new SlimePriceCalculator(compressionMode, huffmanMode), false, 0, 
-                0, matchFinders);
-            return parser.ParseMatches(input, 0);
+            var parser = new OptimalParser(
+                new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
+                new SlimePriceCalculator(compressionMode, huffmanMode));
+
+            return parser.ParseMatches(input).ToArray();
         }
 
         private void WriteHuffmanTree(BitWriter bw, HuffmanTreeNode rootNode, int huffmanMode)
@@ -160,7 +183,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     return;
             }
 
-            IList<HuffmanTreeNode> depthList = rootNode.Children;
+            var depthList = rootNode.Children;
             for (var i = 0; i < 16; i++)
             {
                 var valuesWithBitCount = depthList.Count(x => x.IsLeaf);
@@ -170,7 +193,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                 {
                     bw.WriteBits(value, bitDepth);
                 }
-                depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToList();
+                depthList = depthList.Where(x => !x.IsLeaf).SelectMany(x => x.Children).ToArray();
             }
         }
 
@@ -341,20 +364,13 @@ namespace Kompression.Specialized.SlimeMoriMori
 
         #endregion
 
-        /// <summary>
-        /// Converts a stream to an array.
-        /// </summary>
-        /// <param name="input">The input stream.</param>
-        /// <returns>The converted array.</returns>
-        private byte[] ToArray(Stream input)
+        #region Dispose
+
+        public void Dispose()
         {
-            var bkPos = input.Position;
-            var inputArray = new byte[input.Length];
-
-            input.Read(inputArray, 0, inputArray.Length);
-
-            input.Position = bkPos;
-            return inputArray;
+            // Nothing to dispose
         }
+
+        #endregion
     }
 }

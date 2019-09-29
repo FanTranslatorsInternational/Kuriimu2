@@ -1,14 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kompression.Huffman;
+using Kompression.Interfaces;
 
 namespace Kompression.Configuration
 {
+    /// <summary>
+    /// Provides functionality to configure huffman encodings.
+    /// </summary>
     public interface IHuffmanOptions
     {
+        /// <summary>
+        /// Sets the factory to create an <see cref="IHuffmanTreeBuilder"/>.
+        /// </summary>
+        /// <param name="treeBuilderFactory">The factory to create an <see cref="IHuffmanTreeBuilder"/>.</param>
+        /// <returns>The option object.</returns>
         IHuffmanOptions BuildTreeWith(Func<IHuffmanTreeBuilder> treeBuilderFactory);
     }
 }

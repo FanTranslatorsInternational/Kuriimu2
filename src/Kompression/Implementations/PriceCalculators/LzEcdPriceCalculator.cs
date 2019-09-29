@@ -1,4 +1,5 @@
-﻿using Kompression.PatternMatch;
+﻿using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.PriceCalculators
 {

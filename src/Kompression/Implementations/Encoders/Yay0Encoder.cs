@@ -1,20 +1,23 @@
 ﻿using System.IO;
 using System.Text;
+using Kompression.Configuration;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Yay0Encoder : IPatternMatchEncoder
+    public class Yay0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
+        private IMatchParser _matchParser;
 
-        public Yay0Encoder(ByteOrder byteOrder)
+        public Yay0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
         {
             _byteOrder = byteOrder;
+            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        public void Encode(Stream input, Stream output)
         {
             var bitLayoutStream = new MemoryStream();
             var compressedTableStream = new MemoryStream();
@@ -24,6 +27,7 @@ namespace Kompression.Implementations.Encoders
             using (var bwCompressed = new BinaryWriter(compressedTableStream))
             using (var bwUncompressed = new BinaryWriter(uncompressedTableStream))
             {
+                var matches = _matchParser.ParseMatches(input);
                 foreach (var match in matches)
                 {
                     // Write any data before the match, to the uncompressed table

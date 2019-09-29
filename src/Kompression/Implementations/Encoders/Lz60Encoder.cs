@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Configuration;
+using Kompression.Interfaces;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders

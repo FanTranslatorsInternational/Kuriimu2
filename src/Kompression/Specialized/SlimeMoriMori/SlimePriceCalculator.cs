@@ -1,5 +1,6 @@
 ﻿using System;
-using Kompression.PatternMatch;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {

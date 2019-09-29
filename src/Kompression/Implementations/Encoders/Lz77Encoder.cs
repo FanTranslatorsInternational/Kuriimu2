@@ -1,7 +1,9 @@
 ﻿using System.IO;
+using System.Linq;
 using Kompression.Configuration;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -17,7 +19,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
-            var matches = _matchParser.ParseMatches(input);
+            var matches = _matchParser.ParseMatches(input).ToArray();
             WriteCompressedData(input, output, matches);
         }
 

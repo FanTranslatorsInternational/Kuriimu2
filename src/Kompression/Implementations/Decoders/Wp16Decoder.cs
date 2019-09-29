@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    class Wp16Decoder : IPatternMatchDecoder
+    public class Wp16Decoder : IDecoder
     {
-        private byte[] _windowBuffer;
-        private int _windowBufferOffset;
+        private CircularBuffer _circularBuffer;
 
         public void Decode(Stream input, Stream output)
         {
@@ -23,8 +20,7 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var decompressedSize = GetLittleEndian(buffer);
 
-            _windowBuffer = new byte[0x7FF * 2];
-            _windowBufferOffset = 0;
+            _circularBuffer = new CircularBuffer(0xFFE);
 
             long flags = 0;
             var flagPosition = 32;
@@ -43,11 +39,11 @@ namespace Kompression.Implementations.Decoders
 
                     var value = (byte)input.ReadByte();
                     output.WriteByte(value);
-                    _windowBuffer[_windowBufferOffset++ % _windowBuffer.Length] = value;
+                    _circularBuffer.WriteByte(value);
 
                     value = (byte)input.ReadByte();
                     output.WriteByte(value);
-                    _windowBuffer[_windowBufferOffset++ % _windowBuffer.Length] = value;
+                    _circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -61,13 +57,7 @@ namespace Kompression.Implementations.Decoders
                     var displacement = (byte2 << 3) | (byte1 >> 5);
                     var length = (byte1 & 0x1F) + 2;
 
-                    var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement * 2;
-                    for (var i = 0; i < length * 2; i++)
-                    {
-                        var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset++ % _windowBuffer.Length] = value;
-                    }
+                    _circularBuffer.Copy(output, displacement, length * 2);
                 }
             }
         }
@@ -79,8 +69,8 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            Array.Clear(_windowBuffer, 0, _windowBuffer.Length);
-            _windowBuffer = null;
+            _circularBuffer?.Dispose();
+            _circularBuffer = null;
         }
     }
 }

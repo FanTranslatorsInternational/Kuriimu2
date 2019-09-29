@@ -14,10 +14,18 @@ namespace Kompression.Exceptions
     public class DisplacementException : Exception
     {
         /// <summary>
-        /// 
+        /// The displacement from the current position.
         /// </summary>
         public int Displacement { get; }
+
+        /// <summary>
+        /// The number of units already written.
+        /// </summary>
         public long WrittenBytes { get; }
+
+        /// <summary>
+        /// The current position in the output.
+        /// </summary>
         public long CurrentPosition { get; }
 
         /// <summary>

@@ -1,25 +1,29 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.Interfaces;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Yaz0Encoder : IPatternMatchEncoder
+    public class Yaz0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
+        private IMatchParser _matchParser;
 
         private byte _codeBlock;
         private int _codeBlockPosition;
         private byte[] _buffer;
         private int _bufferLength;
 
-        public Yaz0Encoder(ByteOrder byteOrder)
+        public Yaz0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
         {
             _byteOrder = byteOrder;
+            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        public void Encode(Stream input, Stream output)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
@@ -29,6 +33,7 @@ namespace Kompression.Implementations.Encoders
             _buffer = new byte[8 * 3]; // each buffer can be at max 8 pairs of compressed matches; a compressed match can be at max 3 bytes
             _bufferLength = 0;
 
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the buffer
@@ -120,7 +125,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            Array.Clear(_buffer,0,_buffer.Length);
+            Array.Clear(_buffer, 0, _buffer.Length);
             _buffer = null;
         }
     }

@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Kompression.PatternMatch;
-using System.Linq;
 using Kompression.Configuration;
-using Kompression.IO;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
     public class LzeEncoder : IEncoder
     {
-        private CircularBuffer _circularBuffer;
         private IMatchParser _matchParser;
 
         private byte _codeBlock;

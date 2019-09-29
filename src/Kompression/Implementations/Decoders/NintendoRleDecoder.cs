@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
+using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class NintendoRleDecoder : IPatternMatchDecoder
+    public class NintendoRleDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {

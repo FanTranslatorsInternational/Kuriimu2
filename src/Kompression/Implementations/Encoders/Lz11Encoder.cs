@@ -1,8 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Kompression.Configuration;
-using Kompression.Extensions;
-using Kompression.PatternMatch;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -23,7 +24,7 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x11, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            var matches = _matchParser.ParseMatches(input);
+            var matches = _matchParser.ParseMatches(input).ToArray();
             WriteCompressedData(input, output, matches);
         }
 

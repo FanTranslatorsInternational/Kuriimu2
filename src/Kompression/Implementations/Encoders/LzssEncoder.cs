@@ -1,16 +1,24 @@
 ﻿using System.IO;
+using Kompression.Configuration;
+using Kompression.Interfaces;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    class LzssEncoder : IPatternMatchEncoder
+    public class LzssEncoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public LzssEncoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;
-            // TODO: Fix putting parser into encoder
-            new Lz10Encoder(null).WriteCompressedData(input, output, matches);
+            new Lz10Encoder(_matchParser).WriteCompressedData(input, output);
 
             var outputPos = output.Position;
             output.Position = outputStartPos;

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using Kompression.IO;
-using Kompression.PatternMatch;
+using Kompression.Models;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders

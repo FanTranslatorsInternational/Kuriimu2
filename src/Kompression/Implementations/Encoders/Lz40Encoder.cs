@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Kompression.Configuration;
-using Kompression.PatternMatch;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -28,7 +29,7 @@ namespace Kompression.Implementations.Encoders
 
         internal void WriteCompressedData(Stream input, Stream output)
         {
-            var matches = _matchParser.ParseMatches(input);
+            var matches = _matchParser.ParseMatches(input).ToArray();
 
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];

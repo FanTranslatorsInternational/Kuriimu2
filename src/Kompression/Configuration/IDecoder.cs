@@ -1,14 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kompression.Configuration
 {
-    public interface IDecoder
+    /// <summary>
+    /// Provides functionality to decode data.
+    /// </summary>
+    public interface IDecoder : IDisposable
     {
+        /// <summary>
+        /// Decodes a stream of data.
+        /// </summary>
+        /// <param name="input">The input data to decode.</param>
+        /// <param name="output">The output to decode to.</param>
         void Decode(Stream input, Stream output);
     }
 }

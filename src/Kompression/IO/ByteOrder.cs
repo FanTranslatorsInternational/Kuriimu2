@@ -1,4 +1,4 @@
-﻿namespace Kompression
+﻿namespace Kompression.IO
 {
     public enum ByteOrder
     {

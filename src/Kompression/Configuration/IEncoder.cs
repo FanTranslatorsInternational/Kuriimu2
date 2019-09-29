@@ -1,14 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kompression.Configuration
 {
-    public interface IEncoder
+    /// <summary>
+    /// Provides functionality to encode data.
+    /// </summary>
+    public interface IEncoder : IDisposable
     {
+        /// <summary>
+        /// Encodes a stream of data.
+        /// </summary>
+        /// <param name="input">The input data to encode.</param>
+        /// <param name="output">The output to encode to.</param>
         void Encode(Stream input, Stream output);
     }
 }

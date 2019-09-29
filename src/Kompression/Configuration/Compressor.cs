@@ -1,34 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.Huffman;
-using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Configuration
 {
-    public class Compressor : ICompression
+    /// <summary>
+    /// The main <see cref="ICompression"/> which gets created by <see cref="KompressionConfiguration"/>.
+    /// </summary>
+    class Compressor : ICompression
     {
         private IEncoder _encoder;
         private IDecoder _decoder;
 
-        private int _preBufferSize;
-        private bool _isBackwards;
-
+        /// <inheritdoc cref="Names"/>
         public string[] Names { get; }
 
-        internal Compressor(IEncoder encoder, IDecoder decoder, int preBufferSize, bool isBackwards)
+        /// <summary>
+        /// Creates a new instance of <see cref="Compressor"/>.
+        /// </summary>
+        /// <param name="encoder">The <see cref="IEncoder"/> to use with the compression action.</param>
+        /// <param name="decoder">The <see cref="IDecoder"/> to use with the decompression action.</param>
+        internal Compressor(IEncoder encoder, IDecoder decoder)
         {
             _encoder = encoder;
             _decoder = decoder;
-
-            _preBufferSize = preBufferSize;
-            _isBackwards = isBackwards;
         }
 
+        /// <inheritdoc cref="Decompress"/>
         public void Decompress(Stream input, Stream output)
         {
             if (_decoder == null)
@@ -37,6 +34,7 @@ namespace Kompression.Configuration
             _decoder.Decode(input, output);
         }
 
+        /// <inheritdoc cref="Compress"/>
         public void Compress(Stream input, Stream output)
         {
             if (_encoder == null)
@@ -44,5 +42,15 @@ namespace Kompression.Configuration
 
             _encoder.Encode(input, output);
         }
+
+        #region Dispose
+
+        public void Dispose()
+        {
+            _encoder?.Dispose();
+            _decoder?.Dispose();
+        }
+
+        #endregion
     }
 }

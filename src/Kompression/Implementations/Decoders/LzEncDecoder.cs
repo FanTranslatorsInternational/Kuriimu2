@@ -1,24 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.PatternMatch;
+﻿using System.IO;
+using Kompression.Configuration;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class LzEncDecoder : IPatternMatchDecoder
+    public class LzEncDecoder : IDecoder
     {
-        private byte[] _windowBuffer;
-        private int _windowBufferOffset;
+        private CircularBuffer _circularBuffer;
 
         private byte _codeByte;
 
         public void Decode(Stream input, Stream output)
         {
-            _windowBuffer = new byte[0xBFFF];
-            _windowBufferOffset = 0;
+            _circularBuffer = new CircularBuffer(0xBFFF);
 
             // Handle initial byte
             _codeByte = (byte)input.ReadByte();
@@ -61,16 +55,9 @@ namespace Kompression.Implementations.Decoders
                     // Min length: 1; Max length: 6
 
                     var displacement = ((_codeByte >> 2) & 0x7) + (byte2 << 3) + 1;
-                    var length = (_codeByte >> 5) +1;
+                    var length = (_codeByte >> 5) + 1;
 
-                    var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-                    for (int i = 0; i < length; i++)
-                    {
-                        var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset] = value;
-                        _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-                    }
+                    _circularBuffer.Copy(output, displacement, length);
                 }
                 else if (_codeByte >= 0x20)
                 {
@@ -87,14 +74,7 @@ namespace Kompression.Implementations.Decoders
                     var byte2 = (byte)input.ReadByte();
                     var displacement = (_codeByte >> 2) + (byte2 << 6) + 1;
 
-                    var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-                    for (int i = 0; i < length; i++)
-                    {
-                        var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset] = value;
-                        _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-                    }
+                    _circularBuffer.Copy(output, displacement, length);
                 }
                 else if (_codeByte >= 0x10)
                 {
@@ -113,14 +93,7 @@ namespace Kompression.Implementations.Decoders
 
                     var displacement = (_codeByte >> 2) + (byte2 << 6) + (sign > 0 ? 0x4000 : 0) + 0x4000;
 
-                    var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-                    for (int i = 0; i < length; i++)
-                    {
-                        var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset] = value;
-                        _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-                    }
+                    _circularBuffer.Copy(output, displacement, length);
                 }
                 else
                 {
@@ -128,14 +101,7 @@ namespace Kompression.Implementations.Decoders
 
                     var displacement = ((byte2 << 2) | (_codeByte >> 2)) + 1;
 
-                    var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-                    for (int i = 0; i < 2; i++)
-                    {
-                        var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset] = value;
-                        _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-                    }
+                    _circularBuffer.Copy(output, displacement, 2);
                 }
 
                 SubLoop(input, output);
@@ -191,14 +157,7 @@ namespace Kompression.Implementations.Decoders
             var codeByte2 = (byte)input.ReadByte();
             var displacement = ((codeByte2 << 2) | (_codeByte >> 2)) + 0x801;
 
-            var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-            for (int i = 0; i < 3; i++)
-            {
-                var value = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                output.WriteByte(value);
-                _windowBuffer[_windowBufferOffset] = value;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-            }
+            _circularBuffer.Copy(output, displacement, 3);
 
             return false;
         }
@@ -208,9 +167,9 @@ namespace Kompression.Implementations.Decoders
             for (int i = 0; i < count; i++)
             {
                 var value = (byte)input.ReadByte();
+
                 output.WriteByte(value);
-                _windowBuffer[_windowBufferOffset] = value;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
+                _circularBuffer.WriteByte(value);
             }
         }
 

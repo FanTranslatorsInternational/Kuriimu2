@@ -1,13 +1,23 @@
 ﻿using System;
 using System.IO;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class TaikoLz80Encoder : IPatternMatchEncoder
+    public class TaikoLz80Encoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public TaikoLz80Encoder(IMatchParser matchParser)
         {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
+        {
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

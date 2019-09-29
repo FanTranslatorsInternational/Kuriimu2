@@ -1,12 +1,21 @@
-﻿using System;
-using System.IO;
-using Kompression.PatternMatch;
+﻿using System.IO;
+using System.Linq;
+using Kompression.Configuration;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class LzssVlcEncoder : IPatternMatchEncoder
+    public class LzssVlcEncoder : IEncoder
     {
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public LzssVlcEncoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -16,6 +25,7 @@ namespace Kompression.Implementations.Encoders
             output.Write(unk1, 0, unk1.Length);
             output.Write(unk2, 0, unk2.Length);
 
+            var matches = _matchParser.ParseMatches(input).ToArray();
             WriteCompressedData(input, output, matches);
         }
 
@@ -33,7 +43,7 @@ namespace Kompression.Implementations.Encoders
                 {
                     // If we have uncompressed data followed by n compressed blocks
 
-                    // Variable _length encode compressed block count and raw data size
+                    // Variable length encode compressed block count and raw data size
                     var rawSize = (int)(matches[lzIndex].Position - input.Position);
 
                     var compressedBlocks = 0;
@@ -46,7 +56,7 @@ namespace Kompression.Implementations.Encoders
                     }
 
                     WriteBlockSizes(output, rawSize, compressedBlocks);
-                    WriteBlocks(input, output, rawSize, new Span<Match>(matches, lzIndex, compressedBlocks));
+                    WriteBlocks(input, output, rawSize, matches.Skip(lzIndex).Take(compressedBlocks).ToArray());
 
                     lzIndex += compressedBlocks;
                 }
@@ -98,7 +108,7 @@ namespace Kompression.Implementations.Encoders
             }
         }
 
-        private void WriteBlocks(Stream input, Stream output, int rawSize, Span<Match> matches)
+        private void WriteBlocks(Stream input, Stream output, int rawSize, Match[] matches)
         {
             // Writing raw data
             var rawData = new byte[rawSize];
@@ -147,7 +157,7 @@ namespace Kompression.Implementations.Encoders
 
             for (var i = 0; i < valueLength; i++)
             {
-                var partialShift = i == valueLength-1 ? maxBitsInMsb : 7;
+                var partialShift = i == valueLength - 1 ? maxBitsInMsb : 7;
                 byte partialValue = (byte)((value & ((1 << partialShift) - 1)) << 1);
                 returnValue[valueLength - 1 - i] = partialValue;
                 value >>= 7;

@@ -17,7 +17,7 @@ namespace Kompression.Exceptions
         /// Creates a new instance of <see cref="InvalidCompressionException"/>.
         /// </summary>
         /// <param name="compressionName">Name of the compression tried to use.</param>
-        public InvalidCompressionException(string compressionName) : base($"This stream is not compressed with {compressionName}.")
+        public InvalidCompressionException(string compressionName) : base($"This stream is not compressed with '{compressionName}'.")
         {
         }
 

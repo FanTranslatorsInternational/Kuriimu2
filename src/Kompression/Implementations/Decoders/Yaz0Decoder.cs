@@ -1,13 +1,15 @@
 ﻿using System.IO;
 using System.Linq;
+using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.PatternMatch;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class Yaz0Decoder : IPatternMatchDecoder
+    public class Yaz0Decoder : IDecoder
     {
         private readonly ByteOrder _byteOrder;
+        private CircularBuffer _circularBuffer;
 
         public Yaz0Decoder(ByteOrder byteOrder)
         {
@@ -26,8 +28,9 @@ namespace Kompression.Implementations.Decoders
                 _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
             input.Position += 0x8;
 
-            var windowBuffer = new byte[0x1000];
-            var windowBufferPosition = 0;
+            _circularBuffer=new CircularBuffer(0x1000);
+            //var windowBuffer = new byte[0x1000];
+            //var windowBufferPosition = 0;
 
             var codeBlock = input.ReadByte();
             var codeBlockPosition = 8;
@@ -44,8 +47,9 @@ namespace Kompression.Implementations.Decoders
                 {
                     // Flag for uncompressed byte
                     var value = (byte)input.ReadByte();
-                    windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
+
                     output.WriteByte(value);
+                    _circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -63,13 +67,7 @@ namespace Kompression.Implementations.Decoders
 
                     var displacement = (((firstByte & 0xF) << 8) | secondByte) + 1;
 
-                    var bufferIndex = windowBufferPosition + windowBuffer.Length - displacement;
-                    for (var i = 0; i < length; i++)
-                    {
-                        var value = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                        output.WriteByte(value);
-                        windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
-                    }
+                    _circularBuffer.Copy(output,displacement,length);
                 }
             }
         }

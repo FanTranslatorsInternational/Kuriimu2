@@ -1,23 +1,31 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Huffman;
+using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Huffman.Support;
+using Kompression.Interfaces;
 using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    class NintendoHuffmanEncoder : IHuffmanEncoder
+    class NintendoHuffmanEncoder : IEncoder
     {
         private readonly int _bitDepth;
+        private IHuffmanTreeBuilder _treeBuilder;
+        private ByteOrder _byteOrder;
 
-        public NintendoHuffmanEncoder(int bitDepth)
+        public NintendoHuffmanEncoder(int bitDepth, ByteOrder byteOrder, IHuffmanTreeBuilder treeBuilder)
         {
             _bitDepth = bitDepth;
+            _treeBuilder = treeBuilder;
+            _byteOrder = byteOrder;
         }
 
-        public void Encode(byte[] input, HuffmanTreeNode rootNode, Stream output)
+        public void Encode(Stream input, Stream output)
         {
+            var rootNode = _treeBuilder.Build(input.ToArray(), _bitDepth, _byteOrder);
+
             // For a more even distribution of the children over the branches, we'll label the tree nodes
             var labelList = LabelTreeNodes(rootNode);
 
@@ -41,10 +49,40 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write bits to stream
-                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MSBFirst,1, ByteOrder.BigEndian))
+                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MSBFirst, 1, ByteOrder.BigEndian))
                 {
-                    foreach (var bit in input.SelectMany(b => bitCodes[b]))
-                        bitWriter.WriteBit(bit - '0');
+                    switch (_bitDepth)
+                    {
+                        case 4:
+                            while (input.Position < input.Length)
+                            {
+                                var value = input.ReadByte();
+                                if (_byteOrder == ByteOrder.LittleEndian)
+                                {
+                                    foreach (var bit in bitCodes[value % 16])
+                                        bitWriter.WriteBit(bit - '0');
+                                    foreach (var bit in bitCodes[value / 16])
+                                        bitWriter.WriteBit(bit - '0');
+                                }
+                                else
+                                {
+                                    foreach (var bit in bitCodes[value / 16])
+                                        bitWriter.WriteBit(bit - '0');
+                                    foreach (var bit in bitCodes[value % 16])
+                                        bitWriter.WriteBit(bit - '0');
+                                }
+                            }
+                            break;
+                        case 8:
+                            while (input.Position < input.Length)
+                            {
+                                var value = input.ReadByte();
+                                foreach (var bit in bitCodes[value])
+                                    bitWriter.WriteBit(bit - '0');
+                            }
+
+                            break;
+                    }
                     bitWriter.Flush();
                 }
             }

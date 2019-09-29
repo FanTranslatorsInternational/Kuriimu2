@@ -1,8 +1,9 @@
-﻿using Kompression.PatternMatch;
+﻿using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.PriceCalculators
 {
-    class Lz10PriceCalculator:IPriceCalculator
+    public class Lz10PriceCalculator:IPriceCalculator
     {
         public int CalculateLiteralPrice(int value)
         {

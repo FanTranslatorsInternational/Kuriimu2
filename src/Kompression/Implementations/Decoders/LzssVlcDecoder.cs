@@ -1,9 +1,10 @@
 ﻿using System.IO;
+using Kompression.Configuration;
 using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class LzssVlcDecoder : IPatternMatchDecoder
+    class LzssVlcDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {

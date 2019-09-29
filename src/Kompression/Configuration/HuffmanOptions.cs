@@ -1,18 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kompression.Huffman;
+using Kompression.Interfaces;
 
 namespace Kompression.Configuration
 {
-    public class HuffmanOptions : IHuffmanOptions
+    /// <summary>
+    /// Contains information to configure huffman encodings.
+    /// </summary>
+    class HuffmanOptions : IHuffmanOptions
     {
-        public Func<IHuffmanTreeBuilder> TreeBuilderFactory { get; private set; }
+        internal Func<IHuffmanTreeBuilder> TreeBuilderFactory { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="HuffmanOptions"/>.
+        /// </summary>
         internal HuffmanOptions() { }
 
+        /// <inheritdoc cref="BuildTreeWith"/>
         public IHuffmanOptions BuildTreeWith(Func<IHuffmanTreeBuilder> treeBuilderFactory)
         {
             TreeBuilderFactory = treeBuilderFactory;

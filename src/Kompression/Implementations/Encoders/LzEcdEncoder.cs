@@ -2,8 +2,7 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
-using Kompression.PatternMatch;
-using System.Linq;
+using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -36,7 +35,7 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
-                while (input.Position < match.Position - _matchParser.PreBufferSize)
+                while (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
                 {
                     if (_codeBlockPosition == 8)
                         WriteAndResetBuffer(output);

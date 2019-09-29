@@ -1,17 +1,16 @@
 ﻿using System.IO;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    class TaikoLz80Decoder : IPatternMatchDecoder
+    public class TaikoLz80Decoder : IDecoder
     {
-        private byte[] _windowBuffer;
-        private int _windowBufferOffset;
+        private CircularBuffer _circularBuffer;
 
         public void Decode(Stream input, Stream output)
         {
-            _windowBuffer = new byte[0x8000];
-            _windowBufferOffset = 0;
+            _circularBuffer = new CircularBuffer(0x8000);
 
             bool isFinished = false;
             while (input.Position < input.Length)
@@ -33,7 +32,7 @@ namespace Kompression.Implementations.Decoders
                         break;
                 }
 
-                if(isFinished)
+                if (isFinished)
                     break;
             }
         }
@@ -66,9 +65,9 @@ namespace Kompression.Implementations.Decoders
             for (var i = 0; i < length; i++)
             {
                 var next = (byte)input.ReadByte();
+
                 output.WriteByte(next);
-                _windowBuffer[_windowBufferOffset] = next;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
+                _circularBuffer.WriteByte(next);
             }
 
             return false;
@@ -114,19 +113,13 @@ namespace Kompression.Implementations.Decoders
 
         private void ReadDisplacedData(Stream output, int displacement, int length)
         {
-            var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-            for (var i = 0; i < length; i++)
-            {
-                var next = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                output.WriteByte(next);
-                _windowBuffer[_windowBufferOffset] = next;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-            }
+            _circularBuffer.Copy(output, displacement, length);
         }
 
         public void Dispose()
         {
-            _windowBuffer = null;
+            _circularBuffer?.Dispose();
+            _circularBuffer = null;
         }
     }
 }

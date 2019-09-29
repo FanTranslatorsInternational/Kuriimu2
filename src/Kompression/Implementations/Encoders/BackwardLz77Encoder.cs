@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Kompression.Configuration;
-using Kompression.Extensions;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -26,7 +26,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
-            var matches = _matchParser.ParseMatches(input);
+            var matches = _matchParser.ParseMatches(input).ToArray();
 
             var compressedLength = PrecalculateCompressedLength(input.Length, matches);
 
@@ -82,7 +82,7 @@ namespace Kompression.Implementations.Encoders
             }
         }
 
-        private int PrecalculateCompressedLength(long uncompressedLength, IEnumerable<Match> matches)
+        private int PrecalculateCompressedLength(long uncompressedLength, Match[] matches)
         {
             var length = 0;
             var writtenCodes = 0;

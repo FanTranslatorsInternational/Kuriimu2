@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
+using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.Huffman;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    class NintendoHuffmanDecoder : IHuffmanDecoder
+    class NintendoHuffmanDecoder : IDecoder
     {
         private readonly int _bitDepth;
         private readonly ByteOrder _byteOrder;

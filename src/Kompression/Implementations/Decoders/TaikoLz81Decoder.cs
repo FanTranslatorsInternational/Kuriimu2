@@ -1,13 +1,12 @@
 ﻿using System.IO;
+using Kompression.Configuration;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class TaikoLz81Decoder : IPatternMatchDecoder
+    public class TaikoLz81Decoder : IDecoder
     {
-        private byte[] _windowBuffer;
-        private int _windowBufferOffset;
+        private CircularBuffer _circularBuffer;
 
         private static int[] _counters =
         {
@@ -59,8 +58,7 @@ namespace Kompression.Implementations.Decoders
 
         public void Decode(Stream input, Stream output)
         {
-            _windowBuffer = new byte[0x8000];
-            _windowBufferOffset = 0;
+            _circularBuffer=new CircularBuffer(0x8000);
 
             using (var br = new BitReader(input, BitOrder.LSBFirst, 1, ByteOrder.LittleEndian))
             {
@@ -112,8 +110,7 @@ namespace Kompression.Implementations.Decoders
                 var rawValue = (byte)rawValueMapping.ReadValue(br);
 
                 output.WriteByte(rawValue);
-                _windowBuffer[_windowBufferOffset] = rawValue;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
+                _circularBuffer.WriteByte(rawValue);
             }
         }
 
@@ -121,9 +118,9 @@ namespace Kompression.Implementations.Decoders
         {
             // Max displacement 0x8000; Min displacement 2
             // Max length 0x102; Min length 1
-            var counter = _counters[index];
+            var length = _counters[index];
             if (_counterBitReads[index] != 0)
-                counter += br.ReadBits<int>(_counterBitReads[index]);
+                length += br.ReadBits<int>(_counterBitReads[index]);
 
             var dispIndex = dispIndexMapping.ReadValue(br);
 
@@ -131,17 +128,10 @@ namespace Kompression.Implementations.Decoders
             if (_dispBitReads[dispIndex] != 0)
                 displacement += br.ReadBits<int>(_dispBitReads[dispIndex]);
 
-            if (counter == 0)
+            if (length == 0)
                 return;
 
-            var bufferIndex = _windowBufferOffset + _windowBuffer.Length - displacement;
-            for (int i = 0; i < counter; i++)
-            {
-                var next = _windowBuffer[bufferIndex++ % _windowBuffer.Length];
-                output.WriteByte(next);
-                _windowBuffer[_windowBufferOffset] = next;
-                _windowBufferOffset = (_windowBufferOffset + 1) % _windowBuffer.Length;
-            }
+            _circularBuffer.Copy(output,displacement,length);
         }
 
         private void DeobfuscateData(Stream output, int initialByte)
@@ -174,7 +164,8 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            _windowBuffer = null;
+            _circularBuffer?.Dispose();
+            _circularBuffer = null;
         }
     }
 

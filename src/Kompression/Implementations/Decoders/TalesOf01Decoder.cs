@@ -1,17 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
-    class TalesOf01Decoder : IPatternMatchDecoder
+    public class TalesOf01Decoder : IDecoder
     {
-        private byte[] _windowBuffer;
-        private int _windowBufferOffset;
+        private CircularBuffer _circularBuffer;
+        private int _preBufferSize;
+
+        public TalesOf01Decoder(int preBufferSize)
+        {
+            _preBufferSize = preBufferSize;
+        }
 
         public void Decode(Stream input, Stream output)
         {
@@ -24,8 +26,10 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var decompressedSize = GetLittleEndian(buffer);
 
-            _windowBuffer = new byte[0x1000];
-            _windowBufferOffset = 0xFEE;
+            _circularBuffer = new CircularBuffer(0x1000)
+            {
+                Position = _preBufferSize
+            };
 
             var flags = 0;
             var flagPosition = 8;
@@ -41,8 +45,9 @@ namespace Kompression.Implementations.Decoders
                 {
                     // raw data
                     var value = (byte)input.ReadByte();
+
                     output.WriteByte(value);
-                    _windowBuffer[_windowBufferOffset++ % _windowBuffer.Length] = value;
+                    _circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -53,12 +58,10 @@ namespace Kompression.Implementations.Decoders
                     var length = (byte2 & 0xF) + 3;
                     var bufferPosition = byte1 | ((byte2 & 0xF0) << 4);
 
-                    for (var i = 0; i < length; i++)
-                    {
-                        var value = _windowBuffer[(bufferPosition + i) % _windowBuffer.Length];
-                        output.WriteByte(value);
-                        _windowBuffer[_windowBufferOffset++ % _windowBuffer.Length] = value;
-                    }
+                    // Convert buffer position to displacement
+                    var displacement = _circularBuffer.Position % _circularBuffer.Length - bufferPosition;
+
+                    _circularBuffer.Copy(output, displacement, length);
                 }
             }
         }

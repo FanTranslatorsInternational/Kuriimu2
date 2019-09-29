@@ -1,14 +1,22 @@
 ﻿using System;
 using System.IO;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
-    class NintendoRleEncoder : IPatternMatchEncoder
+    public class NintendoRleEncoder : IEncoder
     {
         private byte[] _buffer;
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public NintendoRleEncoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -17,6 +25,7 @@ namespace Kompression.Implementations.Encoders
             output.Write(compressionHeader, 0, 4);
 
             _buffer = new byte[0x80];
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
@@ -28,7 +37,7 @@ namespace Kompression.Implementations.Encoders
                 // Write matched data as compressed block
                 var rleValue = (byte)input.ReadByte();
                 HandleCompressedBlock(output, rleValue, (int)match.Length);
-                input.Position += match.Length-1;
+                input.Position += match.Length - 1;
             }
 
             // If there is unmatched data left after last match, handle as uncompressed block

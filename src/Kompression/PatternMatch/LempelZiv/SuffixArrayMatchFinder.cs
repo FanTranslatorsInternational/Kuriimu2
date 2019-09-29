@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Kompression.Configuration;
+using Kompression.Interfaces;
+using Kompression.Models;
 using Kompression.PatternMatch.LempelZiv.Support;
 
 namespace Kompression.PatternMatch.LempelZiv
@@ -12,63 +15,59 @@ namespace Kompression.PatternMatch.LempelZiv
     {
         private readonly SuffixArray _array;
 
-        public int MinMatchSize { get; }
-        public int MaxMatchSize { get; }
-        public int MinDisplacement { get; }
-        public int MaxDisplacement { get; }
-        public DataType DataType { get; }
-        public bool UseLookAhead { get; }
+        /// <inheritdoc cref="FindLimitations"/>
+        public FindLimitations FindLimitations { get; private set; }
 
-        public SuffixArrayMatchFinder(int minMatchSize, int maxMatchSize, int minDisplacement, int maxDisplacement,
-            bool lookAhead = true, DataType dataType = DataType.Byte)
+        /// <inheritdoc cref="FindOptions"/>
+        public FindOptions FindOptions { get; private set; }
+
+        public SuffixArrayMatchFinder(FindLimitations limits, FindOptions options)
         {
             _array = new SuffixArray();
 
-            if (minMatchSize % (int)dataType != 0 || maxMatchSize % (int)dataType != 0 ||
-                minDisplacement % (int)dataType != 0 || maxDisplacement % (int)dataType != 0)
-                throw new InvalidOperationException("All values must be dividable by data type.");
-
-            MinMatchSize = minMatchSize;
-            MaxMatchSize = maxMatchSize;
-            MinDisplacement = minDisplacement;
-            MaxDisplacement = maxDisplacement;
-            DataType = dataType;
-            UseLookAhead = lookAhead;
+            FindLimitations = limits;
+            FindOptions = options;
         }
 
-        public IEnumerable<Match> FindMatches(byte[] input, int position)
+        // TODO: Check Suffix array get matches method
+        public IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
         {
-            if (!_array.IsBuilt)
-                _array.Build(input, 0, MinMatchSize);
+            var maxSize = FindLimitations.MaxLength <= 0 ? input.Length : FindLimitations.MaxLength;
+            var maxDisplacement = FindLimitations.MaxDisplacement <= 0 ? input.Length : FindLimitations.MaxDisplacement;
 
-            if (input.Length - position < MinMatchSize)
+            if (!_array.IsBuilt)
+                _array.Build(input, 0, FindLimitations.MinLength);
+
+            if (input.Length - position < FindLimitations.MinLength)
                 yield break;
 
-            var maxSize = Math.Min(MaxMatchSize, input.Length - position);
-            var longestMatchSize = MinMatchSize - 1;
+            var cappedSize = Math.Min(maxSize, input.Length - position);
+            var longestMatchSize = FindLimitations.MinLength - 1;
             var displacement = -1;
-            var offsets = _array.GetOffsets(position, MinMatchSize, MinDisplacement, MaxDisplacement, DataType);
+            var offsets = _array.GetOffsets(position, FindLimitations.MinLength, FindLimitations.MinDisplacement, maxDisplacement, (int)FindOptions.UnitSize);
             foreach (var offset in offsets.OrderByDescending(x => x))
             {
-                var matchMaxSize = maxSize;
-                if(!UseLookAhead)
-                    matchMaxSize= Math.Min(matchMaxSize, position - offset);
-
-                var matchLength = MinMatchSize;
-                while (matchLength < matchMaxSize && input[offset + matchLength] == input[position + matchLength])
+                var matchLength = FindLimitations.MinLength;
+                while (matchLength < cappedSize && input[offset + matchLength] == input[position + matchLength])
                     matchLength++;
 
                 if (matchLength > longestMatchSize)
                 {
                     longestMatchSize = matchLength;
                     displacement = position - offset;
-                    if (longestMatchSize == matchMaxSize)
+                    if (longestMatchSize == cappedSize)
                         break;
                 }
             }
 
             if (displacement > -1)
                 yield return new Match(position, displacement, longestMatchSize);
+        }
+
+        // TODO
+        public IEnumerable<Match> GetAllMatches(byte[] input, int position)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()

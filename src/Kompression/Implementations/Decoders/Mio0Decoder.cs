@@ -1,14 +1,15 @@
 ﻿using System.IO;
 using System.Linq;
+using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class Mio0Decoder : IPatternMatchDecoder
+    public class Mio0Decoder : IDecoder
     {
         private readonly ByteOrder _byteOrder;
+        private CircularBuffer _circularBuffer;
 
         public Mio0Decoder(ByteOrder byteOrder)
         {
@@ -31,8 +32,9 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
 
-            var windowBuffer = new byte[0x1000];
-            var windowBufferPosition = 0;
+            _circularBuffer=new CircularBuffer(0x1000);
+            //var windowBuffer = new byte[0x1000];
+            //var windowBufferPosition = 0;
             var compressedTablePosition = 0;
             var uncompressedTablePosition = 0;
 
@@ -48,8 +50,8 @@ namespace Kompression.Implementations.Decoders
                         input.Position = inputStartPosition + uncompressedTableOffset + uncompressedTablePosition++;
                         var value = (byte)input.ReadByte();
 
-                        windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
                         output.WriteByte(value);
+                        _circularBuffer.WriteByte(value);
                     }
                     else
                     {
@@ -62,13 +64,7 @@ namespace Kompression.Implementations.Decoders
                         var length = (firstByte >> 4) + 3;
                         var displacement = (((firstByte & 0xF) << 8) | secondByte) + 1;
 
-                        var bufferIndex = windowBufferPosition + windowBuffer.Length - displacement;
-                        for (var i = 0; i < length; i++)
-                        {
-                            var value = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                            output.WriteByte(value);
-                            windowBuffer[windowBufferPosition++ % windowBuffer.Length] = value;
-                        }
+                        _circularBuffer.Copy(output,displacement,length);
                     }
                 }
             }

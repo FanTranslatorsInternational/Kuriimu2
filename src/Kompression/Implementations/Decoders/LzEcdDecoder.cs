@@ -41,8 +41,10 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var uncompressedLength = GetBigEndian(buffer);
 
-            _circularBuffer = new CircularBuffer(0x400);
-            _circularBuffer.Position = _preBufferLength;
+            _circularBuffer = new CircularBuffer(0x400)
+            {
+                Position = _preBufferLength
+            };
 
             // Read initial data
             for (var i = 0; i < skipData; i++)

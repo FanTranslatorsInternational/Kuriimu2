@@ -1,21 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Kompression.PatternMatch;
+using Kompression.Configuration;
+using Kompression.Interfaces;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Wp16Encoder : IPatternMatchEncoder
+    class Wp16Encoder : IEncoder
     {
         private long _flagBuffer;
         private int _flagPosition;
         private byte[] _buffer;
         private int _bufferLength;
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+
+        public Wp16Encoder(IMatchParser matchParser)
+        {
+            _matchParser = matchParser;
+        }
+
+        public void Encode(Stream input, Stream output)
         {
             _flagBuffer = 0;
             _flagPosition = 0;
@@ -26,6 +32,7 @@ namespace Kompression.Implementations.Encoders
             output.Write(start, 0, 4);
             output.Write(GetLittleEndian(input.Length), 0, 4);
 
+            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data
@@ -41,7 +48,7 @@ namespace Kompression.Implementations.Encoders
                 CompressRawData(input, output, (int)(input.Length - input.Position));
 
             if (_flagPosition > 0)
-                WriteAndResetBuffer(input, output);
+                WriteAndResetBuffer(output);
         }
 
         private void CompressRawData(Stream input, Stream output, int rawLength)
@@ -49,7 +56,7 @@ namespace Kompression.Implementations.Encoders
             while (rawLength > 0)
             {
                 if (_flagPosition == 32)
-                    WriteAndResetBuffer(input, output);
+                    WriteAndResetBuffer(output);
 
                 rawLength -= 2;
                 _flagBuffer |= 1L << _flagPosition++;
@@ -59,13 +66,13 @@ namespace Kompression.Implementations.Encoders
             }
 
             if (_flagPosition == 32)
-                WriteAndResetBuffer(input, output);
+                WriteAndResetBuffer(output);
         }
 
         private void CompressMatchData(Stream input, Stream output, Match match)
         {
             if (_flagPosition == 32)
-                WriteAndResetBuffer(input, output);
+                WriteAndResetBuffer(output);
 
             _flagPosition++;
 
@@ -77,12 +84,12 @@ namespace Kompression.Implementations.Encoders
             _buffer[_bufferLength++] = byte2;
 
             if (_flagPosition == 32)
-                WriteAndResetBuffer(input, output);
+                WriteAndResetBuffer(output);
 
             input.Position += match.Length;
         }
 
-        private void WriteAndResetBuffer(Stream input, Stream output)
+        private void WriteAndResetBuffer(Stream output)
         {
             // Write data to output
             var buffer = GetLittleEndian(_flagBuffer);

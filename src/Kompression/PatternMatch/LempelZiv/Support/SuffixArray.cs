@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using C5;
 using System.Linq;
+using Kompression.Models;
 
 namespace Kompression.PatternMatch.LempelZiv.Support
 {
+    // TODO: Check GetOffset method
     public class SuffixArray : IDisposable
     {
         private const int EndOfData = int.MaxValue;
@@ -49,7 +51,7 @@ namespace Kompression.PatternMatch.LempelZiv.Support
             _buildLongestCommonPrefix = buildLongestCommonPrefix;
         }
 
-        public int[] GetOffsets(int position, int minMatchSize, int minDisplacement, int maxDisplacement, DataType type)
+        public int[] GetOffsets(int position, int minMatchSize, int minDisplacement, int maxDisplacement, int unitSize)
         {
             var suffixStart = _shortcutArray[_inputData[position]];
             var suffixEnd = _inputData[position] + 1 > 255 ? _suffixArray.Length : _shortcutArray[_inputData[position] + 1];
@@ -67,7 +69,7 @@ namespace Kompression.PatternMatch.LempelZiv.Support
             }
             //Where((x, suffixIndex) => suffixIndex + suffixStart <= position - minDisplacement &&
             //                          suffixIndex + suffixStart >= position - maxDisplacement &&
-            //                          (position - (suffixIndex + suffixStart)) % (int)type == 0).
+            //                          (position - (suffixIndex + suffixStart)) % (int)unitSize == 0).
             //ToArray();
             return result.ToArray();
         }

@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Huffman.Support;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
+using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class TaikoLz81Encoder : IPatternMatchEncoder
+    public class TaikoLz81Encoder : IEncoder
     {
         private static int[] _counters =
         {
@@ -64,8 +67,18 @@ namespace Kompression.Implementations.Encoders
         private Dictionary<int, string> _countIndexDictionary;
         private Dictionary<int, string> _dispIndexDictionary;
 
-        public void Encode(Stream input, Stream output, Match[] matches)
+        private IMatchParser _matchParser;
+        private IHuffmanTreeBuilder _treeBuilder;
+
+        public TaikoLz81Encoder(IMatchParser matchParser, IHuffmanTreeBuilder treeBuilder)
         {
+            _matchParser = matchParser;
+            _treeBuilder = treeBuilder;
+        }
+
+        public void Encode(Stream input, Stream output)
+        {
+            var matches = _matchParser.ParseMatches(input).ToArray();
             var rawValueTree = CreateRawValueTree(input, matches);
             _rawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
@@ -74,7 +87,7 @@ namespace Kompression.Implementations.Encoders
             _countIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
             _dispIndexes = GetDispIndexes(matches);
-            var dispIndexTree = CreateDispIndexTree();
+            var dispIndexTree = CreateDisplacementIndexTree();
             _dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
             using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.LittleEndian))
@@ -112,22 +125,18 @@ namespace Kompression.Implementations.Encoders
 
         private HuffmanTreeNode CreateRawValueTree(Stream input, Match[] matches)
         {
-            var inputArray = ToArray(input);
-            var huffmanInput = RemoveMatchesFromInput(inputArray, matches);
-            var tree = new HuffmanTreeBuilder();
-            return tree.Build(inputArray, 8, ByteOrder.LittleEndian);
+            var huffmanInput = RemoveMatchesFromInput(input.ToArray(), matches);
+            return _treeBuilder.Build(huffmanInput, 8, ByteOrder.LittleEndian);
         }
 
         private HuffmanTreeNode CreateIndexValueTree()
         {
-            var tree = new HuffmanTreeBuilder();
-            return tree.Build(_countIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(_countIndexes, 8, ByteOrder.LittleEndian);
         }
 
-        private HuffmanTreeNode CreateDispIndexTree()
+        private HuffmanTreeNode CreateDisplacementIndexTree()
         {
-            var tree = new HuffmanTreeBuilder();
-            return tree.Build(_dispIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(_dispIndexes, 8, ByteOrder.LittleEndian);
         }
 
         private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)
@@ -149,22 +158,6 @@ namespace Kompression.Implementations.Encoders
                 huffmanInput[huffmanInputPosition++] = input[i];
 
             return huffmanInput;
-        }
-
-        /// <summary>
-        /// Converts a stream to an array.
-        /// </summary>
-        /// <param name="input">The input stream.</param>
-        /// <returns>The converted array.</returns>
-        private byte[] ToArray(Stream input)
-        {
-            var bkPos = input.Position;
-            var inputArray = new byte[input.Length];
-
-            input.Read(inputArray, 0, inputArray.Length);
-
-            input.Position = bkPos;
-            return inputArray;
         }
 
         #endregion
@@ -318,6 +311,10 @@ namespace Kompression.Implementations.Encoders
             _rawValueDictionary = null;
             _countIndexDictionary = null;
             _dispIndexDictionary = null;
+
+            _treeBuilder = null;
+            _matchParser?.Dispose();
+            _matchParser = null;
         }
     }
 }

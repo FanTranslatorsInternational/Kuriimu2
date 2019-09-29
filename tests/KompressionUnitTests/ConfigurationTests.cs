@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
 using Kompression.Configuration;
-using Kompression.Huffman;
-using Kompression.PatternMatch;
+using Kompression.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -31,8 +30,8 @@ namespace KompressionUnitTests
             config.WithMatchOptions(options =>
                 options.CalculatePricesWith(() => priceCalculator.Object).
                     FindInBackwardOrder().
-                    FindMatchesWith(limits => matchFinder.Object).
-                    FindMatchesWith(limits => matchFinder.Object));
+                    FindMatchesWith((limits,findOptions) => matchFinder.Object).
+                    FindMatchesWith((limits,findOptions) => matchFinder.Object));
 
             // Set huffman options
             config.WithHuffmanOptions(options =>
