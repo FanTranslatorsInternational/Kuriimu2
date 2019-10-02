@@ -119,7 +119,7 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 var length = match.Length - 1;  // Length is always >0; therefore this specification stores the _length reduced by 1
-                var displacementVlc = CreateVlc((int)match.Displacement, 3);
+                var displacementVlc = CreateVlc((int)match.Displacement - 1, 3);
 
                 // Variable _length encode _length and displacement
 

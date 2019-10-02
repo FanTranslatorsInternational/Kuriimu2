@@ -14,7 +14,7 @@ namespace KompressionUnitTests
             var input = new byte[]
                 {0b00001100, 0b11111111, 0b11001100, 0b10001100, 0b11001100, 0b10000010, 0b11110000, 0b00000001};
 
-            var br = new BitReader(new MemoryStream(input), BitOrder.MSBFirst, 1, ByteOrder.LittleEndian);
+            var br = new BitReader(new MemoryStream(input), BitOrder.MsbFirst, 1, ByteOrder.LittleEndian);
             var bitValue = br.ReadBit();
             var byteValue = br.ReadByte();
             var shortValue = br.ReadInt16();
@@ -38,7 +38,7 @@ namespace KompressionUnitTests
             var input = new byte[]
                 {0b00001100, 0b11111111, 0b11001100, 0b10001100, 0b11001100, 0b10000010, 0b11110000, 0b10000000};
 
-            var br = new BitReader(new MemoryStream(input), BitOrder.LSBFirst, 1, ByteOrder.LittleEndian);
+            var br = new BitReader(new MemoryStream(input), BitOrder.LsbFirst, 1, ByteOrder.LittleEndian);
             var bitValue = br.ReadBit();
             var byteValue = br.ReadByte();
             var shortValue = br.ReadInt16();
@@ -61,7 +61,7 @@ namespace KompressionUnitTests
         {
             var input = new byte[] { 0x0C, 0xFF, 0xCC, 0xCC, 0xC0, 0x0C, 0x00, 0x00 };
 
-            var br = new BitReader(new MemoryStream(input), BitOrder.MSBFirst, 4, ByteOrder.LittleEndian);
+            var br = new BitReader(new MemoryStream(input), BitOrder.MsbFirst, 4, ByteOrder.LittleEndian);
             var bitValue = br.ReadBit();
             var byteValue = br.ReadByte();
             var intValue = br.ReadInt32();
@@ -78,7 +78,7 @@ namespace KompressionUnitTests
         {
             var input = new byte[] { 0x0C, 0xFF, 0xCC, 0xCC, 0xCC, 0x80, 0x00, 0x00 };
 
-            var br = new BitReader(new MemoryStream(input), BitOrder.MSBFirst, 4, ByteOrder.BigEndian);
+            var br = new BitReader(new MemoryStream(input), BitOrder.MsbFirst, 4, ByteOrder.BigEndian);
             var bitValue = br.ReadBit();
             var byteValue = br.ReadByte();
             var intValue = br.ReadInt32();

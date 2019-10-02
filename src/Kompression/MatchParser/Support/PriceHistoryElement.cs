@@ -3,9 +3,9 @@
 namespace Kompression.MatchParser.Support
 {
     /// <summary>
-    /// The element model used for <see cref="OptimalParser"/> to store price and connects it to a displacement and length
+    /// The element model used for <see cref="BackwardForwardOptimalParser"/> to store price and connects it to a displacement and length
     /// </summary>
-    class PriceHistoryElement
+    struct PriceHistoryElement
     {
         /// <summary>
         /// Determines if an element represents a literal.
@@ -15,16 +15,16 @@ namespace Kompression.MatchParser.Support
         /// <summary>
         /// The price for this element.
         /// </summary>
-        public long Price { get; set; } = -1;
+        public int Price { get; set; }
 
         /// <summary>
         /// The displacement for this element.
         /// </summary>
-        public long Displacement { get; set; }
+        public int Displacement { get; set; }
 
         /// <summary>
         /// The length for this element.
         /// </summary>
-        public long Length { get; set; }
+        public int Length { get; set; }
     }
 }

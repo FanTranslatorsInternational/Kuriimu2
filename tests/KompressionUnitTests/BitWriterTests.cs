@@ -19,7 +19,7 @@ namespace KompressionUnitTests
             var input = new byte[] { 0x0C, 0xFF, 0xCC, 0xCC, 0xCC, 0x80 };
             var ms = new MemoryStream();
 
-            var bw = new BitWriter(ms, BitOrder.MSBFirst, 1, ByteOrder.BigEndian);
+            var bw = new BitWriter(ms, BitOrder.MsbFirst, 1, ByteOrder.BigEndian);
             bw.WriteBit(0);
             bw.WriteByte(0x19);
             unchecked
@@ -39,7 +39,7 @@ namespace KompressionUnitTests
             var input = new byte[] { 0xCC, 0xCC, 0xFF, 0x0C, 0x00, 0x00, 0x80, 0xCC };
             var ms = new MemoryStream();
 
-            var bw = new BitWriter(ms, BitOrder.MSBFirst, 4, ByteOrder.LittleEndian);
+            var bw = new BitWriter(ms, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian);
             bw.WriteBit(0);
             bw.WriteByte(0x19);
             unchecked
@@ -59,7 +59,7 @@ namespace KompressionUnitTests
             var input = new byte[] { 0x0C, 0xFF, 0xCC, 0xCC, 0xCC, 0x80, 0x00, 0x00 };
             var ms = new MemoryStream();
 
-            var bw = new BitWriter(ms, BitOrder.MSBFirst, 4, ByteOrder.BigEndian);
+            var bw = new BitWriter(ms, BitOrder.MsbFirst, 4, ByteOrder.BigEndian);
             bw.WriteBit(0);
             bw.WriteByte(0x19);
             unchecked

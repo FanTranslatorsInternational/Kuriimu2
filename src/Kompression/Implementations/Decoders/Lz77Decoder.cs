@@ -13,7 +13,7 @@ namespace Kompression.Implementations.Decoders
         {
             _circularBuffer = new CircularBuffer(0xFF);
 
-            var bitReader = new BitReader(input, BitOrder.LSBFirst, 1, ByteOrder.BigEndian);
+            var bitReader = new BitReader(input, BitOrder.LsbFirst, 1, ByteOrder.BigEndian);
             while (bitReader.Length - bitReader.Position >= 9)
             {
                 if (bitReader.ReadBit() == 0)

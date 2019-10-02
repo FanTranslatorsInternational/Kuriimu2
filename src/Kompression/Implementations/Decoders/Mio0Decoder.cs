@@ -40,7 +40,7 @@ namespace Kompression.Implementations.Decoders
 
             var bitLayout = new byte[compressedTableOffset - 0x10];
             input.Read(bitLayout, 0, bitLayout.Length);
-            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MSBFirst, 1, ByteOrder.BigEndian))
+            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MsbFirst, 1, ByteOrder.BigEndian))
             {
                 while (output.Length < uncompressedLength)
                 {

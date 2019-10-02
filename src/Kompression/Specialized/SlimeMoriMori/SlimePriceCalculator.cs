@@ -15,7 +15,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             _huffmanMode = huffmanMode;
         }
 
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             // 1 flag bit
             // n bit value (huffman approximation)
@@ -30,7 +30,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
             switch (_compressionMode)
             {
@@ -41,19 +41,19 @@ namespace Kompression.Specialized.SlimeMoriMori
                     // 4 bits match length
                     return 10;
                 case 2:
-                    if (match.Length > 18)
+                    if (length > 18)
                     {
                         // variable length encoded match length
                         // an LZ match always encodes at least 4 bits outside the vle value
-                        var length = (match.Length - 3) >> 4;
+                        var vleLength = (length - 3) >> 4;
 
                         var result = 4;
-                        while (length > 0)
+                        while (vleLength > 0)
                         {
                             // 4 bits per vle part
                             result += 4;
                             // 3 bits are actual value part
-                            length >>= 3;
+                            vleLength >>= 3;
                         }
 
                         // 1 flag bit
@@ -73,19 +73,19 @@ namespace Kompression.Specialized.SlimeMoriMori
                         return 1 + 3 + 4 + 3;
                     }
                 case 3:
-                    if (match.Length > 18)
+                    if (length > 18)
                     {
                         // variable length encoded match length
                         // an LZ match always encodes at least 3 bits outside the vle value
-                        var length = (match.Length / 2 - 2) >> 3;
+                        var vleLength = (length / 2 - 2) >> 3;
 
                         var result = 3;
-                        while (length > 0)
+                        while (vleLength > 0)
                         {
                             // 3 bits per vle part
                             result += 3;
                             // 2 bits are actual value part
-                            length >>= 2;
+                            vleLength >>= 2;
                         }
 
                         // 1 flag bit
@@ -105,7 +105,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         return 1 + 2 + 3 + 3;
                     }
                 case 5:
-                    if (match.Displacement == 0)
+                    if (displacement == 0)
                         // 2 flag bits
                         // 6 bits match length
                         // 8 bit static value

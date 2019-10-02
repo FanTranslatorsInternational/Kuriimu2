@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 using Kompression.Configuration;
 using Kompression.Interfaces;
 using Kompression.MatchFinders.Support;
@@ -42,38 +41,14 @@ namespace Kompression.MatchFinders
         }
 
         /// <inheritdoc cref="GetAllMatches"/>
-        public IEnumerable<Match> GetAllMatches(byte[] input, int position)
+        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
-            var tasks = new Task<IList<Match>>[FindOptions.TaskCount];
-
-            for (int i = 0; i < tasks.Length; i += (int)FindOptions.UnitSize)
-            {
-                var getTaskPosition = position + i;
-                tasks[i] = new Task<IList<Match>>(() => GetMatchFromTask(input, getTaskPosition, tasks.Length).ToList());
-                tasks[i].Start();
-            }
-
-            Task.WaitAll(tasks);
-
-            return tasks.SelectMany(x => x.Result).OrderBy(x => x.Position);
-        }
-
-        private IEnumerable<Match> GetMatchFromTask(byte[] input, int startPosition, int interval)
-        {
-            var state = new HistoryMatchState(FindLimitations, FindOptions);
-
-            for (var i = startPosition; i < input.Length; i += interval)
-            {
-                var match = state.FindMatchAtPosition(input, i).FirstOrDefault();
-                if (match != null)
-                    yield return match;
-            }
-
-            state.Dispose();
+            throw new NotSupportedException();
         }
 
         #region Dispose
 
+        /// <inheritdoc cref="Dispose"/>
         public void Dispose()
         {
             _state?.Dispose();

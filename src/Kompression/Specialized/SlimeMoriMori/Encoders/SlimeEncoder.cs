@@ -18,7 +18,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Encoders
         /// </summary>
         /// <param name="displacements">Displacements from all found matches.</param>
         /// <param name="entryCount">The number of entries in the final table.</param>
-        protected void CreateDisplacementTable(long[] displacements, int entryCount)
+        protected void CreateDisplacementTable(int[] displacements, int entryCount)
         {
             var distribution = CalculateDisplacementCoverage(displacements.Select(x => (double)x).ToArray(), entryCount);
             _displacementTable = new DisplacementElement[entryCount];

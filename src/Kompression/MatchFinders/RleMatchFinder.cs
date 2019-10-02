@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kompression.Configuration;
 using Kompression.Interfaces;
+using Kompression.MatchFinders.Parallel;
 using Kompression.Models;
 
 namespace Kompression.MatchFinders
@@ -60,29 +61,35 @@ namespace Kompression.MatchFinders
         }
 
         /// <inheritdoc cref="GetAllMatches"/>
-        public IEnumerable<Match> GetAllMatches(byte[] input, int position)
+        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
-            var tasks = new Task<IList<Match>>[FindOptions.TaskCount];
+            var taskCount = FindOptions.TaskCount;
+            var unitSize = (int)FindOptions.UnitSize;
 
-            for (int i = 0; i < tasks.Length; i += (int)FindOptions.UnitSize)
+            var tasks = new Task<bool>[taskCount];
+            var enumerators = new MatchFinderEnumerator[taskCount];
+
+            // Setup enumerators
+            for (var i = 0; i < taskCount; i++)
+                enumerators[i] = new MatchFinderEnumerator(input, position, taskCount * unitSize, FindMatchesAtPosition);
+
+            // Execute all tasks until end of file
+            var continueExecution = true;
+            while (continueExecution)
             {
-                var getTaskPosition = position + i;
-                tasks[i] = new Task<IList<Match>>(() => GetMatchFromTask(input, getTaskPosition, tasks.Length).ToList());
-                tasks[i].Start();
-            }
+                for (int i = 0; i < taskCount; i++)
+                {
+                    var enumerator = enumerators[i];
+                    tasks[i] = new Task<bool>(() => enumerator.MoveNext());
+                    tasks[i].Start();
+                }
 
-            Task.WaitAll(tasks);
+                Task.WaitAll(tasks);
+                continueExecution = tasks.All(x => x.Result);
 
-            return tasks.SelectMany(x => x.Result).OrderBy(x => x.Position);
-        }
-
-        private IEnumerable<Match> GetMatchFromTask(byte[] input, int startPosition, int interval)
-        {
-            for (var i = startPosition; i < input.Length; i += interval)
-            {
-                var match = FindMatchesAtPosition(input, i).FirstOrDefault();
-                if (match != null)
-                    yield return match;
+                for (var i = 0; i < taskCount; i++)
+                    if (tasks[i].Result)
+                        yield return enumerators[i].Current;
             }
         }
 

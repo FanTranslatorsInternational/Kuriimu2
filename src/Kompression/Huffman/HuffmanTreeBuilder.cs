@@ -7,31 +7,11 @@ using Kompression.IO;
 
 namespace Kompression.Huffman
 {
+    /// <summary>
+    /// Creates a huffman tree and sorts the nodes by frequency.
+    /// </summary>
     public class HuffmanTreeBuilder : IHuffmanTreeBuilder
     {
-        //public HuffmanTreeBuilder(int bitDepth)
-        //{
-        //    if (bitDepth <= 0)
-        //        throw new InvalidOperationException("BitDepth needs to be > 0.");
-        //    if (bitDepth < 8)
-        //        throw new InvalidOperationException("ByteOrder is needed for BitDepths < 8.");
-        //    if (!IsPowerOf2(bitDepth))
-        //        throw new InvalidOperationException("BitDepth needs to be a power of 2.");
-
-        //    _bitDepth = bitDepth;
-        //}
-
-        //public HuffmanTreeBuilder(int bitDepth, ByteOrder byteOrder)
-        //{
-        //    if (bitDepth <= 0)
-        //        throw new InvalidOperationException("BitDepth needs to be > 0.");
-        //    if (!IsPowerOf2(bitDepth))
-        //        throw new InvalidOperationException("BitDepth needs to be a power of 2.");
-
-        //    _bitDepth = bitDepth;
-        //    _byteOrder = byteOrder;
-        //}
-
         public HuffmanTreeNode Build(byte[] input, int bitDepth, ByteOrder byteOrder)
         {
             // Get value frequencies of input
@@ -40,18 +20,17 @@ namespace Kompression.Huffman
             // Add a stub entry in the special case that there's only one item;
             // We want at least 2 elements in the tree to encode
             if (frequencies.Count == 1)
-                frequencies.Add(new HuffmanTreeNode(0) { Code = input[0] + 1 });
+                frequencies.Add(new HuffmanTreeNode
+                {
+                    Frequency = 0,
+                    Code = input[0] + 1
+                });
 
             // Create and sort the tree of frequencies
             var rootNode = CreateAndSortTree(frequencies);
 
             return rootNode;
         }
-
-        //private static bool IsPowerOf2(int value)
-        //{
-        //    return (value & (value - 1)) == 0;
-        //}
 
         private IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, ByteOrder? byteOrder)
         {
@@ -70,7 +49,11 @@ namespace Kompression.Huffman
             var groupedElements = data.GroupBy(b => b);
 
             // Create huffman nodes out of value groups
-            return groupedElements.Select(group => new HuffmanTreeNode(group.Count()) { Code = group.Key });
+            return groupedElements.Select(group => new HuffmanTreeNode
+            {
+                Frequency = group.Count(),
+                Code = group.Key
+            });
         }
 
         private HuffmanTreeNode CreateAndSortTree(List<HuffmanTreeNode> frequencies)
@@ -82,8 +65,9 @@ namespace Kompression.Huffman
                 frequencies = frequencies.OrderBy(n => n.Frequency).ToList();
 
                 // Create new tree node with the 2 elements of least frequency
-                var leastFrequencyNode = new HuffmanTreeNode(frequencies[0].Frequency + frequencies[1].Frequency)
+                var leastFrequencyNode = new HuffmanTreeNode
                 {
+                    Frequency = frequencies[0].Frequency + frequencies[1].Frequency,
                     Children = frequencies.Take(2).ToArray()
                 };
 

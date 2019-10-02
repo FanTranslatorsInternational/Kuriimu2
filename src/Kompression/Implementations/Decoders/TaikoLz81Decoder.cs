@@ -60,7 +60,7 @@ namespace Kompression.Implementations.Decoders
         {
             _circularBuffer=new CircularBuffer(0x8000);
 
-            using (var br = new BitReader(input, BitOrder.LSBFirst, 1, ByteOrder.LittleEndian))
+            using (var br = new BitReader(input, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian))
             {
                 var initialByte = br.ReadBits<int>(8);
 

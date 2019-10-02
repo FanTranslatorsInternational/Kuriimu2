@@ -25,7 +25,7 @@ namespace Kompression.Implementations.Encoders
 
         private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
-            using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.BigEndian))
+            using (var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.BigEndian))
             {
                 foreach (var match in matches)
                 {

@@ -5,7 +5,7 @@ namespace Kompression.Implementations.PriceCalculators
 {
     class TaikoLz80PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             // One raw value is stored as 8 bit, more than 1 value is batched together in 1 to 2 length bytes
             // To approximate some flag bits to each raw value, we take half of the raw flag (which is 2 zero bits) and add it to the price
@@ -13,16 +13,16 @@ namespace Kompression.Implementations.PriceCalculators
             return 8 + 1;
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
             /*var length = ((code >> 4) & 0x3) + 2;
             var displacement = (code & 0xF) + 1;*/
-            if (match.Displacement <= 0x10 && match.Length <= 0x5)
+            if (displacement <= 0x10 && length <= 0x5)
                 return 8;
 
             /*var length = ((code >> 2) & 0xF) + 3;
             var displacement = (((code & 0x3) << 8) | byte1) + 1;*/
-            if (match.Displacement <= 0x400 && match.Length <= 0x12)
+            if (displacement <= 0x400 && length <= 0x12)
                 return 16;
 
             return 24;

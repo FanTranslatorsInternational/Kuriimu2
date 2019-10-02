@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kompression.Configuration;
 using Kompression.Interfaces;
+using Kompression.MatchFinders.Parallel;
 using Kompression.MatchFinders.Support;
 using Kompression.Models;
 
@@ -22,6 +23,11 @@ namespace Kompression.MatchFinders
         /// <inheritdoc cref="FindOptions"/>
         public FindOptions FindOptions { get; private set; }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="HybridSuffixTreeMatchFinder"/>.
+        /// </summary>
+        /// <param name="limits">The search limitations to find pattern matches.</param>
+        /// <param name="options">The additional configuration for finding pattern matches.</param>
         public HybridSuffixTreeMatchFinder(FindLimitations limits, FindOptions options)
         {
             _tree = new HybridSuffixTree();
@@ -50,8 +56,8 @@ namespace Kompression.MatchFinders
             while (node != null && length < maxSize && offsets.Length > 0)
             {
                 var previousLength = length;
-                length += node.CalculateLength();
-                position += node.CalculateLength();
+                length += node.Length;
+                position += node.Length;
 
                 if (position < input.Length &&
                     node.Children.ContainsKey(input[position]) &&
@@ -76,36 +82,43 @@ namespace Kompression.MatchFinders
             length -= length % (int)FindOptions.UnitSize;
 
             if (length >= FindLimitations.MinLength)
-                yield return new Match(originalPosition, originalPosition - offsets[0], length);
+                if (offsets.Length > 0)
+                    yield return new Match(originalPosition, originalPosition - offsets[0], length);
         }
 
-        public IEnumerable<Match> GetAllMatches(byte[] input, int position)
+        /// <inheritdoc cref="GetAllMatches"/>
+        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
                 _tree.Build(input, position);
 
-            var taskCount = 8;
-            var unitSize = 1;
-            var tasks = new Task<IList<Match>>[taskCount];
+            var taskCount = FindOptions.TaskCount;
+            var unitSize = (int)FindOptions.UnitSize;
 
-            for (int i = 0; i < taskCount; i += unitSize)
+            var tasks = new Task<bool>[taskCount];
+            var enumerators = new MatchFinderEnumerator[taskCount];
+
+            // Setup enumerators
+            for (var i = 0; i < taskCount; i++)
+                enumerators[i] = new MatchFinderEnumerator(input, position, taskCount * unitSize, FindMatchesAtPosition);
+
+            // Execute all tasks until end of file
+            var continueExecution = true;
+            while (continueExecution)
             {
-                var getTaskPosition = position + i;
-                tasks[i] = new Task<IList<Match>>(() => GetMatchFromTask(input, getTaskPosition, taskCount).ToList());
-                tasks[i].Start();
-            }
+                for (int i = 0; i < taskCount; i++)
+                {
+                    var enumerator = enumerators[i];
+                    tasks[i] = new Task<bool>(() => enumerator.MoveNext());
+                    tasks[i].Start();
+                }
 
-            Task.WaitAll(tasks);
+                Task.WaitAll(tasks);
+                continueExecution = tasks.All(x => x.Result);
 
-            return tasks.SelectMany(x => x.Result).OrderBy(x => x.Position);
-        }
-
-        private IEnumerable<Match> GetMatchFromTask(byte[] input, int startPosition, int interval)
-        {
-            for (var i = startPosition; i < input.Length; i += interval)
-            {
-                foreach (var match in FindMatchesAtPosition(input, i))
-                    yield return match;
+                for (var i = 0; i < taskCount; i++)
+                    if (tasks[i].Result)
+                        yield return enumerators[i].Current;
             }
         }
 

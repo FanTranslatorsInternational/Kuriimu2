@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Kompression.Configuration;
 using Kompression.PatternMatch;
 
@@ -25,6 +26,7 @@ namespace Kompression.Implementations.Decoders
                 {
                     value = input.ReadByte();
                     var offset = ReadVlc(input, value & 0xF);   // yes, this one is the only one seemingly using this scheme of reading a value
+                    offset++;
                     var length = value >> 4 > 0 ? value >> 4 : ReadVlc(input);
                     length += 1;
 
@@ -53,6 +55,8 @@ namespace Kompression.Implementations.Decoders
 
         private void CopyBytes(Stream output, int from, int to, int length)
         {
+            if (from == to)
+                throw new Exception();
             for (int i = from, j = to; i < from + length; i++, j++)
             {
                 output.Position = i;

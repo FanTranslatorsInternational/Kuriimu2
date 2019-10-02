@@ -90,7 +90,7 @@ namespace Kompression.Implementations.Encoders
             var dispIndexTree = CreateDisplacementIndexTree();
             _dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            using (var bw = new BitWriter(output, BitOrder.LSBFirst, 1, ByteOrder.LittleEndian))
+            using (var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian))
             {
                 // Without obfuscation
                 bw.WriteByte(0x02);

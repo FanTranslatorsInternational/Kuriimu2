@@ -5,27 +5,55 @@ using Kompression.Models;
 
 namespace Kompression.Configuration
 {
+    /// <summary>
+    /// Contains information on configuring match finding and parsing.
+    /// </summary>
     class MatchOptions : IMatchOptions
     {
+        /// <summary>
+        /// The factory to create a list of <see cref="IMatchFinder"/>s.
+        /// </summary>
         internal IList<Func<IList<FindLimitations>, FindOptions, IMatchFinder>> MatchFinderFactories { get; private set; }
 
+        /// <summary>
+        /// The factory to create a list of <see cref="FindLimitations"/>.
+        /// </summary>
         internal IList<Func<FindLimitations>> LimitFactories { get; private set; }
 
+        /// <summary>
+        /// The factory to create an <see cref="IPriceCalculator"/>.
+        /// </summary>
         internal Func<IPriceCalculator> PriceCalculatorFactory { get; private set; }
 
+        /// <summary>
+        /// The factory to create an <see cref="IMatchParser"/>.
+        /// </summary>
         internal Func<IList<IMatchFinder>, IPriceCalculator, FindOptions, IMatchParser> MatchParserFactory { get; private set; }
 
+        /// <summary>
+        /// Indicates whether to search matches from the beginning to the end of data.
+        /// </summary>
         internal bool? FindBackwards { get; private set; }
 
+        /// <summary>
+        /// Gets the size of a buffer located before the first position to search from.
+        /// </summary>
         internal int? PreBufferSize { get; private set; }
 
+        /// <summary>
+        /// Gets the amount of units to skip after a match.
+        /// </summary>
         internal int? SkipAfterMatch { get; private set; }
 
+        /// <summary>
+        /// Gets the size of a unit to match.
+        /// </summary>
         internal UnitSize? UnitSize { get; private set; }
 
+        /// <summary>
+        /// Gets the number of tasks to use to find pattern matches.
+        /// </summary>
         internal int? TaskCount { get; private set; }
-
-        internal MatchOptions() { }
 
         /// <inheritdoc cref="CalculatePricesWith"/>
         public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)

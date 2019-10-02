@@ -58,7 +58,7 @@ namespace Kompression.MatchParser
             while (startPosition + positionOffset < input.Length)
             {
                 var match = GetLongestMatch(input, startPosition + positionOffset);
-                if (match != null)
+                if (match.Length > 0)
                 {
                     yield return match;
 
@@ -74,11 +74,11 @@ namespace Kompression.MatchParser
 
         private Match GetLongestMatch(byte[] input, int position)
         {
-            Match foundMatch = null;
+            var foundMatch = new Match();
             foreach (var finder in _finders)
             {
                 var match = finder.FindMatchesAtPosition(input, position).OrderByDescending(x => x.Length).FirstOrDefault();
-                if ((match?.Length ?? 0) > (foundMatch?.Length ?? 0))
+                if (match.Length > foundMatch.Length)
                     foundMatch = match;
             }
 

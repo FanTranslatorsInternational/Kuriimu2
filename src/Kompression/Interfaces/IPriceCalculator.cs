@@ -10,15 +10,20 @@ namespace Kompression.Interfaces
         /// <summary>
         /// Calculates the price of a literal.
         /// </summary>
+        /// <param name="state">The current match state.</param>
+        /// <param name="position">The current position.</param>
         /// <param name="value">The value to price.</param>
         /// <returns>The calculated price.</returns>
-        int CalculateLiteralPrice(int value);
+        int CalculateLiteralPrice(IMatchState state, int position, int value);
 
         /// <summary>
         /// Calculates the price of a pattern match.
         /// </summary>
-        /// <param name="match">The pattern match to price.</param>
+        /// <param name="state">The current match state.</param>
+        /// <param name="position">The current position.</param>
+        /// <param name="displacement">The displacement from the current position.</param>
+        /// <param name="length">The length of the match.</param>
         /// <returns>The calculated price.</returns>
-        int CalculateMatchPrice(Match match);
+        int CalculateMatchPrice(IMatchState state, int position, int displacement, int length);
     }
 }

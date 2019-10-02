@@ -1,14 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kompression.IO
+﻿namespace Kompression.IO
 {
+    /// <summary>
+    /// The order of bits in a buffer.
+    /// </summary>
     public enum BitOrder
     {
-        MSBFirst,
-        LSBFirst
+        /// <summary>
+        /// Most significant bit first.
+        /// </summary>
+        MsbFirst,
+
+        /// <summary>
+        /// Least significant bit first.
+        /// </summary>
+        LsbFirst
     }
 }

@@ -21,6 +21,7 @@
   
   <ItemGroup>
     <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="MoreLinq.Portable" Version="1.4.0" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 

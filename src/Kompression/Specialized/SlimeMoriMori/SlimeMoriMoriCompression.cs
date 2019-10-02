@@ -92,7 +92,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
             var valueWriter = CreateValueWriter(_huffmanMode, tree);
 
-            using (var bw = new BitWriter(output, BitOrder.MSBFirst, 4, ByteOrder.LittleEndian))
+            using (var bw = new BitWriter(output, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
             {
                 // Write header data
                 bw.WriteBits((int)input.Length, 0x18);
@@ -161,7 +161,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Optimal parse all LZ matches
-            var parser = new OptimalParser(
+            var parser = new BackwardForwardOptimalParser(
                 new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
                 new SlimePriceCalculator(compressionMode, huffmanMode));
 

@@ -9,7 +9,7 @@ namespace Kompression.MatchFinders.Support
     /// <summary>
     /// The state machine for <see cref="HistoryMatchFinder"/>.
     /// </summary>
-    class HistoryMatchState : IDisposable
+    public class HistoryMatchState : IDisposable
     {
         private int _previousPosition = -1;
 
@@ -185,6 +185,7 @@ namespace Kompression.MatchFinders.Support
 
         #region Dispose
 
+        /// <inheritdoc cref="Dispose"/>
         public void Dispose()
         {
             _offsetTable = null;

@@ -65,7 +65,7 @@ namespace Kompression.PatternMatch.LempelZiv
         }
 
         // TODO
-        public IEnumerable<Match> GetAllMatches(byte[] input, int position)
+        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
             throw new NotImplementedException();
         }

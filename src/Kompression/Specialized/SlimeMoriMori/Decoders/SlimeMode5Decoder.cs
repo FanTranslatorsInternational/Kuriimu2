@@ -12,7 +12,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
 
         public override void Decode(Stream input, Stream output)
         {
-            using (var br = new BitReader(input, BitOrder.MSBFirst, 4, ByteOrder.LittleEndian))
+            using (var br = new BitReader(input, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
             {
                 var uncompressedSize = br.ReadInt32() >> 8;
                 br.ReadByte();

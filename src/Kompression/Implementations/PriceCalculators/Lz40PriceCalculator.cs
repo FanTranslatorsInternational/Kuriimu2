@@ -5,17 +5,17 @@ namespace Kompression.Implementations.PriceCalculators
 {
     public class Lz40PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             return 9;
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
-            if (match.Length <= 0xF)
+            if (length <= 0xF)
                 return 17;
 
-            if (match.Length <= 0x10F)
+            if (length <= 0x10F)
                 return 25;
 
             return 33;

@@ -8,13 +8,14 @@ using Kompression.Interfaces;
 using Kompression.IO;
 using Kompression.MatchParser.Support;
 using Kompression.Models;
+using MoreLinq;
 
 namespace Kompression.MatchParser
 {
     /// <summary>
     /// Parse matches from all positions with a pricing table.
     /// </summary>
-    public class OptimalParser : IMatchParser
+    public class BackwardForwardOptimalParser : IMatchParser
     {
         private PriceHistoryElement[] _history;
 
@@ -25,12 +26,12 @@ namespace Kompression.MatchParser
         public FindOptions FindOptions { get; private set; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="OptimalParser"/>.
+        /// Creates a new instance of <see cref="BackwardForwardOptimalParser"/>.
         /// </summary>
         /// <param name="options">The options to parse pattern matches.</param>
         /// <param name="priceCalculator">The <see cref="IPriceCalculator"/> for match and literal pricing.</param>
         /// <param name="finders">The <see cref="IMatchFinder"/>s to find the longest pattern matches.</param>
-        public OptimalParser(FindOptions options, IPriceCalculator priceCalculator, params IMatchFinder[] finders)
+        public BackwardForwardOptimalParser(FindOptions options, IPriceCalculator priceCalculator, params IMatchFinder[] finders)
         {
             if (finders.Any(x => x.FindOptions.UnitSize != finders[0].FindOptions.UnitSize))
                 throw new InvalidOperationException("All match finder have to have the same unit size.");
@@ -59,6 +60,8 @@ namespace Kompression.MatchParser
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
         {
             _history = new PriceHistoryElement[input.Length - startPosition];
+            for (int i = 0; i < _history.Length; i += (int)FindOptions.UnitSize)
+                _history[i] = new PriceHistoryElement();
 
             BackwardPass(input, startPosition);
             return ForwardPass(input.Length - startPosition).ToArray();
@@ -66,19 +69,24 @@ namespace Kompression.MatchParser
 
         private void BackwardPass(byte[] input, int startPosition)
         {
-            var matches = GetAllMatches(input, startPosition);
+            // ForwardPass test
+            //var matches = GetAllMatches(input, startPosition);
 
             var unitSize = (int)_finders[0].FindOptions.UnitSize;
             var dataLength = input.Length - startPosition;
-            var loopStart = dataLength - (dataLength % unitSize) - unitSize;
-            for (var dataPosition = loopStart; dataPosition >= 0; dataPosition -= unitSize)
+            var loopStart = dataLength - dataLength % unitSize - unitSize;
+
+            var state = new ParserState(_history, FindOptions);
+
+            var dataPosition = loopStart;
+            foreach (var matches in GetAllMatches(input, startPosition))
             {
                 // First get the compression length when the next byte is not compressed
                 _history[dataPosition] = new PriceHistoryElement
                 {
                     IsLiteral = true,
                     Length = unitSize,
-                    Price = _priceCalculator.CalculateLiteralPrice(input[dataPosition + startPosition])
+                    Price = _priceCalculator.CalculateLiteralPrice(state, dataPosition, input[dataPosition + startPosition])
                 };
                 if (dataPosition + unitSize < dataLength)
                     _history[dataPosition].Price += _history[dataPosition + unitSize].Price;
@@ -86,57 +94,65 @@ namespace Kompression.MatchParser
                 // Then go through all longest matches at position i
                 for (int finderIndex = 0; finderIndex < _finders.Length; finderIndex++)
                 {
-                    var finderMatches = matches[dataPosition][finderIndex];
-                    if (finderMatches != null)
+                    var finderMatches = matches[finderIndex];
+                    if (finderMatches == null || !finderMatches.Any())
+                        continue;
+
+                    var longestMatch = finderMatches.MaxBy(x => x.Position);
+
+                    for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= longestMatch.Length; j += unitSize)
                     {
-                        // Due to descending order by length done by GetAllMatches, the first element is the longest match
-                        var longestMatch = finderMatches.First();
+                        var matchPrice = _priceCalculator.CalculateMatchPrice(state, dataPosition, longestMatch.Displacement, j);
 
-                        var matchLength = longestMatch.Length;
-                        for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= matchLength; j += unitSize)
+                        var newCompLen = matchPrice;
+                        if (dataPosition + j < dataLength)
+                            newCompLen += _history[dataPosition + j].Price;
+
+                        if (newCompLen < _history[dataPosition].Price)
                         {
-                            longestMatch.Length = j;
-                            var matchPrice = _priceCalculator.CalculateMatchPrice(longestMatch);
-
-                            long newCompLen = matchPrice;
-                            if (dataPosition + j < dataLength)
-                                newCompLen += _history[dataPosition + j].Price;
-
-                            if (newCompLen < _history[dataPosition].Price)
-                            {
-                                _history[dataPosition].IsLiteral = false;
-                                _history[dataPosition].Displacement = longestMatch.Displacement;
-                                //finderMatches.TakeWhile(x => x.Length >= j).OrderBy(x => x.Displacement).First().Displacement;
-                                _history[dataPosition].Length = j;
-                                _history[dataPosition].Price = newCompLen;
-                            }
+                            _history[dataPosition].IsLiteral = false;
+                            _history[dataPosition].Displacement = longestMatch.Displacement;
+                            //finderMatches.TakeWhile(x => x.Length >= j).OrderBy(x => x.Displacement).First().Displacement;
+                            _history[dataPosition].Length = j;
+                            _history[dataPosition].Price = newCompLen;
                         }
                     }
                 }
+
+                dataPosition -= unitSize;
             }
         }
 
-        private Match[][][] GetAllMatches(byte[] input, int startPosition)
+        private IEnumerable<Match[][]> GetAllMatches(byte[] input, int startPosition)
         {
-            var matches = new Match[input.Length - startPosition][][];
-            for (var i = 0; i < matches.Length; i++)
-                matches[i] = new Match[_finders.Length][];
+            var finderEnumerators = new IEnumerator<Match[]>[_finders.Length];
+            for (var i = 0; i < _finders.Length; i++)
+                finderEnumerators[i] = _finders[i].GetAllMatches(input, startPosition).GetEnumerator();
 
-            for (int finderIndex = 0; finderIndex < _finders.Length; finderIndex++)
+            var continueExecution = true;
+            while (continueExecution)
             {
-                var finderMatches = _finders[finderIndex].GetAllMatches(input, startPosition).ToArray();
+                var findersResult = new Match[_finders.Length][];
+                for (int finderIndex = 0; finderIndex < _finders.Length; finderIndex++)
+                {
+                    if (!finderEnumerators[finderIndex].MoveNext())
+                    {
+                        continueExecution = false;
+                        break;
+                    }
 
-                var groupedMatches = finderMatches.GroupBy(x => x.Position);
-                foreach (var matchGroup in groupedMatches)
-                    matches[matchGroup.Key][finderIndex] = matchGroup.OrderByDescending(x => x.Length).ToArray();
+                    findersResult[finderIndex] = finderEnumerators[finderIndex].Current;
+                }
+
+                if (continueExecution)
+                    yield return findersResult;
             }
-
-            return matches;
         }
 
         private IEnumerable<Match> ForwardPass(int dataLength)
         {
             var unitSize = (int)_finders[0].FindOptions.UnitSize;
+
             for (var i = 0; i < dataLength;)
             {
                 if (_history[i].IsLiteral)

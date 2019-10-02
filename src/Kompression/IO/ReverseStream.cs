@@ -3,26 +3,46 @@ using System.IO;
 
 namespace Kompression.IO
 {
+    /// <summary>
+    /// Reverses the data in a stream.
+    /// </summary>
     public class ReverseStream : Stream
     {
         private Stream _baseStream;
-        private readonly long _length;
 
-        public ReverseStream(Stream baseStream, long length)
-        {
-            // Assign private members
-            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
-            _length = length;
-        }
-
-        public override long Position { get; set; }
-        public override long Length => _length;
+        /// <inheritdoc cref="CanRead"/>
         public override bool CanRead => true;
+
+        /// <inheritdoc cref="CanWrite"/>
         public override bool CanWrite => true;
+
+        /// <inheritdoc cref="CanSeek"/>
         public override bool CanSeek => true;
 
-        public override void Flush() { }
+        /// <inheritdoc cref="Position"/>
+        public override long Position { get; set; }
 
+        /// <inheritdoc cref="Length"/>
+        public override long Length { get; }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="ReverseStream"/>.
+        /// </summary>
+        /// <param name="baseStream">The stream to reverse.</param>
+        /// <param name="length">The length of the reversed stream.</param>
+        public ReverseStream(Stream baseStream, long length)
+        {
+            _baseStream = baseStream ?? throw new ArgumentNullException(nameof(baseStream));
+            Length = length;
+        }
+
+        /// <inheritdoc cref="Flush"/>
+        public override void Flush()
+        {
+            _baseStream.Flush();
+        }
+
+        /// <inheritdoc cref="SetLength"/>
         public override void SetLength(long value) => throw new NotSupportedException();
 
         /// <inheritdoc cref="Read"/>
@@ -85,11 +105,12 @@ namespace Kompression.IO
             return Position;
         }
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose(bool)"/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
                 _baseStream = null;
+
             base.Dispose(disposing);
         }
     }

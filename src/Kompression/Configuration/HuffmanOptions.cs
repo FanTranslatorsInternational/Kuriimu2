@@ -1,5 +1,4 @@
 ﻿using System;
-using Kompression.Huffman;
 using Kompression.Interfaces;
 
 namespace Kompression.Configuration
@@ -9,12 +8,10 @@ namespace Kompression.Configuration
     /// </summary>
     class HuffmanOptions : IHuffmanOptions
     {
-        internal Func<IHuffmanTreeBuilder> TreeBuilderFactory { get; private set; }
-
         /// <summary>
-        /// Creates a new instance of <see cref="HuffmanOptions"/>.
+        /// The factory to create an <see cref="IHuffmanTreeBuilder"/>.
         /// </summary>
-        internal HuffmanOptions() { }
+        internal Func<IHuffmanTreeBuilder> TreeBuilderFactory { get; private set; }
 
         /// <inheritdoc cref="BuildTreeWith"/>
         public IHuffmanOptions BuildTreeWith(Func<IHuffmanTreeBuilder> treeBuilderFactory)

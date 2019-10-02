@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Kompression.Huffman;
 using Kompression.Implementations;
 using Kompression.Implementations.PriceCalculators;
 using Kompression.MatchFinders;
@@ -22,11 +23,12 @@ namespace KompressionUnitTests
             var watch = new Stopwatch();
             watch.Start();
 
-            var config = Compressions.LzssVle.WithMatchOptions(
-                options => options.
-                    CalculatePricesWith(() => new LzssVlcPriceCalculator()).
-                    FindMatchesWith((limits, findOptions) => new HybridSuffixTreeMatchFinder(limits[0], findOptions)).
-                    ParseMatchesWith((finders, calculator, findOptions) => new OptimalParser(findOptions, calculator, finders.ToArray())));
+            var config = Compressions.LzssVle.WithMatchOptions(options =>
+                options
+                    .CalculatePricesWith(() => new LzssVlcPriceCalculator())
+                    .FindMatchesWith((limits, findOptions) => new HybridSuffixTreeMatchFinder(limits[0], findOptions))
+                    .ParseMatchesWith((finders, calculator, findOptions) =>
+                        new ForwardBackwardOptimalParser(findOptions, calculator, finders.ToArray())));
             config.Build().Compress(str, save);
 
             watch.Stop();

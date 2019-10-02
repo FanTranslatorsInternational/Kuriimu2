@@ -5,12 +5,12 @@ namespace Kompression.Implementations.PriceCalculators
 {
     public class Mio0PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             return 9;
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
             return 17;
         }

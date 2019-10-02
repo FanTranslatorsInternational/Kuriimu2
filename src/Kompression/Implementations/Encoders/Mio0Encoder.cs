@@ -23,7 +23,7 @@ namespace Kompression.Implementations.Encoders
             var compressedTableStream = new MemoryStream();
             var uncompressedTableStream = new MemoryStream();
 
-            using (var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MSBFirst, 1, ByteOrder.BigEndian))
+            using (var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MsbFirst, 1, ByteOrder.BigEndian))
             using (var bwCompressed = new BinaryWriter(compressedTableStream))
             using (var bwUncompressed = new BinaryWriter(uncompressedTableStream))
             {

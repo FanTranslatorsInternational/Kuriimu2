@@ -8,17 +8,17 @@ namespace Kompression.Implementations.PriceCalculators
     {
         /* Here we work without pricing the flags */
 
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             return 8;
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
-            if (match.Displacement > 4 && match.Length > 0x12)
+            if (displacement > 4 && length > 0x12)
                 throw new InvalidOperationException("Invalid match for Lze.");
 
-            if (match.Displacement <= 4)
+            if (displacement <= 4)
                 return 8;
 
             return 16;

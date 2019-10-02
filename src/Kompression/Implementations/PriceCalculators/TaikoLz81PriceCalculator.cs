@@ -5,7 +5,7 @@ namespace Kompression.Implementations.PriceCalculators
 {
     class TaikoLz81PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
             // One raw value is encoded with huffman; The huffman code length will be approximated at 6 bits after some heuristics were taken
             // Additionally the length is also huffman coded; We approximate 3 bit for one length index value and to also accomodate
@@ -14,7 +14,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 6 + 3 + 3;
         }
 
-        public int CalculateMatchPrice(Match match)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
             // One match is encoded with two huffman values
             // The length value can be at max 6 bits, therefore we will approximate it at 3 bits;

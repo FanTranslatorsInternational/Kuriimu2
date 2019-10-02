@@ -45,11 +45,11 @@ namespace Kompression.Implementations.Encoders
                 {
                     if (node.Children != null)
                         node.Code |= node.Children.Select((child, i) => child.IsLeaf ? (byte)(0x80 >> i) : 0).Sum();
-                    bw.Write(node.Code);
+                    bw.Write((byte)node.Code);
                 }
 
                 // Write bits to stream
-                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MSBFirst, 1, ByteOrder.BigEndian))
+                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
                 {
                     switch (_bitDepth)
                     {
@@ -107,6 +107,7 @@ namespace Kompression.Implementations.Encoders
                 // TODO: Understand what this portion does
                 node.Code = labelList.Count - node.Code;
                 labelList.Add(node);
+
                 // Loop through all children that aren't leaves
                 foreach (var child in node.Children.Reverse().Where(child => !child.IsLeaf))
                 {
