@@ -158,7 +158,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(modes => new LzssVlcDecoder()).
                     EncodeWith((parser, builder, modes) => new LzssVlcEncoder(parser));
                 config.WithMatchOptions(options =>
-                    options.WithinLimitations(() => new FindLimitations(4, -1, 1, 8192)));
+                    options.WithinLimitations(() => new FindLimitations(4, -1, 1, -1)));
 
                 return config;
             }

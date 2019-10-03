@@ -44,12 +44,12 @@ namespace Kompression.MatchFinders.Parallel
         /// <inheritdoc cref="MoveNext"/>
         public bool MoveNext()
         {
-            if (_currentPosition >= _input.Length)
+            if (_currentPosition <0)
                 return false;
 
             Current = _getMatchesAtPosition(_input, _currentPosition).ToArray();
 
-            _currentPosition += _interval;
+            _currentPosition -= _interval;
             return true;
         }
 

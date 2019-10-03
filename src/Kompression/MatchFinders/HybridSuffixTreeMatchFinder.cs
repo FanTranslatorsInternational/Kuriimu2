@@ -100,7 +100,7 @@ namespace Kompression.MatchFinders
 
             // Setup enumerators
             for (var i = 0; i < taskCount; i++)
-                enumerators[i] = new MatchFinderEnumerator(input, position, taskCount * unitSize, FindMatchesAtPosition);
+                enumerators[i] = new MatchFinderEnumerator(input, input.Length - (unitSize * i)-1, taskCount * unitSize, FindMatchesAtPosition);
 
             // Execute all tasks until end of file
             var continueExecution = true;
