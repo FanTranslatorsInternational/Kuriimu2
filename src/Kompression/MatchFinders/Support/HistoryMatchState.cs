@@ -42,7 +42,7 @@ namespace Kompression.MatchFinders.Support
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        public IEnumerable<Match> FindMatchAtPosition(byte[] input, int position)
+        public IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
         {
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
             var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;

@@ -9,7 +9,7 @@ namespace Kompression.MatchFinders.Parallel
     /// <summary>
     /// Enumerates results from a match finder in a specific interval.
     /// </summary>
-    class MatchFinderEnumerator : IEnumerator<Match[]>
+    public class MatchFinderEnumerator : IEnumerator<Match[]>
     {
         private byte[] _input;
         private int _startPosition;
@@ -44,12 +44,12 @@ namespace Kompression.MatchFinders.Parallel
         /// <inheritdoc cref="MoveNext"/>
         public bool MoveNext()
         {
-            if (_currentPosition <0)
+            if (_currentPosition >= _input.Length)
                 return false;
 
             Current = _getMatchesAtPosition(_input, _currentPosition).ToArray();
 
-            _currentPosition -= _interval;
+            _currentPosition += _interval;
             return true;
         }
 

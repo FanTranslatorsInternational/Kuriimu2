@@ -7,12 +7,23 @@ namespace Kompression.Implementations.PriceCalculators
     {
         public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
+            var literals = state.CountLiterals(position) + 1;
+            if (literals == 1)
+                return 16;
+
+            if (literals >= 16 && (literals - 16) % 0x7F == 0)
+                return 16;
+
             return 8;
         }
 
         public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
             var bitLength = 0;
+
+            var matches = state.CountMatches(position) + 1;
+            if (matches >= 16 && (matches - 16) % 0x7F == 0)
+                bitLength += 8;
 
             var dispBitCount = GetBitCount(displacement);
             bitLength += dispBitCount / 7 * 8 + (dispBitCount % 7 <= 3 ? 4 : 12);

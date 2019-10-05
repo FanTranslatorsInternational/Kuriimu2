@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Kompression.Configuration;
-using Kompression.Interfaces;
 using Kompression.MatchFinders.Parallel;
 using Kompression.MatchFinders.Support;
 using Kompression.Models;
@@ -13,31 +11,23 @@ namespace Kompression.MatchFinders
     /// <summary>
     /// Finding matches using a <see cref="HybridSuffixTree"/>.
     /// </summary>
-    public class HybridSuffixTreeMatchFinder : IMatchFinder
+    public class HybridSuffixTreeMatchFinder : BaseMatchFinder
     {
         private HybridSuffixTree _tree;
-
-        /// <inheritdoc cref="FindLimitations"/>
-        public FindLimitations FindLimitations { get; private set; }
-
-        /// <inheritdoc cref="FindOptions"/>
-        public FindOptions FindOptions { get; private set; }
 
         /// <summary>
         /// Creates a new instance of <see cref="HybridSuffixTreeMatchFinder"/>.
         /// </summary>
         /// <param name="limits">The search limitations to find pattern matches.</param>
         /// <param name="options">The additional configuration for finding pattern matches.</param>
-        public HybridSuffixTreeMatchFinder(FindLimitations limits, FindOptions options)
+        public HybridSuffixTreeMatchFinder(FindLimitations limits, FindOptions options) :
+            base(limits, options)
         {
             _tree = new HybridSuffixTree();
-
-            FindLimitations = limits;
-            FindOptions = options;
         }
 
         /// <inheritdoc cref="FindMatchesAtPosition"/>
-        public IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
+        public override IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
         {
             if (!_tree.IsBuilt)
                 _tree.Build(input, 0);
@@ -55,7 +45,7 @@ namespace Kompression.MatchFinders
             var offsets = _tree.GetOffsets(input[position], position, maxDisplacement, FindLimitations.MinDisplacement, (int)FindOptions.UnitSize);
             while (node != null && length < maxSize && offsets.Length > 0)
             {
-                var previousLength = length;
+                //var previousLength = length;
                 length += node.Length;
                 position += node.Length;
 
@@ -86,51 +76,37 @@ namespace Kompression.MatchFinders
                     yield return new Match(originalPosition, originalPosition - offsets[0], length);
         }
 
-        /// <inheritdoc cref="GetAllMatches"/>
-        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
+        /// <inheritdoc cref="SetupMatchFinder"/>
+        protected override void SetupMatchFinder(byte[] input, int startPosition)
         {
             if (!_tree.IsBuilt)
-                _tree.Build(input, position);
+                _tree.Build(input, startPosition);
+        }
 
+        /// <inheritdoc cref="SetupMatchFinderEnumerators"/>
+        protected override MatchFinderEnumerator[] SetupMatchFinderEnumerators(byte[] input, int startPosition)
+        {
             var taskCount = FindOptions.TaskCount;
             var unitSize = (int)FindOptions.UnitSize;
 
-            var tasks = new Task<bool>[taskCount];
             var enumerators = new MatchFinderEnumerator[taskCount];
-
-            // Setup enumerators
             for (var i = 0; i < taskCount; i++)
-                enumerators[i] = new MatchFinderEnumerator(input, input.Length - (unitSize * i)-1, taskCount * unitSize, FindMatchesAtPosition);
+                enumerators[i] = new MatchFinderEnumerator(input, startPosition + unitSize * i, taskCount * unitSize, FindMatchesAtPosition);
 
-            // Execute all tasks until end of file
-            var continueExecution = true;
-            while (continueExecution)
-            {
-                for (int i = 0; i < taskCount; i++)
-                {
-                    var enumerator = enumerators[i];
-                    tasks[i] = new Task<bool>(() => enumerator.MoveNext());
-                    tasks[i].Start();
-                }
-
-                Task.WaitAll(tasks);
-                continueExecution = tasks.All(x => x.Result);
-
-                for (var i = 0; i < taskCount; i++)
-                    if (tasks[i].Result)
-                        yield return enumerators[i].Current;
-            }
+            return enumerators;
         }
 
         #region Dispose
 
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _tree.Dispose();
+            if (disposing)
+            {
+                _tree?.Dispose();
+                _tree = null;
+            }
 
-            _tree = null;
-            FindLimitations = null;
-            FindOptions = null;
+            base.Dispose(disposing);
         }
 
         #endregion

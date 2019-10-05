@@ -28,7 +28,7 @@ namespace KompressionUnitTests
                     .CalculatePricesWith(() => new LzssVlcPriceCalculator())
                     .FindMatchesWith((limits, findOptions) => new HybridSuffixTreeMatchFinder(limits[0], findOptions))
                     .ParseMatchesWith((finders, calculator, findOptions) =>
-                        new BackwardForwardOptimalParser(findOptions, calculator, finders.ToArray())));
+                        new ForwardBackwardOptimalParser(findOptions, calculator, finders.ToArray())));
             config.Build().Compress(str, save);
 
             watch.Stop();

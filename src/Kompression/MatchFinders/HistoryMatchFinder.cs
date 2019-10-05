@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Kompression.Configuration;
-using Kompression.Interfaces;
+using Kompression.MatchFinders.Parallel;
 using Kompression.MatchFinders.Support;
 using Kompression.Models;
 
@@ -10,52 +9,64 @@ namespace Kompression.MatchFinders
     /// <summary>
     /// Find pattern matches via a history of found values.
     /// </summary>
-    public class HistoryMatchFinder : IMatchFinder
+    public class HistoryMatchFinder : BaseMatchFinder
     {
-        private HistoryMatchState _state;
-
-        /// <inheritdoc cref="FindLimitations"/>
-        public FindLimitations FindLimitations { get; private set; }
-
-        /// <inheritdoc cref="FindOptions"/>
-        public FindOptions FindOptions { get; private set; }
+        private HistoryMatchState[] _states;
 
         /// <summary>
         /// Creates a new instance of <see cref="HistoryMatchFinder"/>
         /// </summary>
         /// <param name="limits">The limits to search sequences in.</param>
         /// <param name="options">The options to search sequences with.</param>
-        public HistoryMatchFinder(FindLimitations limits, FindOptions options)
+        public HistoryMatchFinder(FindLimitations limits, FindOptions options) :
+            base(limits, options)
         {
-            FindLimitations = limits;
-            FindOptions = options;
         }
 
         /// <inheritdoc cref="FindMatchesAtPosition"/>
-        public IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
+        public override IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
         {
-            if (_state == null)
-                _state = new HistoryMatchState(FindLimitations, FindOptions);
+            if (_states == null)
+            {
+                _states = new HistoryMatchState[1];
+                _states[0] = new HistoryMatchState(FindLimitations, FindOptions);
+            }
 
-            return _state.FindMatchAtPosition(input, position);
+            return _states[0].FindMatchesAtPosition(input, position);
         }
 
-        /// <inheritdoc cref="GetAllMatches"/>
-        public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
+        protected override void SetupMatchFinder(byte[] input, int startPosition)
         {
-            throw new NotSupportedException();
+            _states = new HistoryMatchState[FindOptions.TaskCount];
+            for (var i = 0; i < _states.Length; i++)
+                _states[i] = new HistoryMatchState(FindLimitations, FindOptions);
+        }
+
+        protected override MatchFinderEnumerator[] SetupMatchFinderEnumerators(byte[] input, int startPosition)
+        {
+            var taskCount = FindOptions.TaskCount;
+            var unitSize = (int)FindOptions.UnitSize;
+
+            var enumerators = new MatchFinderEnumerator[taskCount];
+            for (var i = 0; i < taskCount; i++)
+                enumerators[i] = new MatchFinderEnumerator(input, startPosition + unitSize * i, taskCount * unitSize, _states[i].FindMatchesAtPosition);
+
+            return enumerators;
         }
 
         #region Dispose
 
-        /// <inheritdoc cref="Dispose"/>
-        public void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            _state?.Dispose();
+            if (disposing)
+            {
+                if (_states != null)
+                    foreach (var state in _states)
+                        state.Dispose();
+                _states = null;
+            }
 
-            _state = null;
-            FindLimitations = null;
-            FindOptions = null;
+            base.Dispose(disposing);
         }
 
         #endregion
