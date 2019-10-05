@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Mio0Encoder : IEncoder
+    public class Mio0Encoder : IEncoder, IPriceCalculator
     {
         private readonly ByteOrder _byteOrder;
         private IMatchParser _matchParser;
@@ -64,15 +65,15 @@ namespace Kompression.Implementations.Encoders
         {
             // Create header values
             var uncompressedLength = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian((int)input.Length)
-                : GetBigEndian((int)input.Length);
+                ? ((int)input.Length).GetArrayLittleEndian()
+                : ((int)input.Length).GetArrayBigEndian();
             var compressedTableOffsetInt = (int)(0x10 + ((bitLayoutStream.Length + 3) & ~3));
             var compressedTableOffset = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian(compressedTableOffsetInt)
-                : GetBigEndian(compressedTableOffsetInt);
+                ? compressedTableOffsetInt.GetArrayLittleEndian()
+                : compressedTableOffsetInt.GetArrayBigEndian();
             var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian((int)(compressedTableOffsetInt + compressedTableStream.Length))
-                : GetBigEndian((int)(compressedTableOffsetInt + compressedTableStream.Length));
+                ? ((int)(compressedTableOffsetInt + compressedTableStream.Length)).GetArrayLittleEndian()
+                : ((int)(compressedTableOffsetInt + compressedTableStream.Length)).GetArrayBigEndian();
 
             // Write header
             output.Write(Encoding.ASCII.GetBytes("MIO0"), 0, 4);
@@ -92,15 +93,19 @@ namespace Kompression.Implementations.Encoders
             uncompressedTableStream.CopyTo(output);
         }
 
-        private byte[] GetLittleEndian(int value)
+        #region Price calculation
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            return 9;
         }
 
-        private byte[] GetBigEndian(int value)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
-            return new[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+            return 17;
         }
+
+        #endregion
 
         public void Dispose()
         {

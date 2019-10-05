@@ -6,7 +6,7 @@ using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class TaikoLz80Encoder : IEncoder
+    public class TaikoLz80Encoder : IEncoder, IPriceCalculator
     {
         private IMatchParser _matchParser;
 
@@ -80,13 +80,11 @@ namespace Kompression.Implementations.Encoders
         {
             int code;
 
-            /*var length = ((code >> 4) & 0x3) + 2;
-            var displacement = (code & 0xF) + 1;*/
             if (match.Displacement <= 0x10 && match.Length <= 0x5)
             {
                 code = 0x40;
-                code |= ((int)match.Length - 2) << 4;
-                code |= (int)match.Displacement - 1;
+                code |= (match.Length - 2) << 4;
+                code |= match.Displacement - 1;
 
                 output.WriteByte((byte)code);
                 input.Position += match.Length;
@@ -94,13 +92,11 @@ namespace Kompression.Implementations.Encoders
                 return;
             }
 
-            /*var length = ((code >> 2) & 0xF) + 3;
-            var displacement = (((code & 0x3) << 8) | byte1) + 1;*/
             if (match.Displacement <= 0x400 && match.Length <= 0x12)
             {
                 code = 0x80;
-                code |= ((int)match.Length - 3) << 2;
-                code |= ((int)match.Displacement - 1) >> 8;
+                code |= (match.Length - 3) << 2;
+                code |= (match.Displacement - 1) >> 8;
 
                 output.WriteByte((byte)code);
                 output.WriteByte((byte)(match.Displacement - 1));
@@ -109,10 +105,8 @@ namespace Kompression.Implementations.Encoders
                 return;
             }
 
-            /*var length = (((code & 0x3F) << 1) | (byte1 >> 7)) + 4;
-            var displacement = (((byte1 & 0x7F) << 8) | byte2) + 1;*/
             code = 0xC0;
-            code |= ((int)match.Length - 4) >> 1;
+            code |= (match.Length - 4) >> 1;
             var byte1 = ((match.Length - 4) & 0x1) << 7;
             byte1 |= (match.Displacement - 1) >> 8;
 
@@ -121,6 +115,27 @@ namespace Kompression.Implementations.Encoders
             output.WriteByte((byte)(match.Displacement - 1));
 
             input.Position += match.Length;
+        }
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        {
+            var literalCount = state.CountLiterals(position) % 0x100BE + 1;
+            if (literalCount == 0xC0)
+                return 16;
+            if (literalCount == 0x40)
+                return 16;
+
+            return 8;
+        }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            if (length >= 2 && length <= 5 && displacement >= 1 && displacement <= 0x10)
+                return 8;
+            if (length >= 3 && length <= 0x12 && displacement >= 1 && displacement <= 0x400)
+                return 16;
+
+            return 24;
         }
 
         public void Dispose()

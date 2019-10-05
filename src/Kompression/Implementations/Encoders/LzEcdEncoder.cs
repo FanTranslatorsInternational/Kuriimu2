@@ -2,13 +2,14 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzEcdEncoder : IEncoder
+    public class LzEcdEncoder : IEncoder, IPriceCalculator
     {
-        private const int _windowBufferLength = 0x400;
+        private const int WindowBufferLength = 0x400;
         private IMatchParser _matchParser;
 
         private byte _codeBlock;
@@ -45,7 +46,7 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the buffer
-                var bufferPosition = (match.Position - match.Displacement) % _windowBufferLength;
+                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 
@@ -93,24 +94,30 @@ namespace Kompression.Implementations.Encoders
         {
             var outputEndPosition = output.Position;
 
-            // Create header values
-            var uncompressedLength = GetBigEndian((int)input.Length);
-
             // Write header
             output.Position = originalOutputPosition;
             output.Write(Encoding.ASCII.GetBytes("ECD"), 0, 3);
             output.WriteByte(1);
-            output.Write(GetBigEndian(0), 0, 4);
-            output.Write(GetBigEndian((int)output.Length - 0x10), 0, 4);
-            output.Write(GetBigEndian((int)input.Length), 0, 4);
+            output.Write(new byte[4], 0, 4);
+            output.Write(((int)output.Length - 0x10).GetArrayBigEndian(), 0, 4);
+            output.Write(((int)input.Length).GetArrayBigEndian(), 0, 4);
 
             output.Position = outputEndPosition;
         }
 
-        private byte[] GetBigEndian(int value)
+        #region Price calculation
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+            return 9;
         }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            return 17;
+        }
+
+        #endregion
 
         public void Dispose()
         {

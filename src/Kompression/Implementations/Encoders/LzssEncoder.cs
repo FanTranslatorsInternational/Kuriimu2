@@ -1,24 +1,23 @@
 ﻿using System.IO;
 using Kompression.Configuration;
 using Kompression.Interfaces;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzssEncoder : IEncoder
+    public class LzssEncoder : IEncoder, IPriceCalculator
     {
-        private IMatchParser _matchParser;
+        private Lz10Encoder _lz10Encoder;
 
         public LzssEncoder(IMatchParser matchParser)
         {
-            _matchParser = matchParser;
+            _lz10Encoder = new Lz10Encoder(matchParser);
         }
 
         public void Encode(Stream input, Stream output)
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;
-            new Lz10Encoder(_matchParser).WriteCompressedData(input, output);
+            _lz10Encoder.WriteCompressedData(input, output);
 
             var outputPos = output.Position;
             output.Position = outputStartPos;
@@ -36,9 +35,24 @@ namespace Kompression.Implementations.Encoders
             output.Position = outputPos;
         }
 
+        #region Price calculation
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        {
+            return _lz10Encoder.CalculateLiteralPrice(state, position, value);
+        }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            return _lz10Encoder.CalculateMatchPrice(state, position, displacement, length);
+        }
+
+        #endregion
+
         public void Dispose()
         {
-            // Nothing to dispose
+            _lz10Encoder?.Dispose();
+            _lz10Encoder = null;
         }
     }
 }

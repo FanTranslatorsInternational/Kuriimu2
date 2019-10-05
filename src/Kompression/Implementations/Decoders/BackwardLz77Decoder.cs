@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Kompression.Configuration;
+using Kompression.Extensions;
+using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
@@ -22,10 +22,10 @@ namespace Kompression.Implementations.Decoders
             input.Position = input.Length - 8;
 
             input.Read(buffer, 0, 4);
-            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
 
             input.Read(buffer, 0, 4);
-            var decompressedOffset = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+            var decompressedOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
 
             var footerLength = bufferTopAndBottom >> 24;
             var compressedSize = bufferTopAndBottom & 0xFFFFFF;
@@ -77,16 +77,6 @@ namespace Kompression.Implementations.Decoders
             var displacement = (((byte1 & 0xF) << 8) | byte2) + 3;
 
             _circularBuffer.Copy(output, displacement, length);
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
-        }
-
-        private int GetBigEndian(byte[] data)
-        {
-            return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         public void Dispose()

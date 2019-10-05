@@ -2,12 +2,13 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzeEncoder : IEncoder
+    public class LzeEncoder : IEncoder, IPriceCalculator
     {
         private IMatchParser _matchParser;
 
@@ -119,7 +120,7 @@ namespace Kompression.Implementations.Encoders
             var outputEndPosition = output.Position;
 
             // Create header values
-            var uncompressedLength = GetLittleEndian((int)input.Length);
+            var uncompressedLength = ((int)input.Length).GetArrayLittleEndian();
 
             // Write header
             output.Position = originalOutputPosition;
@@ -129,10 +130,29 @@ namespace Kompression.Implementations.Encoders
             output.Position = outputEndPosition;
         }
 
-        private byte[] GetLittleEndian(int value)
+        #region Price calculation
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            var literalCount = state.CountLiterals(position) % 3 + 1;
+            if (literalCount == 3)
+                return 6;
+
+            return 10;
         }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            if (displacement > 4 && length > 0x12)
+                throw new InvalidOperationException("Invalid match for Lze.");
+
+            if (displacement <= 4)
+                return 10;
+
+            return 18;
+        }
+
+        #endregion
 
         public void Dispose()
         {

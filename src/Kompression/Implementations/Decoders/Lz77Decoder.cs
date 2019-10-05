@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Kompression.Configuration;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {

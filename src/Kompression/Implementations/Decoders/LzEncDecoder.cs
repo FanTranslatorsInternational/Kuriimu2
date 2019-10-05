@@ -4,6 +4,7 @@ using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
+    // TODO: LzEncEncoder needed
     public class LzEncDecoder : IDecoder
     {
         private CircularBuffer _circularBuffer;

@@ -2,12 +2,13 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Yaz0Encoder : IEncoder
+    public class Yaz0Encoder : IEncoder,IPriceCalculator
     {
         private readonly ByteOrder _byteOrder;
         private IMatchParser _matchParser;
@@ -102,8 +103,8 @@ namespace Kompression.Implementations.Encoders
 
             // Create header values
             var uncompressedLength = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian((int)input.Length)
-                : GetBigEndian((int)input.Length);
+                ? ((int)input.Length).GetArrayLittleEndian()
+                : ((int)input.Length).GetArrayBigEndian();
 
             // Write header
             output.Position = originalOutputPosition;
@@ -113,14 +114,17 @@ namespace Kompression.Implementations.Encoders
             output.Position = outputEndPosition;
         }
 
-        private byte[] GetLittleEndian(int value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            return 9;
         }
 
-        private byte[] GetBigEndian(int value)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
-            return new[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+            if (length >= 0x12)
+                return 25;
+
+            return 17;
         }
 
         public void Dispose()

@@ -2,6 +2,7 @@
 using System.Linq;
 using Kompression.Configuration;
 using Kompression.Exceptions;
+using Kompression.Extensions;
 using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
@@ -26,15 +27,13 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidCompressionException("MIO0" + (_byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
 
             input.Read(buffer, 0, 4);
-            var uncompressedLength = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+            var uncompressedLength = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
             input.Read(buffer, 0, 4);
-            var compressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+            var compressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
             input.Read(buffer, 0, 4);
-            var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? GetLittleEndian(buffer) : GetBigEndian(buffer);
+            var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
 
-            _circularBuffer=new CircularBuffer(0x1000);
-            //var windowBuffer = new byte[0x1000];
-            //var windowBufferPosition = 0;
+            _circularBuffer =new CircularBuffer(0x1000);
             var compressedTablePosition = 0;
             var uncompressedTablePosition = 0;
 
@@ -68,16 +67,6 @@ namespace Kompression.Implementations.Decoders
                     }
                 }
             }
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
-        }
-
-        private int GetBigEndian(byte[] data)
-        {
-            return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         public void Dispose()

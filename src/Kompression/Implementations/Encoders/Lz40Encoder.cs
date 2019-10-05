@@ -7,7 +7,7 @@ using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Lz40Encoder : IEncoder
+    public class Lz40Encoder : IEncoder, IPriceCalculator
     {
         private IMatchParser _matchParser;
 
@@ -99,6 +99,26 @@ namespace Kompression.Implementations.Encoders
             output.Write(blockBuffer, 0, blockBufferLength);
             Array.Clear(blockBuffer, 0, blockBufferLength);
         }
+
+        #region Price calculation
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        {
+            return 9;
+        }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            if (length <= 0xF)
+                return 17;
+
+            if (length <= 0x10F)
+                return 25;
+
+            return 33;
+        }
+
+        #endregion
 
         public void Dispose()
         {

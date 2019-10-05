@@ -1,12 +1,18 @@
 ﻿using System.IO;
 using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
     public class LzssDecoder : IDecoder
     {
+        private Lz10Decoder _lz10Decoder;
+
+        public LzssDecoder()
+        {
+            _lz10Decoder = new Lz10Decoder();
+        }
+
         public void Decode(Stream input, Stream output)
         {
             var compressionHeader = new byte[4];
@@ -22,13 +28,13 @@ namespace Kompression.Implementations.Decoders
             input.Read(decompressedSizeBuffer, 0, 4);
             var decompressedSize = decompressedSizeBuffer[0] | (decompressedSizeBuffer[1] << 8) | (decompressedSizeBuffer[2] << 16) | (decompressedSizeBuffer[3] << 24);
 
-            var lz10Decoder = new Lz10Decoder();
-            lz10Decoder.ReadCompressedData(input, output, decompressedSize);
+            _lz10Decoder.ReadCompressedData(input, output, decompressedSize);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            _lz10Decoder?.Dispose();
+            _lz10Decoder = null;
         }
     }
 }

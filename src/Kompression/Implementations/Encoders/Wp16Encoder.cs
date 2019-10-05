@@ -2,12 +2,13 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Wp16Encoder : IEncoder
+    class Wp16Encoder : IEncoder, IPriceCalculator
     {
         private long _flagBuffer;
         private int _flagPosition;
@@ -30,7 +31,7 @@ namespace Kompression.Implementations.Encoders
 
             var start = Encoding.ASCII.GetBytes("Wp16");
             output.Write(start, 0, 4);
-            output.Write(GetLittleEndian(input.Length), 0, 4);
+            output.Write(((int)input.Length).GetArrayLittleEndian(), 0, 4);
 
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
@@ -92,7 +93,7 @@ namespace Kompression.Implementations.Encoders
         private void WriteAndResetBuffer(Stream output)
         {
             // Write data to output
-            var buffer = GetLittleEndian(_flagBuffer);
+            var buffer = ((int)_flagBuffer).GetArrayLittleEndian();
             output.Write(buffer, 0, 4);
             output.Write(_buffer, 0, _bufferLength);
 
@@ -103,9 +104,14 @@ namespace Kompression.Implementations.Encoders
             _bufferLength = 0;
         }
 
-        private byte[] GetLittleEndian(long value)
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            return 17;
+        }
+
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        {
+            return 17;
         }
 
         public void Dispose()

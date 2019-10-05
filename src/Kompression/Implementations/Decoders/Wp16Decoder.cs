@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
@@ -18,7 +19,7 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidOperationException("Not Wp16 compressed.");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = GetLittleEndian(buffer);
+            var decompressedSize = buffer.GetInt32LittleEndian(0);
 
             _circularBuffer = new CircularBuffer(0xFFE);
 
@@ -29,7 +30,7 @@ namespace Kompression.Implementations.Decoders
                 if (flagPosition == 32)
                 {
                     input.Read(buffer, 0, 4);
-                    flags = GetLittleEndian(buffer);
+                    flags = buffer.GetInt32LittleEndian(0);
                     flagPosition = 0;
                 }
 
@@ -60,11 +61,6 @@ namespace Kompression.Implementations.Decoders
                     _circularBuffer.Copy(output, displacement, length * 2);
                 }
             }
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
         }
 
         public void Dispose()

@@ -1,12 +1,15 @@
 ﻿using System.IO;
 using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.PatternMatch;
+using Kompression.Extensions;
+using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
     public class LzeDecoder : IDecoder
     {
+        private CircularBuffer _circularBuffer;
+
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -15,16 +18,14 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidCompressionException("Lze");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = GetLittleEndian(buffer);
+            var decompressedSize = buffer.GetInt32LittleEndian(0);
 
+            _circularBuffer = new CircularBuffer(0x1004);
             ReadCompressedData(input, output, decompressedSize);
         }
 
         private void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
-            int bufferLength = 0x1004, bufferOffset = 0;
-            byte[] buffer = new byte[bufferLength];
-
             int flags = 0, readFlags = 3;
             while (output.Length < decompressedSize)
             {
@@ -42,23 +43,23 @@ namespace Kompression.Implementations.Decoders
                 {
                     case 0:
                         // LZS4C
-                        bufferOffset = HandleZeroCompressedBlock(input, output, buffer, bufferOffset);
+                        HandleZeroCompressedBlock(input, output);
                         break;
                     case 1:
                         // LZS62
-                        bufferOffset = HandleOneCompressedBlock(input, output, buffer, bufferOffset);
+                        HandleOneCompressedBlock(input, output);
                         break;
                     case 2:
-                        bufferOffset = HandleCopyBlock(input, output, buffer, bufferOffset, 1);
+                        HandleCopyBlock(input, output, 1);
                         break;
                     case 3:
-                        bufferOffset = HandleCopyBlock(input, output, buffer, bufferOffset, 3);
+                        HandleCopyBlock(input, output, 3);
                         break;
                 }
             }
         }
 
-        private int HandleZeroCompressedBlock(Stream input, Stream output, byte[] windowBuffer, int windowBufferOffset)
+        private void HandleZeroCompressedBlock(Stream input, Stream output)
         {
             var byte1 = input.ReadByte();
             var byte2 = input.ReadByte();
@@ -66,53 +67,28 @@ namespace Kompression.Implementations.Decoders
             var length = (byte2 >> 4) + 3;
             var displacement = (((byte2 & 0x0F) << 8) | byte1) + 5;
 
-            var bufferIndex = windowBufferOffset + windowBuffer.Length - displacement;
-            for (var i = 0; i < length; i++)
-            {
-                var next = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                output.WriteByte(next);
-                windowBuffer[windowBufferOffset] = next;
-                windowBufferOffset = (windowBufferOffset + 1) % windowBuffer.Length;
-            }
-
-            return windowBufferOffset;
+            _circularBuffer.Copy(output, displacement, length);
         }
 
-        private int HandleOneCompressedBlock(Stream input, Stream output, byte[] windowBuffer, int windowBufferOffset)
+        private void HandleOneCompressedBlock(Stream input, Stream output)
         {
             var byte1 = input.ReadByte();
 
             var length = (byte1 >> 2) + 2;
             var displacement = (byte1 & 0x3) + 1;
 
-            var bufferIndex = windowBufferOffset + windowBuffer.Length - displacement;
-            for (var i = 0; i < length; i++)
-            {
-                var next = windowBuffer[bufferIndex++ % windowBuffer.Length];
-                output.WriteByte(next);
-                windowBuffer[windowBufferOffset] = next;
-                windowBufferOffset = (windowBufferOffset + 1) % windowBuffer.Length;
-            }
-
-            return windowBufferOffset;
+            _circularBuffer.Copy(output, displacement, length);
         }
 
-        private int HandleCopyBlock(Stream input, Stream output, byte[] windowBuffer, int windowBufferOffset, int toCopy)
+        private void HandleCopyBlock(Stream input, Stream output, int toCopy)
         {
             for (var i = 0; i < toCopy; i++)
             {
                 var next = (byte)input.ReadByte();
+
                 output.WriteByte(next);
-                windowBuffer[windowBufferOffset] = next;
-                windowBufferOffset = (windowBufferOffset + 1) % windowBuffer.Length;
+                _circularBuffer.WriteByte(next);
             }
-
-            return windowBufferOffset;
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
         }
 
         public void Dispose()

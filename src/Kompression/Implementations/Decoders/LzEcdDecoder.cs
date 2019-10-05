@@ -2,8 +2,8 @@
 using System.Linq;
 using Kompression.Configuration;
 using Kompression.Exceptions;
+using Kompression.Extensions;
 using Kompression.IO;
-using Kompression.PatternMatch;
 
 /* https://github.com/IcySon55/Kuriimu/issues/438 */
 /* Kanken Training 2 */
@@ -35,11 +35,11 @@ namespace Kompression.Implementations.Decoders
             }
 
             input.Read(buffer, 0, 4);
-            var skipData = GetBigEndian(buffer);
+            var skipData = buffer.GetInt32BigEndian(0);
             input.Read(buffer, 0, 4);
-            var compressedLength = GetBigEndian(buffer);
+            var compressedLength = buffer.GetInt32BigEndian(0);
             input.Read(buffer, 0, 4);
-            var uncompressedLength = GetBigEndian(buffer);
+            var uncompressedLength = buffer.GetInt32BigEndian(0);
 
             _circularBuffer = new CircularBuffer(0x400)
             {
@@ -84,11 +84,6 @@ namespace Kompression.Implementations.Decoders
                     _circularBuffer.Copy(output, displacement, length);
                 }
             }
-        }
-
-        private int GetBigEndian(byte[] data)
-        {
-            return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         }
 
         public void Dispose()

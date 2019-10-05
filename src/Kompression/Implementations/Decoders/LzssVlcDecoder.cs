@@ -5,7 +5,7 @@ using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Decoders
 {
-    class LzssVlcDecoder : IDecoder
+    public class LzssVlcDecoder : IDecoder
     {
         public void Decode(Stream input, Stream output)
         {
@@ -55,8 +55,6 @@ namespace Kompression.Implementations.Decoders
 
         private void CopyBytes(Stream output, int from, int to, int length)
         {
-            if (from == to)
-                throw new Exception();
             for (int i = from, j = to; i < from + length; i++, j++)
             {
                 output.Position = i;

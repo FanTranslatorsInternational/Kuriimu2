@@ -2,13 +2,14 @@
 using System.IO;
 using System.Linq;
 using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.IO;
 using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class BackwardLz77Encoder : IEncoder
+    public class BackwardLz77Encoder : IEncoder, IPriceCalculator
     {
         private readonly ByteOrder _byteOrder;
         private byte _codeBlock;
@@ -127,11 +128,11 @@ namespace Kompression.Implementations.Encoders
             var originalBottomInt = (int)(input.Length - compressedSize);
 
             var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian(bufferTopAndBottomInt)
-                : GetBigEndian(bufferTopAndBottomInt);
+                ? bufferTopAndBottomInt.GetArrayLittleEndian()
+                : bufferTopAndBottomInt.GetArrayBigEndian();
             var originalBottom = _byteOrder == ByteOrder.LittleEndian
-                ? GetLittleEndian(originalBottomInt)
-                : GetBigEndian(originalBottomInt);
+                ? originalBottomInt.GetArrayLittleEndian()
+                : originalBottomInt.GetArrayBigEndian();
             output.Write(bufferTopAndBottom, 0, 4);
             output.Write(originalBottom, 0, 4);
         }
@@ -149,15 +150,19 @@ namespace Kompression.Implementations.Encoders
             _bufferLength = 0;
         }
 
-        private byte[] GetLittleEndian(int value)
+        #region Price calcualtion
+
+        public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
-            return new[] { (byte)value, (byte)(value >> 8), (byte)(value >> 16), (byte)(value >> 24) };
+            return 9;
         }
 
-        private byte[] GetBigEndian(int value)
+        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
         {
-            return new[] { (byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value };
+            return 17;
         }
+
+        #endregion
 
         public void Dispose()
         {
