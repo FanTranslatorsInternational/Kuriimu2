@@ -2,17 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kompression.Configuration;
 using Kompression.Extensions;
 using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.MatchParser.Support;
 using Kompression.Models;
+using Kompression.PatternMatch.MatchParser.Support;
 using MoreLinq;
 
-namespace Kompression.MatchParser
+namespace Kompression.PatternMatch.MatchParser
 {
     public class ForwardBackwardOptimalParser : IMatchParser
     {

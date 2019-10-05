@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Kompression.MatchFinders.Support
+namespace Kompression.PatternMatch.MatchFinders.Support
 {
     /// <summary>
     /// A node in the suffix tree.
@@ -40,7 +40,7 @@ namespace Kompression.MatchFinders.Support
             Children = new Dictionary<byte, SuffixTreeNode>();
         }
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
             End = null;

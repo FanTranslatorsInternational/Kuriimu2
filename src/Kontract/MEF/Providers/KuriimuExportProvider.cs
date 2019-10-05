@@ -6,7 +6,7 @@ using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using Kontract.MEF.ErrorReports;
 using Kontract.MEF.Interfaces;
-using Kontract.Providers.Models;
+using Kontract.MEF.Models;
 
 namespace Kontract.MEF.Providers
 {

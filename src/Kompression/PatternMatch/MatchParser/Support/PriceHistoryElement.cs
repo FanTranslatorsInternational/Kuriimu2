@@ -1,6 +1,4 @@
-﻿using Kompression.MatchParser;
-
-namespace Kompression.MatchParser.Support
+﻿namespace Kompression.PatternMatch.MatchParser.Support
 {
     /// <summary>
     /// The element model used for <see cref="BackwardForwardOptimalParser"/> to store price and connects it to a displacement and length

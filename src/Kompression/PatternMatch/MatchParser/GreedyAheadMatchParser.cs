@@ -8,12 +8,12 @@ using Kompression.Interfaces;
 using Kompression.IO;
 using Kompression.Models;
 
-namespace Kompression.MatchParser
+namespace Kompression.PatternMatch.MatchParser
 {
     /// <summary>
-    /// Parse longest matches and skipping them.
+    /// Parse longest matches with a single look ahead and skipping them.
     /// </summary>
-    public class GreedyMatchParser : IMatchParser
+    public class GreedyAheadMatchParser : IMatchParser
     {
         private IMatchFinder[] _finders;
 
@@ -21,17 +21,17 @@ namespace Kompression.MatchParser
         public FindOptions FindOptions { get; private set; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="GreedyMatchParser"/>.
+        /// Creates a new instance of <see cref="GreedyAheadMatchParser"/>.
         /// </summary>
-        /// <param name="findOptions">The findOptions to parse pattern matches.</param>
+        /// <param name="options">The options to parse pattern matches.</param>
         /// <param name="finders">The <see cref="IMatchFinder"/>s to find the longest pattern matches.</param>
-        public GreedyMatchParser(FindOptions findOptions, params IMatchFinder[] finders)
+        public GreedyAheadMatchParser(FindOptions options, params IMatchFinder[] finders)
         {
             if (finders.Any(x => x.FindOptions.UnitSize != finders[0].FindOptions.UnitSize))
                 throw new InvalidOperationException("All match finder have to have the same unit size.");
 
             _finders = finders;
-            FindOptions = findOptions;
+            FindOptions = options;
         }
 
         /// <inheritdoc cref="ParseMatches"/>
@@ -60,10 +60,22 @@ namespace Kompression.MatchParser
                 var match = GetLongestMatch(input, startPosition + positionOffset);
                 if (match.Length > 0)
                 {
-                    yield return match;
+                    var matchAhead = GetLongestMatch(input, startPosition + positionOffset + 1);
+                    if (matchAhead.Length > 0)
+                    {
+                        if (match.Length + unitSize < matchAhead.Length)
+                        {
+                            yield return matchAhead;
 
-                    // Skip the whole pattern
-                    positionOffset += (int)match.Length + FindOptions.SkipUnitsAfterMatch * unitSize;
+                            positionOffset += (int)matchAhead.Length + FindOptions.SkipUnitsAfterMatch * unitSize;
+                        }
+                    }
+                    else
+                    {
+                        yield return match;
+
+                        positionOffset += (int)match.Length + FindOptions.SkipUnitsAfterMatch * unitSize;
+                    }
                 }
                 else
                 {

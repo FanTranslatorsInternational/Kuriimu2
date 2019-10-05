@@ -4,8 +4,8 @@ using System.Linq;
 using Kompression.Huffman;
 using Kompression.Implementations;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.MatchFinders;
-using Kompression.MatchParser;
+using Kompression.PatternMatch.MatchFinders;
+using Kompression.PatternMatch.MatchParser;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace KompressionUnitTests

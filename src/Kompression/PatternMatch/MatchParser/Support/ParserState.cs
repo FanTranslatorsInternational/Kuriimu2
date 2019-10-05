@@ -1,7 +1,7 @@
 ﻿using Kompression.Configuration;
 using Kompression.Interfaces;
 
-namespace Kompression.MatchParser.Support
+namespace Kompression.PatternMatch.MatchParser.Support
 {
     class ParserState : IMatchState
     {

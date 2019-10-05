@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using Kompression.Configuration;
-using Kompression.MatchFinders.Parallel;
 using Kompression.Models;
+using Kompression.PatternMatch.MatchFinders.Parallel;
 
-namespace Kompression.MatchFinders
+namespace Kompression.PatternMatch.MatchFinders
 {
     /// <summary>
     /// Find sequences of the same value.

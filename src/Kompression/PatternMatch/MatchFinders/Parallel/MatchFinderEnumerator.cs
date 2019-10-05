@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Kompression.Models;
 
-namespace Kompression.MatchFinders.Parallel
+namespace Kompression.PatternMatch.MatchFinders.Parallel
 {
     /// <summary>
     /// Enumerates results from a match finder in a specific interval.
@@ -41,7 +41,7 @@ namespace Kompression.MatchFinders.Parallel
             _currentPosition = _startPosition;
         }
 
-        /// <inheritdoc cref="MoveNext"/>
+        /// <inheritdoc cref="MoveNext()"/>
         public bool MoveNext()
         {
             if (_currentPosition >= _input.Length)
@@ -53,13 +53,13 @@ namespace Kompression.MatchFinders.Parallel
             return true;
         }
 
-        /// <inheritdoc cref="Reset"/>
+        /// <inheritdoc cref="Reset()"/>
         public void Reset()
         {
             _currentPosition = _startPosition;
         }
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
             _getMatchesAtPosition = null;

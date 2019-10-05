@@ -1,4 +1,4 @@
-﻿namespace Kompression.MatchFinders.Support
+﻿namespace Kompression.PatternMatch.MatchFinders.Support
 {
     /// <summary>
     /// The integer primitive boxed as a reference type.

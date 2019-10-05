@@ -3,10 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kompression.Configuration;
 using Kompression.Interfaces;
-using Kompression.MatchFinders.Parallel;
 using Kompression.Models;
+using Kompression.PatternMatch.MatchFinders.Parallel;
 
-namespace Kompression.MatchFinders
+namespace Kompression.PatternMatch.MatchFinders
 {
     public abstract class BaseMatchFinder : IMatchFinder
     {
@@ -15,14 +15,14 @@ namespace Kompression.MatchFinders
 
         protected BaseMatchFinder(FindLimitations limits, FindOptions options)
         {
-            FindLimitations = limits;
+            this.FindLimitations = limits;
             FindOptions = options;
         }
 
-        /// <inheritdoc cref="FindMatchesAtPosition"/>
+        /// <inheritdoc cref="FindMatchesAtPosition(byte[],int)"/>
         public abstract IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position);
 
-        /// <inheritdoc cref="GetAllMatches"/>
+        /// <inheritdoc cref="GetAllMatches(byte[],int)"/>
         public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
             SetupMatchFinder(input, position);
@@ -52,21 +52,21 @@ namespace Kompression.MatchFinders
         }
 
         /// <summary>
-        /// Setup objects for use in <see cref="GetAllMatches"/>.
+        /// Setup objects for use in <see cref="GetAllMatches(byte[],int)"/>.
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <param name="startPosition">The position to start at.</param>
         protected abstract void SetupMatchFinder(byte[] input, int startPosition);
 
         /// <summary>
-        /// Setup enumerators for use in <see cref="GetAllMatches"/>.
+        /// Setup enumerators for use in <see cref="GetAllMatches(byte[],int)"/>.
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <param name="startPosition">The position to start at.</param>
         /// <returns></returns>
         protected abstract MatchFinderEnumerator[] SetupMatchFinderEnumerators(byte[] input, int startPosition);
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
             Dispose(true);

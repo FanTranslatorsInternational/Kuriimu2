@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using Kompression.Configuration;
-using Kompression.MatchFinders.Parallel;
-using Kompression.MatchFinders.Support;
 using Kompression.Models;
+using Kompression.PatternMatch.MatchFinders.Parallel;
+using Kompression.PatternMatch.MatchFinders.Support;
 
-namespace Kompression.MatchFinders
+namespace Kompression.PatternMatch.MatchFinders
 {
     /// <summary>
     /// Find pattern matches via a history of found values.
@@ -23,7 +23,7 @@ namespace Kompression.MatchFinders
         {
         }
 
-        /// <inheritdoc cref="FindMatchesAtPosition"/>
+        /// <inheritdoc cref="FindMatchesAtPosition(byte[],int)"/>
         public override IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
         {
             if (_states == null)

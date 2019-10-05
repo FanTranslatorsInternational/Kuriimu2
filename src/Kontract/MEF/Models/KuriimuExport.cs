@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel.Composition.Primitives;
 
-namespace Kontract.Providers.Models
+namespace Kontract.MEF.Models
 {
     class KuriimuExport : Export
     {

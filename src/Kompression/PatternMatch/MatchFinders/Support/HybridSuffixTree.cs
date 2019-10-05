@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kompression.MatchFinders.Support
+namespace Kompression.PatternMatch.MatchFinders.Support
 {
     /// <summary>
     /// A combination of the Ukkonen suffix tree and storing offsets to each root child.
@@ -235,7 +235,7 @@ namespace Kompression.MatchFinders.Support
 
         #region Dispose
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
             _suffixLinks = null;

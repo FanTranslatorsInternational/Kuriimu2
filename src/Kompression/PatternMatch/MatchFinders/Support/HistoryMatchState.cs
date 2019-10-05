@@ -4,7 +4,7 @@ using System.Linq;
 using Kompression.Configuration;
 using Kompression.Models;
 
-namespace Kompression.MatchFinders.Support
+namespace Kompression.PatternMatch.MatchFinders.Support
 {
     /// <summary>
     /// The state machine for <see cref="HistoryMatchFinder"/>.
@@ -185,7 +185,7 @@ namespace Kompression.MatchFinders.Support
 
         #region Dispose
 
-        /// <inheritdoc cref="Dispose"/>
+        /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
             _offsetTable = null;
