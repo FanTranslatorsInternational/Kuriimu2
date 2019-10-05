@@ -161,7 +161,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
 
             // Optimal parse all LZ matches
-            var parser = new BackwardForwardOptimalParser(
+            var parser = new ForwardBackwardOptimalParser(
                 new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
                 new SlimePriceCalculator(compressionMode, huffmanMode));
 
