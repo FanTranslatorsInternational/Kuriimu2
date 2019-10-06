@@ -7,7 +7,7 @@ using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Yay0Encoder : IEncoder, IPriceCalculator
+    public class Yay0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
         private IMatchParser _matchParser;
@@ -99,19 +99,6 @@ namespace Kompression.Implementations.Encoders
 
             uncompressedTableStream.Position = 0;
             uncompressedTableStream.CopyTo(output);
-        }
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 9;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            if (length >= 0x12)
-                return 25;
-
-            return 17;
         }
 
         public void Dispose()

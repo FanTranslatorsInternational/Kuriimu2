@@ -8,7 +8,7 @@ using Kompression.IO;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class Yaz0Encoder : IEncoder,IPriceCalculator
+    public class Yaz0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
         private IMatchParser _matchParser;
@@ -112,19 +112,6 @@ namespace Kompression.Implementations.Encoders
             output.Write(uncompressedLength, 0, 4);
             output.Write(new byte[8], 0, 8);
             output.Position = outputEndPosition;
-        }
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 9;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            if (length >= 0x12)
-                return 25;
-
-            return 17;
         }
 
         public void Dispose()

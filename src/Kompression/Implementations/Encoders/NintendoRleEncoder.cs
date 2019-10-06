@@ -5,7 +5,7 @@ using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class NintendoRleEncoder : IEncoder, IPriceCalculator
+    public class NintendoRleEncoder : IEncoder
     {
         private byte[] _buffer;
 
@@ -36,7 +36,7 @@ namespace Kompression.Implementations.Encoders
 
                 // Write matched data as compressed block
                 var rleValue = (byte)input.ReadByte();
-                HandleCompressedBlock(output, rleValue, (int)match.Length);
+                HandleCompressedBlock(output, rleValue, match.Length);
                 input.Position += match.Length - 1;
             }
 
@@ -72,20 +72,6 @@ namespace Kompression.Implementations.Encoders
 
                 repetition -= subLength;
             }
-        }
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            var literalCount = state.CountLiterals(position) % 0x80 + 1;
-            if (literalCount == 1)
-                return 16;
-
-            return 8;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return 16;
         }
 
         public void Dispose()

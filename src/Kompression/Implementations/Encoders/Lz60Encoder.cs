@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using Kompression.Configuration;
 using Kompression.Interfaces;
-using Kompression.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     public class Lz60Encoder : IEncoder
     {
-        private IMatchParser _matchParser;
+        private Lz40Encoder _lz40Encoder;
 
         public Lz60Encoder(IMatchParser matchParser)
         {
-            _matchParser = matchParser;
+            _lz40Encoder = new Lz40Encoder(matchParser);
         }
 
         public void Encode(Stream input, Stream output)
@@ -24,14 +22,13 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x60, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            var lz40Encoder = new Lz40Encoder(_matchParser);
-            lz40Encoder.WriteCompressedData(input, output);
-            lz40Encoder.Dispose();
+            _lz40Encoder.WriteCompressedData(input, output);
         }
 
         public void Dispose()
         {
-            // Nothing to dispose
+            _lz40Encoder?.Dispose();
+            _lz40Encoder = null;
         }
     }
 }

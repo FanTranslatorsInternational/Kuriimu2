@@ -104,7 +104,6 @@ namespace Kompression.Implementations.Encoders
                 // Remove that node from the tree root
                 frequencies.Remove(node);
 
-                // TODO: Understand what this portion does
                 node.Code = labelList.Count - node.Code;
                 labelList.Add(node);
 

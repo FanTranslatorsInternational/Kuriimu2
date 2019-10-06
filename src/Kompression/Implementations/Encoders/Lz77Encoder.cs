@@ -8,7 +8,7 @@ using Kompression.Models;
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Test this compression thoroughly
-    public class Lz77Encoder : IEncoder, IPriceCalculator
+    public class Lz77Encoder : IEncoder
     {
         private IMatchParser _matchParser;
 
@@ -50,20 +50,6 @@ namespace Kompression.Implementations.Encoders
                 }
             }
         }
-
-        #region Price calculation
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 9;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return 25;
-        }
-
-        #endregion
 
         public void Dispose()
         {

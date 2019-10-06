@@ -4,7 +4,7 @@ using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzssEncoder : IEncoder, IPriceCalculator
+    public class LzssEncoder : IEncoder
     {
         private Lz10Encoder _lz10Encoder;
 
@@ -34,20 +34,6 @@ namespace Kompression.Implementations.Encoders
 
             output.Position = outputPos;
         }
-
-        #region Price calculation
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return _lz10Encoder.CalculateLiteralPrice(state, position, value);
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return _lz10Encoder.CalculateMatchPrice(state, position, displacement, length);
-        }
-
-        #endregion
 
         public void Dispose()
         {

@@ -6,7 +6,7 @@ using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzssVlcEncoder : IEncoder, IPriceCalculator
+    public class LzssVlcEncoder : IEncoder
     {
         private IMatchParser _matchParser;
 
@@ -51,7 +51,7 @@ namespace Kompression.Implementations.Encoders
                     while (lzIndex + compressedBlocks < matches.Length &&
                            matches[lzIndex + compressedBlocks].Position == input.Position + rawSize + positionOffset)
                     {
-                        positionOffset += (int)matches[lzIndex + compressedBlocks].Length;
+                        positionOffset += matches[lzIndex + compressedBlocks].Length;
                         compressedBlocks++;
                     }
 
@@ -119,7 +119,7 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 var length = match.Length - 1;  // Length is always >0; therefore this specification stores the _length reduced by 1
-                var displacementVlc = CreateVlc((int)match.Displacement - 1, 3);
+                var displacementVlc = CreateVlc(match.Displacement - 1, 3);
 
                 // Variable _length encode _length and displacement
 
@@ -139,7 +139,7 @@ namespace Kompression.Implementations.Encoders
 
                 if (length == 0 || length >= 0x10)
                 {
-                    var lengthVlc = CreateVlc((int)length);
+                    var lengthVlc = CreateVlc(length);
                     output.Write(lengthVlc, 0, lengthVlc.Length);
                 }
 
@@ -177,44 +177,6 @@ namespace Kompression.Implementations.Encoders
             }
 
             return bitCount;
-        }
-
-        #endregion
-
-        #region Price calculation
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            var literals = state.CountLiterals(position) + 1;
-            if (literals == 1)
-                return 16;
-
-            if (literals >= 16 && (literals - 16) % 0x7F == 0)
-                return 16;
-
-            return 8;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            var bitLength = 0;
-
-            var matches = state.CountMatches(position) + 1;
-            if (matches >= 16 && (matches - 16) % 0x7F == 0)
-                bitLength += 8;
-
-            var dispBitCount = GetBitCount(displacement);
-            bitLength += dispBitCount / 7 * 8 + (dispBitCount % 7 <= 3 ? 4 : 12);
-
-            if (length <= 0xF)
-                bitLength += 4;
-            else
-            {
-                var lengthBitCount = GetBitCount(length);
-                bitLength += 4 + lengthBitCount / 7 * 8 + (lengthBitCount % 7 > 0 ? 8 : 0);
-            }
-
-            return bitLength;
         }
 
         #endregion

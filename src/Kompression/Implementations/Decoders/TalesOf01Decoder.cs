@@ -5,6 +5,7 @@ using Kompression.IO;
 
 namespace Kompression.Implementations.Decoders
 {
+    // TODO: Write TalesOf01Encoder
     public class TalesOf01Decoder : IDecoder
     {
         private CircularBuffer _circularBuffer;

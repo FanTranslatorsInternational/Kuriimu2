@@ -7,7 +7,7 @@ using Kompression.Interfaces;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzEcdEncoder : IEncoder, IPriceCalculator
+    public class LzEcdEncoder : IEncoder
     {
         private const int WindowBufferLength = 0x400;
         private IMatchParser _matchParser;
@@ -104,20 +104,6 @@ namespace Kompression.Implementations.Encoders
 
             output.Position = outputEndPosition;
         }
-
-        #region Price calculation
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 9;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return 17;
-        }
-
-        #endregion
 
         public void Dispose()
         {

@@ -8,7 +8,7 @@ using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    class Wp16Encoder : IEncoder, IPriceCalculator
+    class Wp16Encoder : IEncoder
     {
         private long _flagBuffer;
         private int _flagPosition;
@@ -102,16 +102,6 @@ namespace Kompression.Implementations.Encoders
             _flagPosition = 0;
             Array.Clear(_buffer, 0, _bufferLength);
             _bufferLength = 0;
-        }
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 17;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return 17;
         }
 
         public void Dispose()

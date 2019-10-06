@@ -9,7 +9,7 @@ using Kompression.Models;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class BackwardLz77Encoder : IEncoder, IPriceCalculator
+    public class BackwardLz77Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
         private byte _codeBlock;
@@ -149,20 +149,6 @@ namespace Kompression.Implementations.Encoders
             Array.Clear(_buffer, 0, _bufferLength);
             _bufferLength = 0;
         }
-
-        #region Price calcualtion
-
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
-        {
-            return 9;
-        }
-
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
-        {
-            return 17;
-        }
-
-        #endregion
 
         public void Dispose()
         {

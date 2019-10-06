@@ -64,7 +64,7 @@ namespace Kompression.PatternMatch.LempelZiv
                 yield return new Match(position, displacement, longestMatchSize);
         }
 
-        // TODO
+        // TODO: GetAllMatches for SuffixArray
         public IEnumerable<Match[]> GetAllMatches(byte[] input, int position)
         {
             throw new NotImplementedException();
