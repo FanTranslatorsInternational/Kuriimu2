@@ -163,7 +163,8 @@ namespace Kompression.Specialized.SlimeMoriMori
             // Optimal parse all LZ matches
             var parser = new ForwardBackwardOptimalParser(
                 new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
-                new SlimePriceCalculator(compressionMode, huffmanMode));
+                new SlimePriceCalculator(compressionMode, huffmanMode),
+                matchFinders);
 
             return parser.ParseMatches(input).ToArray();
         }
@@ -208,8 +209,8 @@ namespace Kompression.Specialized.SlimeMoriMori
                 for (var i = inputArrayPosition; i < match.Position; i++)
                     huffmanInput[huffmanInputPosition++] = input[i];
 
-                inputArrayPosition += (int)match.Position - inputArrayPosition;
-                inputArrayPosition += (int)match.Length;
+                inputArrayPosition += match.Position - inputArrayPosition;
+                inputArrayPosition += match.Length;
             }
 
             for (var i = inputArrayPosition; i < input.Length; i++)
@@ -329,7 +330,6 @@ namespace Kompression.Specialized.SlimeMoriMori
         private ISlimeEncoder CreateEncoder(int compressionMode, IValueWriter valueWriter)
         {
             // TODO: Implement all encoders
-            // TODO: Create and write displacement table
             switch (compressionMode)
             {
                 case 1:

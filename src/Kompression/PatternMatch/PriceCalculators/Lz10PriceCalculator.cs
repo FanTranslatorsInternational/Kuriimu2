@@ -2,7 +2,7 @@
 
 namespace Kompression.PatternMatch.PriceCalculators
 {
-    public class Lz10Calculator : IPriceCalculator
+    public class Lz10PriceCalculator : IPriceCalculator
     {
         public int CalculateLiteralPrice(IMatchState state, int position, int value)
         {
