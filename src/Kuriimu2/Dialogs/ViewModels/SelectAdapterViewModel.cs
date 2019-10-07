@@ -66,7 +66,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public void OKButton()
         {
-            Adapter = SelectedAdapter.Adapter;
+            Adapter = SelectedAdapter?.Adapter;
 
             if (ValidationCallback != null)
             {
