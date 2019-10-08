@@ -1,13 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>Kore</PackageId>
-    <PackageVersion>2.0.0</PackageVersion>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageTags>UI, Kuriimu2</PackageTags>
+    <PackageId>Kore</PackageId>
+    <PackageVersion>2.0.6</PackageVersion>
+    <Authors>IcySon55;onepiecefreak</Authors>
+    <Company>Fan Translators International</Company>
+    <Product>Kore</Product>
+    <Description>A library containing all the main functions to use in a UI for the Kuriimu2 eco-system.</Description>
+    <Copyright>Copyright (c) 2019 IcySon55, onepiecefreak</Copyright>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
-	<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageTags>UI, Kuriimu2</PackageTags>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Generators\BitmapFontGeneratorWpf.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -19,44 +33,20 @@
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\dist\Debug\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <Version>2.0.6</Version>
-    <Authors>IcySon55;onepiecefreak</Authors>
-    <Description>A library containing all the main functions to use in a UI for the Kuriimu2 eco-system.</Description>
-    <Copyright>Copyright (c) 2019 IcySon55, onepiecefreak</Copyright>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
-    <OutputPath>..\..\dist\Debug</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.1|AnyCPU'">
-    <OutputPath>..\..\dist\Debug</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
-    <OutputPath>..\..\dist\Release</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp2.1|AnyCPU'">
-    <OutputPath>..\..\dist\Release</OutputPath>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
+    <DefineConstants>NET_CORE_30</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
   
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp2.1'">
-    <DefineConstants>NET_CORE_21</DefineConstants>
-  </PropertyGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
-    <Reference Include="PresentationCore" />
-	<Reference Include="PresentationFramework" />
-	<Reference Include="WindowsBase" />
-  </ItemGroup>
-
 </Project>
