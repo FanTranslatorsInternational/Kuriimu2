@@ -8,7 +8,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.MEF.Interfaces;
 
-#if NET_CORE_21
+#if NET_CORE_30
 using System.Composition;
 using System.Composition.Hosting;
 using System.Runtime.Loader;
@@ -65,7 +65,7 @@ namespace Kontract
         {
             errors = new List<IErrorReport>();
 
-#if NET_CORE_21
+#if NET_CORE_30
 
             if (!(parent is PluginLoader loader) || !Directory.Exists(pluginDirectory))
                 return false;
@@ -133,7 +133,7 @@ namespace Kontract
         #region Imports
 #pragma warning disable 0649, 0169
 
-#if NET_CORE_21
+#if NET_CORE_30
         [ImportMany]
         internal IEnumerable<IPlugin> Plugins { get; set; }
 #else
@@ -166,7 +166,7 @@ namespace Kontract
             if (!TryComposePlugins(this, PluginFolder, out var errors))
                 CompositionErrors = errors;
 
-#if NET_CORE_21
+#if NET_CORE_30
             if (Plugins == null)
                 Plugins = new List<IPlugin>();
 #else
@@ -183,7 +183,7 @@ namespace Kontract
         /// <returns>The new instance of the adapter.</returns>
         public T CreateNewAdapter<T>(string fqn)
         {
-#if NET_CORE_21
+#if NET_CORE_30
             IEnumerable<IPlugin> plugins = Plugins;
 #else
             IEnumerable<IPlugin> plugins = _plugins;
@@ -205,7 +205,7 @@ namespace Kontract
         /// <returns>The new instance of the adapter.</returns>
         public T CreateNewAdapter<T>(IPlugin adapter)
         {
-#if NET_CORE_21
+#if NET_CORE_30
             IEnumerable<IPlugin> plugins = Plugins;
 #else
             IEnumerable<IPlugin> plugins = _plugins;
@@ -227,7 +227,7 @@ namespace Kontract
         /// <returns>List of adapters of type T.</returns>
         public List<T> GetAdapters<T>()
         {
-#if NET_CORE_21
+#if NET_CORE_30
             IEnumerable<IPlugin> plugins = Plugins;
 #else
             IEnumerable<IPlugin> plugins = _plugins;

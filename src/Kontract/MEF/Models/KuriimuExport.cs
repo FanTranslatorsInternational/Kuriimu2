@@ -1,4 +1,4 @@
-﻿#if !NET_CORE_21
+﻿#if !NET_CORE_30
 using System;
 using System.ComponentModel.Composition.Primitives;
 
