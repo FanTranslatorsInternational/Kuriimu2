@@ -1,8 +1,8 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Input;
-using Kuriimu2.ViewModels;
+using Kuriimu2.Wpf.ViewModels;
 
-namespace Kuriimu2.Views
+namespace Kuriimu2.Wpf.Views
 {
     /// <summary>
     /// Interaction logic for ImageEditorView.xaml

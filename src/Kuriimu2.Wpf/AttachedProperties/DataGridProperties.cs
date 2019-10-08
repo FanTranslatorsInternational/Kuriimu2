@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace Kuriimu2.AttachedProperties
+namespace Kuriimu2.Wpf.AttachedProperties
 {
     public class DataGridProperties
     {

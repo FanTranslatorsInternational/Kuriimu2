@@ -15,13 +15,13 @@ using Kontract.Models.Image;
 using Kore;
 using Kore.Files;
 using Kore.Files.Models;
-using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interfaces;
-using Kuriimu2.Tools;
-using Kuriimu2.ViewModels.ImageEditor;
+using Kuriimu2.Wpf.Dialogs.ViewModels;
+using Kuriimu2.Wpf.Interfaces;
+using Kuriimu2.Wpf.Tools;
+using Kuriimu2.Wpf.ViewModels.ImageEditor;
 using Microsoft.Win32;
 
-namespace Kuriimu2.ViewModels
+namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class ImageEditorViewModel : Screen, IFileEditor
     {
@@ -249,7 +249,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(ei);
             
-            if (_wm.ShowDialog(ei) != true) return;
+            if (_wm.ShowDialogAsync(ei).Result != true) return;
 
             NotifyOfPropertyChange(() => SelectedBitmap);
             //if (ei.HasChanges)
@@ -268,7 +268,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) != true) return;
+            if (_wm.ShowDialogAsync(pe).Result != true) return;
             KoreFile.HasChanges = true;
             NotifyOfPropertyChange(() => DisplayName);
         }
@@ -351,15 +351,15 @@ namespace Kuriimu2.ViewModels
 
         #endregion
 
-        public override void TryClose(bool? dialogResult = null)
+        public override Task TryCloseAsync(bool? dialogResult = null)
         {
             for (var i = _windows.Count - 1; i >= 0; i--)
             {
                 var scr = _windows[i];
-                scr.TryClose(dialogResult);
+                scr.TryCloseAsync(dialogResult);
                 _windows.Remove(scr);
             }
-            base.TryClose(dialogResult);
+            return base.TryCloseAsync(dialogResult);
         }
     }
 }

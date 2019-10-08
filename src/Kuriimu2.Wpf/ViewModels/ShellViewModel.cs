@@ -16,11 +16,11 @@ using Kore.Exceptions.FileManager;
 using Kore.Files;
 using Kore.Files.Models;
 using Kore.Utilities;
-using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interfaces;
+using Kuriimu2.Wpf.Dialogs.ViewModels;
+using Kuriimu2.Wpf.Interfaces;
 using Microsoft.Win32;
 
-namespace Kuriimu2.ViewModels
+namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class ShellViewModel : Conductor<IScreen>.Collection.OneActive
     {
@@ -35,7 +35,7 @@ namespace Kuriimu2.ViewModels
 
         public ShellViewModel()
         {
-            DisplayName = "Kuriimu2";
+            DisplayName = "Kuriimu2.Wpf";
 
             // Assign plugin loading event handler.
             _fileManager = new FileManager(_pluginLoader);
@@ -52,7 +52,7 @@ namespace Kuriimu2.ViewModels
             var pe = new SelectAdapterViewModel(e.BlindAdapters.ToList(), _fileManager, _pluginLoader, e.FileName);
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
+            if (_wm.ShowDialogAsync(pe).Result == true)
             {
                 e.SelectedAdapter = pe.Adapter;
 
@@ -183,7 +183,7 @@ namespace Kuriimu2.ViewModels
 
         public void CloseTab(IScreen tab)
         {
-            tab.TryClose();
+            tab.TryCloseAsync();
             switch (tab)
             {
                 case IFileEditor editor:
@@ -225,13 +225,13 @@ namespace Kuriimu2.ViewModels
             switch (kfi.Adapter)
             {
                 case ITextAdapter txt2:
-                    ActivateItem(new TextEditor2ViewModel(_fileManager, _pluginLoader, kfi));
+                    ActivateItemAsync(new TextEditor2ViewModel(_fileManager, _pluginLoader, kfi), new System.Threading.CancellationToken());
                     break;
                 case IImageAdapter img:
-                    ActivateItem(new ImageEditorViewModel(_fileManager, kfi));
+                    ActivateItemAsync(new ImageEditorViewModel(_fileManager, kfi), new System.Threading.CancellationToken());
                     break;
                 case IFontAdapter fnt:
-                    ActivateItem(new FontEditorViewModel(kfi));
+                    ActivateItemAsync(new FontEditorViewModel(kfi), new System.Threading.CancellationToken());
                     break;
             }
         }
@@ -275,15 +275,15 @@ namespace Kuriimu2.ViewModels
 
         #endregion
 
-        public override void TryClose(bool? dialogResult = null)
+        public override Task TryCloseAsync(bool? dialogResult = null)
         {
             for (var i = _windows.Count - 1; i >= 0; i--)
             {
                 var scr = _windows[i];
-                scr.TryClose(dialogResult);
+                scr.TryCloseAsync(dialogResult);
                 _windows.Remove(scr);
             }
-            base.TryClose(dialogResult);
+            return base.TryCloseAsync(dialogResult);
         }
     }
 }

@@ -1,12 +1,12 @@
-﻿<Application x:Class="Kuriimu2.App"
+﻿<Application x:Class="Kuriimu2.Wpf.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Kuriimu2">
+             xmlns:local="clr-namespace:Kuriimu2.Wpf">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary>
-                    <local:AppBootstrapper x:Key="Bootstrapper" />
+                    <local:AppBootstrapper x:Key="AppBootstrapper" />
                 </ResourceDictionary>
                 <ResourceDictionary Source="Styles/Base.xaml"></ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>

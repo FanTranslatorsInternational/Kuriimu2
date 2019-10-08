@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using Caliburn.Micro;
-using Kuriimu2.ViewModels;
+using Kuriimu2.Wpf.ViewModels;
 
-namespace Kuriimu2
+namespace Kuriimu2.Wpf
 {
     public class AppBootstrapper : BootstrapperBase
     {

@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 
-namespace Kuriimu2.Controls
+namespace Kuriimu2.Wpf.Controls
 {
     class TrackableTextBox : TextBox
     {

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
@@ -13,12 +14,12 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kore;
 using Kore.Files.Models;
-using Kuriimu2.Dialogs.Common;
-using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interfaces;
-using Kuriimu2.Tools;
+using Kuriimu2.Wpf.Dialogs.Common;
+using Kuriimu2.Wpf.Dialogs.ViewModels;
+using Kuriimu2.Wpf.Interfaces;
+using Kuriimu2.Wpf.Tools;
 
-namespace Kuriimu2.ViewModels
+namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class FontEditorViewModel : Screen, IFileEditor
     {
@@ -138,7 +139,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
+            if (_wm.ShowDialogAsync(pe).Result == true)
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
@@ -180,7 +181,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true && add.AddCharacter(character))
+            if (_wm.ShowDialogAsync(pe).Result == true && add.AddCharacter(character))
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
@@ -212,7 +213,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(pe);
 
-            if (_wm.ShowDialog(pe) == true)
+            if (_wm.ShowDialogAsync(pe).Result == true)
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
@@ -293,20 +294,31 @@ namespace Kuriimu2.ViewModels
                 _windows.Add(fg);
 
             if (!fg.IsActive)
-                _wm.ShowWindow(fg);
+                _wm.ShowWindowAsync(fg);
         }
 
         #endregion
 
-        public override void TryClose(bool? dialogResult = null)
+        public override Task TryCloseAsync(bool? dialogResult = null)
         {
             for (var i = _windows.Count - 1; i >= 0; i--)
             {
                 var scr = _windows[i];
-                scr.TryClose(dialogResult);
+                scr.TryCloseAsync(dialogResult);
                 _windows.Remove(scr);
             }
-            base.TryClose(dialogResult);
+            return base.TryCloseAsync(dialogResult);
         }
+
+        //public override void TryClose(bool? dialogResult = null)
+        //{
+        //    for (var i = _windows.Count - 1; i >= 0; i--)
+        //    {
+        //        var scr = _windows[i];
+        //        scr.TryClose(dialogResult);
+        //        _windows.Remove(scr);
+        //    }
+        //    base.TryClose(dialogResult);
+        //}
     }
 }

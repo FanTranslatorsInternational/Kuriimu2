@@ -1,9 +1,9 @@
 ﻿using System.Windows.Media.Imaging;
 using Kontract.Interfaces.Image;
 using Kontract.Models.Image;
-using Kuriimu2.Tools;
+using Kuriimu2.Wpf.Tools;
 
-namespace Kuriimu2.ViewModels.ImageEditor
+namespace Kuriimu2.Wpf.ViewModels.ImageEditor
 {
     /// <summary>
     /// 

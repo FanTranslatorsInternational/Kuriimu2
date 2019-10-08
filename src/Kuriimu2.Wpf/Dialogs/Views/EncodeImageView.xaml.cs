@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using Kuriimu2.Dialogs.ViewModels;
+using Kuriimu2.Wpf.Dialogs.ViewModels;
 
-namespace Kuriimu2.Dialogs.Views
+namespace Kuriimu2.Wpf.Dialogs.Views
 {
     /// <summary>
     /// Interaction logic for EncodeImageView.xaml

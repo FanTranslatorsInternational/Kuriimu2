@@ -6,7 +6,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace Kuriimu2.Tools
+namespace Kuriimu2.Wpf.Tools
 {
     public static class Extensions
     {

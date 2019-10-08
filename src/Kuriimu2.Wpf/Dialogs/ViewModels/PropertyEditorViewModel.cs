@@ -5,9 +5,9 @@ using System.Reflection;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Attributes;
-using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Wpf.Dialogs.Common;
 
-namespace Kuriimu2.Dialogs.ViewModels
+namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class PropertyEditorViewModel<T> : Screen
     {
@@ -83,7 +83,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 var results = ValidationCallback();
 
                 if (results.CanClose)
-                    TryClose(true);
+                    TryCloseAsync(true);
                 else
                 {
                     Error = results.ErrorMessage;
@@ -92,7 +92,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
             else
             {
-                TryClose(true);
+                TryCloseAsync(true);
             }
         }
     }

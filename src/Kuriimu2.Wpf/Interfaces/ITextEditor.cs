@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Kontract.Interfaces.Text;
 
-namespace Kuriimu2.Interfaces
+namespace Kuriimu2.Wpf.Interfaces
 {
     /// <inheritdoc />
     /// <summary>

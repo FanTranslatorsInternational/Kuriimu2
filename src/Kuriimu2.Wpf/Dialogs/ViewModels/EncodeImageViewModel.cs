@@ -16,11 +16,11 @@ using Kontract.Interfaces.Text;
 using Kontract.Models;
 using Kontract.Models.Image;
 using Kore.Files;
-using Kuriimu2.Dialogs.Common;
-using Kuriimu2.Tools;
+using Kuriimu2.Wpf.Dialogs.Common;
+using Kuriimu2.Wpf.Tools;
 using Microsoft.Win32;
 
-namespace Kuriimu2.Dialogs.ViewModels
+namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class EncodeImageViewModel : Screen
     {
@@ -194,7 +194,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 {
 
 
-                    TryClose(true && ControlsEnabled);
+                    TryCloseAsync(true && ControlsEnabled);
                 }
                 else
                 {
@@ -204,7 +204,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
             else
             {
-                TryClose(true && ControlsEnabled);
+                TryCloseAsync(true && ControlsEnabled);
             }
         }
     }

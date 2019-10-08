@@ -8,9 +8,9 @@ using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Text;
 using Kore;
 using Kore.Files.Models;
-using Kuriimu2.Interfaces;
+using Kuriimu2.Wpf.Interfaces;
 
-namespace Kuriimu2.ViewModels
+namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class TextEditor1ViewModel : Screen, ITextEditor
     {

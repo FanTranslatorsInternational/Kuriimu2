@@ -1,6 +1,6 @@
 ﻿using Kore;
 
-namespace Kuriimu2.Interfaces
+namespace Kuriimu2.Wpf.Interfaces
 {
     /// <inheritdoc />
     /// <summary>

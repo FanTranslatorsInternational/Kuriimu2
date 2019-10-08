@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -11,13 +13,13 @@ using Caliburn.Micro;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Font;
 using Kore.Generators;
-using Kuriimu2.Tools;
+using Kuriimu2.Wpf.Tools;
 using Microsoft.Win32;
 using Action = System.Action;
 using FontFamily = System.Drawing.FontFamily;
-using ValidationResult = Kuriimu2.Dialogs.Common.ValidationResult;
+using ValidationResult = Kuriimu2.Wpf.Dialogs.Common.ValidationResult;
 
-namespace Kuriimu2.Dialogs.ViewModels
+namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class BitmapFontGeneratorViewModel : Screen
     {
@@ -361,11 +363,16 @@ namespace Kuriimu2.Dialogs.ViewModels
             AdjustedCharacters = new ObservableCollection<AdjustedCharacter>();
         }
 
-        protected override void OnActivate()
+        protected override Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            base.OnActivate();
             UpdatePreview();
+            return base.OnActivateAsync(cancellationToken);
         }
+
+        //protected override Task OnActivateAsync()
+        //{
+        //    base.OnActivate();
+        //}
 
         public void ZoomOut() => ZoomLevel = Math.Max(ZoomLevel - 1, 1);
 
@@ -577,7 +584,7 @@ namespace Kuriimu2.Dialogs.ViewModels
 
         public void CloseButton()
         {
-            TryClose();
+            TryCloseAsync();
         }
     }
 }

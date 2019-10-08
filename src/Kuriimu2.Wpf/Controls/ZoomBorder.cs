@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace Kuriimu2.Controls
+namespace Kuriimu2.Wpf.Controls
 {
     public class ZoomBorder : Border
     {

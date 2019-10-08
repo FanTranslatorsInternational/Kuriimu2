@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -16,13 +17,13 @@ using Kontract.Interfaces.Text;
 using Kore;
 using Kore.Files;
 using Kore.Files.Models;
-using Kuriimu2.Dialogs.Common;
-using Kuriimu2.Dialogs.ViewModels;
-using Kuriimu2.Interfaces;
-using Kuriimu2.Tools;
+using Kuriimu2.Wpf.Dialogs.Common;
+using Kuriimu2.Wpf.Dialogs.ViewModels;
+using Kuriimu2.Wpf.Interfaces;
+using Kuriimu2.Wpf.Tools;
 using Image = System.Drawing.Image;
 
-namespace Kuriimu2.ViewModels
+namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class TextEditor2ViewModel : Screen, ITextEditor
     {
@@ -178,7 +179,7 @@ namespace Kuriimu2.ViewModels
                     ErrorMessage = $"The '{nte.Name}' name is not valid or already exists."
                 };
 
-                if (_wm.ShowDialog(nte) == true && add.AddEntry(entry))
+                if (_wm.ShowDialogAsync(nte).Result == true && add.AddEntry(entry))
                 {
                     entry.Name = nte.Name;
                     added = true;
@@ -229,7 +230,7 @@ namespace Kuriimu2.ViewModels
             };
             _windows.Add(prop);
 
-            if (_wm.ShowDialog(prop) == true)
+            if (_wm.ShowDialogAsync(prop).Result == true)
             {
                 // Cool
             }
@@ -277,15 +278,15 @@ namespace Kuriimu2.ViewModels
         //    }
         //}
 
-        public override void TryClose(bool? dialogResult = null)
+        public override Task TryCloseAsync(bool? dialogResult = null)
         {
             for (var i = _windows.Count - 1; i >= 0; i--)
             {
                 var scr = _windows[i];
-                scr.TryClose(dialogResult);
+                scr.TryCloseAsync(dialogResult);
                 _windows.Remove(scr);
             }
-            base.TryClose(dialogResult);
+            return base.TryCloseAsync(dialogResult);
         }
     }
 

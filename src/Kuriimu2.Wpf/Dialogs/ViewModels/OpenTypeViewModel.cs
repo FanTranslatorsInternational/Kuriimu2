@@ -10,10 +10,10 @@ using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using Kontract.Interfaces.Text;
 using Kore.Files;
-using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Wpf.Dialogs.Common;
 using Microsoft.Win32;
 
-namespace Kuriimu2.Dialogs.ViewModels
+namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class OpenTypeViewModel : Screen
     {
@@ -113,7 +113,7 @@ namespace Kuriimu2.Dialogs.ViewModels
                 var results = ValidationCallback();
 
                 if (results.CanClose)
-                    TryClose(true);
+                    TryCloseAsync(true);
                 else
                 {
                     Error = results.ErrorMessage;
@@ -122,7 +122,7 @@ namespace Kuriimu2.Dialogs.ViewModels
             }
             else
             {
-                TryClose(true);
+                TryCloseAsync(true);
             }
         }
     }

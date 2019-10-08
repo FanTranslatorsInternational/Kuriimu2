@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces;
-using Kuriimu2.Dialogs.Common;
+using Kuriimu2.Wpf.Dialogs.Common;
 
-namespace Kuriimu2.Dialogs.ViewModels
+namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class NewFileViewModel : Screen
     {
