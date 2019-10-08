@@ -31,15 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kanvas, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kanvas.2.0.6\lib\net472\Kanvas.dll</HintPath>
-    </Reference>
-    <Reference Include="Komponent, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Komponent.2.0.6\lib\net472\Komponent.dll</HintPath>
-    </Reference>
-    <Reference Include="Kontract, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kontract.2.0.6\lib\net472\Kontract.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -65,7 +56,15 @@
     <Compile Include="TALK\TALKAdapter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <PackageReference Include="Kuriimu2.Kanvas">
+      <Version>2.0.6</Version>
+    </PackageReference>
+    <PackageReference Include="Kuriimu2.Komponent">
+      <Version>2.0.6</Version>
+    </PackageReference>
+    <PackageReference Include="Kuriimu2.Kontract">
+      <Version>2.0.6</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
