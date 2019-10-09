@@ -53,15 +53,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="lib\astcenc.dll">
+    <Content Include="lib\astcenc.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="lib\PVRTexLib.dll">
+    </Content>
+    <Content Include="lib\PVRTexLib.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="lib\PVRTexLibWrapper.dll">
+    </Content>
+    <Content Include="lib\PVRTexLibWrapper.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
+    </Content>
   </ItemGroup>
 
 </Project>
