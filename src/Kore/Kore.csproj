@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Kore</PackageId>
+    <PackageId>Kuriimu2.Kore</PackageId>
     <PackageVersion>2.0.6</PackageVersion>
     <Authors>IcySon55;onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
