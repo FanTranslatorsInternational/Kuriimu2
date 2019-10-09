@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using Kontract.Attributes;
 using Kontract.FileSystem.Nodes.Abstract;
 using Kontract.FileSystem.Nodes.Physical;

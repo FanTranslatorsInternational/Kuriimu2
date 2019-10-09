@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "plugin_yuusha_shisu": {
+      "commandName": "Executable",
+      "executablePath": "V:\\Development\\Kuriimu2\\dist\\Debug\\Kuriimu2.Wpf.exe",
+      "workingDirectory": "V:\\Development\\Kuriimu2\\dist\\Debug"
+    }
+  }
+}
