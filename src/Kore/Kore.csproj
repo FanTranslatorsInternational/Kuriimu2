@@ -5,14 +5,15 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>Kuriimu2.Kore</PackageId>
-    <PackageVersion>2.0.6</PackageVersion>
+    <PackageVersion>2.0.7</PackageVersion>
     <Authors>IcySon55;onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
     <Product>Kore</Product>
     <Description>A library containing all the main functions to use in a UI for the Kuriimu2 eco-system.</Description>
-    <Copyright>Copyright (c) 2019 IcySon55, onepiecefreak</Copyright>
+    <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
+    <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>UI, Kuriimu2</PackageTags>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

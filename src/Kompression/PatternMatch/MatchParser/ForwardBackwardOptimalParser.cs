@@ -8,7 +8,6 @@ using Kompression.Interfaces;
 using Kompression.IO;
 using Kompression.Models;
 using Kompression.PatternMatch.MatchParser.Support;
-using MoreLinq;
 
 namespace Kompression.PatternMatch.MatchParser
 {
