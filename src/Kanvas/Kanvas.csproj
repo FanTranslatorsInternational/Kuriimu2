@@ -21,6 +21,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="lib\astcenc.dll" />
+    <None Remove="lib\PVRTexLib.dll" />
+    <None Remove="lib\PVRTexLibWrapper.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
     </AssemblyAttribute>
@@ -44,6 +50,18 @@
 
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="lib\astcenc.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="lib\PVRTexLib.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="lib\PVRTexLibWrapper.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
