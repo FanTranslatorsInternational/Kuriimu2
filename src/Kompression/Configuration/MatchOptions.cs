@@ -13,7 +13,7 @@ namespace Kompression.Configuration
         /// <summary>
         /// The factory to create a list of <see cref="IMatchFinder"/>s.
         /// </summary>
-        internal IList<Func<IList<FindLimitations>, FindOptions, IMatchFinder>> MatchFinderFactories { get; private set; }
+        internal IList<Func<FindLimitations[], FindOptions, IMatchFinder>> MatchFinderFactories { get; private set; }
 
         /// <summary>
         /// The factory to create a list of <see cref="FindLimitations"/>.
@@ -28,7 +28,7 @@ namespace Kompression.Configuration
         /// <summary>
         /// The factory to create an <see cref="IMatchParser"/>.
         /// </summary>
-        internal Func<IList<IMatchFinder>, IPriceCalculator, FindOptions, IMatchParser> MatchParserFactory { get; private set; }
+        internal Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> MatchParserFactory { get; private set; }
 
         /// <summary>
         /// Indicates whether to search matches from the beginning to the end of data.
@@ -63,10 +63,10 @@ namespace Kompression.Configuration
         }
 
         /// <inheritdoc cref="FindMatchesWith"/>
-        public IMatchOptions FindMatchesWith(Func<IList<FindLimitations>, FindOptions, IMatchFinder> matchFinderFactory)
+        public IMatchOptions FindMatchesWith(Func<FindLimitations[], FindOptions, IMatchFinder> matchFinderFactory)
         {
             if (MatchFinderFactories == null)
-                MatchFinderFactories = new List<Func<IList<FindLimitations>, FindOptions, IMatchFinder>>();
+                MatchFinderFactories = new List<Func<FindLimitations[], FindOptions, IMatchFinder>>();
 
             MatchFinderFactories.Add(matchFinderFactory);
 
@@ -74,7 +74,7 @@ namespace Kompression.Configuration
         }
 
         /// <inheritdoc cref="ParseMatchesWith"/>
-        public IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, FindOptions, IMatchParser> matchParserFactory)
+        public IMatchOptions ParseMatchesWith(Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> matchParserFactory)
         {
             MatchParserFactory = matchParserFactory;
             return this;

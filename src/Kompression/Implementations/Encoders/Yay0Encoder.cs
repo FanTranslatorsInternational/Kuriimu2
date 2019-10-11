@@ -24,47 +24,46 @@ namespace Kompression.Implementations.Encoders
             var compressedTableStream = new MemoryStream();
             var uncompressedTableStream = new MemoryStream();
 
-            using (var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MsbFirst, 1, ByteOrder.BigEndian))
-            using (var bwCompressed = new BinaryWriter(compressedTableStream))
-            using (var bwUncompressed = new BinaryWriter(uncompressedTableStream))
+            using var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MsbFirst, 1, ByteOrder.BigEndian);
+            using var bwCompressed = new BinaryWriter(compressedTableStream, Encoding.ASCII, true);
+            using var bwUncompressed = new BinaryWriter(uncompressedTableStream, Encoding.ASCII, true);
+
+            var matches = _matchParser.ParseMatches(input);
+            foreach (var match in matches)
             {
-                var matches = _matchParser.ParseMatches(input);
-                foreach (var match in matches)
-                {
-                    // Write any data before the match, to the uncompressed table
-                    while (input.Position < match.Position)
-                    {
-                        bitLayoutWriter.WriteBit(1);
-                        bwUncompressed.Write((byte)input.ReadByte());
-                    }
-
-                    // Write match data to the compressed table
-                    var firstByte = (byte)((match.Displacement - 1) >> 8);
-                    var secondByte = (byte)(match.Displacement - 1);
-
-                    if (match.Length < 0x12)
-                        // Since minimum _length should be 3 for Yay0, we get a minimum matchLength of 1 in this case
-                        firstByte |= (byte)((match.Length - 2) << 4);
-                    else
-                        // Yes, we do write the _length for a match into the uncompressed data stream, if it's >=0x12
-                        bwUncompressed.Write((byte)(match.Length - 0x12));
-
-                    bitLayoutWriter.WriteBit(0);
-                    bwCompressed.Write(firstByte);
-                    bwCompressed.Write(secondByte);
-
-                    input.Position += match.Length;
-                }
-
-                // Write any data after last match, to the uncompressed table
-                while (input.Position < input.Length)
+                // Write any data before the match, to the uncompressed table
+                while (input.Position < match.Position)
                 {
                     bitLayoutWriter.WriteBit(1);
                     bwUncompressed.Write((byte)input.ReadByte());
                 }
 
-                bitLayoutWriter.Flush();
+                // Write match data to the compressed table
+                var firstByte = (byte)((match.Displacement - 1) >> 8);
+                var secondByte = (byte)(match.Displacement - 1);
+
+                if (match.Length < 0x12)
+                    // Since minimum _length should be 3 for Yay0, we get a minimum matchLength of 1 in this case
+                    firstByte |= (byte)((match.Length - 2) << 4);
+                else
+                    // Yes, we do write the _length for a match into the uncompressed data stream, if it's >=0x12
+                    bwUncompressed.Write((byte)(match.Length - 0x12));
+
+                bitLayoutWriter.WriteBit(0);
+                bwCompressed.Write(firstByte);
+                bwCompressed.Write(secondByte);
+
+                input.Position += match.Length;
             }
+
+            // Write any data after last match, to the uncompressed table
+            while (input.Position < input.Length)
+            {
+                bitLayoutWriter.WriteBit(1);
+                bwUncompressed.Write((byte)input.ReadByte());
+            }
+
+            bitLayoutWriter.Flush();
 
             WriteCompressedData(input, output, bitLayoutStream, compressedTableStream, uncompressedTableStream);
         }

@@ -90,35 +90,34 @@ namespace Kompression.Implementations.Encoders
             var dispIndexTree = CreateDisplacementIndexTree();
             _dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            using (var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian))
+            using var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian);
+
+            // Without obfuscation
+            bw.WriteByte(0x02);
+
+            WriteTreeNode(bw, rawValueTree, 8);
+            WriteTreeNode(bw, countIndexValueTree, 6);
+            WriteTreeNode(bw, dispIndexTree, 5);
+
+            var countPosition = 0;
+            var displacementPosition = 0;
+            foreach (var match in matches)
             {
-                // Without obfuscation
-                bw.WriteByte(0x02);
-
-                WriteTreeNode(bw, rawValueTree, 8);
-                WriteTreeNode(bw, countIndexValueTree, 6);
-                WriteTreeNode(bw, dispIndexTree, 5);
-
-                var countPosition = 0;
-                var displacementPosition = 0;
-                foreach (var match in matches)
-                {
-                    // Compress raw data
-                    if (input.Position < match.Position)
-                        CompressRawData(input, bw, (int)(match.Position - input.Position), ref countPosition);
-
-                    // Compress match
-                    CompressMatchData(input, bw, match, ref countPosition, ref displacementPosition);
-                }
-
                 // Compress raw data
-                if (input.Position < input.Length)
-                    CompressRawData(input, bw, (int)(input.Length - input.Position), ref countPosition);
+                if (input.Position < match.Position)
+                    CompressRawData(input, bw, (int)(match.Position - input.Position), ref countPosition);
 
-                // Write final 0 index
-                foreach (var bit in _countIndexDictionary[_countIndexes.Last()])
-                    bw.WriteBit(bit - '0');
+                // Compress match
+                CompressMatchData(input, bw, match, ref countPosition, ref displacementPosition);
             }
+
+            // Compress raw data
+            if (input.Position < input.Length)
+                CompressRawData(input, bw, (int)(input.Length - input.Position), ref countPosition);
+
+            // Write final 0 index
+            foreach (var bit in _countIndexDictionary[_countIndexes.Last()])
+                bw.WriteBit(bit - '0');
         }
 
         #region Tree creation

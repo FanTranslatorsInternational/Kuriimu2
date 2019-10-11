@@ -8,7 +8,8 @@ namespace Kompression.IO
     /// </summary>
     public class BitReader : IDisposable
     {
-        private readonly Stream _baseStream;
+        private Stream _baseStream;
+
         private readonly BitOrder _bitOrder;
         private readonly ByteOrder _byteOrder;
         private readonly int _blockSize;
@@ -226,7 +227,7 @@ namespace Kompression.IO
         {
             if (disposing)
             {
-                _baseStream?.Dispose();
+                _baseStream = null;
             }
         }
 

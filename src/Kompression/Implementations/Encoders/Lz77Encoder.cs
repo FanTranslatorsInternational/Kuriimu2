@@ -25,29 +25,28 @@ namespace Kompression.Implementations.Encoders
 
         private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
-            using (var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.BigEndian))
+            using var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.BigEndian);
+
+            foreach (var match in matches)
             {
-                foreach (var match in matches)
-                {
-                    while (input.Position < match.Position)
-                    {
-                        bw.WriteBit(0);
-                        bw.WriteByte((byte)input.ReadByte());
-                    }
-
-                    bw.WriteBit(1);
-                    bw.WriteByte((byte)match.Displacement);
-                    bw.WriteByte(match.Length);
-
-                    input.Position += match.Length;
-                    bw.WriteByte(input.ReadByte());
-                }
-
-                while (input.Position < input.Length)
+                while (input.Position < match.Position)
                 {
                     bw.WriteBit(0);
                     bw.WriteByte((byte)input.ReadByte());
                 }
+
+                bw.WriteBit(1);
+                bw.WriteByte((byte)match.Displacement);
+                bw.WriteByte(match.Length);
+
+                input.Position += match.Length;
+                bw.WriteByte(input.ReadByte());
+            }
+
+            while (input.Position < input.Length)
+            {
+                bw.WriteBit(0);
+                bw.WriteByte((byte)input.ReadByte());
             }
         }
 

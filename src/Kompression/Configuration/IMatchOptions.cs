@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kompression.Interfaces;
 using Kompression.Models;
-using Kompression.PatternMatch;
 
 namespace Kompression.Configuration
 {
@@ -30,14 +28,14 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="matchFinderFactory">The factory to add another <see cref="IMatchFinder"/>.</param>
         /// <returns>The option object.</returns>
-        IMatchOptions FindMatchesWith(Func<IList<FindLimitations>,FindOptions, IMatchFinder> matchFinderFactory);
+        IMatchOptions FindMatchesWith(Func<FindLimitations[], FindOptions, IMatchFinder> matchFinderFactory);
 
         /// <summary>
         /// Sets the factory to create an instance of <see cref="IMatchParser"/>.
         /// </summary>
         /// <param name="matchParserFactory">The factory to create an instance of <see cref="IMatchParser"/>.</param>
         /// <returns>The option object.</returns>
-        IMatchOptions ParseMatchesWith(Func<IList<IMatchFinder>, IPriceCalculator, FindOptions, IMatchParser> matchParserFactory);
+        IMatchOptions ParseMatchesWith(Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> matchParserFactory);
 
         /// <summary>
         /// Sets whether to search matches from the end to the beginning of the data.

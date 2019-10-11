@@ -102,11 +102,11 @@ namespace Kompression.Configuration
             var limits = _matchOptions?.LimitFactories?.
                 Where(factory => factory != null).
                 Select(factory => factory()).
-                ToList();
+                ToArray();
             var matchFinders = _matchOptions?.MatchFinderFactories?.
                 Where(factory => factory != null).
                 Select(factory => factory(limits, findOptions)).
-                ToList();
+                ToArray();
             var matchParser = _matchOptions?.MatchParserFactory?.Invoke(matchFinders, priceCalculator, findOptions);
 
             // Get created instances for huffman encodings
