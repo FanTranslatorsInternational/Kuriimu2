@@ -446,5 +446,27 @@ namespace KompressionUnitTests
             // Assert
             dataStream.ToArray().Should().BeEquivalentTo(_data);
         }
+
+        [Test]
+        public void TalesOf01_CompressionDecompression_Works()
+        {
+            // Arrange
+            var dataStream = new MemoryStream(_data);
+            var compressedStream = new MemoryStream();
+
+            var talesConfiguration = Compressions.TalesOf01;
+            talesConfiguration.WithMatchOptions(configure => configure.
+                FindMatchesWith((limits, options) => new HybridSuffixTreeMatchFinder(limits[0], options)).
+                ParseMatchesWith((finders, calculator, options) => new ForwardBackwardOptimalParser(options, calculator, finders)));
+            var compressor = talesConfiguration.Build();
+
+            // Act
+            compressor.Compress(dataStream, compressedStream);
+            dataStream.Position = compressedStream.Position = 0;
+            compressor.Decompress(compressedStream, dataStream);
+
+            // Assert
+            dataStream.ToArray().Should().BeEquivalentTo(_data);
+        }
     }
 }

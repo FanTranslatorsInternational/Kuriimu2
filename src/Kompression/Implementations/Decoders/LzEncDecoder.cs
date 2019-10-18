@@ -52,8 +52,9 @@ namespace Kompression.Implementations.Decoders
                 {
                     var byte2 = (byte)input.ReadByte();
 
+                    // 11 bit displacement
                     // Min disp: 0x1; Max disp: 0x800
-                    // Min length: 1; Max length: 6
+                    // Min length: 3; Max length: 8
 
                     var displacement = ((_codeByte >> 2) & 0x7) + (byte2 << 3) + 1;
                     var length = (_codeByte >> 5) + 1;
@@ -79,6 +80,10 @@ namespace Kompression.Implementations.Decoders
                 }
                 else if (_codeByte >= 0x10)
                 {
+                    // 14 bit displacement
+                    // Min disp: 0x4001; Max disp: 0xBFFF
+                    // Min length: 2; Max length: virtually infinite
+
                     var length = _codeByte & 0x7;
                     if (length == 0)
                         length += ReadVariableLength(input, 3);
@@ -88,7 +93,7 @@ namespace Kompression.Implementations.Decoders
                     _codeByte = (byte)input.ReadByte();
                     var byte2 = (byte)input.ReadByte();
 
-                    if (sign == 0 && (_codeByte >> 2) == 0 && byte2 == 0)
+                    if (sign == 0 && _codeByte >> 2 == 0 && byte2 == 0)
                         // End of decompression
                         break;
 
@@ -98,6 +103,10 @@ namespace Kompression.Implementations.Decoders
                 }
                 else
                 {
+                    // 10 bit displacement
+                    // Min disp: 1; Max disp: 0x400
+                    // Min length: 2; Max length: 2
+
                     var byte2 = (byte)input.ReadByte();
 
                     var displacement = ((byte2 << 2) | (_codeByte >> 2)) + 1;

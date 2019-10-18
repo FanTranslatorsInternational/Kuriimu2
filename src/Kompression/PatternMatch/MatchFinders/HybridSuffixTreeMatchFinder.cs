@@ -96,6 +96,14 @@ namespace Kompression.PatternMatch.MatchFinders
             return enumerators;
         }
 
+        /// <inheritdoc cref="Reset"/>
+        public override void Reset()
+        {
+            // Nothing to reset
+            _tree?.Dispose();
+            _tree=new HybridSuffixTree();
+        }
+
         #region Dispose
 
         protected override void Dispose(bool disposing)

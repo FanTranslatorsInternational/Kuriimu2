@@ -35,5 +35,10 @@ namespace Kompression.Interfaces
         /// <param name="position">The position to start search at.</param>
         /// <returns>All matches found in the input data.</returns>
         IEnumerable<Match[]> GetAllMatches(byte[] input, int position);
+
+        /// <summary>
+        /// Resets the instance for reuse with another file.
+        /// </summary>
+        void Reset();
     }
 }

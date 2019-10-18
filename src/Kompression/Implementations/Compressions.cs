@@ -379,8 +379,12 @@ namespace Kompression.Implementations
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(modes => new TalesOf01Decoder(0xFEE));
-                // TODO: Encoding of TalesOf01
+                config.DecodeWith(modes => new TalesOf01Decoder(0xFEE)).
+                    EncodeWith((parser, builder, modes) => new TalesOf01Encoder(parser));
+                config.WithMatchOptions(options => options.
+                    WithPreBufferSize(0xFEE).
+                    WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000)).
+                    CalculatePricesWith(() => new TalesOf01PriceCalculator()));
 
                 return config;
             }
@@ -392,8 +396,13 @@ namespace Kompression.Implementations
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(modes => new TalesOf03Decoder(0xFEF));
-                // TODO: Encoding of TalesOf03
+                config.DecodeWith(modes => new TalesOf03Decoder(0xFEF)).
+                    EncodeWith((parser, builder, modes) => new TalesOf03Encoder(parser));
+                config.WithMatchOptions(options => options.
+                    WithPreBufferSize(0xFEF).
+                    WithinLimitations(() => new FindLimitations(3, 0x11, 1, 0x1000)).
+                    WithinLimitations(() => new FindLimitations(0x4, 0x112)).
+                    CalculatePricesWith(() => new TalesOf03PriceCalculator()));
 
                 return config;
             }
@@ -405,8 +414,28 @@ namespace Kompression.Implementations
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(modes => new LzEncDecoder());
-                // TODO: Encoding of LzEnc
+                config.DecodeWith(modes => new LzEncDecoder()).
+                    EncodeWith((parser, builder, modes) => new LzEncEncoder(parser));
+                config.WithMatchOptions(options => options.
+                    WithinLimitations(() => new FindLimitations(3, -1, 1, 0xBFFF)).
+                    CalculatePricesWith(() => new LzEncPriceCalculator()));
+
+                return config;
+            }
+        }
+
+        public static KompressionConfiguration SpikeChunsoft
+        {
+            get
+            {
+                var config = new KompressionConfiguration();
+
+                config.DecodeWith(modes => new SpikeChunsoftDecoder()).
+                    EncodeWith((parser, builder, modes) => new SpikeChunsoftEncoder(parser));
+                config.WithMatchOptions(options => options.
+                    WithinLimitations(() => new FindLimitations(4, 0x2000, 1, 0x1FFF)).
+                    WithinLimitations(() => new FindLimitations(4, 0x1003)).
+                    CalculatePricesWith(() => new SpikeChunsoftPriceCalculator()));
 
                 return config;
             }

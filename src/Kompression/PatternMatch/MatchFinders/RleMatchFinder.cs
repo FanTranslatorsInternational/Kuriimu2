@@ -28,16 +28,17 @@ namespace Kompression.PatternMatch.MatchFinders
                 yield break;
 
             var maxLength = FindLimitations.MaxLength <= 0 ? input.Length : FindLimitations.MaxLength;
+            var unitSize = (int)FindOptions.UnitSize;
 
-            var cappedLength = Math.Min(maxLength, input.Length - position);
-            for (var repetitions = 0; repetitions < cappedLength; repetitions += (int)FindOptions.UnitSize)
+            var cappedLength = Math.Min(maxLength, input.Length - unitSize - position);
+            for (var repetitions = 0; repetitions < cappedLength; repetitions += unitSize)
             {
                 switch (FindOptions.UnitSize)
                 {
                     case UnitSize.Byte:
                         if (input[position + 1 + repetitions] != input[position])
                         {
-                            if (repetitions > 0)
+                            if (repetitions > 0 && repetitions>=FindLimitations.MinLength)
                                 yield return new Match(position, 0, repetitions);
                             yield break;
                         }
@@ -48,6 +49,12 @@ namespace Kompression.PatternMatch.MatchFinders
             }
 
             yield return new Match(position, 0, cappedLength - cappedLength % (int)FindOptions.UnitSize);
+        }
+
+        /// <inheritdoc cref="Reset"/>
+        public override void Reset()
+        {
+            // Nothing to reset
         }
 
         /// <inheritdoc cref="SetupMatchFinder"/>

@@ -98,19 +98,21 @@ namespace Kompression.IO
         /// Copies a portion of the buffer to a designated output.
         /// </summary>
         /// <param name="output">The output to copy to.</param>
-        /// <param name="displacement">The displacement from the current position of the buffer to copy from.</param>
+        /// <param name="displacement">The displacement backwards from the current position of the buffer to copy from.</param>
         /// <param name="length">The length of the data to copy.</param>
         /// <remarks>For main use in Lempel-Ziv compressions.</remarks>
         public void Copy(Stream output, int displacement, int length)
         {
+            if (displacement <= 0 || displacement > Length)
+                throw new ArgumentOutOfRangeException(nameof(displacement));
+
             var displacedBufferPosition = Position - displacement;
             var endBufferPosition = Position;
 
-            var absoluteDisplacement = Math.Abs(displacement);
-            var buffer = new byte[absoluteDisplacement];
-            for (int i = 0; i < length; i += absoluteDisplacement)
+            var buffer = new byte[displacement];
+            for (var i = 0; i < length; i += displacement)
             {
-                var toCopy = Math.Min(absoluteDisplacement, length - i);
+                var toCopy = Math.Min(displacement, length - i);
 
                 Position = displacedBufferPosition;
                 Read(buffer, 0, toCopy);

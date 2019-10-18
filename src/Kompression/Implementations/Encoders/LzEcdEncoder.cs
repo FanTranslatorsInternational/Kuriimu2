@@ -36,7 +36,7 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
-                while (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
+                while (input.Position < match.Position- _matchParser.FindOptions.PreBufferSize)
                 {
                     if (_codeBlockPosition == 8)
                         WriteAndResetBuffer(output);

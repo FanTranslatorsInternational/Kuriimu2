@@ -54,6 +54,15 @@ namespace Kompression.PatternMatch.MatchFinders
             return enumerators;
         }
 
+        /// <inheritdoc cref="Reset"/>
+        public override void Reset()
+        {
+            if (_states != null)
+                foreach (var state in _states)
+                    state.Dispose();
+            _states = null;
+        }
+
         #region Dispose
 
         protected override void Dispose(bool disposing)

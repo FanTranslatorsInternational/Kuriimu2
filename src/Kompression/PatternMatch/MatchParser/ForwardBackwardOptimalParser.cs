@@ -46,6 +46,9 @@ namespace Kompression.PatternMatch.MatchParser
 
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
         {
+            foreach(var finder in _finders)
+                finder.Reset();
+
             _history = new PriceHistoryElement[input.Length - startPosition + 1];
             for (var i = 0; i < _history.Length; i++)
                 _history[i] = new PriceHistoryElement { Price = int.MaxValue };
@@ -116,7 +119,7 @@ namespace Kompression.PatternMatch.MatchParser
                     i -= unitSize;
                 else
                 {
-                    yield return new Match(i - _history[i].Length, _history[i].Displacement, _history[i].Length);
+                    yield return new Match(i - _history[i].Length + FindOptions.PreBufferSize, _history[i].Displacement, _history[i].Length);
                     i -= _history[i].Length + unitSize * FindOptions.SkipUnitsAfterMatch;
                 }
             }

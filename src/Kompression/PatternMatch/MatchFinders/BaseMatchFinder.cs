@@ -51,6 +51,9 @@ namespace Kompression.PatternMatch.MatchFinders
             }
         }
 
+        /// <inheritdoc cref="Reset"/>
+        public abstract void Reset();
+
         /// <summary>
         /// Setup objects for use in <see cref="GetAllMatches(byte[],int)"/>.
         /// </summary>

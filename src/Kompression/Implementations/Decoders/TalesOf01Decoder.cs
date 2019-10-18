@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Kompression.Configuration;
 using Kompression.IO;
@@ -59,8 +60,14 @@ namespace Kompression.Implementations.Decoders
                     var length = (byte2 & 0xF) + 3;
                     var bufferPosition = byte1 | ((byte2 & 0xF0) << 4);
 
+                    if (input.Position > 0x5f40)
+                        Debugger.Break();
+
                     // Convert buffer position to displacement
-                    var displacement = _circularBuffer.Position % _circularBuffer.Length - bufferPosition;
+                    var displacement = (_circularBuffer.Position - bufferPosition) % _circularBuffer.Length;
+                    displacement = (displacement + _circularBuffer.Length) % _circularBuffer.Length;
+                    if (displacement == 0)
+                        displacement = 0x1000;
 
                     _circularBuffer.Copy(output, displacement, length);
                 }

@@ -1,57 +1,63 @@
-﻿//using System.Diagnostics;
-//using System.IO;
-//using System.Linq;
-//using Kompression.Huffman;
-//using Kompression.Implementations;
-//using Kompression.Implementations.PriceCalculators;
-//using Kompression.PatternMatch.MatchFinders;
-//using Kompression.PatternMatch.MatchParser;
-//using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using Kompression.Implementations;
+using Kompression.PatternMatch.MatchFinders;
+using Kompression.PatternMatch.MatchParser;
+using Kompression.PatternMatch.PriceCalculators;
+using NUnit.Framework.Internal;
+using NUnit.Framework;
 
-//namespace KompressionUnitTests
-//{
-//    [TestClass]
-//    public class LempelZivTests
-//    {
-//        [TestMethod]
-//        public void Stub_Compress()
-//        {
-//            var file = @"D:\Users\Kirito\Desktop\masterFile.decomp";
-//            var str = File.OpenRead(file);
-//            var save = File.Create(file + ".comp");
+namespace KompressionUnitTests
+{
+    [TestFixture]
+    public class LempelZivTests
+    {
+        [Test]
+        public void Stub_Compress()
+        {
+            var file = @"D:\Users\Kirito\Desktop\spike_chun_master.decomp";
+            var str = File.OpenRead(file);
+            var save = File.Create(file + ".comp");
 
-//            var watch = new Stopwatch();
-//            watch.Start();
+            var watch = new Stopwatch();
+            watch.Start();
 
-//            var config = Compressions.LzssVle.WithMatchOptions(options =>
-//                options
-//                    .CalculatePricesWith(() => new LzssVlcPriceCalculator())
-//                    .FindMatchesWith((limits, findOptions) => new HybridSuffixTreeMatchFinder(limits[0], findOptions))
-//                    .ParseMatchesWith((finders, calculator, findOptions) =>
-//                        new ForwardBackwardOptimalParser(findOptions, calculator, finders.ToArray())));
-//            config.Build().Compress(str, save);
+            var config = Compressions.LzssVlc.WithMatchOptions(options =>
+                options
+                    .FindMatchesWith((limits, findOptions) => new HybridSuffixTreeMatchFinder(limits[0], findOptions))
+                    //.FindMatchesWith((limits, findOptions) => new RleMatchFinder(limits[1], findOptions))
+                    .ParseMatchesWith((finders, calculator, findOptions) =>
+                        new ForwardBackwardOptimalParser(findOptions, calculator, finders)));
+            config.Build().Compress(str, save);
 
-//            watch.Stop();
+            watch.Stop();
 
-//            save.Close();
-//        }
+            save.Close();
+        }
 
-//        [TestMethod]
-//        public void Stub_Decompress()
-//        {
-//            var file = @"D:\Users\Kirito\Desktop\masterFile.decomp.comp";
-//            var str = File.OpenRead(file);
-//            var save = File.Create(file + ".decomp");
+        [Test]
+        public void Stub_Decompress()
+        {
+            var file = @"D:\Users\Kirito\Desktop\spike_chun_master.decomp.comp";
+            var str = File.OpenRead(file);
+            var save = File.Create(file + ".decomp");
 
-//            var watch = new Stopwatch();
-//            watch.Start();
+            var watch = new Stopwatch();
+            watch.Start();
 
-//            var config = Compressions.LzssVle;
-//            config.Build().Decompress(str, save);
+            var config = Compressions.LzssVlc;
+            try
+            {
+                config.Build().Decompress(str, save);
+            }
+            catch (Exception e)
+            {
+            }
 
-//            watch.Stop();
+            watch.Stop();
 
-//            save.Close();
-//        }
-//    }
-//}
+            save.Close();
+        }
+    }
+}

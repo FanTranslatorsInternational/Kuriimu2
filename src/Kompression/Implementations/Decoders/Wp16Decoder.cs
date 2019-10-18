@@ -58,7 +58,7 @@ namespace Kompression.Implementations.Decoders
                     var displacement = (byte2 << 3) | (byte1 >> 5);
                     var length = (byte1 & 0x1F) + 2;
 
-                    _circularBuffer.Copy(output, displacement, length * 2);
+                    _circularBuffer.Copy(output, displacement * 2, length * 2);
                 }
             }
         }

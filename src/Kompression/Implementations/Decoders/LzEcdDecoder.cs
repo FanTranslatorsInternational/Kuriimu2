@@ -76,10 +76,13 @@ namespace Kompression.Implementations.Decoders
                     var byte2 = input.ReadByte();
 
                     var length = (byte2 & 0x3F) + 3;
-                    var matchBufferPosition = ((byte2 & 0xC0) << 2) | byte1;
+                    var bufferPosition = ((byte2 & 0xC0) << 2) | byte1;
 
                     // Convert buffer position to displacement
-                    var displacement = _circularBuffer.Position % _circularBuffer.Length - matchBufferPosition;
+                    var displacement = (_circularBuffer.Position - bufferPosition) % _circularBuffer.Length;
+                    displacement = (displacement + _circularBuffer.Length) % _circularBuffer.Length;
+                    if (displacement == 0)
+                        displacement = 0x400;
 
                     _circularBuffer.Copy(output, displacement, length);
                 }

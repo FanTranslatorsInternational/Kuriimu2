@@ -70,6 +70,11 @@ namespace Kompression.PatternMatch.LempelZiv
             throw new NotImplementedException();
         }
 
+        public void Reset()
+        {
+            // Nothing to reset
+        }
+
         public void Dispose()
         {
             _array.Dispose();

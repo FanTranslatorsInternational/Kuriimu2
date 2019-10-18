@@ -52,6 +52,9 @@ namespace Kompression.PatternMatch.MatchParser
 
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
         {
+            foreach (var finder in _finders)
+                finder.Reset();
+
             var unitSize = (int)_finders[0].FindOptions.UnitSize;
 
             var positionOffset = 0;

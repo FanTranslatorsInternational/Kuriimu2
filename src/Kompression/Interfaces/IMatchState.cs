@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kompression.Interfaces
 {
@@ -11,5 +7,7 @@ namespace Kompression.Interfaces
         int CountLiterals(int position);
 
         int CountMatches(int position);
+
+        bool HasMatches(int position);
     }
 }

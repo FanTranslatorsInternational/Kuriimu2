@@ -20,7 +20,7 @@ namespace Kompression.PatternMatch.MatchParser.Support
             while (position >= 0 && _history[position].IsLiteral)
             {
                 literalCount++;
-                position -= (int)_findOptions.UnitSize;
+                position -= _history[position].Length;
             }
 
             return literalCount;
@@ -36,6 +36,19 @@ namespace Kompression.PatternMatch.MatchParser.Support
             }
 
             return matchCount;
+        }
+
+        public bool HasMatches(int position)
+        {
+            while (position >= 0)
+            {
+                if (!_history[position].IsLiteral)
+                    return true;
+
+                position -= _history[position].Length;
+            }
+
+            return false;
         }
 
         public void Dispose()
