@@ -39,40 +39,14 @@ namespace Kontract.Interfaces.Font
         [FormField(typeof(int), nameof(CharWidth), 1, 3)]
         public int CharWidth { get; set; }
 
-        public CharacterPosition CharacterPosition { get; }
-
-        public CharacterInfo(int charWidth, CharacterPosition position)
+        public CharacterInfo(int charWidth)
         {
             CharWidth = charWidth;
-            CharacterPosition = position;
         }
 
         public object Clone()
         {
-            return new CharacterInfo(CharWidth, (CharacterPosition)CharacterPosition.Clone());
-        }
-    }
-
-    /// <summary>
-    /// A transport class for character positioning.
-    /// </summary>
-    public class CharacterPosition : ICloneable
-    {
-        [FormField(typeof(int), nameof(Top), 1, 2)]
-        public int Top { get; set; }
-
-        [FormField(typeof(int), nameof(Left), 1, 2)]
-        public int Left { get; set; }
-
-        public CharacterPosition(int top, int left)
-        {
-            Top = top;
-            Left = left;
-        }
-
-        public object Clone()
-        {
-            return new CharacterPosition(Top, Left);
+            return new CharacterInfo(CharWidth);
         }
     }
 }
