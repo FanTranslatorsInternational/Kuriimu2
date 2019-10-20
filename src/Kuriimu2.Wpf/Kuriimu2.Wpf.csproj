@@ -80,7 +80,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvalonEdit" Version="6.0.0" />
     <PackageReference Include="Caliburn.Micro" Version="4.0.91-alpha" />
     <PackageReference Include="Caliburn.Micro.Core" Version="4.0.91-alpha" />
   </ItemGroup>

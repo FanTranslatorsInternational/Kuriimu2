@@ -13,7 +13,7 @@ namespace Kuriimu2.Wpf.Tools
         // TODO: These are a mess and this image manipulation stuff in WPF needs to be unified into a common usage.
 
         // ToBitmapImage/ImageSource
-        public static BitmapImage ToBitmapImage(this Image bitmap, bool keepAlpha = false)
+        public static BitmapImage ToBitmapImage(this Image bitmap, bool keepAlpha = true)
         {
             if (bitmap == null) return null;
 
