@@ -11,7 +11,7 @@ namespace Kontract.Interfaces.Font
         /// <summary>
         /// The list of characters provided by the font adapter to the UI.
         /// </summary>
-        IEnumerable<FontCharacter2> Characters { get; set; }
+        List<FontCharacter2> Characters { get; set; }
 
         /// <summary>
         /// Character baseline.

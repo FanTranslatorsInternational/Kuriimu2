@@ -10,6 +10,6 @@
         /// </summary>
         /// <param name="character">The character to be deleted.</param>
         /// <returns>True if the character was successfully deleted, False otherwise.</returns>
-        bool DeleteCharacter(FontCharacter character);
+        bool DeleteCharacter(FontCharacter2 character);
     }
 }
