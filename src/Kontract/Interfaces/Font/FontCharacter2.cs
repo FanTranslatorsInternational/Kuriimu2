@@ -10,33 +10,51 @@ namespace Kontract.Interfaces.Font
     /// </summary>
     public class FontCharacter2 : ICloneable
     {
-        public virtual uint Character { get; set; } = 'A';
+        public virtual uint Character { get; }
 
-        public virtual CharWidthInfo WidthInfo { get; set; } = null;
+        public virtual CharacterInfo CharacterInfo { get; }
 
-        public virtual Bitmap Glyph { get; set; } = null;
+        public virtual Bitmap Glyph { get; }
 
-        public virtual int GlyphWidth { get; set; } = 0;
-
-        public virtual int GlyphHeight { get; set; } = 0;
-
-        public virtual object Clone() => new FontCharacter
+        public FontCharacter2(uint character, Bitmap glyph, CharacterInfo characterInfo)
         {
-            Character = Character,
-            GlyphWidth = GlyphWidth,
-            GlyphHeight = GlyphHeight
-        };
+            Character = character;
+            Glyph = glyph;
+            CharacterInfo = characterInfo;
+        }
+
+        public virtual object Clone() => new FontCharacter2(Character, (Bitmap)Glyph.Clone(), CharacterInfo);
 
         public override string ToString() => ((char)Character).ToString();
     }
 
     /// <summary>
-    /// A transport class for character width info.
+    /// A transport class for character information.
     /// </summary>
-    public class CharWidthInfo
+    public struct CharacterInfo
     {
-        public int Left { get; set; }
-        public int GlyphWidth { get; set; }
-        public int CharWidth { get; set; }
+        public int CharWidth { get; }
+        public CharacterPosition CharacterPosition { get; }
+
+        public CharacterInfo(int charWidth, CharacterPosition position)
+        {
+            CharWidth = charWidth;
+            CharacterPosition = position;
+        }
+    }
+
+    /// <summary>
+    /// A transport class for character positioning.
+    /// </summary>
+    public struct CharacterPosition
+    {
+        public int Top { get; }
+        public int Left { get; }
+
+        public CharacterPosition(int top, int left)
+        {
+            Top = top;
+            Left = left;
+        }
     }
 }

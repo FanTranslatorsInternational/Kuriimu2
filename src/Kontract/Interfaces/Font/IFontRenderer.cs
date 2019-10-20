@@ -13,7 +13,7 @@ namespace Kontract.Interfaces.Font
         /// </summary>
         /// <param name="c"></param>
         /// <returns></returns>
-        CharWidthInfo GetCharWidthInfo(char c);
+        CharacterInfo GetCharWidthInfo(char c);
 
         /// <summary>
         /// 
