@@ -15,12 +15,14 @@ namespace Kuriimu2.Wpf.Tools
         // ToBitmapImage/ImageSource
         public static BitmapImage ToBitmapImage(this Image bitmap, bool keepAlpha = true)
         {
-            if (bitmap == null) return null;
+            if (bitmap == null) 
+                return null;
 
             using (var ms = new MemoryStream())
             {
                 bitmap.Save(ms, keepAlpha ? ImageFormat.Png : ImageFormat.Bmp);
                 ms.Position = 0;
+
                 var bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.StreamSource = ms;

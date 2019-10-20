@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Komponent.Tools;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
-using Kore;
 using Kore.Files.Models;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
@@ -25,115 +19,70 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private IFontAdapter _adapter;
+        private IFontAdapter2 _adapter;
 
-        private FontCharacter _selectedCharacter;
-        private ImageSource _selectedTexture;
+        private FontCharacter2 _selectedCharacter;
+        private ImageSource _selectedCharacterTexture;
 
         public KoreFileInfo KoreFile { get; set; }
-        public ObservableCollection<FontCharacter> Characters { get; private set; }
+        public ObservableCollection<FontCharacter2> Characters { get; private set; }
 
-        public FontCharacter SelectedCharacter
+        public FontCharacter2 SelectedCharacter
         {
             get => _selectedCharacter;
             set
             {
                 _selectedCharacter = value;
-                if (_selectedCharacter.TextureID < _adapter.Textures.Count)
-                    SelectedTexture = _adapter.Textures[_selectedCharacter.TextureID].ToBitmapImage();
+                SelectedCharacterImage = _adapter.Characters.First(x => x == value).Glyph.ToBitmapImage();
+
                 NotifyOfPropertyChange(() => SelectedCharacter);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
-                NotifyOfPropertyChange(() => CursorMargin);
+                NotifyOfPropertyChange(() => SelectedCharacterImageWidth);
+                NotifyOfPropertyChange(() => SelectedCharacterImageHeight);
             }
         }
 
-        public int SelectedCharacterGlyphX
+        public int SelectedCharacterGlyphWidth => SelectedCharacter?.Glyph.Width ?? 0;
+
+        public int SelectedCharacterGlyphHeight => SelectedCharacter?.Glyph.Height ?? 0;
+
+        public ImageSource SelectedCharacterImage
         {
-            get => SelectedCharacter?.GlyphX ?? 0;
+            get => _selectedCharacterTexture;
             set
             {
-                KoreFile.HasChanges = SelectedCharacter.GlyphX != value;
-                SelectedCharacter.GlyphX = value;
-                NotifyOfPropertyChange(() => DisplayName);
-                NotifyOfPropertyChange(() => CursorMargin);
+                _selectedCharacterTexture = value;
+                NotifyOfPropertyChange(() => SelectedCharacterImage);
             }
         }
 
-        public int SelectedCharacterGlyphY
-        {
-            get => SelectedCharacter?.GlyphY ?? 0;
-            set
-            {
-                KoreFile.HasChanges = SelectedCharacter.GlyphY != value;
-                SelectedCharacter.GlyphY = value;
-                NotifyOfPropertyChange(() => DisplayName);
-                NotifyOfPropertyChange(() => CursorMargin);
-            }
-        }
+        public int SelectedCharacterImageWidth => SelectedCharacterGlyphWidth * 10;
+        public int SelectedCharacterImageHeight => SelectedCharacterGlyphHeight * 10;
 
-        public int SelectedCharacterGlyphWidth
-        {
-            get => SelectedCharacter?.GlyphWidth ?? 0;
-            set
-            {
-                KoreFile.HasChanges = SelectedCharacter.GlyphWidth != value;
-                SelectedCharacter.GlyphWidth = value;
-                NotifyOfPropertyChange(() => DisplayName);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
-            }
-        }
-
-        public int SelectedCharacterGlyphHeight
-        {
-            get => SelectedCharacter?.GlyphHeight ?? 0;
-            set
-            {
-                KoreFile.HasChanges = SelectedCharacter.GlyphHeight != value;
-                SelectedCharacter.GlyphHeight = value;
-                NotifyOfPropertyChange(() => DisplayName);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
-            }
-        }
-
-        public ImageSource SelectedTexture
-        {
-            get => _selectedTexture;
-            set
-            {
-                _selectedTexture = value;
-                NotifyOfPropertyChange(() => SelectedTexture);
-            }
-        }
-
-        public int ImageBorderThickness => 1;
-
-        public Thickness CursorMargin => new Thickness((SelectedCharacter?.GlyphX ?? 0) + ImageBorderThickness, (SelectedCharacter?.GlyphY ?? 0) + ImageBorderThickness, 0, 0);
-
-        public string CharacterCount => Characters.Count + (Characters.Count > 1 ? " Characters" : " Character");
+        public string CharacterCount => Characters.Count + (Characters.Count == 1 ? " Character" : " Characters");
 
         // Constructor
         public FontEditorViewModel(KoreFileInfo koreFile)
         {
             KoreFile = koreFile;
 
-            _adapter = KoreFile.Adapter as IFontAdapter;
+            _adapter = KoreFile.Adapter as IFontAdapter2;
 
             if (_adapter != null)
-                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
 
             SelectedCharacter = Characters.First();
         }
 
         public void FontProperties()
         {
-            if (!(_adapter is IFontAdapter fnt)) return;
+            if (!(_adapter is IFontAdapter2 fnt))
+                return;
 
-            var pe = new PropertyEditorViewModel<IFontAdapter>
+            var pe = new PropertyEditorViewModel<IFontAdapter2>
             {
-                Title = $"Font Properties",
+                Title = "Font Properties",
                 Message = "Properties:",
                 Object = _adapter
             };
@@ -150,24 +99,17 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public bool AddEnabled => _adapter is IAddCharacters;
 
+        // TODO: Adding a new character in v2 should also ask for a new glyph image somehow
         public void AddCharacter()
         {
-            if (!(_adapter is IAddCharacters add)) return;
+            if (!(_adapter is IAddCharacters add))
+                return;
 
-            // Add a new characters based on the selected character
-            var character = add.NewCharacter(SelectedCharacter);
-            character.Character = SelectedCharacter.Character;
-            // Copy the perceived last character's X and Y positions (lazy mode)
-            var last = Characters.OrderByDescending(c => c.GlyphY).ThenByDescending(c => c.GlyphX).FirstOrDefault();
-            if (last != null)
-            {
-                character.GlyphX = last.GlyphX + last.GlyphWidth;
-                character.GlyphY = last.GlyphY;
-            }
-            character.GlyphWidth = SelectedCharacter.GlyphWidth;
-            character.GlyphHeight = SelectedCharacter.GlyphHeight;
+            // Add a new character based on the selected character
+            var character = (FontCharacter2)SelectedCharacter.Clone();
 
-            var pe = new PropertyEditorViewModel<FontCharacter>
+            // Open editor to edit character properties
+            var pe = new PropertyEditorViewModel<FontCharacter2>
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
@@ -181,11 +123,12 @@ namespace Kuriimu2.Wpf.ViewModels
             };
             _windows.Add(pe);
 
+            // If property editor was closed and adding the character was successful
             if (_wm.ShowDialogAsync(pe).Result == true && add.AddCharacter(character))
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
-                Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
                 SelectedCharacter = character;
             }
@@ -195,35 +138,35 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public void EditCharacter()
         {
-            if (!(_adapter is IFontAdapter fnt)) return;
+            if (!(_adapter is IFontAdapter2 fnt))
+                return;
 
             // Clone the selected character so that changes don't propagate to the plugin
-            var clonedCharacter = (FontCharacter)SelectedCharacter.Clone();
+            var clonedCharacter = (FontCharacter2)SelectedCharacter.Clone();
 
-            var pe = new PropertyEditorViewModel<FontCharacter>
+            // Open editor to edit character properties
+            var pe = new PropertyEditorViewModel<FontCharacter2>
             {
                 Title = "Edit Character",
-                Message = "Edit character attributes:",
+                Message = "Edit character properties:",
                 Object = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
                     CanClose = clonedCharacter.Character == SelectedCharacter.Character,
-                    ErrorMessage = $"You cannot change the character while editing."
+                    ErrorMessage = "You cannot change the character while editing."
                 }
             };
             _windows.Add(pe);
 
+            // If property editor was closed
             if (_wm.ShowDialogAsync(pe).Result == true)
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
                 clonedCharacter.CopyProperties(SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacter);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphX);
-                NotifyOfPropertyChange(() => SelectedCharacterGlyphY);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);
-                NotifyOfPropertyChange(() => CursorMargin);
             }
         }
 
@@ -231,45 +174,42 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public void DeleteCharacter()
         {
-            if (!(_adapter is IDeleteCharacters del)) return;
+            if (!(_adapter is IDeleteCharacters del))
+                return;
 
             if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedCharacter.Character}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 if (del.DeleteCharacter(SelectedCharacter))
                 {
-                    Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                    Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
-                else
-                {
-                    // Character was not removed.
-                }
             }
         }
 
-        public void ExportTextures()
-        {
-            try
-            {
-                var dir = Path.GetDirectoryName(KoreFile.StreamFileInfo.FileName);
-                var name = Path.GetFileNameWithoutExtension(KoreFile.StreamFileInfo.FileName);
+        //public void ExportTextures()
+        //{
+        //    try
+        //    {
+        //        var dir = Path.GetDirectoryName(KoreFile.StreamFileInfo.FileName);
+        //        var name = Path.GetFileNameWithoutExtension(KoreFile.StreamFileInfo.FileName);
 
-                for (var index = 0; index < _adapter.Textures.Count; index++)
-                {
-                    var texture = _adapter.Textures[index];
-                    texture.Save(Path.Combine(dir, name + $"_{index:00}.png"), ImageFormat.Png);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                MessageBox.Show("Textures exported successfully!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
+        //        for (var index = 0; index < _adapter.Textures.Count; index++)
+        //        {
+        //            var texture = _adapter.Textures[index];
+        //            texture.Save(Path.Combine(dir, name + $"_{index:00}.png"), ImageFormat.Png);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(ex.ToString(), "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //    finally
+        //    {
+        //        MessageBox.Show("Textures exported successfully!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+        //    }
+        //}
 
         public void GenerateFromCurrentSet()
         {
@@ -277,14 +217,14 @@ namespace Kuriimu2.Wpf.ViewModels
             {
                 Adapter = _adapter,
                 Baseline = _adapter.Baseline,
-                Characters = _adapter.Characters.Aggregate("", (i, o) => i += (char)o.Character),
-                CanvasWidth = _adapter.Textures[_selectedCharacter.TextureID].Width,
-                CanvasHeight = _adapter.Textures[_selectedCharacter.TextureID].Height,
+                Characters = string.Join("", _adapter.Characters),
+                CanvasWidth = 512,
+                CanvasHeight = 512,
                 GenerationCompleteCallback = () =>
                 {
                     KoreFile.HasChanges = true;
                     NotifyOfPropertyChange(() => DisplayName);
-                    Characters = new ObservableCollection<FontCharacter>(_adapter.Characters);
+                    Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
@@ -309,16 +249,5 @@ namespace Kuriimu2.Wpf.ViewModels
             }
             return base.TryCloseAsync(dialogResult);
         }
-
-        //public override void TryClose(bool? dialogResult = null)
-        //{
-        //    for (var i = _windows.Count - 1; i >= 0; i--)
-        //    {
-        //        var scr = _windows[i];
-        //        scr.TryClose(dialogResult);
-        //        _windows.Remove(scr);
-        //    }
-        //    base.TryClose(dialogResult);
-        //}
     }
 }

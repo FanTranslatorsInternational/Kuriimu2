@@ -51,7 +51,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public BitmapImage Icon { get; }
         public string Error { get; set; } = string.Empty;
-        public IFontAdapter Adapter { get; set; } = null;
+        public IFontAdapter2 Adapter { get; set; } = null;
 
         public ImageSource PreviewCharacterImage
         {

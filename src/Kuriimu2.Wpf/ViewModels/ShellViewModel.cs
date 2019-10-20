@@ -230,7 +230,7 @@ namespace Kuriimu2.Wpf.ViewModels
                 case IImageAdapter img:
                     ActivateItemAsync(new ImageEditorViewModel(_fileManager, kfi), new System.Threading.CancellationToken());
                     break;
-                case IFontAdapter fnt:
+                case IFontAdapter2 fnt:
                     ActivateItemAsync(new FontEditorViewModel(kfi), new System.Threading.CancellationToken());
                     break;
             }

@@ -28,10 +28,7 @@
                     </DockPanel.Background>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                         <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Background="DimGray">
-                            <Border BorderThickness="{Binding ImageBorderThickness}" BorderBrush="Black">
-                                <Image Source="{Binding SelectedTexture}" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                            </Border>
-                            <Border BorderThickness="1" BorderBrush="Yellow" Margin="{Binding CursorMargin}" Width="{Binding SelectedCharacterGlyphWidth}" Height="{Binding SelectedCharacterGlyphHeight}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                            <Image Source="{Binding SelectedCharacterImage}" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="{Binding SelectedCharacterImageWidth}" Height="{Binding SelectedCharacterImageHeight}"/>
                         </Grid>
                     </ScrollViewer>
                 </DockPanel>
@@ -117,15 +114,11 @@
                             <RowDefinition Height="Auto"></RowDefinition>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" Margin="0, 0, 4, 8">X:</Label>
-                        <Label Grid.Column="0" Grid.Row="1" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Y:</Label>
                         <Label Grid.Column="0" Grid.Row="2" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Width:</Label>
                         <Label Grid.Column="0" Grid.Row="3" HorizontalAlignment="Right" Margin="0, 0, 4, 8">Height:</Label>
 
-                        <TextBox Grid.Column="1" Grid.Row="0" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphX, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="1" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphY, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphWidth, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBox Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Text="{Binding SelectedCharacterGlyphHeight, UpdateSourceTrigger=PropertyChanged}"/>
+                        <Label Grid.Column="1" Grid.Row="2" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Content="{Binding SelectedCharacterGlyphWidth}"/>
+                        <Label Grid.Column="1" Grid.Row="3" Margin="0, 0, 0, 8" Grid.ColumnSpan="2" Content="{Binding SelectedCharacterGlyphHeight}"/>
 
                         <Button Name="GenerateFromCurrentSet" Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" Margin="0, 0, 0, 0" IsEnabled="{Binding AddEnabled}">
                             <TextBlock TextAlignment="Center">Open Font Generator</TextBlock>
