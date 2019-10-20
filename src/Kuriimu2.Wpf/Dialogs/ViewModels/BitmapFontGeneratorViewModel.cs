@@ -378,6 +378,9 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public void ZoomIn() => ZoomLevel = Math.Min(ZoomLevel + 1, 10);
 
+        /// <summary>
+        /// Generates a new set of glyphs
+        /// </summary>
         public void GenerateButton()
         {
             var stop = false;
@@ -463,7 +466,11 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         {
             // Generate
             var ff = new FontFamily(FontFamily);
-            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular : ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold : ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic : FontStyle.Regular;
+            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular :
+                ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold :
+                ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic :
+                ff.IsStyleAvailable(FontStyle.Strikeout) ? FontStyle.Strikeout :
+                FontStyle.Regular;
 
             if (Bold && ff.IsStyleAvailable(FontStyle.Bold))
                 fs ^= FontStyle.Bold;

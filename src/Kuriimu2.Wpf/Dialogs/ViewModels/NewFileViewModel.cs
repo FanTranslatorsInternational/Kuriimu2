@@ -15,7 +15,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public Dictionary<string, DynaField> Fields { get; private set; }
+        public Dictionary<string, DynamicField> Fields { get; private set; }
 
         public NewFileViewModel()
         {

@@ -9,9 +9,9 @@ using Kuriimu2.Wpf.Dialogs.Common;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
-    public sealed class PropertyEditorViewModel<T> : Screen
+    public sealed class PropertyEditorViewModel<TProperties> : Screen
     {
-        private T _object;
+        private TProperties _object;
         private DialogMode _mode = DialogMode.Edit;
 
         public string Title { get; set; } = "Edit Character";
@@ -34,49 +34,25 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public T Object
+        public TProperties Object
         {
             get => _object;
             set
             {
                 _object = value;
 
-                Fields = new Dictionary<string, DynaField>();
-                var props = _object.GetType().GetProperties().ToList();
-
-                foreach (var prop in props)
-                {
-                    var ff = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
-                    if ((FormFieldIgnoreAttribute)prop.GetCustomAttribute(typeof(FormFieldIgnoreAttribute)) != null) continue;
-
-                    var df = new DynaField
-                    {
-                        Label = (ff?.DisplayName ?? prop.Name) + " :",
-                        Value = ff != null ? Convert.ChangeType(prop.GetValue(_object), ff.Type) : prop.GetValue(_object),
-                        MaxLength = ff?.MaxLength ?? 0
-                    };
-                    Fields.Add(prop.Name, df);
-                }
+                Fields = GetFields(typeof(TProperties));
                 NotifyOfPropertyChange(() => Fields);
             }
         }
 
         public Func<ValidationResult> ValidationCallback;
 
-        public Dictionary<string, DynaField> Fields { get; private set; }
+        public Dictionary<string, DynamicField> Fields { get; private set; }
 
         public void OKButton()
         {
-            var props = _object.GetType().GetProperties().ToList();
-
-            foreach (var prop in props)
-            {
-                var ff = (FormFieldAttribute)prop.GetCustomAttribute(typeof(FormFieldAttribute));
-                if ((FormFieldIgnoreAttribute)prop.GetCustomAttribute(typeof(FormFieldIgnoreAttribute)) != null) continue;
-
-                var df = Fields[prop.Name];
-                prop.SetValue(_object, ff != null ? Convert.ChangeType(df.Value, ff.Type) : df.Value);
-            }
+            SetFields();
 
             if (ValidationCallback != null)
             {
@@ -95,12 +71,78 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
                 TryCloseAsync(true);
             }
         }
+
+        private Dictionary<string, DynamicField> GetFields(Type type, string name = "", object obj = null)
+        {
+            obj ??= _object;
+            var result = new Dictionary<string, DynamicField>();
+
+            var props = type.GetProperties();
+            foreach (var prop in props)
+            {
+                if (prop.GetCustomAttribute<FormFieldIgnoreAttribute>() != null)
+                    continue;
+
+                var newName = string.IsNullOrEmpty(name) ? prop.Name : name + '.' + prop.Name;
+                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string) || prop.PropertyType == typeof(decimal))
+                {
+                    if (prop.SetMethod == null || prop.GetMethod == null)
+                        continue;
+
+                    var formFieldAttribute = prop.GetCustomAttribute<FormFieldAttribute>();
+
+                    var label = (formFieldAttribute?.DisplayName ?? prop.Name) + " :";
+                    var value = formFieldAttribute != null
+                        ? Convert.ChangeType(prop.GetValue(obj), formFieldAttribute.Type)
+                        : prop.GetValue(obj);
+                    var maxLength = formFieldAttribute?.MaxLength ?? 0;
+                    result.Add(newName, new DynamicField(label, value, maxLength, prop, obj));
+                }
+                else if (prop.PropertyType.IsClass || IsStruct(prop.PropertyType))
+                {
+                    var newObj = prop.GetValue(obj);
+                    foreach (var field in GetFields(prop.PropertyType, newName, newObj))
+                        result.Add(field.Key, field.Value);
+                }
+            }
+
+            return result;
+        }
+
+        private void SetFields()
+        {
+            foreach (var field in Fields)
+            {
+                var formFieldAttribute = field.Value.PropertyInfo.GetCustomAttribute<FormFieldAttribute>();
+
+                var newValue = formFieldAttribute != null
+                    ? Convert.ChangeType(field.Value.Value, formFieldAttribute.Type)
+                    : field.Value.Value;
+                field.Value.PropertyInfo.SetValue(field.Value.Object, newValue);
+            }
+        }
+
+        private bool IsStruct(Type type)
+        {
+            return type.IsValueType && !type.IsEnum;
+        }
     }
 
-    public sealed class DynaField
+    public sealed class DynamicField
     {
-        public string Label { get; set; }
+        public string Label { get; }
         public object Value { get; set; }
-        public int MaxLength { get; set; }
+        public int MaxLength { get; }
+        public PropertyInfo PropertyInfo { get; }
+        public object Object { get; }
+
+        public DynamicField(string label, object value, int maxLength, PropertyInfo info, object obj)
+        {
+            Label = label;
+            Value = value;
+            MaxLength = maxLength;
+            PropertyInfo = info;
+            Object = obj;
+        }
     }
 }

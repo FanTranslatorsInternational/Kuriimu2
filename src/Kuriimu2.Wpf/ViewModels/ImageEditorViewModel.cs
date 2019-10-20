@@ -256,22 +256,23 @@ namespace Kuriimu2.Wpf.ViewModels
             //    KoreFile.HasChanges = true;
         }
 
-        public void ImageProperties()
-        {
-            if (!(_adapter is IImageAdapter img)) return;
+        // TODO: Make image Properties available again
+        //public void ImageProperties()
+        //{
+        //    if (!(_adapter is IImageAdapter img)) return;
 
-            var pe = new PropertyEditorViewModel<IImageAdapter>
-            {
-                Title = $"Image Properties",
-                Message = "Properties:",
-                Object = _adapter
-            };
-            _windows.Add(pe);
+        //    var pe = new PropertyEditorViewModel<IImageAdapter>
+        //    {
+        //        Title = $"Image Properties",
+        //        Message = "Properties:",
+        //        Object = _adapter
+        //    };
+        //    _windows.Add(pe);
 
-            if (_wm.ShowDialogAsync(pe).Result != true) return;
-            KoreFile.HasChanges = true;
-            NotifyOfPropertyChange(() => DisplayName);
-        }
+        //    if (_wm.ShowDialogAsync(pe).Result != true) return;
+        //    KoreFile.HasChanges = true;
+        //    NotifyOfPropertyChange(() => DisplayName);
+        //}
 
         #endregion
 

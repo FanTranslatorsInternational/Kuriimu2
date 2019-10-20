@@ -221,20 +221,21 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
-        public void EntryProperties()
-        {
-            var prop = new Dialogs.ViewModels.PropertyEditorViewModel<TextEntry>
-            {
-                Message = "",
-                Object = SelectedEntry
-            };
-            _windows.Add(prop);
+        // TODO: Make text Properties available again
+        //public void EntryProperties()
+        //{
+        //    var prop = new Dialogs.ViewModels.PropertyEditorViewModel<TextEntry>
+        //    {
+        //        Message = "",
+        //        Object = SelectedEntry
+        //    };
+        //    _windows.Add(prop);
 
-            if (_wm.ShowDialogAsync(prop).Result == true)
-            {
-                // Cool
-            }
-        }
+        //    if (_wm.ShowDialogAsync(prop).Result == true)
+        //    {
+        //        // Cool
+        //    }
+        //}
 
         public TextEntry SelectedEntry
         {

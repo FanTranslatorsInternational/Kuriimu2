@@ -51,11 +51,11 @@
                         </Grid.ColumnDefinitions>
                         <ToolBarPanel Grid.Column="0">
                             <ToolBar HorizontalAlignment="Left" VerticalAlignment="Top" ToolBarTray.IsLocked="True">
-                                <Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
+                                <!--<Button Name="AddCharacter" IsEnabled="{Binding AddEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="/Images/menu-add.png" Width="16" />
                                     </StackPanel>
-                                </Button>
+                                </Button>-->
                                 <Button Name="EditCharacter" IsEnabled="{Binding EditEnabled}">
                                     <StackPanel Orientation="Horizontal">
                                         <Image Source="/Images/menu-edit.png" Width="16" />

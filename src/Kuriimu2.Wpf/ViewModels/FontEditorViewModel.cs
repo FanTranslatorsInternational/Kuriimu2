@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Komponent.Tools;
 using Kontract.Interfaces.Font;
 using Kore.Files.Models;
+using Kore.Utilities;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -75,27 +75,30 @@ namespace Kuriimu2.Wpf.ViewModels
             SelectedCharacter = Characters.First();
         }
 
-        public void FontProperties()
-        {
-            if (!(_adapter is IFontAdapter2 fnt))
-                return;
+        // TODO: Make Font Properties available again
+        //public void FontProperties()
+        //{
+        //    if (!(_adapter is IFontAdapter2 fnt))
+        //        return;
 
-            var pe = new PropertyEditorViewModel<IFontAdapter2>
-            {
-                Title = "Font Properties",
-                Message = "Properties:",
-                Object = _adapter
-            };
-            _windows.Add(pe);
+        //    var pe = new FontCharacter2PropertyEditorViewModel
+        //    {
+        //        Title = "Font Properties",
+        //        Message = "Properties:",
+        //        Object = _adapter
+        //    };
+        //    _windows.Add(pe);
 
-            if (_wm.ShowDialogAsync(pe).Result == true)
-            {
-                KoreFile.HasChanges = true;
-                NotifyOfPropertyChange(() => DisplayName);
-            }
-        }
+        //    if (_wm.ShowDialogAsync(pe).Result == true)
+        //    {
+        //        KoreFile.HasChanges = true;
+        //        NotifyOfPropertyChange(() => DisplayName);
+        //    }
+        //}
 
         #region Character Management
+
+        #region Add characters
 
         public bool AddEnabled => _adapter is IAddCharacters;
 
@@ -134,6 +137,10 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
+        #endregion
+
+        #region Edit characters
+
         public bool EditEnabled => SelectedCharacter != null;
 
         public void EditCharacter()
@@ -170,6 +177,10 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
+        #endregion
+
+        #region Delete Characters
+
         public bool DeleteEnabled => _adapter is IDeleteCharacters && SelectedCharacter != null;
 
         public void DeleteCharacter()
@@ -188,28 +199,7 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
-        //public void ExportTextures()
-        //{
-        //    try
-        //    {
-        //        var dir = Path.GetDirectoryName(KoreFile.StreamFileInfo.FileName);
-        //        var name = Path.GetFileNameWithoutExtension(KoreFile.StreamFileInfo.FileName);
-
-        //        for (var index = 0; index < _adapter.Textures.Count; index++)
-        //        {
-        //            var texture = _adapter.Textures[index];
-        //            texture.Save(Path.Combine(dir, name + $"_{index:00}.png"), ImageFormat.Png);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show(ex.ToString(), "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //    finally
-        //    {
-        //        MessageBox.Show("Textures exported successfully!", "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
-        //    }
-        //}
+        #endregion
 
         public void GenerateFromCurrentSet()
         {
