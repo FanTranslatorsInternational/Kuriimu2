@@ -73,13 +73,9 @@ namespace Kontract
             var assemblies = Directory
                 .GetFiles(pluginDirectory, "*.dll", SearchOption.AllDirectories)
                 .Select(AssemblyLoadContext.Default.LoadFromAssemblyPath)
-                .ToList();
-            var configuration = new ContainerConfiguration()
-                .WithAssemblies(assemblies);
-            using (var container = configuration.CreateContainer())
-            {
-                loader.Plugins = container.GetExports<IPlugin>();
-            }
+                .ToArray();
+            var pluginTypes = assemblies.SelectMany(x => x.GetTypes().Where(y => typeof(IPlugin).IsAssignableFrom(y))).ToArray();
+            loader.Plugins = pluginTypes.Select(x => (IPlugin)Activator.CreateInstance(x)).ToArray();
 
 #else
 
