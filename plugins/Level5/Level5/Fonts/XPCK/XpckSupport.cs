@@ -1,11 +1,9 @@
-﻿using System.Runtime.InteropServices;
-using System;
-using System.IO;
+﻿using System.IO;
 using Komponent.IO;
-using Kore.XFont.Interface;
 using Komponent.IO.Attributes;
+using Level5.Fonts.Interface;
 
-namespace Kore.XFont.Archive
+namespace Level5.Fonts.XPCK
 {
     public class XPCKFileInfo : ArchiveFileInfo
     {

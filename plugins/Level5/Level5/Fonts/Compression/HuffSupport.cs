@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Kore.XFont.Compression
+namespace Level5.Fonts.Compression
 {
     public sealed class HuffSupport
     {

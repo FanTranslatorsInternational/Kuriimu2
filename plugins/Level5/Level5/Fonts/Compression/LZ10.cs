@@ -4,7 +4,7 @@ using Komponent.IO;
 
 //Compression code from dsdecmp
 
-namespace Kore.XFont.Compression
+namespace Level5.Fonts.Compression
 {
     public class LZ10
     {

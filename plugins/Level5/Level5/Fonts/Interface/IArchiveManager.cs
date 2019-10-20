@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Kore.XFont.Interface
+namespace Level5.Fonts.Interface
 {
     public interface IArchiveManager : IFilePlugin
     {

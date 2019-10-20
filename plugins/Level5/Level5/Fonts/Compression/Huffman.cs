@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 
-namespace Kore.XFont.Compression
+namespace Level5.Fonts.Compression
 {
     public class Huffman
     {

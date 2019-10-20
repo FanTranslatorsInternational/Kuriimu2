@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Komponent.IO;
 
-namespace Kore.XFont.Compression
+namespace Level5.Fonts.Compression
 {
     public class LZ11
     {

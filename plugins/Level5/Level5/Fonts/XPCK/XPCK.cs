@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using Komponent.IO;
-using Kore.XFont.Interface;
-using Kore.XFont.Compression;
+using Level5.Fonts.Compression;
+using Level5.Fonts.Interface;
 
-namespace Kore.XFont.Archive
+namespace Level5.Fonts.XPCK
 {
     public sealed class XPCK
     {
@@ -31,7 +31,7 @@ namespace Kore.XFont.Archive
                 //Filenames
                 br.BaseStream.Position = header.filenameTableOffset;
                 compNameTable = br.ReadBytes(header.filenameTableSize);
-                var decNames = new MemoryStream(Level5.Decompress(new MemoryStream(compNameTable)));
+                var decNames = new MemoryStream(Compressor.Decompress(new MemoryStream(compNameTable)));
 
                 //Files
                 using (var nameList = new BinaryReaderX(decNames))

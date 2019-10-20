@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using Komponent.IO;
+using Kanvas.Encoding;
 using Kanvas.Interface;
-using Kanvas.Format;
 using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
 
-namespace Kore.XFont.Image
+namespace Level5.Fonts.IMGC
 {
     public class IMGCHeader
     {
@@ -43,7 +37,7 @@ namespace Kore.XFont.Image
 
     public class Support
     {
-        public static Dictionary<byte, IImageFormat> Format = new Dictionary<byte, IImageFormat>
+        public static Dictionary<byte, IColorEncoding> Format = new Dictionary<byte, IColorEncoding>
         {
             [0] = new RGBA(8, 8, 8, 8),
             [1] = new RGBA(4, 4, 4, 4),
@@ -53,7 +47,7 @@ namespace Kore.XFont.Image
             [11] = new LA(8, 8),
             [12] = new LA(4, 4),
             [13] = new LA(8, 0),
-            [14] = new HL(8, 8),
+            [14] = new HILO(8, 8),
             [15] = new LA(0, 8),
             [26] = new LA(4, 0),
             //[27] = new LA(0, 4),

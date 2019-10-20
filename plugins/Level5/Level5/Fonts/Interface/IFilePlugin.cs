@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 
-namespace Kore.XFont.Interface
+namespace Level5.Fonts.Interface
 {
     public interface IFilePlugin
     {

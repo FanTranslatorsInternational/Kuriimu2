@@ -1,13 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kanvas;
-using Kore.XFont.Compression;
+using Kanvas.Models;
 using Komponent.IO;
+using Level5.Fonts.Compression;
 
-namespace Kore.XFont.Image
+namespace Level5.Fonts.IMGC
 {
     public class IMGC
     {
@@ -18,8 +18,8 @@ namespace Kore.XFont.Image
         public byte[] entryStart = null;
 
         bool editMode = false;
-        Level5.Method tableComp;
-        Level5.Method picComp;
+        CompressionMethod tableComp;
+        CompressionMethod picComp;
 
         public IMGC(Stream input)
         {
@@ -36,27 +36,24 @@ namespace Kore.XFont.Image
                 //get tile table
                 br.BaseStream.Position = header.tableDataOffset;
                 var tableC = br.ReadBytes(header.tableSize1);
-                tableComp = (Level5.Method)(tableC[0] & 0x7);
-                byte[] table = Level5.Decompress(new MemoryStream(tableC));
+                tableComp = (CompressionMethod)(tableC[0] & 0x7);
+                byte[] table = Compressor.Decompress(new MemoryStream(tableC));
 
                 //get image data
                 br.BaseStream.Position = header.tableDataOffset + header.tableSize2;
                 var texC = br.ReadBytes(header.imgDataSize);
-                picComp = (Level5.Method)(texC[0] & 0x7);
-                byte[] tex = Level5.Decompress(new MemoryStream(texC));
+                picComp = (CompressionMethod)(texC[0] & 0x7);
+                byte[] tex = Compressor.Decompress(new MemoryStream(texC));
 
                 //order pic blocks by table
                 byte[] pic = Order(new MemoryStream(table), new MemoryStream(tex));
 
                 //return finished image
-                settings = new ImageSettings
+                settings = new ImageSettings(Support.Format[header.imageFormat], header.width, header.height)
                 {
-                    Width = header.width,
-                    Height = header.height,
-                    Format = Support.Format[header.imageFormat],
                     Swizzle = new ImgcSwizzle(header.width, header.height)
                 };
-                Image = Common.Load(pic, settings);
+                Image = Kolors.Load(pic, settings);
             }
         }
 
@@ -109,14 +106,11 @@ namespace Kore.XFont.Image
         {
             int width = (Image.Width + 0x7) & ~0x7;
             int height = (Image.Height + 0x7) & ~0x7;
-            var settings = new ImageSettings
+            var settings = new ImageSettings(Support.Format[header.imageFormat],width,height)
             {
-                Width = width,
-                Height = height,
-                Format = Support.Format[header.imageFormat],
                 Swizzle = new ImgcSwizzle(width, height)
             };
-            byte[] pic = Common.Save(Image, settings);
+            byte[] pic = Kolors.Save(Image, settings);
 
             using (var bw = new BinaryWriterX(file, true))
             {
@@ -130,7 +124,7 @@ namespace Kore.XFont.Image
 
                 //Table
                 bw.BaseStream.Position = 0x48;
-                var comp = Level5.Compress(table, tableComp);
+                var comp = Compressor.Compress(table, tableComp);
                 bw.Write(comp);
                 header.tableSize1 = comp.Length;
                 header.tableSize2 = (header.tableSize1 + 3) & ~3;
@@ -138,7 +132,7 @@ namespace Kore.XFont.Image
                 //Image
                 bw.BaseStream.Position = 0x48 + header.tableSize2;
                 header.imageFormat = (editMode) ? (byte)28 : header.imageFormat;
-                comp = Level5.Compress(new MemoryStream(importPic), picComp);
+                comp = Compressor.Compress(new MemoryStream(importPic), picComp);
                 bw.Write(comp);
                 bw.WriteAlignment(4);
                 header.imgDataSize = comp.Length;

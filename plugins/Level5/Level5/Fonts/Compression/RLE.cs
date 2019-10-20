@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
-using System;
 
-namespace Kore.XFont.Compression
+namespace Level5.Fonts.Compression
 {
     public class RLE
     {
