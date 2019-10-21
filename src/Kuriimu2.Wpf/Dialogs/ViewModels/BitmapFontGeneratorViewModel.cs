@@ -427,7 +427,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
             var bfg = new BitmapFontGeneratorGdi
             {
-                Adapter = Adapter,
+                //Adapter = Adapter,
+                // TODO: Font generator not ported to API v2 yet
                 GlyphMargin = new Padding
                 {
                     Left = MarginLeft,
@@ -479,7 +480,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
             var bfg = new BitmapFontGeneratorGdi
             {
-                Adapter = Adapter,
+                //Adapter = Adapter,
+                // TODO: Font generator not ported to API v2 yet
                 GlyphMargin = new Padding
                 {
                     Left = MarginLeft,

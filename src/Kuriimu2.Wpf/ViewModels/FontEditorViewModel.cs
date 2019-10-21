@@ -170,7 +170,7 @@ namespace Kuriimu2.Wpf.ViewModels
             {
                 KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
-                clonedCharacter.CopyProperties(SelectedCharacter);
+                //clonedCharacter.CopyProperties(SelectedCharacter); TODO: This mechanism needs to be replaced.
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphHeight);

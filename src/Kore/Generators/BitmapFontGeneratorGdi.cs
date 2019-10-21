@@ -132,13 +132,8 @@ namespace Kore.Generators
                 // Add Character
                 if (Adapter is IAddCharacters add)
                 {
-                    var fc = add.NewCharacter();
-                    fc.Character = character;
-                    fc.TextureID = Adapter.Textures.IndexOf(img);
-                    fc.GlyphX = glyphPos.X;
-                    fc.GlyphY = glyphPos.Y;
-                    fc.GlyphWidth = glyphDim.Width;
-                    fc.GlyphHeight = glyphDim.Height;
+                    var fc = add.NewCharacter(character);
+                    fc.CharacterInfo.CharWidth = glyphDim.Width;
                     add.AddCharacter(fc);
                 }
 
