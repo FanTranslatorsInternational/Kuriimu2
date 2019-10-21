@@ -40,7 +40,7 @@ namespace Komponent.Font
                 case 0:
                     for (var h = 0; h < height; h++)
                         for (var w = 0; w < width * 4; w += 4)
-                            if (data[h * height + w] != 0)
+                            if (data[h * height * 4 + w] != 0)
                                 return h;
                     return height;
 
@@ -48,7 +48,7 @@ namespace Komponent.Font
                 case 1:
                     for (var w = 0; w < width * 4; w += 4)
                         for (var h = 0; h < height; h++)
-                            if (data[h * height + w] != 0)
+                            if (data[h * height * 4 + w] != 0)
                                 return w >> 2;
                     return width;
 
@@ -56,7 +56,7 @@ namespace Komponent.Font
                 case 2:
                     for (var h = height - 1; h >= 0; h--)
                         for (var w = 0; w < width * 4; w += 4)
-                            if (data[h * height + w] != 0)
+                            if (data[h * height * 4 + w] != 0)
                                 return height - h - 1;
                     return height;
 
@@ -64,7 +64,7 @@ namespace Komponent.Font
                 case 3:
                     for (var w = width * 4 - 4; w >= 0; w -= 4)
                         for (var h = 0; h < height; h++)
-                            if (data[h * height + w] != 0)
+                            if (data[h * height * 4 + w] != 0)
                                 return width - (w >> 2) - 1;
                     return width;
 
