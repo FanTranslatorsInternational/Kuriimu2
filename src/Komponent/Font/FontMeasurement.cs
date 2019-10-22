@@ -24,7 +24,7 @@ namespace Komponent.Font
                 glyph.UnlockBits(bitmapData);
 
                 var adjustment = new WhiteSpaceAdjustment(glyph,
-                    new Point(top, left),
+                    new Point(left, top),
                     new Size(glyph.Width - left - right, glyph.Height - top - bottom));
                 result.Add(adjustment);
             }

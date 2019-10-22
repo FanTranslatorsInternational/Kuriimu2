@@ -26,7 +26,7 @@ namespace Komponent.Font
             _rootNode = new BinPackerNode { width = _canvasSize.Width, height = _canvasSize.Height };
 
             PackInternal();
-            return _boxes;
+            return _boxes.Where(x => x.position != null).ToArray();
         }
 
         private void PackInternal()
