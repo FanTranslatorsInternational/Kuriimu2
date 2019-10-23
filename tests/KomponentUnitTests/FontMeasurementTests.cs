@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using FluentAssertions;
 using Komponent.Font;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,10 +22,10 @@ namespace KomponentUnitTests
             glyphs[1].SetPixel(2, 1, Color.White);
 
             // Act
-            var adjustments = FontMeasurement.MeasureWhiteSpace(glyphs);
+            var adjustments = FontMeasurement.MeasureWhiteSpace(glyphs).ToArray();
 
             // Assert
-            adjustments.Count.Should().Be(2);
+            adjustments.Length.Should().Be(2);
             adjustments[0].GlyphSize.Should().Be(new Size(1, 1));
             adjustments[1].GlyphSize.Should().Be(new Size(1, 2));
             adjustments[0].GlyphPosition.Should().Be(new Point(2, 2));

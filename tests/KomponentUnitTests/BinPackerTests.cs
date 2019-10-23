@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
+using System.Linq;
 using FluentAssertions;
 using Komponent.Font;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,12 +28,11 @@ namespace KomponentUnitTests
             var binPacker = new BinPacker(new Size(3, 4));
 
             // Act
-            var boxes = binPacker.Pack(adjustments);
+            var boxes = binPacker.Pack(glyphs, adjustments).ToArray();
 
             // Assert
             boxes.Length.Should().Be(1);
-            boxes[0].position.posX.Should().Be(0);
-            boxes[0].position.posZ.Should().Be(0);
+            boxes[0].position.Should().Be(Point.Empty);
         }
 
         [TestMethod]
@@ -59,16 +57,13 @@ namespace KomponentUnitTests
             var binPacker = new BinPacker(new Size(5, 3));
 
             // Act
-            var boxes = binPacker.Pack(adjustments);
+            var boxes = binPacker.Pack(glyphs,adjustments).ToArray();
 
             // Assert
             boxes.Length.Should().Be(3);
-            boxes[0].position.posX.Should().Be(0);
-            boxes[0].position.posZ.Should().Be(0);
-            boxes[1].position.posX.Should().Be(3);
-            boxes[1].position.posZ.Should().Be(0);
-            boxes[2].position.posX.Should().Be(3);
-            boxes[2].position.posZ.Should().Be(2);
+            boxes[0].position.Should().Be(Point.Empty);
+            boxes[1].position.Should().Be(new Point(3, 0));
+            boxes[2].position.Should().Be(new Point(3, 2));
         }
     }
 }

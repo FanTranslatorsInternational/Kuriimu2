@@ -2,17 +2,28 @@
 
 namespace Komponent.Font
 {
+    /// <summary>
+    /// A class holding adjustment information for a glyph.
+    /// </summary>
     public class WhiteSpaceAdjustment
     {
-        public Bitmap Glyph { get; }
-
+        /// <summary>
+        /// The position into the glyph, where the non-white space starts.
+        /// </summary>
         public Point GlyphPosition { get; }
 
+        /// <summary>
+        /// The size of the non-white space glyph.
+        /// </summary>
         public Size GlyphSize { get; }
 
-        public WhiteSpaceAdjustment(Bitmap glyph, Point glyphPosition, Size glyphSize)
+        /// <summary>
+        /// Creates a new instance of <see cref="WhiteSpaceAdjustment"/>.
+        /// </summary>
+        /// <param name="glyphPosition">The position into the glyph, where the non-white space starts.</param>
+        /// <param name="glyphSize">The size of the non-white space glyph.</param>
+        public WhiteSpaceAdjustment(Point glyphPosition, Size glyphSize)
         {
-            Glyph = glyph;
             GlyphPosition = glyphPosition;
             GlyphSize = glyphSize;
         }

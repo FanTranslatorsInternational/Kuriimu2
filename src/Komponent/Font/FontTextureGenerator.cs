@@ -15,9 +15,12 @@ namespace Komponent.Font
             _binPacker = new BinPacker(canvasSize);
         }
 
-        public Bitmap[] GenerateFontTexture(List<WhiteSpaceAdjustment> adjustedGlyphs, int textureCount = -1)
+        public Bitmap[] GenerateFontTextures(IEnumerable<Bitmap> glyphs, int textureCount) =>
+            GenerateFontTextures(glyphs, null, textureCount);
+
+        public Bitmap[] GenerateFontTextures(IEnumerable<Bitmap> glyphs, IEnumerable<WhiteSpaceAdjustment> adjustments, int textureCount = -1)
         {
-            var boxes = _binPacker.Pack(adjustedGlyphs);
+            var boxes = _binPacker.Pack(glyphs, adjustments);
             // TODO: Process further
 
             return null;

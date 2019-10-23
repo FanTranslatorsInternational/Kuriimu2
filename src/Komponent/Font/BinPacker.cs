@@ -1,70 +1,100 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 
 namespace Komponent.Font
 {
+    /// <summary>
+    /// Packs a given set of glyphs into a given canvas.
+    /// </summary>
     class BinPacker
     {
-        private Size _canvasSize;
-        private BinPackerBox[] _boxes;
+        private readonly Size _canvasSize;
         private BinPackerNode _rootNode;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="BinPacker"/>.
+        /// </summary>
+        /// <param name="canvasSize">The total size of the canvas.</param>
         public BinPacker(Size canvasSize)
         {
             _canvasSize = canvasSize;
         }
 
-        public BinPackerBox[] Pack(List<WhiteSpaceAdjustment> adjustedGlyphs)
+        /// <summary>
+        /// Pack an enumeration of white space adjusted glyphs into the given canvas.
+        /// </summary>
+        /// <param name="glyphs">The enumeration of glyphs.</param>
+        /// <param name="adjustments">Optional white space adjustments for each glyph.</param>
+        /// <returns>Position information to a glyph.</returns>
+        public IEnumerable<(Bitmap glyph, Point position)> Pack(IEnumerable<Bitmap> glyphs, IEnumerable<WhiteSpaceAdjustment> adjustments = null)
         {
-            _boxes = adjustedGlyphs.Select(x => new BinPackerBox(x))
-                .OrderByDescending(x => x.volume)
-                .ToArray();
-
-            _rootNode = new BinPackerNode { width = _canvasSize.Width, height = _canvasSize.Height };
-
-            PackInternal();
-            return _boxes.Where(x => x.position != null).ToArray();
-        }
-
-        private void PackInternal()
-        {
-            foreach (var box in _boxes)
+            IEnumerable<(Bitmap glyph, Size size)> orderedGlyphInformation;
+            if (adjustments != null)
             {
-                var node = FindNode(_rootNode, box.adjustedGlyph.GlyphSize.Width, box.adjustedGlyph.GlyphSize.Height);
-                if (node != null)
+                // Order all glyphs descending by volume in respect to given white space adjustments
+                orderedGlyphInformation = glyphs.Zip(adjustments, (b, a) => new { Glyph = b, Adjustment = a })
+                    .OrderByDescending(x => x.Adjustment.GlyphSize.Width * x.Adjustment.GlyphSize.Height)
+                    .Select(x => (x.Glyph, x.Adjustment.GlyphSize));
+            }
+            else
+            {
+                // Order all glyphs descending by volume
+                orderedGlyphInformation = glyphs.OrderByDescending(x => x.Width * x.Height)
+                    .Select(x => (x, new Size(x.Width, x.Height)));
+            }
+
+            _rootNode = new BinPackerNode(_canvasSize.Width, _canvasSize.Height);
+            foreach (var glyphInformation in orderedGlyphInformation)
+            {
+                var foundNode = FindNode(_rootNode, glyphInformation.size);
+                if (foundNode != null)
                 {
-                    // Split rectangles
-                    box.position = SplitNode(node, box.adjustedGlyph.GlyphSize.Width, box.adjustedGlyph.GlyphSize.Height);
+                    SplitNode(foundNode, glyphInformation.size);
+                    yield return (glyphInformation.glyph, foundNode.Position);
                 }
             }
         }
 
-        private BinPackerNode FindNode(BinPackerNode rootNode, double boxWidth, double boxLength)
+        /// <summary>
+        /// Find a node to fit the box in.
+        /// </summary>
+        /// <param name="node">The current node to search through.</param>
+        /// <param name="boxSize">The size of the box.</param>
+        /// <returns>The found node.</returns>
+        private BinPackerNode FindNode(BinPackerNode node, Size boxSize)
         {
-            if (rootNode.isOccupied)
+            if (node.IsOccupied)
             {
-                var nextNode = FindNode(rootNode.bottomNode, boxWidth, boxLength) ??
-                               FindNode(rootNode.rightNode, boxWidth, boxLength);
+                var nextNode = FindNode(node.BottomNode, boxSize) ??
+                               FindNode(node.RightNode, boxSize);
 
                 return nextNode;
             }
 
-            if (boxWidth <= rootNode.width && boxLength <= rootNode.height)
-                return rootNode;
+            if (boxSize.Width <= node.Size.Width && boxSize.Height <= node.Size.Height)
+                return node;
 
             return null;
         }
 
-        private BinPackerNode SplitNode(BinPackerNode node, double boxWidth, double boxLength)
+        /// <summary>
+        /// Splits a node to fit the box.
+        /// </summary>
+        /// <param name="node">The node to split.</param>
+        /// <param name="boxSize">The size of the box.</param>
+        private void SplitNode(BinPackerNode node, Size boxSize)
         {
-            node.isOccupied = true;
-            node.bottomNode = new BinPackerNode { posZ = node.posZ, posX = node.posX + boxWidth, height = node.height, width = node.width - boxWidth };
-            node.rightNode = new BinPackerNode { posZ = node.posZ + boxLength, posX = node.posX, height = node.height - boxLength, width = boxWidth };
+            node.IsOccupied = true;
 
-            return node;
+            node.BottomNode = new BinPackerNode(node.Size.Width - boxSize.Width, node.Size.Height)
+            {
+                Position = new Point(node.Position.X + boxSize.Width, node.Position.Y)
+            };
+            node.RightNode = new BinPackerNode(boxSize.Width, node.Size.Height - boxSize.Height)
+            {
+                Position = new Point(node.Position.X, node.Position.Y + boxSize.Height)
+            };
         }
     }
 }
