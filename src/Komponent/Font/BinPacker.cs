@@ -24,36 +24,38 @@ namespace Komponent.Font
         /// <summary>
         /// Pack an enumeration of white space adjusted glyphs into the given canvas.
         /// </summary>
-        /// <param name="glyphs">The enumeration of glyphs.</param>
-        /// <param name="adjustments">Optional white space adjustments for each glyph.</param>
+        /// <param name="adjustedGlyphs">The enumeration of glyphs.</param>
         /// <returns>Position information to a glyph.</returns>
-        public IEnumerable<(Bitmap glyph, Point position)> Pack(IEnumerable<Bitmap> glyphs, IEnumerable<WhiteSpaceAdjustment> adjustments = null)
+        public IEnumerable<(AdjustedGlyph adjustedGlyph, Point position)> Pack(IEnumerable<AdjustedGlyph> adjustedGlyphs)
         {
-            IEnumerable<(Bitmap glyph, Size size)> orderedGlyphInformation;
-            if (adjustments != null)
-            {
-                // Order all glyphs descending by volume in respect to given white space adjustments
-                orderedGlyphInformation = glyphs.Zip(adjustments, (b, a) => new { Glyph = b, Adjustment = a })
-                    .OrderByDescending(x => x.Adjustment.GlyphSize.Width * x.Adjustment.GlyphSize.Height)
-                    .Select(x => (x.Glyph, x.Adjustment.GlyphSize));
-            }
-            else
-            {
-                // Order all glyphs descending by volume
-                orderedGlyphInformation = glyphs.OrderByDescending(x => x.Width * x.Height)
-                    .Select(x => (x, new Size(x.Width, x.Height)));
-            }
+            var orderedGlyphInformation = adjustedGlyphs
+                .OrderByDescending(CalculateVolume)
+                .Select(x => new { AdjustedGlyph = x, Size = x.WhiteSpaceAdjustment?.GlyphSize ?? x.Glyph.Size });
 
             _rootNode = new BinPackerNode(_canvasSize.Width, _canvasSize.Height);
             foreach (var glyphInformation in orderedGlyphInformation)
             {
-                var foundNode = FindNode(_rootNode, glyphInformation.size);
+                var foundNode = FindNode(_rootNode, glyphInformation.Size);
                 if (foundNode != null)
                 {
-                    SplitNode(foundNode, glyphInformation.size);
-                    yield return (glyphInformation.glyph, foundNode.Position);
+                    SplitNode(foundNode, glyphInformation.Size);
+                    yield return (glyphInformation.AdjustedGlyph, foundNode.Position);
                 }
             }
+        }
+
+        /// <summary>
+        /// Calculate volume of an adjusted glyph.
+        /// </summary>
+        /// <param name="adjustedGlyph">The glyph to calculate the volume from.</param>
+        /// <returns>The calculated volume.</returns>
+        private int CalculateVolume(AdjustedGlyph adjustedGlyph)
+        {
+            if (adjustedGlyph.WhiteSpaceAdjustment == null)
+                return adjustedGlyph.Glyph.Width * adjustedGlyph.Glyph.Height;
+            else
+                return adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width *
+                       adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height;
         }
 
         /// <summary>

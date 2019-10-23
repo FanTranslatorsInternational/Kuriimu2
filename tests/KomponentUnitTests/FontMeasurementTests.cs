@@ -22,14 +22,14 @@ namespace KomponentUnitTests
             glyphs[1].SetPixel(2, 1, Color.White);
 
             // Act
-            var adjustments = FontMeasurement.MeasureWhiteSpace(glyphs).ToArray();
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(glyphs).ToArray();
 
             // Assert
-            adjustments.Length.Should().Be(2);
-            adjustments[0].GlyphSize.Should().Be(new Size(1, 1));
-            adjustments[1].GlyphSize.Should().Be(new Size(1, 2));
-            adjustments[0].GlyphPosition.Should().Be(new Point(2, 2));
-            adjustments[1].GlyphPosition.Should().Be(new Point(2, 1));
+            adjustedGlyphs.Length.Should().Be(2);
+            adjustedGlyphs[0].WhiteSpaceAdjustment.GlyphSize.Should().Be(new Size(1, 1));
+            adjustedGlyphs[1].WhiteSpaceAdjustment.GlyphSize.Should().Be(new Size(1, 2));
+            adjustedGlyphs[0].WhiteSpaceAdjustment.GlyphPosition.Should().Be(new Point(2, 2));
+            adjustedGlyphs[1].WhiteSpaceAdjustment.GlyphPosition.Should().Be(new Point(2, 1));
         }
     }
 }

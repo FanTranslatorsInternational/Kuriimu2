@@ -24,11 +24,11 @@ namespace KomponentUnitTests
             glyphs[1].SetPixel(2, 3, Color.White);
             glyphs[1].SetPixel(1, 2, Color.White);
             glyphs[1].SetPixel(3, 2, Color.White);
-            var adjustments = FontMeasurement.MeasureWhiteSpace(glyphs);
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(glyphs);
             var binPacker = new BinPacker(new Size(3, 4));
 
             // Act
-            var boxes = binPacker.Pack(glyphs, adjustments).ToArray();
+            var boxes = binPacker.Pack(adjustedGlyphs).ToArray();
 
             // Assert
             boxes.Length.Should().Be(1);
@@ -53,11 +53,11 @@ namespace KomponentUnitTests
             glyphs.Add(new Bitmap(2, 2));
             glyphs[2].SetPixel(0, 0, Color.White);
             glyphs[2].SetPixel(1, 0, Color.White);
-            var adjustments = FontMeasurement.MeasureWhiteSpace(glyphs);
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(glyphs);
             var binPacker = new BinPacker(new Size(5, 3));
 
             // Act
-            var boxes = binPacker.Pack(glyphs,adjustments).ToArray();
+            var boxes = binPacker.Pack(adjustedGlyphs).ToArray();
 
             // Assert
             boxes.Length.Should().Be(3);

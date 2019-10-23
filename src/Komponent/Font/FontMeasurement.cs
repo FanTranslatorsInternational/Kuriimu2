@@ -14,7 +14,7 @@ namespace Komponent.Font
         /// </summary>
         /// <param name="glyphs">The glyphs to measure.</param>
         /// <returns>The measured glyphs.</returns>
-        public static IEnumerable<WhiteSpaceAdjustment> MeasureWhiteSpace(IEnumerable<Bitmap> glyphs)
+        public static IEnumerable<AdjustedGlyph> MeasureWhiteSpace(IEnumerable<Bitmap> glyphs)
         {
             foreach (var glyph in glyphs)
             {
@@ -31,7 +31,7 @@ namespace Komponent.Font
                 var adjustment = new WhiteSpaceAdjustment(
                     new Point(left, top),
                     new Size(glyph.Width - left - right, glyph.Height - top - bottom));
-                yield return adjustment;
+                yield return new AdjustedGlyph(glyph, adjustment);
             }
         }
 
