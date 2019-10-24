@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Font;
 using Kore.Generators;
 using Kuriimu2.Wpf.Tools;
 using Microsoft.Win32;
 using Action = System.Action;
+using Color = System.Drawing.Color;
 using FontFamily = System.Drawing.FontFamily;
 using ValidationResult = Kuriimu2.Wpf.Dialogs.Common.ValidationResult;
 
@@ -416,51 +418,63 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
             if (stop) return;
 
-            // Generate
-            var ff = new FontFamily(FontFamily);
-            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular : ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold : ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic : FontStyle.Regular;
+            // Generate glyphs
+            var chars = Characters.Distinct().Select(c => c.ToString()).ToArray();
+            var glyphs = GenerateGlyphs(chars).ToArray();
 
-            if (Bold && ff.IsStyleAvailable(FontStyle.Bold))
-                fs ^= FontStyle.Bold;
-            if (Italic && ff.IsStyleAvailable(FontStyle.Italic))
-                fs ^= FontStyle.Italic;
-
-            var bfg = new BitmapFontGeneratorGdi
-            {
-                //Adapter = Adapter,
-                // TODO: Font generator not ported to API v2 yet
-                GlyphMargin = new Padding
-                {
-                    Left = MarginLeft,
-                    Top = MarginTop,
-                    Right = MarginRight,
-                    Bottom = MarginBottom
-                },
-                GlyphPadding = new Padding
-                {
-                    Left = PaddingLeft,
-                    Right = PaddingRight
-                },
-                AdjustedCharacters = AdjustedCharacters.ToList(),
-                Font = new Font(ff, FontSize, fs),
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
-                TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint),
-                CanvasWidth = CanvasWidth,
-                CanvasHeight = CanvasHeight,
-                ShowDebugBoxes = ShowDebugBoxes
-            };
-
-            // Select distinct characters and sort them.
-            var chars = Characters.Distinct().Select(c => (ushort)c).ToList();
-            chars.Sort();
-            bfg.Generate(chars);
+            // TODO: Empty old font characters
+            // TODO: Create new FontCharacter2s
+            // TODO: Set those to the plugin as well
 
             // Update input characters.
-            Characters = chars.Aggregate("", (i, o) => i += (char)o);
-            NotifyOfPropertyChange(() => Characters);
+            //Characters = chars.Aggregate("", (i, o) => i += (char)o);
+            //NotifyOfPropertyChange(() => Characters);
 
             GenerationCompleteCallback?.Invoke();
+        }
+
+        private IEnumerable<Bitmap> GenerateGlyphs(string[] characters)
+        {
+            var fontFamily = new FontFamily(FontFamily);
+            var fontStyle = fontFamily.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular :
+                fontFamily.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold :
+                fontFamily.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic :
+                FontStyle.Regular;
+
+            if (Bold && fontFamily.IsStyleAvailable(FontStyle.Bold))
+                fontStyle ^= FontStyle.Bold;
+            if (Italic && fontFamily.IsStyleAvailable(FontStyle.Italic))
+                fontStyle ^= FontStyle.Italic;
+
+            var font = new Font(fontFamily, FontSize, fontStyle);
+            var brush = new SolidBrush(Color.White);
+
+            foreach (var character in characters)
+            {
+                var measuredWidth = MeasureCharacter(character, font).Width;
+
+                var glyph = new Bitmap((int)Math.Ceiling(measuredWidth) + PaddingLeft + PaddingRight, GlyphHeight);
+                var gfx = Graphics.FromImage(glyph);
+
+                gfx.SmoothingMode = SmoothingMode.HighQuality;
+                gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                gfx.PixelOffsetMode = PixelOffsetMode.None;
+                gfx.TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint);
+
+                var baselineOffsetPixels = Baseline - gfx.DpiY / 72f *
+                                           (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
+                                            font.FontFamily.GetCellAscent(font.Style));
+                var point = new PointF(0, baselineOffsetPixels + 0.475f);
+                gfx.DrawString(character, font, brush, point);
+
+                yield return glyph;
+            }
+        }
+
+        private SizeF MeasureCharacter(string character, Font font)
+        {
+            var gfx = Graphics.FromHwnd(IntPtr.Zero);
+            return gfx.MeasureString(character, font);
         }
 
         public void UpdatePreview()

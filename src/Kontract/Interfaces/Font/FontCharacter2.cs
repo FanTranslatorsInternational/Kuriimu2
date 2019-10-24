@@ -12,21 +12,25 @@ namespace Kontract.Interfaces.Font
     public class FontCharacter2 : ICloneable
     {
         [FormFieldIgnore]
-        public virtual uint Character { get; }
+        public virtual uint Character { get; set; }
 
-        public virtual CharacterInfo CharacterInfo { get; }
+        public virtual CharacterInfo CharacterInfo { get; set; }
 
         [FormFieldIgnore]
-        public virtual Bitmap Glyph { get; }
+        public virtual Bitmap Glyph { get; set; }
 
-        public FontCharacter2(uint character, Bitmap glyph, CharacterInfo characterInfo)
+        public FontCharacter2(uint character)
         {
             Character = character;
-            Glyph = glyph;
-            CharacterInfo = characterInfo;
         }
 
-        public virtual object Clone() => new FontCharacter2(Character, (Bitmap)Glyph.Clone(), (CharacterInfo)CharacterInfo.Clone());
+        public virtual object Clone()
+        {
+            var character = new FontCharacter2(Character);
+            character.Glyph = (Bitmap)Glyph.Clone();
+            character.CharacterInfo = (CharacterInfo)CharacterInfo.Clone();
+            return character;
+        }
 
         public override string ToString() => ((char)Character).ToString();
     }
