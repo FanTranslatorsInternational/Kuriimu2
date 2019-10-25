@@ -422,13 +422,18 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             var chars = Characters.Distinct().Select(c => c.ToString()).ToArray();
             var glyphs = GenerateGlyphs(chars).ToArray();
 
-            // TODO: Empty old font characters
-            // TODO: Create new FontCharacter2s
-            // TODO: Set those to the plugin as well
+            // Set and update new characters
+            Adapter.Baseline = Baseline;
+            Adapter.Characters.Clear();
 
-            // Update input characters.
-            //Characters = chars.Aggregate("", (i, o) => i += (char)o);
-            //NotifyOfPropertyChange(() => Characters);
+            for (var i = 0; i < chars.Length; i++)
+            {
+                var newFontCharacter = (Adapter as IAddCharacters).NewCharacter(Characters[i]);
+                newFontCharacter.Glyph = glyphs[i];
+                newFontCharacter.CharacterInfo.CharWidth = glyphs[i].Width;
+
+                Adapter.Characters.Add(newFontCharacter);
+            }
 
             GenerationCompleteCallback?.Invoke();
         }
