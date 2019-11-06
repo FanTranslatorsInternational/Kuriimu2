@@ -80,8 +80,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Caliburn.Micro" Version="4.0.91-alpha" />
-    <PackageReference Include="Caliburn.Micro.Core" Version="4.0.91-alpha" />
+    <PackageReference Include="Caliburn.Micro" Version="4.0.102-alpha" />
+    <PackageReference Include="Caliburn.Micro.Core" Version="4.0.102-alpha" />
   </ItemGroup>
 
   <ItemGroup>
