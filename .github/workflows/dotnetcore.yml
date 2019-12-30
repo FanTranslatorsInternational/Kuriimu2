@@ -14,4 +14,4 @@ jobs:
       with:
         dotnet-version: 2.2.108
     - name: Build with dotnet
-      run: dotnet build --configuration Release
+      run: dotnet build src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
