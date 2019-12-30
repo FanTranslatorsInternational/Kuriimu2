@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
-using Kontract;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Font;
-using Kontract.Interfaces.Image;
-using Kontract.Interfaces.Text;
-using Kore;
-using Kore.Exceptions.FileManager;
-using Kore.Files;
-using Kore.Files.Models;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Common;
+using Kontract.Interfaces.Plugins.State.Font;
+using Kontract.Interfaces.Plugins.State.Image;
+using Kontract.Interfaces.Plugins.State.Text;
+using Kore.Managers;
 using Kore.Utilities;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -28,8 +26,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private PluginLoader _pluginLoader = new PluginLoader("plugins");
-        private FileManager _fileManager;
+        private PluginManager _pluginManager;
 
         #endregion
 
@@ -38,8 +35,10 @@ namespace Kuriimu2.Wpf.ViewModels
             DisplayName = "Kuriimu2.Wpf";
 
             // Assign plugin loading event handler.
-            _fileManager = new FileManager(_pluginLoader);
-            _fileManager.IdentificationFailed += FileIdentificationFailed;
+            _pluginManager = new PluginManager("plugins");
+
+            // TODO: Add event for failed identification
+            //_pluginManager.IdentificationFailed += FileIdentificationFailed;
 
             // Load passed-in file
             // TODO: Somehow handle multiple files via delayed asynchronous loading
@@ -47,32 +46,33 @@ namespace Kuriimu2.Wpf.ViewModels
                 LoadFile(AppBootstrapper.Args[0]);
         }
 
-        private void FileIdentificationFailed(object sender, IdentificationFailedEventArgs e)
-        {
-            var pe = new SelectAdapterViewModel(e.BlindAdapters.ToList(), _fileManager, _pluginLoader, e.FileName);
-            _windows.Add(pe);
+        //private void FileIdentificationFailed(object sender, IdentificationFailedEventArgs e)
+        //{
+        //    var pe = new SelectAdapterViewModel(e.BlindAdapters.ToList(), _pluginManager, _pluginLoader, e.FileName);
+        //    _windows.Add(pe);
 
-            if (_wm.ShowDialogAsync(pe).Result == true)
-            {
-                e.SelectedAdapter = pe.Adapter;
+        //    if (_wm.ShowDialogAsync(pe).Result == true)
+        //    {
+        //        e.SelectedAdapter = pe.Adapter;
 
-                if (pe.RememberMySelection)
-                {
-                    // TODO: Do magic
-                }
-            }
-        }
+        //        if (pe.RememberMySelection)
+        //        {
+        //            // TODO: Do magic
+        //        }
+        //    }
+        //}
 
         public void ExitMenu()
         {
-            if ((ActiveItem as IFileEditor)?.KoreFile.HasChanges ?? false)
+            if ((ActiveItem as IFileEditor)?.KoreFile.StateChanged ?? false)
                 ; //ConfirmLossOfChanges();
             Application.Current.Shutdown();
         }
 
         public void OpenButton()
         {
-            var ofd = new OpenFileDialog { Filter = _fileManager.FileFilters, Multiselect = true };
+            // TODO: Add filters from loaded plugins
+            var ofd = new OpenFileDialog { Filter = ""/*_pluginManager.FileFilters*/, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
@@ -81,7 +81,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         //public async void OpenTypeButton()
         //{
-        //    var pe = new OpenTypeViewModel(_fileManager)
+        //    var pe = new OpenTypeViewModel(_pluginManager)
         //    {
         //        Title = "Open File by Type",
         //        Message = ""
@@ -104,7 +104,7 @@ namespace Kuriimu2.Wpf.ViewModels
                 LoadFile(file);
         }
 
-        public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.Adapter is ISaveFiles;
+        public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.State is ISaveFiles;
 
         public void SaveButton()
         {
@@ -117,9 +117,10 @@ namespace Kuriimu2.Wpf.ViewModels
 
             if (ActiveItem is IFileEditor editor)
             {
-                filter = editor.KoreFile.Filter;
+                // TODO: Set extension from loaded plugin
+                //filter = editor.KoreFile.Filter;
 
-                var sfd = new SaveFileDialog { FileName = editor.KoreFile.StreamFileInfo.FileName, Filter = filter };
+                var sfd = new SaveFileDialog { FileName = editor.KoreFile.FilePath.FullName, Filter = filter };
                 if (sfd.ShowDialog() != true) return;
 
                 SaveFile(sfd.FileName);
@@ -128,7 +129,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public void DebugButton()
         {
-            //_fileManager.Debug();
+            //_pluginManager.Debug();
         }
 
         #region ToolBar Visibility
@@ -143,30 +144,34 @@ namespace Kuriimu2.Wpf.ViewModels
         public void TextEditorExportFile()
         {
             var editor = (IFileEditor)ActiveItem;
-            if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
+            if (!(editor.KoreFile.State is ITextAdapter adapter)) return;
 
-            var creators = _pluginLoader.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
+            // TODO: Get text adapters
+            //var creators = _pluginLoader.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
 
             var sfd = new SaveFileDialog
             {
-                FileName = Path.GetFileName(editor.KoreFile.StreamFileInfo.FileName) + Common.GetAdapterExtension(creators.First()),
-                InitialDirectory = Path.GetDirectoryName(editor.KoreFile.StreamFileInfo.FileName),
-                Filter = Common.GetAdapterFilters(creators)
+                // TODO: Create correct save file dialog
+                FileName = Path.GetFileName(editor.KoreFile.FilePath.FullName) + ".ext"/*Common.GetAdapterExtension(creators.First())*/,
+                InitialDirectory = Path.GetDirectoryName(editor.KoreFile.FilePath.FullName),
+                Filter = Common.GetAdapterFilters(new List<string>())
             };
             if (sfd.ShowDialog() != true) return;
 
-            Text.ExportFile(adapter, creators.Skip(sfd.FilterIndex - 1).First(), sfd.FileName);
+            // TODO: Re-enable export file method
+            //Text.ExportFile(adapter, creators.Skip(sfd.FilterIndex - 1).First(), sfd.FileName);
         }
 
+        // TODO: Re-enable import file
         public void TextEditorImportFile()
         {
-            var editor = (IFileEditor)ActiveItem;
-            if (!(editor.KoreFile.Adapter is ITextAdapter adapter)) return;
+            //var editor = (IFileEditor)ActiveItem;
+            //if (!(editor.KoreFile.State is ITextAdapter adapter)) return;
 
-            var ofd = new OpenFileDialog { Filter = _fileManager.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
-            if (ofd.ShowDialog() != true) return;
+            //var ofd = new OpenFileDialog { Filter = _pluginManager.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
+            //if (ofd.ShowDialog() != true) return;
 
-            editor.KoreFile.HasChanges = _fileManager.ImportFile(adapter, ofd.FileName);
+            //editor.KoreFile.HasChanges = _pluginManager.ImportFile(adapter, ofd.FileName);
         }
 
         // Tabs
@@ -187,7 +192,8 @@ namespace Kuriimu2.Wpf.ViewModels
             switch (tab)
             {
                 case IFileEditor editor:
-                    _fileManager.CloseFile(editor.KoreFile);
+                    // TODO: Close file properly
+                    //_pluginManager.CloseFile(editor.KoreFile);
                     break;
             }
         }
@@ -202,13 +208,14 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private bool LoadFile(string filename)
         {
-            KoreFileInfo kfi = null;
+            IStateInfo kfi = null;
 
             try
             {
-                kfi = _fileManager.LoadFile(new KoreLoadInfo(File.OpenRead(filename), filename));
+                // TODO: Be asynchronous
+                kfi = _pluginManager.LoadFile(filename).Result;
             }
-            catch (LoadFileException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -218,17 +225,17 @@ namespace Kuriimu2.Wpf.ViewModels
             return true;
         }
 
-        private void ActivateTab(KoreFileInfo kfi)
+        private void ActivateTab(IStateInfo kfi)
         {
             if (kfi == null) return;
 
-            switch (kfi.Adapter)
+            switch (kfi.State)
             {
                 case ITextAdapter txt2:
-                    ActivateItemAsync(new TextEditor2ViewModel(_fileManager, _pluginLoader, kfi), new System.Threading.CancellationToken());
+                    ActivateItemAsync(new TextEditor2ViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
                     break;
                 case IImageAdapter img:
-                    ActivateItemAsync(new ImageEditorViewModel(_fileManager, kfi), new System.Threading.CancellationToken());
+                    ActivateItemAsync(new ImageEditorViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
                     break;
                 case IFontAdapter2 fnt:
                     ActivateItemAsync(new FontEditorViewModel(kfi), new System.Threading.CancellationToken());
@@ -240,7 +247,7 @@ namespace Kuriimu2.Wpf.ViewModels
         /// The global save method that handles the various editor types.
         /// </summary>
         /// <param name="filename">The target file name to save as.</param>
-        private void SaveFile(string filename = "")
+        private async void SaveFile(string filename = "")
         {
             var currentTab = ActiveItem as IFileEditor;
             try
@@ -248,16 +255,10 @@ namespace Kuriimu2.Wpf.ViewModels
                 if (currentTab == null)
                     return;
 
-                if (!currentTab.KoreFile.HasChanges && filename == string.Empty)
+                if (!currentTab.KoreFile.StateChanged && filename == string.Empty)
                     return;
 
-                var ksi = new KoreSaveInfo(currentTab.KoreFile, "temp") { NewSaveFile = filename };
-                var savedKfi = _fileManager.SaveFile(ksi);
-
-                if (savedKfi.ParentKfi != null)
-                    savedKfi.ParentKfi.HasChanges = true;
-
-                currentTab.KoreFile = savedKfi;
+                await _pluginManager.SaveFile(currentTab.KoreFile, filename);
 
                 // Handle archive editors.
                 // TODO: Port the win forms code for this behaviour to WPF MVVM

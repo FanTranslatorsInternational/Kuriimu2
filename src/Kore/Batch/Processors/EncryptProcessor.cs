@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-using Kontract.Interfaces.Intermediate;
+using Kontract.Interfaces;
+using Kontract.Interfaces.Plugins.State.Intermediate;
 using Kontract.Models;
 
 namespace Kore.Batch.Processors
@@ -14,7 +15,7 @@ namespace Kore.Batch.Processors
             _cipherAdapter = cipherAdapter ?? throw new ArgumentNullException(nameof(cipherAdapter));
         }
 
-        public async void Process(ProcessElement processElement, IProgress<ProgressReport> progress)
+        public async void Process(ProcessElement processElement, IKuriimuProgress progress)
         {
             var read = File.OpenRead(processElement.InputFilename);
             var write = File.Create(processElement.OutputFilename);

@@ -10,15 +10,18 @@ namespace Komponent.Font
     class BinPacker
     {
         private readonly Size _canvasSize;
+        private readonly int _margin;
         private BinPackerNode _rootNode;
 
         /// <summary>
         /// Creates a new instance of <see cref="BinPacker"/>.
         /// </summary>
         /// <param name="canvasSize">The total size of the canvas.</param>
-        public BinPacker(Size canvasSize)
+        /// <param name="margin">Adds a transparent margin around each glyph.</param>
+        public BinPacker(Size canvasSize, int margin = 1)
         {
             _canvasSize = canvasSize;
+            _margin = margin;
         }
 
         /// <summary>
@@ -30,18 +33,30 @@ namespace Komponent.Font
         {
             var orderedGlyphInformation = adjustedGlyphs
                 .OrderByDescending(CalculateVolume)
-                .Select(x => new { AdjustedGlyph = x, Size = x.WhiteSpaceAdjustment?.GlyphSize ?? x.Glyph.Size });
+                .Select(x => new { AdjustedGlyph = x, Size = GetGlyphSize(x) });
 
-            _rootNode = new BinPackerNode(_canvasSize.Width, _canvasSize.Height);
+            _rootNode = new BinPackerNode(_canvasSize.Width - _margin, _canvasSize.Height - _margin);
             foreach (var glyphInformation in orderedGlyphInformation)
             {
                 var foundNode = FindNode(_rootNode, glyphInformation.Size);
                 if (foundNode != null)
                 {
                     SplitNode(foundNode, glyphInformation.Size);
-                    yield return (glyphInformation.AdjustedGlyph, foundNode.Position);
+                    yield return (glyphInformation.AdjustedGlyph, new Point(foundNode.Position.X + _margin, foundNode.Position.Y + _margin));
                 }
             }
+        }
+
+        private Size GetGlyphSize(AdjustedGlyph adjustedGlyph)
+        {
+            if (adjustedGlyph.WhiteSpaceAdjustment != null)
+            {
+                return new Size(adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width + _margin,
+                    adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height + _margin);
+            }
+
+            return new Size(adjustedGlyph.Glyph.Width + _margin,
+                adjustedGlyph.Glyph.Height + _margin);
         }
 
         /// <summary>
@@ -52,10 +67,10 @@ namespace Komponent.Font
         private int CalculateVolume(AdjustedGlyph adjustedGlyph)
         {
             if (adjustedGlyph.WhiteSpaceAdjustment == null)
-                return adjustedGlyph.Glyph.Width * adjustedGlyph.Glyph.Height;
-            else
-                return adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width *
-                       adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height;
+                return (adjustedGlyph.Glyph.Width + _margin) * (adjustedGlyph.Glyph.Height + _margin);
+
+            return (adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width + _margin) *
+                   (adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height + _margin);
         }
 
         /// <summary>

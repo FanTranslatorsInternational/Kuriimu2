@@ -6,25 +6,19 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Font;
-using Kontract.Interfaces.Image;
-using Kontract.Interfaces.Intermediate;
-using Kontract.Interfaces.Text;
-using Kontract.Models;
+using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Models.Image;
-using Kore.Files;
+using Kore.Managers;
+using Kore.Models;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Tools;
-using Microsoft.Win32;
+
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class EncodeImageViewModel : Screen
     {
-        private readonly FileManager _fileManager;
+        private readonly PluginManager _pluginManager;
         private readonly IImageAdapter _adapter;
         private readonly BitmapInfo _bitmapInfo;
 
@@ -45,9 +39,9 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public EncodeImageViewModel(FileManager fileManager, IImageAdapter adapter, BitmapInfo bitmapInfo)
+        public EncodeImageViewModel(PluginManager pluginManager, IImageAdapter adapter, BitmapInfo bitmapInfo)
         {
-            _fileManager = fileManager;
+            _pluginManager = pluginManager;
             _adapter = adapter;
             _bitmapInfo = bitmapInfo;
 
@@ -108,7 +102,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public async void EncodeImage()
         {
-            var report = new Progress<ProgressReport>();
+            var report = new KuriimuProgress();
             //report.ProgressChanged += Report_ProgressChanged;
             ControlsEnabled = false;
 

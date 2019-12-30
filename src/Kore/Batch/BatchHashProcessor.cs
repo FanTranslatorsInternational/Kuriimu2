@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Intermediate;
+using Kontract.Interfaces;
 using Kontract.Models;
 using Kore.Batch.Processors;
 
@@ -21,7 +21,7 @@ namespace Kore.Batch
 
         public IList<BatchErrorReport<string>> ErrorReports { get; private set; }
 
-        public Task<List<BatchHashResult>> Process(string inputDirectory, IBatchHashProcessor processor, IProgress<ProgressReport> progress)
+        public Task<List<BatchHashResult>> Process(string inputDirectory, IBatchHashProcessor processor, IKuriimuProgress progress)
         {
             ErrorReports = new List<BatchErrorReport<string>>();
             return ProcessParallel(EnumerateAllFiles(inputDirectory), progress, processor.Process);
@@ -40,13 +40,13 @@ namespace Kore.Batch
                     yield return file;
         }
 
-        private Task<List<BatchHashResult>> ProcessParallel(IEnumerable<string> toProcess, IProgress<ProgressReport> progress, Func<string, IProgress<ProgressReport>, BatchHashResult> taskDelegate)
+        private Task<List<BatchHashResult>> ProcessParallel(IEnumerable<string> toProcess, IKuriimuProgress progress, Func<string, IKuriimuProgress, BatchHashResult> taskDelegate)
         {
             return Task.Factory.StartNew(() =>
                 ProcessParallelInternal(toProcess, progress, taskDelegate));
         }
 
-        private List<BatchHashResult> ProcessParallelInternal(IEnumerable<string> toProcess, IProgress<ProgressReport> progress, Func<string, IProgress<ProgressReport>, BatchHashResult> taskDelegate)
+        private List<BatchHashResult> ProcessParallelInternal(IEnumerable<string> toProcess, IKuriimuProgress progress, Func<string, IKuriimuProgress, BatchHashResult> taskDelegate)
         {
             var results = new List<BatchHashResult>();
             var activeTasks = new (Task<BatchHashResult> task, string element)?[TaskCount];

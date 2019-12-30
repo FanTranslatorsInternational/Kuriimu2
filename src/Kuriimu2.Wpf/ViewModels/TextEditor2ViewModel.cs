@@ -12,11 +12,10 @@ using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract;
 using Kontract.Attributes;
-using Kontract.Interfaces.Game;
-using Kontract.Interfaces.Text;
-using Kore;
-using Kore.Files;
-using Kore.Files.Models;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State.Game;
+using Kontract.Interfaces.Plugins.State.Text;
+using Kore.Managers;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -29,8 +28,7 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly FileManager _fileManager;
-        private readonly PluginLoader _pluginLoader;
+        private readonly PluginManager _pluginManager;
         private readonly ITextAdapter _adapter;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
@@ -38,7 +36,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private TextEntry _selectedEntry;
 
-        public KoreFileInfo KoreFile { get; set; }
+        public IStateInfo KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; private set; }
 
         public bool OriginalTextReadOnly => true;
@@ -46,14 +44,13 @@ namespace Kuriimu2.Wpf.ViewModels
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         // Constructor
-        public TextEditor2ViewModel(FileManager fileManager, PluginLoader pluginLoader, KoreFileInfo koreFile)
+        public TextEditor2ViewModel(PluginManager pluginManager, IStateInfo koreFile)
         {
-            _fileManager = fileManager;
-            _pluginLoader = pluginLoader;
+            _pluginManager = pluginManager;
             KoreFile = koreFile;
 
-            _adapter = KoreFile.Adapter as ITextAdapter;
-            GameAdapters = _pluginLoader.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
+            _adapter = KoreFile.State as ITextAdapter;
+            GameAdapters = Array.Empty<GameAdapter>().ToList(); //_pluginLoader.GetAdapters<IGameAdapter>().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence
             SelectedGameAdapter = GameAdapters.FirstOrDefault();
@@ -77,7 +74,7 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             if (_gameAdapterInstance != null)
             {
-                _gameAdapterInstance.Adapter.Filename = KoreFile.StreamFileInfo.FileName;
+                _gameAdapterInstance.Adapter.Filename = KoreFile.FilePath.FullName;
                 _gameAdapterInstance.Adapter.LoadEntries(_adapter.Entries);
                 Entries = new ObservableCollection<TextEntry>(_gameAdapterInstance.Adapter.Entries);
             }
@@ -131,7 +128,6 @@ namespace Kuriimu2.Wpf.ViewModels
                 foreach (var entry in Entries)
                     entry.Edited += (sender, args) =>
                     {
-                        KoreFile.HasChanges = true;
                         NotifyOfPropertyChange(() => PreviewImage);
                     };
             }
@@ -190,12 +186,10 @@ namespace Kuriimu2.Wpf.ViewModels
 
             if (added)
             {
-                KoreFile.HasChanges = true;
                 LoadEntries();
                 foreach (var ent in Entries.Where(e => e.Name == entry.Name))
                     ent.Edited += (sender, args) =>
                     {
-                        KoreFile.HasChanges = true;
                         NotifyOfPropertyChange(() => PreviewImage);
                     };
                 SelectedEntry = entry;
@@ -214,7 +208,6 @@ namespace Kuriimu2.Wpf.ViewModels
                 MessageBox.Show("The entry could not be removed.", "Delete Failed");
             else
             {
-                KoreFile.HasChanges = true;
                 LoadEntries();
                 if (Entries.Count > 0)
                     SelectedEntry = Entries[Math.Min(index, Entries.Count - 1)];

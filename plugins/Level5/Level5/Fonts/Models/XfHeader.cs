@@ -7,10 +7,10 @@ namespace Level5.Fonts.Models
         [FixedLength(8)]
         public string magic;
         public int version;
-        public short baseLine;
-        public short descentLine;
-        public short unk4;
-        public short unk5;
+        public short largeCharHeight;
+        public short smallCharHeight;
+        public short largeEscapeCharacter;
+        public short smallEscapeCharacter;
         public long zero0;
 
         public short table0Offset;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using Komponent.Font;
 using Komponent.IO;
 using Kontract.Interfaces.Font;
 using Level5.Fonts.Compression;
@@ -44,13 +46,36 @@ namespace Level5.Fonts
                 new[] { 0, 0, 0f, 1f, 0 },
                 new[] { 0, 0, 0, 0f, 0 },
                 new[] { 1f, 1f, 1f, 0, 1f }
-            }),
+            })
         };
 
-        public Dictionary<char, XfCharSizeInfo> lstCharSizeInfoLarge;
-        public Dictionary<char, XfCharSizeInfo> lstCharSizeInfoSmall;
-        public Dictionary<char, XfCharSizeInfo> dicGlyphLarge;
-        public Dictionary<char, XfCharSizeInfo> dicGlyphSmall;
+        private readonly ColorMatrix[] _inverseColorMatrices =
+        {
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 1f, 0, 0, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 1f, 0, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 0, 1f, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            })
+        };
 
         public XfHeader Header;
 
@@ -99,11 +124,13 @@ namespace Level5.Fonts
                 {
                     var glyph = GetGlyphBitmap(charMap, tempCharSizeInfo[charMap.charInformation.charSizeInfoIndex]);
 
-                    var characterPosition = new CharacterPosition(
-                        tempCharSizeInfo[charMap.charInformation.charSizeInfoIndex].offsetY,
-                        tempCharSizeInfo[charMap.charInformation.charSizeInfoIndex].offsetX);
-                    var characterInfo = new CharacterInfo(charMap.charInformation.charWidth, characterPosition);
-                    Characters.Add(new FontCharacter2(charMap.codePoint, glyph, characterInfo));
+                    var characterInfo = new CharacterInfo(charMap.charInformation.charWidth);
+                    var character = new FontCharacter2(charMap.codePoint)
+                    {
+                        Glyph = glyph,
+                        CharacterInfo = characterInfo
+                    };
+                    Characters.Add(character);
                 }
                 /*foreach (var charMap in smallChars)
                     Characters.Add(new XfCharacter
@@ -123,74 +150,122 @@ namespace Level5.Fonts
 
         public void Save(Stream output)
         {
-            /*
-            //Update image
-            #region  Compiling and saving new image
-            var img = new MemoryStream();
-            var i0a = new BitmapInfo(image_0).pixelMap(BitmapInfo.Channel.Alpha);
-            var i1a = new BitmapInfo(image_1).pixelMap(BitmapInfo.Channel.Alpha);
-            var i2a = new BitmapInfo(image_2).pixelMap(BitmapInfo.Channel.Alpha);
+            // Generating font textures
+            var generator = new FontTextureGenerator(_xi.Image.Size);
 
-            bmp = new Bitmap(bmp.Width, bmp.Height);
-            for (int y = 0; y < bmp.Height; y++)
-                for (int x = 0; x < bmp.Width; x++)
-                    bmp.SetPixel(x, y, Color.FromArgb(255, i0a[x, y], i1a[x, y], i2a[x, y]));
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(Characters.Select(x => x.Glyph)).ToList();
+            var textureInfos = generator.GenerateFontTextures(adjustedGlyphs, 3).ToList();
 
-            _xi.Image = bmp;
-            _xi.Save(img);
-            _xpck.Files[0].FileData = img;
-            #endregion
-
-            //Compact charSizeInfo
-            var compactCharSizeInfo = new List<XfCharSizeInfo>();
-            #region Compacting and updating dictionaries
-            foreach (var info in lstCharSizeInfoLarge)
-                if (compactCharSizeInfo.Contains(info.Value))
-                    dicGlyphLarge[info.Key].char_size = (ushort)(compactCharSizeInfo.FindIndex(c => c.Equals(info.Value)) % 1024 + dicGlyphLarge[info.Key].CharWidth * 1024);
-                else
+            // Join important lists
+            var joinedCharacters = Characters.OrderBy(x => x.Character).Join(adjustedGlyphs, c => c.Glyph, ag => ag.Glyph,
+                (c, ag) => new { character = c, adjustedGlyph = ag })
+                .Select(cag => new
                 {
-                    dicGlyphLarge[info.Key].char_size = (ushort)(compactCharSizeInfo.Count % 1024 + dicGlyphLarge[info.Key].CharWidth * 1024);
-                    compactCharSizeInfo.Add(info.Value);
-                }
-            foreach (var info in lstCharSizeInfoSmall)
-                if (compactCharSizeInfo.Contains(info.Value))
-                    dicGlyphSmall[info.Key].char_size = (ushort)(compactCharSizeInfo.FindIndex(c => c.Equals(info.Value)) % 1024 + dicGlyphSmall[info.Key].CharWidth * 1024);
-                else
-                {
-                    dicGlyphSmall[info.Key].char_size = (ushort)(compactCharSizeInfo.Count % 1024 + dicGlyphSmall[info.Key].CharWidth * 1024);
-                    compactCharSizeInfo.Add(info.Value);
-                }
-            #endregion
+                    cag.character,
+                    cag.adjustedGlyph,
+                    textureIndex = textureInfos.FindIndex(x => x.Glyphs.Any(y => y.Item1 == cag.adjustedGlyph.Glyph)),
+                    texturePosition = textureInfos.SelectMany(x => x.Glyphs).FirstOrDefault(x => x.Item1 == cag.adjustedGlyph.Glyph).Item2
+                });
 
-            //Writing
-            var ms = new MemoryStream();
-            using (var bw = new BinaryWriterX(ms, true))
+            // Create character information
+            var charMaps = new List<(AdjustedGlyph, XfCharMap)>(adjustedGlyphs.Count);
+            var charSizeInfos = new List<XfCharSizeInfo>();
+            foreach (var joinedCharacter in joinedCharacters)
+            {
+                if (joinedCharacter.textureIndex == -1)
+                    continue;
+
+                var charSizeInfo = new XfCharSizeInfo
+                {
+                    offsetX = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.X,
+                    offsetY = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.Y,
+                    glyphWidth = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width,
+                    glyphHeight = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height
+                };
+                if (!charSizeInfos.Contains(charSizeInfo))
+                    charSizeInfos.Add(charSizeInfo);
+
+                var charInformation = new XfCharInformation
+                {
+                    charSizeInfoIndex = charSizeInfos.IndexOf(charSizeInfo),
+                    charWidth = char.IsWhiteSpace((char)joinedCharacter.character.Character) ?
+                        joinedCharacter.character.CharacterInfo.CharWidth :
+                        joinedCharacter.character.CharacterInfo.CharWidth - charSizeInfo.offsetX
+                };
+
+                charMaps.Add((joinedCharacter.adjustedGlyph, new XfCharMap
+                {
+                    codePoint = (ushort)joinedCharacter.character.Character,
+                    charInformation = charInformation,
+                    imageInformation = new XfImageInformation
+                    {
+                        colorChannel = joinedCharacter.textureIndex,
+                        imageOffsetX = joinedCharacter.texturePosition.X,
+                        imageOffsetY = joinedCharacter.texturePosition.Y
+                    }
+                }));
+            }
+
+            // Set escape characters
+            Header.largeEscapeCharacter = (short)charMaps.FindIndex(x => x.Item2.codePoint == '?');
+            Header.smallEscapeCharacter = 0;
+
+            // Minimize top value and line height
+            Header.largeCharHeight = (short)charSizeInfos.Max(x => x.glyphHeight + x.offsetY);
+            Header.smallCharHeight = 0;
+
+            // Draw textures
+            var img = new Bitmap(_xi.Image.Width, _xi.Image.Height);
+            var gfx = Graphics.FromImage(img);
+            for (var i = 0; i < textureInfos.Count; i++)
+            {
+                var destPoints = new[]
+                {
+                    new PointF(0,0),
+                    new PointF(textureInfos[i].FontTexture.Width,0),
+                    new PointF(0,textureInfos[i].FontTexture.Height)
+                };
+                var rect = new RectangleF(0, 0, textureInfos[i].FontTexture.Width, textureInfos[i].FontTexture.Height);
+                var attr = new ImageAttributes();
+                attr.SetColorMatrix(_inverseColorMatrices[i]);
+                gfx.DrawImage(textureInfos[i].FontTexture, destPoints, rect, GraphicsUnit.Pixel, attr);
+            }
+
+            // Save xi image
+            _xi.Image = img;
+            var savedXi = new MemoryStream();
+            _xi.Save(savedXi);
+            _xpck.Files[0].FileData = savedXi;
+
+            // Save fnt.bin
+            var savedFntBin = new MemoryStream();
+            using (var bw = new BinaryWriterX(savedFntBin, true))
             {
                 //Table0
-                Header.table0EntryCount = (short)compactCharSizeInfo.Count;
+                Header.table0EntryCount = (short)charSizeInfos.Count;
                 bw.BaseStream.Position = 0x28;
-                bw.WriteMultipleCompressed(compactCharSizeInfo, _t0Comp);
+                bw.WriteMultipleCompressed(charSizeInfos, _t0Comp);
                 bw.WriteAlignment(4);
 
                 //Table1
                 Header.table1Offset = (short)(bw.BaseStream.Position >> 2);
-                Header.table1EntryCount = (short)dicGlyphLarge.Count;
-                bw.WriteMultipleCompressed(dicGlyphLarge.Select(d => d.Value), _t1Comp);
+                Header.table1EntryCount = (short)charMaps.Count;
+                bw.WriteMultipleCompressed(charMaps.Select(d => d.Item2), _t1Comp);
                 bw.WriteAlignment(4);
 
                 //Table2
                 Header.table2Offset = (short)(bw.BaseStream.Position >> 2);
-                Header.table2EntryCount = (short)dicGlyphSmall.Count;
-                bw.WriteMultipleCompressed(dicGlyphSmall.Select(d => d.Value), _t2Comp);
+                Header.table2EntryCount = 0;
+                bw.WriteMultipleCompressed(Array.Empty<XfCharMap>(), _t2Comp);
                 bw.WriteAlignment(4);
 
                 //Header
                 bw.BaseStream.Position = 0;
-                bw.WriteStruct(Header);
+                bw.WriteType(Header);
             }
-            _xpck.Files[1].FileData = ms;
+            _xpck.Files[1].FileData = savedFntBin;
 
-            _xpck.Save(output);*/
+            _xpck.Save(output);
         }
 
         private Bitmap GetGlyphBitmap(XfCharMap charMap, XfCharSizeInfo charSizeInfo)

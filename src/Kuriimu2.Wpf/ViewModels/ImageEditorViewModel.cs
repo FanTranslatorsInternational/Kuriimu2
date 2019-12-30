@@ -9,12 +9,10 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Kontract.Interfaces.Image;
-using Kontract.Models;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Models.Image;
-using Kore;
-using Kore.Files;
-using Kore.Files.Models;
+using Kore.Managers;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
 using Kuriimu2.Wpf.Tools;
@@ -27,7 +25,7 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly FileManager _fileManager;
+        private readonly PluginManager _pluginManager;
         private readonly IImageAdapter _adapter;
 
         // Image View
@@ -46,16 +44,16 @@ namespace Kuriimu2.Wpf.ViewModels
         private int _progressValue;
 
         // Data
-        public KoreFileInfo KoreFile { get; set; }
+        public IStateInfo KoreFile { get; set; }
         public ObservableCollection<BitmapEntry> Bitmaps { get; }
 
         // Constructor
-        public ImageEditorViewModel(FileManager fileManager, KoreFileInfo koreFile)
+        public ImageEditorViewModel(PluginManager pluginManager, IStateInfo koreFile)
         {
-            _fileManager = fileManager;
+            _pluginManager = pluginManager;
             KoreFile = koreFile;
 
-            _adapter = KoreFile.Adapter as IImageAdapter;
+            _adapter = KoreFile.State as IImageAdapter;
 
             if (_adapter?.BitmapInfos != null)
                 Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
@@ -198,7 +196,7 @@ namespace Kuriimu2.Wpf.ViewModels
             var sfd = new SaveFileDialog
             {
                 Title = "Export PNG",
-                FileName = KoreFile.StreamFileInfo.FileName + ".png",
+                FileName = KoreFile.FilePath + ".png",
                 Filter = "Portable Network Graphics (*.png)|*.png"
             };
 
@@ -208,41 +206,42 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
+        // TODO: Batch export png
         public async Task BatchExportPng()
         {
-            StatusText = "Starting batch export...";
+            //StatusText = "Starting batch export...";
 
-            var ofd = new OpenFileDialog();
-            if (!(bool)ofd.ShowDialog()) return;
+            //var ofd = new OpenFileDialog();
+            //if (!(bool)ofd.ShowDialog()) return;
 
-            var batchExport = new Kore.Batch.BatchExport<IImageAdapter> { InputDirectory = Path.GetDirectoryName(ofd.FileName) };
-            ProgressActionName = "Batch Export PNG";
+            //var batchExport = new BatchExport<IImageAdapter> { InputDirectory = Path.GetDirectoryName(ofd.FileName) };
+            //ProgressActionName = "Batch Export PNG";
 
-            var progress = new Progress<ProgressReport>(p =>
-            {
-                ProgressValue = (int)Math.Min(p.Percentage * 10, 1000);
-                if (p.HasMessage)
-                {
-                    var lines = StatusText.Split('\n');
-                    if (lines.Length == 10)
-                        StatusText = string.Join("\n", lines.Skip(1).Take(10)) + "\r\n" + p.Message;
-                    else
-                        StatusText += "\r\n" + p.Message;
-                }
+            //var progress = new Progress<ProgressReport>(p =>
+            //{
+            //    ProgressValue = (int)Math.Min(p.Percentage * 10, 1000);
+            //    if (p.HasMessage)
+            //    {
+            //        var lines = StatusText.Split('\n');
+            //        if (lines.Length == 10)
+            //            StatusText = string.Join("\n", lines.Skip(1).Take(10)) + "\r\n" + p.Message;
+            //        else
+            //            StatusText += "\r\n" + p.Message;
+            //    }
 
-                if (p.Data == null) return;
-                var (current, max) = ((int current, int max))p.Data;
-                ProgressActionName = $"Batch Export PNG ({current} / {max})";
-            });
+            //    if (p.Data == null) return;
+            //    var (current, max) = ((int current, int max))p.Data;
+            //    ProgressActionName = $"Batch Export PNG ({current} / {max})";
+            //});
 
-            var result = await batchExport.Export(_fileManager, progress);
+            //var result = await batchExport.Export(_pluginManager, progress);
         }
 
         public void ChangeFormat()
         {
             if (!(_adapter is IImageAdapter img)) return;
 
-            var ei = new EncodeImageViewModel(_fileManager, _adapter, _selectedBitmapEntry.BitmapInfo)
+            var ei = new EncodeImageViewModel(_pluginManager, _adapter, _selectedBitmapEntry.BitmapInfo)
             {
                 Title = $"Change Format",
                 SelectedZoomLevel = SelectedZoomLevel

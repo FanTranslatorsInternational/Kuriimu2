@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
-using Kontract.Interfaces.Intermediate;
+using Kontract.Interfaces;
+using Kontract.Interfaces.Plugins.State.Intermediate;
 using Kontract.Models;
 
 namespace Kore.Batch.Processors
@@ -14,7 +15,7 @@ namespace Kore.Batch.Processors
             _hashAdapter = hashAdapter ?? throw new ArgumentNullException(nameof(hashAdapter));
         }
 
-        public BatchHashResult Process(string inputFile, IProgress<ProgressReport> progress)
+        public BatchHashResult Process(string inputFile, IKuriimuProgress progress)
         {
             var task = _hashAdapter.Compute(File.OpenRead(inputFile), progress);
             task.Wait();

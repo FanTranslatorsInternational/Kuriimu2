@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Intermediate;
-using Kontract.Models;
+using Kontract.Interfaces;
 using Kore.Batch.Processors;
 
 namespace Kore.Batch
@@ -21,7 +20,7 @@ namespace Kore.Batch
 
         public IList<BatchErrorReport<ProcessElement>> ErrorReports { get; private set; }
 
-        public Task Process(string inputDirectory, string outputDirectory, IBatchProcessor processor, IProgress<ProgressReport> progress)
+        public Task Process(string inputDirectory, string outputDirectory, IBatchProcessor processor, IKuriimuProgress progress)
         {
             ErrorReports = new List<BatchErrorReport<ProcessElement>>();
             return ProcessParallel(EnumerateAllFiles(inputDirectory, outputDirectory), progress, processor.Process);
@@ -40,7 +39,7 @@ namespace Kore.Batch
                     yield return processElement;
         }
 
-        private Task ProcessParallel(IEnumerable<ProcessElement> toProcess, IProgress<ProgressReport> progress, Action<ProcessElement, IProgress<ProgressReport>> taskDelegate)
+        private Task ProcessParallel(IEnumerable<ProcessElement> toProcess, IKuriimuProgress progress, Action<ProcessElement, IKuriimuProgress> taskDelegate)
         {
             var activeTasks = new (Task task, ProcessElement element)?[TaskCount];
             var enumerator = toProcess.GetEnumerator();

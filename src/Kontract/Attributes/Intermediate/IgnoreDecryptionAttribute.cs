@@ -1,6 +1,6 @@
 ﻿using System;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Intermediate;
+using Kontract.Interfaces.Plugins.State.Common;
+using Kontract.Interfaces.Plugins.State.Intermediate;
 
 namespace Kontract.Attributes.Intermediate
 {

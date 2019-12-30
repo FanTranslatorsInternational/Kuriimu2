@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp31</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>Kuriimu2.Wpf</AssemblyName>
     <RootNamespace>Kuriimu2.Wpf</RootNamespace>
@@ -88,7 +88,7 @@
     <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
-    <ProjectReference Include="..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\Kore2\Kore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

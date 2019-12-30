@@ -3,11 +3,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using Caliburn.Micro;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Text;
-using Kore;
-using Kore.Files.Models;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State.Text;
 using Kuriimu2.Wpf.Interfaces;
 
 namespace Kuriimu2.Wpf.ViewModels
@@ -16,18 +13,19 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private ITextAdapter _adapter;
 
-        public KoreFileInfo KoreFile { get; set; }
+        public IStateInfo KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; }
 
         private TextEntry _selectedEntry;
 
         // Constructor
-        public TextEditor1ViewModel(KoreFileInfo koreFile)
+        public TextEditor1ViewModel(IStateInfo koreFile)
         {
             KoreFile = koreFile;
 
-            DisplayName = KoreFile.DisplayName;
-            _adapter = KoreFile.Adapter as ITextAdapter;
+            // TODO: What is display name
+            //DisplayName = KoreFile.DisplayName;
+            _adapter = KoreFile.State as ITextAdapter;
 
             if (_adapter != null)
                 Entries = new ObservableCollection<TextEntry>(_adapter.Entries);

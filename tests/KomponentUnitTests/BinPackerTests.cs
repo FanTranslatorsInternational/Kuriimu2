@@ -11,6 +11,23 @@ namespace KomponentUnitTests
     public class BinPackerTests
     {
         [TestMethod]
+        public void Pack_AdjustedGlyphs_Space()
+        {
+            // Arrange
+            var glyphs = new List<Bitmap>();
+            glyphs.Add(new Bitmap(5, 5));
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(glyphs);
+            var binPacker = new BinPacker(new Size(6, 6));
+
+            // Act
+            var boxes = binPacker.Pack(adjustedGlyphs).ToArray();
+
+            // Assert
+            boxes.Length.Should().Be(1);
+            boxes[0].position.Should().Be(new Point(1, 1));
+        }
+
+        [TestMethod]
         public void Pack_AdjustedGlyphs_NotAll()
         {
             // Arrange
@@ -32,7 +49,7 @@ namespace KomponentUnitTests
 
             // Assert
             boxes.Length.Should().Be(1);
-            boxes[0].position.Should().Be(Point.Empty);
+            boxes[0].position.Should().Be(new Point(1, 1));
         }
 
         [TestMethod]
@@ -54,16 +71,16 @@ namespace KomponentUnitTests
             glyphs[2].SetPixel(0, 0, Color.White);
             glyphs[2].SetPixel(1, 0, Color.White);
             var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(glyphs);
-            var binPacker = new BinPacker(new Size(5, 3));
+            var binPacker = new BinPacker(new Size(8, 6));
 
             // Act
             var boxes = binPacker.Pack(adjustedGlyphs).ToArray();
 
             // Assert
             boxes.Length.Should().Be(3);
-            boxes[0].position.Should().Be(Point.Empty);
-            boxes[1].position.Should().Be(new Point(3, 0));
-            boxes[2].position.Should().Be(new Point(3, 2));
+            boxes[0].position.Should().Be(new Point(1, 1));
+            boxes[1].position.Should().Be(new Point(5, 1));
+            boxes[2].position.Should().Be(new Point(5, 4));
         }
     }
 }

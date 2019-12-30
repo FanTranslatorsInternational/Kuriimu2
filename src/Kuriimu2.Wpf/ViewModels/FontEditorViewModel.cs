@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Kontract.Interfaces.Font;
-using Kore.Files.Models;
-using Kore.Utilities;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State.Font;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -24,7 +23,7 @@ namespace Kuriimu2.Wpf.ViewModels
         private FontCharacter2 _selectedCharacter;
         private ImageSource _selectedCharacterTexture;
 
-        public KoreFileInfo KoreFile { get; set; }
+        public IStateInfo KoreFile { get; set; }
         public ObservableCollection<FontCharacter2> Characters { get; private set; }
 
         public FontCharacter2 SelectedCharacter
@@ -63,11 +62,11 @@ namespace Kuriimu2.Wpf.ViewModels
         public string CharacterCount => Characters.Count + (Characters.Count == 1 ? " Character" : " Characters");
 
         // Constructor
-        public FontEditorViewModel(KoreFileInfo koreFile)
+        public FontEditorViewModel(IStateInfo koreFile)
         {
             KoreFile = koreFile;
 
-            _adapter = KoreFile.Adapter as IFontAdapter2;
+            _adapter = KoreFile.State as IFontAdapter2;
 
             if (_adapter != null)
                 Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
@@ -129,7 +128,6 @@ namespace Kuriimu2.Wpf.ViewModels
             // If property editor was closed and adding the character was successful
             if (_wm.ShowDialogAsync(pe).Result == true && add.AddCharacter(character))
             {
-                KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
                 Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
                 NotifyOfPropertyChange(() => Characters);
@@ -168,7 +166,6 @@ namespace Kuriimu2.Wpf.ViewModels
             // If property editor was closed
             if (_wm.ShowDialogAsync(pe).Result == true)
             {
-                KoreFile.HasChanges = true;
                 NotifyOfPropertyChange(() => DisplayName);
                 //clonedCharacter.CopyProperties(SelectedCharacter); TODO: This mechanism needs to be replaced.
                 NotifyOfPropertyChange(() => SelectedCharacter);
@@ -208,11 +205,10 @@ namespace Kuriimu2.Wpf.ViewModels
                 Adapter = _adapter,
                 Baseline = _adapter.Baseline,
                 Characters = string.Join("", _adapter.Characters),
-                CanvasWidth = 512,
-                CanvasHeight = 512,
+                //CanvasWidth = 512,
+                //CanvasHeight = 512,
                 GenerationCompleteCallback = () =>
                 {
-                    KoreFile.HasChanges = true;
                     NotifyOfPropertyChange(() => DisplayName);
                     Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();

@@ -1,5 +1,4 @@
 ﻿using System.Windows.Media.Imaging;
-using Kontract.Interfaces.Image;
 using Kontract.Models.Image;
 using Kuriimu2.Wpf.Tools;
 

@@ -10,21 +10,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "src\Kontract\Kontract.csproj", "{A43ECC92-DC90-4F79-9871-49E02A11ADAD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "src\Komponent\Komponent.csproj", "{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "src\Kore\Kore.csproj", "{013E1380-0D62-4018-8F55-9129275FDE85}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "src\Kanvas\Kanvas.csproj", "{810CEFCF-6900-43FF-8939-EF2D52236882}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Kuriimu2_WinForms\Kuriimu2_WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Kuriimu2.WinForms\Kuriimu2.WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "src\Kompression\Kompression.csproj", "{D170F614-83C8-4608-96EA-72D30B2AC77E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2.Wpf", "src\Kuriimu2.Wpf\Kuriimu2.Wpf.csproj", "{F6675105-6585-4FD2-A50F-355C14BB3D8E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.Wpf", "src\Kuriimu2.Wpf\Kuriimu2.Wpf.csproj", "{F6675105-6585-4FD2-A50F-355C14BB3D8E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "src\Kontract\Kontract.csproj", "{DACC2BEC-30EA-4156-92D3-591A4C487F81}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "src\Kore\Kore.csproj", "{1838658F-B50F-48B2-B48B-1E609CD92536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,18 +32,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A43ECC92-DC90-4F79-9871-49E02A11ADAD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{013E1380-0D62-4018-8F55-9129275FDE85}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{013E1380-0D62-4018-8F55-9129275FDE85}.Release|Any CPU.Build.0 = Release|Any CPU
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{810CEFCF-6900-43FF-8939-EF2D52236882}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -64,6 +56,14 @@ Global
 		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F6675105-6585-4FD2-A50F-355C14BB3D8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DACC2BEC-30EA-4156-92D3-591A4C487F81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DACC2BEC-30EA-4156-92D3-591A4C487F81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DACC2BEC-30EA-4156-92D3-591A4C487F81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DACC2BEC-30EA-4156-92D3-591A4C487F81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1838658F-B50F-48B2-B48B-1E609CD92536}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1838658F-B50F-48B2-B48B-1E609CD92536}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1838658F-B50F-48B2-B48B-1E609CD92536}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1838658F-B50F-48B2-B48B-1E609CD92536}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

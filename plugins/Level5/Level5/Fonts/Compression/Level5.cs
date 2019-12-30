@@ -38,18 +38,14 @@ namespace Level5.Fonts.Compression
             if (stream.Length > 0x1fffffff)
                 throw new Exception("File is too big to be compressed with Level5 compressions!");
 
+            if (stream.Length <= 0)
+                return WriteUncompressed(stream, 0);
+
             uint methodSize = (uint)stream.Length << 3;
             switch (method)
             {
                 case CompressionMethod.NoCompression:
-                    using (var bw = new BinaryWriterX(new MemoryStream()))
-                    {
-                        bw.Write(methodSize);
-                        stream.Position = 0;
-                        stream.CopyTo(bw.BaseStream);
-                        bw.BaseStream.Position = 0;
-                        return new BinaryReaderX(bw.BaseStream).ReadBytes((int)bw.BaseStream.Length);
-                    }
+                    return WriteUncompressed(stream, methodSize);
                 case CompressionMethod.LZ10:
                     methodSize |= 0x1;
                     using (var bw = new BinaryWriterX(new MemoryStream()))
@@ -96,6 +92,18 @@ namespace Level5.Fonts.Compression
                     }
                 default:
                     throw new Exception($"Unsupported compression method {method}!");
+            }
+        }
+
+        private static byte[] WriteUncompressed(Stream input, uint methodSize)
+        {
+            using (var bw = new BinaryWriterX(new MemoryStream()))
+            {
+                bw.Write(methodSize);
+                input.Position = 0;
+                input.CopyTo(bw.BaseStream);
+                bw.BaseStream.Position = 0;
+                return (bw.BaseStream as MemoryStream)?.ToArray();
             }
         }
     }

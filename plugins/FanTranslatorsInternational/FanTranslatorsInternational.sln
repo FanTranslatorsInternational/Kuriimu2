@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_kuriimu", "plugin_kuriimu\plugin_kuriimu.csproj", "{2085BC86-45E3-4F0D-89B1-E8B25FFC2F2E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_test_adapters", "plugin_test_adapters\plugin_test_adapters.csproj", "{494482EC-BA5C-403F-8B1F-982C121B9E74}"
 EndProject
 Global
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2085BC86-45E3-4F0D-89B1-E8B25FFC2F2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2085BC86-45E3-4F0D-89B1-E8B25FFC2F2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2085BC86-45E3-4F0D-89B1-E8B25FFC2F2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2085BC86-45E3-4F0D-89B1-E8B25FFC2F2E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{494482EC-BA5C-403F-8B1F-982C121B9E74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{494482EC-BA5C-403F-8B1F-982C121B9E74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{494482EC-BA5C-403F-8B1F-982C121B9E74}.Release|Any CPU.ActiveCfg = Release|Any CPU

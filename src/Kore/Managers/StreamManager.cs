@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Timers;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Providers;
+using Kore.Providers;
+using Kore.Streams;
+
+namespace Kore.Managers
+{
+    // TODO: Make internal again
+    /// <summary>
+    /// Provides and manages streams and their lifetime.
+    /// </summary>
+    public class StreamManager : IStreamManager
+    {
+        private readonly Timer _streamCollectionTimer;
+
+        private readonly Guid _guid;
+
+        private readonly IList<Stream> _streams;
+        private readonly IDictionary<Stream, Stream> _parentStreams;
+
+        public StreamManager()
+        {
+            _streamCollectionTimer = new Timer(1000.0);
+            _streamCollectionTimer.Elapsed += StreamCollectionTimer_Elapsed;
+            _streamCollectionTimer.Start();
+
+            _guid = Guid.NewGuid();
+
+            _streams = new List<Stream>();
+            _parentStreams = new Dictionary<Stream, Stream>();
+        }
+
+        /// <inheritdoc />
+        public ITemporaryStreamProvider CreateTemporaryStreamProvider()
+        {
+            var tempDirectory = "tmp\\" + _guid.ToString("D");
+            return new TemporaryStreamProvider(Path.GetFullPath(tempDirectory), this);
+        }
+
+        /// <inheritdoc />
+        public Stream WrapUndisposable(Stream wrap)
+        {
+            var undisposable = new UndisposableStream(wrap);
+
+            if (_streams.Contains(wrap))
+                _parentStreams[undisposable] = wrap;
+            _streams.Add(undisposable);
+
+            return undisposable;
+        }
+
+        /// <inheritdoc />
+        public void Register(Stream stream, Stream parent = null)
+        {
+            if (ContainsStream(stream))
+                throw new InvalidOperationException("The stream is already managed by this provider.");
+
+            if (parent != null && !ContainsStream(parent))
+                throw new InvalidOperationException("The parent stream has to be managed by this provider.");
+
+            _streams.Add(stream);
+            if (parent != null)
+                _parentStreams[parent] = stream;
+        }
+
+        /// <inheritdoc />
+        public bool ContainsStream(Stream stream)
+        {
+            return _streams.Contains(stream);
+        }
+
+        /// <inheritdoc />
+        public void Release(Stream release, bool recursive = false)
+        {
+            if (!ContainsStream(release))
+                throw new InvalidOperationException("The stream is not managed by this provider.");
+
+            // Close all children of the given stream too
+            if (recursive && _parentStreams.ContainsKey(release))
+            {
+                Release(_parentStreams[release], true);
+                _parentStreams.Remove(release);
+            }
+
+            // Release the given stream
+            release.Dispose();
+            _streams.Remove(release);
+        }
+
+        /// <inheritdoc />
+        public void ReleaseAll()
+        {
+            _parentStreams.Clear();
+
+            foreach (var stream in _streams.ToList())
+                Release(stream);
+        }
+
+        /// <summary>
+        /// Acts as the garbage collection process per interval for this instance.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StreamCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            foreach (var stream in _streams.ToList())
+            {
+                if (!stream.CanRead && !stream.CanWrite && !stream.CanSeek)
+                    Release(stream, true);
+            }
+        }
+    }
+}
