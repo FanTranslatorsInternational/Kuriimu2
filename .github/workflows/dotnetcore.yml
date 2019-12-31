@@ -13,10 +13,10 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
-    - name: Build with dotnet
-      run: dotnet build ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
-    - name: Upload build artifact
+    - name: Publish with dotnet
+      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
+    - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Kuriimu2.WinForms-Artifact
-        path: ./dist/Release/net472
+        name: Kuriimu2.WinForms
+        path: ./dist/Release/net472/publish
