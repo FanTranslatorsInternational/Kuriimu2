@@ -1,4 +1,4 @@
-name: .NET Core
+name: Kuriimu2 WinForms
 
 on: [push]
 
@@ -14,4 +14,13 @@ jobs:
       with:
         dotnet-version: 3.1.100
     - name: Build with dotnet
-      run: dotnet build src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
+      run: dotnet build ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
+    - name: Zip build
+      uses: montudor/action-zip@v0.1.0
+      with:
+        args: zip -qq -r ./Kuriimu2.WinForms.zip ./dist/Release/net472
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2.WinForms-Artifact
+        path: ./dist/Release/net472-zip
