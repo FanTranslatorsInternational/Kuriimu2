@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.WinForms.MainForms
 {
-    partial class Kuriimu2
+    partial class Kuriimu2Form
     {
         /// <summary>
         /// Erforderliche Designervariable.
@@ -39,6 +39,8 @@ namespace Kuriimu2.WinForms.MainForms
             this.textSequenceSearcherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.batchProcessorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ciphersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.encryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.compressionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawImageViewerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -47,7 +49,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
-            this.operationProgress = new InfoToolStripProgressBar();
+            this.operationProgress = new Kuriimu2.WinForms.Controls.InfoToolStripProgressBar();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -100,7 +102,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.textSequenceSearcherToolStripMenuItem,
             this.batchProcessorToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // textSequenceSearcherToolStripMenuItem
@@ -119,17 +121,33 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             // ciphersToolStripMenuItem
             // 
-            this.ciphersToolStripMenuItem.Enabled = false;
+            this.ciphersToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.encryptToolStripMenuItem,
+            this.decryptToolStripMenuItem});
             this.ciphersToolStripMenuItem.Name = "ciphersToolStripMenuItem";
             this.ciphersToolStripMenuItem.Size = new System.Drawing.Size(59, 20);
             this.ciphersToolStripMenuItem.Text = "Ciphers";
             // 
+            // encryptToolStripMenuItem
+            // 
+            this.encryptToolStripMenuItem.Name = "encryptToolStripMenuItem";
+            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.encryptToolStripMenuItem.Text = "Encrypt";
+            this.encryptToolStripMenuItem.Click += new System.EventHandler(this.encryptToolStripMenuItem_Click);
+            // 
+            // decryptToolStripMenuItem
+            // 
+            this.decryptToolStripMenuItem.Name = "decryptToolStripMenuItem";
+            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.decryptToolStripMenuItem.Text = "Decrypt";
+            this.decryptToolStripMenuItem.Click += new System.EventHandler(this.decryptToolStripMenuItem_Click);
+            // 
             // hashesToolStripMenuItem
             // 
-            this.hashesToolStripMenuItem.Enabled = false;
             this.hashesToolStripMenuItem.Name = "hashesToolStripMenuItem";
             this.hashesToolStripMenuItem.Size = new System.Drawing.Size(57, 20);
             this.hashesToolStripMenuItem.Text = "Hashes";
+            this.hashesToolStripMenuItem.Click += new System.EventHandler(this.hashesToolStripMenuItem_Click);
             // 
             // compressionsToolStripMenuItem
             // 
@@ -150,7 +168,7 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             this.imageTranscoderToolStripMenuItem.Enabled = false;
             this.imageTranscoderToolStripMenuItem.Name = "imageTranscoderToolStripMenuItem";
-            this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(113, 20);
+            this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(112, 20);
             this.imageTranscoderToolStripMenuItem.Text = "Image Transcoder";
             this.imageTranscoderToolStripMenuItem.Click += new System.EventHandler(this._imgTransToolStrip_Click);
             // 
@@ -208,7 +226,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.operationTimer.Name = "operationTimer";
             this.operationTimer.Size = new System.Drawing.Size(0, 17);
             // 
-            // Kuriimu2
+            // Kuriimu2Form
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -218,7 +236,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.Controls.Add(this.operationStatusBar);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
-            this.Name = "Kuriimu2";
+            this.Name = "Kuriimu2Form";
             this.Text = "Kuriimu2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Kuriimu2_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragDrop);
@@ -253,6 +271,8 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ToolStripMenuItem compressionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rawImageViewerToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem imageTranscoderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem encryptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem decryptToolStripMenuItem;
     }
 }
 

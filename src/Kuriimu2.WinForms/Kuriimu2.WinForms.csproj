@@ -1,12 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
+    <!--<UseWindowsForms>true</UseWindowsForms>-->
+  </PropertyGroup>
 
+  <PropertyGroup>
+    <!--This tag needed to build projects on this new csproj structure with 'dotnet build' and 'dotnet publish' 
+    if binary resources are used (our icon images)-->
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
+
+  <!--https://github.com/dotnet/corefx/issues/30106-->
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\dist\Debug</OutputPath>
@@ -24,6 +30,22 @@
   <ItemGroup>
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
     <ProjectReference Include="..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 
 </Project>

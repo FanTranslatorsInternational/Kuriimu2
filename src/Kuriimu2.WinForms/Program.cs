@@ -13,7 +13,7 @@ namespace Kuriimu2.WinForms
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForms.Kuriimu2());
+            Application.Run(new MainForms.Kuriimu2Form());
         }
     }
 }

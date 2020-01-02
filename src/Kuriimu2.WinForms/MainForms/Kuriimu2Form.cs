@@ -12,14 +12,19 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
 using Kore.Managers.Plugins;
+using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.FormatForms;
 using Kuriimu2.WinForms.Interfaces;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms
 {
-    public partial class Kuriimu2 : Form
+    public partial class Kuriimu2Form : Form
     {
+        private HashTypeExtensionForm _hashForm;
+        private CipherTypeExtensionForm _encryptForm;
+        private CipherTypeExtensionForm _decryptForm;
+
         private IDictionary<IStateInfo, TabPage> _stateTabDictionary;
         private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
         private IDictionary<IKuriimuForm, Color> _formColorDictionary;
@@ -32,9 +37,13 @@ namespace Kuriimu2.WinForms.MainForms
         private Timer _timer;
         private Stopwatch _globalOperationWatch;
 
-        public Kuriimu2()
+        public Kuriimu2Form()
         {
             InitializeComponent();
+
+            _hashForm = new HashTypeExtensionForm();
+            _encryptForm = new EncryptTypeExtensionForm();
+            _decryptForm = new DecryptTypeExtensionForm();
 
             _stateTabDictionary = new Dictionary<IStateInfo, TabPage>();
             _tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
@@ -62,7 +71,7 @@ namespace Kuriimu2.WinForms.MainForms
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
 
-            //LoadExtensions();
+            LoadExtensions();
             //LoadImageViews();
         }
 
@@ -83,12 +92,11 @@ namespace Kuriimu2.WinForms.MainForms
             operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
         }
 
-        //private void LoadExtensions()
-        //{
-        //    LoadCiphers();
-        //    LoadHashes();
-        //    LoadCompressions();
-        //}
+        private void LoadExtensions()
+        {
+            //LoadCiphers();
+            //LoadCompressions();
+        }
 
         //private void LoadImageViews()
         //{
@@ -103,15 +111,6 @@ namespace Kuriimu2.WinForms.MainForms
 
         //    cipherMenuBuilder.AddTreeToMenuStrip(ciphersToolStripMenuItem);
         //    ciphersToolStripMenuItem.Enabled = ciphersToolStripMenuItem.DropDownItems.Count > 0;
-        //}
-
-        //private void LoadHashes()
-        //{
-        //    var hashes = _pluginManager.GetAdapters<IHashAdapter>();
-        //    var hashMenuBuilder = new HashToolStripMenuBuilder(hashes, AddHashDelegates);
-
-        //    hashMenuBuilder.AddTreeToMenuStrip(hashesToolStripMenuItem);
-        //    hashesToolStripMenuItem.Enabled = hashesToolStripMenuItem.DropDownItems.Count > 0;
         //}
 
         //private void LoadCompressions()
@@ -249,7 +248,7 @@ namespace Kuriimu2.WinForms.MainForms
             // Format String
             var drawFormat = new StringFormat
             {
-                Alignment = StringAlignment.Far, 
+                Alignment = StringAlignment.Far,
                 LineAlignment = StringAlignment.Center
             };
 
@@ -767,9 +766,8 @@ namespace Kuriimu2.WinForms.MainForms
 
         private string CreateFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
         {
-            var filters = new List<string>();
+            var filters = new List<string> { "All files|*.*" };
 
-            filters.Add("All files|*.*");
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins))
             {
                 filters.Add($"{plugin.Metadata.Name}|{string.Join(";", plugin.FileExtensions)}");
@@ -786,6 +784,21 @@ namespace Kuriimu2.WinForms.MainForms
         private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //new Batch(_pluginManager).ShowDialog();
+        }
+
+        private void hashesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _hashForm.ShowDialog();
+        }
+
+        private void decryptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _decryptForm.ShowDialog();
+        }
+
+        private void encryptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _encryptForm.ShowDialog();
         }
     }
 }
