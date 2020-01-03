@@ -51,6 +51,8 @@ namespace Kuriimu2.WinForms.MainForms
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
             this.operationProgress = new Kuriimu2.WinForms.Controls.InfoToolStripProgressBar();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
+            this.decompressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.operationStatusBar.SuspendLayout();
@@ -131,14 +133,14 @@ namespace Kuriimu2.WinForms.MainForms
             // encryptToolStripMenuItem
             // 
             this.encryptToolStripMenuItem.Name = "encryptToolStripMenuItem";
-            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.encryptToolStripMenuItem.Text = "Encrypt";
             this.encryptToolStripMenuItem.Click += new System.EventHandler(this.encryptToolStripMenuItem_Click);
             // 
             // decryptToolStripMenuItem
             // 
             this.decryptToolStripMenuItem.Name = "decryptToolStripMenuItem";
-            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.decryptToolStripMenuItem.Text = "Decrypt";
             this.decryptToolStripMenuItem.Click += new System.EventHandler(this.decryptToolStripMenuItem_Click);
             // 
@@ -151,7 +153,9 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             // compressionsToolStripMenuItem
             // 
-            this.compressionsToolStripMenuItem.Enabled = false;
+            this.compressionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.decompressToolStripMenuItem,
+            this.compressToolStripMenuItem});
             this.compressionsToolStripMenuItem.Name = "compressionsToolStripMenuItem";
             this.compressionsToolStripMenuItem.Size = new System.Drawing.Size(94, 20);
             this.compressionsToolStripMenuItem.Text = "Compressions";
@@ -226,6 +230,20 @@ namespace Kuriimu2.WinForms.MainForms
             this.operationTimer.Name = "operationTimer";
             this.operationTimer.Size = new System.Drawing.Size(0, 17);
             // 
+            // decompressToolStripMenuItem
+            // 
+            this.decompressToolStripMenuItem.Name = "decompressToolStripMenuItem";
+            this.decompressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.decompressToolStripMenuItem.Text = "Decompress";
+            this.decompressToolStripMenuItem.Click += new System.EventHandler(this.decompressToolStripMenuItem_Click);
+            // 
+            // compressToolStripMenuItem
+            // 
+            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
+            this.compressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.compressToolStripMenuItem.Text = "Compress";
+            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
+            // 
             // Kuriimu2Form
             // 
             this.AllowDrop = true;
@@ -273,6 +291,8 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ToolStripMenuItem imageTranscoderToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem encryptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem decryptToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem decompressToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem compressToolStripMenuItem;
     }
 }
 

@@ -1,22 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Windows.Forms;
+using Kryptography;
 using Kryptography.AES;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 using Kuriimu2.WinForms.Extensions;
 
 namespace Kuriimu2.WinForms.ExtensionForms
 {
-    enum AesMode
-    {
-        Ecb,
-        Cbc,
-        Ctr,
-        Xts
-    }
-
     class CipherStreamFactory
     {
         private Func<Stream, ExtensionType, Stream> _createStreamDelegate;
@@ -85,6 +77,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             return new List<ExtensionType>
             {
+                new ExtensionType("Xor",true,
+                    new ExtensionTypeParameter("Key",typeof(string))),
+                new ExtensionType("Rot",true,
+                    new ExtensionTypeParameter("Rotation",typeof(byte))),
                 new ExtensionType("AES ECB",true,
                     new ExtensionTypeParameter("Key", typeof(string))),
                 new ExtensionType("AES CBC",true,
@@ -112,6 +108,14 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             switch (selectedExtension.Name)
             {
+                case "Xor":
+                    return new XorStream(input,
+                        selectedExtension.GetParameterValue<string>("Key").Hexlify());
+
+                case "Rot":
+                    return new RotStream(input,
+                        selectedExtension.GetParameterValue<byte>("Rotation"));
+
                 case "AES ECB":
                     return new EcbStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
@@ -136,6 +140,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                         selectedExtension.GetParameterValue<int>("SectorSize"));
 
                 // TODO: Plugin extensibility?
+                // TODO: Add nintendo NCA stream stuff
                 default:
                     return null;
             }

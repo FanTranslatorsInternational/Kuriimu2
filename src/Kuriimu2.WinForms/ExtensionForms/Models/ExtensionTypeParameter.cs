@@ -13,14 +13,21 @@ namespace Kuriimu2.WinForms.ExtensionForms.Models
 
         public object Value { get; set; }
 
-        public ExtensionTypeParameter(string name, Type type, bool isFile = false)
+        public ExtensionTypeParameter(string name, Type type)
         {
             ContractAssertions.IsNotNull(name, nameof(name));
             ContractAssertions.IsNotNull(type, nameof(type));
 
             Name = name;
             ParameterType = type;
-            IsFile = isFile;
+        }
+
+        public ExtensionTypeParameter(string name)
+        {
+            ContractAssertions.IsNotNull(name, nameof(name));
+
+            Name = name;
+            IsFile = true;
         }
     }
 }

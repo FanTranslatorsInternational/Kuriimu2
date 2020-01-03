@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8</LangVersion>
+
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>Kuriimu2.Kompression</PackageId>
     <PackageVersion>2.0.7</PackageVersion>
@@ -16,8 +19,6 @@
     <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>Compression, Kuriimu2</PackageTags>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,8 +39,8 @@
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <DefineConstants>NET_CORE_30</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <DefineConstants>NET_CORE_31</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

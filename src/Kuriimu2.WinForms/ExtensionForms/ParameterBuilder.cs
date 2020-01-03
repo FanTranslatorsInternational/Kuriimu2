@@ -37,6 +37,12 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         public void AddParameter(ExtensionTypeParameter parameter)
         {
+            if (parameter.IsFile)
+            {
+                CreateFileInput(parameter);
+                return;
+            }
+
             if (parameter.ParameterType.IsEnum)
             {
                 CreateComboBox(parameter);
@@ -144,6 +150,61 @@ namespace Kuriimu2.WinForms.ExtensionForms
             _groupBox.Controls.Add(comboBox);
 
             UpdateWidth(width + _controlDiff);
+        }
+
+        private void CreateFileInput(ExtensionTypeParameter parameter)
+        {
+            var labelHeight = 15;
+            var width = 100;
+
+            UpdateLine(width + _controlDiff);
+
+            var label = new Label
+            {
+                Location = new Point(_topLeftCorner.X + _paddingLeft, _topLeftCorner.Y + _paddingTop),
+                Size = new Size(width, labelHeight),
+                Text = parameter.Name + ":",
+                Name = "lbl" + parameter.Name
+            };
+            var textBox = new TextBox
+            {
+                Location = new Point(_topLeftCorner.X + _paddingLeft, _topLeftCorner.Y + _paddingTop + labelHeight),
+                Size = new Size(width - 30, 20),
+                Name = parameter.Name,
+                ReadOnly = true
+            };
+            var button = new Button
+            {
+                Location = new Point(_topLeftCorner.X + _paddingLeft + textBox.Size.Width + 5, _topLeftCorner.Y + _paddingTop + labelHeight),
+                Size = new Size(25, 20),
+                Name = "btn" + parameter.Name,
+                Text = "..."
+            };
+
+            button.Click += Button_Click;
+
+            _groupBox.Controls.Add(label);
+            _groupBox.Controls.Add(textBox);
+            _groupBox.Controls.Add(button);
+
+            UpdateWidth(width + _controlDiff);
+        }
+
+        private void Button_Click(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var textBox = _groupBox.Controls.Find(button.Name.Substring(3), false)[0];
+
+            var ofd = new OpenFileDialog
+            {
+                Filter = "All Files (*.*)|*.*",
+                //InitialDirectory = 
+            };
+
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            textBox.Text = ofd.FileName;
         }
 
         private void UpdateLine(int controlWidth)

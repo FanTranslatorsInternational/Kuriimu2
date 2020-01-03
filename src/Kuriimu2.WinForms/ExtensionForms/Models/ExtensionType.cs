@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Kontract;
 
@@ -23,14 +25,32 @@ namespace Kuriimu2.WinForms.ExtensionForms.Models
             Parameters = parameters.ToDictionary(x => x.Name, y => y);
         }
 
-        public TValue GetParameterValue<TValue>(string name)
+        public Stream GetStream(string name, FileMode mode = FileMode.Open, FileAccess access = FileAccess.ReadWrite)
         {
-            ContractAssertions.IsNotNull(name,nameof(name));
+            ContractAssertions.IsNotNull(name, nameof(name));
 
             if (!Parameters.ContainsKey(name))
-                return default;
+                throw new KeyNotFoundException(name);
 
-            return (TValue) Parameters[name].Value;
+            var parameter = Parameters[name];
+            if (!parameter.IsFile)
+                throw new InvalidOperationException($"Parameter '{name}' is a typed parameter.");
+
+            return File.Open((string)parameter.Value, mode, access);
+        }
+
+        public TValue GetParameterValue<TValue>(string name)
+        {
+            ContractAssertions.IsNotNull(name, nameof(name));
+
+            if (!Parameters.ContainsKey(name))
+                throw new KeyNotFoundException(name);
+
+            var parameter = Parameters[name];
+            if (parameter.IsFile)
+                throw new InvalidOperationException($"Parameter '{name}' is a file parameter.");
+
+            return (TValue)parameter.Value;
         }
 
         public override string ToString()

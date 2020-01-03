@@ -103,11 +103,20 @@ namespace Kompression.Implementations.Encoders
             output.Position = 0;
 
             var magic = new byte[] { 0xFC, 0xAA, 0x55, 0xA7 };
-            output.Write(magic);
-            output.Write(((int)uncompressedLength).GetArrayLittleEndian());
-            output.Write(((int)output.Length).GetArrayLittleEndian());
+            Write(output,magic);
+            Write(output, ((int)uncompressedLength).GetArrayLittleEndian());
+            Write(output, ((int)output.Length).GetArrayLittleEndian());
 
             output.Position = endPosition;
+        }
+
+        private void Write(Stream output, byte[] data)
+        {
+#if NET_CORE_31
+            output.Write(data);
+#else
+            output.Write(data,0,data.Length);
+#endif
         }
 
         public void Dispose()

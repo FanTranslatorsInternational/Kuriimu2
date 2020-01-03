@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using Kompression.Configuration;
 using Kompression.Interfaces;
@@ -59,7 +58,7 @@ namespace Kompression.Implementations.Encoders
                 else
                 {
                     output.WriteByte(0);
-                    output.Write(EncodeLength(length - 3, 4));
+                    Write(output, EncodeLength(length - 3, 4));
                 }
             }
             else
@@ -82,7 +81,7 @@ namespace Kompression.Implementations.Encoders
                     else
                     {
                         output.WriteByte(0);
-                        output.Write(EncodeLength(length - 3, 4));
+                        Write(output, EncodeLength(length - 3, 4));
                     }
                 }
             }
@@ -103,7 +102,7 @@ namespace Kompression.Implementations.Encoders
 
                 output.WriteByte(localCode);
                 if (length > 0x1F)
-                    output.Write(EncodeLength(length, 5));
+                    Write(output, EncodeLength(length, 5));
 
                 // Remember positions for later edit in raw data write
                 _codeBytePosition = output.Position;
@@ -128,7 +127,7 @@ namespace Kompression.Implementations.Encoders
 
                 output.WriteByte(localCode);
                 if (length > 0x7)
-                    output.Write(EncodeLength(length, 3));
+                    Write(output, EncodeLength(length, 3));
 
                 // Remember positions for later edit in raw data write
                 _codeBytePosition = output.Position;
@@ -156,9 +155,19 @@ namespace Kompression.Implementations.Encoders
             var remainder = (byte)(length - fullBytes * 0xFF);
             var result = new byte[fullBytes + (remainder > 0 ? 1 : 0)];
 
-            result[^1] = remainder > 0 ? remainder : (byte)0xFF;
+            // TODO: Use indexer syntax, when moved to net core-only
+            result[result.Length - 1] = remainder > 0 ? remainder : (byte)0xFF;
 
             return result;
+        }
+
+        private void Write(Stream output, byte[] data)
+        {
+#if NET_CORE_31
+            output.Write(data);
+#else
+            output.Write(data, 0, data.Length);
+#endif
         }
 
         public void Dispose()

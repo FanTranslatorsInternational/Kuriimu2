@@ -115,8 +115,8 @@ namespace Kompression.Implementations.Encoders
             output.Position = 0;
 
             output.WriteByte(3);
-            output.Write(((int)output.Length).GetArrayLittleEndian());
-            output.Write(decompressedLength.GetArrayLittleEndian());
+            Write(output, ((int)output.Length).GetArrayLittleEndian());
+            Write(output, decompressedLength.GetArrayLittleEndian());
 
             output.Position = endPosition;
         }
@@ -128,6 +128,17 @@ namespace Kompression.Implementations.Encoders
             Array.Clear(_buffer, 0, _bufferLength);
             _bufferLength = 1;
             _flagCount = 0;
+        }
+
+        // TODO: Check out as extension
+        // TODO: Remove with the move to net core-only
+        private void Write(Stream output, byte[] data)
+        {
+#if NET_CORE_31
+            output.Write(data);
+#else
+            output.Write(data, 0, data.Length);
+#endif
         }
 
         public void Dispose()

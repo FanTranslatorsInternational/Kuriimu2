@@ -24,6 +24,8 @@ namespace Kuriimu2.WinForms.MainForms
         private HashTypeExtensionForm _hashForm;
         private CipherTypeExtensionForm _encryptForm;
         private CipherTypeExtensionForm _decryptForm;
+        private DecompressTypeExtensionForm _decompressForm;
+        private CompressTypeExtensionForm _compressForm;
 
         private IDictionary<IStateInfo, TabPage> _stateTabDictionary;
         private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
@@ -44,6 +46,8 @@ namespace Kuriimu2.WinForms.MainForms
             _hashForm = new HashTypeExtensionForm();
             _encryptForm = new EncryptTypeExtensionForm();
             _decryptForm = new DecryptTypeExtensionForm();
+            _decompressForm = new DecompressTypeExtensionForm();
+            _compressForm = new CompressTypeExtensionForm();
 
             _stateTabDictionary = new Dictionary<IStateInfo, TabPage>();
             _tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
@@ -799,6 +803,16 @@ namespace Kuriimu2.WinForms.MainForms
         private void encryptToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _encryptForm.ShowDialog();
+        }
+
+        private void decompressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _decompressForm.ShowDialog();
+        }
+
+        private void compressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _compressForm.ShowDialog();
         }
     }
 }

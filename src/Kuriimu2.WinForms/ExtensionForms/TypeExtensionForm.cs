@@ -126,6 +126,17 @@ namespace Kuriimu2.WinForms.ExtensionForms
             {
                 var control = gbTypeExtensionParameters.Controls.Find(parameter.Name, false)[0];
 
+                // If type is a file
+                if (parameter.IsFile)
+                {
+                    var fileTextBox = control as TextBox;
+                    if (string.IsNullOrEmpty(fileTextBox.Text))
+                        return false;
+
+                    parameter.Value = fileTextBox.Text;
+                    continue;
+                }
+
                 // If type is an enum
                 if (parameter.ParameterType.IsEnum)
                 {
