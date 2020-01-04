@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
 using Kore.Batch;
+using Kore.Logging;
 using Kuriimu2.WinForms.ExtensionForms.Models;
+using Kuriimu2.WinForms.ExtensionForms.Support;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.ExtensionForms
@@ -14,8 +15,11 @@ namespace Kuriimu2.WinForms.ExtensionForms
     public abstract partial class TypeExtensionForm<TExtension, TResult> : Form
     {
         private bool _isDirectory;
+
         private BatchExtensionProcessor<TExtension, TResult> _batchProcessor;
         private ParameterBuilder _parameterBuilder;
+
+        private IConcurrentLog _log;
 
         protected abstract string TypeExtensionName { get; }
 
@@ -23,7 +27,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             InitializeComponent();
 
-            _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile);
+            txtLog.ForeColor = Color.FromArgb(0x20, 0xC2, 0x0E);
+            _log = new ConcurrentLog(new RichTextboxLogOutput(txtLog));
+
+            _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, _log);
             _parameterBuilder = new ParameterBuilder(gbTypeExtensionParameters);
 
             var loadedExtensions = LoadExtensionTypes();
@@ -84,13 +91,22 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         private void Execute()
         {
+            _log.ResetLog();
+            _log.StartOutput();
+
             if (!VerifyInput())
+            {
+                _log.StopOutput();
                 return;
+            }
 
             var selectedType = (ExtensionType)cmbExtensions.SelectedItem;
 
             if (!TryParseParameters(selectedType.Parameters.Values.ToArray()))
+            {
+                _log.StopOutput();
                 return;
+            }
 
             // Create type
             var createdType = CreateExtensionType(selectedType);
@@ -101,19 +117,21 @@ namespace Kuriimu2.WinForms.ExtensionForms
             ExecuteInternal(txtPath.Text, _isDirectory, chkSubDirectories.Checked, createdType);
 
             ToggleUi(true);
+
+            _log.StopOutput();
         }
 
         private bool VerifyInput()
         {
             if (cmbExtensions.SelectedIndex < 0)
             {
-                MessageBox.Show($"Select a {TypeExtensionName}.", $"No {TypeExtensionName}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _log.QueueMessage(LogLevel.Error, $"Select a {TypeExtensionName}.");
                 return false;
             }
 
             if (string.IsNullOrEmpty(txtPath.Text))
             {
-                MessageBox.Show("Select a file or directory to process.", "No file/folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _log.QueueMessage(LogLevel.Error, "Select a file or directory to process.");
                 return false;
             }
 
@@ -131,7 +149,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 {
                     var fileTextBox = control as TextBox;
                     if (string.IsNullOrEmpty(fileTextBox.Text))
+                    {
+                        _log.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
                         return false;
+                    }
 
                     parameter.Value = fileTextBox.Text;
                     continue;
@@ -142,7 +163,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 {
                     var enumName = ((ComboBox)control).SelectedText;
                     if (!Enum.IsDefined(parameter.ParameterType, enumName))
+                    {
+                        _log.QueueMessage(LogLevel.Error, $"'{enumName}' is no valid member of  parameter '{parameter.Name}'.");
                         return false;
+                    }
 
                     parameter.Value = Enum.Parse(parameter.ParameterType, enumName);
                     continue;
@@ -157,10 +181,20 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 // If type is text based
                 var textBox = (TextBox)control;
+
+                if (string.IsNullOrEmpty(textBox.Text))
+                {
+                    _log.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
+                    return false;
+                }
+
                 if (parameter.ParameterType == typeof(char))
                 {
                     if (!char.TryParse(textBox.Text, out var result))
+                    {
+                        _log.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid character.");
                         return false;
+                    }
 
                     parameter.Value = result;
                     continue;
@@ -173,7 +207,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 }
 
                 if (!TryParseNumber(parameter.ParameterType, textBox.Text, out var value))
+                {
+                    _log.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid '{parameter.ParameterType.Name}'.");
                     return false;
+                }
 
                 parameter.Value = value;
             }

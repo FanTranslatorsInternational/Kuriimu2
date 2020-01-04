@@ -37,6 +37,7 @@
             this.btnExecute = new System.Windows.Forms.Button();
             this.chkSubDirectories = new System.Windows.Forms.CheckBox();
             this.chkAutoExecute = new System.Windows.Forms.CheckBox();
+            this.txtLog = new System.Windows.Forms.RichTextBox();
             this.SuspendLayout();
             // 
             // cmbExtensions
@@ -129,12 +130,24 @@
             this.chkAutoExecute.Text = "Auto-Execute on Drop";
             this.chkAutoExecute.UseVisualStyleBackColor = true;
             // 
+            // txtLog
+            // 
+            this.txtLog.BackColor = System.Drawing.Color.Black;
+            this.txtLog.ForeColor = System.Drawing.Color.White;
+            this.txtLog.Location = new System.Drawing.Point(230, 142);
+            this.txtLog.Name = "txtLog";
+            this.txtLog.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.Vertical;
+            this.txtLog.Size = new System.Drawing.Size(341, 67);
+            this.txtLog.TabIndex = 9;
+            this.txtLog.Text = "";
+            // 
             // TypeExtensionForm
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(583, 221);
+            this.Controls.Add(this.txtLog);
             this.Controls.Add(this.chkAutoExecute);
             this.Controls.Add(this.chkSubDirectories);
             this.Controls.Add(this.btnExecute);
@@ -164,5 +177,6 @@
         private System.Windows.Forms.Button btnExecute;
         private System.Windows.Forms.CheckBox chkSubDirectories;
         private System.Windows.Forms.CheckBox chkAutoExecute;
+        private System.Windows.Forms.RichTextBox txtLog;
     }
 }

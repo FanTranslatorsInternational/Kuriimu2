@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 
-namespace Kuriimu2.WinForms.ExtensionForms
+namespace Kuriimu2.WinForms.ExtensionForms.Support
 {
     class ParameterBuilder
     {
