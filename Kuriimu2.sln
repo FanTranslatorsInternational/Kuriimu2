@@ -16,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "src\Kanvas\Kanvas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2_WinForms", "src\Kuriimu2.WinForms\Kuriimu2.WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.WinForms", "src\Kuriimu2.WinForms\Kuriimu2.WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "src\Kompression\Kompression.csproj", "{D170F614-83C8-4608-96EA-72D30B2AC77E}"
 EndProject
