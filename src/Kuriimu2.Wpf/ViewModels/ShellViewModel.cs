@@ -1,20 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Mime;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Common;
 using Kontract.Interfaces.Plugins.State.Font;
 using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Interfaces.Plugins.State.Text;
-using Kore.Managers;
+using Kore.Managers.Plugins;
 using Kore.Utilities;
-using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
 using Microsoft.Win32;
 

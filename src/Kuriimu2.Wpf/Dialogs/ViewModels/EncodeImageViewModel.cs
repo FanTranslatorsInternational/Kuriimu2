@@ -8,11 +8,10 @@ using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Models.Image;
-using Kore.Managers;
+using Kore.Managers.Plugins;
 using Kore.Models;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Tools;
-
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {

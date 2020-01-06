@@ -9,42 +9,42 @@ namespace Kontract.Interfaces.Plugins.State.Game
     /// </summary>
     public interface IGameAdapter : IGamePlugin
     {
-        // TODO: Implement game adapters
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //string ID { get; }
+        //TODO: Implement game adapters
+        /// <summary>
+        /// 
+        /// </summary>
+        string ID { get; }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //string Name { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string Name { get; }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //string IconPath { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string IconPath { get; }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        //string Filename { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string Filename { get; set; }
 
-        ///// <summary>
-        ///// The list of game text entries provided by the game adapter to the UI.
-        ///// </summary>
-        //IEnumerable<TextEntry> Entries { get; }
+        /// <summary>
+        /// The list of game text entries provided by the game adapter to the UI.
+        /// </summary>
+        IEnumerable<TextEntry> Entries { get; }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="entries"></param>
-        //void LoadEntries(IEnumerable<TextEntry> entries);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="entries"></param>
+        void LoadEntries(IEnumerable<TextEntry> entries);
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <returns></returns>
-        //IEnumerable<TextEntry> SaveEntries();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<TextEntry> SaveEntries();
     }
 }

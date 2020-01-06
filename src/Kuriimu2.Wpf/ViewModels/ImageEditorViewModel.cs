@@ -12,7 +12,7 @@ using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Models.Image;
-using Kore.Managers;
+using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
 using Kuriimu2.Wpf.Tools;
