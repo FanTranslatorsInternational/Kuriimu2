@@ -88,7 +88,7 @@
     <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
-    <ProjectReference Include="..\Kore2\Kore.csproj" />
+    <ProjectReference Include="..\Kore\Kore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
