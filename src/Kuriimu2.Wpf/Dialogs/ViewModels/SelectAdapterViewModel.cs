@@ -6,7 +6,7 @@ using System.Linq;
 using Caliburn.Micro;
 using Kontract.Attributes;
 using Kontract.Interfaces.Plugins.State;
-using Kore.Managers;
+using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.Common;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels

@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Font;
-using Kontract.Interfaces.Plugins.State.Image;
 using Kontract.Interfaces.Plugins.State.Text;
-using Kore.Managers;
+using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Microsoft.Win32;
 
