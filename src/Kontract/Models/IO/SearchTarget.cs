@@ -3,7 +3,7 @@
 
 using Kontract.Interfaces.FileSystem;
 
-namespace Kontract.Models
+namespace Kontract.Models.IO
 {
     /// <summary>
     /// Defines the behavior of <see cref="IFileSystem.EnumeratePaths"/> when looking for files and/or folders.

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces;
 using Kontract.Interfaces.Providers;
+using Kontract.Models.IO;
 
 namespace Kontract.Models.Archive
 {

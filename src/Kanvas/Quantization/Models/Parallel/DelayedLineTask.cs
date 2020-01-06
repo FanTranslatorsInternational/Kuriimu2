@@ -13,14 +13,14 @@ namespace Kanvas.Quantization.Models.Parallel
 
         public Exception TaskException { get; private set; }
 
-        public TInput[] Input { get; }
+        public IList<TInput> Input { get; }
         public TOutput Output { get; }
         public int Start { get; }
         public int Length { get; }
         public int StartThreshold { get; }
         public int ProcessedElements { get; private set; }
 
-        public DelayedLineTask(TInput[] input, TOutput output, int start, int length, int startThreshold, DelayedLineTask<TInput, TOutput> preLineTask)
+        public DelayedLineTask(IList<TInput> input, TOutput output, int start, int length, int startThreshold, DelayedLineTask<TInput, TOutput> preLineTask)
         {
             if (length < startThreshold)
                 throw new InvalidOperationException("Line length can't be smaller than the start threshold.");

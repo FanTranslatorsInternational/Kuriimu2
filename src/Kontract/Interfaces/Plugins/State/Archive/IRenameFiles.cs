@@ -1,5 +1,6 @@
 ﻿using Kontract.Models;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Plugins.State.Archive
 {

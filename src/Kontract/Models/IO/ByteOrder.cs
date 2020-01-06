@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kanvas.Models
+﻿namespace Kontract.Models.IO
 {
     /// <summary>
     /// The byte order in which values should be read.

@@ -5,6 +5,7 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
+using Kontract.Models.IO;
 using Kore.FileSystem.Implementations;
 
 namespace Kore.Factories

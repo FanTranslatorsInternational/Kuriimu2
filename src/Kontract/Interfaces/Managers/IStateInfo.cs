@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Managers
 {

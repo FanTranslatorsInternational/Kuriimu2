@@ -11,6 +11,7 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
+using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.FormatForms;

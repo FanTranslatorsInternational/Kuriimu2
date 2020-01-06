@@ -1,6 +1,6 @@
 ﻿using System;
-using Kanvas.Interface;
 using System.Drawing;
+using Kontract.Kanvas;
 
 namespace Kanvas.Swizzle
 {
@@ -17,10 +17,10 @@ namespace Kanvas.Swizzle
         private readonly (int, int)[] _coordsRegular16Bpp = { (1, 0), (2, 0), (4, 0), (0, 1), (0, 2), (0, 4), (32, 0), (0, 8), (8, 8), (16, 0) };
         private readonly (int, int)[] _coordsRegular32Bpp = { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (0, 8), (8, 8), (16, 0) };
 
-        /// <inheritdoc cref="IImageSwizzle.Width"/>
+        /// <inheritdoc />
         public int Width { get;  }
 
-        /// <inheritdoc cref="IImageSwizzle.Height"/>
+        /// <inheritdoc />
         public int Height { get;  }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Kanvas.Swizzle
             Height = (height + _swizzle.MacroTileHeight - 1) & -_swizzle.MacroTileHeight;
         }
 
-        /// <inheritdoc cref="IImageSwizzle.Get(Point)"/>
-        public Point Get(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
     }
 }

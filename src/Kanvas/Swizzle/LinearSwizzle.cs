@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kanvas.Interface;
+﻿using System.Collections.Generic;
 using System.Drawing;
+using Kontract.Kanvas;
 
 namespace Kanvas.Swizzle
 {
@@ -16,10 +12,10 @@ namespace Kanvas.Swizzle
     {
         public MasterSwizzle Swizzle { get; }
 
-        /// <inheritdoc cref="IImageSwizzle.Width"/>
+        /// <inheritdoc />
         public int Width { get; }
 
-        /// <inheritdoc cref="IImageSwizzle.Height"/>
+        /// <inheritdoc />
         public int Height { get; }
 
         /// <summary>
@@ -40,7 +36,7 @@ namespace Kanvas.Swizzle
             Swizzle = new MasterSwizzle(widthStride, new Point(0, 0), bitField.ToArray());
         }
 
-        /// <inheritdoc cref="IImageSwizzle.Get(Point)"/>
-        public Point Get(Point point) => Swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => Swizzle.Get(point.Y * Width + point.X);
     }
 }

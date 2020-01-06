@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kore.Managers.Plugins.FileManagement
 {

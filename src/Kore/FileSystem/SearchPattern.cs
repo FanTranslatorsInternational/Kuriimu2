@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kore.FileSystem
 {

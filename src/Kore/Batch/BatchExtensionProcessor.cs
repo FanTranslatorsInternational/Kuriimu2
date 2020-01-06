@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kore.Logging;
+using Kontract.Interfaces.Logging;
+using Kontract.Models.Logging;
 
 namespace Kore.Batch
 {
     public class BatchExtensionProcessor<TExtension, TResult>
     {
         private readonly Func<TExtension, string, TResult> _processAction;
-        private readonly IConcurrentLog _log;
+        private readonly IConcurrentLogger _log;
 
         public int TaskCount { get; set; } = Environment.ProcessorCount;
 
-        public BatchExtensionProcessor(Func<TExtension, string, TResult> processAction, IConcurrentLog log)
+        public BatchExtensionProcessor(Func<TExtension, string, TResult> processAction, IConcurrentLogger log)
         {
             _processAction = processAction;
             _log = log;

@@ -14,6 +14,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.FileSystem
 {

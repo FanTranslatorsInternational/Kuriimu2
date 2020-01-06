@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Kanvas.Quantization.Models.ColorCache
+namespace Kontract.Kanvas.Model
 {
     /// <summary>
     /// The model describing the color structure for color caches.

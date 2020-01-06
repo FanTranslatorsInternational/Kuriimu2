@@ -13,5 +13,10 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {1, 3},
             {4, 2}
         };
+
+        public Bayer2Ditherer(int width) :
+            base(width)
+        {
+        }
     }
 }

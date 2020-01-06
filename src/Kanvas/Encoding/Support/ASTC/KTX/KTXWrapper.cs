@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kanvas.Encoding.Support.ASTC.KTX.Models;
-using Kanvas.Models;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.Support.ASTC.KTX
 {

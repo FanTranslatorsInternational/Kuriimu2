@@ -1,11 +1,8 @@
-﻿using Kanvas.Quantization.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kanvas.Quantization.Models.ColorCache;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Quantization.Helper
 {

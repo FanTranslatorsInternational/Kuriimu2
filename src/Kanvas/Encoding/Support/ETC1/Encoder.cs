@@ -50,7 +50,7 @@ namespace Kanvas.Encoding.Support.ETC1
                     .First();
         }
 
-        public void Set(Color c, Action<PixelData> func)
+        public void Set(Color c, Action<Etc1PixelData> func)
         {
             _queue.Add(c);
             if (_queue.Count == 16)
@@ -74,7 +74,7 @@ namespace Kanvas.Encoding.Support.ETC1
                     block = Optimizer.Encode(colors);
                 }
 
-                func(new PixelData { Alpha = alpha, Block = block });
+                func(new Etc1PixelData { Alpha = alpha, Block = block });
                 _queue.Clear();
             }
         }

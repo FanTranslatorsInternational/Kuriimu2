@@ -3,9 +3,9 @@ using System.Drawing;
 using System.IO;
 using Kanvas.Encoding.Support.ETC1;
 using Kanvas.Encoding.Support.ETC1.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
 using Kanvas.Support;
+using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
@@ -77,7 +77,7 @@ namespace Kanvas.Encoding
                     yield return etc1Decoder.Get(() => GetPixelData(br));
         }
 
-        private PixelData GetPixelData(BinaryReader br)
+        private Etc1PixelData GetPixelData(BinaryReader br)
         {
             var etc1Alpha = UseAlpha ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : ulong.MaxValue;
             var colorBlock = Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder);
@@ -90,7 +90,12 @@ namespace Kanvas.Encoding
                 G = (byte)((colorBlock >> 48) & 0xFF),
                 R = (byte)((colorBlock >> 56) & 0xFF)
             };
-            return new PixelData { Alpha = etc1Alpha, Block = etc1Block };
+
+            return new Etc1PixelData
+            {
+                Alpha = etc1Alpha,
+                Block = etc1Block
+            };
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -107,7 +112,7 @@ namespace Kanvas.Encoding
             return ms.ToArray();
         }
 
-        private void SetPixelData(BinaryWriter bw, PixelData data)
+        private void SetPixelData(BinaryWriter bw, Etc1PixelData data)
         {
             if (UseAlpha)
                 bw.Write(Convert.ToByteArray(data.Alpha, 8, ByteOrder));

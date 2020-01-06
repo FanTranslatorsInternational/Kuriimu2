@@ -11,6 +11,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models.LoadInfo;

@@ -15,5 +15,10 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {  7,  2,  3, 10 },
             { 14,  8,  9, 15 }
         };
+
+        public ClusteredDotDitherer(int width) :
+            base(width)
+        {
+        }
     }
 }

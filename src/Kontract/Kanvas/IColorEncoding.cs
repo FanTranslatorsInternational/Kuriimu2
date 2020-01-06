@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace Kanvas.Interface
+namespace Kontract.Kanvas
 {
     /// <summary>
     /// An interface for defining a color encoding to use in the Kanvas image library.

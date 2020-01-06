@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using System.Drawing;
+﻿using System.Drawing;
 
-namespace Kanvas.Interface
+namespace Kontract.Kanvas
 {
     /// <summary>
     /// An interface for creating a swizzle mechanism to use in the Kanvas image library.
@@ -14,11 +8,12 @@ namespace Kanvas.Interface
     public interface IImageSwizzle
     {
         /// <summary>
-        /// The Width the swizzle has to work with.
+        /// The Width of the image to swizzle.
         /// </summary>
         int Width { get; }
+
         /// <summary>
-        /// The Height the swizzle has to work with.
+        /// The Height of the image to swizzle.
         /// </summary>
         int Height { get; }
 
@@ -27,6 +22,6 @@ namespace Kanvas.Interface
         /// </summary>
         /// <param name="point">Point to transform.</param>
         /// <returns>Transformed point.</returns>
-        Point Get(Point point);
+        Point Transform(Point point);
     }
 }

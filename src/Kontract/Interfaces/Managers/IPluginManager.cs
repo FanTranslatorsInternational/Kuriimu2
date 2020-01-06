@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Managers
 {

@@ -3,7 +3,7 @@ using System.Drawing;
 using System.IO;
 using Kanvas.Encoding.Support.PVRTC;
 using Kanvas.Encoding.Support.PVRTC.Models;
-using Kanvas.Interface;
+using Kontract.Kanvas;
 
 namespace Kanvas.Encoding
 {

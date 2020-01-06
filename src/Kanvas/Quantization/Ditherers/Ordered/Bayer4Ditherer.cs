@@ -1,5 +1,4 @@
-﻿using Kanvas.Quantization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,5 +19,10 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {4, 12, 2, 10},
             {16, 8, 14, 6}
         };
+
+        public Bayer4Ditherer(int width) :
+            base(width)
+        {
+        }
     }
 }

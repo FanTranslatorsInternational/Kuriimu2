@@ -64,4 +64,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+  </ItemGroup>
+
 </Project>

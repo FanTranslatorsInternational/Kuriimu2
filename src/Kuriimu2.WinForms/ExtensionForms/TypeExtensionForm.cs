@@ -4,6 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using Kontract.Interfaces.Logging;
+using Kontract.Models.Logging;
 using Kore.Batch;
 using Kore.Logging;
 using Kuriimu2.WinForms.ExtensionForms.Models;
@@ -19,7 +21,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
         private BatchExtensionProcessor<TExtension, TResult> _batchProcessor;
         private ParameterBuilder _parameterBuilder;
 
-        private IConcurrentLog _log;
+        private IConcurrentLogger _log;
 
         protected abstract string TypeExtensionName { get; }
 
@@ -28,7 +30,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
             InitializeComponent();
 
             txtLog.ForeColor = Color.FromArgb(0x20, 0xC2, 0x0E);
-            _log = new ConcurrentLog(new RichTextboxLogOutput(txtLog));
+            _log = new ConcurrentLogger(ApplicationLevel.Ui, new RichTextboxLogOutput(txtLog));
 
             _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, _log);
             _parameterBuilder = new ParameterBuilder(gbTypeExtensionParameters);

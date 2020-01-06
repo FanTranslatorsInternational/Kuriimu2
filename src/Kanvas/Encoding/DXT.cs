@@ -3,9 +3,9 @@ using System.Drawing;
 using System.IO;
 using Kanvas.Encoding.Support.DXT;
 using Kanvas.Encoding.Support.DXT.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
 using Kanvas.Support;
+using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {

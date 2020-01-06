@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Kontract;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kore.Models.LoadInfo
 {

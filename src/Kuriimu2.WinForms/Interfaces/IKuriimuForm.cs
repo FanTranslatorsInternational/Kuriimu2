@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kuriimu2.WinForms.Interfaces
 {

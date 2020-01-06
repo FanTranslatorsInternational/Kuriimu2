@@ -18,5 +18,10 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideWidth => 1;
         protected override int MatrixSideHeight => 1;
         protected override int ErrorLimit => 16;
+
+        public FloydSteinbergDitherer(int width, int height) :
+            base(width, height)
+        {
+        }
     }
 }

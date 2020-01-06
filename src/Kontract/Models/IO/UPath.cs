@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Kontract.Models
+namespace Kontract.Models.IO
 {
     /// <summary>
     /// A uniform unix like path.

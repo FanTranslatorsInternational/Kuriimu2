@@ -6,31 +6,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Interfaces;
 using Kanvas.Quantization.Models;
 using Kanvas.Quantization.Models.Parallel;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Ditherers.Ordered
 {
     public abstract class BaseOrderDitherer : IColorDitherer
     {
-        private IColorQuantizer _quantizer;
-        private int _width;
+        private readonly int _width;
 
         protected abstract byte[,] Matrix { get; }
 
-        public void Prepare(IColorQuantizer quantizer, int width, int height)
+        public int TaskCount { get; set; }
+
+        public BaseOrderDitherer(int width)
         {
-            _quantizer = quantizer;
             _width = width;
         }
 
-        public IEnumerable<int> Process(IEnumerable<Color> colors)
+        public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            var colorList = colors.ToArray();
-            _quantizer.CreatePalette(colorList);
-
-            var processingAction = new Action<LineTask<Color[], int[]>>(taskModel =>
+            var processingAction = new Action<LineTask<IList<Color>, int[]>>(taskModel =>
             {
                 var matrixWidth = Matrix.GetLength(0);
                 var matrixHeight = Matrix.GetLength(1);
@@ -47,12 +44,13 @@ namespace Kanvas.Quantization.Ditherers.Ordered
                     int green = GetClampedValue(color.G + threshold, 0, 255);
                     int blue = GetClampedValue(color.B + threshold, 0, 255);
 
-                    taskModel.Output[i] = _quantizer.GetPaletteIndex(Color.FromArgb(color.A, red, green, blue));
+                    taskModel.Output[i] = colorCache.GetPaletteIndex(Color.FromArgb(color.A, red, green, blue));
                 }
             });
 
-            var indices = new int[colorList.Length];
-            ParallelProcessing.ProcessList(colorList, indices, processingAction, _quantizer.TaskCount);
+            var colorList = colors.ToList();
+            var indices = new int[colorList.Count];
+            ParallelProcessing.ProcessList(colorList, indices, processingAction, TaskCount);
 
             return indices;
         }

@@ -1,42 +1,40 @@
 ﻿using System.Collections.Concurrent;
 using System.Timers;
 using Kontract;
+using Kontract.Interfaces.Logging;
+using Kontract.Models.Logging;
 
 namespace Kore.Logging
 {
-    public class ConcurrentLog : IConcurrentLog
+    public class ConcurrentLogger : IConcurrentLogger
     {
         private readonly ILogOutput _output;
+        private readonly ApplicationLevel _applicationLevel;
 
         private readonly Timer _timer;
-        private ConcurrentQueue<(LogLevel, string)> _queue;
+        private readonly ConcurrentQueue<(LogLevel, string)> _queue;
 
-        public ConcurrentLog(ILogOutput output)
+        public ConcurrentLogger(ApplicationLevel applicationLevel, ILogOutput output)
         {
             ContractAssertions.IsNotNull(output, nameof(output));
 
             _output = output;
+            _applicationLevel = applicationLevel;
 
-            _timer = new Timer(500);
+            _timer = new Timer(1000);
             _timer.Elapsed += Timer_Elapsed;
             _queue = new ConcurrentQueue<(LogLevel, string)>();
         }
 
-        public void StartOutput()
+        public void StartLogging()
         {
             _timer.Start();
         }
 
-        public void StopOutput()
+        public void StopLogging()
         {
             _timer.Stop();
             DumpQueue();
-        }
-
-        public void ResetLog()
-        {
-            _queue = new ConcurrentQueue<(LogLevel, string)>();
-            _output.Clear();
         }
 
         public void QueueMessage(LogLevel level, string message)
@@ -53,7 +51,7 @@ namespace Kore.Logging
         {
             while (_queue.TryDequeue(out var element))
             {
-                _output.LogLine(element.Item1, element.Item2);
+                _output.Log(_applicationLevel, element.Item1, element.Item2);
             }
         }
     }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Dynamic;
 
 namespace Kanvas.Quantization.Models.Quantizer.Wu
 {
@@ -48,14 +50,18 @@ namespace Kanvas.Quantization.Models.Quantizer.Wu
         /// <param name="alphaBits"></param>
         /// <param name="indexCount"></param>
         /// <param name="alphaCount"></param>
-        public Wu3DHistogram(Color[] colors, int indexBits, int alphaBits, int indexCount, int alphaCount)
+        public Wu3DHistogram(int indexBits, int alphaBits, int indexCount, int alphaCount)
         {
             IndexBits = indexBits;
             IndexAlphaBits = alphaBits;
             IndexCount = indexCount;
             IndexAlphaCount = alphaCount;
+        }
 
-            InitializeTables(indexCount * indexCount * indexCount * IndexAlphaCount);
+        public void Create(IList<Color> colors)
+        {
+            InitializeTables(IndexCount * IndexCount * IndexCount * IndexAlphaCount);
+
             FillTables(colors);
             CalculateMoments();
         }
@@ -70,14 +76,14 @@ namespace Kanvas.Quantization.Models.Quantizer.Wu
             M2 = new double[tableLength];
         }
 
-        private void FillTables(Color[] colors)
+        private void FillTables(IList<Color> colors)
         {
-            for (int i = 0; i < colors.Length; i += 4)
+            foreach (var color in colors)
             {
-                int a = colors[i].A;
-                int r = colors[i].R;
-                int g = colors[i].G;
-                int b = colors[i].B;
+                int a = color.A;
+                int r = color.R;
+                int g = color.G;
+                int b = color.B;
 
                 int inr = r >> (8 - IndexBits);
                 int ing = g >> (8 - IndexBits);

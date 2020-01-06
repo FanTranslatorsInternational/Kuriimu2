@@ -6,6 +6,7 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
 namespace Kore.Managers.Plugins
 {

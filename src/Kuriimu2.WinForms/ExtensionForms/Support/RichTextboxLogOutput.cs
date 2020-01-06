@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using Kontract;
-using Kore.Logging;
+using Kontract.Interfaces.Logging;
+using Kontract.Models.Logging;
 
 namespace Kuriimu2.WinForms.ExtensionForms.Support
 {
@@ -16,14 +17,9 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             _richTextBox = richTextBox;
         }
 
-        public void LogLine(LogLevel level, string message)
+        public void Log(ApplicationLevel applicationLevel, LogLevel level, string message)
         {
-            _richTextBox.AppendText($"[{level}] {message}{Environment.NewLine}");
-        }
-
-        public void Clear()
-        {
-            _richTextBox.Clear();
+            _richTextBox.AppendText($"[{applicationLevel}][{level}] {message}{Environment.NewLine}");
         }
     }
 }

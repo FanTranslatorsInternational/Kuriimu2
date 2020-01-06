@@ -2,6 +2,7 @@
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kore.Models.LoadInfo
 {

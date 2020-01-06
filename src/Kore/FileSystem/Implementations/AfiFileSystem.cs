@@ -13,6 +13,7 @@ using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 using Kore.Streams;
 
 namespace Kore.FileSystem.Implementations

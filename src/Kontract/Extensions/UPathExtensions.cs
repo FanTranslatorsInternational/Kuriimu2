@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kontract.Extensions
 {

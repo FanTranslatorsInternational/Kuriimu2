@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kanvas.Interface;
 using System.Drawing;
-using System.Security.Permissions;
 using Kanvas.Swizzle.Models;
+using Kontract.Kanvas;
 
 namespace Kanvas.Swizzle
 {
@@ -18,10 +13,10 @@ namespace Kanvas.Swizzle
         private readonly CtrTransformation _transform;
         private readonly MasterSwizzle _swizzle;
 
-        /// <inheritdoc cref="IImageSwizzle.Width"/>
+        /// <inheritdoc />
         public int Width { get; }
 
-        /// <inheritdoc cref="IImageSwizzle.Height"/>
+        /// <inheritdoc />
         public int Height { get; }
 
         /// <summary>
@@ -41,8 +36,8 @@ namespace Kanvas.Swizzle
             _swizzle = new MasterSwizzle(stride, new Point(0, 0), new[] { (1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4) });
         }
 
-        /// <inheritdoc cref="IImageSwizzle.Get(Point)"/>
-        public Point Get(Point point)
+        /// <inheritdoc />
+        public Point Transform(Point point)
         {
             int pointCount = point.Y * Width + point.X;
             var newPoint = _swizzle.Get(pointCount);

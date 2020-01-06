@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Interfaces;
-using Kanvas.Quantization.Models;
 using Kanvas.Quantization.Models.Ditherer;
 using Kanvas.Quantization.Models.Parallel;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 {
     public abstract class BaseErrorDiffusionDitherer : IColorDitherer
     {
-        private IColorQuantizer _quantizer;
         private int _width;
         private int _height;
+        private IColorCache _colorCache;
 
         protected abstract byte[,] Matrix { get; }
         protected abstract int MatrixSideWidth { get; }
@@ -26,9 +22,10 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 
         protected float[,] ErrorFactorMatrix { get; private set; }
 
-        public void Prepare(IColorQuantizer quantizer, int width, int height)
+        public int TaskCount { get; set; }
+
+        public BaseErrorDiffusionDitherer(int width, int height)
         {
-            _quantizer = quantizer;
             _width = width;
             _height = height;
 
@@ -46,18 +43,16 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                     ErrorFactorMatrix[i, j] = Matrix[i, j] / (float)ErrorLimit;
         }
 
-        public IEnumerable<int> Process(IEnumerable<Color> colors)
+        public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            if (_quantizer == null)
-                throw new ArgumentNullException(nameof(_quantizer));
             if (ErrorFactorMatrix == null)
                 throw new ArgumentNullException(nameof(ErrorFactorMatrix));
 
-            var colorList = colors.ToArray();
-            _quantizer.CreatePalette(colorList);
+            _colorCache = colorCache;
 
-            var indices = new int[colorList.Length];
-            var errorComponents = new ColorComponentError[colorList.Length];
+            var colorList = colors.ToList();
+            var indices = new int[colorList.Count];
+            var errorComponents = new ColorComponentError[colorList.Count];
             for (int i = 0; i < errorComponents.Length; i++)
                 errorComponents[i] = new ColorComponentError(0, 0, 0);
             var errors =
@@ -66,7 +61,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 
             ParallelProcessing.ProcessList(
                 errors, indices, _width,
-                MatrixSideWidth + 1, _quantizer.TaskCount, ProcessingAction);
+                MatrixSideWidth + 1, TaskCount, ProcessingAction);
 
             return indices;
         }
@@ -86,10 +81,10 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                 GetClampedValue(sourceColor.B + error.BlueError, 0, 255));
 
             // Quantize Error diffused source color
-            delayedLineTask.Output[index] = _quantizer.GetPaletteIndex(errorDiffusedColor);
+            delayedLineTask.Output[index] = _colorCache.GetPaletteIndex(errorDiffusedColor);
 
             // Retrieve new quantized color for this point
-            var targetColor = _quantizer.GetPalette()[delayedLineTask.Output[index]];
+            var targetColor = _colorCache.Palette[delayedLineTask.Output[index]];
 
             // Calculate errors to distribute for this point
             int redError = errorDiffusedColor.R - targetColor.R;

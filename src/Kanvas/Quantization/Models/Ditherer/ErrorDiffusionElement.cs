@@ -8,7 +8,7 @@ namespace Kanvas.Quantization.Models.Ditherer
 {
     class ErrorDiffusionElement<TInput1, TInput2>
     {
-        private readonly TInput1[] _input;
+        private readonly IList<TInput1> _input;
         private readonly TInput2[] _errors;
         private readonly int _index;
 
@@ -24,7 +24,7 @@ namespace Kanvas.Quantization.Models.Ditherer
             set => _errors[_index] = value;
         }
 
-        public ErrorDiffusionElement(TInput1[] input, TInput2[] errors, int index)
+        public ErrorDiffusionElement(IList<TInput1> input, TInput2[] errors, int index)
         {
             _input = input;
             _errors = errors;

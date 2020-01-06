@@ -7,9 +7,8 @@ using System.Linq;
 using Kanvas.Encoding.Support.ASTC;
 using Kanvas.Encoding.Support.ASTC.KTX;
 using Kanvas.Encoding.Support.ASTC.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
-using Convert = Kanvas.Support.Convert;
+using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
@@ -96,17 +95,19 @@ namespace Kanvas.Encoding
         private void CreateTempASTCFile(string astcFile, byte[] texData)
         {
             var astc = File.Create(astcFile);
+
             using (var bw = new BinaryWriter(astc, System.Text.Encoding.ASCII, true))
             {
                 bw.Write(0x5CA1AB13);   // magic val
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
-                bw.Write(Convert.ToByteArray(Width, 3, ByteOrder));
-                bw.Write(Convert.ToByteArray(Height, 3, ByteOrder));
-                bw.Write(Convert.ToByteArray(1, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Convert.ToByteArray(Width, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Convert.ToByteArray(Height, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Convert.ToByteArray(1, 3, ByteOrder));
                 bw.Write(texData);
             }
+
             astc.Dispose();
             astc.Close();
         }

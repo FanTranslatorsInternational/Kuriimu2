@@ -17,7 +17,7 @@ namespace Kanvas.Encoding.Support.ETC1
             _queue = new Queue<Color>();
         }
 
-        public Color Get(Func<PixelData> func)
+        public Color Get(Func<Etc1PixelData> func)
         {
             if (_queue.Any())
                 return _queue.Dequeue();

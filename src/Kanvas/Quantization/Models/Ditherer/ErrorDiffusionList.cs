@@ -6,10 +6,10 @@ namespace Kanvas.Quantization.Models.Ditherer
 {
     class ErrorDiffusionList<TInput1, TInput2> : IList<ErrorDiffusionElement<TInput1, TInput2>>
     {
-        private readonly TInput1[] _indeces;
+        private readonly IList<TInput1> _indeces;
         private readonly TInput2[] _errors;
 
-        public ErrorDiffusionList(TInput1[] indeces, TInput2[] errors)
+        public ErrorDiffusionList(IList<TInput1> indeces, TInput2[] errors)
         {
             _indeces = indeces;
             _errors = errors;
@@ -51,7 +51,7 @@ namespace Kanvas.Quantization.Models.Ditherer
             throw new NotSupportedException("Read-only collection.");
         }
 
-        public int Count => _indeces.Length;
+        public int Count => _indeces.Count;
         public bool IsReadOnly => true;
         public int IndexOf(ErrorDiffusionElement<TInput1, TInput2> item)
         {

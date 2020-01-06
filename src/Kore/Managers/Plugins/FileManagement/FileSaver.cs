@@ -7,6 +7,7 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.IO;
 using Kore.Factories;
 
 namespace Kore.Managers.Plugins.FileManagement

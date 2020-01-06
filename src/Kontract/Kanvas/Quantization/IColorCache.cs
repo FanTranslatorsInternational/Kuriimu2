@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kanvas.Quantization.Models;
-using Kanvas.Quantization.Models.ColorCache;
+using Kontract.Kanvas.Model;
 
-namespace Kanvas.Quantization.Interfaces
+namespace Kontract.Kanvas.Quantization
 {
     /// <summary>
     /// Describes methods to cache and manage a limited amount colors.
@@ -28,13 +23,6 @@ namespace Kanvas.Quantization.Interfaces
         /// If <see cref="ColorModel"/> is RGBA, this value decides the threshold for alpha cutting.
         /// </summary>
         int AlphaThreshold { get; }
-
-        /// <summary>
-        /// Prepares the cache.
-        /// </summary>
-        /// <param name="model">The color model to use for index calculations.</param>
-        /// <param name="alphaThreshold">The value at which the alpha colors gets distinguished from opaque colors.</param>
-        void Prepare(ColorModel model, int alphaThreshold = 0);
 
         /// <summary>
         /// Caches a list of colors.

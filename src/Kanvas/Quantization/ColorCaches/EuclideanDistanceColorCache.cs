@@ -1,14 +1,7 @@
 ﻿using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Interfaces;
-using Kanvas.Quantization.Models;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.ColorCaches
 {
@@ -16,10 +9,6 @@ namespace Kanvas.Quantization.ColorCaches
     public class EuclideanDistanceColorCache : BaseColorCache
     {
         private ConcurrentDictionary<int, int> _cache;
-
-        protected override void OnPrepare()
-        {
-        }
 
         protected override void OnCachePalette()
         {

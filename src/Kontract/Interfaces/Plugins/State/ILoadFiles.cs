@@ -1,6 +1,7 @@
 ﻿using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Plugins.State
 {

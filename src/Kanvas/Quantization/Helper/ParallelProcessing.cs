@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Kanvas.Quantization.Models;
 using Kanvas.Quantization.Models.Parallel;
 
 namespace Kanvas.Quantization.Helper
@@ -21,14 +18,14 @@ namespace Kanvas.Quantization.Helper
         /// <param name="output"></param>
         /// <param name="processingAction"></param>
         /// <param name="taskCount"></param>
-        public static void ProcessList<TInput, TOutput>(TInput[] input, TOutput output, Action<LineTask<TInput[], TOutput>> processingAction, int taskCount)
+        public static void ProcessList<TInput, TOutput>(IList<TInput> input, TOutput output, Action<LineTask<IList<TInput>, TOutput>> processingAction, int taskCount)
         {
-            var elementCount = input.Length / taskCount;
-            var overflow = input.Length - elementCount * taskCount;
+            var elementCount = input.Count / taskCount;
+            var overflow = input.Count - elementCount * taskCount;
 
-            var tasks = new LineTask<TInput[], TOutput>[taskCount];
+            var tasks = new LineTask<IList<TInput>, TOutput>[taskCount];
             for (int i = 0; i < taskCount; i++)
-                tasks[i] = new LineTask<TInput[], TOutput>(input, output, i * elementCount, elementCount + (i == taskCount - 1 ? overflow : 0));
+                tasks[i] = new LineTask<IList<TInput>, TOutput>(input, output, i * elementCount, elementCount + (i == taskCount - 1 ? overflow : 0));
 
             Parallel.ForEach(tasks, processingAction);
         }
@@ -44,13 +41,13 @@ namespace Kanvas.Quantization.Helper
         /// <param name="threshold"></param>
         /// <param name="taskCount"></param>
         /// <param name="taskDelegate"></param>
-        public static void ProcessList<TInput, TOutput>(TInput[] inputList, TOutput output, int lineLength, int threshold, int taskCount, Action<DelayedLineTask<TInput, TOutput>, int> taskDelegate)
+        public static void ProcessList<TInput, TOutput>(IList<TInput> inputList, TOutput output, int lineLength, int threshold, int taskCount, Action<DelayedLineTask<TInput, TOutput>, int> taskDelegate)
         {
-            if (inputList.Length % lineLength > 0)
+            if (inputList.Count % lineLength > 0)
                 throw new InvalidOperationException("Length of input list needs to be a multiple of lineLength.");
 
             // create line tasks
-            var count = inputList.Length / lineLength;
+            var count = inputList.Count / lineLength;
             var lineTasks = new DelayedLineTask<TInput, TOutput>[count];
             DelayedLineTask<TInput, TOutput> preTask = null;
             for (int i = 0; i < count; i++)
