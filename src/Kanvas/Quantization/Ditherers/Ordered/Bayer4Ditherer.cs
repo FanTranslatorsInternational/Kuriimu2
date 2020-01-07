@@ -20,8 +20,8 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {16, 8, 14, 6}
         };
 
-        public Bayer4Ditherer(int width) :
-            base(width)
+        public Bayer4Ditherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
         {
         }
     }

@@ -54,7 +54,7 @@ namespace Kanvas.Quantization.ColorCaches
         }
 
         /// <inheritdoc />
-        protected override int OnGetPaletteIndex(Color color)
+        public override int GetPaletteIndex(Color color)
         {
             var bucket = GetBucket(color);
 

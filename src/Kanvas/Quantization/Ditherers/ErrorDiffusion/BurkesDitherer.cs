@@ -19,8 +19,8 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideHeight => 1;
         protected override int ErrorLimit => 32;
 
-        public BurkesDitherer(int width, int height) :
-            base(width, height)
+        public BurkesDitherer(int width, int height, int taskCount) :
+            base(width, height, taskCount)
         {
         }
     }

@@ -21,8 +21,8 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 8;
 
-        public AtkinsonDitherer(int width, int height) :
-            base(width, height)
+        public AtkinsonDitherer(int width, int height, int taskCount) :
+            base(width, height, taskCount)
         {
         }
     }

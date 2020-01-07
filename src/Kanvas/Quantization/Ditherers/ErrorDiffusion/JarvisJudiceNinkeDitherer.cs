@@ -21,8 +21,8 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 48;
 
-        public JarvisJudiceNinkeDitherer(int width, int height) :
-            base(width, height)
+        public JarvisJudiceNinkeDitherer(int width, int height, int taskCount) :
+            base(width, height, taskCount)
         {
         }
     }

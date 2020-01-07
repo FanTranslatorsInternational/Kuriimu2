@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Kanvas.Quantization.Ditherers.Ordered
 {
-    public class DotHalfToneDitherer:BaseOrderDitherer
+    public class DotHalfToneDitherer : BaseOrderDitherer
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -20,8 +21,8 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             { 38, 52, 54, 40, 28, 16, 18, 30 }
         };
 
-        public DotHalfToneDitherer(int width) :
-            base(width)
+        public DotHalfToneDitherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
         {
         }
     }

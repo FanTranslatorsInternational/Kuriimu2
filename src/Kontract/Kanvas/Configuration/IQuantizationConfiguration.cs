@@ -11,13 +11,15 @@ namespace Kontract.Kanvas.Configuration
 
         IQuantizationConfiguration WithTaskCount(int taskCount);
 
+        IQuantizationConfiguration WithColorCount(int colorCount);
+
         IQuantizationConfiguration WithColorCache(Func<IList<Color>, IColorCache> func);
 
         IQuantizationConfiguration WithPalette(Func<IList<Color>> func);
 
-        IQuantizationConfiguration WithColorQuantizer(Func<IColorQuantizer> func);
+        IQuantizationConfiguration WithColorQuantizer(Func<int, int, IColorQuantizer> func);
 
-        IQuantizationConfiguration WithColorDitherer(Func<Size, IColorDitherer> func);
+        IQuantizationConfiguration WithColorDitherer(Func<Size, int, IColorDitherer> func);
 
         IQuantizer Build();
     }

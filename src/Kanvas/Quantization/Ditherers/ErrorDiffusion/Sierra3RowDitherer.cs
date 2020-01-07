@@ -21,8 +21,8 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 32;
 
-        public Sierra3RowDitherer(int width, int height) :
-            base(width, height)
+        public Sierra3RowDitherer(int width, int height, int taskCount) :
+            base(width, height, taskCount)
         {
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,8 +21,8 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {43, 27, 39, 23, 42, 26, 38, 22}
         };
 
-        public Bayer8Ditherer(int width) :
-            base(width)
+        public Bayer8Ditherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
         {
         }
     }

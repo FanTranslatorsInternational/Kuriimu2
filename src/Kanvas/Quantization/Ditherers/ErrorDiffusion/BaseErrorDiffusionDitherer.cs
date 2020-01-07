@@ -13,6 +13,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
     {
         private int _width;
         private int _height;
+        private int _taskCount;
         private IColorCache _colorCache;
 
         protected abstract byte[,] Matrix { get; }
@@ -22,12 +23,11 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 
         protected float[,] ErrorFactorMatrix { get; private set; }
 
-        public int TaskCount { get; set; }
-
-        public BaseErrorDiffusionDitherer(int width, int height)
+        public BaseErrorDiffusionDitherer(int width, int height,int taskCount)
         {
             _width = width;
             _height = height;
+            _taskCount = taskCount;
 
             PrepareErrorFactorMatrix();
         }
@@ -61,7 +61,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 
             ParallelProcessing.ProcessList(
                 errors, indices, _width,
-                MatrixSideWidth + 1, TaskCount, ProcessingAction);
+                MatrixSideWidth + 1, _taskCount, ProcessingAction);
 
             return indices;
         }

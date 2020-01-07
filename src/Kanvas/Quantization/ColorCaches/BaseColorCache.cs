@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using Kanvas.Quantization.Models.ColorCache;
 using Kontract;
-using Kontract.Kanvas.Model;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.ColorCaches
@@ -13,7 +8,7 @@ namespace Kanvas.Quantization.ColorCaches
     public abstract class BaseColorCache : IColorCache
     {
         /// <inheritdoc />
-        public IList<Color> Palette { get; private set; }
+        public IList<Color> Palette { get; }
 
         public BaseColorCache(IList<Color> palette)
         {
@@ -23,11 +18,6 @@ namespace Kanvas.Quantization.ColorCaches
         }
 
         /// <inheritdoc />
-        public int GetPaletteIndex(Color color)
-        {
-            return OnGetPaletteIndex(color);
-        }
-
-        protected abstract int OnGetPaletteIndex(Color color);
+        public abstract int GetPaletteIndex(Color color);
     }
 }

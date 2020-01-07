@@ -8,8 +8,6 @@ namespace Kontract.Kanvas.Quantization
     /// </summary>
     public interface IColorDitherer
     {
-        int TaskCount { get; set; }
-
         /// <summary>
         /// Quantizes and dithers a collection of colors.
         /// </summary>

@@ -89,7 +89,7 @@ namespace Kanvas.Configuration
             var (indices, palette) = quantizer.Process(colors);
 
             // Swizzle indexColors to correct positions
-            var indexColors = SwizzleIndices(indices.Zip(colors), image.Size, _paddedSize, _swizzle);
+            var indexColors = SwizzleIndices(Zip(indices, colors), image.Size, _paddedSize, _swizzle);
 
             // Save palette indexColors
             var paletteData = _paletteEncoding.Save(palette);
@@ -107,13 +107,23 @@ namespace Kanvas.Configuration
 
         private IEnumerable<(int, Color)> SwizzleIndices(IEnumerable<(int, Color)> indexColors, Size imageSize, Size paddedSize, IImageSwizzle swizzle)
         {
-            var indexColorPoints = indexColors.Zip(Composition.GetPointSequence(imageSize, paddedSize, swizzle));
+            var indexColorPoints = Zip(indexColors, Composition.GetPointSequence(imageSize, paddedSize, swizzle));
             return indexColorPoints.OrderBy(cp => GetIndex(cp.Second, imageSize)).Select(x => x.First);
         }
 
         private int GetIndex(Point point, Size imageSize)
         {
             return point.Y * imageSize.Width + point.X;
+        }
+
+        // TODO: Remove when targeting only netcoreapp31
+        private IEnumerable<(TFirst First, TSecond Second)> Zip<TFirst, TSecond>(IEnumerable<TFirst> first, IEnumerable<TSecond> second)
+        {
+#if NET_CORE_31
+            return first.Zip(second);
+#else
+            return first.Zip(second, (f, s) => (f, s));
+#endif
         }
     }
 }

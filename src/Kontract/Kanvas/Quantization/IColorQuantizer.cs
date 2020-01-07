@@ -33,7 +33,8 @@ namespace Kontract.Kanvas.Quantization
         /// <summary>
         /// Gets the fixed color cache for this quantizer.
         /// </summary>
+        /// <param name="palette">The palette to store in the fixed color cache.</param>
         /// <returns>The fixed color cache for this quantizer.</returns>
-        IColorCache GetFixedColorCache();
+        IColorCache GetFixedColorCache(IList<Color> palette);
     }
 }

@@ -9,12 +9,12 @@ using Kontract.Kanvas.Configuration;
 namespace Kanvas.Configuration
 {
     // TODO: PixelShader
-    class ImageConfiguration : IImageConfiguration, IIndexConfiguration
+    public class ImageConfiguration : IImageConfiguration, IIndexConfiguration
     {
         private readonly IQuantizationConfiguration _defaultQuantizationConfig =
             new QuantizationConfiguration()
-                .WithColorQuantizer(() => new WuColorQuantizer(4, 4))
-                .WithColorDitherer(imageSize => new FloydSteinbergDitherer(imageSize.Width, imageSize.Height));
+                .WithColorQuantizer((colorCount, taskCount) => new WuColorQuantizer(4, 4, colorCount))
+                .WithColorDitherer((imageSize, taskCount) => new FloydSteinbergDitherer(imageSize.Width, imageSize.Height, taskCount));
 
         private Size _imageSize;
         private Size _paddedSize;

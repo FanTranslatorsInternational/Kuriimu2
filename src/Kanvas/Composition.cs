@@ -25,7 +25,7 @@ namespace Kanvas
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, imageSize), ImageLockMode.WriteOnly,
                 PixelFormat.Format32bppArgb);
 
-            var colorPoints = colors.Zip(GetPointSequence(image.Size, paddedSize, swizzle));
+            var colorPoints = Zip(colors, GetPointSequence(image.Size, paddedSize, swizzle));
 
             foreach (var (color, point) in colorPoints)
             {
@@ -102,7 +102,7 @@ namespace Kanvas
 
         private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max)
         {
-            return points.Select(p => new Point(Math.Clamp(p.X, min.X, max.X), Math.Clamp(p.Y, min.Y, max.Y)));
+            return points.Select(p => new Point(Clamp(p.X, min.X, max.X), Clamp(p.Y, min.Y, max.Y)));
         }
 
         private static unsafe Color GetColor(BitmapData bitmapData, int index)
@@ -113,6 +113,26 @@ namespace Kanvas
         private static unsafe void SetColor(BitmapData bitmapData, int index, Color color)
         {
             ((int*)bitmapData.Scan0)[index] = color.ToArgb();
+        }
+
+        // TODO: Remove when targeting only netcoreapp31
+        private static IEnumerable<(TFirst First, TSecond Second)> Zip<TFirst, TSecond>(IEnumerable<TFirst> first, IEnumerable<TSecond> second)
+        {
+#if NET_CORE_31
+            return first.Zip(second);
+#else
+            return first.Zip(second, (f, s) => (f, s));
+#endif
+        }
+
+        // TODO: Remove when targeting only netcoreapp31
+        private static int Clamp(int value, int min, int max)
+        {
+#if NET_CORE_31
+            return Math.Clamp(value, min, max);
+#else
+            return Math.Max(min, Math.Min(value, max));
+#endif
         }
     }
 }

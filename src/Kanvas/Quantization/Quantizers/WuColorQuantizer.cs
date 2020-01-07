@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Resources;
 using Kanvas.Quantization.ColorCaches;
-using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Models.Parallel;
 using Kanvas.Quantization.Models.Quantizer.Wu;
 using Kontract.Kanvas.Quantization;
 
@@ -13,9 +10,9 @@ namespace Kanvas.Quantization.Quantizers
 {
     public class WuColorQuantizer : IColorQuantizer
     {
-        private readonly WuColorCache _colorCache;
         private readonly int _colorCount;
 
+        private readonly WuColorCache _colorCache;
         private readonly Wu3DHistogram _histogram;
 
         /// <inheritdoc />
@@ -27,9 +24,7 @@ namespace Kanvas.Quantization.Quantizers
         /// <inheritdoc />
         public bool SupportsAlpha => true;
 
-        // TODO: Get color count
-        // TODO: Get task count
-        public WuColorQuantizer(int indexBits, int indexAlphaBits)
+        public WuColorQuantizer(int indexBits, int indexAlphaBits, int colorCount)
         {
             _colorCache = new WuColorCache(indexBits, indexAlphaBits);
             _histogram = new Wu3DHistogram(indexBits, indexAlphaBits, (1 << indexBits) + 1, (1 << indexAlphaBits) + 1);
@@ -37,7 +32,7 @@ namespace Kanvas.Quantization.Quantizers
             var tableLength = _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexAlphaCount;
             _colorCache.Tag = new byte[tableLength];
 
-            _colorCount = 256;
+            _colorCount = colorCount;
         }
 
         /// <inheritdoc />
@@ -56,8 +51,9 @@ namespace Kanvas.Quantization.Quantizers
         }
 
         /// <inheritdoc />
-        public IColorCache GetFixedColorCache()
+        public IColorCache GetFixedColorCache(IList<Color> palette)
         {
+            _colorCache.SetPalette(palette);
             return _colorCache;
         }
 

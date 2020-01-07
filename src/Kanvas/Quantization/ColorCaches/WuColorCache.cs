@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
-using Kanvas.Quantization.Models.ColorCache;
 using Kanvas.Quantization.Models.Quantizer.Wu;
 using Kontract.Kanvas.Model;
 using Kontract.Kanvas.Quantization;
@@ -14,23 +11,14 @@ namespace Kanvas.Quantization.ColorCaches
         private readonly int _indexBits;
         private readonly int _indexAlphaBits;
 
-        public byte[] Tag { get; set; }
+        internal byte[] Tag { get; set; }
 
         public IList<Color> Palette { get; private set; }
-
-        public ColorModel ColorModel => ColorModel.RGBA;
-
-        public int AlphaThreshold { get; }
 
         public WuColorCache(int indexBits, int indexAlphaBits)
         {
             _indexBits = indexBits;
             _indexAlphaBits = indexAlphaBits;
-        }
-
-        public void CachePalette(IList<Color> palette)
-        {
-            Palette = palette;
         }
 
         public int GetPaletteIndex(Color color)
@@ -43,6 +31,11 @@ namespace Kanvas.Quantization.ColorCaches
             int index = WuCommon.GetIndex(r + 1, g + 1, b + 1, a + 1, _indexBits, _indexAlphaBits);
 
             return Tag[index];
+        }
+
+        internal void SetPalette(IList<Color> palette)
+        {
+            Palette = palette;
         }
     }
 }

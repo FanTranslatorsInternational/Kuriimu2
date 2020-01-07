@@ -4,11 +4,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Kanvas.Quantization.ColorCaches;
-using Kanvas.Quantization.Models.Parallel;
 using Kanvas.Quantization.Models.Quantizer.DistinctSelection;
 using Kanvas.Support;
-using Kontract;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Quantizers
@@ -17,9 +14,10 @@ namespace Kanvas.Quantization.Quantizers
     public class DistinctSelectionColorQuantizer : IColorQuantizer
     {
         private readonly int _colorCount;
+        private readonly int _taskCount;
 
         /// <inheritdoc />
-        public IColorCache ColorCache { get; }
+        public bool IsColorCacheFixed => false;
 
         /// <inheritdoc />
         public bool UsesVariableColorCount => true;
@@ -27,23 +25,14 @@ namespace Kanvas.Quantization.Quantizers
         /// <inheritdoc />
         public bool SupportsAlpha => false;
 
-        /// <inheritdoc />
-        public bool AllowParallel => true;
-
-        /// <inheritdoc />
-        public int TaskCount { get; set; }
-
-        public DistinctSelectionColorQuantizer(int colorCount, IColorCache colorCache)
+        public DistinctSelectionColorQuantizer(int colorCount, int taskCount)
         {
-            ContractAssertions.IsNotNull(colorCache, nameof(colorCache));
-
             _colorCount = colorCount;
-            ColorCache = colorCache;
-
+            _taskCount = taskCount;
         }
 
         /// <inheritdoc />
-        public IColorCache CreateColorCache(IEnumerable<Color> colors)
+        public IList<Color> CreatePalette(IEnumerable<Color> colors)
         {
             // Step 1: Filter out distinct colors
             var distinctColors = FillDistinctColors(colors.ToArray());
@@ -52,15 +41,23 @@ namespace Kanvas.Quantization.Quantizers
             // Step 2.1: If color count not reached, take top(n) colors
             var palette = FilterColorInfos(distinctColors);
 
-            // Step 3: Return color cache
-            return new EuclideanDistanceColorCache(palette);
+            // Step 3: Return palette
+            return palette;
+        }
+
+        /// <inheritdoc />
+        public IColorCache GetFixedColorCache(IList<Color> palette)
+        {
+            throw new NotSupportedException();
         }
 
         private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Color> colors)
         {
             var distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
 
-            colors.AsParallel().ForAll(c => AddOrUpdateDistinctColors(distinctColors, c));
+            colors.AsParallel()
+                .WithDegreeOfParallelism(_taskCount)
+                .ForAll(c => AddOrUpdateDistinctColors(distinctColors, c));
 
             return distinctColors;
         }
@@ -147,22 +144,6 @@ namespace Kanvas.Quantization.Quantizers
 
             comparers.Remove(bestComparer);
             return comparers.Count > 0 && maximalCount > colorCount;
-        }
-
-        private IEnumerable<int> GetIndices(IEnumerable<Color> colors)
-        {
-            var colorList = colors.ToArray();
-            var indices = new int[colorList.Length];
-
-            void ProcessingAction(LineTask<IList<Color>, int[]> taskModel)
-            {
-                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-                    taskModel.Output[i] = ColorCache.GetPaletteIndex(taskModel.Input[i]);
-            }
-
-            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, TaskCount);
-
-            return indices;
         }
 
         #region Equality Comparers
