@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Kontract;
@@ -10,35 +11,29 @@ namespace Kanvas.Configuration
     {
         private readonly IColorQuantizer _colorQuantizer;
         private readonly IColorDitherer _colorDitherer;
+        private readonly IColorCache _colorCache;
 
-        public Quantizer(IColorQuantizer colorQuantizer, IColorDitherer colorDitherer)
+        public Quantizer(IColorQuantizer colorQuantizer, IColorDitherer colorDitherer, IColorCache colorCache)
         {
             ContractAssertions.IsNotNull(colorQuantizer, nameof(colorQuantizer));
 
             _colorQuantizer = colorQuantizer;
             _colorDitherer = colorDitherer;
+            _colorCache = colorCache;
         }
 
         public (IEnumerable<int>, IList<Color>) Process(IEnumerable<Color> colors)
         {
-            if (_colorDitherer != null)
-            {
-                // TODO: Think about not using a color list, but an enumerable
-                var colorList = colors.ToList();
+            var colorList = colors.ToList();
 
-                var palette = _colorQuantizer.CreatePalette(colorList);
-                var indices = _colorDitherer.Process(colorList, _colorQuantizer.ColorCache);
+            // TODO: Rethink approach of returning a color cache from the quantizer
+            // Main problem denying not returning a color cache is wus color quantizer
+            // TODO: Set taskCount correctly
+            var colorCache = _colorCache ?? _colorQuantizer.CreateColorCache(colorList);
+            var indices = _colorDitherer?.Process(colorList, colorCache) ??
+                          Composition.ComposeIndices(colorList, colorCache, Environment.ProcessorCount);
 
-                colorList.Clear();
-                return (indices, palette);
-            }
-            else
-            {
-                var indices = _colorQuantizer.Process(colors).ToArray();
-                var palette = _colorQuantizer.ColorCache.Palette;
-
-                return (indices, palette);
-            }
+            return (indices, colorCache.Palette);
         }
     }
 }

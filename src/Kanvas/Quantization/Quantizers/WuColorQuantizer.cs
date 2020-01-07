@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Resources;
 using Kanvas.Quantization.ColorCaches;
 using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Models.Parallel;
@@ -17,10 +18,8 @@ namespace Kanvas.Quantization.Quantizers
 
         private readonly Wu3DHistogram _histogram;
 
-        private int _tableLength;
-
         /// <inheritdoc />
-        public IColorCache ColorCache => _colorCache;
+        public bool IsColorCacheFixed => true;
 
         /// <inheritdoc />
         public bool UsesVariableColorCount => true;
@@ -28,37 +27,23 @@ namespace Kanvas.Quantization.Quantizers
         /// <inheritdoc />
         public bool SupportsAlpha => true;
 
-        /// <inheritdoc />
-        public bool AllowParallel => true;
-
-        /// <inheritdoc />
-        public int TaskCount { get; set; }
-
+        // TODO: Get color count
+        // TODO: Get task count
         public WuColorQuantizer(int indexBits, int indexAlphaBits)
         {
             _colorCache = new WuColorCache(indexBits, indexAlphaBits);
             _histogram = new Wu3DHistogram(indexBits, indexAlphaBits, (1 << indexBits) + 1, (1 << indexAlphaBits) + 1);
 
-            _tableLength = _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexAlphaCount;
-            _colorCache.Tag = new byte[_tableLength];
+            var tableLength = _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexCount * _histogram.IndexAlphaCount;
+            _colorCache.Tag = new byte[tableLength];
 
             _colorCount = 256;
         }
 
-        public IEnumerable<int> Process(IEnumerable<Color> colors)
-        {
-            var colorArray = colors.ToArray();
-
-            // Step 1: Create palette
-            CreatePalette(colorArray);
-
-            // Step 2: Loop through original colors and deterine their indeces in the palette
-            return GetIndeces(colorArray);
-        }
-
+        /// <inheritdoc />
         public IList<Color> CreatePalette(IEnumerable<Color> colors)
         {
-            Array.Clear(_colorCache.Tag, 0, _tableLength);
+            Array.Clear(_colorCache.Tag, 0, _colorCache.Tag.Length);
 
             // Step 1: Build a 3-dimensional histogram of all colors and calculate their moments
             _histogram.Create(colors.ToList());
@@ -67,11 +52,13 @@ namespace Kanvas.Quantization.Quantizers
             var cube = WuColorCube.Create(_histogram, _colorCount);
 
             // Step 3: Create palette from color cube
-            var palette = CreatePalette(cube).ToList();
+            return CreatePalette(cube).ToList();
+        }
 
-            _colorCache.CachePalette(palette);
-
-            return palette;
+        /// <inheritdoc />
+        public IColorCache GetFixedColorCache()
+        {
+            return _colorCache;
         }
 
         private IEnumerable<Color> CreatePalette(WuColorCube cube)
@@ -107,23 +94,6 @@ namespace Kanvas.Quantization.Quantizers
                     }
                 }
             }
-        }
-
-        // TODO: Make parallel better
-        private IEnumerable<int> GetIndeces(IEnumerable<Color> colors)
-        {
-            var colorList = colors.ToArray();
-            var indices = new int[colorList.Length];
-
-            void ProcessingAction(LineTask<IList<Color>, int[]> taskModel)
-            {
-                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-                    taskModel.Output[i] = _colorCache.GetPaletteIndex(taskModel.Input[i]);
-            }
-
-            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, TaskCount);
-
-            return indices;
         }
     }
 }

@@ -1,22 +1,26 @@
 ﻿using Kanvas.Quantization.Helper;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.ColorCaches
 {
-    /// <inheritdoc cref="IColorCache"/>
+    /// <summary>
+    /// The <see cref="IColorCache"/> to search colors with euclidean distance.
+    /// </summary>
     public class EuclideanDistanceColorCache : BaseColorCache
     {
-        private ConcurrentDictionary<int, int> _cache;
+        private readonly ConcurrentDictionary<int, int> _cache;
 
-        protected override void OnCachePalette()
+        public EuclideanDistanceColorCache(IList<Color> palette) :
+            base(palette)
         {
             _cache = new ConcurrentDictionary<int, int>();
         }
 
-        /// <inheritdoc cref="BaseColorCache.CalculatePaletteIndex"/>
-        protected override int CalculatePaletteIndex(Color color)
+        /// <inheritdoc />
+        protected override int OnGetPaletteIndex(Color color)
         {
             return _cache.AddOrUpdate(color.ToArgb(),
                 colorKey =>
@@ -29,7 +33,7 @@ namespace Kanvas.Quantization.ColorCaches
 
         private int CalculatePaletteIndexInternal(Color color)
         {
-            return ColorModelHelper.GetSmallestEuclideanDistanceIndex(ColorModel, color, Palette, AlphaThreshold);
+            return EuclideanHelper.GetSmallestEuclideanDistanceIndex(Palette, color);
         }
     }
 }

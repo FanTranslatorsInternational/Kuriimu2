@@ -9,7 +9,7 @@ using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.ColorCaches
 {
-    class WuColorCache:IColorCache
+    class WuColorCache : IColorCache
     {
         private readonly int _indexBits;
         private readonly int _indexAlphaBits;
@@ -22,7 +22,7 @@ namespace Kanvas.Quantization.ColorCaches
 
         public int AlphaThreshold { get; }
 
-        public WuColorCache(int indexBits,int indexAlphaBits)
+        public WuColorCache(int indexBits, int indexAlphaBits)
         {
             _indexBits = indexBits;
             _indexAlphaBits = indexAlphaBits;

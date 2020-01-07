@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas.Quantization.ColorCaches;
 using Kanvas.Quantization.Models.Parallel;
 using Kanvas.Quantization.Models.Quantizer.DistinctSelection;
 using Kanvas.Support;
@@ -42,21 +43,7 @@ namespace Kanvas.Quantization.Quantizers
         }
 
         /// <inheritdoc />
-        public IEnumerable<int> Process(IEnumerable<Color> colors)
-        {
-            var colorArray = colors.ToArray();
-
-            // Step 1: Create and cache palette
-            CreatePalette(colorArray);
-
-            // Step 2: Loop through original colors and get nearest match from cache
-            var indices = GetIndices(colorArray);
-
-            return indices;
-        }
-
-        /// <inheritdoc />
-        public IList<Color> CreatePalette(IEnumerable<Color> colors)
+        public IColorCache CreateColorCache(IEnumerable<Color> colors)
         {
             // Step 1: Filter out distinct colors
             var distinctColors = FillDistinctColors(colors.ToArray());
@@ -65,37 +52,24 @@ namespace Kanvas.Quantization.Quantizers
             // Step 2.1: If color count not reached, take top(n) colors
             var palette = FilterColorInfos(distinctColors);
 
-            // Step 3: Cache palette
-            ColorCache.CachePalette(palette);
-
-            return palette;
+            // Step 3: Return color cache
+            return new EuclideanDistanceColorCache(palette);
         }
 
         private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Color> colors)
         {
             var distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
 
-            Split(colors, TaskCount).AsParallel().ForAll(c => ProcessingAction(distinctColors, c));
+            colors.AsParallel().ForAll(c => AddOrUpdateDistinctColors(distinctColors, c));
 
             return distinctColors;
         }
 
-        // TODO: Make extension
-        private IEnumerable<IEnumerable<Color>> Split(IList<Color> list, int parts)
+        private void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Color color)
         {
-            var elementsPerPart = list.Count / parts;
-            return list.Select((color, index) => (color, index))
-                .GroupBy(x => Math.Min(parts - 1, x.index / elementsPerPart))
-                .Select(x => x.Select(y => y.color));
-        }
-
-        // TODO: Rename
-        private void ProcessingAction(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, IEnumerable<Color> colors)
-        {
-            foreach (var color in colors)
-                distinctColors.AddOrUpdate((uint)color.ToArgb(),
-                    key => new DistinctColorInfo(color),
-                    (key, info) => info.IncreaseCount());
+            distinctColors.AddOrUpdate((uint)color.ToArgb(),
+                key => new DistinctColorInfo(color),
+                (key, info) => info.IncreaseCount());
         }
 
         // TODO: Review method
@@ -120,8 +94,8 @@ namespace Kanvas.Quantization.Quantizers
             // Filter by hue, saturation and brightness
             var comparers = new List<IEqualityComparer<DistinctColorInfo>>
             {
-                new ColorHueComparer(), 
-                new ColorSaturationComparer(), 
+                new ColorHueComparer(),
+                new ColorSaturationComparer(),
                 new ColorBrightnessComparer()
             };
 

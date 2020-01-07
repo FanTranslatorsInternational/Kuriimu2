@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas
 {
@@ -62,6 +63,20 @@ namespace Kanvas
             }
 
             image.UnlockBits(bitmapData);
+        }
+
+        /// <summary>
+        /// Composes indices from a collection of colors in relation to an <see cref="IColorCache"/>.
+        /// </summary>
+        /// <param name="colors">The colors to compose to indices.</param>
+        /// <param name="colorCache">The color cache to find the indices with.</param>
+        /// <param name="taskCount">The degree of parallelism.</param>
+        /// <returns>The composed indices.</returns>
+        public static IEnumerable<int> ComposeIndices(IEnumerable<Color> colors, IColorCache colorCache, int taskCount)
+        {
+            return colors.AsParallel().AsOrdered()
+                .WithDegreeOfParallelism(taskCount)
+                .Select(colorCache.GetPaletteIndex);
         }
 
         /// <summary>

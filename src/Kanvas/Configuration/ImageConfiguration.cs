@@ -13,7 +13,7 @@ namespace Kanvas.Configuration
     {
         private readonly IQuantizationConfiguration _defaultQuantizationConfig =
             new QuantizationConfiguration()
-                .WithColorQuantizer(cache => new WuColorQuantizer(4, 4))
+                .WithColorQuantizer(() => new WuColorQuantizer(4, 4))
                 .WithColorDitherer(imageSize => new FloydSteinbergDitherer(imageSize.Width, imageSize.Height));
 
         private Size _imageSize;
@@ -81,8 +81,8 @@ namespace Kanvas.Configuration
 
             var swizzle = _swizzleFunc?.Invoke(imageSize);
 
-            var indexEncoding = _indexFunc.Invoke(imageSize);
-            var paletteEncoding = _paletteFunc.Invoke();
+            var indexEncoding = _indexFunc(imageSize);
+            var paletteEncoding = _paletteFunc();
             var quantizationConfig = _quantFunc?.Invoke(imageSize) ?? _defaultQuantizationConfig.WithImageSize(imageSize);
 
             return new Transcoder(_imageSize, _paddedSize, indexEncoding, paletteEncoding, quantizationConfig, swizzle);
@@ -101,7 +101,7 @@ namespace Kanvas.Configuration
 
             // TODO: Size is currently only used for block compression with native libs,
             // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
-            var colorEncoding = _colorFunc.Invoke(_imageSize);
+            var colorEncoding = _colorFunc(_imageSize);
 
             return new Transcoder(_imageSize, _paddedSize, colorEncoding, swizzle);
         }

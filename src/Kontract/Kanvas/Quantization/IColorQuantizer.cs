@@ -8,7 +8,10 @@ namespace Kontract.Kanvas.Quantization
     /// </summary>
     public interface IColorQuantizer
     {
-        IColorCache ColorCache { get; }
+        /// <summary>
+        /// Determines if the quantizer can only use a fixed color cache.
+        /// </summary>
+        bool IsColorCacheFixed { get; }
 
         /// <summary>
         /// Determines if the color count can be changed.
@@ -21,26 +24,16 @@ namespace Kontract.Kanvas.Quantization
         bool SupportsAlpha { get; }
 
         /// <summary>
-        /// Determines if the quantizer allows parallel processing.
-        /// </summary>
-        bool AllowParallel { get; }
-
-        /// <summary>
-        /// The number of tasks used for quantization.
-        /// </summary>
-        int TaskCount { get; set; }
-
-        /// <summary>
-        /// Quantizes a collection of colors.
-        /// </summary>
-        /// <param name="colors">The collection of colors to quantize.</param>
-        IEnumerable<int> Process(IEnumerable<Color> colors);
-
-        /// <summary>
         /// Creates a palette out of a collection of colors.
         /// </summary>
         /// <param name="colors"></param>
         /// <returns></returns>
         IList<Color> CreatePalette(IEnumerable<Color> colors);
+
+        /// <summary>
+        /// Gets the fixed color cache for this quantizer.
+        /// </summary>
+        /// <returns>The fixed color cache for this quantizer.</returns>
+        IColorCache GetFixedColorCache();
     }
 }
