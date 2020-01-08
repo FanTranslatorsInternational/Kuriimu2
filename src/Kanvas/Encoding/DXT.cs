@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Encoding.Support.DXT;
-using Kanvas.Encoding.Support.DXT.Models;
+using Kanvas.Encoding.BlockCompressions.DXT;
+using Kanvas.Encoding.BlockCompressions.DXT.Models;
 using Kanvas.Support;
 using Kontract.Kanvas;
 using Kontract.Models.IO;

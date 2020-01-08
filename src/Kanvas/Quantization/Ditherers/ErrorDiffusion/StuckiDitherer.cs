@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,8 +22,8 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 42;
 
-        public StuckiDitherer(int width, int height, int taskCount) :
-            base(width, height, taskCount)
+        public StuckiDitherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
         {
         }
     }

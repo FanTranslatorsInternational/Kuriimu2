@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Kanvas.Quantization.Helper;
+using Kanvas.MoreEnumerable;
 using Kanvas.Quantization.Models.ColorCache;
-using Kanvas.Support;
 
 namespace Kanvas.Quantization.ColorCaches
 {

@@ -1,11 +1,10 @@
-﻿using Kanvas.Quantization.Helper;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas.MoreEnumerable;
 using Kanvas.Quantization.Models.Quantizer.DistinctSelection;
-using Kanvas.Support;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Quantizers

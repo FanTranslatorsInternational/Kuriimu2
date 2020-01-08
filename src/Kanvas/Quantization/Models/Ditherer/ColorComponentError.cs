@@ -12,6 +12,13 @@ namespace Kanvas.Quantization.Models.Ditherer
         public int GreenError { get; set; }
         public int BlueError { get; set; }
 
+        public ColorComponentError()
+        {
+            RedError = 0;
+            GreenError = 0;
+            BlueError = 0;
+        }
+
         public ColorComponentError(int redError, int greenError, int blueError)
         {
             RedError = redError;

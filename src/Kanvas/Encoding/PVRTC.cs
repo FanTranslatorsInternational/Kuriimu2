@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Encoding.Support.PVRTC;
-using Kanvas.Encoding.Support.PVRTC.Models;
+using Kanvas.Encoding.BlockCompressions.PVRTC;
+using Kanvas.Encoding.BlockCompressions.PVRTC.Models;
 using Kontract.Kanvas;
 
 namespace Kanvas.Encoding

@@ -4,9 +4,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using Kanvas.Encoding.Support.ASTC;
-using Kanvas.Encoding.Support.ASTC.KTX;
-using Kanvas.Encoding.Support.ASTC.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC;
+using Kanvas.Encoding.BlockCompressions.ASTC.KTX;
+using Kanvas.Encoding.BlockCompressions.ASTC.Models;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 

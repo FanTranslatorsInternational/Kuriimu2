@@ -14,7 +14,7 @@ namespace Kanvas.Configuration
         private readonly IQuantizationConfiguration _defaultQuantizationConfig =
             new QuantizationConfiguration()
                 .WithColorQuantizer((colorCount, taskCount) => new WuColorQuantizer(4, 4, colorCount))
-                .WithColorDitherer((imageSize, taskCount) => new FloydSteinbergDitherer(imageSize.Width, imageSize.Height, taskCount));
+                .WithColorDitherer((imageSize, taskCount) => new FloydSteinbergDitherer(imageSize, taskCount));
 
         private Size _imageSize;
         private Size _paddedSize;

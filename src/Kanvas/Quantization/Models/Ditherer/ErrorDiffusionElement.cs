@@ -1,33 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace Kanvas.Quantization.Models.Ditherer
 {
-    class ErrorDiffusionElement<TInput1, TInput2>
+    class ErrorDiffusionElement
     {
-        private readonly IList<TInput1> _input;
-        private readonly TInput2[] _errors;
+        private readonly IList<Color> _colors;
+        private readonly IList<ColorComponentError> _errors;
+        private readonly IList<int> _indices;
         private readonly int _index;
 
-        public TInput1 Input
+        public Color Input
         {
-            get => _input[_index];
-            set => _input[_index] = value;
+            get => _colors[_index];
+            set => _colors[_index] = value;
         }
 
-        public TInput2 Error
+        public ColorComponentError Error
         {
             get => _errors[_index];
             set => _errors[_index] = value;
         }
 
-        public ErrorDiffusionElement(IList<TInput1> input, TInput2[] errors, int index)
+        public int PaletteIndex
         {
-            _input = input;
+            get => _indices[_index];
+            set => _indices[_index] = value;
+        }
+
+        public ErrorDiffusionElement(IList<Color> colors, IList<ColorComponentError> errors, IList<int> indices, int index)
+        {
+            _colors = colors;
             _errors = errors;
+            _indices = indices;
             _index = index;
         }
     }

@@ -2,31 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Models.Ditherer;
-using Kanvas.Quantization.Models.Parallel;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 {
     public abstract class BaseErrorDiffusionDitherer : IColorDitherer
     {
-        private int _width;
-        private int _height;
-        private int _taskCount;
+        private Size _imageSize;
+        private readonly int _taskCount;
         private IColorCache _colorCache;
+
+        private float[,] _errorFactorMatrix;
 
         protected abstract byte[,] Matrix { get; }
         protected abstract int MatrixSideWidth { get; }
         protected abstract int MatrixSideHeight { get; }
         protected abstract int ErrorLimit { get; }
 
-        protected float[,] ErrorFactorMatrix { get; private set; }
-
-        public BaseErrorDiffusionDitherer(int width, int height,int taskCount)
+        public BaseErrorDiffusionDitherer(Size imageSize, int taskCount)
         {
-            _width = width;
-            _height = height;
+            _imageSize = imageSize;
             _taskCount = taskCount;
 
             PrepareErrorFactorMatrix();
@@ -37,96 +33,109 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             var matrixWidth = Matrix.GetLength(1);
             var matrixHeight = Matrix.GetLength(0);
 
-            ErrorFactorMatrix = new float[matrixHeight, matrixWidth];
-            for (int i = 0; i < matrixHeight; i++)
-                for (int j = 0; j < matrixWidth; j++)
-                    ErrorFactorMatrix[i, j] = Matrix[i, j] / (float)ErrorLimit;
+            _errorFactorMatrix = new float[matrixHeight, matrixWidth];
+            for (var i = 0; i < matrixHeight; i++)
+                for (var j = 0; j < matrixWidth; j++)
+                    _errorFactorMatrix[i, j] = Matrix[i, j] / (float)ErrorLimit;
         }
 
         public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            if (ErrorFactorMatrix == null)
-                throw new ArgumentNullException(nameof(ErrorFactorMatrix));
-
             _colorCache = colorCache;
 
-            var colorList = colors.ToList();
-            var indices = new int[colorList.Count];
-            var errorComponents = new ColorComponentError[colorList.Count];
-            for (int i = 0; i < errorComponents.Length; i++)
-                errorComponents[i] = new ColorComponentError(0, 0, 0);
-            var errors =
-                new ErrorDiffusionList<Color, ColorComponentError>(colorList, errorComponents)
-                    .ToArray();
+            if (!(colors is IList<Color> colorList))
+                colorList = colors.ToList();
 
-            ParallelProcessing.ProcessList(
-                errors, indices, _width,
-                MatrixSideWidth + 1, _taskCount, ProcessingAction);
+            var errorComponents = new ColorComponentError[colorList.Count];
+            var indices = new int[colorList.Count];
+            var errors = new ErrorDiffusionList(colorList, errorComponents, indices);
+
+            var delayedTasks = CreateDelayedTasks(errors).ToArray();
+            ParallelProcessing.ProcessParallel(delayedTasks, _taskCount, delayedLineTask => delayedLineTask.Process(ProcessingAction));
 
             return indices;
         }
 
-        private void ProcessingAction(DelayedLineTask<ErrorDiffusionElement<Color, ColorComponentError>, int[]> delayedLineTask, int index)
+        private IEnumerable<ErrorDiffusionLineTask> CreateDelayedTasks(IList<ErrorDiffusionElement> errors)
+        {
+            ErrorDiffusionLineTask parent = null;
+            for (var i = 0; i < _imageSize.Height; i++)
+            {
+                var delayedTask = new ErrorDiffusionLineTask(
+                    errors, i * _imageSize.Width, _imageSize.Width, MatrixSideWidth + 1, parent);
+                parent = delayedTask;
+
+                yield return delayedTask;
+            }
+        }
+
+        private void ProcessingAction(ErrorDiffusionLineTask task, int index)
         {
             // Get reference elements to work with
-            var inputElement = delayedLineTask.Input[index];
+            var inputElement = task.Elements[index];
             var sourceColor = inputElement.Input;
-            var error = inputElement.Error;
+            var error = inputElement.Error ?? new ColorComponentError();
 
             // Add Error component values to source color
             var errorDiffusedColor = Color.FromArgb(
                 sourceColor.A,
-                GetClampedValue(sourceColor.R + error.RedError, 0, 255),
-                GetClampedValue(sourceColor.G + error.GreenError, 0, 255),
-                GetClampedValue(sourceColor.B + error.BlueError, 0, 255));
+                Clamp(sourceColor.R + error.RedError, 0, 255),
+                Clamp(sourceColor.G + error.GreenError, 0, 255),
+                Clamp(sourceColor.B + error.BlueError, 0, 255));
 
             // Quantize Error diffused source color
-            delayedLineTask.Output[index] = _colorCache.GetPaletteIndex(errorDiffusedColor);
+            task.Elements[index].PaletteIndex = _colorCache.GetPaletteIndex(errorDiffusedColor);
 
             // Retrieve new quantized color for this point
-            var targetColor = _colorCache.Palette[delayedLineTask.Output[index]];
+            var targetColor = _colorCache.Palette[task.Elements[index].PaletteIndex];
 
             // Calculate errors to distribute for this point
-            int redError = errorDiffusedColor.R - targetColor.R;
-            int greenError = errorDiffusedColor.G - targetColor.G;
-            int blueError = errorDiffusedColor.B - targetColor.B;
+            var redError = errorDiffusedColor.R - targetColor.R;
+            var greenError = errorDiffusedColor.G - targetColor.G;
+            var blueError = errorDiffusedColor.B - targetColor.B;
 
             // Retrieve point position
-            var pixelX = index % _width;
-            var pixelY = index / _width;
+            var pixelX = index % _imageSize.Width;
+            var pixelY = index / _imageSize.Width;
 
             // Process the matrix
-            for (int shiftY = -MatrixSideHeight; shiftY <= MatrixSideHeight; shiftY++)
-                for (int shiftX = -MatrixSideWidth; shiftX <= MatrixSideWidth; shiftX++)
+            for (var shiftY = -MatrixSideHeight; shiftY <= MatrixSideHeight; shiftY++)
+            {
+                for (var shiftX = -MatrixSideWidth; shiftX <= MatrixSideWidth; shiftX++)
                 {
-                    int targetX = pixelX + shiftX;
-                    int targetY = pixelY + shiftY;
+                    var targetX = pixelX + shiftX;
+                    var targetY = pixelY + shiftY;
                     var coefficient = Matrix[shiftY + MatrixSideHeight, shiftX + MatrixSideWidth];
-                    var errorFactor = ErrorFactorMatrix[shiftY + MatrixSideHeight, shiftX + MatrixSideWidth];
+                    var errorFactor = _errorFactorMatrix[shiftY + MatrixSideHeight, shiftX + MatrixSideWidth];
 
                     // If substantial Error factor and target point in image bounds
                     if (coefficient != 0 &&
-                        targetX >= 0 && targetX < _width &&
-                        targetY >= 0 && targetY < _height)
+                        targetX >= 0 && targetX < _imageSize.Width &&
+                        targetY >= 0 && targetY < _imageSize.Height)
                     {
                         // Add Error to target point for later processing
-                        var newTarget = delayedLineTask.Input[targetX + targetY * _width];
+                        var newTarget = task.Elements[targetX + targetY * _imageSize.Width];
+                        if (newTarget.Error == null)
+                            newTarget.Error = new ColorComponentError();
+
                         newTarget.Error.RedError += Convert.ToInt32(errorFactor * redError);
                         newTarget.Error.GreenError += Convert.ToInt32(errorFactor * greenError);
                         newTarget.Error.BlueError += Convert.ToInt32(errorFactor * blueError);
                     }
                 }
+
+                inputElement.Error = null;
+            }
         }
 
-        private int GetClampedColorElementWithError(int colorElement, float factor, int error)
+        // TODO: Remove when targeting only netcoreapp31
+        private static int Clamp(int value, int min, int max)
         {
-            int result = Convert.ToInt32(colorElement + factor * error);
-            return GetClampedValue(result, 0, 255);
-        }
-
-        private int GetClampedValue(int value, int min, int max)
-        {
-            return Math.Min(Math.Max(value, min), max);
+#if NET_CORE_31
+            return Math.Clamp(value, min, max);
+#else
+            return Math.Max(min, Math.Min(value, max));
+#endif
         }
     }
 }

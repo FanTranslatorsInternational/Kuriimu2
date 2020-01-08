@@ -1,23 +1,37 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 
 namespace Kanvas.Quantization.Models.Ditherer
 {
-    class ErrorDiffusionList<TInput1, TInput2> : IList<ErrorDiffusionElement<TInput1, TInput2>>
+    class ErrorDiffusionList : IList<ErrorDiffusionElement>
     {
-        private readonly IList<TInput1> _indeces;
-        private readonly TInput2[] _errors;
+        private readonly IList<Color> _colors;
+        private readonly IList<ColorComponentError> _errors;
+        private readonly IList<int> _indices;
 
-        public ErrorDiffusionList(IList<TInput1> indeces, TInput2[] errors)
+        public int Count => _colors.Count;
+
+        public bool IsReadOnly => true;
+
+        public ErrorDiffusionElement this[int index]
         {
-            _indeces = indeces;
-            _errors = errors;
+            get => new ErrorDiffusionElement(_colors, _errors, _indices, index);
+            set => throw new NotSupportedException();
         }
 
-        public IEnumerator<ErrorDiffusionElement<TInput1, TInput2>> GetEnumerator()
+        public ErrorDiffusionList(IList<Color> colors, IList<ColorComponentError> errors, IList<int> indices)
         {
-            throw new NotImplementedException();
+            _colors = colors;
+            _errors = errors;
+            _indices = indices;
+        }
+
+        public IEnumerator<ErrorDiffusionElement> GetEnumerator()
+        {
+            return _colors.Select((c, i) => new ErrorDiffusionElement(_colors, _errors, _indices, i)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -25,53 +39,47 @@ namespace Kanvas.Quantization.Models.Ditherer
             return GetEnumerator();
         }
 
-        public void Add(ErrorDiffusionElement<TInput1, TInput2> item)
+        public void Add(ErrorDiffusionElement item)
         {
-            throw new NotSupportedException("Read-only collection.");
+            _colors.Add(item.Input);
+            _errors.Add(item.Error);
         }
 
         public void Clear()
         {
-            throw new NotSupportedException("Read-only collection.");
+            _colors.Clear();
+            _errors.Clear();
         }
 
-        public bool Contains(ErrorDiffusionElement<TInput1, TInput2> item)
+        public bool Contains(ErrorDiffusionElement item)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public void CopyTo(ErrorDiffusionElement<TInput1, TInput2>[] array, int arrayIndex)
+        public void CopyTo(ErrorDiffusionElement[] array, int arrayIndex)
         {
-            for (int i = arrayIndex; i < array.Length; i++)
-                array[i] = new ErrorDiffusionElement<TInput1, TInput2>(_indeces, _errors, i);
+            for (var i = arrayIndex; i < array.Length; i++)
+                array[i] = this[i];
         }
 
-        public bool Remove(ErrorDiffusionElement<TInput1, TInput2> item)
+        public bool Remove(ErrorDiffusionElement item)
         {
-            throw new NotSupportedException("Read-only collection.");
+            throw new NotSupportedException();
         }
 
-        public int Count => _indeces.Count;
-        public bool IsReadOnly => true;
-        public int IndexOf(ErrorDiffusionElement<TInput1, TInput2> item)
+        public int IndexOf(ErrorDiffusionElement item)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public void Insert(int index, ErrorDiffusionElement<TInput1, TInput2> item)
+        public void Insert(int index, ErrorDiffusionElement item)
         {
-            throw new NotSupportedException("Read-only collection.");
+            throw new NotSupportedException();
         }
 
         public void RemoveAt(int index)
         {
-            throw new NotSupportedException("Read-only collection.");
-        }
-
-        public ErrorDiffusionElement<TInput1, TInput2> this[int index]
-        {
-            get => new ErrorDiffusionElement<TInput1, TInput2>(_indeces, _errors, index);
-            set => throw new NotSupportedException("Read-only collection.");
+            throw new NotSupportedException();
         }
     }
 }

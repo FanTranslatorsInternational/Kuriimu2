@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Encoding.Support.ATC;
-using Kanvas.Encoding.Support.ATC.Models;
+using Kanvas.Encoding.BlockCompressions.ATC;
+using Kanvas.Encoding.BlockCompressions.ATC.Models;
 using Kanvas.Support;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
