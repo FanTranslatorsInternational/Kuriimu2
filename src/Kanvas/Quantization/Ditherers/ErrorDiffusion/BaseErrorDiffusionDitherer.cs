@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using Kanvas.MoreEnumerable;
 using Kanvas.Quantization.Models.Ditherer;
 using Kontract.Kanvas.Quantization;
 
@@ -43,38 +46,44 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         {
             _colorCache = colorCache;
 
-            if (!(colors is IList<Color> colorList))
-                colorList = colors.ToList();
+            var count = _imageSize.Width * _imageSize.Height;
+            var errorComponents = new ConcurrentDictionary<int, ColorComponentError>();
+            var indices = new int[count];
 
-            var errorComponents = new ColorComponentError[colorList.Count];
-            var indices = new int[colorList.Count];
-            var errors = new ErrorDiffusionList(colorList, errorComponents, indices);
-
-            var delayedTasks = CreateDelayedTasks(errors).ToArray();
+            var delayedTasks = CreateDelayedTasks(colors, errorComponents, indices);
             ParallelProcessing.ProcessParallel(delayedTasks, _taskCount, delayedLineTask => delayedLineTask.Process(ProcessingAction));
 
             return indices;
         }
 
-        private IEnumerable<ErrorDiffusionLineTask> CreateDelayedTasks(IList<ErrorDiffusionElement> errors)
+        private IEnumerable<ErrorDiffusionLineTask> CreateDelayedTasks(IEnumerable<Color> colors, IDictionary<int, ColorComponentError> errors, IList<int> indices)
         {
+            var startIndex = 0;
+
             ErrorDiffusionLineTask parent = null;
-            for (var i = 0; i < _imageSize.Height; i++)
+            foreach (var colorLine in colors.Batch(_imageSize.Width))
             {
+                var colorLineList = colorLine.ToList();
+                var errorElements = colorLineList.Select((c, index) =>
+                     new ErrorDiffusionElement2(colorLineList, index, errors, indices));
+
                 var delayedTask = new ErrorDiffusionLineTask(
-                    errors, i * _imageSize.Width, _imageSize.Width, MatrixSideWidth + 1, parent);
+                    errorElements, startIndex, _imageSize.Width, MatrixSideWidth + 1, parent);
+
                 parent = delayedTask;
+                startIndex += _imageSize.Width;
 
                 yield return delayedTask;
             }
         }
 
-        private void ProcessingAction(ErrorDiffusionLineTask task, int index)
+        private void ProcessingAction(ErrorDiffusionElement2 element, int index)
         {
             // Get reference elements to work with
-            var inputElement = task.Elements[index];
-            var sourceColor = inputElement.Input;
-            var error = inputElement.Error ?? new ColorComponentError();
+            var sourceColor = element.Color;
+            if (!element.Errors.ContainsKey(index))
+                element.Errors.Add(index, new ColorComponentError());
+            var error = element.Errors[index];
 
             // Add Error component values to source color
             var errorDiffusedColor = Color.FromArgb(
@@ -84,10 +93,10 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                 Clamp(sourceColor.B + error.BlueError, 0, 255));
 
             // Quantize Error diffused source color
-            task.Elements[index].PaletteIndex = _colorCache.GetPaletteIndex(errorDiffusedColor);
+            element.Indices[index] = _colorCache.GetPaletteIndex(errorDiffusedColor);
 
             // Retrieve new quantized color for this point
-            var targetColor = _colorCache.Palette[task.Elements[index].PaletteIndex];
+            var targetColor = _colorCache.Palette[element.Indices[index]];
 
             // Calculate errors to distribute for this point
             var redError = errorDiffusedColor.R - targetColor.R;
@@ -114,17 +123,18 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                         targetY >= 0 && targetY < _imageSize.Height)
                     {
                         // Add Error to target point for later processing
-                        var newTarget = task.Elements[targetX + targetY * _imageSize.Width];
-                        if (newTarget.Error == null)
-                            newTarget.Error = new ColorComponentError();
+                        var newIndex = targetX + targetY * _imageSize.Width;
+                        if (!element.Errors.ContainsKey(newIndex))
+                            element.Errors.Add(newIndex, new ColorComponentError());
+                        var newTarget = element.Errors[newIndex];
 
-                        newTarget.Error.RedError += Convert.ToInt32(errorFactor * redError);
-                        newTarget.Error.GreenError += Convert.ToInt32(errorFactor * greenError);
-                        newTarget.Error.BlueError += Convert.ToInt32(errorFactor * blueError);
+                        newTarget.RedError += Convert.ToInt32(errorFactor * redError);
+                        newTarget.GreenError += Convert.ToInt32(errorFactor * greenError);
+                        newTarget.BlueError += Convert.ToInt32(errorFactor * blueError);
                     }
                 }
 
-                inputElement.Error = null;
+                element.Errors.Remove(index);
             }
         }
 

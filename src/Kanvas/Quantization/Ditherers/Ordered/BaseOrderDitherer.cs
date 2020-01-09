@@ -27,27 +27,6 @@ namespace Kanvas.Quantization.Ditherers.Ordered
 
         public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            //var processingAction = new Action<LineTask<IList<Color>, int[]>>(taskModel =>
-            //{
-            //    var matrixWidth = Matrix.GetLength(0);
-            //    var matrixHeight = Matrix.GetLength(1);
-
-            //    for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-            //    {
-            //        int x = i % _width % matrixWidth;
-            //        int y = i / _width % matrixHeight;
-
-            //        int threshold = Convert.ToInt32(Matrix[x, y]);
-            //        var color = taskModel.Input[i];
-
-            //        int red = GetClampedValue(color.R + threshold, 0, 255);
-            //        int green = GetClampedValue(color.G + threshold, 0, 255);
-            //        int blue = GetClampedValue(color.B + threshold, 0, 255);
-
-            //        taskModel.Output[i] = colorCache.GetPaletteIndex(Color.FromArgb(color.A, red, green, blue));
-            //    }
-            //});
-
             return Zip(colors, Composition.GetPointSequence(_imageSize, Size.Empty))
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(_taskCount)

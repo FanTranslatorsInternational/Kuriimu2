@@ -21,6 +21,8 @@ namespace Kanvas
                 ClearCompletedTasks(taskBuffer);
                 FillTasks(taskBuffer, enumerator, taskDelegate);
             }
+
+            enumerator.Dispose();
         }
 
         private static void FillTasks<TTask>(Task[] tasks, IEnumerator<TTask> enumerator, Action<TTask> taskDelegate)
