@@ -47,18 +47,19 @@ namespace Kanvas.Configuration
         private IColorCache GetColorCache(IEnumerable<Color> colors)
         {
             var palette = _paletteFunc?.Invoke();
-            if (palette == null)
-            {
-                palette = _colorQuantizer.CreatePalette(colors);
-                return _colorQuantizer.IsColorCacheFixed ? 
-                    _colorQuantizer.GetFixedColorCache(palette) : 
-                    _colorCacheFunc?.Invoke(palette);
-            }
-            else
-            {
-                return _colorCacheFunc?.Invoke(palette) ?? 
-                       new EuclideanDistanceColorCache(palette);
-            }
+            if (palette != null)
+                return InvokeColorCacheDelegate(palette);
+
+            palette = _colorQuantizer.CreatePalette(colors);
+            return _colorQuantizer.IsColorCacheFixed ?
+                _colorQuantizer.GetFixedColorCache(palette) :
+                InvokeColorCacheDelegate(palette);
+        }
+
+        private IColorCache InvokeColorCacheDelegate(IList<Color> palette)
+        {
+            return _colorCacheFunc?.Invoke(palette) ??
+                   new EuclideanDistanceColorCache(palette);
         }
     }
 }
