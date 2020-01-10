@@ -6,34 +6,21 @@ namespace Kanvas.Quantization.Models.Ditherer
     class ErrorDiffusionElement
     {
         private readonly IList<Color> _colors;
-        private readonly IList<ColorComponentError> _errors;
-        private readonly IList<int> _indices;
-        private readonly int _index;
+        private readonly int _colorIndex;
 
-        public Color Input
-        {
-            get => _colors[_index];
-            set => _colors[_index] = value;
-        }
+        public Color Color => _colors[_colorIndex];
 
-        public ColorComponentError Error
-        {
-            get => _errors[_index];
-            set => _errors[_index] = value;
-        }
+        public IDictionary<int, ColorComponentError> Errors { get; }
 
-        public int PaletteIndex
-        {
-            get => _indices[_index];
-            set => _indices[_index] = value;
-        }
+        public IList<int> Indices { get; }
 
-        public ErrorDiffusionElement(IList<Color> colors, IList<ColorComponentError> errors, IList<int> indices, int index)
+        public ErrorDiffusionElement(IList<Color> colors, int colorIndex, IDictionary<int, ColorComponentError> errors, IList<int> indices)
         {
             _colors = colors;
-            _errors = errors;
-            _indices = indices;
-            _index = index;
+            _colorIndex = colorIndex;
+
+            Errors = errors;
+            Indices = indices;
         }
     }
 }

@@ -11,13 +11,13 @@ namespace Kanvas.Quantization.Models.Ditherer
         private readonly int _length;
         private readonly int _threshold;
 
-        private IEnumerable<ErrorDiffusionElement2> _elements;
+        private IEnumerable<ErrorDiffusionElement> _elements;
 
         public int ProcessedElements { get; private set; }
 
         public bool IsFinished { get; private set; }
 
-        public ErrorDiffusionLineTask(IEnumerable<ErrorDiffusionElement2> input, int start, int length, int threshold, ErrorDiffusionLineTask parentTask)
+        public ErrorDiffusionLineTask(IEnumerable<ErrorDiffusionElement> input, int start, int length, int threshold, ErrorDiffusionLineTask parentTask)
         {
             if (length < threshold)
                 throw new InvalidOperationException("Line length can't be smaller than the start threshold.");
@@ -31,7 +31,7 @@ namespace Kanvas.Quantization.Models.Ditherer
             _threshold = threshold;
         }
 
-        public void Process(Action<ErrorDiffusionElement2, int> processDelegate)
+        public void Process(Action<ErrorDiffusionElement, int> processDelegate)
         {
             var enumerator = _elements.GetEnumerator();
 
@@ -42,14 +42,7 @@ namespace Kanvas.Quantization.Models.Ditherer
 
                 enumerator.MoveNext();
 
-                try
-                {
-                    processDelegate(enumerator.Current, ProcessedElements + _start);
-                }
-                catch (Exception e)
-                {
-                    ;
-                }
+                processDelegate(enumerator.Current, ProcessedElements + _start);
 
                 ProcessedElements++;
             }

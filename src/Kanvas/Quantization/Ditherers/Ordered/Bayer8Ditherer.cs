@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Quantization.Ditherers.Ordered
 {
-    public class Bayer8Ditherer : BaseOrderDitherer
+    public class Bayer8Ditherer : BaseOrderedDitherer
     {
         protected override byte[,] Matrix => new byte[,]
         {

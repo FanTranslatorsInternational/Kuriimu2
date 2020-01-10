@@ -6,7 +6,7 @@ using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Ditherers.Ordered
 {
-    public abstract class BaseOrderDitherer : IColorDitherer
+    public abstract class BaseOrderedDitherer : IColorDitherer
     {
         private readonly Size _imageSize;
         private readonly int _taskCount;
@@ -16,7 +16,7 @@ namespace Kanvas.Quantization.Ditherers.Ordered
 
         protected abstract byte[,] Matrix { get; }
 
-        public BaseOrderDitherer(Size imageSize, int taskCount)
+        public BaseOrderedDitherer(Size imageSize, int taskCount)
         {
             _imageSize = imageSize;
             _taskCount = taskCount;

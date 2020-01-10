@@ -37,11 +37,22 @@ namespace Kanvas.Configuration
             var colorList = colors.ToList();
 
             var colorCache = GetColorCache(colorList);
-            // TODO: Just return edited colors from ditherer to combine index gathering?
             var indices = _colorDitherer?.Process(colorList, colorCache) ??
                           Composition.ComposeIndices(colorList, colorCache, _taskCount);
 
             return (indices, colorCache.Palette);
+        }
+
+        // TODO: Set new image size for the image
+        /// <inheritdoc />
+        public Image ProcessImage(Bitmap image)
+        {
+            var colors = Composition.DecomposeImage(image, Size.Empty);
+
+            var (indices, palette) = Process(colors);
+            var newColors = indices.Select(i => palette[i]);
+
+            return Composition.ComposeImage(newColors, image.Size, Size.Empty);
         }
 
         private IColorCache GetColorCache(IEnumerable<Color> colors)

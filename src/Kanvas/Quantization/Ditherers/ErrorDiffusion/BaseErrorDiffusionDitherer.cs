@@ -65,7 +65,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             {
                 var colorLineList = colorLine.ToList();
                 var errorElements = colorLineList.Select((c, index) =>
-                     new ErrorDiffusionElement2(colorLineList, index, errors, indices));
+                     new ErrorDiffusionElement(colorLineList, index, errors, indices));
 
                 var delayedTask = new ErrorDiffusionLineTask(
                     errorElements, startIndex, _imageSize.Width, MatrixSideWidth + 1, parent);
@@ -77,7 +77,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             }
         }
 
-        private void ProcessingAction(ErrorDiffusionElement2 element, int index)
+        private void ProcessingAction(ErrorDiffusionElement element, int index)
         {
             // Get reference elements to work with
             var sourceColor = element.Color;

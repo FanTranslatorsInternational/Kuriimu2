@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Kanvas.Quantization.Models.Ditherer
+﻿namespace Kanvas.Quantization.Models.Ditherer
 {
     class ColorComponentError
     {
@@ -17,13 +11,6 @@ namespace Kanvas.Quantization.Models.Ditherer
             RedError = 0;
             GreenError = 0;
             BlueError = 0;
-        }
-
-        public ColorComponentError(int redError, int greenError, int blueError)
-        {
-            RedError = redError;
-            GreenError = greenError;
-            BlueError = blueError;
         }
     }
 }
