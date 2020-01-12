@@ -18,7 +18,7 @@ namespace Kanvas.Encoding.Models
 
         public RgbaPixelDescriptor(string componentOrder, int r, int g, int b, int a)
         {
-            AssertValidOrder(componentOrder);
+            AssertValidOrder(componentOrder.ToLower());
             AssertBitDepth(r + g + b + a);
 
             SetupLookupTables(componentOrder, r, g, b, a);
@@ -88,7 +88,7 @@ namespace Kanvas.Encoding.Models
             ContractAssertions.IsNotNull(componentOrder, nameof(componentOrder));
             ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 4);
 
-            if (!Regex.IsMatch(componentOrder, "^[RGBArgba]{1,4}$"))
+            if (!Regex.IsMatch(componentOrder, "^[rgba]{1,4}$"))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
