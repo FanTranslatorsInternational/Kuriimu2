@@ -4,7 +4,7 @@ using Kontract.Models.IO;
 
 namespace Kanvas.Support
 {
-    internal static class Convert
+    internal static class Conversion
     {
         #region From byte[]
         public static TOut FromByteArray<TOut>(byte[] input, ByteOrder byteOrder)

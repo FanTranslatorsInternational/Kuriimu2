@@ -76,7 +76,7 @@ namespace Kanvas.Encoding
                             value = br.ReadByte();
                             break;
                         case 16:
-                            value = Kanvas.Support.Convert.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
+                            value = Kanvas.Support.Conversion.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
                             break;
                         default:
                             throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");
@@ -91,8 +91,8 @@ namespace Kanvas.Encoding
         {
             return Color.FromArgb(
                 255,
-                (RedDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value >> redShift & redBitMask), RedDepth, 8),
-                (GreenDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value & greenBitMask), GreenDepth, 8),
+                (RedDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value >> redShift & redBitMask), RedDepth, 8),
+                (GreenDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value & greenBitMask), GreenDepth, 8),
                 255);
         }
 
@@ -106,8 +106,8 @@ namespace Kanvas.Encoding
             {
                 foreach (var color in colors)
                 {
-                    var r = (RedDepth == 0) ? 0 : Kanvas.Support.Convert.ChangeBitDepth(color.R, 8, RedDepth);
-                    var g = (GreenDepth == 0) ? 0 : Kanvas.Support.Convert.ChangeBitDepth(color.G, 8, GreenDepth);
+                    var r = (RedDepth == 0) ? 0 : Kanvas.Support.Conversion.ChangeBitDepth(color.R, 8, RedDepth);
+                    var g = (GreenDepth == 0) ? 0 : Kanvas.Support.Conversion.ChangeBitDepth(color.G, 8, GreenDepth);
 
                     var rShift = GreenDepth;
 
@@ -131,7 +131,7 @@ namespace Kanvas.Encoding
                             bw.Write((byte)value);
                             break;
                         case 16:
-                            bw.Write(Kanvas.Support.Convert.ToByteArray((ushort)value, 2, ByteOrder));
+                            bw.Write(Kanvas.Support.Conversion.ToByteArray((ushort)value, 2, ByteOrder));
                             break;
                         default:
                             throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");

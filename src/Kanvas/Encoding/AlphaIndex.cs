@@ -60,7 +60,7 @@ namespace Kanvas.Encoding
                         case 8:
                             var value = br.ReadByte();
                             yield return (value & indexBitMask,
-                                Color.FromArgb(Kanvas.Support.Convert.ChangeBitDepth(value >> alphaShift, _alphaDepth, 8), 0, 0, 0));
+                                Color.FromArgb(Kanvas.Support.Conversion.ChangeBitDepth(value >> alphaShift, _alphaDepth, 8), 0, 0, 0));
                             break;
                         default:
                             throw new InvalidOperationException($"IndexDepth {_indexDepth} not supported.");

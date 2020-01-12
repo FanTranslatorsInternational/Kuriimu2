@@ -79,8 +79,8 @@ namespace Kanvas.Encoding
 
         private Etc1PixelData GetPixelData(BinaryReader br)
         {
-            var etc1Alpha = UseAlpha ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : ulong.MaxValue;
-            var colorBlock = Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder);
+            var etc1Alpha = UseAlpha ? Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : ulong.MaxValue;
+            var colorBlock = Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder);
             var etc1Block = new Block
             {
                 LSB = (ushort)(colorBlock & 0xFFFF),
@@ -115,7 +115,7 @@ namespace Kanvas.Encoding
         private void SetPixelData(BinaryWriter bw, Etc1PixelData data)
         {
             if (UseAlpha)
-                bw.Write(Convert.ToByteArray(data.Alpha, 8, ByteOrder));
+                bw.Write(Conversion.ToByteArray(data.Alpha, 8, ByteOrder));
 
             ulong colorBlock = 0;
             colorBlock |= data.Block.LSB;
@@ -125,7 +125,7 @@ namespace Kanvas.Encoding
             colorBlock |= ((ulong)data.Block.G << 48);
             colorBlock |= ((ulong)data.Block.R << 56);
 
-            bw.Write(Convert.ToByteArray(colorBlock, 8, ByteOrder));
+            bw.Write(Conversion.ToByteArray(colorBlock, 8, ByteOrder));
         }
     }
 }

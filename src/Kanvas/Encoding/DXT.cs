@@ -53,8 +53,8 @@ namespace Kanvas.Encoding
                 while (true)
                     yield return dxtDecoder.Get(() =>
                     {
-                        var dxt5Alpha = _format == DxtFormat.DXT3 || _format == DxtFormat.DXT5 ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0;
-                        return (dxt5Alpha, Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder));
+                        var dxt5Alpha = _format == DxtFormat.DXT3 || _format == DxtFormat.DXT5 ? Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0;
+                        return (dxt5Alpha, Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder));
                     });
         }
 
@@ -68,8 +68,8 @@ namespace Kanvas.Encoding
                     dxtEncoder.Set(color, data =>
                     {
                         if (_format == DxtFormat.DXT5 || _format == DxtFormat.DXT3)
-                            bw.Write(Convert.ToByteArray(data.alpha, 8, ByteOrder));
-                        bw.Write(Convert.ToByteArray(data.block, 8, ByteOrder));
+                            bw.Write(Conversion.ToByteArray(data.alpha, 8, ByteOrder));
+                        bw.Write(Conversion.ToByteArray(data.block, 8, ByteOrder));
                     });
 
             return ms.ToArray();

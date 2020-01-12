@@ -1,28 +1,10 @@
 ﻿using Komponent.IO.Attributes;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Komponent.IO
 {
-    public enum ByteOrder : ushort
-    {
-        LittleEndian = 0xFEFF,
-        BigEndian = 0xFFFE
-    }
-
-    public enum BitOrder : byte
-    {
-        Inherit,
-        LSBFirst,
-        MSBFirst,
-        LowestAddressFirst,
-        HighestAddressFirst
-    }
-
     internal class MemberAttributeInfo
     {
         MemberInfo _member;

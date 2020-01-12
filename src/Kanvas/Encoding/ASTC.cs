@@ -102,9 +102,9 @@ namespace Kanvas.Encoding
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
-                bw.Write(Kanvas.Support.Convert.ToByteArray(Width, 3, ByteOrder));
-                bw.Write(Kanvas.Support.Convert.ToByteArray(Height, 3, ByteOrder));
-                bw.Write(Kanvas.Support.Convert.ToByteArray(1, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Width, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Height, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(1, 3, ByteOrder));
                 bw.Write(texData);
             }
 

@@ -36,13 +36,13 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC.KTX
         }
 
         private short ReadInt16() =>
-            Kanvas.Support.Convert.FromByteArray<short>(_reader.ReadBytes(2), _byteOrder);
+            Kanvas.Support.Conversion.FromByteArray<short>(_reader.ReadBytes(2), _byteOrder);
         private ushort ReadUInt16() =>
-            Kanvas.Support.Convert.FromByteArray<ushort>(_reader.ReadBytes(2), _byteOrder);
+            Kanvas.Support.Conversion.FromByteArray<ushort>(_reader.ReadBytes(2), _byteOrder);
         private int ReadInt32() =>
-            Kanvas.Support.Convert.FromByteArray<int>(_reader.ReadBytes(4), _byteOrder);
+            Kanvas.Support.Conversion.FromByteArray<int>(_reader.ReadBytes(4), _byteOrder);
         private uint ReadUInt32() =>
-            Kanvas.Support.Convert.FromByteArray<uint>(_reader.ReadBytes(4), _byteOrder);
+            Kanvas.Support.Conversion.FromByteArray<uint>(_reader.ReadBytes(4), _byteOrder);
 
         private void SetEndianess()
         {
@@ -136,9 +136,9 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC.KTX
                     return ReadColor(() => Convert.ToInt32(ReadUInt32()));
                 // TODO: Implement floating point!
                 //case GLDataType.FLOAT:
-                //    return ReadColor(() => Convert.ToInt32(_reader.ReadSingle()));
+                //    return ReadColor(() => Conversion.ToInt32(_reader.ReadSingle()));
                 //case GLDataType.DOUBLE:
-                //    return ReadColor(() => Convert.ToInt32(_reader.ReadDouble()));
+                //    return ReadColor(() => Conversion.ToInt32(_reader.ReadDouble()));
                 default:
                     throw new NotSupportedException($"Unsupported glType {_header.glType}.");
             }

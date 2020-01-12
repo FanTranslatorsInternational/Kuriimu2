@@ -50,8 +50,8 @@ namespace Kanvas.Encoding
 
             using (var br = new BinaryReader(new MemoryStream(tex)))
                 while (true)
-                    yield return atiDecoder.Get(() => (Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder),
-                        _format == AtiFormat.ATI2 ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0));
+                    yield return atiDecoder.Get(() => (Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder),
+                        _format == AtiFormat.ATI2 ? Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0));
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -63,9 +63,9 @@ namespace Kanvas.Encoding
                 foreach (var color in colors)
                     atiEncoder.Set(color, data =>
                     {
-                        bw.Write(Convert.ToByteArray(data.block, 8, ByteOrder));
+                        bw.Write(Conversion.ToByteArray(data.block, 8, ByteOrder));
                         if (_format == AtiFormat.ATI2)
-                            bw.Write(Convert.ToByteArray(data.alpha, 8, ByteOrder));
+                            bw.Write(Conversion.ToByteArray(data.alpha, 8, ByteOrder));
                     });
 
             return ms.ToArray();

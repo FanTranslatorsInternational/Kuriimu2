@@ -89,7 +89,7 @@ namespace Kanvas.Encoding
                             value = br.ReadByte();
                             break;
                         case 16:
-                            value = Kanvas.Support.Convert.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
+                            value = Kanvas.Support.Conversion.FromByteArray<ushort>(br.ReadBytes(2), ByteOrder);
                             break;
                         default:
                             throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");
@@ -103,10 +103,10 @@ namespace Kanvas.Encoding
         private Color CreateColor(long value, int alphaBitMask, int lumBitMask, int lumShift)
         {
             return Color.FromArgb(
-                (AlphaDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value & alphaBitMask), AlphaDepth, 8),
-                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
-                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
-                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Convert.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8));
+                (AlphaDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value & alphaBitMask), AlphaDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8),
+                (LuminenceDepth == 0) ? 255 : Kanvas.Support.Conversion.ChangeBitDepth((int)(value >> lumShift & lumBitMask), LuminenceDepth, 8));
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -119,8 +119,8 @@ namespace Kanvas.Encoding
             {
                 foreach (var color in colors)
                 {
-                    var a = (AlphaDepth == 0) ? 0 : Kanvas.Support.Convert.ChangeBitDepth(color.A, 8, AlphaDepth);
-                    var l = (LuminenceDepth == 0) ? 0 : Kanvas.Support.Convert.ChangeBitDepth(color.G, 8, LuminenceDepth);
+                    var a = (AlphaDepth == 0) ? 0 : Kanvas.Support.Conversion.ChangeBitDepth(color.A, 8, AlphaDepth);
+                    var l = (LuminenceDepth == 0) ? 0 : Kanvas.Support.Conversion.ChangeBitDepth(color.G, 8, LuminenceDepth);
 
                     var lShift = AlphaDepth;
 
@@ -144,7 +144,7 @@ namespace Kanvas.Encoding
                             bw.Write((byte)value);
                             break;
                         case 16:
-                            bw.Write(Kanvas.Support.Convert.ToByteArray((ushort)value, 2, ByteOrder));
+                            bw.Write(Kanvas.Support.Conversion.ToByteArray((ushort)value, 2, ByteOrder));
                             break;
                         default:
                             throw new InvalidOperationException($"BitDepth {BitDepth} not supported!");

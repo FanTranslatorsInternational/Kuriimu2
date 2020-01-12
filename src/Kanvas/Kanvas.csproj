@@ -69,6 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
 

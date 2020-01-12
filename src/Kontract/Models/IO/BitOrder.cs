@@ -2,7 +2,10 @@
 {
     public enum BitOrder : int
     {
-        MostSignificantFirst,
-        LeastSignificantFirst
+        Default,
+        MostSignificantBitFirst,
+        LeastSignificantBitFirst,
+        LowestAddressFirst,
+        HighestAddressFirst
     }
 }

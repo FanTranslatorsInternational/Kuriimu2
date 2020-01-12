@@ -14,6 +14,7 @@ namespace Kontract.Kanvas
         /// <remarks>Known as bits per pixel (bpp).</remarks>
         int BitDepth { get; }
 
+        // TODO: Remove BlockCompression indicator?
         /// <summary>
         /// Defines if an encoding is a block compression.
         /// </summary>

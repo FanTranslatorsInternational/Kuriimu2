@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Kontract.Models.IO;
 
 namespace Komponent.IO.Attributes
 {
@@ -10,6 +7,6 @@ namespace Komponent.IO.Attributes
     public class BitFieldInfoAttribute : Attribute
     {
         public int BlockSize = 4;
-        public BitOrder BitOrder = BitOrder.Inherit;
+        public BitOrder BitOrder = BitOrder.Default;
     }
 }

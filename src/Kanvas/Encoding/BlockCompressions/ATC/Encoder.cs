@@ -12,7 +12,7 @@ namespace Kanvas.Encoding.BlockCompressions.ATC
         private readonly List<Color> _queue;
         private readonly AlphaMode _alphaMode;
 
-        private static ushort From565To555(ushort value) => (ushort)(value & 0x1F | (Kanvas.Support.Convert.ChangeBitDepth((value >> 5) & 0x3F, 6, 5) << 5) | (((value >> 11) & 0x1F) << 10));
+        private static ushort From565To555(ushort value) => (ushort)(value & 0x1F | (Kanvas.Support.Conversion.ChangeBitDepth((value >> 5) & 0x3F, 6, 5) << 5) | (((value >> 11) & 0x1F) << 10));
         private static readonly Dictionary<int, ulong> _remap = new Dictionary<int, ulong>
         {
             [0] = 0,

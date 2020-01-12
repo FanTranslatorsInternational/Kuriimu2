@@ -53,8 +53,8 @@ namespace Kanvas.Encoding
                 while (true)
                     yield return atcDecoder.Get(() =>
                     {
-                        var alpha = _alphaMode != AlphaMode.None ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0;
-                        return (alpha, Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder));
+                        var alpha = _alphaMode != AlphaMode.None ? Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0;
+                        return (alpha, Conversion.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder));
                     });
         }
 
@@ -67,8 +67,8 @@ namespace Kanvas.Encoding
                 foreach (var color in colors)
                     atcEncoder.Set(color, data =>
                     {
-                        if (_alphaMode != AlphaMode.None) bw.Write(Convert.ToByteArray(data.alpha, 8, ByteOrder));
-                        bw.Write(Convert.ToByteArray(data.block, 8, ByteOrder));
+                        if (_alphaMode != AlphaMode.None) bw.Write(Conversion.ToByteArray(data.alpha, 8, ByteOrder));
+                        bw.Write(Conversion.ToByteArray(data.block, 8, ByteOrder));
                     });
 
             return ms.ToArray();

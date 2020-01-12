@@ -26,7 +26,7 @@ namespace Kanvas.Encoding
         /// <summary>
         /// Gets or sets the <see cref="BitOrder"/> for this instance.
         /// </summary>
-        public BitOrder BitOrder { get; set; } = BitOrder.LeastSignificantFirst;
+        public BitOrder BitOrder { get; set; } = BitOrder.LeastSignificantBitFirst;
 
         /// <summary>
         /// Creates a new instance of <see cref="Index"/>.
@@ -68,7 +68,7 @@ namespace Kanvas.Encoding
                         case 4:
                             var value4 = br.ReadByte();
                             var max = 8 / _indexDepth - 1;
-                            if (BitOrder == BitOrder.MostSignificantFirst)
+                            if (BitOrder == BitOrder.MostSignificantBitFirst)
                                 for (int i = max; i >= 0; i--)
                                     yield return ((value4 >> i * _indexDepth) & mask, Color.Empty);
                             else
@@ -106,7 +106,7 @@ namespace Kanvas.Encoding
                         case 2:
                         case 4:
                             counter += _indexDepth;
-                            if (BitOrder == BitOrder.MostSignificantFirst)
+                            if (BitOrder == BitOrder.MostSignificantBitFirst)
                             {
                                 valueBuffer <<= _indexDepth;
                                 valueBuffer |= (byte)(indexData.Item1 & mask);
