@@ -2,70 +2,40 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Encoding.Models;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
-    /// <summary>
-    /// Defines the RGBA encoding.
-    /// </summary>
-    public class RGBA : IColorEncoding
+    class PixelEncoding:IColorEncoding
     {
+        private readonly IPixelDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
 
-        private readonly RgbaPixelDescriptor _descriptor;
         private Func<BinaryReaderX, long> _readValueDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
 
-        /// <inheritdoc />
         public int BitDepth { get; }
 
-        /// <inheritdoc />
         public bool IsBlockCompression => false;
 
-        /// <inheritdoc />
         public string FormatName { get; }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="RGBA"/>.
-        /// </summary>
-        /// <param name="r">Value of the red component.</param>
-        /// <param name="g">Value of the green component.</param>
-        /// <param name="b">Value of the blue component.</param>
-        /// <param name="componentOrder">The order of the color components.</param>
-        /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        public RGBA(int r, int g, int b, string componentOrder = "RGBA", ByteOrder byteOrder = ByteOrder.LittleEndian) :
-            this(r, g, b, 0, componentOrder, byteOrder)
+        public PixelEncoding(IPixelDescriptor pixelDescriptor,ByteOrder byteOrder)
         {
+            _descriptor = pixelDescriptor;
+
+            BitDepth = pixelDescriptor.GetBitDepth();
+            FormatName = pixelDescriptor.GetPixelName();
         }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="RGBA"/>.
-        /// </summary>
-        /// <param name="r">Value of the red component.</param>
-        /// <param name="g">Value of the green component.</param>
-        /// <param name="b">Value of the blue component.</param>
-        /// <param name="a">Value of the alpha component.</param>
-        /// <param name="componentOrder">The order of the color components.</param>
-        /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        public RGBA(int r, int g, int b, int a, string componentOrder = "RGBA", ByteOrder byteOrder = ByteOrder.LittleEndian)
+        public IEnumerable<Color> Load(byte[] input)
         {
-            _descriptor = new RgbaPixelDescriptor(componentOrder, r, g, b, a);
-            _byteOrder = byteOrder;
-
-            var bitDepth = r + g + b + a;
-            SetValueDelegates(bitDepth);
-
-            BitDepth = bitDepth;
-            FormatName = _descriptor.GetPixelName();
-        }
-
-        public IEnumerable<Color> Load(byte[] tex)
-        {
-            using var br = new BinaryReaderX(new MemoryStream(tex), _byteOrder);
+            using var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
             while (br.BaseStream.Position < br.BaseStream.Length)
                 yield return _descriptor.GetColor(_readValueDelegate(br));

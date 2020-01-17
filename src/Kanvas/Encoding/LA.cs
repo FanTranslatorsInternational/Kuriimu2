@@ -22,16 +22,6 @@ namespace Kanvas.Encoding
         public string FormatName { get; set; }
 
         /// <summary>
-        /// The bit depth of the luminence component.
-        /// </summary>
-        public int LuminenceDepth { get; }
-
-        /// <summary>
-        /// The bit depth of the alpha component.
-        /// </summary>
-        public int AlphaDepth { get; }
-
-        /// <summary>
         /// Byte order to use to read the values.
         /// </summary>
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
