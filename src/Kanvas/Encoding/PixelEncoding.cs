@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
-    class PixelEncoding:IColorEncoding
+    public abstract class PixelEncoding : IColorEncoding
     {
         private readonly IPixelDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
@@ -25,12 +22,14 @@ namespace Kanvas.Encoding
 
         public string FormatName { get; }
 
-        public PixelEncoding(IPixelDescriptor pixelDescriptor,ByteOrder byteOrder)
+        protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
             _descriptor = pixelDescriptor;
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
+
+            SetValueDelegates(BitDepth);
         }
 
         public IEnumerable<Color> Load(byte[] input)

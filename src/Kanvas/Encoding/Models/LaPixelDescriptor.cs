@@ -46,12 +46,21 @@ namespace Kanvas.Encoding.Models
             return componentBuilder.ToString() + depthBuilder;
         }
 
+        public int GetBitDepth()
+        {
+            return _depthTable[0] + _depthTable[1];
+        }
+
         public Color GetColor(long value)
         {
             var colorBuffer = new int[2];
 
             colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
             colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
+
+            // If luminance depth 0 then make color white
+            if (_depthTable[_componentIndexTable[0]] == 0)
+                colorBuffer[_indexTable[_componentIndexTable[0]]] = 255;
 
             // If alpha depth 0 then make color opaque
             if (_depthTable[_componentIndexTable[1]] == 0)
