@@ -4,7 +4,7 @@ using Kontract.Models.IO;
 namespace Kanvas.Encoding
 {
     /// <summary>
-    /// Defines the default index-only encoding.
+    /// Defines the default index encoding.
     /// </summary>
     public class Index : PixelIndexEncoding
     {
