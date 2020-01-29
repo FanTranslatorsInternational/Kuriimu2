@@ -6,12 +6,17 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>8</LangVersion>
 
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Kuriimu2.Kompression</PackageId>
-    <PackageVersion>2.0.7</PackageVersion>
+    <PackageId>Kompression</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
+    <PackageId>Kompression</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
     <Authors>onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
-    <Product>Kore</Product>
+    <Product>Kompression</Product>
     <Description>A library containing all compressions usable by the Kuriimu2 eco-system.</Description>
     <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>

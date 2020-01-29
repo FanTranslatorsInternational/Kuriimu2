@@ -29,7 +29,7 @@ namespace Kompression.PatternMatch.MatchFinders
             if (_states == null)
             {
                 _states = new HistoryMatchState[1];
-                _states[0] = new HistoryMatchState(FindLimitations, FindOptions);
+                _states[0] = new HistoryMatchState(input.Length, FindLimitations, FindOptions);
             }
 
             return _states[0].FindMatchesAtPosition(input, position);
@@ -39,7 +39,7 @@ namespace Kompression.PatternMatch.MatchFinders
         {
             _states = new HistoryMatchState[FindOptions.TaskCount];
             for (var i = 0; i < _states.Length; i++)
-                _states[i] = new HistoryMatchState(FindLimitations, FindOptions);
+                _states[i] = new HistoryMatchState(input.Length, FindLimitations, FindOptions);
         }
 
         protected override MatchFinderEnumerator[] SetupMatchFinderEnumerators(byte[] input, int startPosition)
