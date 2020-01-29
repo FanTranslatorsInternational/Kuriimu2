@@ -10,9 +10,11 @@ namespace Kanvas.Encoding
     /// <summary>
     /// Defines the PVRTC encoding.
     /// </summary>
-    public class PVRTC : IColorEncodingKnownDimensions
+    public class PVRTC : IColorEncoding
     {
         private readonly PvrtcFormat _format;
+        private readonly int _width;
+        private readonly int _height;
 
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
@@ -28,16 +30,10 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
         public bool IsBlockCompression => true;
 
-        /// <inheritdoc cref="IColorEncodingKnownDimensions.Width"/>
-        public int Width { private get; set; } = -1;
-
-        /// <inheritdoc cref="IColorEncodingKnownDimensions.Height"/>
-        public int Height { private get; set; } = -1;
-
-        public PVRTC(PvrtcFormat format)
+        public PVRTC(PvrtcFormat format, int width, int height)
         {
-            BitDepth = (format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp) ? 2 : 4;
-            BlockBitDepth = (format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp) ? 32 : 64;
+            BitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 2 : 4;
+            BlockBitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 32 : 64;
 
             _format = format;
 
@@ -46,10 +42,7 @@ namespace Kanvas.Encoding
 
         public IEnumerable<Color> Load(byte[] tex)
         {
-            if (Width <= 0 || Height <= 0)
-                throw new InvalidDataException("Height and Width has to be set for PVRTC.");
-
-            var pvrtcTex = PVRTexture.CreateTexture(tex, (uint)Width, (uint)Height, 1, (PixelFormat)_format, false, VariableType.UnsignedByte, ColorSpace.lRGB);
+            var pvrtcTex = PVRTexture.CreateTexture(tex, (uint)_width, (uint)_height, 1, (PixelFormat)_format, false, VariableType.UnsignedByte, ColorSpace.lRGB);
 
             pvrtcTex.Transcode(PixelFormat.RGBA8888, VariableType.UnsignedByteNorm, ColorSpace.lRGB);
 
@@ -71,9 +64,6 @@ namespace Kanvas.Encoding
 
         public byte[] Save(IEnumerable<Color> colors)
         {
-            if (Width <= 0 || Height <= 0)
-                throw new InvalidDataException("Height and Width has to be set for PVRTC.");
-
             var ms = new MemoryStream();
             using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))
                 foreach (var color in colors)
@@ -84,7 +74,7 @@ namespace Kanvas.Encoding
                     bw.Write(color.A);
                 }
 
-            var pvrtcTex = PVRTexture.CreateTexture(ms.ToArray(), (uint)Width, (uint)Height, 1, PixelFormat.RGBA8888, false, VariableType.UnsignedByteNorm, ColorSpace.lRGB);
+            var pvrtcTex = PVRTexture.CreateTexture(ms.ToArray(), (uint)_width, (uint)_height, 1, PixelFormat.RGBA8888, false, VariableType.UnsignedByteNorm, ColorSpace.lRGB);
 
             pvrtcTex.Transcode((PixelFormat)_format, VariableType.UnsignedByteNorm, ColorSpace.lRGB, CompressorQuality.PVRTCHigh);
 

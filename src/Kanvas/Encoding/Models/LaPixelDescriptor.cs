@@ -9,7 +9,7 @@ using Kontract.Kanvas;
 
 namespace Kanvas.Encoding.Models
 {
-    class RgbaPixelDescriptor : IPixelDescriptor
+    class LaPixelDescriptor : IPixelDescriptor
     {
         private int[] _indexTable;
         private int[] _componentIndexTable;
@@ -17,19 +17,19 @@ namespace Kanvas.Encoding.Models
         private int[] _shiftTable;
         private int[] _maskTable;
 
-        public RgbaPixelDescriptor(string componentOrder, int r, int g, int b, int a)
+        public LaPixelDescriptor(string componentOrder, int l, int a)
         {
             AssertValidOrder(componentOrder.ToLower());
-            AssertBitDepth(r + g + b + a);
+            AssertBitDepth(l + a);
 
-            SetupLookupTables(componentOrder, r, g, b, a);
+            SetupLookupTables(componentOrder, l, a);
         }
 
         public string GetPixelName()
         {
             var componentBuilder = new StringBuilder();
             var depthBuilder = new StringBuilder();
-            var componentLetters = new[] { "A", "R", "G", "B" };
+            var componentLetters = new[] { "L", "A" };
 
             void AppendComponent(int level)
             {
@@ -40,8 +40,6 @@ namespace Kanvas.Encoding.Models
                 }
             }
 
-            AppendComponent(3);
-            AppendComponent(2);
             AppendComponent(1);
             AppendComponent(0);
 
@@ -50,40 +48,36 @@ namespace Kanvas.Encoding.Models
 
         public int GetBitDepth()
         {
-            return _depthTable[0] + _depthTable[1] + _depthTable[2] + _depthTable[3];
+            return _depthTable[0] + _depthTable[1];
         }
 
         public Color GetColor(long value)
         {
-            var colorBuffer = new int[4];
+            var colorBuffer = new int[2];
 
             colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
             colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
-            colorBuffer[_indexTable[2]] = ReadComponent(value, _shiftTable[2], _maskTable[2], _depthTable[2]);
-            colorBuffer[_indexTable[3]] = ReadComponent(value, _shiftTable[3], _maskTable[3], _depthTable[3]);
 
-            // If alpha depth 0 then make color opaque
+            // If luminance depth 0 then make color white
             if (_depthTable[_componentIndexTable[0]] == 0)
                 colorBuffer[_indexTable[_componentIndexTable[0]]] = 255;
 
-            return Color.FromArgb(colorBuffer[0], colorBuffer[1], colorBuffer[2], colorBuffer[3]);
+            // If alpha depth 0 then make color opaque
+            if (_depthTable[_componentIndexTable[1]] == 0)
+                colorBuffer[_indexTable[_componentIndexTable[1]]] = 255;
+
+            return Color.FromArgb(colorBuffer[0], colorBuffer[1], colorBuffer[1], colorBuffer[1]);
         }
 
         public long GetValue(Color color)
         {
             var result = 0L;
-            var colorBuffer = new[] { color.A, color.R, color.G, color.B };
+            var colorBuffer = new[] { (int)color.GetBrightness(), color.A };
 
             var index = _componentIndexTable[0];
             WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
 
             index = _componentIndexTable[1];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
-
-            index = _componentIndexTable[2];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
-
-            index = _componentIndexTable[3];
             WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
 
             return result;
@@ -92,9 +86,9 @@ namespace Kanvas.Encoding.Models
         private void AssertValidOrder(string componentOrder)
         {
             ContractAssertions.IsNotNull(componentOrder, nameof(componentOrder));
-            ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 4);
+            ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 2);
 
-            if (!Regex.IsMatch(componentOrder, "^[rgba]{1,4}$"))
+            if (!Regex.IsMatch(componentOrder, "^[la]{1,2}$"))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
@@ -103,13 +97,18 @@ namespace Kanvas.Encoding.Models
 
         private void AssertBitDepth(int bitDepth)
         {
-            ContractAssertions.IsInRange(bitDepth, "bitDepth", 4, 32);
+            ContractAssertions.IsInRange(bitDepth, "bitDepth", 1, 32);
 
-            if (bitDepth != 4 && bitDepth % 8 > 0)
-                throw new InvalidOperationException("Bit depth has to be 4 or dividable by 8.");
+            if (!IsPowerOf2(bitDepth))
+                throw new InvalidOperationException("Bit depth has to be a power of 2.");
         }
 
-        private void SetupLookupTables(string componentOrder, int r, int g, int b, int a)
+        private bool IsPowerOf2(int value)
+        {
+            return value != 0 && (value & (value - 1)) == 0;
+        }
+
+        private void SetupLookupTables(string componentOrder, int l, int a)
         {
             void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue, ref bool set)
             {
@@ -124,40 +123,30 @@ namespace Kanvas.Encoding.Models
             }
 
             // Index lookup table holds the indices to the depth values in order of reading
-            _indexTable = new int[4];
+            _indexTable = new int[2];
 
             // Depth lookup table holds depth of components in order of reading
-            _depthTable = new int[4];
+            _depthTable = new int[2];
 
-            // Depth index table holds index into depth table in order ARGB
-            _componentIndexTable = new int[4];
+            // Depth index table holds index into depth table in order LA
+            _componentIndexTable = new int[2];
 
             // Shift lookup table holds the shift values for each depth in order of reading
-            _shiftTable = new int[4];
+            _shiftTable = new int[2];
 
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
-            _maskTable = new int[4];
+            _maskTable = new int[2];
 
-            bool rSet = false, bSet = false, gSet = false, aSet = false;
+            bool lSet = false, aSet = false;
             var shift = 0;
             var length = componentOrder.Length;
             for (var i = length - 1; i >= 0; i--)
             {
                 switch (componentOrder[i])
                 {
-                    case 'r':
-                    case 'R':
-                        SetTableValues(length - i - 1, 1, r, ref shift, ref rSet);
-                        break;
-
-                    case 'g':
-                    case 'G':
-                        SetTableValues(length - i - 1, 2, g, ref shift, ref gSet);
-                        break;
-
-                    case 'b':
-                    case 'B':
-                        SetTableValues(length - i - 1, 3, b, ref shift, ref bSet);
+                    case 'l':
+                    case 'L':
+                        SetTableValues(length - i - 1, 1, l, ref shift, ref lSet);
                         break;
 
                     case 'a':
@@ -167,9 +156,7 @@ namespace Kanvas.Encoding.Models
                 }
             }
 
-            if (!rSet) SetTableValues(length++, 1, 0, ref shift, ref rSet);
-            if (!gSet) SetTableValues(length++, 2, 0, ref shift, ref gSet);
-            if (!bSet) SetTableValues(length++, 3, 0, ref shift, ref bSet);
+            if (!lSet) SetTableValues(length++, 1, 0, ref shift, ref lSet);
             if (!aSet) SetTableValues(length, 0, 0, ref shift, ref aSet);
         }
 

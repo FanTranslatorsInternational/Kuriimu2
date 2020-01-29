@@ -12,28 +12,33 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1.Models
         public byte G { get; set; }
         public byte R { get; set; }
 
+        public int this[int i] => (MSB >> i) % 2 * 2 + (LSB >> i) % 2;
+
         public bool FlipBit
         {
             get => (Flags & 1) == 1;
             set => Flags = (byte)((Flags & ~1) | (value ? 1 : 0));
         }
+
         public bool DiffBit
         {
             get => (Flags & 2) == 2;
             set => Flags = (byte)((Flags & ~2) | (value ? 2 : 0));
         }
+
         public int ColorDepth => DiffBit ? 32 : 16;
+
         public int Table0
         {
             get => (Flags >> 5) & 7;
             set => Flags = (byte)((Flags & ~(7 << 5)) | (value << 5));
         }
+
         public int Table1
         {
             get => (Flags >> 2) & 7;
             set => Flags = (byte)((Flags & ~(7 << 2)) | (value << 2));
         }
-        public int this[int i] => (MSB >> i) % 2 * 2 + (LSB >> i) % 2;
 
         public RGB Color0 => new RGB(R * ColorDepth / 256, G * ColorDepth / 256, B * ColorDepth / 256);
 

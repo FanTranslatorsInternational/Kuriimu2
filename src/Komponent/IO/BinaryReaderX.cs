@@ -20,7 +20,8 @@ namespace Komponent.IO
 
         public ByteOrder ByteOrder { get; set; }
         public BitOrder BitOrder { get; set; }
-        public bool IsFirstNibble { get => _nibble == -1; }
+        public NibbleOrder NibbleOrder { get; set; }
+        public bool IsFirstNibble => _nibble == -1;
 
         private Encoding _encoding = Encoding.UTF8;
 
@@ -30,8 +31,10 @@ namespace Komponent.IO
             {
                 if (ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.LowestAddressFirst || ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.HighestAddressFirst)
                     return BitOrder.LeastSignificantBitFirst;
+
                 if (ByteOrder == ByteOrder.LittleEndian && BitOrder == BitOrder.HighestAddressFirst || ByteOrder == ByteOrder.BigEndian && BitOrder == BitOrder.LowestAddressFirst)
                     return BitOrder.MostSignificantBitFirst;
+
                 return BitOrder;
             }
         }
@@ -42,7 +45,8 @@ namespace Komponent.IO
             set
             {
                 if (value != 1 && value != 2 && value != 4 && value != 8)
-                    throw new Exception("BlockSize can only be 1, 2, 4, or 8.");
+                    throw new InvalidOperationException("BlockSize can only be 1, 2, 4, or 8.");
+
                 _blockSize = value;
                 _currentBlockSize = value;
             }
@@ -50,33 +54,58 @@ namespace Komponent.IO
 
         #region Constructors
 
-        public BinaryReaderX(Stream input, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst, int blockSize = 4) : base(input, Encoding.UTF8)
+        public BinaryReaderX(Stream input,
+            ByteOrder byteOrder = ByteOrder.LittleEndian,
+            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
+            BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
+            int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
+            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst, int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
+        public BinaryReaderX(Stream input,
+            bool leaveOpen,
+            ByteOrder byteOrder = ByteOrder.LittleEndian,
+            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
+            BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
+            int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
+            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
         }
 
-        public BinaryReaderX(Stream input, Encoding encoding, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst, int blockSize = 4) : base(input, encoding)
+        public BinaryReaderX(Stream input,
+            Encoding encoding,
+            ByteOrder byteOrder = ByteOrder.LittleEndian,
+            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
+            BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
+            int blockSize = 4) : base(input, encoding)
         {
             ByteOrder = byteOrder;
+            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
             _encoding = encoding;
         }
 
-        public BinaryReaderX(Stream input, Encoding encoding, bool leaveOpen, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst, int blockSize = 4) : base(input, encoding, leaveOpen)
+        public BinaryReaderX(Stream input,
+            Encoding encoding,
+            bool leaveOpen,
+            ByteOrder byteOrder = ByteOrder.LittleEndian,
+            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
+            BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
+            int blockSize = 4) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
+            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+
             _encoding = encoding;
         }
 
@@ -574,9 +603,15 @@ namespace Komponent.IO
             if (_nibble == -1)
             {
                 _nibble = ReadByte();
-                return _nibble % 16;
+                return NibbleOrder == NibbleOrder.LowNibbleFirst ?
+                    _nibble % 16 :
+                    _nibble / 16;
             }
-            var val = _nibble / 16;
+
+            var val = NibbleOrder == NibbleOrder.LowNibbleFirst ?
+                _nibble / 16 :
+                _nibble % 16;
+
             _nibble = -1;
             return val;
         }

@@ -62,8 +62,8 @@ namespace Kanvas.Configuration
             var palette = _paletteEncoding.Load(paletteData).ToList();
 
             // Load image indexColors
-            var indexColors = _indexEncoding.Load(data);
-            var colors = GetColorsFromIndices(indexColors, palette, _indexEncoding);
+            var colors = _indexEncoding.Load(data, palette);
+            //var colors = GetColorsFromIndices(indexColors, palette, _indexEncoding);
 
             // Compose image
             return Composition.ComposeImage(colors, _imageSize, _paddedSize, _swizzle);
@@ -89,26 +89,26 @@ namespace Kanvas.Configuration
             var (indices, palette) = quantizer.Process(colors);
 
             // Swizzle indexColors to correct positions
-            var indexColors = SwizzleIndices(Zip(indices, colors), image.Size, _paddedSize, _swizzle);
+            indices = SwizzleIndices(indices, image.Size, _paddedSize, _swizzle);
 
             // Save palette indexColors
             var paletteData = _paletteEncoding.Save(palette);
 
             // Save image indexColors
-            var indexData = _indexEncoding.Save(indexColors);
+            var indexData = _indexEncoding.Save(indices, palette);
 
             return (indexData, paletteData);
         }
 
-        private IEnumerable<Color> GetColorsFromIndices(IEnumerable<(int, Color)> indexColors, IList<Color> palette, IColorIndexEncoding indexEncoding)
-        {
-            return indexColors.Select(x => indexEncoding.GetColorFromIndex(x, palette));
-        }
+        //private IEnumerable<Color> GetColorsFromIndices(IEnumerable<(int, Color)> indexColors, IList<Color> palette, IColorIndexEncoding indexEncoding)
+        //{
+        //    return indexColors.Select(x => indexEncoding.GetColorFromIndex(x, palette));
+        //}
 
-        private IEnumerable<(int, Color)> SwizzleIndices(IEnumerable<(int, Color)> indexColors, Size imageSize, Size paddedSize, IImageSwizzle swizzle)
+        private IEnumerable<int> SwizzleIndices(IEnumerable<int> indeces, Size imageSize, Size paddedSize, IImageSwizzle swizzle)
         {
-            var indexColorPoints = Zip(indexColors, Composition.GetPointSequence(imageSize, paddedSize, swizzle));
-            return indexColorPoints.OrderBy(cp => GetIndex(cp.Second, imageSize)).Select(x => x.First);
+            var indexPoints = Zip(indeces, Composition.GetPointSequence(imageSize, paddedSize, swizzle));
+            return indexPoints.OrderBy(cp => GetIndex(cp.Second, imageSize)).Select(x => x.First);
         }
 
         private int GetIndex(Point point, Size imageSize)
