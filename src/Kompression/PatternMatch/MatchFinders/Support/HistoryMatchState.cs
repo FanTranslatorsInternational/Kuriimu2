@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Kompression.Configuration;
 using Kompression.Models;
@@ -19,11 +20,11 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         private int _windowPos;
         private int _windowLen;
 
-        private int[] _offsetTable;
+        //private int[] _offsetTable;
         private int[] _reversedOffsetTable;
 
-        private int[] _startTable;
-        private int[] _endTable;
+        //private int[] _startTable;
+        //private int[] _endTable;
 
         private FindLimitations _limits;
         private FindOptions _options;
@@ -31,22 +32,15 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <summary>
         /// Creates a new instance of <see cref="HistoryMatchState"/>.
         /// </summary>
-        /// <param name="inputLength">The length of the future input to process.</param>
+        /// <param name="input">The input this match represents.</param>
         /// <param name="limits">The limits to search sequences in.</param>
         /// <param name="options">The options to search sequences with.</param>
-        public HistoryMatchState(int inputLength, FindLimitations limits, FindOptions options)
+        public HistoryMatchState(byte[] input, FindLimitations limits, FindOptions options)
         {
             _limits = limits;
             _options = options;
 
             var minLength = Math.Min(3, limits.MinLength);
-            _startTable = Enumerable.Repeat(-1, (int)Math.Pow(256, minLength)).ToArray();
-            _endTable = Enumerable.Repeat(-1, (int)Math.Pow(256, minLength)).ToArray();
-
-            var maxDisplacement = _limits.MaxDisplacement <= 0 ? inputLength : _limits.MaxDisplacement;
-            _offsetTable = new int[maxDisplacement];
-            _reversedOffsetTable = new int[maxDisplacement];
-
             switch (minLength)
             {
                 case 3:
@@ -61,6 +55,11 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                     _readValue = ReadValue1;
                     break;
             }
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            PrepareOffsetTable(input, minLength);
+            stopwatch.Stop();
 
             switch (_options.UnitSize)
             {
@@ -84,104 +83,58 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         {
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
 
-            if (_previousPosition == -1)
-            {
-                for (var i = 0; i < position; i += (int)_options.UnitSize)
-                    SlideValue(input, i);
-            }
-            else
-            {
-                for (var i = 0; i < position - _previousPosition; i += (int)_options.UnitSize)
-                    SlideValue(input, _previousPosition + i);
-            }
-            _previousPosition = position;
-
             var cappedLength = Math.Min(input.Length - position, maxLength);
 
             if (cappedLength < _limits.MinLength)
                 yield break;
 
-            var minLength = Math.Min(3, _limits.MinLength);
-            var size = _limits.MinLength - 1;
-            for (var matchOffset = _endTable[_readValue(input, position)]; matchOffset != -1; matchOffset = _reversedOffsetTable[matchOffset])
+            var longestMatchSize = _limits.MinLength - 1;
+            for (var matchOffset = _reversedOffsetTable[position];
+                matchOffset != -1 && position - matchOffset <= _limits.MaxDisplacement;
+                matchOffset = _reversedOffsetTable[matchOffset])
             {
-                var search = position + matchOffset - _windowPos;
-                if (matchOffset >= _windowPos)
-                    search -= _windowLen;
-
-                if (position - search < Math.Min(_limits.MinLength, _limits.MinDisplacement))
+                // Check if match and current position have min distance to each other
+                if (position - matchOffset < _limits.MinDisplacement)
                     continue;
 
                 // Check that min length of a match is satisfied
-                if (!IsMinLengthSatisfied(input, position, search))
+                if (!IsMinLengthSatisfied(input, position, matchOffset))
+                    continue;
+
+                // Check last value of longest match position
+                if (longestMatchSize >= _limits.MinLength &&
+                    input[position + longestMatchSize] != input[matchOffset + longestMatchSize])
                     continue;
 
                 // Calculate the length of a match
                 var nMaxSize = cappedLength;
-                var matchSize = _calculateMatchSize(input, position, search, _limits.MinLength, nMaxSize);
+                var matchSize = _calculateMatchSize(input, position, matchOffset, _limits.MinLength, nMaxSize);
 
-                if (matchSize > size)
+                if (matchSize > longestMatchSize)
                 {
                     // Return all matches up to the longest
-                    yield return new Match(position, position - search, matchSize);
+                    yield return new Match(position, position - matchOffset, matchSize);
 
-                    size = matchSize;
-                    if (size == cappedLength)
+                    longestMatchSize = matchSize;
+                    if (longestMatchSize == cappedLength)
                         yield break;
                 }
             }
         }
 
-        private void SlideValue(byte[] input, int position)
+        private void PrepareOffsetTable(byte[] input, int minValueLength)
         {
-            var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
+            _reversedOffsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
 
-            var matchValue = _readValue(input, position);
-
-            int firstOffset;
-            if (_windowLen == maxDisplacement)
+            var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, minValueLength)).ToArray();
+            for (var i = 0; i < input.Length - minValueLength; i++)
             {
-                var startValue = _readValue(input, position - maxDisplacement);
+                var value = _readValue(input, i);
 
-                _startTable[startValue] = _offsetTable[_startTable[startValue]];
-                if (_startTable[startValue] == -1)
-                {
-                    _endTable[startValue] = -1;
-                }
-                else
-                {
-                    _reversedOffsetTable[_startTable[startValue]] = -1;
-                }
+                if (valueTable[value] >= 0)
+                    _reversedOffsetTable[i] = valueTable[value];
 
-                firstOffset = _windowPos;
-            }
-            else
-            {
-                firstOffset = _windowLen;
-            }
-
-            var lastOffset = _endTable[matchValue];
-            if (lastOffset == -1)
-            {
-                _startTable[matchValue] = firstOffset;
-            }
-            else
-            {
-                _offsetTable[lastOffset] = firstOffset;
-            }
-
-            _endTable[matchValue] = firstOffset;
-            _offsetTable[firstOffset] = -1;
-            _reversedOffsetTable[firstOffset] = lastOffset;
-
-            if (_windowLen == maxDisplacement)
-            {
-                _windowPos += (int)_options.UnitSize;
-                _windowPos %= maxDisplacement;
-            }
-            else
-            {
-                _windowLen += (int)_options.UnitSize;
+                valueTable[value] = i;
             }
         }
 
@@ -242,11 +195,11 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <inheritdoc cref="Dispose()"/>
         public void Dispose()
         {
-            _offsetTable = null;
+            //_offsetTable = null;
             _reversedOffsetTable = null;
 
-            _startTable = null;
-            _endTable = null;
+            //_startTable = null;
+            //_endTable = null;
 
             _options = null;
             _limits = null;
