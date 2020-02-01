@@ -40,7 +40,7 @@ namespace Kompression.Configuration
         /// <param name="skipUnits">Gets the number of units to skipUnits after a match was found.</param>
         /// <param name="unitSize">Gets the size of a unit.</param>
         /// <param name="taskCount">Gets the number of tasks to use for parallel match finding.</param>
-        internal FindOptions(bool searchBackwards, int preBufferSize, int skipUnits, UnitSize unitSize, int taskCount)
+        public FindOptions(bool searchBackwards, int preBufferSize, int skipUnits, UnitSize unitSize, int taskCount)
         {
             SearchBackwards = searchBackwards;
             PreBufferSize = preBufferSize;

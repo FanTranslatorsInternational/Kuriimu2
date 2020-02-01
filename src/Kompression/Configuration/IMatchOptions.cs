@@ -70,5 +70,11 @@ namespace Kompression.Configuration
         /// <param name="unitSize">The size of a unit to match.</param>
         /// <returns>The option object.</returns>
         IMatchOptions WithUnitSize(UnitSize unitSize);
+
+        /// <summary>
+        /// Creates a usable collection of all set match options.
+        /// </summary>
+        /// <returns>A new instance of <see cref="FindOptions"/>.</returns>
+        FindOptions BuildOptions();
     }
 }

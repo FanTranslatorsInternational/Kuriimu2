@@ -11,6 +11,31 @@ namespace Kompression.Configuration
     class MatchOptions : IMatchOptions
     {
         /// <summary>
+        /// Indicates whether to search matches from the beginning to the end of data.
+        /// </summary>
+        private bool _findBackwards;
+
+        /// <summary>
+        /// Gets the size of a buffer located before the first position to search from.
+        /// </summary>
+        private int _preBufferSize;
+
+        /// <summary>
+        /// Gets the amount of units to skip after a match.
+        /// </summary>
+        private int _skipAfterMatch;
+
+        /// <summary>
+        /// Gets the size of a unit to match.
+        /// </summary>
+        private UnitSize _unitSize = UnitSize.Byte;
+
+        /// <summary>
+        /// Gets the number of tasks to use to find pattern matches.
+        /// </summary>
+        private int _taskCount = Environment.ProcessorCount;
+
+        /// <summary>
         /// The factory to create a list of <see cref="IMatchFinder"/>s.
         /// </summary>
         internal IList<Func<FindLimitations[], FindOptions, IMatchFinder>> MatchFinderFactories { get; private set; }
@@ -29,31 +54,6 @@ namespace Kompression.Configuration
         /// The factory to create an <see cref="IMatchParser"/>.
         /// </summary>
         internal Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> MatchParserFactory { get; private set; }
-
-        /// <summary>
-        /// Indicates whether to search matches from the beginning to the end of data.
-        /// </summary>
-        internal bool? FindBackwards { get; private set; }
-
-        /// <summary>
-        /// Gets the size of a buffer located before the first position to search from.
-        /// </summary>
-        internal int? PreBufferSize { get; private set; }
-
-        /// <summary>
-        /// Gets the amount of units to skip after a match.
-        /// </summary>
-        internal int? SkipAfterMatch { get; private set; }
-
-        /// <summary>
-        /// Gets the size of a unit to match.
-        /// </summary>
-        internal UnitSize? UnitSize { get; private set; }
-
-        /// <summary>
-        /// Gets the number of tasks to use to find pattern matches.
-        /// </summary>
-        internal int? TaskCount { get; private set; }
 
         /// <inheritdoc cref="CalculatePricesWith"/>
         public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
@@ -94,36 +94,42 @@ namespace Kompression.Configuration
         /// <inheritdoc cref="FindInBackwardOrder"/>
         public IMatchOptions FindInBackwardOrder()
         {
-            FindBackwards = true;
+            _findBackwards = true;
             return this;
         }
 
         /// <inheritdoc cref="WithPreBufferSize"/>
         public IMatchOptions WithPreBufferSize(int size)
         {
-            PreBufferSize = size;
+            _preBufferSize = size;
             return this;
         }
 
         /// <inheritdoc cref="SkipUnitsAfterMatch"/>
         public IMatchOptions SkipUnitsAfterMatch(int skip)
         {
-            SkipAfterMatch = skip;
+            _skipAfterMatch = skip;
             return this;
         }
 
         /// <inheritdoc cref="ProcessWithTasks"/>
         public IMatchOptions ProcessWithTasks(int count)
         {
-            TaskCount = count;
+            _taskCount = count;
             return this;
         }
 
         /// <inheritdoc cref="WithUnitSize"/>
         public IMatchOptions WithUnitSize(UnitSize unitSize)
         {
-            UnitSize = unitSize;
+            _unitSize = unitSize;
             return this;
+        }
+
+        /// <inheritdoc cref="BuildOptions"/>
+        public FindOptions BuildOptions()
+        {
+            return new FindOptions(_findBackwards, _preBufferSize, _skipAfterMatch, _unitSize, _taskCount);
         }
     }
 }

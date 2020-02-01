@@ -1,7 +1,7 @@
 ﻿namespace Kompression.PatternMatch.MatchParser.Support
 {
     /// <summary>
-    /// The element model used for <see cref="BackwardForwardOptimalParser"/> to store price and connects it to a displacement and length
+    /// The element model used for <see cref="OptimalParser"/> to store price and connects it to a displacement and length
     /// </summary>
     struct PriceHistoryElement
     {

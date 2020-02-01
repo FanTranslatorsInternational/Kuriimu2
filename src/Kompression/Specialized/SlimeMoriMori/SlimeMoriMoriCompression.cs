@@ -123,45 +123,49 @@ namespace Kompression.Specialized.SlimeMoriMori
                 case 1:
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(3, 18, 1, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8)), 
                     };
                     break;
+
                 case 2:
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(3, -1, 1, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8))
                     };
                     break;
+
                 case 3:
-                    //var newLength = input.Length >> 1 << 1;
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(4, -1, 2, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Short, 8))
                     };
                     break;
+
                 case 4:
                     return Array.Empty<Match>();
+
                 case 5:
                     matchFinders = new IMatchFinder[]
                     {
-                        new HybridSuffixTreeMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
+                        new HistoryMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8)),
                         new RleMatchFinder(new FindLimitations(1, 0x40),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8))
                     };
                     break;
+
                 default:
                     throw new InvalidOperationException($"Unknown compression mode {compressionMode}.");
             }
 
             // Optimal parse all LZ matches
-            var parser = new ForwardBackwardOptimalParser(
+            var parser = new OptimalParser(
                 new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
                 new SlimePriceCalculator(compressionMode, huffmanMode),
                 matchFinders);

@@ -84,18 +84,12 @@ namespace Kompression.Configuration
         }
 
         /// <summary>
-        /// Build the current configuration to an <see cref="ICompression"/>.
+        /// BuildOptions the current configuration to an <see cref="ICompression"/>.
         /// </summary>
         /// <returns>The <see cref="ICompression"/> for this configuration.</returns>
         public ICompression Build()
         {
-            // Get or default values for pattern match operations
-            var preBufferSize = _matchOptions?.PreBufferSize ?? 0;
-            var isBackwards = _matchOptions?.FindBackwards ?? false;
-            var skipAfterMatch = _matchOptions?.SkipAfterMatch ?? 0;
-            var dataType = _matchOptions?.UnitSize ?? UnitSize.Byte;
-            var taskCount = _matchOptions?.TaskCount ?? 8;
-            var findOptions = new FindOptions(isBackwards, preBufferSize, skipAfterMatch, dataType, taskCount);
+            var findOptions = _matchOptions.BuildOptions();
 
             // Get created instances for pattern match operations
             var priceCalculator = _matchOptions?.PriceCalculatorFactory?.Invoke();

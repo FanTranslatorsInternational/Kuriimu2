@@ -1,6 +1,5 @@
 ﻿using System;
 using Kompression.Interfaces;
-using Kompression.Models;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -23,8 +22,10 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return 4;
+
                 case 2:
                     return 7;
+
                 default:
                     return 9;
             }

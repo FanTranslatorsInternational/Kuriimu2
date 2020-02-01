@@ -21,24 +21,18 @@ namespace Kompression.Interfaces
         FindOptions FindOptions { get; }
 
         /// <summary>
+        /// Pre-processes the input for use in match finding operations.
+        /// </summary>
+        /// <param name="input">The input to preprocess.</param>
+        /// <param name="startPosition">Position from which to pre process the input.</param>
+        void PreProcess(byte[] input, int startPosition);
+
+        /// <summary>
         /// Finds matches at a certain position with the given limitations.
         /// </summary>
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position);
-
-        /// <summary>
-        /// Finds matches at all positions with the given limitations.
-        /// </summary>
-        /// <param name="input">The input data.</param>
-        /// <param name="position">The position to start search at.</param>
-        /// <returns>All matches found in the input data.</returns>
-        IEnumerable<Match[]> GetAllMatches(byte[] input, int position);
-
-        /// <summary>
-        /// Resets the instance for reuse with another file.
-        /// </summary>
-        void Reset();
+        IList<Match> FindMatchesAtPosition(byte[] input, int position);
     }
 }

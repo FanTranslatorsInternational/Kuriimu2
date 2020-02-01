@@ -6,12 +6,10 @@ namespace Kompression.PatternMatch.MatchParser.Support
     class ParserState : IMatchState
     {
         private PriceHistoryElement[] _history;
-        private FindOptions _findOptions;
 
-        public ParserState(PriceHistoryElement[] history, FindOptions findOptions)
+        public ParserState(PriceHistoryElement[] history)
         {
             _history = history;
-            _findOptions = findOptions;
         }
 
         public int CountLiterals(int position)
@@ -54,7 +52,6 @@ namespace Kompression.PatternMatch.MatchParser.Support
         public void Dispose()
         {
             _history = null;
-            _findOptions = null;
         }
     }
 }
