@@ -1,6 +1,4 @@
-﻿using Kompression.Models;
-
-namespace Kompression.Interfaces
+﻿namespace Kontract.Kompression
 {
     /// <summary>
     /// Provides functionality to calculate prices for literals and pattern matches.

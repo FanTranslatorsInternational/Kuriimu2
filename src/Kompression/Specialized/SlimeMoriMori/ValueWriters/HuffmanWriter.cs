@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Kompression.Huffman.Support;
-using Kompression.IO;
+using Komponent.IO;
+using Kontract.Kompression.Model.Huffman;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueWriters
 {

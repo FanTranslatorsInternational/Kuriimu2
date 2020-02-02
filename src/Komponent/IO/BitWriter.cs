@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
+using Kontract.Models.IO;
 
-namespace Kompression.IO
+namespace Komponent.IO
 {
     /// <summary>
     /// Writing an arbitrary amount of bits to a given data source.
@@ -87,7 +88,7 @@ namespace Kompression.IO
 
             for (var i = 0; i < count; i++)
             {
-                if (_bitOrder == BitOrder.MsbFirst)
+                if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 {
                     WriteBit(value >> (count - 1 - i));
                 }
@@ -123,7 +124,7 @@ namespace Kompression.IO
         /// </summary>
         private void WriteBuffer()
         {
-            if (_bitOrder == BitOrder.MsbFirst)
+            if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 _buffer = ReverseBits(_buffer, _blockSize * 8);
 
             for (var i = 0; i < _blockSize; i++)

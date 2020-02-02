@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Kompression.Exceptions;
-using Kompression.Huffman.Support;
-using Kompression.Interfaces;
-using Kompression.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Model.Huffman;
+using Kontract.Models.IO;
 
 namespace Kompression.Huffman
 {

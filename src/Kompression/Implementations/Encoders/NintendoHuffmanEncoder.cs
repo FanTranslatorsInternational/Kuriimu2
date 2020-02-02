@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.Extensions;
-using Kompression.Huffman.Support;
-using Kompression.Interfaces;
-using Kompression.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.Huffman;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -49,7 +50,7 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write bits to stream
-                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
+                using (var bitWriter = new BitWriter(bw.BaseStream, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian))
                 {
                     switch (_bitDepth)
                     {

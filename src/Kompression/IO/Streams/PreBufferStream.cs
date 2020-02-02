@@ -1,15 +1,13 @@
 ﻿using System;
 using System.IO;
+using Kontract;
 
-namespace Kompression.IO
+namespace Kompression.IO.Streams
 {
-    /// <summary>
-    /// Concatenates two streams into one.
-    /// </summary>
-    public class ConcatStream : Stream
+    class PreBufferStream : Stream
     {
-        private Stream _baseStream1;
-        private Stream _baseStream2;
+        private readonly int _preBufferSize;
+        private Stream _baseStream;
 
         /// <inheritdoc cref="CanRead"/>
         public override bool CanRead => true;
@@ -21,7 +19,7 @@ namespace Kompression.IO
         public override bool CanWrite => false;
 
         /// <inheritdoc cref="Length"/>
-        public override long Length => _baseStream1.Length + _baseStream2.Length;
+        public override long Length => _baseStream.Length + _preBufferSize;
 
         /// <inheritdoc cref="Position"/>
         public override long Position { get; set; }
@@ -29,19 +27,20 @@ namespace Kompression.IO
         /// <summary>
         /// Create a new instance of <see cref="ConcatStream"/>.
         /// </summary>
-        /// <param name="baseStream1">The first stream in the concatenation.</param>
-        /// <param name="baseStream2">The second stream in the concatenation.</param>
-        public ConcatStream(Stream baseStream1, Stream baseStream2)
+        /// <param name="baseStream">The stream to be preset with a buffer.</param>
+        /// <param name="preBufferSize">The size of the zero filled buffer.</param>
+        public PreBufferStream(Stream baseStream, int preBufferSize)
         {
-            _baseStream1 = baseStream1 ?? throw new ArgumentNullException(nameof(baseStream1));
-            _baseStream2 = baseStream2 ?? throw new ArgumentNullException(nameof(baseStream2));
+            ContractAssertions.IsNotNull(baseStream, nameof(baseStream));
+
+            _baseStream = baseStream;
+            _preBufferSize = preBufferSize;
         }
 
         /// <inheritdoc cref="Flush"/>
         public override void Flush()
         {
-            _baseStream1.Flush();
-            _baseStream2.Flush();
+            _baseStream.Flush();
         }
 
         /// <inheritdoc cref="Seek"/>
@@ -80,14 +79,16 @@ namespace Kompression.IO
             int readBytes;
             var cappedCount = readBytes = (int)Math.Min(Length - Position, count);
 
-            if (Position < _baseStream1.Length)
+            if (Position < _preBufferSize)
             {
-                var toRead = Math.Min(cappedCount, (int)(_baseStream1.Length - Position));
+                var toRead = Math.Min(cappedCount, (int)(_preBufferSize - Position));
 
-                var bkPos = _baseStream1.Position;
-                _baseStream1.Position = Position;
-                _baseStream1.Read(buffer, offset, toRead);
-                _baseStream1.Position = bkPos;
+#if NET_CORE_31
+                Array.Fill<byte>(buffer, 0, offset, toRead);
+#else
+                for (var i = 0; i < toRead; i++)
+                    buffer[offset + i] = 0;
+#endif
 
                 offset += toRead;
                 Position += toRead;
@@ -96,12 +97,12 @@ namespace Kompression.IO
 
             if (cappedCount > 0)
             {
-                var toRead = Math.Min(cappedCount, (int)(_baseStream2.Length - (Position - _baseStream1.Length)));
+                var toRead = Math.Min(cappedCount, (int)(_baseStream.Length - (Position - _preBufferSize)));
 
-                var bkPos = _baseStream2.Position;
-                _baseStream2.Position = Position - _baseStream1.Length;
-                _baseStream2.Read(buffer, offset, toRead);
-                _baseStream2.Position = bkPos;
+                var bkPos = _baseStream.Position;
+                _baseStream.Position = Position - _preBufferSize;
+                _baseStream.Read(buffer, offset, toRead);
+                _baseStream.Position = bkPos;
 
                 Position += toRead;
             }
@@ -120,8 +121,7 @@ namespace Kompression.IO
         {
             if (disposing)
             {
-                _baseStream1 = null;
-                _baseStream2 = null;
+                _baseStream = null;
             }
 
             base.Dispose(disposing);

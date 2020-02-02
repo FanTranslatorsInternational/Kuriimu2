@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Kompression.IO;
+using Komponent.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {

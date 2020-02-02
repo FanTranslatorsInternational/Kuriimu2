@@ -1,9 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
+using Komponent.IO;
 using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Decoders
 {
@@ -41,7 +44,7 @@ namespace Kompression.Implementations.Decoders
 
             var bitLayout = new byte[compressedTableOffset - 0x10];
             input.Read(bitLayout, 0, bitLayout.Length);
-            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MsbFirst, 1, ByteOrder.BigEndian))
+            using (var bitReader = new BitReader(new MemoryStream(bitLayout), BitOrder.MostSignificantBitFirst, 1, ByteOrder.BigEndian))
             {
                 while (output.Length < uncompressedLength)
                 {

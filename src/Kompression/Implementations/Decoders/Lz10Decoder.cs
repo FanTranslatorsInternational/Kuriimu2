@@ -5,6 +5,7 @@ using Kompression.Exceptions;
 using Kompression.Implementations;
 using Kompression.IO;
 using Kompression.PatternMatch;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {

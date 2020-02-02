@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Kompression.Configuration
+namespace Kontract.Kompression.Configuration
 {
     /// <summary>
     /// Provides functionality to encode data.

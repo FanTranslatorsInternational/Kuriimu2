@@ -4,6 +4,7 @@ using System.Text;
 using Kompression.Configuration;
 using Kompression.Extensions;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {

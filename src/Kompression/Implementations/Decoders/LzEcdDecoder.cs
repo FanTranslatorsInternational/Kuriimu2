@@ -4,6 +4,7 @@ using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 /* https://github.com/IcySon55/Kuriimu/issues/438 */
 /* Kanken Training 2 */

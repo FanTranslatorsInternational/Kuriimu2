@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using System.Text;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.Extensions;
-using Kompression.Interfaces;
-using Kompression.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -24,7 +25,7 @@ namespace Kompression.Implementations.Encoders
             var compressedTableStream = new MemoryStream();
             var uncompressedTableStream = new MemoryStream();
 
-            using var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MsbFirst, 1, ByteOrder.BigEndian);
+            using var bitLayoutWriter = new BitWriter(bitLayoutStream, BitOrder.MostSignificantBitFirst, 1, ByteOrder.BigEndian);
             using var bwCompressed = new BinaryWriter(compressedTableStream, Encoding.ASCII, true);
             using var bwUncompressed = new BinaryWriter(uncompressedTableStream, Encoding.ASCII, true);
 

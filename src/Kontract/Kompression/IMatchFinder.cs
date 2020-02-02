@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Kompression.Configuration;
-using Kompression.Models;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
-namespace Kompression.Interfaces
+namespace Kontract.Kompression
 {
     /// <summary>
     /// Provides functionality for finding matches.

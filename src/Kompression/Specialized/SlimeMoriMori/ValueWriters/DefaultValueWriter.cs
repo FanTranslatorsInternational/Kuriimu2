@@ -1,4 +1,4 @@
-﻿using Kompression.IO;
+﻿using Komponent.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueWriters
 {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Kompression.Configuration;
 using Kompression.Extensions;
-using Kompression.Interfaces;
-using Kompression.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {

@@ -1,4 +1,4 @@
-﻿namespace Kompression.Models
+﻿namespace Kontract.Kompression.Model
 {
     /// <summary>
     /// The unit size to match in patterns.

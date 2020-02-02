@@ -1,8 +1,6 @@
 ﻿using System;
-using Kompression.Huffman;
-using Kompression.Interfaces;
 
-namespace Kompression.Configuration
+namespace Kontract.Kompression.Configuration
 {
     /// <summary>
     /// Provides functionality to configure huffman encodings.

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Kompression.Configuration;
-using Kompression.Interfaces;
-using Kompression.Models;
+using Kontract.Kompression;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchFinders
 {

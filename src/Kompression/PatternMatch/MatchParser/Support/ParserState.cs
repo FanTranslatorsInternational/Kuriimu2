@@ -1,5 +1,5 @@
 ﻿using Kompression.Configuration;
-using Kompression.Interfaces;
+using Kontract.Kompression;
 
 namespace Kompression.PatternMatch.MatchParser.Support
 {

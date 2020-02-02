@@ -1,6 +1,4 @@
-﻿using Kompression.Models;
-
-namespace Kompression.Configuration
+﻿namespace Kontract.Kompression.Model
 {
     /// <summary>
     /// Contains information to configure the search of pattern matches.

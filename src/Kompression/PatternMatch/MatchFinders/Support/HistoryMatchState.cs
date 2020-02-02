@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Kompression.Configuration;
-using Kompression.Models;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchFinders.Support
 {
@@ -65,10 +65,12 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        public IList<Match> FindMatchesAtPosition(byte[] input, int position)
+        public System.Collections.Generic.IList<Match> FindMatchesAtPosition(byte[] input, int position)
         {
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
-            var minLength = Math.Min(3, _limits.MinLength);
+            var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
+
+            var minValueLength = Math.Min(3, _limits.MinLength);
 
             var cappedLength = Math.Min(input.Length - position, maxLength);
 
@@ -78,7 +80,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
             var result = new List<Match>();
             var longestMatchSize = _limits.MinLength - 1;
             for (var matchOffset = _reversedOffsetTable[position];
-                matchOffset != -1 && position - matchOffset <= _limits.MaxDisplacement;
+                matchOffset != -1 && position - matchOffset <= maxDisplacement;
                 matchOffset = _reversedOffsetTable[matchOffset])
             {
                 // Check if match and current position have min distance to each other
@@ -92,7 +94,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
 
                 // Calculate the length of a match
                 var nMaxSize = cappedLength;
-                var matchSize = _calculateMatchSize(input, position, matchOffset, minLength, nMaxSize);
+                var matchSize = _calculateMatchSize(input, position, matchOffset, minValueLength, nMaxSize);
 
                 if (matchSize > longestMatchSize)
                 {
@@ -112,18 +114,18 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         {
             _reversedOffsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
 
-            var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, minValueLength)).ToArray();
+            var valueTable = new Dictionary<int, int>();
             for (var i = startPosition; i < input.Length - minValueLength; i++)
             {
                 var value = _readValue(input, i);
 
-                if (valueTable[value] >= 0)
+                if (valueTable.ContainsKey(value))
                     _reversedOffsetTable[i] = valueTable[value];
 
                 valueTable[value] = i;
             }
 
-            valueTable = null;
+            valueTable.Clear();
         }
 
         private static int ReadValue1(byte[] input, int position)

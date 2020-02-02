@@ -1,7 +1,7 @@
-﻿using Kompression.Huffman.Support;
-using Kompression.IO;
+﻿using Kontract.Kompression.Model.Huffman;
+using Kontract.Models.IO;
 
-namespace Kompression.Interfaces
+namespace Kontract.Kompression
 {
     /// <summary>
     /// Provides functionality to create a huffman tree.

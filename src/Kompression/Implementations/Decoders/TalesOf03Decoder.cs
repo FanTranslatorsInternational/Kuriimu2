@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using Kompression.Configuration;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {

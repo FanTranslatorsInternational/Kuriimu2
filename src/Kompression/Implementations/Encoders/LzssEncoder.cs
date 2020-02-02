@@ -1,6 +1,6 @@
 ﻿using System.IO;
-using Kompression.Configuration;
-using Kompression.Interfaces;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Encoders
 {

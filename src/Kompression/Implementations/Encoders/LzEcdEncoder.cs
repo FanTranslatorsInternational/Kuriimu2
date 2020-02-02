@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Kompression.Configuration;
 using Kompression.Extensions;
-using Kompression.Interfaces;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Encoders
 {

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Configuration;
 using Kompression.Extensions;
-using Kompression.Interfaces;
 using Kompression.IO;
-using Kompression.Models;
+using Kompression.IO.Streams;
 using Kompression.PatternMatch.MatchParser.Support;
+using Kontract.Kompression;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchParser
 {
@@ -32,17 +33,13 @@ namespace Kompression.PatternMatch.MatchParser
 
         public IEnumerable<Match> ParseMatches(Stream input)
         {
-            var toParse = input;
-
             if (FindOptions.PreBufferSize > 0)
-                toParse = FindOptions.SearchBackwards ?
-                    new ConcatStream(input, new MemoryStream(new byte[FindOptions.PreBufferSize])) :
-                    new ConcatStream(new MemoryStream(new byte[FindOptions.PreBufferSize]), input);
+                input = new PreBufferStream(input, FindOptions.PreBufferSize);
 
             if (FindOptions.SearchBackwards)
-                toParse = new ReverseStream(toParse, toParse.Length);
+                input = new ReverseStream(input, input.Length);
 
-            return InternalParseMatches(toParse.ToArray(), FindOptions.PreBufferSize);
+            return InternalParseMatches(input.ToArray(), FindOptions.PreBufferSize);
         }
 
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)

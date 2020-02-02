@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Kompression.Interfaces
+namespace Kontract.Kompression
 {
     public interface IMatchState : IDisposable
     {

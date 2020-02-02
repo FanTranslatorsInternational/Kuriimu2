@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
+using Kontract.Models.IO;
 
-namespace Kompression.IO
+namespace Komponent.IO
 {
     /// <summary>
     /// Reading an arbitrary amount of bits from a given data source.
@@ -102,7 +103,7 @@ namespace Kompression.IO
             long result = 0;
             for (var i = 0; i < count; i++)
             {
-                if (_bitOrder == BitOrder.MsbFirst)
+                if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 {
                     result <<= 1;
                     result |= (byte)ReadBit();
@@ -172,6 +173,7 @@ namespace Kompression.IO
         private void SetBitPosition(long bitPosition)
         {
             _baseStream.Position = bitPosition / (_blockSize * 8);
+
             RefillBuffer();
             _bufferBitPosition = (byte)(bitPosition % (_blockSize * 8));
         }
@@ -190,7 +192,7 @@ namespace Kompression.IO
                 else
                     _buffer = _buffer | (long)((byte)_baseStream.ReadByte() << (i * 8));
 
-            if (_bitOrder == BitOrder.MsbFirst)
+            if (_bitOrder == BitOrder.MostSignificantBitFirst)
                 _buffer = ReverseBits(_buffer, _blockSize * 8);
 
             _bufferBitPosition = 0;

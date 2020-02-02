@@ -1,5 +1,8 @@
 ﻿using System;
-using Kompression.Interfaces;
+using Kompression.Huffman;
+using Kontract;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Configuration
 {
@@ -11,13 +14,22 @@ namespace Kompression.Configuration
         /// <summary>
         /// The factory to create an <see cref="IHuffmanTreeBuilder"/>.
         /// </summary>
-        internal Func<IHuffmanTreeBuilder> TreeBuilderFactory { get; private set; }
+        private Func<IHuffmanTreeBuilder> _treeBuilderFactory =
+            () => new HuffmanTreeBuilder();
 
         /// <inheritdoc cref="BuildTreeWith"/>
         public IHuffmanOptions BuildTreeWith(Func<IHuffmanTreeBuilder> treeBuilderFactory)
         {
-            TreeBuilderFactory = treeBuilderFactory;
+            ContractAssertions.IsNotNull(treeBuilderFactory, nameof(treeBuilderFactory));
+
+            _treeBuilderFactory = treeBuilderFactory;
+
             return this;
+        }
+
+        internal IHuffmanTreeBuilder BuildHuffmanTree()
+        {
+            return _treeBuilderFactory();
         }
     }
 }

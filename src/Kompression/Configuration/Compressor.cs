@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Configuration
 {

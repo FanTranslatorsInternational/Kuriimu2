@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.Extensions;
-using Kompression.Huffman.Support;
-using Kompression.Interfaces;
-using Kompression.IO;
-using Kompression.Models;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.Huffman;
+using Kontract.Kompression.Model.PatternMatch;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -90,7 +91,7 @@ namespace Kompression.Implementations.Encoders
             var dispIndexTree = CreateDisplacementIndexTree();
             _dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            using var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian);
+            using var bw = new BitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
 
             // Without obfuscation
             bw.WriteByte(0x02);

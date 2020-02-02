@@ -1,92 +1,96 @@
 ﻿using System;
 using System.Collections.Generic;
-using Kompression.Interfaces;
-using Kompression.Models;
+using Kompression.PatternMatch.MatchFinders;
+using Kompression.PatternMatch.MatchParser;
+using Kontract;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 
 namespace Kompression.Configuration
 {
     /// <summary>
     /// Contains information on configuring match finding and parsing.
     /// </summary>
-    class MatchOptions : IMatchOptions
+    class MatchOptions : IMatchOptions, IMatchLimitations, IMatchAdditionalFinders
     {
-        /// <summary>
-        /// Indicates whether to search matches from the beginning to the end of data.
-        /// </summary>
-        private bool _findBackwards;
+        private static readonly Func<FindLimitations, FindOptions, IMatchFinder> DefaultMatchFinder =
+            (limits, options) => new HistoryMatchFinder(limits, options);
 
-        /// <summary>
-        /// Gets the size of a buffer located before the first position to search from.
-        /// </summary>
+        private bool _searchBackwards;
         private int _preBufferSize;
-
-        /// <summary>
-        /// Gets the amount of units to skip after a match.
-        /// </summary>
         private int _skipAfterMatch;
-
-        /// <summary>
-        /// Gets the size of a unit to match.
-        /// </summary>
         private UnitSize _unitSize = UnitSize.Byte;
-
-        /// <summary>
-        /// Gets the number of tasks to use to find pattern matches.
-        /// </summary>
         private int _taskCount = Environment.ProcessorCount;
 
-        /// <summary>
-        /// The factory to create a list of <see cref="IMatchFinder"/>s.
-        /// </summary>
-        internal IList<Func<FindLimitations[], FindOptions, IMatchFinder>> MatchFinderFactories { get; private set; }
+        private readonly IList<Func<FindLimitations, FindOptions, IMatchFinder>> _matchFinderFactories =
+            new List<Func<FindLimitations, FindOptions, IMatchFinder>>
+            {
+                DefaultMatchFinder
+            };
 
-        /// <summary>
-        /// The factory to create a list of <see cref="FindLimitations"/>.
-        /// </summary>
-        internal IList<Func<FindLimitations>> LimitFactories { get; private set; }
+        private readonly IList<Func<FindLimitations>> _limitFactories =
+            new List<Func<FindLimitations>>();
 
-        /// <summary>
-        /// The factory to create an <see cref="IPriceCalculator"/>.
-        /// </summary>
-        internal Func<IPriceCalculator> PriceCalculatorFactory { get; private set; }
+        private Func<IPriceCalculator> _priceCalculatorFactory;
 
-        /// <summary>
-        /// The factory to create an <see cref="IMatchParser"/>.
-        /// </summary>
-        internal Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> MatchParserFactory { get; private set; }
+        private Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> _matchParserFactory =
+            (options, calculator, finders) => new OptimalParser(options, calculator, finders);
+
+        /// <inheritdoc cref="WithDefaultMatchFinder"/>
+        public IMatchLimitations WithDefaultMatchFinder => FindMatchesWith(DefaultMatchFinder);
+
+        /// <inheritdoc cref="AndWithDefaultMatchFinder"/>
+        public IMatchLimitations AndWithDefaultMatchFinder => AndWith(DefaultMatchFinder);
 
         /// <inheritdoc cref="CalculatePricesWith"/>
         public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
         {
-            PriceCalculatorFactory = priceCalculatorFactory;
+            ContractAssertions.IsNotNull(priceCalculatorFactory, nameof(priceCalculatorFactory));
+
+            _priceCalculatorFactory = priceCalculatorFactory;
+
             return this;
         }
 
         /// <inheritdoc cref="FindMatchesWith"/>
-        public IMatchOptions FindMatchesWith(Func<FindLimitations[], FindOptions, IMatchFinder> matchFinderFactory)
+        public IMatchLimitations FindMatchesWith(Func<FindLimitations, FindOptions, IMatchFinder> matchFinderFactory)
         {
-            if (MatchFinderFactories == null)
-                MatchFinderFactories = new List<Func<FindLimitations[], FindOptions, IMatchFinder>>();
+            ContractAssertions.IsNotNull(matchFinderFactory, nameof(matchFinderFactory));
 
-            MatchFinderFactories.Add(matchFinderFactory);
+            _matchFinderFactories.Clear();
+            _limitFactories.Clear();
+
+            _matchFinderFactories.Add(matchFinderFactory);
+
+            return this;
+        }
+
+        public IMatchLimitations AndWith(Func<FindLimitations, FindOptions, IMatchFinder> matchFinderFactory)
+        {
+            ContractAssertions.IsNotNull(matchFinderFactory, nameof(matchFinderFactory));
+
+            _matchFinderFactories.Add(matchFinderFactory);
+
+            return this;
+        }
+
+        /// <inheritdoc cref="WithinLimitations"/>
+        public IMatchAdditionalFinders WithinLimitations(Func<FindLimitations> limitFactory)
+        {
+            ContractAssertions.IsNotNull(limitFactory, nameof(limitFactory));
+
+            _limitFactories.Add(limitFactory);
 
             return this;
         }
 
         /// <inheritdoc cref="ParseMatchesWith"/>
-        public IMatchOptions ParseMatchesWith(Func<IMatchFinder[], IPriceCalculator, FindOptions, IMatchParser> matchParserFactory)
+        public IMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory)
         {
-            MatchParserFactory = matchParserFactory;
-            return this;
-        }
+            ContractAssertions.IsNotNull(matchParserFactory, nameof(matchParserFactory));
 
-        /// <inheritdoc cref="WithinLimitations"/>
-        public IMatchOptions WithinLimitations(Func<FindLimitations> limitFactory)
-        {
-            if (LimitFactories == null)
-                LimitFactories = new List<Func<FindLimitations>>();
-
-            LimitFactories.Add(limitFactory);
+            _matchParserFactory = matchParserFactory;
 
             return this;
         }
@@ -94,7 +98,7 @@ namespace Kompression.Configuration
         /// <inheritdoc cref="FindInBackwardOrder"/>
         public IMatchOptions FindInBackwardOrder()
         {
-            _findBackwards = true;
+            _searchBackwards = true;
             return this;
         }
 
@@ -126,10 +130,36 @@ namespace Kompression.Configuration
             return this;
         }
 
-        /// <inheritdoc cref="BuildOptions"/>
-        public FindOptions BuildOptions()
+        internal IMatchParser BuildMatchParser()
         {
-            return new FindOptions(_findBackwards, _preBufferSize, _skipAfterMatch, _unitSize, _taskCount);
+            var options = BuildOptions();
+            var matchFinders = BuildMatchFinders(options);
+            var priceCalculator = _priceCalculatorFactory?.Invoke();
+
+            return _matchParserFactory(options, priceCalculator, matchFinders);
+        }
+
+        private FindOptions BuildOptions()
+        {
+            return new FindOptions(_searchBackwards, _preBufferSize, _skipAfterMatch, _unitSize, _taskCount);
+        }
+
+        private IMatchFinder[] BuildMatchFinders(FindOptions options)
+        {
+            if (_matchFinderFactories.Count != _limitFactories.Count)
+                throw new InvalidOperationException("Not all match finders have limitations to search patterns in.");
+
+            var matchFinders = new IMatchFinder[_limitFactories.Count];
+
+            for (var i = 0; i < _limitFactories.Count; i++)
+            {
+                var limits = _limitFactories[i]();
+                var matchFinder = _matchFinderFactories[i](limits, options);
+
+                matchFinders[i] = matchFinder;
+            }
+
+            return matchFinders;
         }
     }
 }

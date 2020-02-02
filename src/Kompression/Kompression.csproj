@@ -52,4 +52,9 @@
     <PackageReference Include="C5" Version="2.5.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+  </ItemGroup>
+
 </Project>

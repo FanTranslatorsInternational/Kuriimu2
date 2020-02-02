@@ -3,6 +3,7 @@ using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.IO;
 using Kompression.PatternMatch;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {

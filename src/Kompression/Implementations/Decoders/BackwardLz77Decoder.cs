@@ -1,8 +1,9 @@
 ﻿using System.IO;
 using Kompression.Configuration;
 using Kompression.Extensions;
-using Kompression.Interfaces;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Decoders
 {

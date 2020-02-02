@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kompression.Huffman.Support
+namespace Kontract.Kompression.Model.Huffman
 {
     /// <summary>
     /// Represents a node in a huffman tree.

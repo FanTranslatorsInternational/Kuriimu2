@@ -3,7 +3,8 @@ using System.Linq;
 using System.Text;
 using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Decoders
 {

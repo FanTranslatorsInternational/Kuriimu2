@@ -1,4 +1,4 @@
-﻿namespace Kompression.Models
+﻿namespace Kontract.Kompression.Model.PatternMatch
 {
     /// <summary>
     /// The pattern match containing all its information.

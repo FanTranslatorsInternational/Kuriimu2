@@ -1,6 +1,9 @@
 ﻿using System.IO;
+using Komponent.IO;
 using Kompression.Configuration;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Decoders
 {
@@ -60,7 +63,7 @@ namespace Kompression.Implementations.Decoders
         {
             _circularBuffer=new CircularBuffer(0x8000);
 
-            using (var br = new BitReader(input, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian))
+            using (var br = new BitReader(input, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian))
             {
                 var initialByte = br.ReadBits<int>(8);
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Kompression
+namespace Kontract.Kompression
 {
     /// <summary>
     /// Provides functionality to compress or decompress data.

@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using Kompression.Configuration;
 using Kompression.Extensions;
-using Kompression.Interfaces;
-using Kompression.Models;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {

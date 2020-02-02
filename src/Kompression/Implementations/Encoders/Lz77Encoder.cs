@@ -1,9 +1,10 @@
 ﻿using System.IO;
 using System.Linq;
-using Kompression.Configuration;
-using Kompression.Interfaces;
-using Kompression.IO;
-using Kompression.Models;
+using Komponent.IO;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
@@ -25,7 +26,7 @@ namespace Kompression.Implementations.Encoders
 
         private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
-            using var bw = new BitWriter(output, BitOrder.LsbFirst, 1, ByteOrder.BigEndian);
+            using var bw = new BitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.BigEndian);
 
             foreach (var match in matches)
             {

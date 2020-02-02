@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.Extensions;
 using Kompression.Huffman;
-using Kompression.Huffman.Support;
-using Kompression.Interfaces;
-using Kompression.IO;
-using Kompression.Models;
 using Kompression.PatternMatch.MatchFinders;
 using Kompression.PatternMatch.MatchParser;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
@@ -17,6 +13,11 @@ using Kompression.Specialized.SlimeMoriMori.Encoders;
 using Kompression.Specialized.SlimeMoriMori.Obfuscators;
 using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
+using Kontract.Kompression;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.Huffman;
+using Kontract.Kompression.Model.PatternMatch;
+using Kontract.Models.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -92,7 +93,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
             var valueWriter = CreateValueWriter(_huffmanMode, tree);
 
-            using (var bw = new BitWriter(output, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
+            using (var bw = new BitWriter(output, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian))
             {
                 // Write header data
                 bw.WriteBits((int)input.Length, 0x18);

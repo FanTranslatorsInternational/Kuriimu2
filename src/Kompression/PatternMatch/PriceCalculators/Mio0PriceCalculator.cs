@@ -1,4 +1,4 @@
-﻿using Kompression.Interfaces;
+﻿using Kontract.Kompression;
 
 namespace Kompression.PatternMatch.PriceCalculators
 {

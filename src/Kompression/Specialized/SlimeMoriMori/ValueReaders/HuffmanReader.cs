@@ -1,4 +1,5 @@
-﻿using Kompression.IO;
+﻿using Komponent.IO;
+using Kompression.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori.ValueReaders
 {

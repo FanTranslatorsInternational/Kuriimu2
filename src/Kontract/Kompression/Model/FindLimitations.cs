@@ -1,4 +1,4 @@
-﻿namespace Kompression.Configuration
+﻿namespace Kontract.Kompression.Model
 {
     /// <summary>
     /// Contains information to limit the search of pattern matches.
@@ -18,12 +18,12 @@
         /// <summary>
         /// The minimum displacement a pattern must be found at.
         /// </summary>
-        public int MinDisplacement { get; }
+        public int MinDisplacement { get; } = 1;
 
         /// <summary>
         /// The maximum displacement a pattern must be found at.
         /// </summary>
-        public int MaxDisplacement { get; }
+        public int MaxDisplacement { get; } = -1;
 
         /// <summary>
         /// Creates a new instance of <see cref="FindLimitations"/>.
@@ -43,7 +43,7 @@
         /// <param name="maxLength">The maximum length a pattern must have.</param>
         /// <param name="minDisplacement">The minimum displacement a pattern must be found at.</param>
         /// <param name="maxDisplacement">The maximum displacement a pattern must be found at.</param>
-        public FindLimitations(int minLength, int maxLength, int minDisplacement, int maxDisplacement) : 
+        public FindLimitations(int minLength, int maxLength, int minDisplacement, int maxDisplacement) :
             this(minLength, maxLength)
         {
             MinDisplacement = minDisplacement;

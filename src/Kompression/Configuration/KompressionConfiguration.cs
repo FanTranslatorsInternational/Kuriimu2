@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Kompression.Interfaces;
-using Kompression.Models;
-
-[assembly: InternalsVisibleTo("KompressionUnitTests")]
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Configuration
 {
@@ -16,18 +12,18 @@ namespace Kompression.Configuration
         private MatchOptions _matchOptions;
         private HuffmanOptions _huffmanOptions;
 
-        private int[] _compressionModes;
-        private Func<IMatchParser, IHuffmanTreeBuilder, int[], IEncoder> _encoderFactory;
-        private Func<int[], IDecoder> _decoderFactory;
+        private int _compressionMode;
+        private Func<IMatchParser, IHuffmanTreeBuilder, int, IEncoder> _encoderFactory;
+        private Func<int, IDecoder> _decoderFactory;
 
         /// <summary>
         /// Sets the compression modes used for de-/compressions.
         /// </summary>
-        /// <param name="modes">The compression modes.</param>
+        /// <param name="mode">The compression mode.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration WithCompressionModes(params int[] modes)
+        public KompressionConfiguration WithCompressionMode(int mode)
         {
-            _compressionModes = modes;
+            _compressionMode = mode;
             return this;
         }
 
@@ -36,7 +32,7 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="encoderFactory">The factory to create an <see cref="IEncoder"/>.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration EncodeWith(Func<IMatchParser, IHuffmanTreeBuilder, int[], IEncoder> encoderFactory)
+        public KompressionConfiguration EncodeWith(Func<IMatchParser, IHuffmanTreeBuilder, int, IEncoder> encoderFactory)
         {
             _encoderFactory = encoderFactory;
             return this;
@@ -47,7 +43,7 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="decoderFactory">The factory to create an <see cref="IDecoder"/>.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration DecodeWith(Func<int[], IDecoder> decoderFactory)
+        public KompressionConfiguration DecodeWith(Func<int, IDecoder> decoderFactory)
         {
             _decoderFactory = decoderFactory;
             return this;
@@ -89,26 +85,15 @@ namespace Kompression.Configuration
         /// <returns>The <see cref="ICompression"/> for this configuration.</returns>
         public ICompression Build()
         {
-            var findOptions = _matchOptions.BuildOptions();
-
-            // Get created instances for pattern match operations
-            var priceCalculator = _matchOptions?.PriceCalculatorFactory?.Invoke();
-            var limits = _matchOptions?.LimitFactories?.
-                Where(factory => factory != null).
-                Select(factory => factory()).
-                ToArray();
-            var matchFinders = _matchOptions?.MatchFinderFactories?.
-                Where(factory => factory != null).
-                Select(factory => factory(limits, findOptions)).
-                ToArray();
-            var matchParser = _matchOptions?.MatchParserFactory?.Invoke(matchFinders, priceCalculator, findOptions);
+            // Get match parser for lempel-ziv encodings
+            var matchParser = _matchOptions?.BuildMatchParser();
 
             // Get created instances for huffman encodings
-            var huffmanTreeBuilder = _huffmanOptions?.TreeBuilderFactory?.Invoke();
+            var huffmanTreeBuilder = _huffmanOptions?.BuildHuffmanTree();
 
             // Get created de-/compression instances
-            var decoder = _decoderFactory?.Invoke(_compressionModes);
-            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder, _compressionModes);
+            var decoder = _decoderFactory?.Invoke(_compressionMode);
+            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder, _compressionMode);
 
             return new Compressor(encoder, decoder);
         }
