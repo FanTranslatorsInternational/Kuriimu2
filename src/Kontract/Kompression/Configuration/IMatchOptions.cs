@@ -11,7 +11,7 @@ namespace Kontract.Kompression.Configuration
         /// <summary>
         /// Sets the usage of the default match finder and allows setting its limitations.
         /// </summary>
-        IMatchLimitations WithDefaultMatchFinder { get; }
+        IMatchLimitations FindMatchesWithDefault();
 
         /// <summary>
         /// Sets the factory to create an instance of <see cref="IPriceCalculator"/>.

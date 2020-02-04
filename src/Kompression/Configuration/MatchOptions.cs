@@ -17,6 +17,9 @@ namespace Kompression.Configuration
         private static readonly Func<FindLimitations, FindOptions, IMatchFinder> DefaultMatchFinder =
             (limits, options) => new HistoryMatchFinder(limits, options);
 
+        private static readonly Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> DefaultMatchParser =
+            (options, priceCalculator, finders) => new OptimalParser(options, priceCalculator, finders);
+
         private bool _searchBackwards;
         private int _preBufferSize;
         private int _skipAfterMatch;
@@ -34,14 +37,13 @@ namespace Kompression.Configuration
 
         private Func<IPriceCalculator> _priceCalculatorFactory;
 
-        private Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> _matchParserFactory =
-            (options, calculator, finders) => new OptimalParser(options, calculator, finders);
+        private Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> _matchParserFactory = DefaultMatchParser;
 
-        /// <inheritdoc cref="WithDefaultMatchFinder"/>
-        public IMatchLimitations WithDefaultMatchFinder => FindMatchesWith(DefaultMatchFinder);
+        /// <inheritdoc cref="FindMatchesWithDefault"/>
+        public IMatchLimitations FindMatchesWithDefault() => FindMatchesWith(DefaultMatchFinder);
 
-        /// <inheritdoc cref="AndWithDefaultMatchFinder"/>
-        public IMatchLimitations AndWithDefaultMatchFinder => AndWith(DefaultMatchFinder);
+        /// <inheritdoc cref="AndWithDefault"/>
+        public IMatchLimitations AndWithDefault() => AndWith(DefaultMatchFinder);
 
         /// <inheritdoc cref="CalculatePricesWith"/>
         public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)

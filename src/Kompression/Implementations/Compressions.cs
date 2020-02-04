@@ -19,7 +19,7 @@ namespace Kompression.Implementations
 
                 config.DecodeWith(mode => new Lz10Decoder()).EncodeWith((parser, builder, mode) => new Lz10Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000))
                     .CalculatePricesWith(() => new Lz10PriceCalculator()));
 
@@ -36,7 +36,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Lz11Decoder()).
                     EncodeWith((parser, builder, mode) => new Lz11Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x10110, 1, 0x1000))
                     .CalculatePricesWith(() => new Lz11PriceCalculator()));
 
@@ -53,7 +53,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Lz40Decoder()).
                     EncodeWith((parser, builder, mode) => new Lz40Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x1010F, 1, 0xFFF))
                     .CalculatePricesWith(() => new Lz40PriceCalculator()));
 
@@ -70,7 +70,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Lz60Decoder()).
                     EncodeWith((parser, builder, mode) => new Lz60Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x1010F, 1, 0xFFF))
                     .CalculatePricesWith(() => new Lz60PriceCalculator()));
 
@@ -88,7 +88,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new Lz77Encoder(parser));
                 config.WithMatchOptions(options => options
                     .SkipUnitsAfterMatch(1)
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x1, 0xFF, 1, 0xFF))
                     .CalculatePricesWith(() => new Lz77PriceCalculator()));
 
@@ -106,7 +106,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new BackwardLz77Encoder(parser, ByteOrder.LittleEndian));
                 config.WithMatchOptions(options => options
                     .FindInBackwardOrder()
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 3, 0x1002))
                     .CalculatePricesWith(() => new BackwardLz77PriceCalculator()));
 
@@ -124,7 +124,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new LzEcdEncoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0x3BE)
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x42, 1, 0x400))
                     .CalculatePricesWith(() => new LzEcdPriceCalculator()));
 
@@ -141,9 +141,9 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new LzeDecoder()).
                     EncodeWith((parser, builder, mode) => new LzeEncoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 5, 0x1004))
-                    .AndWithDefaultMatchFinder
+                    .AndWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x2, 0x41, 1, 4))
                     .CalculatePricesWith(() => new LzePriceCalculator()));
 
@@ -162,7 +162,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new LzssDecoder()).
                     EncodeWith((parser, builder, mode) => new LzssEncoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000))
                     .CalculatePricesWith(() => new LzssPriceCalculator()));
 
@@ -179,7 +179,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new LzssVlcDecoder()).
                     EncodeWith((parser, builder, mode) => new LzssVlcEncoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, -1))
                     .CalculatePricesWith(() => new LzssVlcPriceCalculator()));
 
@@ -255,7 +255,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Mio0Decoder(ByteOrder.LittleEndian)).
                     EncodeWith((parser, builder, mode) => new Mio0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
                     .CalculatePricesWith(() => new Mio0PriceCalculator()));
 
@@ -272,7 +272,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Mio0Decoder(ByteOrder.BigEndian)).
                     EncodeWith((parser, builder, mode) => new Mio0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
                     .CalculatePricesWith(() => new Mio0PriceCalculator()));
 
@@ -289,7 +289,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Yay0Decoder(ByteOrder.LittleEndian)).
                     EncodeWith((parser, builder, mode) => new Yay0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
                     .CalculatePricesWith(() => new Yay0PriceCalculator()));
 
@@ -306,7 +306,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Yay0Decoder(ByteOrder.BigEndian)).
                     EncodeWith((parser, builder, mode) => new Yay0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
                     .CalculatePricesWith(() => new Yay0PriceCalculator()));
 
@@ -323,7 +323,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Yaz0Decoder(ByteOrder.LittleEndian)).
                     EncodeWith((parser, builder, mode) => new Yaz0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
                     .CalculatePricesWith(() => new Yaz0PriceCalculator()));
 
@@ -340,7 +340,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Yaz0Decoder(ByteOrder.BigEndian)).
                     EncodeWith((parser, builder, mode) => new Yaz0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
                     .CalculatePricesWith(() => new Yaz0PriceCalculator()));
 
@@ -357,11 +357,11 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new TaikoLz80Decoder()).
                     EncodeWith((parser, builder, mode) => new TaikoLz80Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(2, 5, 1, 0x10))
-                    .AndWithDefaultMatchFinder
+                    .AndWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x400))
-                    .AndWithDefaultMatchFinder
+                    .AndWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, 0x83, 1, 0x8000))
                     .CalculatePricesWith(() => new TaikoLz80PriceCalculator()));
 
@@ -378,7 +378,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new TaikoLz81Decoder()).
                     EncodeWith((parser, builder, mode) => new TaikoLz81Encoder(parser, builder));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(1, 0x102, 2, 0x8000))
                     .CalculatePricesWith(() => new TaikoLz81PriceCalculator()));
 
@@ -395,7 +395,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new Wp16Decoder()).
                     EncodeWith((parser, builder, mode) => new Wp16Encoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, 0x42, 2, 0xFFE))
                     .CalculatePricesWith(() => new Wp16PriceCalculator())
                     .WithUnitSize(UnitSize.Short));
@@ -414,7 +414,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new TalesOf01Encoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0xFEE)
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
                     .CalculatePricesWith(() => new TalesOf01PriceCalculator()));
 
@@ -432,7 +432,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new TalesOf03Encoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0xFEF)
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x11, 1, 0x1000))
                     .AndWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
                     .WithinLimitations(() => new FindLimitations(0x4, 0x112))
@@ -451,7 +451,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new LzEncDecoder()).
                     EncodeWith((parser, builder, mode) => new LzEncEncoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, -1, 1, 0xBFFF))
                     .CalculatePricesWith(() => new LzEncPriceCalculator()));
 
@@ -468,7 +468,7 @@ namespace Kompression.Implementations
                 config.DecodeWith(mode => new SpikeChunsoftDecoder()).
                     EncodeWith((parser, builder, mode) => new SpikeChunsoftEncoder(parser));
                 config.WithMatchOptions(options => options
-                    .WithDefaultMatchFinder
+                    .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, -1, 1, 0x1FFF))
                     .AndWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
                     .WithinLimitations(() => new FindLimitations(4, 0x1003))

@@ -8,7 +8,7 @@ namespace Kontract.Kompression.Configuration
         /// <summary>
         /// Sets the usage of another default match finder and allows setting its limitations.
         /// </summary>
-        IMatchLimitations AndWithDefaultMatchFinder { get; }
+        IMatchLimitations AndWithDefault();
 
         /// <summary>
         /// Sets the factory to add an additional match finder to the already existing ones.
