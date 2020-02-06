@@ -180,7 +180,7 @@ namespace Kompression.Implementations
                     EncodeWith((parser, builder, mode) => new LzssVlcEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
-                    .WithinLimitations(() => new FindLimitations(4, -1))
+                    .WithinLimitations(() => new FindLimitations(1, -1))
                     .CalculatePricesWith(() => new LzssVlcPriceCalculator()));
 
                 return config;
