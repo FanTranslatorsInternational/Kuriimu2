@@ -9,8 +9,8 @@ namespace Kompression.Configuration
     /// </summary>
     public class KompressionConfiguration
     {
-        private MatchOptions _matchOptions;
-        private HuffmanOptions _huffmanOptions;
+        private MatchOptions _matchOptions = new MatchOptions();
+        private HuffmanOptions _huffmanOptions = new HuffmanOptions();
 
         private int _compressionMode;
         private Func<IMatchParser, IHuffmanTreeBuilder, int, IEncoder> _encoderFactory;
@@ -56,9 +56,6 @@ namespace Kompression.Configuration
         /// <returns>The configuration object.</returns>
         public KompressionConfiguration WithMatchOptions(Action<IMatchOptions> configure)
         {
-            if (_matchOptions == null)
-                _matchOptions = new MatchOptions();
-
             configure(_matchOptions);
 
             return this;
@@ -71,9 +68,6 @@ namespace Kompression.Configuration
         /// <returns>The configuration object.</returns>
         public KompressionConfiguration WithHuffmanOptions(Action<IHuffmanOptions> configure)
         {
-            if (_huffmanOptions == null)
-                _huffmanOptions = new HuffmanOptions();
-
             configure(_huffmanOptions);
 
             return this;

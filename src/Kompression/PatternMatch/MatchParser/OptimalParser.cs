@@ -14,7 +14,7 @@ namespace Kompression.PatternMatch.MatchParser
 {
     public class OptimalParser : IMatchParser
     {
-        private PriceHistoryElement[] _history;
+        private PositionElement[] _history;
 
         private readonly IPriceCalculator _priceCalculator;
         private readonly IMatchFinder[] _finders;
@@ -24,7 +24,7 @@ namespace Kompression.PatternMatch.MatchParser
         public OptimalParser(FindOptions options, IPriceCalculator priceCalculator, params IMatchFinder[] finders)
         {
             if (finders.Any(x => x.FindOptions.UnitSize != finders[0].FindOptions.UnitSize))
-                throw new InvalidOperationException("All match finder have to have the same unit size.");
+                throw new InvalidOperationException("All Match finder have to have the same unit size.");
 
             FindOptions = options;
             _priceCalculator = priceCalculator;
@@ -47,16 +47,18 @@ namespace Kompression.PatternMatch.MatchParser
             foreach (var finder in _finders)
                 finder.PreProcess(input, startPosition);
 
-            _history = Enumerable.Repeat(new PriceHistoryElement { Price = int.MaxValue }, input.Length - startPosition + 1).ToArray();
+            _history = new PositionElement[input.Length - startPosition + 1];
+            for (var i = 0; i < _history.Length; i++)
+                _history[i] = new PositionElement(0, false, null, int.MaxValue);
             _history[0].Price = 0;
 
             ForwardPass(input, startPosition);
-            return BackwardPass(input.Length - startPosition).Reverse().ToArray();
+            return BackwardPass().Reverse();
         }
 
         private void ForwardPass(byte[] input, int startPosition)
         {
-            var state = new ParserState(_history);
+            //var state = new ParserState(_history);
 
             var matches = GetAllMatches(input, startPosition);
 
@@ -64,73 +66,90 @@ namespace Kompression.PatternMatch.MatchParser
             for (var dataPosition = 0; dataPosition < input.Length - startPosition; dataPosition += unitSize)
             {
                 // Calculate literal place at position
-                var literalPrice = _priceCalculator.CalculateLiteralPrice(state, dataPosition, input[dataPosition]);
-                literalPrice += _history[dataPosition].Price;
+                var element = _history[dataPosition];
+                var newRunLength = element.IsMatchRun ? unitSize : element.CurrentRunLength + unitSize;
+                var isFirstLiteralRun = IsFirstLiteralRun(dataPosition, unitSize);
+                var literalPrice = _priceCalculator.CalculateLiteralPrice(input[dataPosition], newRunLength, isFirstLiteralRun);
+                literalPrice += element.Price;
+
                 if (dataPosition + unitSize < _history.Length &&
-                    literalPrice < _history[dataPosition + unitSize].Price)
+                    literalPrice <= _history[dataPosition + unitSize].Price)
                 {
-                    _history[dataPosition + unitSize].IsLiteral = true;
-                    _history[dataPosition + unitSize].Price = literalPrice;
-                    _history[dataPosition + unitSize].Length = unitSize;
-                    _history[dataPosition + unitSize].Displacement = 0;
+                    var nextElement = _history[dataPosition + unitSize];
+
+                    nextElement.Parent = element;
+                    nextElement.Price = literalPrice;
+                    nextElement.CurrentRunLength = newRunLength;
+                    nextElement.IsMatchRun = false;
+                    nextElement.Match = null;
                 }
 
                 // Then go through all longest matches at current position
                 for (var finderIndex = 0; finderIndex < _finders.Length; finderIndex++)
                 {
-                    var finderMatches = matches[finderIndex][dataPosition];
-                    if (finderMatches == null || !finderMatches.Any())
+                    var finderMatch = matches[finderIndex][dataPosition];
+                    if (finderMatch == null || !finderMatch.HasMatches)
                         continue;
 
-                    var matchIndex = 0;
-                    for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= finderMatches[finderMatches.Count - 1].Length; j += unitSize)
+                    for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= finderMatch.MaxLength; j += unitSize)
                     {
-                        var matchPrice = _priceCalculator.CalculateMatchPrice(state, dataPosition, finderMatches[matchIndex].Displacement, j);
-                        matchPrice += _history[dataPosition].Price;
+                        var displacement = finderMatch.GetDisplacement(j);
+                        newRunLength = element.IsMatchRun ? element.CurrentRunLength + 1 : 1;
+                        var matchPrice = _priceCalculator.CalculateMatchPrice(displacement, j, newRunLength);
+                        matchPrice += element.Price;
 
                         if (dataPosition + j < _history.Length &&
                             matchPrice < _history[dataPosition + j].Price)
                         {
-                            _history[dataPosition + j].IsLiteral = false;
-                            _history[dataPosition + j].Displacement = finderMatches[matchIndex].Displacement;
-                            _history[dataPosition + j].Length = j;
-                            _history[dataPosition + j].Price = matchPrice;
-                        }
+                            var nextElement = _history[dataPosition + j];
 
-                        if (j + unitSize > finderMatches[matchIndex].Length)
-                            matchIndex++;
+                            nextElement.Parent = element;
+                            nextElement.Price = matchPrice;
+                            nextElement.CurrentRunLength = newRunLength;
+                            nextElement.IsMatchRun = true;
+                            nextElement.Match = new Match(dataPosition + FindOptions.PreBufferSize, displacement, j);
+                        }
                     }
                 }
             }
         }
 
-        private IEnumerable<Match> BackwardPass(int dataLength)
+        private IEnumerable<Match> BackwardPass()
         {
-            var unitSize = (int)_finders[0].FindOptions.UnitSize;
-
-            for (var i = dataLength; i > 0;)
+            var element = _history.Last();
+            while (element != null)
             {
-                if (_history[i].IsLiteral)
-                    i -= unitSize;
-                else
-                {
-                    yield return new Match(i - _history[i].Length + FindOptions.PreBufferSize, _history[i].Displacement, _history[i].Length);
-                    i -= _history[i].Length + unitSize * FindOptions.SkipUnitsAfterMatch;
-                }
+                if (element.Match.HasValue)
+                    yield return element.Match.Value;
+
+                element = element.Parent;
             }
         }
 
-        private IList<IList<IList<Match>>> GetAllMatches(byte[] input, int startPosition)
+        private IList<IList<AggregateMatch>> GetAllMatches(byte[] input, int startPosition)
         {
-            var result = new IList<IList<Match>>[_finders.Length];
+            var result = new IList<AggregateMatch>[_finders.Length];
 
             for (var i = 0; i < _finders.Length; i++)
             {
                 result[i] = Enumerable.Range(startPosition, input.Length).AsParallel().AsOrdered()
-                    .Select(x => _finders[i].FindMatchesAtPosition(input, x)).ToArray();
+                    .Select(x => new AggregateMatch(_finders[i].FindMatchesAtPosition(input, x))).ToArray();
             }
 
             return result;
+        }
+
+        private bool IsFirstLiteralRun(int dataPosition, int unitSize)
+        {
+            while (dataPosition >= 0)
+            {
+                if (_history[dataPosition].Match != null)
+                    return false;
+
+                dataPosition -= unitSize;
+            }
+
+            return true;
         }
 
         public void Dispose()

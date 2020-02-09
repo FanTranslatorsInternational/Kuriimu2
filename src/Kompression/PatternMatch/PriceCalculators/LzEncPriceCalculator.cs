@@ -5,34 +5,33 @@ namespace Kompression.PatternMatch.PriceCalculators
 {
     public class LzEncPriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
-            var literals = state.CountLiterals(position) + 1;
-
-            if (!state.HasMatches(position))
+            // Check if this is the first literal run
+            if (firstLiteralRun)
             {
                 // Special first raw data read
-                if (literals == 1)
+                if (literalRunLength == 1)
                     return 16;
-                if (literals == 0xef)
+                if (literalRunLength == 0xef)
                     return 16;
-                if (literals > 0xef && (literals - 3 - 0xF) % 0xFF == 1)
+                if (literalRunLength > 0xef && (literalRunLength - 3 - 0xF) % 0xFF == 1)
                     return 16;
 
                 return 8;
             }
 
-            if (literals == 4)
+            if (literalRunLength == 4)
                 return 16;
-            if (literals == 0x13)
+            if (literalRunLength == 0x13)
                 return 16;
-            if (literals > 0x13 && (literals - 3 - 0xF) % 0xFF == 1)
+            if (literalRunLength > 0x13 && (literalRunLength - 3 - 0xF) % 0xFF == 1)
                 return 16;
 
             return 8;
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
         {
             var bitCount = displacement <= 0x4000 ? 5 : 3;
 

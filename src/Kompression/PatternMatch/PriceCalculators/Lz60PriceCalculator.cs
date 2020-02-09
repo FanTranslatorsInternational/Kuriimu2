@@ -4,12 +4,12 @@ namespace Kompression.PatternMatch.PriceCalculators
 {
     public class Lz60PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
             return 9;
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
         {
             if (length <= 0xF)
                 return 17;

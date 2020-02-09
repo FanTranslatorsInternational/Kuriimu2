@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Kompression.Configuration;
 using Kompression.PatternMatch;
 using Kontract.Kompression.Configuration;
@@ -20,8 +22,9 @@ namespace Kompression.Implementations.Decoders
                 var size = (value & 0xF) > 0 ? value & 0xF : ReadVlc(input);
                 var compressedBlocks = value >> 4 > 0 ? value >> 4 : ReadVlc(input);
 
-                for (var i = 0; i < size; i++)
-                    output.WriteByte((byte)input.ReadByte());
+                var rawBuffer = new byte[size];
+                input.Read(rawBuffer, 0, size);
+                output.Write(rawBuffer, 0, size);
 
                 for (var i = 0; i < compressedBlocks; i++)
                 {
@@ -29,7 +32,7 @@ namespace Kompression.Implementations.Decoders
                     var offset = ReadVlc(input, value & 0xF);   // yes, this one is the only one seemingly using this scheme of reading a value
                     offset++;
                     var length = value >> 4 > 0 ? value >> 4 : ReadVlc(input);
-                    length += 1;
+                    length++;
 
                     CopyBytes(output, (int)output.Position - offset, (int)output.Position, length);
                 }
@@ -38,19 +41,9 @@ namespace Kompression.Implementations.Decoders
 
         private int ReadVlc(Stream input, int initialValue = 0)
         {
-            var flag = initialValue & 0x1;
             var result = initialValue >> 1;
-            if (flag == 1)
-                return result;
-
-            byte next;
-            do
-            {
-                next = (byte)input.ReadByte();
-                result <<= 7;
-                result |= next >> 1;
-            } while ((next & 0x1) == 0);
-
+            while (initialValue % 2 == 0)
+                result = (result << 7) | ((initialValue = input.ReadByte()) >> 1);
             return result;
         }
 

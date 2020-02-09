@@ -5,19 +5,17 @@ namespace Kompression.PatternMatch.PriceCalculators
 {
     public class SpikeChunsoftPriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
-            var literals = state.CountLiterals(position) + 1;
-
-            if (literals % 0x1FFF == 1)
+            if (literalRunLength % 0x1FFF == 1)
                 return 16;
-            if (literals % 0x1FFF == 0x20)
+            if (literalRunLength % 0x1FFF == 0x20)
                 return 16;
 
             return 8;
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
         {
             if (displacement == 0)
             {

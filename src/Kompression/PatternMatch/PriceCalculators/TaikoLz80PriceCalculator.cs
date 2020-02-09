@@ -4,9 +4,9 @@ namespace Kompression.PatternMatch.PriceCalculators
 {
     public class TaikoLz80PriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
-            var literalCount = state.CountLiterals(position) % 0x100BE + 1;
+            var literalCount = literalRunLength % 0x100BE;
             if (literalCount == 0xC0)
                 return 16;
             if (literalCount == 0x40)
@@ -15,7 +15,7 @@ namespace Kompression.PatternMatch.PriceCalculators
             return 8;
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
         {
             if (length >= 2 && length <= 5 && displacement >= 1 && displacement <= 0x10)
                 return 8;

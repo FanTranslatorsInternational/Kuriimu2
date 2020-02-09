@@ -4,16 +4,15 @@ namespace Kompression.PatternMatch.PriceCalculators
 {
     public class NintendoRlePriceCalculator : IPriceCalculator
     {
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
-            var literalCount = state.CountLiterals(position) % 0x80 + 1;
-            if (literalCount == 1)
+            if (literalRunLength % 0x80 == 1)
                 return 16;
 
             return 8;
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
         {
             return 16;
         }

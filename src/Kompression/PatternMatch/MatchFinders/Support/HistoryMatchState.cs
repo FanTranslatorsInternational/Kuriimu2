@@ -14,7 +14,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         private readonly Func<byte[], int, int> _readValue;
         private readonly Func<byte[], int, int, int, int, int> _calculateMatchSize;
 
-        private int[] _reversedOffsetTable;
+        private int[] _offsetTable2;
 
         private FindLimitations _limits;
 
@@ -79,9 +79,9 @@ namespace Kompression.PatternMatch.MatchFinders.Support
 
             var result = new List<Match>();
             var longestMatchSize = _limits.MinLength - 1;
-            for (var matchOffset = _reversedOffsetTable[position];
+            for (var matchOffset = _offsetTable2[position];
                 matchOffset != -1 && position - matchOffset <= maxDisplacement;
-                matchOffset = _reversedOffsetTable[matchOffset])
+                matchOffset = _offsetTable2[matchOffset])
             {
                 // Check if match and current position have min distance to each other
                 if (position - matchOffset < _limits.MinDisplacement)
@@ -112,7 +112,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
 
         private void PrepareOffsetTable(byte[] input, int startPosition, int minValueLength)
         {
-            _reversedOffsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
+            _offsetTable2 = Enumerable.Repeat(-1, input.Length).ToArray();
 
             var valueTable = new Dictionary<int, int>();
             for (var i = startPosition; i < input.Length - minValueLength; i++)
@@ -120,7 +120,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                 var value = _readValue(input, i);
 
                 if (valueTable.ContainsKey(value))
-                    _reversedOffsetTable[i] = valueTable[value];
+                    _offsetTable2[i] = valueTable[value];
 
                 valueTable[value] = i;
             }
@@ -173,7 +173,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <inheritdoc />
         public void Dispose()
         {
-            _reversedOffsetTable = null;
+            _offsetTable2 = null;
 
             _limits = null;
         }
