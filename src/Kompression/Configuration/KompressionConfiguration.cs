@@ -7,32 +7,20 @@ namespace Kompression.Configuration
     /// <summary>
     /// The main configuration to configure an <see cref="ICompression"/>.
     /// </summary>
-    public class KompressionConfiguration
+    public class KompressionConfiguration : IKompressionConfiguration
     {
         private MatchOptions _matchOptions = new MatchOptions();
         private HuffmanOptions _huffmanOptions = new HuffmanOptions();
 
-        private int _compressionMode;
-        private Func<IMatchParser, IHuffmanTreeBuilder, int, IEncoder> _encoderFactory;
-        private Func<int, IDecoder> _decoderFactory;
-
-        /// <summary>
-        /// Sets the compression modes used for de-/compressions.
-        /// </summary>
-        /// <param name="mode">The compression mode.</param>
-        /// <returns>The configuration object.</returns>
-        public KompressionConfiguration WithCompressionMode(int mode)
-        {
-            _compressionMode = mode;
-            return this;
-        }
+        private Func<IMatchParser, IHuffmanTreeBuilder, IEncoder> _encoderFactory;
+        private Func<IDecoder> _decoderFactory;
 
         /// <summary>
         /// Sets the factory to create an <see cref="IEncoder"/>.
         /// </summary>
         /// <param name="encoderFactory">The factory to create an <see cref="IEncoder"/>.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration EncodeWith(Func<IMatchParser, IHuffmanTreeBuilder, int, IEncoder> encoderFactory)
+        public IKompressionConfiguration EncodeWith(Func<IMatchParser, IHuffmanTreeBuilder, IEncoder> encoderFactory)
         {
             _encoderFactory = encoderFactory;
             return this;
@@ -43,7 +31,7 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="decoderFactory">The factory to create an <see cref="IDecoder"/>.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration DecodeWith(Func<int, IDecoder> decoderFactory)
+        public IKompressionConfiguration DecodeWith(Func<IDecoder> decoderFactory)
         {
             _decoderFactory = decoderFactory;
             return this;
@@ -54,7 +42,7 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="configure">The action to configure pattern match operations.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration WithMatchOptions(Action<IMatchOptions> configure)
+        public IKompressionConfiguration WithMatchOptions(Action<IMatchOptions> configure)
         {
             configure(_matchOptions);
 
@@ -66,7 +54,7 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="configure">The action to configure huffman encoding operations.</param>
         /// <returns>The configuration object.</returns>
-        public KompressionConfiguration WithHuffmanOptions(Action<IHuffmanOptions> configure)
+        public IKompressionConfiguration WithHuffmanOptions(Action<IHuffmanOptions> configure)
         {
             configure(_huffmanOptions);
 
@@ -74,7 +62,7 @@ namespace Kompression.Configuration
         }
 
         /// <summary>
-        /// BuildOptions the current configuration to an <see cref="ICompression"/>.
+        /// Builds the current configuration to an <see cref="ICompression"/>.
         /// </summary>
         /// <returns>The <see cref="ICompression"/> for this configuration.</returns>
         public ICompression Build()
@@ -86,8 +74,8 @@ namespace Kompression.Configuration
             var huffmanTreeBuilder = _huffmanOptions?.BuildHuffmanTree();
 
             // Get created de-/compression instances
-            var decoder = _decoderFactory?.Invoke(_compressionMode);
-            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder, _compressionMode);
+            var decoder = _decoderFactory?.Invoke();
+            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder);
 
             return new Compressor(encoder, decoder);
         }

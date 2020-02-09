@@ -4,6 +4,7 @@ using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Encoders;
 using Kompression.PatternMatch.MatchFinders;
 using Kompression.PatternMatch.PriceCalculators;
+using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model;
 using Kontract.Models.IO;
 
@@ -11,13 +12,13 @@ namespace Kompression.Implementations
 {
     public static class Compressions
     {
-        public static KompressionConfiguration Lz10
+        public static IKompressionConfiguration Lz10
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Lz10Decoder()).EncodeWith((parser, builder, mode) => new Lz10Encoder(parser));
+                config.DecodeWith(() => new Lz10Decoder()).EncodeWith((parser, builder) => new Lz10Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000))
@@ -27,14 +28,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Lz11
+        public static IKompressionConfiguration Lz11
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Lz11Decoder()).
-                    EncodeWith((parser, builder, mode) => new Lz11Encoder(parser));
+                config.DecodeWith(() => new Lz11Decoder()).
+                    EncodeWith((parser, builder) => new Lz11Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x10110, 1, 0x1000))
@@ -44,14 +45,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Lz40
+        public static IKompressionConfiguration Lz40
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Lz40Decoder()).
-                    EncodeWith((parser, builder, mode) => new Lz40Encoder(parser));
+                config.DecodeWith(() => new Lz40Decoder()).
+                    EncodeWith((parser, builder) => new Lz40Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x1010F, 1, 0xFFF))
@@ -61,14 +62,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Lz60
+        public static IKompressionConfiguration Lz60
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Lz60Decoder()).
-                    EncodeWith((parser, builder, mode) => new Lz60Encoder(parser));
+                config.DecodeWith(() => new Lz60Decoder()).
+                    EncodeWith((parser, builder) => new Lz60Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x1010F, 1, 0xFFF))
@@ -78,14 +79,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Lz77
+        public static IKompressionConfiguration Lz77
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Lz77Decoder()).
-                    EncodeWith((parser, builder, mode) => new Lz77Encoder(parser));
+                config.DecodeWith(() => new Lz77Decoder()).
+                    EncodeWith((parser, builder) => new Lz77Encoder(parser));
                 config.WithMatchOptions(options => options
                     .SkipUnitsAfterMatch(1)
                     .FindMatchesWithDefault()
@@ -96,14 +97,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration BackwardLz77
+        public static IKompressionConfiguration BackwardLz77
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new BackwardLz77Decoder(ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new BackwardLz77Encoder(parser, ByteOrder.LittleEndian));
+                config.DecodeWith(() => new BackwardLz77Decoder(ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new BackwardLz77Encoder(parser, ByteOrder.LittleEndian));
                 config.WithMatchOptions(options => options
                     .FindInBackwardOrder()
                     .FindMatchesWithDefault()
@@ -114,14 +115,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration LzEcd
+        public static IKompressionConfiguration LzEcd
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new LzEcdDecoder(0x3BE)).
-                    EncodeWith((parser, builder, mode) => new LzEcdEncoder(parser));
+                config.DecodeWith(() => new LzEcdDecoder(0x3BE)).
+                    EncodeWith((parser, builder) => new LzEcdEncoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0x3BE)
                     .FindMatchesWithDefault()
@@ -132,14 +133,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Lze
+        public static IKompressionConfiguration Lze
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new LzeDecoder()).
-                    EncodeWith((parser, builder, mode) => new LzeEncoder(parser));
+                config.DecodeWith(() => new LzeDecoder()).
+                    EncodeWith((parser, builder) => new LzeEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 5, 0x1004))
@@ -153,14 +154,14 @@ namespace Kompression.Implementations
 
         /* Is more LZSS, described by wikipedia, through the flag denoting if following data is compressed or raw.
            Though the format is denoted as LZ77 with the magic num? (Issue 517) */
-        public static KompressionConfiguration Lzss
+        public static IKompressionConfiguration Lzss
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new LzssDecoder()).
-                    EncodeWith((parser, builder, mode) => new LzssEncoder(parser));
+                config.DecodeWith(() => new LzssDecoder()).
+                    EncodeWith((parser, builder) => new LzssEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000))
@@ -170,14 +171,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration LzssVlc
+        public static IKompressionConfiguration LzssVlc
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new LzssVlcDecoder()).
-                    EncodeWith((parser, builder, mode) => new LzssVlcEncoder(parser));
+                config.DecodeWith(() => new LzssVlcDecoder()).
+                    EncodeWith((parser, builder) => new LzssVlcEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(1, -1))
@@ -187,56 +188,56 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration NintendoHuffman4BitLe
+        public static IKompressionConfiguration NintendoHuffman4BitLe
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new NintendoHuffmanDecoder(4, ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new NintendoHuffmanEncoder(4, ByteOrder.LittleEndian, builder));
+                config.DecodeWith(() => new NintendoHuffmanDecoder(4, ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new NintendoHuffmanEncoder(4, ByteOrder.LittleEndian, builder));
                 config.WithHuffmanOptions(options => options.BuildTreeWith(() => new HuffmanTreeBuilder()));
 
                 return config;
             }
         }
 
-        public static KompressionConfiguration NintendoHuffman4BitBe
+        public static IKompressionConfiguration NintendoHuffman4BitBe
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new NintendoHuffmanDecoder(4, ByteOrder.BigEndian)).
-                    EncodeWith((parser, builder, mode) => new NintendoHuffmanEncoder(4, ByteOrder.BigEndian, builder));
+                config.DecodeWith(() => new NintendoHuffmanDecoder(4, ByteOrder.BigEndian)).
+                    EncodeWith((parser, builder) => new NintendoHuffmanEncoder(4, ByteOrder.BigEndian, builder));
                 config.WithHuffmanOptions(options => options.BuildTreeWith(() => new HuffmanTreeBuilder()));
 
                 return config;
             }
         }
 
-        public static KompressionConfiguration NintendoHuffman8Bit
+        public static IKompressionConfiguration NintendoHuffman8Bit
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new NintendoHuffmanDecoder(8, ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new NintendoHuffmanEncoder(8, ByteOrder.LittleEndian, builder));
+                config.DecodeWith(() => new NintendoHuffmanDecoder(8, ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new NintendoHuffmanEncoder(8, ByteOrder.LittleEndian, builder));
                 config.WithHuffmanOptions(options => options.BuildTreeWith(() => new HuffmanTreeBuilder()));
 
                 return config;
             }
         }
 
-        public static KompressionConfiguration NintendoRle
+        public static IKompressionConfiguration NintendoRle
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new NintendoRleDecoder()).
-                    EncodeWith((parser, builder, mode) => new NintendoRleEncoder(parser));
+                config.DecodeWith(() => new NintendoRleDecoder()).
+                    EncodeWith((parser, builder) => new NintendoRleEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
                     .WithinLimitations(() => new FindLimitations(0x3, 0x82))
@@ -246,14 +247,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Mio0Le
+        public static IKompressionConfiguration Mio0Le
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Mio0Decoder(ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new Mio0Encoder(ByteOrder.LittleEndian, parser));
+                config.DecodeWith(() => new Mio0Decoder(ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new Mio0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
@@ -263,14 +264,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Mio0Be
+        public static IKompressionConfiguration Mio0Be
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Mio0Decoder(ByteOrder.BigEndian)).
-                    EncodeWith((parser, builder, mode) => new Mio0Encoder(ByteOrder.BigEndian, parser));
+                config.DecodeWith(() => new Mio0Decoder(ByteOrder.BigEndian)).
+                    EncodeWith((parser, builder) => new Mio0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
@@ -280,14 +281,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Yay0Le
+        public static IKompressionConfiguration Yay0Le
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Yay0Decoder(ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new Yay0Encoder(ByteOrder.LittleEndian, parser));
+                config.DecodeWith(() => new Yay0Decoder(ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new Yay0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
@@ -297,14 +298,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Yay0Be
+        public static IKompressionConfiguration Yay0Be
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Yay0Decoder(ByteOrder.BigEndian)).
-                    EncodeWith((parser, builder, mode) => new Yay0Encoder(ByteOrder.BigEndian, parser));
+                config.DecodeWith(() => new Yay0Decoder(ByteOrder.BigEndian)).
+                    EncodeWith((parser, builder) => new Yay0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
@@ -314,14 +315,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Yaz0Le
+        public static IKompressionConfiguration Yaz0Le
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Yaz0Decoder(ByteOrder.LittleEndian)).
-                    EncodeWith((parser, builder, mode) => new Yaz0Encoder(ByteOrder.LittleEndian, parser));
+                config.DecodeWith(() => new Yaz0Decoder(ByteOrder.LittleEndian)).
+                    EncodeWith((parser, builder) => new Yaz0Encoder(ByteOrder.LittleEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
@@ -331,14 +332,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Yaz0Be
+        public static IKompressionConfiguration Yaz0Be
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Yaz0Decoder(ByteOrder.BigEndian)).
-                    EncodeWith((parser, builder, mode) => new Yaz0Encoder(ByteOrder.BigEndian, parser));
+                config.DecodeWith(() => new Yaz0Decoder(ByteOrder.BigEndian)).
+                    EncodeWith((parser, builder) => new Yaz0Encoder(ByteOrder.BigEndian, parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000))
@@ -348,14 +349,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration TaikoLz80
+        public static IKompressionConfiguration TaikoLz80
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new TaikoLz80Decoder()).
-                    EncodeWith((parser, builder, mode) => new TaikoLz80Encoder(parser));
+                config.DecodeWith(() => new TaikoLz80Decoder()).
+                    EncodeWith((parser, builder) => new TaikoLz80Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(2, 5, 1, 0x10))
@@ -369,14 +370,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration TaikoLz81
+        public static IKompressionConfiguration TaikoLz81
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new TaikoLz81Decoder()).
-                    EncodeWith((parser, builder, mode) => new TaikoLz81Encoder(parser, builder));
+                config.DecodeWith(() => new TaikoLz81Decoder()).
+                    EncodeWith((parser, builder) => new TaikoLz81Encoder(parser, builder));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(1, 0x102, 2, 0x8000))
@@ -386,14 +387,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration Wp16
+        public static IKompressionConfiguration Wp16
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new Wp16Decoder()).
-                    EncodeWith((parser, builder, mode) => new Wp16Encoder(parser));
+                config.DecodeWith(() => new Wp16Decoder()).
+                    EncodeWith((parser, builder) => new Wp16Encoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, 0x42, 2, 0xFFE))
@@ -404,14 +405,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration TalesOf01
+        public static IKompressionConfiguration TalesOf01
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new TalesOf01Decoder(0xFEE)).
-                    EncodeWith((parser, builder, mode) => new TalesOf01Encoder(parser));
+                config.DecodeWith(() => new TalesOf01Decoder(0xFEE)).
+                    EncodeWith((parser, builder) => new TalesOf01Encoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0xFEE)
                     .FindMatchesWithDefault()
@@ -422,14 +423,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration TalesOf03
+        public static IKompressionConfiguration TalesOf03
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new TalesOf03Decoder(0xFEF)).
-                    EncodeWith((parser, builder, mode) => new TalesOf03Encoder(parser));
+                config.DecodeWith(() => new TalesOf03Decoder(0xFEF)).
+                    EncodeWith((parser, builder) => new TalesOf03Encoder(parser));
                 config.WithMatchOptions(options => options
                     .WithPreBufferSize(0xFEF)
                     .FindMatchesWithDefault()
@@ -442,14 +443,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration LzEnc
+        public static IKompressionConfiguration LzEnc
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new LzEncDecoder()).
-                    EncodeWith((parser, builder, mode) => new LzEncEncoder(parser));
+                config.DecodeWith(() => new LzEncDecoder()).
+                    EncodeWith((parser, builder) => new LzEncEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, -1, 1, 0xBFFF))
@@ -459,14 +460,14 @@ namespace Kompression.Implementations
             }
         }
 
-        public static KompressionConfiguration SpikeChunsoft
+        public static IKompressionConfiguration SpikeChunsoft
         {
             get
             {
                 var config = new KompressionConfiguration();
 
-                config.DecodeWith(mode => new SpikeChunsoftDecoder()).
-                    EncodeWith((parser, builder, mode) => new SpikeChunsoftEncoder(parser));
+                config.DecodeWith(() => new SpikeChunsoftDecoder()).
+                    EncodeWith((parser, builder) => new SpikeChunsoftEncoder(parser));
                 config.WithMatchOptions(options => options
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(4, -1, 1, 0x1FFF))
