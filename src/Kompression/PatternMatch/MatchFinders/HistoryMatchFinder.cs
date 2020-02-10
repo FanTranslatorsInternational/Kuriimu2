@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kompression.PatternMatch.MatchFinders.Support;
 using Kontract.Kompression;
 using Kontract.Kompression.Model;
@@ -38,7 +37,7 @@ namespace Kompression.PatternMatch.MatchFinders
         }
 
         /// <inheritdoc />
-        public IList<Match> FindMatchesAtPosition(byte[] input, int position)
+        public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
             if (_state == null)
                 throw new InvalidOperationException("Match finder needs to preprocess the input first.");

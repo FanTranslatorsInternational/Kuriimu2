@@ -3,29 +3,29 @@
     /// <summary>
     /// The pattern match containing all its information.
     /// </summary>
-    public struct Match
+    public class Match
     {
         /// <summary>
-        /// Gets the position at which the match is occuring.
+        /// The position at which the match was found.
         /// </summary>
-        public int Position { get; set; }
+        public int Position { get; }
 
         /// <summary>
         /// Gets the length the pattern match has.
         /// </summary>
-        public int Length { get; set; }
+        public int Length { get; }
 
         /// <summary>
-        /// Gets the displacement from the <see cref="Position"/> at which the match begins.
+        /// Gets the displacement from the position at which the match begins.
         /// </summary>
-        public int Displacement { get; set; }
+        public int Displacement { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="Match"/>.
         /// </summary>
-        /// <param name="position">The position at which the match is occuring.</param>
+        /// <param name="position">The position at which the match was found.</param>
         /// <param name="displacement">The length the pattern match has.</param>
-        /// <param name="length">The displacement from the <see cref="Position"/> at which the match begins.</param>
+        /// <param name="length">The displacement from the position at which the match begins.</param>
         public Match(int position, int displacement, int length)
         {
             Position = position;

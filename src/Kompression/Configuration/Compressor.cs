@@ -43,6 +43,8 @@ namespace Kompression.Configuration
                 throw new InvalidOperationException("The encoder is not set.");
 
             _encoder.Encode(input, output);
+
+            GC.Collect();
         }
 
         #region Dispose

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kontract.Kompression;
 using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
@@ -34,10 +33,10 @@ namespace Kompression.PatternMatch.MatchFinders
         }
 
         /// <inheritdoc />
-        public IList<Match> FindMatchesAtPosition(byte[] input, int position)
+        public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
             if (input.Length - position < FindLimitations.MinLength)
-                return Array.Empty<Match>();
+                return null;
 
             var maxLength = FindLimitations.MaxLength <= 0 ? input.Length : FindLimitations.MaxLength;
             var unitSize = (int)FindOptions.UnitSize;
@@ -51,7 +50,7 @@ namespace Kompression.PatternMatch.MatchFinders
                         if (input[position + 1 + repetitions] != input[position])
                         {
                             if (repetitions > 0 && repetitions >= FindLimitations.MinLength)
-                                return new List<Match> { new Match(position, 0, repetitions) };
+                                return new AggregateMatch(0, repetitions);
                         }
                         break;
 
@@ -60,7 +59,7 @@ namespace Kompression.PatternMatch.MatchFinders
                 }
             }
 
-            return new List<Match> { new Match(position, 0, cappedLength - cappedLength % (int)FindOptions.UnitSize) };
+            return new AggregateMatch(0, cappedLength - cappedLength % (int)FindOptions.UnitSize);
         }
 
         /// <inheritdoc />

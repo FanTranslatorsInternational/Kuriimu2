@@ -20,7 +20,7 @@ namespace Kontract.Kompression
         /// Parses the found matches.
         /// </summary>
         /// <param name="input">The input data to parse matches from.</param>
-        /// <returns>All parsed matches.</returns>
+        /// <returns>All parsed matches and their position.</returns>
         IEnumerable<Match> ParseMatches(Stream input);
     }
 }

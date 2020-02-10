@@ -94,6 +94,9 @@ namespace Kompression.PatternMatch.MatchParser
                     for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= finderMatch.MaxLength; j += unitSize)
                     {
                         var displacement = finderMatch.GetDisplacement(j);
+                        if (displacement < 0)
+                            continue;
+
                         newRunLength = element.IsMatchRun ? element.CurrentRunLength + 1 : 1;
                         var matchPrice = _priceCalculator.CalculateMatchPrice(displacement, j, newRunLength);
                         matchPrice += element.Price;
@@ -107,7 +110,7 @@ namespace Kompression.PatternMatch.MatchParser
                             nextElement.Price = matchPrice;
                             nextElement.CurrentRunLength = newRunLength;
                             nextElement.IsMatchRun = true;
-                            nextElement.Match = new Match(dataPosition + FindOptions.PreBufferSize, displacement, j);
+                            nextElement.Match = new Match(dataPosition, displacement, j);
                         }
                     }
                 }
@@ -117,10 +120,18 @@ namespace Kompression.PatternMatch.MatchParser
         private IEnumerable<Match> BackwardPass()
         {
             var element = _history.Last();
+            var position = _history.Length - 1;
             while (element != null)
             {
-                if (element.Match.HasValue)
-                    yield return element.Match.Value;
+                if (element.Match != null)
+                {
+                    position -= element.Match.Length;
+                    yield return new Match(position, element.Match.Displacement, element.Match.Length);
+                }
+                else
+                {
+                    position -= (int)FindOptions.UnitSize;
+                }
 
                 element = element.Parent;
             }
@@ -133,7 +144,7 @@ namespace Kompression.PatternMatch.MatchParser
             for (var i = 0; i < _finders.Length; i++)
             {
                 result[i] = Enumerable.Range(startPosition, input.Length).AsParallel().AsOrdered()
-                    .Select(x => new AggregateMatch(_finders[i].FindMatchesAtPosition(input, x))).ToArray();
+                    .Select(x => _finders[i].FindMatchesAtPosition(input, x)).ToArray();
             }
 
             return result;

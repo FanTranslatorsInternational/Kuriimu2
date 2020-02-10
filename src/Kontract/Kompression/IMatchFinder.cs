@@ -33,6 +33,6 @@ namespace Kontract.Kompression
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        IList<Match> FindMatchesAtPosition(byte[] input, int position);
+        AggregateMatch FindMatchesAtPosition(byte[] input, int position);
     }
 }

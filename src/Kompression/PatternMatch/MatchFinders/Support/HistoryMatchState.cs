@@ -14,7 +14,8 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         private readonly Func<byte[], int, int> _readValue;
         private readonly Func<byte[], int, int, int, int, int> _calculateMatchSize;
 
-        private int[] _offsetTable2;
+        private readonly int _valueLength;
+        private int[] _offsetTable;
 
         private FindLimitations _limits;
 
@@ -29,8 +30,8 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         {
             _limits = limits;
 
-            var minLength = Math.Min(3, limits.MinLength);
-            switch (minLength)
+            _valueLength = Math.Min(3, limits.MinLength);
+            switch (_valueLength)
             {
                 case 3:
                     _readValue = ReadValue3;
@@ -56,7 +57,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                     break;
             }
 
-            PrepareOffsetTable(input, startPosition, minLength);
+            PrepareOffsetTable(input, startPosition);
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        public System.Collections.Generic.IList<Match> FindMatchesAtPosition(byte[] input, int position)
+        public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
             var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
@@ -75,13 +76,13 @@ namespace Kompression.PatternMatch.MatchFinders.Support
             var cappedLength = Math.Min(input.Length - position, maxLength);
 
             if (cappedLength < _limits.MinLength)
-                return Array.Empty<Match>();
+                return null;
 
-            var result = new List<Match>();
+            var result = new List<(int, int)>();
             var longestMatchSize = _limits.MinLength - 1;
-            for (var matchOffset = _offsetTable2[position];
+            for (var matchOffset = _offsetTable[position];
                 matchOffset != -1 && position - matchOffset <= maxDisplacement;
-                matchOffset = _offsetTable2[matchOffset])
+                matchOffset = _offsetTable[matchOffset])
             {
                 // Check if match and current position have min distance to each other
                 if (position - matchOffset < _limits.MinDisplacement)
@@ -99,7 +100,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                 if (matchSize > longestMatchSize)
                 {
                     // Return all matches up to the longest
-                    result.Add(new Match(position, position - matchOffset, matchSize));
+                    result.Add((position - matchOffset, matchSize));
 
                     longestMatchSize = matchSize;
                     if (longestMatchSize == cappedLength)
@@ -107,25 +108,23 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                 }
             }
 
-            return result;
+            return new AggregateMatch(result);
         }
 
-        private void PrepareOffsetTable(byte[] input, int startPosition, int minValueLength)
+        private void PrepareOffsetTable(byte[] input, int startPosition)
         {
-            _offsetTable2 = Enumerable.Repeat(-1, input.Length).ToArray();
+            _offsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
+            var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength)).ToArray();
 
-            var valueTable = new Dictionary<int, int>();
-            for (var i = startPosition; i < input.Length - minValueLength; i++)
+            for (var i = startPosition; i < input.Length - _valueLength; i++)
             {
                 var value = _readValue(input, i);
 
-                if (valueTable.ContainsKey(value))
-                    _offsetTable2[i] = valueTable[value];
+                if (valueTable[value] != -1)
+                    _offsetTable[i] = valueTable[value];
 
                 valueTable[value] = i;
             }
-
-            valueTable.Clear();
         }
 
         private static int ReadValue1(byte[] input, int position)
@@ -173,7 +172,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <inheritdoc />
         public void Dispose()
         {
-            _offsetTable2 = null;
+            _offsetTable = null;
 
             _limits = null;
         }
