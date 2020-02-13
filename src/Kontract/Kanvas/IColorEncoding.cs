@@ -9,10 +9,16 @@ namespace Kontract.Kanvas
     public interface IColorEncoding
     {
         /// <summary>
-        /// The number of bits one pixel takes in the format definition.
+        /// The number of bits one pixel takes in the format specification.
         /// </summary>
         /// <remarks>Known as bits per pixel (bpp).</remarks>
         int BitDepth { get; }
+
+        /// <summary>
+        /// The number of bits one block takes in the block compression specification.
+        /// </summary>
+        /// <remarks>If encoding is no block compression, equals <see cref="BitDepth"/>.</remarks>
+        int BlockBitDepth { get; }
 
         // TODO: Remove BlockCompression indicator?
         /// <summary>

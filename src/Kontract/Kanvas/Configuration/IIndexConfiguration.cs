@@ -3,11 +3,9 @@ using System.Drawing;
 
 namespace Kontract.Kanvas.Configuration
 {
-    public interface IIndexConfiguration : IColorConfiguration
+    public interface IIndexConfiguration : IImageConfiguration
     {
-        IIndexConfiguration WithPaletteEncoding(Func<IColorEncoding> func);
-
-        IIndexConfiguration WithQuantization(Func<Size, IQuantizationConfiguration> func);
+        IIndexConfiguration TranscodePaletteWith(Func<IColorEncoding> func);
 
         IIndexTranscoder Build();
     }

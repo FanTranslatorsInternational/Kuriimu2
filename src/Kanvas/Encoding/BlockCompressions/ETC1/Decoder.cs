@@ -13,7 +13,7 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1
             _zOrdered = zOrdered;
         }
 
-        public IEnumerable<Color> Get(ulong colorData, ulong? alphaData = null)
+        public IEnumerable<Color> DecodeBlocks(ulong colorData, ulong alphaData)
         {
             var etc1Block = new Block
             {

@@ -6,7 +6,7 @@ using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
-namespace Kanvas.Encoding
+namespace Kanvas.Encoding.Base
 {
     public abstract class PixelEncoding : IColorEncoding
     {
@@ -18,6 +18,8 @@ namespace Kanvas.Encoding
 
         public int BitDepth { get; }
 
+        public int BlockBitDepth { get; }
+
         public bool IsBlockCompression => false;
 
         public string FormatName { get; }
@@ -26,7 +28,7 @@ namespace Kanvas.Encoding
         {
             _descriptor = pixelDescriptor;
 
-            BitDepth = pixelDescriptor.GetBitDepth();
+            BitDepth = BlockBitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
 
             SetValueDelegates(BitDepth);

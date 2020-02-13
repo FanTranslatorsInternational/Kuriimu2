@@ -6,7 +6,7 @@ using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
-namespace Kanvas.Encoding
+namespace Kanvas.Encoding.Base
 {
     public abstract class PixelIndexEncoding : IColorIndexEncoding
     {

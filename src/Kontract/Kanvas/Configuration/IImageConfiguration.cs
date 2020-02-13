@@ -1,19 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kontract.Kanvas.Configuration
 {
     public interface IImageConfiguration
     {
-        IImageConfiguration WithImageSize(Size size);
+        IImageConfiguration WithTaskCount(int taskCount);
 
-        IImageConfiguration WithPaddedImageSize(Size size);
+        IImageConfiguration HasImageSize(Size size);
 
-        IImageConfiguration WithSwizzle(Func<Size, IImageSwizzle> func);
+        IImageConfiguration HasPaddedImageSize(Size size);
+
+        IImageConfiguration RemapPixelsWith(Func<Size, IImageSwizzle> func);
+
+        IImageConfiguration QuantizeWith(Action<IQuantizationOptions> configure);
 
         IColorConfiguration TranscodeWith(Func<Size, IColorEncoding> func);
 

@@ -14,18 +14,17 @@ namespace Kanvas
         /// Compose an image from a collection of colors.
         /// </summary>
         /// <param name="colors">The colors to compose in the image.</param>
-        /// <param name="imageSize">The true dimensions of the composed image.</param>
-        /// <param name="paddedSize">The padded dimensions of the composed image.</param>
+        /// <param name="imageSize">The dimensions of the composed image.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
         /// <returns>The composed image.</returns>
-        public static Image ComposeImage(IEnumerable<Color> colors, Size imageSize, Size paddedSize, IImageSwizzle swizzle = null)
+        public static Image ComposeImage(IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle = null)
         {
             var image = new Bitmap(imageSize.Width, imageSize.Height);
 
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, imageSize), ImageLockMode.WriteOnly,
                 PixelFormat.Format32bppArgb);
 
-            var colorPoints = Zip(colors, GetPointSequence(image.Size, paddedSize, swizzle));
+            var colorPoints = Zip(colors, GetPointSequence(imageSize, swizzle));
 
             foreach (var (color, point) in colorPoints)
             {
@@ -53,7 +52,8 @@ namespace Kanvas
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppArgb);
 
-            var points = GetPointSequence(image.Size, paddedSize, swizzle)
+            var imageSize = paddedSize == Size.Empty ? image.Size : paddedSize;
+            var points = GetPointSequence(imageSize, swizzle)
                 .Clamp(Point.Empty, new Point(image.Width - 1, image.Height));
 
             foreach (var point in points)
@@ -82,15 +82,13 @@ namespace Kanvas
         /// <summary>
         /// Create a sequence of <see cref="Point"/>s.
         /// </summary>
-        /// <param name="imageSize">The true dimensions of the image.</param>
-        /// <param name="paddedSize">The padded dimensions of the image.</param>
+        /// <param name="imageSize">The dimensions of the image.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the points.</param>
         /// <returns>The sequence of <see cref="Point"/>s.</returns>
-        internal static IEnumerable<Point> GetPointSequence(Size imageSize, Size paddedSize, IImageSwizzle swizzle = null)
+        internal static IEnumerable<Point> GetPointSequence(Size imageSize, IImageSwizzle swizzle = null)
         {
-            var size = paddedSize == Size.Empty ? imageSize : paddedSize;
-            for (var y = 0; y < size.Height; y++)
-                for (var x = 0; x < size.Width; x++)
+            for (var y = 0; y < imageSize.Height; y++)
+                for (var x = 0; x < imageSize.Width; x++)
                 {
                     var point = new Point(x, y);
                     if (swizzle != null)

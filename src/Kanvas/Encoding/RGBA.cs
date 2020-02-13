@@ -1,4 +1,5 @@
-﻿using Kanvas.Encoding.Models;
+﻿using Kanvas.Encoding.Base;
+using Kanvas.Encoding.Models;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding

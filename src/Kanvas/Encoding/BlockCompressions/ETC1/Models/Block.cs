@@ -12,6 +12,19 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1.Models
         public byte G { get; set; }
         public byte R { get; set; }
 
+        public ulong GetBlockData()
+        {
+            var colorBlock = 0UL;
+            colorBlock |= LSB;
+            colorBlock |= ((ulong)MSB << 16);
+            colorBlock |= ((ulong)Flags << 32);
+            colorBlock |= ((ulong)B << 40);
+            colorBlock |= ((ulong)G << 48);
+            colorBlock |= ((ulong)R << 56);
+
+            return colorBlock;
+        }
+
         public int this[int i] => (MSB >> i) % 2 * 2 + (LSB >> i) % 2;
 
         public bool FlipBit

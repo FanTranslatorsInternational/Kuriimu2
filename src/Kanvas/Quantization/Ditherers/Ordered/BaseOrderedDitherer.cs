@@ -27,7 +27,7 @@ namespace Kanvas.Quantization.Ditherers.Ordered
 
         public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            return Zip(colors, Composition.GetPointSequence(_imageSize, Size.Empty))
+            return Zip(colors, Composition.GetPointSequence(_imageSize))
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(_taskCount)
                 .Select(cp => DitherColor(cp, colorCache));

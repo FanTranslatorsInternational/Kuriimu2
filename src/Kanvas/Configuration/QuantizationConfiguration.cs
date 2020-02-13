@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+using Kontract;
 using Kontract.Kanvas.Configuration;
 using Kontract.Kanvas.Quantization;
 
@@ -8,67 +7,36 @@ namespace Kanvas.Configuration
 {
     public class QuantizationConfiguration : IQuantizationConfiguration
     {
-        private Size _imageSize;
         private int _taskCount = Environment.ProcessorCount;
-        private int _colorCount = 256;
 
-        private Func<int, int, IColorQuantizer> _quantizerFunc;
-        private Func<Size, int, IColorDitherer> _dithererFunc;
+        private Action<IQuantizationOptions> _configureAction;
 
-        private Func<IList<Color>, IColorCache> _cacheFunc;
-        private Func<IList<Color>> _paletteFunc;
-
-        public IQuantizationConfiguration WithImageSize(Size size)
+        public IQuantizationConfiguration WithOptions(Action<IQuantizationOptions> configure)
         {
-            _imageSize = size;
+            ContractAssertions.IsNotNull(configure, nameof(configure));
+            _configureAction = configure;
+
             return this;
         }
 
         public IQuantizationConfiguration WithTaskCount(int taskCount)
         {
+            if (taskCount <= 0)
+                throw new InvalidOperationException("Task count has to be greater than 0.");
+
             _taskCount = taskCount;
-            return this;
-        }
 
-        public IQuantizationConfiguration WithColorCount(int colorCount)
-        {
-            _colorCount = colorCount;
-            return this;
-        }
-
-        public IQuantizationConfiguration WithColorCache(Func<IList<Color>, IColorCache> func)
-        {
-            _cacheFunc = func;
-            return this;
-        }
-
-        public IQuantizationConfiguration WithPalette(Func<IList<Color>> func)
-        {
-            _paletteFunc = func;
-            return this;
-        }
-
-        public IQuantizationConfiguration WithColorQuantizer(Func<int, int, IColorQuantizer> func)
-        {
-            _quantizerFunc = func;
-            return this;
-        }
-
-        public IQuantizationConfiguration WithColorDitherer(Func<Size, int, IColorDitherer> func)
-        {
-            _dithererFunc = func;
             return this;
         }
 
         public IQuantizer Build()
         {
-            if (_imageSize == Size.Empty)
-                throw new ArgumentException("imageSize");
+            var options = new QuantizationOptions();
+            _configureAction?.Invoke(options);
 
-            var colorQuantizer = _quantizerFunc?.Invoke(_colorCount, _taskCount);
-            var colorDitherer = _dithererFunc?.Invoke(_imageSize, _taskCount);
+            options.WithTaskCount(_taskCount);
 
-            return new Quantizer(colorQuantizer, colorDitherer, _taskCount, _paletteFunc, _cacheFunc);
+            return options;
         }
     }
 }

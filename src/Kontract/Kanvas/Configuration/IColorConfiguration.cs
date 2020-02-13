@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Kontract.Kanvas.Configuration
 {
-    public interface IColorConfiguration
+    public interface IColorConfiguration : IImageConfiguration
     {
         IColorTranscoder Build();
     }

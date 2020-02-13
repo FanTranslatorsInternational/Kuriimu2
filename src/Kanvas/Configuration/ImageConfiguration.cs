@@ -1,71 +1,100 @@
 ﻿using System;
 using System.Drawing;
-using Kanvas.Quantization.Ditherers.ErrorDiffusion;
-using Kanvas.Quantization.Quantizers;
 using Kontract;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Configuration;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Configuration
 {
     // TODO: PixelShader
-    public class ImageConfiguration : IImageConfiguration, IIndexConfiguration
+    public class ImageConfiguration : IColorConfiguration, IIndexConfiguration
     {
-        private readonly IQuantizationConfiguration _defaultQuantizationConfig =
-            new QuantizationConfiguration()
-                .WithColorQuantizer((colorCount, taskCount) => new WuColorQuantizer(4, 4, colorCount))
-                .WithColorDitherer((imageSize, taskCount) => new FloydSteinbergDitherer(imageSize, taskCount));
-
         private Size _imageSize;
         private Size _paddedSize;
 
+        private int _taskCount = Environment.ProcessorCount;
+
         private Func<Size, IColorEncoding> _colorFunc;
-        private Func<Size, IImageSwizzle> _swizzleFunc;
+
         private Func<Size, IColorIndexEncoding> _indexFunc;
         private Func<IColorEncoding> _paletteFunc;
-        private Func<Size, IQuantizationConfiguration> _quantFunc;
 
-        public IImageConfiguration WithImageSize(Size size)
+        private Func<Size, IImageSwizzle> _swizzleFunc;
+
+        private Action<IQuantizationOptions> _quantizationAction;
+
+        public IImageConfiguration WithTaskCount(int taskCount)
         {
-            _imageSize = size;
+            _taskCount = taskCount;
+
             return this;
         }
 
-        public IImageConfiguration WithPaddedImageSize(Size size)
+        public IImageConfiguration HasImageSize(Size size)
         {
+            if (size == Size.Empty)
+                throw new InvalidOperationException("Image size cannot be empty.");
+
+            _imageSize = size;
+
+            return this;
+        }
+
+        public IImageConfiguration HasPaddedImageSize(Size size)
+        {
+            if (size == Size.Empty)
+                throw new InvalidOperationException("Padded image size cannot be empty.");
+
             _paddedSize = size;
+
             return this;
         }
 
         public IColorConfiguration TranscodeWith(Func<Size, IColorEncoding> func)
         {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
             _colorFunc = func;
             _indexFunc = null;
+
             return this;
         }
 
         public IIndexConfiguration TranscodeWith(Func<Size, IColorIndexEncoding> func)
         {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
             _indexFunc = func;
             _colorFunc = null;
+
             return this;
         }
 
-        public IImageConfiguration WithSwizzle(Func<Size, IImageSwizzle> func)
+        public IIndexConfiguration TranscodePaletteWith(Func<IColorEncoding> func)
         {
-            _swizzleFunc = func;
-            return this;
-        }
+            ContractAssertions.IsNotNull(func, nameof(func));
 
-        IIndexConfiguration IIndexConfiguration.WithPaletteEncoding(Func<IColorEncoding> func)
-        {
             _paletteFunc = func;
+
             return this;
         }
 
-        IIndexConfiguration IIndexConfiguration.WithQuantization(Func<Size, IQuantizationConfiguration> func)
+        public IImageConfiguration RemapPixelsWith(Func<Size, IImageSwizzle> func)
         {
-            _quantFunc = func;
+            ContractAssertions.IsNotNull(func, nameof(func));
+
+            _swizzleFunc = func;
+
+            return this;
+        }
+
+        public IImageConfiguration QuantizeWith(Action<IQuantizationOptions> configure)
+        {
+            ContractAssertions.IsNotNull(configure, nameof(configure));
+
+            _quantizationAction = configure;
+
             return this;
         }
 
@@ -83,9 +112,10 @@ namespace Kanvas.Configuration
 
             var indexEncoding = _indexFunc(imageSize);
             var paletteEncoding = _paletteFunc();
-            var quantizationConfig = _quantFunc?.Invoke(imageSize) ?? _defaultQuantizationConfig.WithImageSize(imageSize);
 
-            return new Transcoder(_imageSize, _paddedSize, indexEncoding, paletteEncoding, quantizationConfig, swizzle);
+            var quantizer = BuildQuantizer();
+
+            return new Transcoder(_imageSize, _paddedSize, indexEncoding, paletteEncoding, quantizer, swizzle);
         }
 
         IColorTranscoder IColorConfiguration.Build()
@@ -103,7 +133,22 @@ namespace Kanvas.Configuration
             // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
             var colorEncoding = _colorFunc(_imageSize);
 
-            return new Transcoder(_imageSize, _paddedSize, colorEncoding, swizzle);
+            // Quantization for normal images is optional
+            // If no quantization configuration was done beforehand we assume no quantization to be used here
+            var quantizer = _quantizationAction == null ? null : BuildQuantizer();
+
+            return new Transcoder(_imageSize, _paddedSize, colorEncoding, quantizer, swizzle);
+        }
+
+        IQuantizer BuildQuantizer()
+        {
+            var quantizationConfiguration = new QuantizationConfiguration();
+            if (_quantizationAction != null)
+                quantizationConfiguration.WithOptions(_quantizationAction);
+
+            quantizationConfiguration.WithTaskCount(_taskCount);
+
+            return quantizationConfiguration.Build();
         }
     }
 }

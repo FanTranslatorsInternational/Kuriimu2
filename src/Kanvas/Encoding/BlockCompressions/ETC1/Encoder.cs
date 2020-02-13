@@ -10,7 +10,6 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1
     internal class Encoder
     {
         private readonly bool _zOrdered;
-        private readonly List<Color> _queue;
 
         private static int Clamp(int n) => Math.Max(0, Math.Min(n, 255));
         private static int ErrorRGB(int r, int g, int b) => 2 * r * r + 4 * g * g + 3 * b * b; // human perception
@@ -29,7 +28,6 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1
         public Encoder(bool zOrdered)
         {
             _zOrdered = zOrdered;
-            _queue = new List<Color>();
         }
 
         public static Block PackSolidColor(RGB c)
@@ -50,33 +48,28 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1
                     .First();
         }
 
-        public void Set(Color c, Action<Etc1PixelData> func)
+        public Etc1PixelData EncodeColors(IList<Color> colorBatch)
         {
-            _queue.Add(c);
-            if (_queue.Count == 16)
+            var colorsWindows = Enumerable.Range(0, 16).Select(j => _zOrdered ?
+                colorBatch[Constants.ZOrder[Constants.ZOrder[Constants.ZOrder[j]]]] :
+                colorBatch[Constants.NormalOrder[j]]).ToArray();
+
+            var alpha = colorsWindows.Reverse().Aggregate(0ul, (a, b) => (a * 16) | (byte)(b.A / 16));
+            var colors = colorsWindows.Select(c2 => new RGB(c2.R, c2.G, c2.B)).ToList();
+
+            Block block;
+            // special case 1: this block has all 16 pixels exactly the same color
+            if (colors.All(color => color == colors[0]))
             {
-                var colorsWindows = Enumerable.Range(0, 16).Select(j => _zOrdered ?
-                    _queue[Constants.ZOrder[Constants.ZOrder[Constants.ZOrder[j]]]] :
-                    _queue[Constants.NormalOrder[j]]).ToArray();
-
-                var alpha = colorsWindows.Reverse().Aggregate(0ul, (a, b) => (a * 16) | (byte)(b.A / 16));
-                var colors = colorsWindows.Select(c2 => new RGB(c2.R, c2.G, c2.B)).ToList();
-
-                Block block;
-                // special case 1: this block has all 16 pixels exactly the same color
-                if (colors.All(color => color == colors[0]))
-                {
-                    block = PackSolidColor(colors[0]);
-                }
-                // special case 2: this block was previously etc1-compressed
-                else if (!Optimizer.RepackEtc1CompressedBlock(colors, out block))
-                {
-                    block = Optimizer.Encode(colors);
-                }
-
-                func(new Etc1PixelData { Alpha = alpha, Block = block });
-                _queue.Clear();
+                block = PackSolidColor(colors[0]);
             }
+            // special case 2: this block was previously etc1-compressed
+            else if (!Optimizer.RepackEtc1CompressedBlock(colors, out block))
+            {
+                block = Optimizer.Encode(colors);
+            }
+
+            return new Etc1PixelData { Alpha = alpha, Block = block };
         }
     }
 }
