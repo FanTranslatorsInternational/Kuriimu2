@@ -1,33 +1,57 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Kanvas.Encoding.BlockCompressions.BCn.Models;
 
 namespace Kanvas.Encoding.BlockCompressions.BCn
 {
     public class BC1BlockEncoder
     {
+        private const float RWeight = 0.2125F / 0.7154F;
+        private const float GWeight = 1.0F;
+        private const float BWeight = 0.0721F / 0.7154F;
+
+        private const float RInvWeight = 0.7154F / 0.2125F;
+        private const float GInvWeight = 1.0F;
+        private const float BInvWeight = 0.7154F / 0.0721F;
+
+        private const float fEpsilon = (0.25F / 64.0F) * (0.25F / 64.0F);
+        private static readonly float[] pC3 = { 2.0F / 2.0F, 1.0F / 2.0F, 0.0F / 2.0F };
+        private static readonly float[] pD3 = { 0.0F / 2.0F, 1.0F / 2.0F, 2.0F / 2.0F };
+        private static readonly float[] pC4 = { 3.0F / 3.0F, 2.0F / 3.0F, 1.0F / 3.0F, 0.0F / 3.0F };
+        private static readonly float[] pD4 = { 0.0F / 3.0F, 1.0F / 3.0F, 2.0F / 3.0F, 3.0F / 3.0F };
+        private static readonly uint[] pSteps3 = { 0, 2, 1 };
+        private static readonly uint[] pSteps4 = { 0, 2, 3, 1 };
+
+        private static readonly Lazy<BC1BlockEncoder> Lazy = new Lazy<BC1BlockEncoder>(() => new BC1BlockEncoder());
+        public static BC1BlockEncoder Instance => Lazy.Value;
+
         /// <summary>
         /// Gets or sets whether RGB data will be dithered.
         /// </summary>
         public bool DitherRgb { get; set; }
+        public bool DitherAlpha { get; set; }
         public bool UseUniformWeighting { get; set; }
 
         /// <summary>
         /// Loads a block of color data.
         /// </summary>
-        /// <param name="rValues">The array to load red values from.</param>
+        /// <param name="rValues">The array to load red Values from.</param>
         /// <param name="rIndex">The index in <paramref name="rValues"/> to start loading from.</param>
-        /// <param name="gValues">The array to load green values from.</param>
+        /// <param name="gValues">The array to load green Values from.</param>
         /// <param name="gIndex">The index in <paramref name="rValues"/> to start loading from.</param>
-        /// <param name="bValues">The array to load blue values from.</param>
+        /// <param name="bValues">The array to load blue Values from.</param>
         /// <param name="bIndex">The index in <paramref name="rValues"/> to start loading from.</param>
         /// <param name="rowPitch">The number of array elements between successive rows.</param>
         /// <param name="colPitch">The number of array elements between successive pixels.</param>
-        public void LoadBlock(
+        public Bc1BlockData LoadBlock(
             float[] rValues, int rIndex,
             float[] gValues, int gIndex,
             float[] bValues, int bIndex,
             int rowPitch = 4, int colPitch = 1)
         {
-            var target = this.values;
+            var target = new RgbF32[16];
 
             int rIdx = rIndex;
             int gIdx = gIndex;
@@ -36,17 +60,17 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             target[0].R = rValues[rIdx];
             target[1].R = rValues[rIdx += colPitch];
             target[2].R = rValues[rIdx += colPitch];
-            target[3].R = rValues[rIdx += colPitch];
+            target[3].R = rValues[rIdx + colPitch];
 
             target[0].G = gValues[gIdx];
             target[1].G = gValues[gIdx += colPitch];
             target[2].G = gValues[gIdx += colPitch];
-            target[3].G = gValues[gIdx += colPitch];
+            target[3].G = gValues[gIdx + colPitch];
 
             target[0].B = bValues[bIdx];
             target[1].B = bValues[bIdx += colPitch];
             target[2].B = bValues[bIdx += colPitch];
-            target[3].B = bValues[bIdx += colPitch];
+            target[3].B = bValues[bIdx + colPitch];
 
             rIdx = rIndex += rowPitch;
             gIdx = gIndex += rowPitch;
@@ -55,17 +79,17 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             target[4].R = rValues[rIdx];
             target[5].R = rValues[rIdx += colPitch];
             target[6].R = rValues[rIdx += colPitch];
-            target[7].R = rValues[rIdx += colPitch];
+            target[7].R = rValues[rIdx + colPitch];
 
             target[4].G = gValues[gIdx];
             target[5].G = gValues[gIdx += colPitch];
             target[6].G = gValues[gIdx += colPitch];
-            target[7].G = gValues[gIdx += colPitch];
+            target[7].G = gValues[gIdx + colPitch];
 
             target[4].B = bValues[bIdx];
             target[5].B = bValues[bIdx += colPitch];
             target[6].B = bValues[bIdx += colPitch];
-            target[7].B = bValues[bIdx += colPitch];
+            target[7].B = bValues[bIdx + colPitch];
 
             rIdx = rIndex += rowPitch;
             gIdx = gIndex += rowPitch;
@@ -74,17 +98,17 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             target[8].R = rValues[rIdx];
             target[9].R = rValues[rIdx += colPitch];
             target[10].R = rValues[rIdx += colPitch];
-            target[11].R = rValues[rIdx += colPitch];
+            target[11].R = rValues[rIdx + colPitch];
 
             target[8].G = gValues[gIdx];
             target[9].G = gValues[gIdx += colPitch];
             target[10].G = gValues[gIdx += colPitch];
-            target[11].G = gValues[gIdx += colPitch];
+            target[11].G = gValues[gIdx + colPitch];
 
             target[8].B = bValues[bIdx];
             target[9].B = bValues[bIdx += colPitch];
             target[10].B = bValues[bIdx += colPitch];
-            target[11].B = bValues[bIdx += colPitch];
+            target[11].B = bValues[bIdx + colPitch];
 
             rIdx = rIndex + rowPitch;
             gIdx = gIndex + rowPitch;
@@ -93,69 +117,72 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             target[12].R = rValues[rIdx];
             target[13].R = rValues[rIdx += colPitch];
             target[14].R = rValues[rIdx += colPitch];
-            target[15].R = rValues[rIdx += colPitch];
+            target[15].R = rValues[rIdx + colPitch];
 
             target[12].G = gValues[gIdx];
             target[13].G = gValues[gIdx += colPitch];
             target[14].G = gValues[gIdx += colPitch];
-            target[15].G = gValues[gIdx += colPitch];
+            target[15].G = gValues[gIdx + colPitch];
 
             target[12].B = bValues[bIdx];
             target[13].B = bValues[bIdx += colPitch];
             target[14].B = bValues[bIdx += colPitch];
-            target[15].B = bValues[bIdx += colPitch];
+            target[15].B = bValues[bIdx + colPitch];
+
+            return new Bc1BlockData { Values = target };
         }
 
         /// <summary>
         /// Loads a block of color data.
         /// </summary>
-        /// <param name="rValues">The array to load red values from.</param>
-        /// <param name="gValues">The array to load green values from.</param>
-        /// <param name="bValues">The array to load blue values from.</param>
+        /// <param name="rValues">The array to load red Values from.</param>
+        /// <param name="gValues">The array to load green Values from.</param>
+        /// <param name="bValues">The array to load blue Values from.</param>
         /// <param name="rowPitch">The number of array elements between successive rows.</param>
         /// <param name="colPitch">The number of array elements between successive pixels.</param>
-        public void LoadBlock(
+        public Bc1BlockData LoadBlock(
             float[] rValues, float[] gValues, float[] bValues,
             int rowPitch = 4, int colPitch = 1)
         {
-            LoadBlock(rValues, 0, gValues, 0, bValues, 0, rowPitch, colPitch);
+            return LoadBlock(rValues, 0, gValues, 0, bValues, 0, rowPitch, colPitch);
         }
 
         /// <summary>
-        /// Sets the alpha mask to fully solid.
+        /// Loads a block of color data.
         /// </summary>
-        public void ClearAlphaMask()
+        /// <param name="colors">The list of colors to load Values from.</param>
+        /// <param name="applyAlpha">Decides if alpha values should be applied.</param>
+        /// <param name="rowPitch">The number of array elements between successive rows.</param>
+        /// <param name="colPitch">The number of array elements between successive pixels.</param>
+        public Bc1BlockData LoadBlock(IList<Color> colors, bool applyAlpha = true, int rowPitch = 4, int colPitch = 1)
         {
-            alphaMask = 0;
+            var block = LoadBlock(
+                colors.Select(clr => clr.R / 255f).ToArray(),
+                colors.Select(clr => clr.G / 255f).ToArray(),
+                colors.Select(clr => clr.B / 255f).ToArray(),
+                rowPitch, colPitch);
+
+            if (applyAlpha)
+                LoadAlphaMask(block, colors.Select(clr => clr.A / 255f).ToArray(),
+                    rowPitch, colPitch);
+
+            return block;
         }
 
         /// <summary>
-        /// Loads an alpha bitmask.
+        /// Loads the alpha mask from floating-point alpha Values.
         /// </summary>
-        /// <param name="mask">The bitmask to load.</param>
-        /// <remarks>
-        /// Set bits denote transparent pixels.
-        /// </remarks>
-        public void LoadAlphaMask(ushort mask)
-        {
-            alphaMask = mask;
-        }
-
-        public bool DitherAlpha { get; set; }
-
-        /// <summary>
-        /// Loads the alpha mask from floating-point alpha values.
-        /// </summary>
-        /// <param name="aValues">The array to read alpha values from.</param>
+        /// <param name="aValues">The array to read alpha Values from.</param>
         /// <param name="aIndex">The index at which to start reading <paramref name="aValues"/>.</param>
-        /// <param name="alphaRef">The alpha reference value. Alpha values smaller than this will be considered transparent.</param>
+        /// <param name="alphaRef">The alpha reference value. Alpha Values smaller than this will be considered transparent.</param>
         /// <param name="rowPitch">The number of array elements between rows.</param>
         /// <param name="colPitch">The number of array elements between pixels within a row.</param>
         public void LoadAlphaMask(
+            Bc1BlockData block,
             float[] aValues, int aIndex = 0, float alphaRef = 0.5F,
             int rowPitch = 4, int colPitch = 1)
         {
-            alphaMask = 0;
+            block.AlphaMask = 0;
 
             int aIdx;
 
@@ -165,86 +192,86 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 //apply dithering, and then continue loading from
                 //our temporary storage
 
-                //create the temporary storage the first time it's neeed
+                //create the temporary storage the first time it's needed
 
-                if (alphaValues == null)
+                if (block.AlphaValues == null)
                 {
-                    alphaValues = new float[16];
-                    alphaErrors = new float[16];
+                    block.AlphaValues = new float[16];
+                    block.AlphaErrors = new float[16];
                 }
                 else
                 {
-                    Array.Clear(alphaErrors, 0, 16);
+                    Array.Clear(block.AlphaErrors, 0, 16);
                 }
 
-                //load the values
+                //load the Values
 
                 if (rowPitch == 4 && colPitch == 1)
                 {
-                    Array.Copy(aValues, aIndex, alphaValues, 0, 16);
+                    Array.Copy(aValues, aIndex, block.AlphaValues, 0, 16);
                 }
                 else
                 {
                     aIdx = aIndex;
 
-                    alphaValues[0] = aValues[aIdx];
-                    alphaValues[1] = aValues[aIdx += colPitch];
-                    alphaValues[2] = aValues[aIdx += colPitch];
-                    alphaValues[3] = aValues[aIdx += colPitch];
+                    block.AlphaValues[0] = aValues[aIdx];
+                    block.AlphaValues[1] = aValues[aIdx += colPitch];
+                    block.AlphaValues[2] = aValues[aIdx += colPitch];
+                    block.AlphaValues[3] = aValues[aIdx + colPitch];
 
                     aIdx = aIndex += rowPitch;
 
-                    alphaValues[4] = aValues[aIdx];
-                    alphaValues[5] = aValues[aIdx += colPitch];
-                    alphaValues[6] = aValues[aIdx += colPitch];
-                    alphaValues[7] = aValues[aIdx += colPitch];
+                    block.AlphaValues[4] = aValues[aIdx];
+                    block.AlphaValues[5] = aValues[aIdx += colPitch];
+                    block.AlphaValues[6] = aValues[aIdx += colPitch];
+                    block.AlphaValues[7] = aValues[aIdx + colPitch];
 
                     aIdx = aIndex += rowPitch;
 
-                    alphaValues[8] = aValues[aIdx];
-                    alphaValues[9] = aValues[aIdx += colPitch];
-                    alphaValues[10] = aValues[aIdx += colPitch];
-                    alphaValues[11] = aValues[aIdx += colPitch];
+                    block.AlphaValues[8] = aValues[aIdx];
+                    block.AlphaValues[9] = aValues[aIdx += colPitch];
+                    block.AlphaValues[10] = aValues[aIdx += colPitch];
+                    block.AlphaValues[11] = aValues[aIdx + colPitch];
 
                     aIdx = aIndex + rowPitch;
 
-                    alphaValues[12] = aValues[aIdx];
-                    alphaValues[13] = aValues[aIdx += colPitch];
-                    alphaValues[14] = aValues[aIdx += colPitch];
-                    alphaValues[15] = aValues[aIdx += colPitch];
+                    block.AlphaValues[12] = aValues[aIdx];
+                    block.AlphaValues[13] = aValues[aIdx += colPitch];
+                    block.AlphaValues[14] = aValues[aIdx += colPitch];
+                    block.AlphaValues[15] = aValues[aIdx + colPitch];
                 }
 
                 //apply the dithering
 
-                for (int i = 0; i < alphaValues.Length; i++)
+                for (int i = 0; i < block.AlphaValues.Length; i++)
                 {
-                    var v = alphaValues[i];
-                    var e = alphaErrors[i];
+                    var v = block.AlphaValues[i];
+                    var e = block.AlphaErrors[i];
 
                     float a = (int)(v + e);
                     float b = (int)(a + 0.5F);
                     float d = a - b;
 
                     if ((i & 3) != 3)
-                        alphaErrors[i + 1] += d * (7F / 16F);
+                        block.AlphaErrors[i + 1] += d * (7F / 16F);
 
                     if (i < 12)
                     {
                         if ((i & 3) != 0)
-                            alphaErrors[i + 3] += d * (3F / 16F);
+                            block.AlphaErrors[i + 3] += d * (3F / 16F);
 
-                        alphaErrors[i + 4] += d * (5F / 16F);
+                        block.AlphaErrors[i + 4] += d * (5F / 16F);
 
                         if ((i & 3) != 3)
-                            alphaErrors[i + 5] += d * (1F / 16F);
+                            block.AlphaErrors[i + 5] += d * (1F / 16F);
                     }
 
-                    alphaValues[i] = b;
+                    block.AlphaValues[i] = b;
                 }
 
                 //and continue loading from our temporary storage
 
-                aValues = alphaValues;
+                aValues = block.AlphaValues;
                 aIndex = 0;
 
                 rowPitch = 4;
@@ -253,47 +280,46 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
             aIdx = aIndex;
 
-            if (aValues[aIdx] < alphaRef) alphaMask |= 0x0001;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0002;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0004;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0008;
+            if (aValues[aIdx] < alphaRef) block.AlphaMask |= 0x0001;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0002;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0004;
+            if (aValues[aIdx + colPitch] < alphaRef) block.AlphaMask |= 0x0008;
 
             aIdx = aIndex += rowPitch;
 
-            if (aValues[aIdx] < alphaRef) alphaMask |= 0x0010;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0020;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0040;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0080;
+            if (aValues[aIdx] < alphaRef) block.AlphaMask |= 0x0010;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0020;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0040;
+            if (aValues[aIdx + colPitch] < alphaRef) block.AlphaMask |= 0x0080;
 
             aIdx = aIndex += rowPitch;
 
-            if (aValues[aIdx] < alphaRef) alphaMask |= 0x0100;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0200;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0400;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x0800;
+            if (aValues[aIdx] < alphaRef) block.AlphaMask |= 0x0100;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0200;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x0400;
+            if (aValues[aIdx + colPitch] < alphaRef) block.AlphaMask |= 0x0800;
 
             aIdx = aIndex + rowPitch;
 
-            if (aValues[aIdx] < alphaRef) alphaMask |= 0x1000;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x2000;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x4000;
-            if (aValues[aIdx += colPitch] < alphaRef) alphaMask |= 0x8000;
+            if (aValues[aIdx] < alphaRef) block.AlphaMask |= 0x1000;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x2000;
+            if (aValues[aIdx += colPitch] < alphaRef) block.AlphaMask |= 0x4000;
+            if (aValues[aIdx + colPitch] < alphaRef) block.AlphaMask |= 0x8000;
         }
 
-        public BC1Block Encode()
+        public BC1Block Encode(Bc1BlockData block)
         {
             BC1Block ret;
 
-            if (alphaMask == 0xFFFF)
+            if (block.AlphaMask == 0xFFFF)
             {
                 ret.PackedValue = BC1Block.TransparentValue;
                 return ret;
             }
 
-            QuantizeValues();
+            QuantizeValues(block);
 
-            RgbF32 r0, r1;
-            SpanValues(out r0, out r1);
+            SpanValues(block, out var r0, out var r1);
 
             //quantize the endpoints
 
@@ -313,7 +339,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             var pr0 = Rgb565.Pack(r0);
             var pr1 = Rgb565.Pack(r1);
 
-            if (alphaMask == 0 && pr0.PackedValue == pr1.PackedValue)
+            if (block.AlphaMask == 0 && pr0.PackedValue == pr1.PackedValue)
                 return new BC1Block(pr0, pr1);
 
             pr0.Unpack(out r0);
@@ -334,44 +360,44 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
             RgbF32 s0;
 
-            if ((alphaMask != 0) == (pr0.PackedValue <= pr1.PackedValue))
+            if ((block.AlphaMask != 0) == (pr0.PackedValue <= pr1.PackedValue))
             {
                 ret = new BC1Block(pr0, pr1);
-                interpValues[0] = s0 = r0;
-                interpValues[1] = r1;
+                block.InterpValues[0] = s0 = r0;
+                block.InterpValues[1] = r1;
             }
             else
             {
                 ret = new BC1Block(pr1, pr0);
-                interpValues[0] = s0 = r1;
-                interpValues[1] = r0;
+                block.InterpValues[0] = s0 = r1;
+                block.InterpValues[1] = r0;
             }
 
             uint[] pSteps;
 
-            if (alphaMask != 0)
+            if (block.AlphaMask != 0)
             {
                 pSteps = pSteps3;
 
-                RgbF32.Lerp(out interpValues[2], interpValues[0], interpValues[1], 0.5F);
+                RgbF32.Lerp(out block.InterpValues[2], block.InterpValues[0], block.InterpValues[1], 0.5F);
             }
             else
             {
                 pSteps = pSteps4;
 
-                RgbF32.Lerp(out interpValues[2], interpValues[0], interpValues[1], 1.0F / 3.0F);
-                RgbF32.Lerp(out interpValues[3], interpValues[0], interpValues[1], 2.0F / 3.0F);
+                RgbF32.Lerp(out block.InterpValues[2], block.InterpValues[0], block.InterpValues[1], 1.0F / 3.0F);
+                RgbF32.Lerp(out block.InterpValues[3], block.InterpValues[0], block.InterpValues[1], 2.0F / 3.0F);
             }
 
-            //find the best values
+            //find the best Values
 
             RgbF32 dir;
 
-            dir.R = interpValues[1].R - s0.R;
-            dir.G = interpValues[1].G - s0.G;
-            dir.B = interpValues[1].B - s0.B;
+            dir.R = block.InterpValues[1].R - s0.R;
+            dir.G = block.InterpValues[1].G - s0.G;
+            dir.B = block.InterpValues[1].B - s0.B;
 
-            float fSteps = alphaMask != 0 ? 2 : 3;
+            float fSteps = block.AlphaMask != 0 ? 2 : 3;
             float fScale = (pr0.PackedValue != pr1.PackedValue) ?
                 (fSteps / (dir.R * dir.R + dir.G * dir.G + dir.B * dir.B)) : 0.0F;
 
@@ -383,21 +409,21 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
             if (dither)
             {
-                if (error == null)
-                    error = new RgbF32[16];
+                if (block.Error == null)
+                    block.Error = new RgbF32[16];
                 else
-                    Array.Clear(error, 0, 16);
+                    Array.Clear(block.Error, 0, 16);
             }
 
-            for (int i = 0; i < values.Length; i++)
+            for (int i = 0; i < block.Values.Length; i++)
             {
-                if ((alphaMask & (1 << i)) != 0)
+                if ((block.AlphaMask & (1 << i)) != 0)
                 {
                     ret.PackedValue |= 3U << (32 + i * 2);
                 }
                 else
                 {
-                    var cl = values[i];
+                    var cl = block.Values[i];
 
                     if (weightValues)
                     {
@@ -408,7 +434,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
                     if (dither)
                     {
-                        var e = error[i];
+                        var e = block.Error[i];
 
                         cl.R += e.R;
                         cl.G += e.G;
@@ -433,7 +459,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
                     if (dither)
                     {
-                        RgbF32 e, d, interp = interpValues[iStep];
+                        RgbF32 e, d, interp = block.InterpValues[iStep];
 
                         d.R = cl.R - interp.R;
                         d.G = cl.G - interp.G;
@@ -441,45 +467,45 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
                         if ((i & 3) != 3)
                         {
-                            e = error[i + 1];
+                            e = block.Error[i + 1];
 
                             e.R += d.R * (7.0F / 16.0F);
                             e.G += d.G * (7.0F / 16.0F);
                             e.B += d.B * (7.0F / 16.0F);
 
-                            error[i + 1] = e;
+                            block.Error[i + 1] = e;
                         }
 
                         if (i < 12)
                         {
                             if ((i & 3) != 0)
                             {
-                                e = error[i + 3];
+                                e = block.Error[i + 3];
 
                                 e.R += d.R * (3.0F / 16.0F);
                                 e.G += d.G * (3.0F / 16.0F);
                                 e.B += d.B * (3.0F / 16.0F);
 
-                                error[i + 3] = e;
+                                block.Error[i + 3] = e;
                             }
 
-                            e = error[i + 4];
+                            e = block.Error[i + 4];
 
                             e.R += d.R * (5.0F / 16.0F);
                             e.G += d.G * (5.0F / 16.0F);
                             e.B += d.B * (5.0F / 16.0F);
 
-                            error[i + 4] = e;
+                            block.Error[i + 4] = e;
 
                             if (3 != (i & 3))
                             {
-                                e = error[i + 5];
+                                e = block.Error[i + 5];
 
                                 e.R += d.R * (1.0F / 16.0F);
                                 e.G += d.G * (1.0F / 16.0F);
                                 e.B += d.B * (1.0F / 16.0F);
 
-                                error[i + 5] = e;
+                                block.Error[i + 5] = e;
                             }
                         }
                     }
@@ -489,33 +515,21 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             return ret;
         }
 
-        private RgbF32[] values = new RgbF32[16];
-        private RgbF32[] qvalues = new RgbF32[16];
-        private RgbF32[] error;
-
-        private float[] alphaValues;
-        private float[] alphaErrors;
-        private uint alphaMask;
-
-        private float[] fDir = new float[4];
-
-        private RgbF32[] interpValues = new RgbF32[4];
-
-        private void QuantizeValues()
+        private void QuantizeValues(Bc1BlockData block)
         {
             bool dither = DitherRgb;
             bool weightColors = !UseUniformWeighting;
 
             if (dither)
-                Array.Clear(error, 0, 16);
+                Array.Clear(block.Error, 0, 16);
 
-            for (int i = 0; i < values.Length; i++)
+            for (int i = 0; i < block.Values.Length; i++)
             {
-                var cl = values[i];
+                var cl = block.Values[i];
 
                 if (dither)
                 {
-                    var e = error[i];
+                    var e = block.Error[i];
 
                     cl.R += e.R;
                     cl.G += e.G;
@@ -538,45 +552,45 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
                     if ((i & 3) != 3)
                     {
-                        e = error[i + 1];
+                        e = block.Error[i + 1];
 
                         e.R += d.R * (7F / 16F);
                         e.G += d.G * (7F / 16F);
                         e.B += d.B * (7F / 16F);
 
-                        error[i + 1] = e;
+                        block.Error[i + 1] = e;
                     }
 
                     if (i < 12)
                     {
                         if ((i & 3) != 0)
                         {
-                            e = error[i + 3];
+                            e = block.Error[i + 3];
 
                             e.R += d.R * (3F / 16F);
                             e.G += d.G * (3F / 16F);
                             e.B += d.B * (3F / 16F);
 
-                            error[i + 3] = e;
+                            block.Error[i + 3] = e;
                         }
 
-                        e = error[i + 4];
+                        e = block.Error[i + 4];
 
                         e.R += d.R * (5F / 16F);
                         e.G += d.G * (5F / 16F);
                         e.B += d.B * (5F / 16F);
 
-                        error[i + 4] = e;
+                        block.Error[i + 4] = e;
 
                         if ((i & 3) != 3)
                         {
-                            e = error[i + 5];
+                            e = block.Error[i + 5];
 
                             e.R += d.R * (1F / 16F);
                             e.G += d.G * (1F / 16F);
                             e.B += d.B * (1F / 16F);
 
-                            error[i + 5] = e;
+                            block.Error[i + 5] = e;
                         }
                     }
                 }
@@ -588,35 +602,19 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                     qcl.B *= BWeight;
                 }
 
-                qvalues[i] = qcl;
+                block.QuantizedValues[i] = qcl;
             }
         }
 
-        private const float RWeight = 0.2125F / 0.7154F;
-        private const float GWeight = 1.0F;
-        private const float BWeight = 0.0721F / 0.7154F;
-
-        private const float RInvWeight = 0.7154F / 0.2125F;
-        private const float GInvWeight = 1.0F;
-        private const float BInvWeight = 0.7154F / 0.0721F;
-
-        private const float fEpsilon = (0.25F / 64.0F) * (0.25F / 64.0F);
-        private static readonly float[] pC3 = { 2.0F / 2.0F, 1.0F / 2.0F, 0.0F / 2.0F };
-        private static readonly float[] pD3 = { 0.0F / 2.0F, 1.0F / 2.0F, 2.0F / 2.0F };
-        private static readonly float[] pC4 = { 3.0F / 3.0F, 2.0F / 3.0F, 1.0F / 3.0F, 0.0F / 3.0F };
-        private static readonly float[] pD4 = { 0.0F / 3.0F, 1.0F / 3.0F, 2.0F / 3.0F, 3.0F / 3.0F };
-        private static readonly uint[] pSteps3 = { 0, 2, 1 };
-        private static readonly uint[] pSteps4 = { 0, 2, 3, 1 };
-
-        private void SpanValues(out RgbF32 r0, out RgbF32 r1)
+        private void SpanValues(Bc1BlockData block, out RgbF32 r0, out RgbF32 r1)
         {
-            bool hasAlpha = alphaMask != 0;
+            bool hasAlpha = block.AlphaMask != 0;
 
             int cSteps = hasAlpha ? 3 : 4;
             var pC = hasAlpha ? pC3 : pC4;
             var pD = hasAlpha ? pD3 : pD4;
 
-            var values = this.qvalues;
+            var values = block.QuantizedValues;
 
             // Find Min and Max points, as starting point
             RgbF32 X = UseUniformWeighting ? new RgbF32(1, 1, 1) :
@@ -628,7 +626,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 var v = values[i];
 
 #if COLOR_WEIGHTS
-                if( (alphaMask & (1 << i)) != 0 )
+                if( (block.AlphaMask & (1 << i)) != 0 )
 #endif
                 {
                     if (v.R < X.R) X.R = v.R;
@@ -672,7 +670,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             Mid.G = (X.G + Y.G) * 0.5f;
             Mid.B = (X.B + Y.B) * 0.5f;
 
-            fDir[0] = fDir[1] = fDir[2] = fDir[3] = 0.0F;
+            block.FDir[0] = block.FDir[1] = block.FDir[2] = block.FDir[3] = 0.0F;
 
             for (int i = 0; i < values.Length; i++)
             {
@@ -687,37 +685,37 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
 #if COLOR_WEIGHTS
                 f = Pt.R + Pt.G + Pt.B;
-                fDir[0] += v.a * f * f;
+                block.FDir[0] += v.a * f * f;
 
                 f = Pt.R + Pt.G - Pt.B;
-                fDir[1] += v.a * f * f;
+                block.FDir[1] += v.a * f * f;
 
                 f = Pt.R - Pt.G + Pt.B;
-                fDir[2] += v.a * f * f;
+                block.FDir[2] += v.a * f * f;
 
                 f = Pt.R - Pt.G - Pt.B;
-                fDir[3] += v.a * f * f;
+                block.FDir[3] += v.a * f * f;
 #else
                 f = Pt.R + Pt.G + Pt.B;
-                fDir[0] += f * f;
+                block.FDir[0] += f * f;
 
                 f = Pt.R + Pt.G - Pt.B;
-                fDir[1] += f * f;
+                block.FDir[1] += f * f;
 
                 f = Pt.R - Pt.G + Pt.B;
-                fDir[2] += f * f;
+                block.FDir[2] += f * f;
 
                 f = Pt.R - Pt.G - Pt.B;
-                fDir[3] += f * f;
+                block.FDir[3] += f * f;
 #endif
             }
 
-            float fDirMax = fDir[0];
+            float fDirMax = block.FDir[0];
             int iDirMax = 0;
 
-            for (int iDir = 1; iDir < fDir.Length; iDir++)
+            for (int iDir = 1; iDir < block.FDir.Length; iDir++)
             {
-                var d = fDir[iDir];
+                var d = block.FDir[iDir];
                 if (d > fDirMax)
                 {
                     fDirMax = d;
@@ -753,9 +751,9 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
                 for (int iStep = 0; iStep < cSteps; iStep++)
                 {
-                    interpValues[iStep].R = X.R * pC[iStep] + Y.R * pD[iStep];
-                    interpValues[iStep].G = X.G * pC[iStep] + Y.G * pD[iStep];
-                    interpValues[iStep].B = X.B * pC[iStep] + Y.B * pD[iStep];
+                    block.InterpValues[iStep].R = X.R * pC[iStep] + Y.R * pD[iStep];
+                    block.InterpValues[iStep].G = X.G * pC[iStep] + Y.G * pD[iStep];
+                    block.InterpValues[iStep].B = X.B * pC[iStep] + Y.B * pD[iStep];
                 }
 
                 // Calculate color direction
@@ -798,9 +796,9 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
 
                     RgbF32 Diff;
-                    Diff.R = interpValues[iStep].R - v.R;
-                    Diff.G = interpValues[iStep].G - v.G;
-                    Diff.B = interpValues[iStep].B - v.B;
+                    Diff.R = block.InterpValues[iStep].R - v.R;
+                    Diff.G = block.InterpValues[iStep].G - v.G;
+                    Diff.B = block.InterpValues[iStep].B - v.B;
 
 #if COLOR_WEIGHTS
                     float fC = pC[iStep] * v.a * (1.0f / 8.0f);

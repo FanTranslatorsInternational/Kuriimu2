@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Kanvas.Encoding.BlockCompressions.BCn
+namespace Kanvas.Encoding.BlockCompressions.BCn.Models
 {
     /// <summary>
     /// The BC1 format.
@@ -407,7 +407,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
         }
 
         /// <summary>
-        /// Computes all of the R values.
+        /// Computes all of the R Values.
         /// </summary>
         public void GetPalette(byte[] palette, int index = 0)
         {
@@ -445,7 +445,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
         }
 
         /// <summary>
-        /// Computes all of the R values.
+        /// Computes all of the R Values.
         /// </summary>
         public void GetPalette(float[] palette, int index = 0)
         {
@@ -636,7 +636,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
         }
 
         /// <summary>
-        /// Computes all of the R values.
+        /// Computes all of the R Values.
         /// </summary>
         public void GetPalette(sbyte[] palette, int index = 0)
         {
@@ -674,7 +674,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
         }
 
         /// <summary>
-        /// Computes all of the R values.
+        /// Computes all of the R Values.
         /// </summary>
         public void GetPalette(float[] palette, int index = 0)
         {

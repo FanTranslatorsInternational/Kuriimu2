@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using Kanvas.Encoding.Base;
-using Kanvas.Encoding.BlockCompressions.ETC1;
+using Kanvas.Encoding.BlockCompressions;
 using Komponent.IO;
 using Kontract.Models.IO;
 
@@ -12,10 +12,9 @@ namespace Kanvas.Encoding
     /// </summary>
     public class ETC1 : BlockCompressionEncoding
     {
-        private bool _useAlpha;
+        private readonly bool _useAlpha;
 
-        private Decoder _decoder;
-        private Encoder _encoder;
+        private readonly Etc1Transcoder _transcoder;
 
         protected override int ColorsInBlock { get; }
 
@@ -25,17 +24,15 @@ namespace Kanvas.Encoding
 
         public override string FormatName { get; }
 
-        public ETC1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) : base(byteOrder)
+        public ETC1(bool useAlpha, bool useZOrder, ByteOrder byteOrder, int taskCount) : base(byteOrder, taskCount)
         {
-            BitDepth = useAlpha ? 8 : 4;
-            BlockBitDepth = useAlpha ? 128 : 64;
+            _useAlpha = useAlpha;
+            _transcoder = new Etc1Transcoder(useZOrder);
 
             ColorsInBlock = 16;
 
-            _useAlpha = useAlpha;
-
-            _decoder = new Decoder(useZOrder);
-            _encoder = new Encoder(useZOrder);
+            BitDepth = useAlpha ? 8 : 4;
+            BlockBitDepth = useAlpha ? 128 : 64;
 
             FormatName = "ETC1" + (useAlpha ? "A4" : "");
         }
@@ -45,12 +42,12 @@ namespace Kanvas.Encoding
             var alpha = _useAlpha ? br.ReadUInt64() : ulong.MaxValue;
             var colors = br.ReadUInt64();
 
-            return _decoder.DecodeBlocks(colors, alpha);
+            return _transcoder.DecodeBlocks(colors, alpha);
         }
 
         protected override void EncodeNextBlock(BinaryWriterX bw, IList<Color> colors)
         {
-            var pixelData = _encoder.EncodeColors(colors);
+            var pixelData = _transcoder.EncodeColors(colors);
 
             if (_useAlpha) bw.Write(pixelData.Alpha);
             bw.Write(pixelData.Block.GetBlockData());

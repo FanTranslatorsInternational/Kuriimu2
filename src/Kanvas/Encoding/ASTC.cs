@@ -43,7 +43,7 @@ namespace Kanvas.Encoding
         public int Height { private get; set; } = -1;
 
         /// <summary>
-        /// Byte order to use to read the values.
+        /// Byte order to use to read the Values.
         /// </summary>
         public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
 

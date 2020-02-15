@@ -85,7 +85,7 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
                 element.Errors.Add(index, new ColorComponentError());
             var error = element.Errors[index];
 
-            // Add Error component values to source color
+            // Add Error component Values to source color
             var errorDiffusedColor = Color.FromArgb(
                 sourceColor.A,
                 Clamp(sourceColor.R + error.RedError, 0, 255),

@@ -1,4 +1,5 @@
 ﻿using System;
+using Kanvas.Encoding.BlockCompressions.BCn.Models;
 
 namespace Kanvas.Encoding.BlockCompressions.BCn
 {
@@ -7,12 +8,12 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
         public bool Dither { get; set; }
 
         /// <summary>
-        /// Loads a block of values for subsequent encoding.
+        /// Loads a block of Values for subsequent encoding.
         /// </summary>
-        /// <param name="values">The values to encode.</param>
-        /// <param name="index">The index to start reading values.</param>
-        /// <param name="rowPitch">The pitch between rows of values.</param>
-        /// <param name="colPitch">The pitch between subsequent values within a row.</param>
+        /// <param name="values">The Values to encode.</param>
+        /// <param name="index">The index to start reading Values.</param>
+        /// <param name="rowPitch">The pitch between rows of Values.</param>
+        /// <param name="colPitch">The pitch between subsequent Values within a row.</param>
         public void LoadBlock(float[] values, int index = 0,
             int rowPitch = 4, int colPitch = 1)
         {
@@ -56,7 +57,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
 
         public BC2ABlock Encode()
         {
-            //clamp the values into range
+            //clamp the Values into range
 
             for (int i = 0; i < 16; i++)
             {

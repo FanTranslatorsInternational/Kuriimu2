@@ -123,7 +123,7 @@ namespace Kanvas.Encoding.BlockCompressions.ETC1.Helper
         }
         #endregion
 
-        // This is currently still very brute-forcey. Can be improved in the future
+        // TODO: This is currently still very brute-forcey. Can be improved in the future
         public static bool RepackEtc1CompressedBlock(List<RGB> colors, out Block block)
         {
             foreach (var flip in new[] { false, true })

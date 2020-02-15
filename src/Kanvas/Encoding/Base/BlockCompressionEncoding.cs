@@ -12,6 +12,7 @@ namespace Kanvas.Encoding.Base
     public abstract class BlockCompressionEncoding : IColorEncoding
     {
         private readonly ByteOrder _byteOrder;
+        private readonly int _taskCount;
 
         protected abstract int ColorsInBlock { get; }
 
@@ -23,20 +24,23 @@ namespace Kanvas.Encoding.Base
 
         public bool IsBlockCompression => true;
 
-        protected BlockCompressionEncoding(ByteOrder byteOrder)
+        protected BlockCompressionEncoding(ByteOrder byteOrder, int taskCount)
         {
             _byteOrder = byteOrder;
+            _taskCount = taskCount;
         }
 
         public IEnumerable<Color> Load(byte[] input)
         {
             var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
-            while (br.BaseStream.Position < br.BaseStream.Length)
-            {
-                foreach (var color in DecodeNextBlock(br))
-                    yield return color;
-            }
+            var blockByteDepth = BlockBitDepth / 8;
+            var blocks = (int)br.BaseStream.Length / blockByteDepth;
+
+            return Enumerable.Range(0, blocks).AsParallel()
+                .WithDegreeOfParallelism(_taskCount)
+                .AsOrdered()
+                .SelectMany(x => DecodeNextBlock(br));
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -44,8 +48,10 @@ namespace Kanvas.Encoding.Base
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, _byteOrder))
             {
-                foreach (var colorBatch in colors.Batch(ColorsInBlock))
-                    EncodeNextBlock(bw, colorBatch.ToArray());
+                colors.Batch(ColorsInBlock).AsParallel()
+                    .WithDegreeOfParallelism(_taskCount)
+                    .AsOrdered()
+                    .ForAll(colorBatch => EncodeNextBlock(bw, colorBatch.ToArray()));
             }
 
             return ms.ToArray();

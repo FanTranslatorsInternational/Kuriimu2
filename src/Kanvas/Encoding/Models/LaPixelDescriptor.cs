@@ -122,7 +122,7 @@ namespace Kanvas.Encoding.Models
                 set = true;
             }
 
-            // Index lookup table holds the indices to the depth values in order of reading
+            // Index lookup table holds the indices to the depth Values in order of reading
             _indexTable = new int[2];
 
             // Depth lookup table holds depth of components in order of reading
@@ -131,7 +131,7 @@ namespace Kanvas.Encoding.Models
             // Depth index table holds index into depth table in order LA
             _componentIndexTable = new int[2];
 
-            // Shift lookup table holds the shift values for each depth in order of reading
+            // Shift lookup table holds the shift Values for each depth in order of reading
             _shiftTable = new int[2];
 
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading

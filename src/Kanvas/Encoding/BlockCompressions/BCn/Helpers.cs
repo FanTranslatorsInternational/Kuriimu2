@@ -33,7 +33,7 @@
 
     [System.Runtime.InteropServices.StructLayout(
         System.Runtime.InteropServices.LayoutKind.Sequential)]
-    internal struct RgbF32
+    public struct RgbF32
     {
         public float R, G, B;
 

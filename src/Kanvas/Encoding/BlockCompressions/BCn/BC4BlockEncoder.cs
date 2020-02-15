@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Kanvas.Encoding.BlockCompressions.BCn.Models;
 
 namespace Kanvas.Encoding.BlockCompressions.BCn
 {
@@ -11,131 +15,170 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
     /// using one of the <see cref="LoadBlock"/> overloads, after
     /// which you call either <see cref="EncodeSigned"/> or
     /// <see cref="EncodeUnsigned"/>. Note that encoding a block
-    /// alters the loaded values in place - call <c>LoadBlock</c>
+    /// alters the loaded Values in place - call <c>LoadBlock</c>
     /// before calling one of the encode methods again.
     /// </remarks>
     public class BC4BlockEncoder
     {
+        private static readonly float[] pC6 = { 5.0f / 5.0f, 4.0f / 5.0f, 3.0f / 5.0f, 2.0f / 5.0f, 1.0f / 5.0f, 0.0f / 5.0f };
+        private static readonly float[] pD6 = { 0.0f / 5.0f, 1.0f / 5.0f, 2.0f / 5.0f, 3.0f / 5.0f, 4.0f / 5.0f, 5.0f / 5.0f };
+        private static readonly float[] pC8 = { 7.0f / 7.0f, 6.0f / 7.0f, 5.0f / 7.0f, 4.0f / 7.0f, 3.0f / 7.0f, 2.0f / 7.0f, 1.0f / 7.0f, 0.0f / 7.0f };
+        private static readonly float[] pD8 = { 0.0f / 7.0f, 1.0f / 7.0f, 2.0f / 7.0f, 3.0f / 7.0f, 4.0f / 7.0f, 5.0f / 7.0f, 6.0f / 7.0f, 7.0f / 7.0f };
+
+        private static readonly Lazy<BC4BlockEncoder> Lazy = new Lazy<BC4BlockEncoder>(() => new BC4BlockEncoder());
+        public static BC4BlockEncoder Instance => Lazy.Value;
+
         /// <summary>
-        /// Loads a block of values for subsequent encoding.
+        /// Loads a block of Values for subsequent encoding.
         /// </summary>
-        /// <param name="values">The values to encode.</param>
-        /// <param name="index">The index to start reading values.</param>
-        /// <param name="rowPitch">The pitch between rows of values.</param>
-        /// <param name="colPitch">The pitch between subsequent values within a row.</param>
-        public void LoadBlock(float[] values, int index = 0,
+        /// <param name="values">The Values to encode.</param>
+        /// <param name="index">The index to start reading Values.</param>
+        /// <param name="rowPitch">The pitch between rows of Values.</param>
+        /// <param name="colPitch">The pitch between subsequent Values within a row.</param>
+        public Bc4BlockData LoadBlock(float[] values, int index = 0,
             int rowPitch = 4, int colPitch = 1)
         {
-            var target = this.values;
+            var target = new float[16];
 
             if (rowPitch == 4 && colPitch == 1)
             {
                 //get the fast case out of the way
                 Array.Copy(values, index, target, 0, 16);
-                return;
+
+                return new Bc4BlockData { Values = target };
             }
 
-            int i = index;
+            var i = index;
 
             target[0] = values[i];
             target[1] = values[i += colPitch];
             target[2] = values[i += colPitch];
-            target[3] = values[i += colPitch];
+            target[3] = values[i + colPitch];
 
             i = index += rowPitch;
 
             target[4] = values[i];
             target[5] = values[i += colPitch];
             target[6] = values[i += colPitch];
-            target[7] = values[i += colPitch];
+            target[7] = values[i + colPitch];
 
             i = index += rowPitch;
 
             target[8] = values[i];
             target[9] = values[i += colPitch];
             target[10] = values[i += colPitch];
-            target[11] = values[i += colPitch];
+            target[11] = values[i + colPitch];
 
             i = index + rowPitch;
 
             target[12] = values[i];
             target[13] = values[i += colPitch];
             target[14] = values[i += colPitch];
-            target[15] = values[i += colPitch];
+            target[15] = values[i + colPitch];
+
+            return new Bc4BlockData { Values = target };
+        }
+
+        public Bc4BlockData LoadBlock(IList<Color> colors, Bc4Component component,
+            int rowPitch = 4, int colPitch = 1)
+        {
+            switch (component)
+            {
+                case Bc4Component.R:
+                    return LoadBlock(colors.Select(clr => clr.R / 255f).ToArray(),
+                        rowPitch, colPitch);
+
+                case Bc4Component.G:
+                    return LoadBlock(colors.Select(clr => clr.G / 255f).ToArray(),
+                        rowPitch, colPitch);
+
+                case Bc4Component.B:
+                    return LoadBlock(colors.Select(clr => clr.B / 255f).ToArray(),
+                        rowPitch, colPitch);
+
+                case Bc4Component.A:
+                    return LoadBlock(colors.Select(clr => clr.A / 255f).ToArray(),
+                        rowPitch, colPitch);
+
+                default:
+                    return LoadBlock(colors.Select(clr => clr.GetBrightness()).ToArray(),
+                        rowPitch, colPitch);
+            }
         }
 
         /// <summary>
-        /// Encode a block of signed values.
+        /// Encode a block of signed Values.
         /// </summary>
         /// <returns></returns>
-        public BC4SBlock EncodeSigned()
+        public BC4SBlock EncodeSigned(Bc4BlockData data)
         {
             //load the input and scan for the boundary condition
 
-            ClampAndFindRange(-1F, 1F);
+            ClampAndFindRange(data, -1F, 1F);
 
-            bool hasEndPoint = minValue == -1F || maxValue == 1F;
+            bool hasEndPoint = data.MinValue == -1F || data.MaxValue == 1F;
 
             //find a span across the space
 
-            float r0, r1;
-            SpanValues(out r0, out r1, hasEndPoint, true);
+            SpanValues(hasEndPoint, true, data, out var r0, out var r1);
 
             //roundtrip it through integer format
 
-            var ret = new BC4SBlock();
+            var ret = new BC4SBlock
+            {
+                R0 = Helpers.FloatToSNorm(r0),
+                R1 = Helpers.FloatToSNorm(r1)
+            };
 
-            ret.R0 = Helpers.FloatToSNorm(r0);
-            ret.R1 = Helpers.FloatToSNorm(r1);
 
-            ret.GetPalette(interpValues);
+            ret.GetPalette(data.InterpretedValues);
 
-            ret.PackedValue |= FindClosest();
+            ret.PackedValue |= FindClosest(data);
 
             return ret;
         }
 
         /// <summary>
-        /// Encode a block of unsigned values.
+        /// Encode a block of unsigned Values.
         /// </summary>
         /// <returns></returns>
-        public BC4UBlock EncodeUnsigned()
+        public BC4UBlock EncodeUnsigned(Bc4BlockData data)
         {
             //load the input and scan for the boundary condition
 
-            ClampAndFindRange(0F, 1F);
+            ClampAndFindRange(data, 0F, 1F);
 
-            bool hasEndPoint = minValue == 0F || maxValue == 1F;
+            var hasEndPoint = data.MinValue == 0F || data.MaxValue == 1F;
 
             //find a span across the space
-
-            float r0, r1;
-            SpanValues(out r0, out r1, hasEndPoint, false);
+            SpanValues(hasEndPoint, false, data, out var r0, out var r1);
 
             //roundtrip it through integer format
 
-            var ret = new BC4UBlock();
+            var ret = new BC4UBlock
+            {
+                R0 = Helpers.FloatToUNorm(r0),
+                R1 = Helpers.FloatToUNorm(r1)
+            };
 
-            ret.R0 = Helpers.FloatToUNorm(r0);
-            ret.R1 = Helpers.FloatToUNorm(r1);
 
-            ret.GetPalette(interpValues);
+            ret.GetPalette(data.InterpretedValues);
 
-            ret.PackedValue |= FindClosest();
+            ret.PackedValue |= FindClosest(data);
 
             return ret;
         }
 
-        private void ClampAndFindRange(float clampMin, float clampMax)
+        private void ClampAndFindRange(Bc4BlockData data, float clampMin, float clampMax)
         {
-            var target = this.values;
+            var target = data.Values;
 
             var v0 = target[0];
 
             if (v0 < clampMin) target[0] = v0 = clampMin;
             else if (v0 > clampMax) target[0] = v0 = clampMax;
 
-            minValue = maxValue = v0;
+            data.MinValue = data.MaxValue = v0;
 
             for (int i = 1; i < target.Length; i++)
             {
@@ -144,26 +187,17 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 if (v < clampMin) target[i] = v = clampMin;
                 else if (v > clampMax) target[i] = v = clampMax;
 
-                if (v < minValue) minValue = v;
-                else if (v > maxValue) maxValue = v;
+                if (v < data.MinValue) data.MinValue = v;
+                else if (v > data.MaxValue) data.MaxValue = v;
             }
         }
 
-        private float[] values = new float[16];
-        private float[] interpValues = new float[8];
-        private float minValue, maxValue;
-
-        private static readonly float[] pC6 = { 5.0f / 5.0f, 4.0f / 5.0f, 3.0f / 5.0f, 2.0f / 5.0f, 1.0f / 5.0f, 0.0f / 5.0f };
-        private static readonly float[] pD6 = { 0.0f / 5.0f, 1.0f / 5.0f, 2.0f / 5.0f, 3.0f / 5.0f, 4.0f / 5.0f, 5.0f / 5.0f };
-        private static readonly float[] pC8 = { 7.0f / 7.0f, 6.0f / 7.0f, 5.0f / 7.0f, 4.0f / 7.0f, 3.0f / 7.0f, 2.0f / 7.0f, 1.0f / 7.0f, 0.0f / 7.0f };
-        private static readonly float[] pD8 = { 0.0f / 7.0f, 1.0f / 7.0f, 2.0f / 7.0f, 3.0f / 7.0f, 4.0f / 7.0f, 5.0f / 7.0f, 6.0f / 7.0f, 7.0f / 7.0f };
-
-        private void SpanValues(out float r0, out float r1, bool isSixPointInterp, bool isSigned)
+        private void SpanValues(bool isSixPointInterpreter, bool isSigned, Bc4BlockData data, out float r0, out float r1)
         {
             //pulled from the original OptimizeAlpha code in the D3DX sample code
 
             float[] pC, pD;
-            if (isSixPointInterp)
+            if (isSixPointInterpreter)
             {
                 pC = pC6;
                 pD = pD6;
@@ -180,14 +214,14 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             //find min and max points as a starting solution
 
             float vMin, vMax;
-            if (isSixPointInterp)
+            if (isSixPointInterpreter)
             {
                 vMin = rangeMax;
                 vMax = rangeMin;
 
-                for (int i = 0; i < values.Length; i++)
+                for (int i = 0; i < data.Values.Length; i++)
                 {
-                    var v = values[i];
+                    var v = data.Values[i];
 
                     if (v == rangeMin || v == rangeMax)
                         continue;
@@ -201,14 +235,14 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             }
             else
             {
-                vMin = minValue;
-                vMax = maxValue;
+                vMin = data.MinValue;
+                vMax = data.MaxValue;
             }
 
             // Use Newton's Method to find local minima of sum-of-squares Error.
 
-            int numSteps = isSixPointInterp ? 6 : 8;
-            float fSteps = (float)(numSteps - 1);
+            int numSteps = isSixPointInterpreter ? 6 : 8;
+            float fSteps = numSteps - 1;
 
             for (int iteration = 0; iteration < 8; iteration++)
             {
@@ -220,12 +254,12 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 // Calculate new steps
 
                 for (int i = 0; i < numSteps; i++)
-                    interpValues[i] = pC[i] * vMin + pD[i] * vMax;
+                    data.InterpretedValues[i] = pC[i] * vMin + pD[i] * vMax;
 
-                if (isSixPointInterp)
+                if (isSixPointInterpreter)
                 {
-                    interpValues[6] = rangeMin;
-                    interpValues[7] = rangeMax;
+                    data.InterpretedValues[6] = rangeMin;
+                    data.InterpretedValues[7] = rangeMax;
                 }
 
                 // Evaluate function, and derivatives
@@ -234,15 +268,15 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 float d2X = 0F;
                 float d2Y = 0F;
 
-                for (int iPoint = 0; iPoint < values.Length; iPoint++)
+                for (int iPoint = 0; iPoint < data.Values.Length; iPoint++)
                 {
-                    float dot = (values[iPoint] - vMin) * fScale;
+                    float dot = (data.Values[iPoint] - vMin) * fScale;
 
                     int iStep;
                     if (dot <= 0.0f)
-                        iStep = ((6 == numSteps) && (values[iPoint] <= vMin * 0.5f)) ? 6 : 0;
+                        iStep = ((6 == numSteps) && (data.Values[iPoint] <= vMin * 0.5f)) ? 6 : 0;
                     else if (dot >= fSteps)
-                        iStep = ((6 == numSteps) && (values[iPoint] >= (vMax + 1.0f) * 0.5f)) ? 7 : (numSteps - 1);
+                        iStep = ((6 == numSteps) && (data.Values[iPoint] >= (vMax + 1.0f) * 0.5f)) ? 7 : (numSteps - 1);
                     else
                         iStep = (int)(dot + 0.5f);
 
@@ -251,7 +285,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                     {
                         // D3DX had this computation backwards (pPoints[iPoint] - pSteps[iStep])
                         // this fix improves RMS of the alpha component
-                        float fDiff = interpValues[iStep] - values[iPoint];
+                        float fDiff = data.InterpretedValues[iStep] - data.Values[iPoint];
 
                         dX += pC[iStep] * fDiff;
                         d2X += pC[iStep] * pC[iStep];
@@ -281,7 +315,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             vMin = (vMin < rangeMin) ? rangeMin : (vMin > rangeMax) ? rangeMax : vMin;
             vMax = (vMax < rangeMin) ? rangeMin : (vMax > rangeMax) ? rangeMax : vMax;
 
-            if (isSixPointInterp)
+            if (isSixPointInterpreter)
             {
                 r0 = vMin;
                 r1 = vMax;
@@ -293,20 +327,20 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
             }
         }
 
-        private ulong FindClosest()
+        private ulong FindClosest(Bc4BlockData data)
         {
             ulong ret = 0;
 
-            for (int i = 0; i < values.Length; ++i)
+            for (int i = 0; i < data.Values.Length; ++i)
             {
-                var v = values[i];
+                var v = data.Values[i];
 
                 int iBest = 0;
-                float bestDelta = Math.Abs(interpValues[0] - v);
+                float bestDelta = Math.Abs(data.InterpretedValues[0] - v);
 
-                for (int j = 1; j < interpValues.Length; j++)
+                for (int j = 1; j < data.InterpretedValues.Length; j++)
                 {
-                    float delta = Math.Abs(interpValues[j] - v);
+                    float delta = Math.Abs(data.InterpretedValues[j] - v);
 
                     if (delta < bestDelta)
                     {
