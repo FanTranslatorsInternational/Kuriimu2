@@ -658,36 +658,62 @@ namespace Komponent.IO
         // Bit Fields
         public bool ReadBit()
         {
+            return ReadBitInteger() == 1;
+        }
+
+        private int ReadBitInteger()
+        {
             ResetNibbleBuffer();
 
             if (_bitPosition >= _currentBlockSize * 8)
                 FillBuffer();
 
-            switch (EffectiveBitOrder)
+            if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
             {
-                case BitOrder.LeastSignificantBitFirst:
-                    return ((_buffer >> _bitPosition++) & 0x1) == 1;
-                case BitOrder.MostSignificantBitFirst:
-                    return ((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1) == 1;
-                default:
-                    throw new NotSupportedException("BitOrder not supported.");
+                return (int)((_buffer >> _bitPosition++) & 0x1);
             }
+
+            return (int)((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1);
         }
 
         public object ReadBits(int count)
         {
+            // Same design pattern as BitReader
+            /*
+            * This method is designed with direct mapping in mind.
+            *
+            * Example:
+            * You have a byte 0x83, which in bits would be
+            * 0b1000 0011
+            *
+            * Assume we read 3 bits and 5 bits afterwards
+            *
+            * Assuming MsbFirst, we would now read the values
+            * 0b100 and 0b00011
+            *
+            * Assuming LsbFirst, we would now read the values
+            * 0b011 and 0b10000
+            *
+            * Even though the values themselves changed, the order of bits is still intact
+            *
+            * Combine 0b100 and 0b00011 and you get the original byte
+            * Combine 0b10000 and 0b011 and you also get the original byte
+            *
+            */
+
             long result = 0;
             for (var i = 0; i < count; i++)
-                switch (EffectiveBitOrder)
+            {
+                if (EffectiveBitOrder == BitOrder.MostSignificantBitFirst)
                 {
-                    case BitOrder.LeastSignificantBitFirst:
-                        result |= (ReadBit() ? 1 : 0) << i;
-                        break;
-                    case BitOrder.MostSignificantBitFirst:
-                        result <<= 1;
-                        result |= ReadBit() ? 1 : 0;
-                        break;
+                    result <<= 1;
+                    result |= (byte)ReadBitInteger();
                 }
+                else
+                {
+                    result |= (long)(ReadBitInteger() << i);
+                }
+            }
 
             return result;
         }
