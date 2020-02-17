@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
 using Kanvas.Support;
 using Komponent.IO;
 using Kontract.Models.IO;
@@ -131,16 +133,37 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
         {
             var colorEndpointMode = ColorEndpointMode.Create(br);
 
-            if (colorEndpointMode.EndpointValueCount > 18)
+            if (colorEndpointMode.EndpointValueCount > 18 || blockMode.IsHdr != colorEndpointMode.IsHdr)
                 return ErrorColors;
 
-            var colorBits = ColorQuantization.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane, 0);
-            var quantizationLevel = ColorQuantization.QuantizationModeTable[colorEndpointMode.EndpointValueCount >> 1][colorBits];
+            var colorBits = ColorHelper.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane, 0);
+            var quantizationLevel = ColorHelper.QuantizationModeTable[colorEndpointMode.EndpointValueCount >> 1][colorBits];
 
             if (quantizationLevel < 4)
                 return ErrorColors;
 
             var colorValues = IntegerSequenceEncoding.Decode(br, quantizationLevel, colorEndpointMode.EndpointValueCount);
+
+            var colorEndpoints = ColorUnquantization.DecodeColorEndpoints(colorValues, colorEndpointMode.Format, quantizationLevel);
         }
+
+        // TODO: Decode color endpoint values dependant on given partition count
+        //private UInt4[][] DecodeColorEndpoints(BitReader br, BlockMode blockMode, int partition)
+        //{
+        //    var colorEndpointMode = ColorEndpointMode.Create(br);
+
+        //    if (colorEndpointMode.EndpointValueCount > 18 || blockMode.IsHdr != colorEndpointMode.IsHdr)
+        //        return ErrorColors;
+
+        //    var colorBits = ColorHelper.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane, 0);
+        //    var quantizationLevel = ColorHelper.QuantizationModeTable[colorEndpointMode.EndpointValueCount >> 1][colorBits];
+
+        //    if (quantizationLevel < 4)
+        //        return ErrorColors;
+
+        //    var colorValues = IntegerSequenceEncoding.Decode(br, quantizationLevel, colorEndpointMode.EndpointValueCount);
+
+        //    var colorEndpoints = ColorUnquantization.DecodeColorEndpoints(colorValues, colorEndpointMode.Format, quantizationLevel);
+        //}
     }
 }
