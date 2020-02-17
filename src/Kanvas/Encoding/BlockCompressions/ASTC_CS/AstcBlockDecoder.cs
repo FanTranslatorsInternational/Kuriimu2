@@ -14,7 +14,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
 {
     class AstcBlockDecoder
     {
-        private IEnumerable<Color> ErrorColors => 
+        private IEnumerable<Color> ErrorColors =>
             Enumerable.Repeat(Constants.ErrorValue, _x * _y * _z);
 
         private readonly int _x;
@@ -48,11 +48,19 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 return ErrorColors;
 
             // If invalid weight ranges
-            var weightBits = IntegerSequenceEncoding.ComputeBitCount(blockMode.WeightCount, blockMode.QuantizationMode);
             if (blockMode.WeightCount > Constants.MaxWeightsPerBlock ||
-                weightBits < Constants.MinWeightBitsPerBlock ||
-                weightBits > Constants.MaxWeightBitsPerBlock)
+                blockMode.WeightBitCount < Constants.MinWeightBitsPerBlock ||
+                blockMode.WeightBitCount > Constants.MaxWeightBitsPerBlock)
                 return ErrorColors;
+
+            var partitions = br.ReadBits<int>(2) + 1;
+            if (blockMode.IsDualPlane && partitions == 4)
+                return ErrorColors;
+
+            if (partitions == 1)
+            {
+                return DecodeSinglePartition(br, blockMode);
+            }
 
             /* For each plane in image
                   If block mode requires infill
@@ -117,6 +125,22 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 Conversion.ChangeBitDepth(r, 16, 8),
                 Conversion.ChangeBitDepth(g, 16, 8),
                 Conversion.ChangeBitDepth(b, 16, 8));
+        }
+
+        private IEnumerable<Color> DecodeSinglePartition(BitReader br, BlockMode blockMode)
+        {
+            var colorEndpointMode = ColorEndpointMode.Create(br);
+
+            if (colorEndpointMode.EndpointValueCount > 18)
+                return ErrorColors;
+
+            var colorBits = ColorQuantization.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane, 0);
+            var quantizationLevel = ColorQuantization.QuantizationModeTable[colorEndpointMode.EndpointValueCount >> 1][colorBits];
+
+            if (quantizationLevel < 4)
+                return ErrorColors;
+
+            var colorValues = IntegerSequenceEncoding.Decode(br, quantizationLevel, colorEndpointMode.EndpointValueCount);
         }
     }
 }

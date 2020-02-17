@@ -6,8 +6,9 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Models
     {
         public static Color ErrorValue = Color.Magenta;
 
-        public const int MaxWeightsPerBlock=;
-        public const int MinWeightBitsPerBlock =;
-        public const int MaxWeightBitsPerBlock =;
+        public const int MaxWeightsPerBlock = 64;
+        public const int MinWeightBitsPerBlock = 24;
+        public const int MaxWeightBitsPerBlock = 96;
+        public const int PartitionBits=10;
     }
 }

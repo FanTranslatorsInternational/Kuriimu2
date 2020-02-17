@@ -15,6 +15,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Models
         public int Height { get; }
         public int QuantizationMode { get; }
         public int WeightCount => Width * Height * (IsDualPlane ? 2 : 1);
+        public int WeightBitCount => IntegerSequenceEncoding.ComputeBitCount(WeightCount, QuantizationMode);
 
         public static BlockMode Create(BitReader br)
         {
