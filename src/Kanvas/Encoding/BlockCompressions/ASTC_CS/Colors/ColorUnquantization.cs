@@ -1,4 +1,5 @@
-﻿using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
+﻿using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
 
 namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
 {
@@ -131,18 +132,16 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
             }
         };
 
+        private static readonly UInt4[] _errorValues =
+        {
+            Constants.ErrorValue,
+            Constants.ErrorValue
+        };
+
         public static UInt4[] DecodeColorEndpoints(byte[] values, ColorFormat format, int quantizationLevel)
         {
-            /*FMT_RGB_DELTA = 9,
-	FMT_RGB_SCALE_ALPHA = 10,
-	FMT_HDR_RGB = 11,
-	FMT_RGBA = 12,
-	FMT_RGBA_DELTA = 13,
-	FMT_HDR_RGB_LDR_ALPHA = 14,
-	FMT_HDR_RGBA = 15,*/
-
-            /* HDR formats will contain values 0..0xFFFF */
-            /* LDR formats will contain values 0..0xFF */
+            /* HDR formats will contain values 0..0xFFFF (half-precision) */
+            /* LDR formats will contain values 0..0xFF   (byte) */
 
             switch (format)
             {
@@ -172,7 +171,31 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
 
                 case ColorFormat.FmtRgb:
                     return UnpackRgb(values, quantizationLevel, out _);
-            }
+
+                case ColorFormat.FmtRgbDelta:
+                    return UnpackRgbDelta(values, quantizationLevel, out _);
+
+                case ColorFormat.FmtRgbScaleAlpha:
+                    return UnpackRgbScaleAlpha(values, quantizationLevel);
+
+                case ColorFormat.FmtHdrRgb:
+                    return UnpackHdrRgb(values, quantizationLevel);
+
+                case ColorFormat.FmtRgba:
+                    return UnpackRgba(values, quantizationLevel);
+
+                case ColorFormat.FmtRgbaDelta:
+                    return UnpackRgbaDelta(values, quantizationLevel);
+
+                case ColorFormat.FmtHdrRgbLdrAlpha:
+                    return UnpackHdrRgbLdrAlpha(values, quantizationLevel);
+
+                case ColorFormat.FmtHdrRgba:
+                    return UnpackHdrRgba(values, quantizationLevel);
+
+                default:
+                    return _errorValues;
+                }
         }
 
         private static UInt4[] UnpackLuminance(byte[] values, int quantizationLevel)
@@ -500,6 +523,403 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
                     new UInt4(ri1b,gi1b,bi1b,255)
                 };
             }
+        }
+
+        private static UInt4[] UnpackRgbDelta(byte[] values, int quantizationLevel, out bool order)
+        {
+            int r0 = ColorUnquantizationTable[quantizationLevel][values[0]];
+            int g0 = ColorUnquantizationTable[quantizationLevel][values[2]];
+            int b0 = ColorUnquantizationTable[quantizationLevel][values[4]];
+
+            int r1 = ColorUnquantizationTable[quantizationLevel][values[1]];
+            int g1 = ColorUnquantizationTable[quantizationLevel][values[3]];
+            int b1 = ColorUnquantizationTable[quantizationLevel][values[5]];
+
+            // perform the bit-transfer procedure
+            r0 |= (r1 & 0x80) << 1;
+            g0 |= (g1 & 0x80) << 1;
+            b0 |= (b1 & 0x80) << 1;
+            r1 &= 0x7F;
+            g1 &= 0x7F;
+            b1 &= 0x7F;
+            if ((r1 & 0x40) != 0)
+                r1 -= 0x80;
+            if ((g1 & 0x40) != 0)
+                g1 -= 0x80;
+            if ((b1 & 0x40) != 0)
+                b1 -= 0x80;
+
+            r0 >>= 1;
+            g0 >>= 1;
+            b0 >>= 1;
+            r1 >>= 1;
+            g1 >>= 1;
+            b1 >>= 1;
+
+            int rgbsum = r1 + g1 + b1;
+
+            r1 += r0;
+            g1 += g0;
+            b1 += b0;
+
+            int r0e, g0e, b0e;
+            int r1e, g1e, b1e;
+
+            if (rgbsum >= 0)
+            {
+                r0e = r0;
+                g0e = g0;
+                b0e = b0;
+
+                r1e = r1;
+                g1e = g1;
+                b1e = b1;
+
+                order = false;
+            }
+            else
+            {
+                r0e = (r1 + b1) >> 1;
+                g0e = (g1 + b1) >> 1;
+                b0e = b1;
+
+                r1e = (r0 + b0) >> 1;
+                g1e = (g0 + b0) >> 1;
+                b1e = b0;
+
+                order = true;
+            }
+
+            if (r0e < 0)
+                r0e = 0;
+            else if (r0e > 255)
+                r0e = 255;
+
+            if (g0e < 0)
+                g0e = 0;
+            else if (g0e > 255)
+                g0e = 255;
+
+            if (b0e < 0)
+                b0e = 0;
+            else if (b0e > 255)
+                b0e = 255;
+
+            if (r1e < 0)
+                r1e = 0;
+            else if (r1e > 255)
+                r1e = 255;
+
+            if (g1e < 0)
+                g1e = 0;
+            else if (g1e > 255)
+                g1e = 255;
+
+            if (b1e < 0)
+                b1e = 0;
+            else if (b1e > 255)
+                b1e = 255;
+
+            return new[]
+            {
+                new UInt4(r0e,g0e,b0e,255),
+                new UInt4(r1e,g1e,b1e,255)
+            };
+        }
+
+        private static UInt4[] UnpackRgbScaleAlpha(byte[] values, int quantizationLevel)
+        {
+            var rgbValues = UnpackRgbScale(values, quantizationLevel);
+
+            rgbValues[0].w = ColorUnquantizationTable[quantizationLevel][values[4]];
+            rgbValues[1].w = ColorUnquantizationTable[quantizationLevel][values[5]];
+
+            return rgbValues;
+        }
+
+        private static UInt4[] UnpackHdrRgb(byte[] values, int quantizationLevel)
+        {
+            int v0 = ColorUnquantizationTable[quantizationLevel][values[0]];
+            int v1 = ColorUnquantizationTable[quantizationLevel][values[1]];
+            int v2 = ColorUnquantizationTable[quantizationLevel][values[2]];
+            int v3 = ColorUnquantizationTable[quantizationLevel][values[3]];
+            int v4 = ColorUnquantizationTable[quantizationLevel][values[4]];
+            int v5 = ColorUnquantizationTable[quantizationLevel][values[5]];
+
+            // extract all the fixed-placement bitfields
+            int modeval = ((v1 & 0x80) >> 7) | (((v2 & 0x80) >> 7) << 1) | (((v3 & 0x80) >> 7) << 2);
+
+            int majcomp = ((v4 & 0x80) >> 7) | (((v5 & 0x80) >> 7) << 1);
+
+            if (majcomp == 3)
+            {
+                return new[]
+                {
+                    new UInt4(v0 << 8, v2 << 8, (v4 & 0x7F) << 9, 0x7800),
+                    new UInt4(v1 << 8, v3 << 8, (v5 & 0x7F) << 9, 0x7800)
+                };
+            }
+
+            int a = v0 | ((v1 & 0x40) << 2);
+            int b0 = v2 & 0x3f;
+            int b1 = v3 & 0x3f;
+            int c = v1 & 0x3f;
+            int d0 = v4 & 0x7f;
+            int d1 = v5 & 0x7f;
+
+            // get hold of the number of bits in 'd0' and 'd1'
+            var dbitsTable = new[] { 7, 6, 7, 6, 5, 6, 5, 6 };
+            int dbits = dbitsTable[modeval];
+
+            // extract six variable-placement bits
+            int bit0 = (v2 >> 6) & 1;
+            int bit1 = (v3 >> 6) & 1;
+
+            int bit2 = (v4 >> 6) & 1;
+            int bit3 = (v5 >> 6) & 1;
+            int bit4 = (v4 >> 5) & 1;
+            int bit5 = (v5 >> 5) & 1;
+
+            // and prepend the variable-placement bits depending on mode.
+            int ohmod = 1 << modeval;   // one-hot-mode
+            if ((ohmod & 0xA4) != 0)
+                a |= bit0 << 9;
+            if ((ohmod & 0x8) != 0)
+                a |= bit2 << 9;
+            if ((ohmod & 0x50) != 0)
+                a |= bit4 << 9;
+
+            if ((ohmod & 0x50) != 0)
+                a |= bit5 << 10;
+            if ((ohmod & 0xA0) != 0)
+                a |= bit1 << 10;
+
+            if ((ohmod & 0xC0) != 0)
+                a |= bit2 << 11;
+
+            if ((ohmod & 0x4) != 0)
+                c |= bit1 << 6;
+            if ((ohmod & 0xE8) != 0)
+                c |= bit3 << 6;
+
+            if ((ohmod & 0x20) != 0)
+                c |= bit2 << 7;
+
+            if ((ohmod & 0x5B) != 0)
+                b0 |= bit0 << 6;
+            if ((ohmod & 0x5B) != 0)
+                b1 |= bit1 << 6;
+
+            if ((ohmod & 0x12) != 0)
+                b0 |= bit2 << 7;
+            if ((ohmod & 0x12) != 0)
+                b1 |= bit3 << 7;
+
+            if ((ohmod & 0xAF) != 0)
+                d0 |= bit4 << 5;
+            if ((ohmod & 0xAF) != 0)
+                d1 |= bit5 << 5;
+            if ((ohmod & 0x5) != 0)
+                d0 |= bit2 << 6;
+            if ((ohmod & 0x5) != 0)
+                d1 |= bit3 << 6;
+
+            // sign-extend 'd0' and 'd1'
+            // note: this code assumes that signed right-shift actually sign-fills, not zero-fills.
+            var d0x = d0;
+            var d1x = d1;
+            int sx_shamt = 32 - dbits;
+            d0x <<= sx_shamt;
+            d0x >>= sx_shamt;
+            d1x <<= sx_shamt;
+            d1x >>= sx_shamt;
+            d0 = d0x;
+            d1 = d1x;
+
+            // expand all values to 12 bits, with left-shift as needed.
+            int val_shamt = (modeval >> 1) ^ 3;
+            a <<= val_shamt;
+            b0 <<= val_shamt;
+            b1 <<= val_shamt;
+            c <<= val_shamt;
+            d0 <<= val_shamt;
+            d1 <<= val_shamt;
+
+            // then compute the actual color values.
+            int red1 = a;
+            int green1 = a - b0;
+            int blue1 = a - b1;
+            int red0 = a - c;
+            int green0 = a - b0 - c - d0;
+            int blue0 = a - b1 - c - d1;
+
+            // clamp the color components to [0,2^12 - 1]
+            if (red0 < 0)
+                red0 = 0;
+            else if (red0 > 0xFFF)
+                red0 = 0xFFF;
+
+            if (green0 < 0)
+                green0 = 0;
+            else if (green0 > 0xFFF)
+                green0 = 0xFFF;
+
+            if (blue0 < 0)
+                blue0 = 0;
+            else if (blue0 > 0xFFF)
+                blue0 = 0xFFF;
+
+            if (red1 < 0)
+                red1 = 0;
+            else if (red1 > 0xFFF)
+                red1 = 0xFFF;
+
+            if (green1 < 0)
+                green1 = 0;
+            else if (green1 > 0xFFF)
+                green1 = 0xFFF;
+
+            if (blue1 < 0)
+                blue1 = 0;
+            else if (blue1 > 0xFFF)
+                blue1 = 0xFFF;
+
+            // switch around the color components
+            int temp0, temp1;
+            switch (majcomp)
+            {
+                case 1:                 // switch around red and green
+                    temp0 = red0;
+                    temp1 = red1;
+                    red0 = green0;
+                    red1 = green1;
+                    green0 = temp0;
+                    green1 = temp1;
+                    break;
+
+                case 2:                 // switch around red and blue
+                    temp0 = red0;
+                    temp1 = red1;
+                    red0 = blue0;
+                    red1 = blue1;
+                    blue0 = temp0;
+                    blue1 = temp1;
+                    break;
+
+                case 0:                 // no switch
+                    break;
+            }
+
+            return new[]
+            {
+                new UInt4(red0 << 4, green0 << 4, blue0 << 4, 0x7800),
+                new UInt4(red1 << 4, green1 << 4, blue1 << 4, 0x7800)
+            };
+        }
+
+        private static UInt4[] UnpackRgba(byte[] values, int quantizationLevel)
+        {
+            var rgbValues = UnpackRgb(values, quantizationLevel, out var order);
+
+            if (order)
+            {
+                rgbValues[0].w = ColorUnquantizationTable[quantizationLevel][values[7]];
+                rgbValues[1].w = ColorUnquantizationTable[quantizationLevel][values[6]];
+            }
+            else
+            {
+                rgbValues[0].w = ColorUnquantizationTable[quantizationLevel][values[6]];
+                rgbValues[1].w = ColorUnquantizationTable[quantizationLevel][values[7]];
+            }
+
+            return rgbValues;
+        }
+
+        private static UInt4[] UnpackRgbaDelta(byte[] values, int quantizationLevel)
+        {
+            int a0 = ColorUnquantizationTable[quantizationLevel][values[6]];
+            int a1 = ColorUnquantizationTable[quantizationLevel][values[7]];
+            a0 |= (a1 & 0x80) << 1;
+            a1 &= 0x7F;
+            if ((a1 & 0x40) != 0)
+                a1 -= 0x80;
+            a0 >>= 1;
+            a1 >>= 1;
+            a1 += a0;
+
+            if (a1 < 0)
+                a1 = 0;
+            else if (a1 > 255)
+                a1 = 255;
+
+            var rgbValues = UnpackRgbDelta(values, quantizationLevel, out var order);
+
+            if (order)
+            {
+                rgbValues[0].w = a1;
+                rgbValues[1].w = a0;
+            }
+            else
+            {
+                rgbValues[0].w = a0;
+                rgbValues[1].w = a1;
+            }
+
+            return rgbValues;
+        }
+
+        private static UInt4[] UnpackHdrRgbLdrAlpha(byte[] values, int quantizationLevel)
+        {
+            var rgbValues = UnpackHdrRgb(values, quantizationLevel);
+
+            int v6 = ColorUnquantizationTable[quantizationLevel][values[6]];
+            int v7 = ColorUnquantizationTable[quantizationLevel][values[7]];
+
+            rgbValues[0].w = v6;
+            rgbValues[1].w = v7;
+
+            return rgbValues;
+        }
+
+        private static UInt4[] UnpackHdrRgba(byte[] values, int quantizationLevel)
+        {
+            var rgbValues = UnpackHdrRgb(values, quantizationLevel);
+
+            var alphaValues = UnpackHdrAlpha(new[] { values[6], values[7] }, quantizationLevel);
+
+            rgbValues[0].w = alphaValues[0];
+            rgbValues[1].w = alphaValues[1];
+
+            return rgbValues;
+        }
+
+        private static int[] UnpackHdrAlpha(byte[] values, int quantizationLevel)
+        {
+            int v6 = ColorUnquantizationTable[quantizationLevel][values[0]];
+            int v7 = ColorUnquantizationTable[quantizationLevel][values[1]];
+
+            int selector = ((v6 >> 7) & 1) | ((v7 >> 6) & 2);
+            v6 &= 0x7F;
+            v7 &= 0x7F;
+            if (selector == 3)
+            {
+                return new[] { v6 << 9, v7 << 9 };
+            }
+
+            v6 |= (v7 << (selector + 1)) & 0x780;
+            v7 &= (0x3f >> selector);
+            v7 ^= 32 >> selector;
+            v7 -= 32 >> selector;
+            v6 <<= (4 - selector);
+            v7 <<= (4 - selector);
+            v7 += v6;
+
+            if (v7 < 0)
+                v7 = 0;
+            else if (v7 > 0xFFF)
+                v7 = 0xFFF;
+
+            return new[] { v6 << 4, v7 << 4 };
         }
     }
 }

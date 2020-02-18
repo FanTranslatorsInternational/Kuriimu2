@@ -10,13 +10,23 @@ namespace Komponent.IO
     public class BitReader : IDisposable
     {
         private Stream _baseStream;
+        private BitOrder _bitOrder;
 
-        private readonly BitOrder _bitOrder;
         private readonly ByteOrder _byteOrder;
         private readonly int _blockSize;
 
         private long _buffer;
         private byte _bufferBitPosition;
+
+        public BitOrder BitOrder
+        {
+            get => _bitOrder;
+            set
+            {
+                _bitOrder = value;
+                RefillBuffer();
+            }
+        }
 
         /// <summary>
         /// Gets or sets the current bit position.

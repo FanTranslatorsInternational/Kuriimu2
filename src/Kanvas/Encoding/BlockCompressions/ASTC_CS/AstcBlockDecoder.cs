@@ -3,21 +3,19 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
-using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
 using Kanvas.Support;
 using Komponent.IO;
+using Komponent.IO.Streams;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
 {
     class AstcBlockDecoder
     {
-        private IEnumerable<Color> ErrorColors =>
-            Enumerable.Repeat(Constants.ErrorValue, _x * _y * _z);
+        private IList<Color> ErrorColors =>
+            Enumerable.Repeat(Constants.ErrorValue, _x * _y * _z).ToArray();
 
         private readonly int _x;
         private readonly int _y;
@@ -64,6 +62,9 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 return DecodeSinglePartition(br, blockMode);
             }
 
+            // TODO: Implement multi partition
+            return Array.Empty<Color>();
+
             /* For each plane in image
                   If block mode requires infill
                     Find and decode stored weights adjacent to texel, unquantize and
@@ -85,8 +86,8 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
 
         private BitReader CreateReader(byte[] block)
         {
-            block = block.Reverse().ToArray();
-            return new BitReader(new MemoryStream(block), BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
+            var br = new BitReader(new ReverseStream(new MemoryStream(block),block.Length), BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
+            return br;
         }
 
         private Color CreateVoidExtentColor(BitReader br, bool isHdr)
@@ -129,7 +130,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 Conversion.ChangeBitDepth(b, 16, 8));
         }
 
-        private IEnumerable<Color> DecodeSinglePartition(BitReader br, BlockMode blockMode)
+        private IList<Color> DecodeSinglePartition(BitReader br, BlockMode blockMode)
         {
             var colorEndpointMode = ColorEndpointMode.Create(br);
 
@@ -143,8 +144,34 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 return ErrorColors;
 
             var colorValues = IntegerSequenceEncoding.Decode(br, quantizationLevel, colorEndpointMode.EndpointValueCount);
-
             var colorEndpoints = ColorUnquantization.DecodeColorEndpoints(colorValues, colorEndpointMode.Format, quantizationLevel);
+
+            // Weights decoding
+            br.Position = 128 - blockMode.WeightBitCount;
+
+            var result = new Color[_x * _y * _z];
+
+            if (blockMode.IsDualPlane)
+            {
+                br.Position = 128 - blockMode.WeightBitCount - 2;
+                var plane2ColorComponent = br.ReadBits<int>(2);
+
+                var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
+                for (var i = 0; i < blockMode.WeightCount; i++)
+                {
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, indices[i * 2], indices[i * 2 + 1], plane2ColorComponent);
+                }
+            }
+            else
+            {
+                var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
+                for (var i = 0; i < blockMode.WeightCount; i++)
+                {
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, indices[i], -1, -1);
+                }
+            }
+
+            return result;
         }
 
         // TODO: Decode color endpoint values dependant on given partition count

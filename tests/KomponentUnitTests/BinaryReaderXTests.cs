@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Komponent.IO.Attributes;
+using Kontract.Models.IO;
 
 namespace KomponentUnitTests
 {
@@ -113,7 +114,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream(input);
 
-            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, BitOrder.MSBFirst, 2))
+            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, NibbleOrder.HighNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
             {
                 Assert.AreEqual(true, br.ReadBit());
                 br.ResetBitBuffer();
@@ -123,7 +124,7 @@ namespace KomponentUnitTests
                 Assert.AreEqual(0x1F, br.ReadBits<int>(5));
             }
 
-            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, BitOrder.LowestAddressFirst, 2))
+            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.LowestAddressFirst, 2))
             {
                 br.BaseStream.Position = 0;
 
@@ -153,7 +154,7 @@ namespace KomponentUnitTests
             [BitField(6)]
             public byte exp7;
 
-            [BitFieldInfo(BitOrder = BitOrder.LSBFirst, BlockSize = 2)]
+            [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 2)]
             public class TestClass2
             {
                 [BitField(5)]
@@ -255,7 +256,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream(input);
 
-            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, BitOrder.MSBFirst, 2))
+            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
             {
                 Assert.AreEqual(4, br.ReadNibble());
                 Assert.AreEqual(0x1F, br.ReadBits<int>(5));
@@ -435,7 +436,7 @@ namespace KomponentUnitTests
         {
             public int value51;
         }
-        private class TestClass52: IChoiceInherit
+        private class TestClass52 : IChoiceInherit
         {
             public long value52;
         }

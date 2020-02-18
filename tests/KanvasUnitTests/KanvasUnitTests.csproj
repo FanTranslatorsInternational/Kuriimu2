@@ -50,6 +50,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AstcTests.cs" />
     <Compile Include="ConvertTests.cs" />
     <Compile Include="RgbaTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

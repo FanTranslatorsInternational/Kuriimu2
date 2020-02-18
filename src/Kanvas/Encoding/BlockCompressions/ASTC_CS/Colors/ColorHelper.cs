@@ -17,7 +17,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
             113 - 4 - Constants.PartitionBits
         };
 
-        public static int[][] QuantizationModeTable = BuildQuantizationModeTable();
+        public static readonly int[][] QuantizationModeTable = BuildQuantizationModeTable();
 
         public static int CalculateColorBits(int partitionCount, int weigthBitCount, bool isDualPlane, int encodedTypeHighPartSize)
         {
@@ -28,6 +28,37 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
                 colorBits = 0;
 
             return colorBits;
+        }
+
+        public static Color InterpolateColor(UInt4[] values, int weight, int plane2Weight, int plane2ColorComponent)
+        {
+            var weightValue1 = new UInt4(weight, weight, weight, weight);
+            switch (plane2ColorComponent)
+            {
+                case 0:
+                    weightValue1.x = plane2Weight;
+                    break;
+
+                case 1:
+                    weightValue1.y = plane2Weight;
+                    break;
+
+                case 2:
+                    weightValue1.z = plane2Weight;
+                    break;
+
+                case 3:
+                    weightValue1.w = plane2Weight;
+                    break;
+            }
+
+            var weightValue0 = new UInt4(64, 64, 64, 64) - weightValue1;
+
+            // TODO: LDR_SRGB decoding (simple >> 8)
+
+            var color = values[0] * weightValue0 + values[1] * weightValue1 + new UInt4(32, 32, 32, 32);
+
+            return color >> 6;
         }
 
         private static int[][] BuildQuantizationModeTable()

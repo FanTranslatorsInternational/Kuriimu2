@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Kompression.IO
+namespace Komponent.IO.Streams
 {
     /// <summary>
     /// Reverses the data in a stream.

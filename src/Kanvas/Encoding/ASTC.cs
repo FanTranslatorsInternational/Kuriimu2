@@ -7,6 +7,8 @@ using System.Linq;
 using Kanvas.Encoding.BlockCompressions.ASTC;
 using Kanvas.Encoding.BlockCompressions.ASTC.KTX;
 using Kanvas.Encoding.BlockCompressions.ASTC.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS;
+using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
@@ -17,6 +19,8 @@ namespace Kanvas.Encoding
     /// </summary>
     public class ASTC : IColorEncodingKnownDimensions
     {
+        private readonly AstcBlockDecoder _decoder;
+
         private readonly int _xDim;
         private readonly int _yDim;
         private readonly int _zDim;
@@ -42,54 +46,52 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncodingKnownDimensions.Height"/>
         public int Height { private get; set; } = -1;
 
-        /// <summary>
-        /// Byte order to use to read the Values.
-        /// </summary>
-        public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
-
         public ASTC(int xdim, int ydim) : this(xdim, ydim, 1)
         {
         }
 
         public ASTC(int xdim, int ydim, int zdim)
         {
-            BitDepth = -1;
-            BlockBitDepth = 128;
-
-            var modeName = CreateName(xdim, ydim, zdim);
-            if (!Enum.TryParse(modeName, out _blockMode))
-                throw new InvalidDataException($"Block mode {modeName} is not supported.");
-
             _xDim = xdim;
             _yDim = ydim;
             _zDim = zdim;
+            _decoder = new AstcBlockDecoder(xdim, ydim, zdim);
 
-            FormatName = modeName;
-        }
+            BitDepth = -1;
+            BlockBitDepth = 128;
 
-        private string CreateName(int xdim, int ydim, int zdim)
-        {
-            return $"ASTC{xdim}x{ydim}" + ((zdim > 1) ? $"x{zdim}" : "");
+            FormatName = $"ASTC{xdim}x{ydim}" + (zdim > 1 ? $"x{zdim}" : "");
+            if (!Enum.TryParse(FormatName, out _blockMode))
+                throw new InvalidDataException($"Block mode {FormatName} is not supported.");
         }
 
         public IEnumerable<Color> Load(byte[] tex)
         {
-            if (Width <= 0 || Height <= 0)
-                throw new InvalidDataException("Height and Width has to be set for ASTC.");
+            // TODO: Use block compression base class
 
-            CreateTempASTCFile("tmp.astc", tex);
+            using (var br = new BinaryReaderX(new MemoryStream(tex)))
+            {
+                while (br.BaseStream.Position < br.BaseStream.Length)
+                    foreach (var color in _decoder.DecodeBlocks(br.ReadBytes(16)))
+                        yield return color;
+            }
 
-            var wrapper = new ASTCContext();
-            wrapper.Decode("tmp.astc", "tmp.ktx", _blockMode);
-            File.Delete("tmp.astc");
+            //if (Width <= 0 || Height <= 0)
+            //    throw new InvalidDataException("Height and Width has to be set for ASTC.");
 
-            var ktx = new KTXWrapper("tmp.ktx");
-            var colors = ktx.GetImageColors().Reverse().ToList();
-            ktx.Dispose();
+            //CreateTempASTCFile("tmp.astc", tex);
 
-            //File.Delete("tmp.ktx");
+            //var wrapper = new ASTCContext();
+            //wrapper.Decode("tmp.astc", "tmp.ktx", _blockMode);
+            //File.Delete("tmp.astc");
 
-            return colors;
+            //var ktx = new KTXWrapper("tmp.ktx");
+            //var colors = ktx.GetImageColors().Reverse().ToList();
+            //ktx.Dispose();
+
+            ////File.Delete("tmp.ktx");
+
+            //return colors;
         }
 
         private void CreateTempASTCFile(string astcFile, byte[] texData)
@@ -102,9 +104,9 @@ namespace Kanvas.Encoding
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(Width, 3, ByteOrder));
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(Height, 3, ByteOrder));
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(1, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Width, 3, ByteOrder.LittleEndian));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Height, 3, ByteOrder.LittleEndian));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(1, 3, ByteOrder.LittleEndian));
                 bw.Write(texData);
             }
 

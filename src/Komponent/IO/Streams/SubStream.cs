@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Komponent.IO
+namespace Komponent.IO.Streams
 {
     public class SubStream : Stream
     {
