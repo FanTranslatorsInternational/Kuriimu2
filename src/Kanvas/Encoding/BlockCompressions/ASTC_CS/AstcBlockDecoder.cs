@@ -86,7 +86,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
 
         private BitReader CreateReader(byte[] block)
         {
-            var br = new BitReader(new ReverseStream(new MemoryStream(block),block.Length), BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
+            var br = new BitReader(new MemoryStream(block), BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
             return br;
         }
 
