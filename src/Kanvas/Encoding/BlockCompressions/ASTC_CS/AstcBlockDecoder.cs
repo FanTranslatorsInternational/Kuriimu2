@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Partitions;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS.Weights;
 using Kanvas.Support;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -63,25 +66,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
             }
 
             // TODO: Implement multi partition
-            return Array.Empty<Color>();
-
-            /* For each plane in image
-                  If block mode requires infill
-                    Find and decode stored weights adjacent to texel, unquantize and
-                        interpolate
-                  Else
-                    Find and decode weight for texel, and unquantize
-
-                Read number of partitions
-                If number of partitions > 1
-                  Read partition table pattern index
-                  Look up partition number from pattern
-
-                Read color endpoint mode and endpoint data for selected partition
-                Unquantize color endpoints
-                Interpolate color endpoints using weight (or weights in dual-plane mode)
-                Return interpolated color
-             */
+            return DecodeMultiPartition(br, blockMode, partitions);
         }
 
         private BitReader CreateReader(byte[] block)
@@ -132,12 +117,12 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
 
         private IList<Color> DecodeSinglePartition(BitReader br, BlockMode blockMode)
         {
-            var colorEndpointMode = ColorEndpointMode.Create(br);
+            var colorEndpointMode = DecodeColorEndpointModes(br, blockMode, 1)[0];
 
             if (colorEndpointMode.EndpointValueCount > 18 || blockMode.IsHdr != colorEndpointMode.IsHdr)
                 return ErrorColors;
 
-            var colorBits = ColorHelper.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane, 0);
+            var colorBits = ColorHelper.CalculateColorBits(1, blockMode.WeightBitCount, blockMode.IsDualPlane);
             var quantizationLevel = ColorHelper.QuantizationModeTable[colorEndpointMode.EndpointValueCount >> 1][colorBits];
 
             if (quantizationLevel < 4)
@@ -159,7 +144,9 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
                 for (var i = 0; i < blockMode.WeightCount; i++)
                 {
-                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, indices[i * 2], indices[i * 2 + 1], plane2ColorComponent);
+                    var plane1Weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i * 2]];
+                    var plane2Weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i * 2 + 1]];
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, plane1Weight, plane2Weight, plane2ColorComponent);
                 }
             }
             else
@@ -167,7 +154,111 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS
                 var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
                 for (var i = 0; i < blockMode.WeightCount; i++)
                 {
-                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, indices[i], -1, -1);
+                    var weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i]];
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints, weight, -1, -1);
+                }
+            }
+
+            return result;
+        }
+
+        private IList<Color> DecodeMultiPartition(BitReader br, BlockMode blockMode, int partitions)
+        {
+            var colorEndpointModes = DecodeColorEndpointModes(br, blockMode, partitions);
+            var colorValueCount = colorEndpointModes.Sum(x => x.EndpointValueCount);
+
+            if (colorValueCount > 18 || colorEndpointModes.Any(x => x.IsHdr != blockMode.IsHdr))
+                return ErrorColors;
+
+            var colorBits = ColorHelper.CalculateColorBits(partitions, blockMode.WeightBitCount, blockMode.IsDualPlane);
+            var quantizationLevel = ColorHelper.QuantizationModeTable[colorValueCount >> 1][colorBits];
+
+            if (quantizationLevel < 4)
+                return ErrorColors;
+
+            br.Position = 19 + Constants.PartitionBits;
+            var colorValues = IntegerSequenceEncoding.Decode(br, quantizationLevel, colorValueCount);
+
+            var colorEndpoints = new UInt4[partitions][];
+            for (var i = 0; i < partitions; i++)
+            {
+                colorEndpoints[i] = ColorUnquantization.DecodeColorEndpoints(colorValues, colorEndpointModes[i].Format, quantizationLevel);
+            }
+
+            br.Position = 13;
+            var partitionIndex = br.ReadBits<uint>(10);
+
+            var elementsInBlock = _x * _y * _z;
+            var partitionIndices = new int[elementsInBlock];
+            for (int z = 0; z < _z; z++)
+                for (int y = 0; y < _y; y++)
+                    for (int x = 0; x < _x; x++)
+                        partitionIndices[x * y * z] =
+                            PartitionSelection.SelectPartition(partitionIndex, x, y, z, partitions, elementsInBlock < 32);
+
+            var result = new Color[elementsInBlock];
+
+            if (blockMode.IsDualPlane)
+            {
+                // TODO: Should those 2 bits below the weights be here for multi partition due to encodedType high part?
+                br.Position = 128 - blockMode.WeightBitCount - 2;
+                var plane2ColorComponent = br.ReadBits<int>(2);
+
+                var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
+                for (var i = 0; i < blockMode.WeightCount; i++)
+                {
+                    var plane1Weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i * 2]];
+                    var plane2Weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i * 2 + 1]];
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints[partitionIndices[i]], plane1Weight, plane2Weight, plane2ColorComponent);
+                }
+            }
+            else
+            {
+                var indices = IntegerSequenceEncoding.Decode(br, blockMode.QuantizationMode, blockMode.WeightCount);
+                for (var i = 0; i < blockMode.WeightCount; i++)
+                {
+                    var weight = WeightUnquantization.WeightUnquantizationTable[blockMode.QuantizationMode][indices[i]];
+                    result[i] = ColorHelper.InterpolateColor(colorEndpoints[partitionIndices[i]], weight, -1, -1);
+                }
+            }
+
+            return result;
+        }
+
+        private IList<ColorEndpointMode> DecodeColorEndpointModes(BitReader br, BlockMode blockMode, int partitions)
+        {
+            if (partitions == 1)
+            {
+                br.Position = 13;
+                return new[] { new ColorEndpointMode(br.ReadBits<int>(4)) };
+            }
+
+            br.Position = 13 + Constants.PartitionBits;
+            var encodedType = br.ReadBits<int>(6);
+
+            var encodedTypeHighSize = 3 * partitions - 4;
+            br.Position = 128 - blockMode.WeightBitCount - encodedTypeHighSize;
+            encodedType |= br.ReadBits<int>(encodedTypeHighSize) << 6;
+
+            var result = new ColorEndpointMode[partitions];
+
+            var baseClass = encodedType & 0x3;
+            if (baseClass == 0)
+            {
+                for (var i = 0; i < partitions; i++)
+                {
+                    result[i] = new ColorEndpointMode((encodedType >> 2) & 0xF);
+                }
+            }
+            else
+            {
+                baseClass--;
+
+                for (var i = 0; i < partitions; i++)
+                {
+                    var highPart = ((encodedType >> (2 + i)) & 1) + baseClass;
+                    var lowPart = (encodedType >> (2 + partitions + i * 2)) & 3;
+                    result[i] = new ColorEndpointMode((highPart << 2) | lowPart);
                 }
             }
 

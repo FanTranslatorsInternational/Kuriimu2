@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Komponent.IO.Streams;
 using Kompression.Extensions;
 using Kompression.IO;
 using Kontract.Kompression;

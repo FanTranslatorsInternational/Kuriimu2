@@ -19,7 +19,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
 
         public static readonly int[][] QuantizationModeTable = BuildQuantizationModeTable();
 
-        public static int CalculateColorBits(int partitionCount, int weigthBitCount, bool isDualPlane, int encodedTypeHighPartSize)
+        public static int CalculateColorBits(int partitionCount, int weigthBitCount, bool isDualPlane, int encodedTypeHighPartSize = 0)
         {
             var colorBits = _colorBits[partitionCount] - weigthBitCount - encodedTypeHighPartSize;
             if (isDualPlane)

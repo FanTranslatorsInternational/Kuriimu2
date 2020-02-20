@@ -13,12 +13,7 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Models
 
         public int EndpointValueCount { get; }
 
-        public static ColorEndpointMode Create(BitReader br)
-        {
-            return new ColorEndpointMode(br.ReadBits<int>(4));
-        }
-
-        private ColorEndpointMode(int value)
+        public ColorEndpointMode(int value)
         {
             Format = (ColorFormat)value;
             IsHdr = Format == ColorFormat.FmtHdrRgb ||

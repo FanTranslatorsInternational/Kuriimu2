@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Komponent.IO.Streams;
 using Kompression.Configuration;
 using Kompression.Extensions;
 using Kompression.IO;
