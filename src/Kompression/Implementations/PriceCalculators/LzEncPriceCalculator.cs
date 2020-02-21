@@ -1,7 +1,7 @@
 ﻿using System;
 using Kontract.Kompression;
 
-namespace Kompression.PatternMatch.PriceCalculators
+namespace Kompression.Implementations.PriceCalculators
 {
     public class LzEncPriceCalculator : IPriceCalculator
     {

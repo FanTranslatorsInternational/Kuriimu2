@@ -1,6 +1,6 @@
 ﻿using Kontract.Kompression;
 
-namespace Kompression.PatternMatch.PriceCalculators
+namespace Kompression.Implementations.PriceCalculators
 {
     public class TalesOf03PriceCalculator : IPriceCalculator
     {

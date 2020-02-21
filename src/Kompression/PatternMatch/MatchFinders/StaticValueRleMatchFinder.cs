@@ -5,34 +5,25 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchFinders
 {
-    /// <summary>
-    /// Find sequences of the same value.
-    /// </summary>
-    public class RleMatchFinder : IMatchFinder
+    class StaticValueRleMatchFinder : IMatchFinder
     {
-        /// <inheritdoc />
-        public FindLimitations FindLimitations { get; }
+        private readonly int _valueToMatch;
 
-        /// <inheritdoc />
+        public FindLimitations FindLimitations { get; }
         public FindOptions FindOptions { get; }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="RleMatchFinder"/>.
-        /// </summary>
-        /// <param name="limits">The limits to search sequences in.</param>
-        /// <param name="options">The options to search sequences with.</param>
-        public RleMatchFinder(FindLimitations limits, FindOptions options)
+        public StaticValueRleMatchFinder(byte valueToMatch, FindLimitations limits, FindOptions options)
         {
+            _valueToMatch = valueToMatch;
+
             FindLimitations = limits;
             FindOptions = options;
         }
 
-        /// <inheritdoc />
         public void PreProcess(byte[] input, int startPosition)
         {
         }
 
-        /// <inheritdoc />
         public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
             if (input.Length - position < FindLimitations.MinLength)
@@ -47,7 +38,7 @@ namespace Kompression.PatternMatch.MatchFinders
                 switch (FindOptions.UnitSize)
                 {
                     case UnitSize.Byte:
-                        if (input[position + 1 + repetitions] != input[position])
+                        if (input[position + repetitions] != _valueToMatch)
                         {
                             if (repetitions > 0 && repetitions >= FindLimitations.MinLength)
                                 return new AggregateMatch(0, repetitions);
@@ -64,7 +55,6 @@ namespace Kompression.PatternMatch.MatchFinders
             return new AggregateMatch(0, cappedLength - cappedLength % (int)FindOptions.UnitSize);
         }
 
-        /// <inheritdoc />
         public void Dispose()
         {
         }

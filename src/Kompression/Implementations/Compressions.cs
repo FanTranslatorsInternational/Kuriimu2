@@ -2,8 +2,8 @@
 using Kompression.Huffman;
 using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Encoders;
+using Kompression.Implementations.PriceCalculators;
 using Kompression.PatternMatch.MatchFinders;
-using Kompression.PatternMatch.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model;
 using Kontract.Models.IO;
@@ -474,6 +474,26 @@ namespace Kompression.Implementations
                     .AndWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
                     .WithinLimitations(() => new FindLimitations(4, 0x1003))
                     .CalculatePricesWith(() => new SpikeChunsoftPriceCalculator()));
+
+                return config;
+            }
+        }
+
+        // TODO: Find better naming, seemingly used on PS2 in multiple games
+        public static IKompressionConfiguration PsLz
+        {
+            get
+            {
+                var config = new KompressionConfiguration();
+
+                config.DecodeWith(() => new PsLzDecoder()).
+                    EncodeWith((parser, builder) => new PsLzEncoder(parser));
+                config.WithMatchOptions(options => options
+                    .FindMatchesWithDefault()
+                    .WithinLimitations(() => new FindLimitations(1, 0xFFFF, 1, 0xFFFF))
+                    .AndWith((limits, findOptions) => new StaticValueRleMatchFinder(0, limits, findOptions))
+                    .WithinLimitations(() => new FindLimitations(1, 0xFFFF))
+                    .CalculatePricesWith(() => new PsLzPriceCalculator()));
 
                 return config;
             }

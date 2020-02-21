@@ -1,7 +1,7 @@
-﻿using Kontract.Kompression;
-using System.Linq;
+﻿using System.Linq;
+using Kontract.Kompression;
 
-namespace Kompression.PatternMatch.PriceCalculators
+namespace Kompression.Implementations.PriceCalculators
 {
     public class LzssVlcPriceCalculator : IPriceCalculator
     {
