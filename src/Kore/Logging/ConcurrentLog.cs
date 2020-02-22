@@ -12,6 +12,7 @@ namespace Kore.Logging
         private readonly ApplicationLevel _applicationLevel;
 
         private readonly Timer _timer;
+        private bool _enqueueMessage;
         private readonly ConcurrentQueue<(LogLevel, string)> _queue;
 
         public ConcurrentLogger(ApplicationLevel applicationLevel, ILogOutput output)
@@ -21,6 +22,8 @@ namespace Kore.Logging
             _output = output;
             _applicationLevel = applicationLevel;
 
+            _enqueueMessage = false;
+
             _timer = new Timer(1000);
             _timer.Elapsed += Timer_Elapsed;
             _queue = new ConcurrentQueue<(LogLevel, string)>();
@@ -28,18 +31,21 @@ namespace Kore.Logging
 
         public void StartLogging()
         {
+            _enqueueMessage = true;
             _timer.Start();
         }
 
         public void StopLogging()
         {
+            _enqueueMessage = false;
             _timer.Stop();
             DumpQueue();
         }
 
         public void QueueMessage(LogLevel level, string message)
         {
-            _queue.Enqueue((level, message));
+            if (_enqueueMessage)
+                _queue.Enqueue((level, message));
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
