@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Kompression;
 using Kompression.Configuration;
 using Kompression.Implementations;
+using Kontract.Kompression;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 
 namespace Kuriimu2.WinForms.ExtensionForms
@@ -51,7 +52,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             var reportFilePath = Path.Combine(rootDir, "compressionReport.txt");
 
-            // Write hashes to text file
+            // Write results to text file
             var reportFile = File.CreateText(reportFilePath);
             foreach (var result in results)
                 reportFile.WriteLine($"{result.Item1}: {result.Item2}");
@@ -94,6 +95,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     new ExtensionTypeParameter("Version",typeof(TalesOfVersion))),
                 new ExtensionType("LzEnc",true),
                 new ExtensionType("Spike Chunsoft Lz",true),
+                new ExtensionType("PsLz",true)
             };
         }
 
@@ -191,6 +193,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 case "Soike Chunsoft Lz":
                     return Compressions.SpikeChunsoft.Build();
+
+                case "PsLz":
+                    return Compressions.PsLz.Build();
 
                 // TODO: Plugin extensibility?
                 default:

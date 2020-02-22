@@ -21,7 +21,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
         private BatchExtensionProcessor<TExtension, TResult> _batchProcessor;
         private ParameterBuilder _parameterBuilder;
 
-        private IConcurrentLogger _log;
+        private readonly IConcurrentLogger _log;
 
         protected abstract string TypeExtensionName { get; }
 
@@ -93,12 +93,12 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         private void Execute()
         {
-            _log.ResetLog();
-            _log.StartOutput();
+            txtLog.Clear();
+            _log.StartLogging();
 
             if (!VerifyInput())
             {
-                _log.StopOutput();
+                _log.StopLogging();
                 return;
             }
 
@@ -106,7 +106,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
             if (!TryParseParameters(selectedType.Parameters.Values.ToArray()))
             {
-                _log.StopOutput();
+                _log.StopLogging();
                 return;
             }
 
@@ -120,7 +120,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
             ToggleUi(true);
 
-            _log.StopOutput();
+            _log.StopLogging();
         }
 
         private bool VerifyInput()
