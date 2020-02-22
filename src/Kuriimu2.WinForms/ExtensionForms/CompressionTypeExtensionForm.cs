@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations;
 using Kontract.Kompression;
@@ -27,21 +28,26 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         protected override bool ProcessFile(ICompression extensionType, string filePath)
         {
-            var input = File.Open(filePath, FileMode.Open, FileAccess.Read);
-            var output = File.Create(filePath + ".out");
+            Stream input = null;
+            Stream output = null;
 
             try
             {
+                input = File.Open(filePath, FileMode.Open, FileAccess.Read);
+                output = File.Create(filePath + ".out");
+
                 ProcessCompression(extensionType, input, output);
             }
-            catch
+            catch (Exception e)
             {
+                Logger.QueueMessage(LogLevel.Error, e.Message);
+
                 return false;
             }
             finally
             {
-                input.Close();
-                output.Close();
+                input?.Close();
+                output?.Close();
             }
 
             return true;
