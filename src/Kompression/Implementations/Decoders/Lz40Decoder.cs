@@ -1,16 +1,12 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.IO;
-using Kompression.PatternMatch;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
     public class Lz40Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
-
         public void Decode(Stream input, Stream output)
         {
             var compressionHeader = new byte[4];
@@ -25,7 +21,7 @@ namespace Kompression.Implementations.Decoders
 
         internal void ReadCompressedData(Stream input, Stream output, int decompressedSize)
         {
-            _circularBuffer = new CircularBuffer(0xFFF);
+            var circularBuffer = new CircularBuffer(0xFFF);
 
             int flags = 0, mask = 1;
             while (output.Length < decompressedSize)
@@ -43,23 +39,23 @@ namespace Kompression.Implementations.Decoders
                 }
 
                 if ((flags & mask) > 0)
-                    HandleCompressedBlock(input, output);
+                    HandleCompressedBlock(input, output, circularBuffer);
                 else
-                    HandleUncompressedBlock(input, output);
+                    HandleUncompressedBlock(input, output, circularBuffer);
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output)
+        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
                 throw new StreamTooShortException();
 
             output.WriteByte((byte)next);
-            _circularBuffer.WriteByte((byte)next);
+            circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output)
+        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // A compressed block starts with 2 bytes; if there are there < 2 bytes left, throw error
             if (input.Length - input.Position < 2)
@@ -75,21 +71,21 @@ namespace Kompression.Implementations.Decoders
             int length;
             if ((byte1 & 0xF) == 0)    // 0000
             {
-                length = HandleZeroCompressedBlock(input, output);
+                length = HandleZeroCompressedBlock(input);
             }
             else if ((byte1 & 0xF) == 1)   // 0001
             {
-                length = HandleOneCompressedBlock(input, output);
+                length = HandleOneCompressedBlock(input);
             }
             else    // >= 0010
             {
                 length = byte1 & 0xF;
             }
 
-            _circularBuffer.Copy(output,displacement,length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
-        private int HandleZeroCompressedBlock(Stream input, Stream output)
+        private int HandleZeroCompressedBlock(Stream input)
         {
             if (input.Length - input.Position < 1)
                 throw new StreamTooShortException();
@@ -100,7 +96,7 @@ namespace Kompression.Implementations.Decoders
             return length;
         }
 
-        private int HandleOneCompressedBlock(Stream input, Stream output)
+        private int HandleOneCompressedBlock(Stream input)
         {
             if (input.Length - input.Position < 2)
                 throw new StreamTooShortException();
@@ -114,7 +110,6 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
         }
     }
 }

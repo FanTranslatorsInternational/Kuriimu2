@@ -7,15 +7,21 @@ using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Refactor block class
     public class LzEcdEncoder : IEncoder
     {
-        private const int WindowBufferLength = 0x400;
-        private IMatchParser _matchParser;
+        class Block
+        {
+            public byte codeBlock;
+            public int codeBlockPosition = 0;
 
-        private byte _codeBlock;
-        private int _codeBlockPosition;
-        private byte[] _buffer;
-        private int _bufferLength;
+            // each buffer can be at max 8 pairs of compressed matches; a compressed match is 2 bytes
+            public byte[] buffer = new byte[8 * 2];
+            public int bufferLength;
+        }
+
+        private const int WindowBufferLength = 0x400;
+        private readonly IMatchParser _matchParser;
 
         public LzEcdEncoder(IMatchParser matchParser)
         {
@@ -27,22 +33,19 @@ namespace Kompression.Implementations.Encoders
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
 
-            _codeBlock = 0;
-            _codeBlockPosition = 0;
-            _buffer = new byte[8 * 2]; // each buffer can be at max 8 pairs of compressed matches; a compressed match is 2 bytes
-            _bufferLength = 0;
+            var block = new Block();
 
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
-                while (input.Position < match.Position- _matchParser.FindOptions.PreBufferSize)
+                while (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
                 {
-                    if (_codeBlockPosition == 8)
-                        WriteAndResetBuffer(output);
+                    if (block.codeBlockPosition == 8)
+                        WriteAndResetBuffer(output, block);
 
-                    _codeBlock |= (byte)(1 << _codeBlockPosition++);
-                    _buffer[_bufferLength++] = (byte)input.ReadByte();
+                    block.codeBlock |= (byte)(1 << block.codeBlockPosition++);
+                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
                 }
 
                 // Write match data to the buffer
@@ -50,12 +53,12 @@ namespace Kompression.Implementations.Encoders
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 
-                if (_codeBlockPosition == 8)
-                    WriteAndResetBuffer(output);
+                if (block.codeBlockPosition == 8)
+                    WriteAndResetBuffer(output, block);
 
-                _codeBlockPosition++; // Since a match is flagged with a 0 bit, we don't need a bit shift and just increase the position
-                _buffer[_bufferLength++] = firstByte;
-                _buffer[_bufferLength++] = secondByte;
+                block.codeBlockPosition++; // Since a match is flagged with a 0 bit, we don't need a bit shift and just increase the position
+                block.buffer[block.bufferLength++] = firstByte;
+                block.buffer[block.bufferLength++] = secondByte;
 
                 input.Position += match.Length;
             }
@@ -63,31 +66,31 @@ namespace Kompression.Implementations.Encoders
             // Write any data after last match, to the buffer
             while (input.Position < input.Length)
             {
-                if (_codeBlockPosition == 8)
-                    WriteAndResetBuffer(output);
+                if (block.codeBlockPosition == 8)
+                    WriteAndResetBuffer(output, block);
 
-                _codeBlock |= (byte)(1 << _codeBlockPosition++);
-                _buffer[_bufferLength++] = (byte)input.ReadByte();
+                block.codeBlock |= (byte)(1 << block.codeBlockPosition++);
+                block.buffer[block.bufferLength++] = (byte)input.ReadByte();
             }
 
             // Flush remaining buffer to stream
-            WriteAndResetBuffer(output);
+            WriteAndResetBuffer(output, block);
 
             // Write header information
             WriteHeaderData(input, output, originalOutputPosition);
         }
 
-        private void WriteAndResetBuffer(Stream output)
+        private void WriteAndResetBuffer(Stream output, Block block)
         {
             // Write data to output
-            output.WriteByte(_codeBlock);
-            output.Write(_buffer, 0, _bufferLength);
+            output.WriteByte(block.codeBlock);
+            output.Write(block.buffer, 0, block.bufferLength);
 
             // Reset codeBlock and buffer
-            _codeBlock = 0;
-            _codeBlockPosition = 0;
-            Array.Clear(_buffer, 0, _bufferLength);
-            _bufferLength = 0;
+            block.codeBlock = 0;
+            block.codeBlockPosition = 0;
+            Array.Clear(block.buffer, 0, block.bufferLength);
+            block.bufferLength = 0;
         }
 
         private void WriteHeaderData(Stream input, Stream output, long originalOutputPosition)

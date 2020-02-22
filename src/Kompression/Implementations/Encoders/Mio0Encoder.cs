@@ -11,7 +11,7 @@ namespace Kompression.Implementations.Encoders
     public class Mio0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public Mio0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
         {

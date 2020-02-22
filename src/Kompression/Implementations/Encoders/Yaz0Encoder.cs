@@ -8,15 +8,21 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Refactor block class
     public class Yaz0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
         private IMatchParser _matchParser;
 
-        private byte _codeBlock;
-        private int _codeBlockPosition;
-        private byte[] _buffer;
-        private int _bufferLength;
+        class Block
+        {
+            public byte codeBlock;
+            public int codeBlockPosition = 8;
+
+            // each buffer can be at max 8 pairs of compressed matches; a compressed match can be at max 3 bytes
+            public byte[] buffer = new byte[8 * 3];
+            public int bufferLength;
+        }
 
         public Yaz0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
         {
@@ -29,10 +35,7 @@ namespace Kompression.Implementations.Encoders
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
 
-            _codeBlock = 0;
-            _codeBlockPosition = 8;
-            _buffer = new byte[8 * 3]; // each buffer can be at max 8 pairs of compressed matches; a compressed match can be at max 3 bytes
-            _bufferLength = 0;
+            var block = new Block();
 
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
@@ -40,11 +43,11 @@ namespace Kompression.Implementations.Encoders
                 // Write any data before the match, to the buffer
                 while (input.Position < match.Position)
                 {
-                    if (_codeBlockPosition == 0)
-                        WriteAndResetBuffer(output);
+                    if (block.codeBlockPosition == 0)
+                        WriteAndResetBuffer(output, block);
 
-                    _codeBlock |= (byte)(1 << --_codeBlockPosition);
-                    _buffer[_bufferLength++] = (byte)input.ReadByte();
+                    block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
+                    block.buffer[block.bufferLength++] = (byte)input.ReadByte();
                 }
 
                 // Write match data to the buffer
@@ -55,14 +58,14 @@ namespace Kompression.Implementations.Encoders
                     // Since minimum _length should be 3 for Yay0, we get a minimum matchLength of 1 in this case
                     firstByte |= (byte)((match.Length - 2) << 4);
 
-                if (_codeBlockPosition == 0)
-                    WriteAndResetBuffer(output);
+                if (block.codeBlockPosition == 0)
+                    WriteAndResetBuffer(output, block);
 
-                _codeBlockPosition--; // Since a match is flagged with a 0 bit, we don't need a bit shift and just decrease the position
-                _buffer[_bufferLength++] = firstByte;
-                _buffer[_bufferLength++] = secondByte;
+                block.codeBlockPosition--; // Since a match is flagged with a 0 bit, we don't need a bit shift and just decrease the position
+                block.buffer[block.bufferLength++] = firstByte;
+                block.buffer[block.bufferLength++] = secondByte;
                 if (match.Length >= 0x12)
-                    _buffer[_bufferLength++] = (byte)(match.Length - 0x12);
+                    block.buffer[block.bufferLength++] = (byte)(match.Length - 0x12);
 
                 input.Position += match.Length;
             }
@@ -70,31 +73,31 @@ namespace Kompression.Implementations.Encoders
             // Write any data after last match, to the buffer
             while (input.Position < input.Length)
             {
-                if (_codeBlockPosition == 0)
-                    WriteAndResetBuffer(output);
+                if (block.codeBlockPosition == 0)
+                    WriteAndResetBuffer(output, block);
 
-                _codeBlock |= (byte)(1 << --_codeBlockPosition);
-                _buffer[_bufferLength++] = (byte)input.ReadByte();
+                block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
+                block.buffer[block.bufferLength++] = (byte)input.ReadByte();
             }
 
             // Flush remaining buffer to stream
-            WriteAndResetBuffer(output);
+            WriteAndResetBuffer(output, block);
 
             // Write header information
             WriteHeaderData(input, output, originalOutputPosition);
         }
 
-        private void WriteAndResetBuffer(Stream output)
+        private void WriteAndResetBuffer(Stream output, Block block)
         {
             // Write data to output
-            output.WriteByte(_codeBlock);
-            output.Write(_buffer, 0, _bufferLength);
+            output.WriteByte(block.codeBlock);
+            output.Write(block.buffer, 0, block.bufferLength);
 
             // Reset codeBlock and buffer
-            _codeBlock = 0;
-            _codeBlockPosition = 8;
-            Array.Clear(_buffer, 0, _bufferLength);
-            _bufferLength = 0;
+            block.codeBlock = 0;
+            block.codeBlockPosition = 8;
+            Array.Clear(block.buffer, 0, block.bufferLength);
+            block.bufferLength = 0;
         }
 
         private void WriteHeaderData(Stream input, Stream output, long originalOutputPosition)
@@ -116,8 +119,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            Array.Clear(_buffer, 0, _buffer.Length);
-            _buffer = null;
         }
     }
 }

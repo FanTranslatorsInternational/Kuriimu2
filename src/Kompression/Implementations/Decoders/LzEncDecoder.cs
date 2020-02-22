@@ -1,55 +1,49 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
-    // TODO: LzEncEncoder needed
     public class LzEncDecoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
-
-        private byte _codeByte;
-
         public void Decode(Stream input, Stream output)
         {
-            _circularBuffer = new CircularBuffer(0xBFFF);
+            var circularBuffer = new CircularBuffer(0xBFFF);
 
             // Handle initial byte
-            _codeByte = (byte)input.ReadByte();
-            if (_codeByte < 0x12)
+            var codeByte = (byte)input.ReadByte();
+            if (codeByte < 0x12)
             {
                 input.Position--;
-                if (!ReadSubLoopRawData(input, output))
-                    if (!ReadSubLoopMatch(input, output))
-                        SubLoop(input, output);
+                if (!ReadSubLoopRawData(input, output, circularBuffer))
+                    if (!ReadSubLoopMatch(input, output, circularBuffer, out codeByte))
+                        SubLoop(input, output, circularBuffer, codeByte);
             }
             else
             {
-                var count = _codeByte - 0x11;
+                var count = codeByte - 0x11;
                 if (count > 3)
                 {
-                    ReadRawData(input, output, count);
-                    if (!ReadSubLoopMatch(input, output))
-                        SubLoop(input, output);
+                    ReadRawData(input, output, circularBuffer, count);
+                    if (!ReadSubLoopMatch(input, output, circularBuffer, out codeByte))
+                        SubLoop(input, output, circularBuffer, codeByte);
                 }
                 else
                 {
-                    ReadRawData(input, output, count);
+                    ReadRawData(input, output, circularBuffer, count);
                 }
             }
 
-            MainLoop(input, output);
+            MainLoop(input, output, circularBuffer);
         }
 
-        private void MainLoop(Stream input, Stream output)
+        private void MainLoop(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             while (true)
             {
-                _codeByte = (byte)input.ReadByte();
+                var codeByte = (byte)input.ReadByte();
 
-                if (_codeByte >= 0x40)
+                if (codeByte >= 0x40)
                 {
                     var byte2 = (byte)input.ReadByte();
 
@@ -57,50 +51,50 @@ namespace Kompression.Implementations.Decoders
                     // Min disp: 0x1; Max disp: 0x800
                     // Min length: 3; Max length: 8
 
-                    var displacement = ((_codeByte >> 2) & 0x7) + (byte2 << 3) + 1;
-                    var length = (_codeByte >> 5) + 1;
+                    var displacement = ((codeByte >> 2) & 0x7) + (byte2 << 3) + 1;
+                    var length = (codeByte >> 5) + 1;
 
-                    _circularBuffer.Copy(output, displacement, length);
+                    circularBuffer.Copy(output, displacement, length);
                 }
-                else if (_codeByte >= 0x20)
+                else if (codeByte >= 0x20)
                 {
                     // 14 bit displacement
                     // Min disp: 1; Max disp: 0x4000
                     // Min length: 2; Max length: virtually infinite
 
-                    var length = _codeByte & 0x1F;
+                    var length = codeByte & 0x1F;
                     if (length == 0)
                         length += ReadVariableLength(input, 5);
                     length += 2;
 
-                    _codeByte = (byte)input.ReadByte();
+                    codeByte = (byte)input.ReadByte();
                     var byte2 = (byte)input.ReadByte();
-                    var displacement = (_codeByte >> 2) + (byte2 << 6) + 1;
+                    var displacement = (codeByte >> 2) + (byte2 << 6) + 1;
 
-                    _circularBuffer.Copy(output, displacement, length);
+                    circularBuffer.Copy(output, displacement, length);
                 }
-                else if (_codeByte >= 0x10)
+                else if (codeByte >= 0x10)
                 {
                     // 14 bit displacement
                     // Min disp: 0x4001; Max disp: 0xBFFF
                     // Min length: 2; Max length: virtually infinite
 
-                    var length = _codeByte & 0x7;
+                    var length = codeByte & 0x7;
                     if (length == 0)
                         length += ReadVariableLength(input, 3);
                     length += 2;
 
-                    var sign = _codeByte & 0x8;
-                    _codeByte = (byte)input.ReadByte();
+                    var sign = codeByte & 0x8;
+                    codeByte = (byte)input.ReadByte();
                     var byte2 = (byte)input.ReadByte();
 
-                    if (sign == 0 && _codeByte >> 2 == 0 && byte2 == 0)
+                    if (sign == 0 && codeByte >> 2 == 0 && byte2 == 0)
                         // End of decompression
                         break;
 
-                    var displacement = (_codeByte >> 2) + (byte2 << 6) + (sign > 0 ? 0x4000 : 0) + 0x4000;
+                    var displacement = (codeByte >> 2) + (byte2 << 6) + (sign > 0 ? 0x4000 : 0) + 0x4000;
 
-                    _circularBuffer.Copy(output, displacement, length);
+                    circularBuffer.Copy(output, displacement, length);
                 }
                 else
                 {
@@ -110,77 +104,77 @@ namespace Kompression.Implementations.Decoders
 
                     var byte2 = (byte)input.ReadByte();
 
-                    var displacement = ((byte2 << 2) | (_codeByte >> 2)) + 1;
+                    var displacement = ((byte2 << 2) | (codeByte >> 2)) + 1;
 
-                    _circularBuffer.Copy(output, displacement, 2);
+                    circularBuffer.Copy(output, displacement, 2);
                 }
 
-                SubLoop(input, output);
+                SubLoop(input, output, circularBuffer, codeByte);
             }
         }
 
-        private void SubLoop(Stream input, Stream output)
+        private void SubLoop(Stream input, Stream output, CircularBuffer circularBuffer, byte codeByte)
         {
             while (true)
             {
-                if ((_codeByte & 0x3) != 0)
+                if ((codeByte & 0x3) != 0)
                 {
-                    ReadRawData(input, output, _codeByte & 0x3);
+                    ReadRawData(input, output, circularBuffer, codeByte & 0x3);
                     break;
                 }
 
-                if (ReadSubLoopRawData(input, output))
+                if (ReadSubLoopRawData(input, output, circularBuffer))
                     break;
 
-                if (ReadSubLoopMatch(input, output))
+                if (ReadSubLoopMatch(input, output, circularBuffer, out codeByte))
                     break;
             }
         }
 
-        private bool ReadSubLoopRawData(Stream input, Stream output)
+        private bool ReadSubLoopRawData(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             // Raw Data read
-            _codeByte = (byte)input.ReadByte();
-            if (_codeByte > 0xF)
+            var codeByte = (byte)input.ReadByte();
+            if (codeByte > 0xF)
             {
                 input.Position--;
                 return true;
             }
 
-            var length = _codeByte + 3;
-            if (_codeByte == 0)
+            var length = codeByte + 3;
+            if (codeByte == 0)
                 length += ReadVariableLength(input, 4);
-            ReadRawData(input, output, length);
+            ReadRawData(input, output, circularBuffer, length);
 
             return false;
         }
 
-        private bool ReadSubLoopMatch(Stream input, Stream output)
+        private bool ReadSubLoopMatch(Stream input, Stream output, CircularBuffer circularBuffer, out byte codeByte)
         {
             // Read LZ match
-            _codeByte = (byte)input.ReadByte();
-            if (_codeByte > 0xF)
+            codeByte = (byte)input.ReadByte();
+            if (codeByte > 0xF)
             {
                 input.Position--;
                 return true;
             }
 
             var codeByte2 = (byte)input.ReadByte();
-            var displacement = ((codeByte2 << 2) | (_codeByte >> 2)) + 0x801;
+            var displacement = ((codeByte2 << 2) | (codeByte >> 2)) + 0x801;
 
-            _circularBuffer.Copy(output, displacement, 3);
+            circularBuffer.Copy(output, displacement, 3);
 
             return false;
         }
 
-        private void ReadRawData(Stream input, Stream output, int count)
+        private void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, int count)
         {
             for (int i = 0; i < count; i++)
             {
                 var value = (byte)input.ReadByte();
 
                 output.WriteByte(value);
-                _circularBuffer.WriteByte(value);
+                circularBuffer.WriteByte(value);
             }
         }
 

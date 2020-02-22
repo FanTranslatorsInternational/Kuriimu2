@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Kontract;
 using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 
@@ -10,8 +11,8 @@ namespace Kompression.Configuration
     /// </summary>
     class Compressor : ICompression
     {
-        private IEncoder _encoder;
-        private IDecoder _decoder;
+        private readonly Func<IEncoder> _encoderAction;
+        private readonly Func<IDecoder> _decoderAction;
 
         /// <inheritdoc cref="Names"/>
         public string[] Names { get; }
@@ -19,40 +20,44 @@ namespace Kompression.Configuration
         /// <summary>
         /// Creates a new instance of <see cref="Compressor"/>.
         /// </summary>
-        /// <param name="encoder">The <see cref="IEncoder"/> to use with the compression action.</param>
-        /// <param name="decoder">The <see cref="IDecoder"/> to use with the decompression action.</param>
-        internal Compressor(IEncoder encoder, IDecoder decoder)
+        /// <param name="encoderAction">The <see cref="IEncoder"/> to use with the compression action.</param>
+        /// <param name="decoderAction">The <see cref="IDecoder"/> to use with the decompression action.</param>
+        internal Compressor(Func<IEncoder> encoderAction, Func<IDecoder> decoderAction)
         {
-            _encoder = encoder;
-            _decoder = decoder;
+            ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
+            ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
+
+            _encoderAction = encoderAction;
+            _decoderAction = decoderAction;
         }
 
         /// <inheritdoc cref="Decompress"/>
         public void Decompress(Stream input, Stream output)
         {
-            if (_decoder == null)
+            var decoder = _decoderAction();
+
+            if (decoder == null)
                 throw new InvalidOperationException("The decoder is not set.");
 
-            _decoder.Decode(input, output);
+            decoder.Decode(input, output);
         }
 
         /// <inheritdoc cref="Compress"/>
         public void Compress(Stream input, Stream output)
         {
-            if (_encoder == null)
+            var encoder = _encoderAction();
+
+            if (encoder == null)
                 throw new InvalidOperationException("The encoder is not set.");
 
-            _encoder.Encode(input, output);
-
-            GC.Collect();
+            encoder.Encode(input, output);
         }
 
         #region Dispose
 
         public void Dispose()
         {
-            _encoder?.Dispose();
-            _decoder?.Dispose();
+            // Nothing to dispose
         }
 
         #endregion

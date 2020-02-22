@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using Komponent.IO;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -13,7 +12,6 @@ namespace Kompression.Implementations.Decoders
     public class Yay0Decoder : IDecoder
     {
         private readonly ByteOrder _byteOrder;
-        private CircularBuffer _circularBuffer;
 
         public Yay0Decoder(ByteOrder byteOrder)
         {
@@ -36,9 +34,7 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
 
-            _circularBuffer = new CircularBuffer(0x1000);
-            //var windowBuffer = new byte[0x1000];
-            //var windowBufferPosition = 0;
+            var circularBuffer = new CircularBuffer(0x1000);
             var compressedTablePosition = 0;
             var uncompressedTablePosition = 0;
 
@@ -55,7 +51,7 @@ namespace Kompression.Implementations.Decoders
                         var value = (byte)input.ReadByte();
 
                         output.WriteByte(value);
-                        _circularBuffer.WriteByte(value);
+                        circularBuffer.WriteByte(value);
                     }
                     else
                     {
@@ -76,7 +72,7 @@ namespace Kompression.Implementations.Decoders
                         }
                         var displacement = (((firstByte & 0xF) << 8) | secondByte) + 1;
 
-                        _circularBuffer.Copy(output, displacement, length);
+                        circularBuffer.Copy(output, displacement, length);
                     }
                 }
             }

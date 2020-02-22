@@ -6,14 +6,18 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Refactor block class
     public class LzEncEncoder : IEncoder
     {
-        private bool _initialRead;
-        private byte _codeByte;
-        private long _codeBytePosition;
-        private long _matchEndPosition;
+        class Block
+        {
+            public bool initialRead = true;
+            public byte codeByte;
+            public long codeBytePosition;
+            public long matchEndPosition;
+        }
 
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public LzEncEncoder(IMatchParser parser)
         {
@@ -22,23 +26,22 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
-            _initialRead = true;
-            _codeByte = 0;
+            var block = new Block();
 
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
-                    WriteRawData(input, output, match.Position - input.Position);
+                    WriteRawData(input, output, block, match.Position - input.Position);
 
-                if (_initialRead)
-                    _initialRead = false;
+                if (block.initialRead)
+                    block.initialRead = false;
 
-                WriteMatchData(input, output, match);
+                WriteMatchData(input, output, block, match);
             }
 
             if (input.Position < input.Length)
-                WriteRawData(input, output, input.Length - input.Position);
+                WriteRawData(input, output, block, input.Length - input.Position);
 
             // Write ending match flag
             output.WriteByte(0x11);
@@ -46,9 +49,9 @@ namespace Kompression.Implementations.Encoders
             output.WriteByte(0);
         }
 
-        private void WriteRawData(Stream input, Stream output, long length)
+        private void WriteRawData(Stream input, Stream output, Block block, long length)
         {
-            if (_initialRead)
+            if (block.initialRead)
             {
                 // Apply special rules for first raw data read
                 if (length <= 0xee)
@@ -65,12 +68,12 @@ namespace Kompression.Implementations.Encoders
             {
                 if (length <= 3)
                 {
-                    _codeByte |= (byte)length;
+                    block.codeByte |= (byte)length;
 
-                    output.Position = _codeBytePosition;
-                    output.WriteByte(_codeByte);
+                    output.Position = block.codeBytePosition;
+                    output.WriteByte(block.codeByte);
 
-                    output.Position = _matchEndPosition;
+                    output.Position = block.matchEndPosition;
                 }
                 else
                 {
@@ -90,7 +93,7 @@ namespace Kompression.Implementations.Encoders
                 output.WriteByte((byte)input.ReadByte());
         }
 
-        private void WriteMatchData(Stream input, Stream output, Match match)
+        private void WriteMatchData(Stream input, Stream output, Block block, Match match)
         {
             if (match.Displacement <= 0x4000)
             {
@@ -105,14 +108,14 @@ namespace Kompression.Implementations.Encoders
                     Write(output, EncodeLength(length, 5));
 
                 // Remember positions for later edit in raw data write
-                _codeBytePosition = output.Position;
-                _matchEndPosition = output.Position + 2;
+                block.codeBytePosition = output.Position;
+                block.matchEndPosition = output.Position + 2;
 
                 // Write encoded displacement
-                _codeByte = (byte)((match.Displacement - 1) << 2);
+                block.codeByte = (byte)((match.Displacement - 1) << 2);
                 var byte2 = (byte)((match.Displacement - 1) >> 6);
 
-                output.WriteByte(_codeByte);
+                output.WriteByte(block.codeByte);
                 output.WriteByte(byte2);
             }
             else
@@ -130,14 +133,14 @@ namespace Kompression.Implementations.Encoders
                     Write(output, EncodeLength(length, 3));
 
                 // Remember positions for later edit in raw data write
-                _codeBytePosition = output.Position;
-                _matchEndPosition = output.Position + 2;
+                block.codeBytePosition = output.Position;
+                block.matchEndPosition = output.Position + 2;
 
                 // Write encoded displacement
-                _codeByte = (byte)(match.Displacement << 2);
+                block.codeByte = (byte)(match.Displacement << 2);
                 var byte2 = (byte)(match.Displacement >> 6);
 
-                output.WriteByte(_codeByte);
+                output.WriteByte(block.codeByte);
                 output.WriteByte(byte2);
             }
 
@@ -173,7 +176,6 @@ namespace Kompression.Implementations.Encoders
         public void Dispose()
         {
             _matchParser?.Dispose();
-            _matchParser = null;
         }
     }
 }

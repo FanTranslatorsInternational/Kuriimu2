@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Kompression.Configuration;
 using Kompression.Extensions;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
@@ -10,8 +9,6 @@ namespace Kompression.Implementations.Decoders
 {
     public class Wp16Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
-
         public void Decode(Stream input, Stream output)
         {
             var buffer = new byte[4];
@@ -22,7 +19,7 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var decompressedSize = buffer.GetInt32LittleEndian(0);
 
-            _circularBuffer = new CircularBuffer(0xFFE);
+            var circularBuffer = new CircularBuffer(0xFFE);
 
             long flags = 0;
             var flagPosition = 32;
@@ -41,11 +38,11 @@ namespace Kompression.Implementations.Decoders
 
                     var value = (byte)input.ReadByte();
                     output.WriteByte(value);
-                    _circularBuffer.WriteByte(value);
+                    circularBuffer.WriteByte(value);
 
                     value = (byte)input.ReadByte();
                     output.WriteByte(value);
-                    _circularBuffer.WriteByte(value);
+                    circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -59,15 +56,13 @@ namespace Kompression.Implementations.Decoders
                     var displacement = (byte2 << 3) | (byte1 >> 5);
                     var length = (byte1 & 0x1F) + 2;
 
-                    _circularBuffer.Copy(output, displacement * 2, length * 2);
+                    circularBuffer.Copy(output, displacement * 2, length * 2);
                 }
             }
         }
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
-            _circularBuffer = null;
         }
     }
 }

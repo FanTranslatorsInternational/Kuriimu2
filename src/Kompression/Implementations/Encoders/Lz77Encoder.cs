@@ -11,7 +11,7 @@ namespace Kompression.Implementations.Encoders
     // TODO: Test this compression thoroughly
     public class Lz77Encoder : IEncoder
     {
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public Lz77Encoder(IMatchParser matchParser)
         {

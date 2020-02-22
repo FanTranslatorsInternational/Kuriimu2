@@ -12,6 +12,7 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Refactor block class
     public class TaikoLz81Encoder : IEncoder
     {
         private static int[] _counters =
@@ -62,11 +63,14 @@ namespace Kompression.Implementations.Encoders
             0xd, 0xd, 0, 0
         };
 
-        private byte[] _countIndexes;
-        private byte[] _dispIndexes;
-        private Dictionary<int, string> _rawValueDictionary;
-        private Dictionary<int, string> _countIndexDictionary;
-        private Dictionary<int, string> _dispIndexDictionary;
+        class Block
+        {
+            public byte[] countIndexes;
+            public byte[] dispIndexes;
+            public Dictionary<int, string> rawValueDictionary;
+            public Dictionary<int, string> countIndexDictionary;
+            public Dictionary<int, string> dispIndexDictionary;
+        }
 
         private IMatchParser _matchParser;
         private IHuffmanTreeBuilder _treeBuilder;
@@ -79,17 +83,19 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
+            var block = new Block();
+
             var matches = _matchParser.ParseMatches(input).ToArray();
             var rawValueTree = CreateRawValueTree(input, matches);
-            _rawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            block.rawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            _countIndexes = GetCountIndexes(matches, input.Length);
-            var countIndexValueTree = CreateIndexValueTree();
-            _countIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            block.countIndexes = GetCountIndexes(matches, input.Length);
+            var countIndexValueTree = CreateIndexValueTree(block);
+            block.countIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            _dispIndexes = GetDispIndexes(matches);
-            var dispIndexTree = CreateDisplacementIndexTree();
-            _dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
+            block.dispIndexes = GetDispIndexes(matches);
+            var dispIndexTree = CreateDisplacementIndexTree(block);
+            block.dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
             using var bw = new BitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
 
@@ -106,18 +112,18 @@ namespace Kompression.Implementations.Encoders
             {
                 // Compress raw data
                 if (input.Position < match.Position)
-                    CompressRawData(input, bw, (int)(match.Position - input.Position), ref countPosition);
+                    CompressRawData(input, bw, block, (int)(match.Position - input.Position), ref countPosition);
 
                 // Compress match
-                CompressMatchData(input, bw, match, ref countPosition, ref displacementPosition);
+                CompressMatchData(input, bw, block, match, ref countPosition, ref displacementPosition);
             }
 
             // Compress raw data
             if (input.Position < input.Length)
-                CompressRawData(input, bw, (int)(input.Length - input.Position), ref countPosition);
+                CompressRawData(input, bw, block, (int)(input.Length - input.Position), ref countPosition);
 
             // Write final 0 index
-            foreach (var bit in _countIndexDictionary[_countIndexes.Last()])
+            foreach (var bit in block.countIndexDictionary[block.countIndexes.Last()])
                 bw.WriteBit(bit - '0');
         }
 
@@ -129,14 +135,14 @@ namespace Kompression.Implementations.Encoders
             return _treeBuilder.Build(huffmanInput, 8, ByteOrder.LittleEndian);
         }
 
-        private HuffmanTreeNode CreateIndexValueTree()
+        private HuffmanTreeNode CreateIndexValueTree(Block block)
         {
-            return _treeBuilder.Build(_countIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(block.countIndexes, 8, ByteOrder.LittleEndian);
         }
 
-        private HuffmanTreeNode CreateDisplacementIndexTree()
+        private HuffmanTreeNode CreateDisplacementIndexTree(Block block)
         {
-            return _treeBuilder.Build(_dispIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(block.dispIndexes, 8, ByteOrder.LittleEndian);
         }
 
         private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)
@@ -258,7 +264,7 @@ namespace Kompression.Implementations.Encoders
             WriteTreeNode(bw, huffmanTreeNode.Children[1], bitCount);
         }
 
-        private void CompressRawData(Stream input, BitWriter bw, int rawLength, ref int countPosition)
+        private void CompressRawData(Stream input, BitWriter bw, Block block, int rawLength, ref int countPosition)
         {
             while (rawLength > 0)
             {
@@ -266,8 +272,8 @@ namespace Kompression.Implementations.Encoders
                 rawLength -= cappedLength;
 
                 // Write the index to the counters table
-                var countIndex = _countIndexes[countPosition++];
-                foreach (var bit in _countIndexDictionary[countIndex])
+                var countIndex = block.countIndexes[countPosition++];
+                foreach (var bit in block.countIndexDictionary[countIndex])
                     bw.WriteBit(bit - '0');
 
                 // Write additional bits to reach intermediate lengths
@@ -276,16 +282,16 @@ namespace Kompression.Implementations.Encoders
 
                 // Write values
                 for (int i = 0; i < cappedLength; i++)
-                    foreach (var bit in _rawValueDictionary[input.ReadByte()])
+                    foreach (var bit in block.rawValueDictionary[input.ReadByte()])
                         bw.WriteBit(bit - '0');
             }
         }
 
-        private void CompressMatchData(Stream input, BitWriter bw, Match match, ref int countPosition, ref int displacementPosition)
+        private void CompressMatchData(Stream input, BitWriter bw, Block block, Match match, ref int countPosition, ref int displacementPosition)
         {
             // Write the index to the counters table
-            var countIndex = _countIndexes[countPosition++];
-            foreach (var bit in _countIndexDictionary[countIndex])
+            var countIndex = block.countIndexes[countPosition++];
+            foreach (var bit in block.countIndexDictionary[countIndex])
                 bw.WriteBit(bit - '0');
 
             // Write additional bits to reach intermediate lengths
@@ -293,8 +299,8 @@ namespace Kompression.Implementations.Encoders
                 bw.WriteBits(match.Length - _counters[countIndex], _counterBitReads[countIndex]);
 
             // Write the index to the displacement table
-            var displacementIndex = _dispIndexes[displacementPosition++];
-            foreach (var bit in _dispIndexDictionary[displacementIndex])
+            var displacementIndex = block.dispIndexes[displacementPosition++];
+            foreach (var bit in block.dispIndexDictionary[displacementIndex])
                 bw.WriteBit(bit - '0');
 
             // Write additional bits to reach intermediate displacements
@@ -306,12 +312,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _countIndexes = null;
-            _dispIndexes = null;
-            _rawValueDictionary = null;
-            _countIndexDictionary = null;
-            _dispIndexDictionary = null;
-
             _treeBuilder = null;
             _matchParser?.Dispose();
             _matchParser = null;

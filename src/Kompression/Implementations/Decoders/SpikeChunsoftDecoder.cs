@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -9,7 +8,6 @@ namespace Kompression.Implementations.Decoders
 {
     public class SpikeChunsoftDecoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
         private int _displacement;
 
         public void Decode(Stream input, Stream output)
@@ -25,7 +23,7 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var compressedSize = buffer.GetInt32LittleEndian(0);
 
-            _circularBuffer = new CircularBuffer(0x1FFF);
+            var circularBuffer = new CircularBuffer(0x1FFF);
 
             while (output.Position < decompressedSize)
             {
@@ -34,27 +32,27 @@ namespace Kompression.Implementations.Decoders
                 if ((flag & 0x80) == 0x80)
                 {
                     // Lz match start
-                    ReadMatchStart(input, output, flag);
+                    ReadMatchStart(input, output, circularBuffer, flag);
                 }
                 else if ((flag & 0x60) == 0x60)
                 {
                     // Lz match continue
-                    ReadMatchContinue(output, flag);
+                    ReadMatchContinue(output, circularBuffer, flag);
                 }
                 else if ((flag & 0x40) == 0x40)
                 {
                     // Rle data
-                    ReadRle(input, output, flag);
+                    ReadRle(input, output, circularBuffer, flag);
                 }
                 else
                 {
                     // Raw data
-                    ReadRawData(input, output, flag);
+                    ReadRawData(input, output, circularBuffer, flag);
                 }
             }
         }
 
-        private void ReadMatchStart(Stream input, Stream output, byte flag)
+        private void ReadMatchStart(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 4, Max length: 7
             // Min disp: 0, Max disp: 0x1FFF
@@ -63,19 +61,19 @@ namespace Kompression.Implementations.Decoders
             _displacement = (flag & 0x1F) << 8;
             _displacement |= input.ReadByte();
 
-            _circularBuffer.Copy(output, _displacement, length);
+            circularBuffer.Copy(output, _displacement, length);
         }
 
-        private void ReadMatchContinue(Stream output, byte flag)
+        private void ReadMatchContinue(Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 0, Max length: 0x1F
 
             var length = flag & 0x1F;
 
-            _circularBuffer.Copy(output, _displacement, length);
+            circularBuffer.Copy(output, _displacement, length);
         }
 
-        private void ReadRle(Stream input, Stream output, byte flag)
+        private void ReadRle(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 4, Max length: 0x1003
 
@@ -90,11 +88,11 @@ namespace Kompression.Implementations.Decoders
             for (var i = 0; i < length; i++)
             {
                 output.WriteByte(value);
-                _circularBuffer.WriteByte(value);
+                circularBuffer.WriteByte(value);
             }
         }
 
-        private void ReadRawData(Stream input, Stream output, byte flag)
+        private void ReadRawData(Stream input, Stream output, CircularBuffer circularBuffer, byte flag)
         {
             // Min length: 0, Max length: 0x1FFF
 
@@ -109,14 +107,12 @@ namespace Kompression.Implementations.Decoders
                 var nextValue = (byte)input.ReadByte();
 
                 output.WriteByte(nextValue);
-                _circularBuffer.WriteByte(nextValue);
+                circularBuffer.WriteByte(nextValue);
             }
         }
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
-            _circularBuffer = null;
         }
     }
 }

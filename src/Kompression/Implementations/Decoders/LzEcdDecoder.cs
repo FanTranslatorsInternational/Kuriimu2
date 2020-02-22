@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Linq;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -13,7 +12,6 @@ namespace Kompression.Implementations.Decoders
 {
     public class LzEcdDecoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
         private readonly int _preBufferLength;
 
         public LzEcdDecoder(int preBufferLength)
@@ -42,7 +40,7 @@ namespace Kompression.Implementations.Decoders
             input.Read(buffer, 0, 4);
             var uncompressedLength = buffer.GetInt32BigEndian(0);
 
-            _circularBuffer = new CircularBuffer(0x400)
+            var circularBuffer = new CircularBuffer(0x400)
             {
                 Position = _preBufferLength
             };
@@ -69,7 +67,7 @@ namespace Kompression.Implementations.Decoders
                 {
                     var value = (byte)input.ReadByte();
                     output.WriteByte(value);
-                    _circularBuffer.WriteByte(value);
+                    circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -80,12 +78,12 @@ namespace Kompression.Implementations.Decoders
                     var bufferPosition = ((byte2 & 0xC0) << 2) | byte1;
 
                     // Convert buffer position to displacement
-                    var displacement = (_circularBuffer.Position - bufferPosition) % _circularBuffer.Length;
-                    displacement = (displacement + _circularBuffer.Length) % _circularBuffer.Length;
+                    var displacement = (circularBuffer.Position - bufferPosition) % circularBuffer.Length;
+                    displacement = (displacement + circularBuffer.Length) % circularBuffer.Length;
                     if (displacement == 0)
                         displacement = 0x400;
 
-                    _circularBuffer.Copy(output, displacement, length);
+                    circularBuffer.Copy(output, displacement, length);
                 }
             }
         }

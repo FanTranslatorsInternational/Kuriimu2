@@ -8,7 +8,7 @@ namespace Kompression.Implementations.Encoders
 {
     class PsLzEncoder : IEncoder
     {
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public PsLzEncoder(IMatchParser matchParser)
         {

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
-using Kompression.IO;
 using Kompression.IO.Streams;
 using Kompression.PatternMatch.MatchParser.Support;
 using Kontract.Kompression;
@@ -15,8 +14,6 @@ namespace Kompression.PatternMatch.MatchParser
 {
     public class OptimalParser : IMatchParser
     {
-        private PositionElement[] _history;
-
         private readonly IPriceCalculator _priceCalculator;
         private readonly IMatchFinder[] _finders;
 
@@ -48,35 +45,33 @@ namespace Kompression.PatternMatch.MatchParser
             foreach (var finder in _finders)
                 finder.PreProcess(input, startPosition);
 
-            _history = new PositionElement[input.Length - startPosition + 1];
-            for (var i = 0; i < _history.Length; i++)
-                _history[i] = new PositionElement(0, false, null, int.MaxValue);
-            _history[0].Price = 0;
+            var history = new PositionElement[input.Length - startPosition + 1];
+            for (var i = 0; i < history.Length; i++)
+                history[i] = new PositionElement(0, false, null, int.MaxValue);
+            history[0].Price = 0;
 
-            ForwardPass(input, startPosition);
-            return BackwardPass().Reverse();
+            ForwardPass(input, startPosition, history);
+            return BackwardPass(history).Reverse();
         }
 
-        private void ForwardPass(byte[] input, int startPosition)
+        private void ForwardPass(byte[] input, int startPosition, PositionElement[] history)
         {
-            //var state = new ParserState(_history);
-
             var matches = GetAllMatches(input, startPosition);
 
             var unitSize = (int)FindOptions.UnitSize;
             for (var dataPosition = 0; dataPosition < input.Length - startPosition; dataPosition += unitSize)
             {
                 // Calculate literal place at position
-                var element = _history[dataPosition];
+                var element = history[dataPosition];
                 var newRunLength = element.IsMatchRun ? unitSize : element.CurrentRunLength + unitSize;
-                var isFirstLiteralRun = IsFirstLiteralRun(dataPosition, unitSize);
+                var isFirstLiteralRun = IsFirstLiteralRun(dataPosition, unitSize, history);
                 var literalPrice = _priceCalculator.CalculateLiteralPrice(input[dataPosition], newRunLength, isFirstLiteralRun);
                 literalPrice += element.Price;
 
-                if (dataPosition + unitSize < _history.Length &&
-                    literalPrice <= _history[dataPosition + unitSize].Price)
+                if (dataPosition + unitSize < history.Length &&
+                    literalPrice <= history[dataPosition + unitSize].Price)
                 {
-                    var nextElement = _history[dataPosition + unitSize];
+                    var nextElement = history[dataPosition + unitSize];
 
                     nextElement.Parent = element;
                     nextElement.Price = literalPrice;
@@ -102,10 +97,10 @@ namespace Kompression.PatternMatch.MatchParser
                         var matchPrice = _priceCalculator.CalculateMatchPrice(displacement, j, newRunLength);
                         matchPrice += element.Price;
 
-                        if (dataPosition + j < _history.Length &&
-                            matchPrice < _history[dataPosition + j].Price)
+                        if (dataPosition + j < history.Length &&
+                            matchPrice < history[dataPosition + j].Price)
                         {
-                            var nextElement = _history[dataPosition + j];
+                            var nextElement = history[dataPosition + j];
 
                             nextElement.Parent = element;
                             nextElement.Price = matchPrice;
@@ -118,10 +113,10 @@ namespace Kompression.PatternMatch.MatchParser
             }
         }
 
-        private IEnumerable<Match> BackwardPass()
+        private IEnumerable<Match> BackwardPass(PositionElement[] history)
         {
-            var element = _history.Last();
-            var position = _history.Length - 1;
+            var element = history.Last();
+            var position = history.Length - 1;
             while (element != null)
             {
                 if (element.Match != null)
@@ -151,11 +146,11 @@ namespace Kompression.PatternMatch.MatchParser
             return result;
         }
 
-        private bool IsFirstLiteralRun(int dataPosition, int unitSize)
+        private bool IsFirstLiteralRun(int dataPosition, int unitSize, PositionElement[] history)
         {
             while (dataPosition >= 0)
             {
-                if (_history[dataPosition].Match != null)
+                if (history[dataPosition].Match != null)
                     return false;
 
                 dataPosition -= unitSize;

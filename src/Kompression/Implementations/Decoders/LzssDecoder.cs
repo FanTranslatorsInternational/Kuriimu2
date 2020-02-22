@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kontract.Kompression.Configuration;
 

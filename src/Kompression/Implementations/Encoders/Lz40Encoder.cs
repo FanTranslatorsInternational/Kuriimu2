@@ -9,7 +9,7 @@ namespace Kompression.Implementations.Encoders
 {
     public class Lz40Encoder : IEncoder
     {
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public Lz40Encoder(IMatchParser matchParser)
         {

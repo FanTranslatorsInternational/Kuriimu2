@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Kompression.Configuration;
-using Kompression.PatternMatch;
+﻿using System.IO;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders

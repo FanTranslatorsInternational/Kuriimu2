@@ -7,9 +7,7 @@ namespace Kompression.Implementations.Encoders
 {
     public class NintendoRleEncoder : IEncoder
     {
-        private byte[] _buffer;
-
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public NintendoRleEncoder(IMatchParser matchParser)
         {
@@ -24,14 +22,14 @@ namespace Kompression.Implementations.Encoders
             var compressionHeader = new byte[] { 0x30, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            _buffer = new byte[0x80];
+            var buffer = new byte[0x80];
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
                 {
                     // If we have unmatched data before the match, create enough uncompressed blocks
-                    HandleUncompressedData(input, output, (int)(match.Position - input.Position));
+                    HandleUncompressedData(input, output, buffer, (int)(match.Position - input.Position));
                 }
 
                 // Write matched data as compressed block
@@ -43,19 +41,19 @@ namespace Kompression.Implementations.Encoders
             // If there is unmatched data left after last match, handle as uncompressed block
             if (input.Position < input.Length)
             {
-                HandleUncompressedData(input, output, (int)(input.Length - input.Position));
+                HandleUncompressedData(input, output, buffer, (int)(input.Length - input.Position));
             }
         }
 
-        private void HandleUncompressedData(Stream input, Stream output, int dataLength)
+        private void HandleUncompressedData(Stream input, Stream output, byte[] buffer, int dataLength)
         {
             while (dataLength > 0)
             {
                 var subLength = Math.Min(dataLength, 0x80);
-                input.Read(_buffer, 0, subLength);
+                input.Read(buffer, 0, subLength);
 
                 output.WriteByte((byte)(subLength - 1));
-                output.Write(_buffer, 0, subLength);
+                output.Write(buffer, 0, subLength);
 
                 dataLength -= subLength;
             }
@@ -76,7 +74,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _buffer = null;
         }
     }
 }

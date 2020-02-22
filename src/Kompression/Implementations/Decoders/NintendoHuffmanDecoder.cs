@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using Kompression.Configuration;
 using Kompression.Exceptions;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;

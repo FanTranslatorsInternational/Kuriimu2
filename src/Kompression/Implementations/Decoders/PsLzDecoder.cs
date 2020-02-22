@@ -52,7 +52,7 @@ namespace Kompression.Implementations.Decoders
                         _circularBuffer.Copy(output, offset1, length);
                         break;
 
-                    // 2-byte RLE discarding
+                    // 2-byte RLE 0-discarding
                     case 5:
                         buffer = new byte[length * 2];
 

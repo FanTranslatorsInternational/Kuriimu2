@@ -13,8 +13,9 @@ namespace Kompression.Implementations.Encoders
     class NintendoHuffmanEncoder : IEncoder
     {
         private readonly int _bitDepth;
-        private IHuffmanTreeBuilder _treeBuilder;
-        private ByteOrder _byteOrder;
+
+        private readonly ByteOrder _byteOrder;
+        private readonly IHuffmanTreeBuilder _treeBuilder;
 
         public NintendoHuffmanEncoder(int bitDepth, ByteOrder byteOrder, IHuffmanTreeBuilder treeBuilder)
         {

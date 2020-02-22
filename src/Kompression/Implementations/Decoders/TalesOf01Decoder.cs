@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using Kompression.Configuration;
+using Kompression.Extensions;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
-    // TODO: Write TalesOf01Encoder
     public class TalesOf01Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
         private int _preBufferSize;
 
         public TalesOf01Decoder(int preBufferSize)
@@ -25,11 +22,11 @@ namespace Kompression.Implementations.Decoders
 
             var buffer = new byte[4];
             input.Read(buffer, 0, 4);
-            var compressedDataSize = GetLittleEndian(buffer);
+            var compressedDataSize =buffer.GetInt32LittleEndian(0);
             input.Read(buffer, 0, 4);
-            var decompressedSize = GetLittleEndian(buffer);
+            var decompressedSize = buffer.GetInt32LittleEndian(0);
 
-            _circularBuffer = new CircularBuffer(0x1000)
+            var circularBuffer = new CircularBuffer(0x1000)
             {
                 Position = _preBufferSize
             };
@@ -50,7 +47,7 @@ namespace Kompression.Implementations.Decoders
                     var value = (byte)input.ReadByte();
 
                     output.WriteByte(value);
-                    _circularBuffer.WriteByte(value);
+                    circularBuffer.WriteByte(value);
                 }
                 else
                 {
@@ -61,23 +58,15 @@ namespace Kompression.Implementations.Decoders
                     var length = (byte2 & 0xF) + 3;
                     var bufferPosition = byte1 | ((byte2 & 0xF0) << 4);
 
-                    if (input.Position > 0x5f40)
-                        Debugger.Break();
-
                     // Convert buffer position to displacement
-                    var displacement = (_circularBuffer.Position - bufferPosition) % _circularBuffer.Length;
-                    displacement = (displacement + _circularBuffer.Length) % _circularBuffer.Length;
+                    var displacement = (circularBuffer.Position - bufferPosition) % circularBuffer.Length;
+                    displacement = (displacement + circularBuffer.Length) % circularBuffer.Length;
                     if (displacement == 0)
                         displacement = 0x1000;
 
-                    _circularBuffer.Copy(output, displacement, length);
+                    circularBuffer.Copy(output, displacement, length);
                 }
             }
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
         }
 
         public void Dispose()

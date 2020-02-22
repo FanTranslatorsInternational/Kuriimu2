@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
-using Kompression.IO;
 using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
@@ -11,15 +10,22 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Refactor block class
     public class BackwardLz77Encoder : IEncoder
     {
-        private readonly ByteOrder _byteOrder;
-        private byte _codeBlock;
-        private int _codeBlockPosition;
-        private byte[] _buffer;
-        private int _bufferLength;
+        class Block
+        {
+            public byte codeBlock;
+            public int codeBlockPosition = 8;
 
-        private IMatchParser _matchParser;
+            // We write all data backwards into the buffer; starting from last element down to first
+            // We have 8 blocks; A block can be at max 2 bytes, defining a match
+            public byte[] buffer = new byte[8 * 2];
+            public int bufferLength;
+        }
+
+        private readonly IMatchParser _matchParser;
+        private readonly ByteOrder _byteOrder;
 
         public BackwardLz77Encoder(IMatchParser matchParser, ByteOrder byteOrder)
         {
@@ -31,14 +37,9 @@ namespace Kompression.Implementations.Encoders
         {
             var matches = _matchParser.ParseMatches(input).ToArray();
 
-            var compressedLength = PrecalculateCompressedLength(input.Length, matches);
+            var compressedLength = PreCalculateCompressedLength(input.Length, matches);
 
-            _codeBlock = 0;
-            _codeBlockPosition = 8;
-            // We write all data backwards into the buffer; starting from last element down to first
-            // We have 8 blocks; A block can be at max 2 bytes, defining a match
-            _buffer = new byte[8 * 2];
-            _bufferLength = 0;
+            var block = new Block();
 
             using (var inputReverseStream = new ReverseStream(input, input.Length))
             using (var reverseOutputStream = new ReverseStream(output, compressedLength))
@@ -47,22 +48,22 @@ namespace Kompression.Implementations.Encoders
                 {
                     while (match.Position > inputReverseStream.Position)
                     {
-                        if (_codeBlockPosition == 0)
-                            WriteAndResetBuffer(reverseOutputStream);
+                        if (block.codeBlockPosition == 0)
+                            WriteAndResetBuffer(reverseOutputStream, block);
 
-                        _codeBlockPosition--;
-                        _buffer[_bufferLength++] = (byte)inputReverseStream.ReadByte();
+                        block.codeBlockPosition--;
+                        block.buffer[block.bufferLength++] = (byte)inputReverseStream.ReadByte();
                     }
 
                     var byte1 = ((byte)(match.Length - 3) << 4) | (byte)((match.Displacement - 3) >> 8);
                     var byte2 = match.Displacement - 3;
 
-                    if (_codeBlockPosition == 0)
-                        WriteAndResetBuffer(reverseOutputStream);
+                    if (block.codeBlockPosition == 0)
+                        WriteAndResetBuffer(reverseOutputStream, block);
 
-                    _codeBlock |= (byte)(1 << --_codeBlockPosition);
-                    _buffer[_bufferLength++] = (byte)byte1;
-                    _buffer[_bufferLength++] = (byte)byte2;
+                    block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
+                    block.buffer[block.bufferLength++] = (byte)byte1;
+                    block.buffer[block.bufferLength++] = (byte)byte2;
 
                     inputReverseStream.Position += match.Length;
                 }
@@ -70,22 +71,22 @@ namespace Kompression.Implementations.Encoders
                 // Write any data after last match, to the buffer
                 while (inputReverseStream.Position < inputReverseStream.Length)
                 {
-                    if (_codeBlockPosition == 0)
-                        WriteAndResetBuffer(reverseOutputStream);
+                    if (block.codeBlockPosition == 0)
+                        WriteAndResetBuffer(reverseOutputStream, block);
 
-                    _codeBlockPosition--;
-                    _buffer[_bufferLength++] = (byte)inputReverseStream.ReadByte();
+                    block.codeBlockPosition--;
+                    block.buffer[block.bufferLength++] = (byte)inputReverseStream.ReadByte();
                 }
 
                 // Flush remaining buffer to stream
-                WriteAndResetBuffer(reverseOutputStream);
+                WriteAndResetBuffer(reverseOutputStream, block);
 
                 output.Position = compressedLength;
                 WriteFooterInformation(input, output);
             }
         }
 
-        private int PrecalculateCompressedLength(long uncompressedLength, Match[] matches)
+        private int PreCalculateCompressedLength(long uncompressedLength, Match[] matches)
         {
             var length = 0;
             var writtenCodes = 0;
@@ -139,23 +140,21 @@ namespace Kompression.Implementations.Encoders
             output.Write(originalBottom, 0, 4);
         }
 
-        private void WriteAndResetBuffer(Stream output)
+        private void WriteAndResetBuffer(Stream output, Block block)
         {
             // Write data to output
-            output.WriteByte(_codeBlock);
-            output.Write(_buffer, 0, _bufferLength);
+            output.WriteByte(block.codeBlock);
+            output.Write(block.buffer, 0, block.bufferLength);
 
             // Reset codeBlock and buffer
-            _codeBlock = 0;
-            _codeBlockPosition = 8;
-            Array.Clear(_buffer, 0, _bufferLength);
-            _bufferLength = 0;
+            block.codeBlock = 0;
+            block.codeBlockPosition = 8;
+            Array.Clear(block.buffer, 0, block.bufferLength);
+            block.bufferLength = 0;
         }
 
         public void Dispose()
         {
-            Array.Clear(_buffer, 0, _buffer.Length);
-            _buffer = null;
         }
     }
 }

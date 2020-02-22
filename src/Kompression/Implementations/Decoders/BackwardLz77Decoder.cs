@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using Komponent.IO.Streams;
-using Kompression.Configuration;
 using Kompression.Extensions;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
@@ -11,7 +10,6 @@ namespace Kompression.Implementations.Decoders
     public class BackwardLz77Decoder : IDecoder
     {
         private readonly ByteOrder _byteOrder;
-        private CircularBuffer _circularBuffer;
 
         public BackwardLz77Decoder(ByteOrder byteOrder)
         {
@@ -42,7 +40,7 @@ namespace Kompression.Implementations.Decoders
 
         private void ReadCompressedData(Stream input, Stream output, long endPosition)
         {
-            _circularBuffer = new CircularBuffer(0x1002);
+            var circularBuffer = new CircularBuffer(0x1002);
 
             var codeBlock = input.ReadByte();
             var codeBlockPosition = 8;
@@ -56,21 +54,21 @@ namespace Kompression.Implementations.Decoders
 
                 var flag = (codeBlock >> --codeBlockPosition) & 0x1;
                 if (flag == 0)
-                    HandleUncompressedBlock(input, output);
+                    HandleUncompressedBlock(input, output, circularBuffer);
                 else
-                    HandleCompressedBlock(input, output);
+                    HandleCompressedBlock(input, output, circularBuffer);
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output)
+        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
 
             output.WriteByte((byte)next);
-            _circularBuffer.WriteByte((byte)next);
+            circularBuffer.WriteByte((byte)next);
         }
 
-        private void HandleCompressedBlock(Stream input, Stream output)
+        private void HandleCompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var byte1 = input.ReadByte();
             var byte2 = input.ReadByte();
@@ -78,12 +76,12 @@ namespace Kompression.Implementations.Decoders
             var length = (byte1 >> 4) + 3;
             var displacement = (((byte1 & 0xF) << 8) | byte2) + 3;
 
-            _circularBuffer.Copy(output, displacement, length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
+            // Nothing to dispose
         }
     }
 }

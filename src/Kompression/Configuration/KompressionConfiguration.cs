@@ -67,17 +67,28 @@ namespace Kompression.Configuration
         /// <returns>The <see cref="ICompression"/> for this configuration.</returns>
         public ICompression Build()
         {
-            // Get match parser for lempel-ziv encodings
-            var matchParser = _matchOptions?.BuildMatchParser();
+            return new Compressor(BuildEncoder, BuildDecoder);
+        }
 
-            // Get created instances for huffman encodings
+        /// <summary>
+        /// Creates a new chain of encoding instances
+        /// </summary>
+        /// <returns></returns>
+        private IEncoder BuildEncoder()
+        {
+            var matchParser = _matchOptions?.BuildMatchParser();
             var huffmanTreeBuilder = _huffmanOptions?.BuildHuffmanTree();
 
-            // Get created de-/compression instances
-            var decoder = _decoderFactory?.Invoke();
-            var encoder = _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder);
+            return _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder);
+        }
 
-            return new Compressor(encoder, decoder);
+        /// <summary>
+        /// Creates a new chain of decoding instances.
+        /// </summary>
+        /// <returns></returns>
+        private IDecoder BuildDecoder()
+        {
+            return _decoderFactory?.Invoke();
         }
     }
 }
