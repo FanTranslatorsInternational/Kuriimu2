@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Kontract.Interfaces.Logging;
 using Kontract.Models.Logging;
 
@@ -20,16 +21,16 @@ namespace Kore.Batch
             _log = log;
         }
 
-        public IList<(string path, TResult result)> Process(string path, bool isDirectory, bool searchSubDirectories, TExtension extensionType)
+        public async Task<IList<(string path, TResult result)>> Process(string path, bool isDirectory, bool searchSubDirectories, TExtension extensionType)
         {
             var files = isDirectory ?
                 CollectFiles(path, searchSubDirectories).ToList() :
                 new List<string> { path };
 
-            return files.AsParallel()
+            return await Task.Run(() => files.AsParallel()
                 .WithDegreeOfParallelism(TaskCount)
                 .Select(x => (x, ExecuteProcessDelegate(extensionType, x)))
-                .ToList();
+                .ToList());
         }
 
         private IEnumerable<string> CollectFiles(string path, bool searchSubDirectories)

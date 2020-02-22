@@ -21,7 +21,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
         private BatchExtensionProcessor<TExtension, TResult> _batchProcessor;
         private ParameterBuilder _parameterBuilder;
 
-        private readonly IConcurrentLogger _log;
+        protected IConcurrentLogger Logger { get; }
 
         protected abstract string TypeExtensionName { get; }
 
@@ -30,9 +30,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
             InitializeComponent();
 
             txtLog.ForeColor = Color.FromArgb(0x20, 0xC2, 0x0E);
-            _log = new ConcurrentLogger(ApplicationLevel.Ui, new RichTextboxLogOutput(txtLog));
+            Logger = new ConcurrentLogger(ApplicationLevel.Ui, new RichTextboxLogOutput(txtLog));
 
-            _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, _log);
+            _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, Logger);
             _parameterBuilder = new ParameterBuilder(gbTypeExtensionParameters);
 
             var loadedExtensions = LoadExtensionTypes();
@@ -94,11 +94,11 @@ namespace Kuriimu2.WinForms.ExtensionForms
         private void Execute()
         {
             txtLog.Clear();
-            _log.StartLogging();
+            Logger.StartLogging();
 
             if (!VerifyInput())
             {
-                _log.StopLogging();
+                Logger.StopLogging();
                 return;
             }
 
@@ -106,34 +106,28 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
             if (!TryParseParameters(selectedType.Parameters.Values.ToArray()))
             {
-                _log.StopLogging();
+                Logger.StopLogging();
                 return;
             }
 
             // Create type
             var createdType = CreateExtensionType(selectedType);
 
-            ToggleUi(false);
-
             // Execute processing
             ExecuteInternal(txtPath.Text, _isDirectory, chkSubDirectories.Checked, createdType);
-
-            ToggleUi(true);
-
-            _log.StopLogging();
         }
 
         private bool VerifyInput()
         {
             if (cmbExtensions.SelectedIndex < 0)
             {
-                _log.QueueMessage(LogLevel.Error, $"Select a {TypeExtensionName}.");
+                Logger.QueueMessage(LogLevel.Error, $"Select a {TypeExtensionName}.");
                 return false;
             }
 
             if (string.IsNullOrEmpty(txtPath.Text))
             {
-                _log.QueueMessage(LogLevel.Error, "Select a file or directory to process.");
+                Logger.QueueMessage(LogLevel.Error, "Select a file or directory to process.");
                 return false;
             }
 
@@ -152,7 +146,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     var fileTextBox = control as TextBox;
                     if (string.IsNullOrEmpty(fileTextBox.Text))
                     {
-                        _log.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
+                        Logger.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
                         return false;
                     }
 
@@ -166,7 +160,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     var enumName = ((ComboBox)control).SelectedText;
                     if (!Enum.IsDefined(parameter.ParameterType, enumName))
                     {
-                        _log.QueueMessage(LogLevel.Error, $"'{enumName}' is no valid member of  parameter '{parameter.Name}'.");
+                        Logger.QueueMessage(LogLevel.Error, $"'{enumName}' is no valid member of  parameter '{parameter.Name}'.");
                         return false;
                     }
 
@@ -186,7 +180,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 if (string.IsNullOrEmpty(textBox.Text))
                 {
-                    _log.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
+                    Logger.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
                     return false;
                 }
 
@@ -194,7 +188,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 {
                     if (!char.TryParse(textBox.Text, out var result))
                     {
-                        _log.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid character.");
+                        Logger.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid character.");
                         return false;
                     }
 
@@ -210,7 +204,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 if (!TryParseNumber(parameter.ParameterType, textBox.Text, out var value))
                 {
-                    _log.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid '{parameter.ParameterType.Name}'.");
+                    Logger.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid '{parameter.ParameterType.Name}'.");
                     return false;
                 }
 
@@ -245,13 +239,19 @@ namespace Kuriimu2.WinForms.ExtensionForms
             chkAutoExecute.Enabled = toggle;
         }
 
-        private void ExecuteInternal(string path, bool isDirectory, bool searchSubDirectories, TExtension extensionType)
+        private async void ExecuteInternal(string path, bool isDirectory, bool searchSubDirectories, TExtension extensionType)
         {
+            ToggleUi(false);
+
             // Process all files
-            var results = _batchProcessor.Process(path, isDirectory, searchSubDirectories, extensionType);
+            var results = await _batchProcessor.Process(path, isDirectory, searchSubDirectories, extensionType);
 
             // Finalize the processing/create a report
             FinalizeProcess(results, isDirectory ? path : Path.GetDirectoryName(path));
+
+            ToggleUi(true);
+
+            Logger.StopLogging();
         }
 
         private void cmbExtensions_SelectedIndexChanged(object sender, EventArgs e)

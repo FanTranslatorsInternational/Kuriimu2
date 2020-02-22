@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Windows.Forms;
-using Kompression;
-using Kompression.Configuration;
 using Kompression.Implementations;
 using Kontract.Kompression;
+using Kontract.Models.Logging;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 
 namespace Kuriimu2.WinForms.ExtensionForms
@@ -30,19 +27,21 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         protected override bool ProcessFile(ICompression extensionType, string filePath)
         {
+            var input = File.Open(filePath, FileMode.Open, FileAccess.Read);
+            var output = File.Create(filePath + ".out");
+
             try
             {
-                var input = File.Open(filePath, FileMode.Open, FileAccess.Read);
-                var output = File.Create(filePath + ".out");
-
                 ProcessCompression(extensionType, input, output);
-
-                input.Close();
-                output.Close();
             }
             catch
             {
                 return false;
+            }
+            finally
+            {
+                input.Close();
+                output.Close();
             }
 
             return true;
@@ -50,18 +49,18 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
-            var reportFilePath = Path.Combine(rootDir, "compressionReport.txt");
+            //var reportFilePath = Path.Combine(rootDir, "compressionReport.txt");
 
-            // Write results to text file
-            var reportFile = File.CreateText(reportFilePath);
+            // Write errors to log
+            //var reportFile = File.CreateText(reportFilePath);
             foreach (var result in results)
-                reportFile.WriteLine($"{result.Item1}: {result.Item2}");
+                if (!result.Item2)
+                    Logger.QueueMessage(LogLevel.Error, $"Not processed successfully: {result.Item1}");
 
-            reportFile.Close();
+            //reportFile.Close();
 
             // Report finish
-            MessageBox.Show($"The results are written to '{reportFilePath}'.", "Done", MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            Logger.QueueMessage(LogLevel.Information, "Done!");
         }
 
         protected override IList<ExtensionType> LoadExtensionTypes()
@@ -134,8 +133,8 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     return Compressions.LzssVlc.Build();
 
                 case "Huffman 4Bit (Nintendo)":
-                    return selectedExtension.GetParameterValue<bool>("LittleEndian") ? 
-                        Compressions.NintendoHuffman4BitLe.Build() : 
+                    return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
+                        Compressions.NintendoHuffman4BitLe.Build() :
                         Compressions.NintendoHuffman4BitBe.Build();
 
                 case "Huffman 8Bit (Nintendo)":
