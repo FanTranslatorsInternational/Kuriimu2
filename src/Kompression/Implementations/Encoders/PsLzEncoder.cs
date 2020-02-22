@@ -6,6 +6,7 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
+    /* Found in SMT Nocturne on the PS2 */
     class PsLzEncoder : IEncoder
     {
         private readonly IMatchParser _matchParser;

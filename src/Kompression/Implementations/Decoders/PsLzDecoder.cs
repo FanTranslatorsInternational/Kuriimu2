@@ -5,6 +5,7 @@ using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
+    /* Found in SMT Nocturne on the PS2 */
     class PsLzDecoder : IDecoder
     {
         private CircularBuffer _circularBuffer;
