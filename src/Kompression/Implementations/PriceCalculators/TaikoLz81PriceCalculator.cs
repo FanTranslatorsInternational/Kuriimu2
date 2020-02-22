@@ -13,7 +13,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 6 + 3 + 3;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             // One match is encoded with two huffman values
             // The length value can be at max 6 bits, therefore we will approximate it at 3 bits;

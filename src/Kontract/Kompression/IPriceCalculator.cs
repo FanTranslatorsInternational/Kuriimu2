@@ -12,7 +12,7 @@
         /// <param name="literalRunLength">The current run of literals, including this one.</param>
         /// <param name="firstLiteralRun">If the given literal is part of the first literal run.</param>
         /// <returns>The calculated price.</returns>
-        int CalculateLiteralPrice(int value,int literalRunLength,bool firstLiteralRun);
+        int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun);
 
         /// <summary>
         /// Calculates the price of a pattern match.
@@ -20,7 +20,8 @@
         /// <param name="displacement">The displacement from the current position.</param>
         /// <param name="length">The length of the match.</param>
         /// <param name="matchRunLength">The current run of matches, including this one.</param>
+        /// <param name="firstValue">The first value in the found match. Useful for value differences in RLE.</param>
         /// <returns>The calculated price.</returns>
-        int CalculateMatchPrice(int displacement, int length, int matchRunLength);
+        int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue);
     }
 }

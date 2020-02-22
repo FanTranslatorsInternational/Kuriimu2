@@ -94,7 +94,7 @@ namespace Kompression.PatternMatch.MatchParser
                             continue;
 
                         newRunLength = element.IsMatchRun ? element.CurrentRunLength + 1 : 1;
-                        var matchPrice = _priceCalculator.CalculateMatchPrice(displacement, j, newRunLength);
+                        var matchPrice = _priceCalculator.CalculateMatchPrice(displacement, j, newRunLength, input[dataPosition]);
                         matchPrice += element.Price;
 
                         if (dataPosition + j < history.Length &&

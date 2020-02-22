@@ -31,7 +31,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             }
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             switch (_compressionMode)
             {

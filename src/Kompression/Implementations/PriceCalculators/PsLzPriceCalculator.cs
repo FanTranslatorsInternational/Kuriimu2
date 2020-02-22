@@ -6,7 +6,6 @@ namespace Kompression.Implementations.PriceCalculators
     {
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
-            // TODO: Raw runs are not confirmed to use the same length encoding
             if ((literalRunLength - 1) % 0xFFFF == 0)
                 return 16;
 
@@ -16,7 +15,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 8;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             var result = 0;
 
@@ -27,7 +26,10 @@ namespace Kompression.Implementations.PriceCalculators
                 result += 24;
 
             if (displacement == 0)
-                return result;
+                if (firstValue == 0)
+                    return result;
+                else
+                    return result + 8;
 
             result += displacement > 0xFF ? 16 : 8;
             return result;

@@ -39,6 +39,17 @@ namespace Kompression.Implementations.Decoders
                         _circularBuffer.Write(buffer, 0, length);
                         break;
 
+                    // Variable value RLE
+                    case 2:
+                        var value = (byte)input.ReadByte();
+
+                        for (var i = 0; i < length; i++)
+                            buffer[i] = value;
+
+                        output.Write(buffer, 0, length);
+                        _circularBuffer.Write(buffer, 0, length);
+                        break;
+
                     // 1-byte displacement LZ
                     case 3:
                         var offset = input.ReadByte();

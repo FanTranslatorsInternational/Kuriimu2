@@ -493,6 +493,8 @@ namespace Kompression.Implementations
                     .WithinLimitations(() => new FindLimitations(1, 0xFFFF, 1, 0xFFFF))
                     .AndWith((limits, findOptions) => new StaticValueRleMatchFinder(0, limits, findOptions))
                     .WithinLimitations(() => new FindLimitations(1, 0xFFFF))
+                    .AndWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
+                    .WithinLimitations(() => new FindLimitations(1, 0xFFFF))
                     .CalculatePricesWith(() => new PsLzPriceCalculator()));
 
                 return config;

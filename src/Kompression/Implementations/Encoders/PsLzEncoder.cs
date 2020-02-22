@@ -68,12 +68,29 @@ namespace Kompression.Implementations.Encoders
 
             if (match.Displacement == 0)
             {
-                // Encode 0 RLE match
-                modeByte |= 0x20;
+                var rleValue = (byte)input.ReadByte();
+                if (rleValue == 0)
+                {
+                    // Encode 0 RLE match
+                    modeByte |= 0x20;
 
-                output.WriteByte(modeByte);
-                if (match.Length > 0x1F)
-                    WriteInt16Le(match.Length, output);
+                    output.WriteByte(modeByte);
+                    if (match.Length > 0x1F)
+                        WriteInt16Le(match.Length, output);
+                }
+                else
+                {
+                    // Encode variable value RLE match
+                    modeByte |= 0x40;
+
+                    output.WriteByte(modeByte);
+                    if (match.Length > 0x1F)
+                        WriteInt16Le(match.Length, output);
+
+                    output.WriteByte(rleValue);
+                }
+
+                input.Position--;
             }
             else if (match.Displacement <= 0xFF)
             {

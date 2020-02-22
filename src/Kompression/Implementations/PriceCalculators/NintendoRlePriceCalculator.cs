@@ -12,7 +12,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 8;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             return 16;
         }

@@ -31,7 +31,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 8;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             var bitCount = displacement <= 0x4000 ? 5 : 3;
 

@@ -9,7 +9,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 9;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             if (displacement == 0 && length >= 0x13)
                 // Longest RLE match

@@ -13,7 +13,7 @@ namespace Kompression.Implementations.PriceCalculators
             return 10;
         }
 
-        public int CalculateMatchPrice(int displacement, int length, int matchRunLength)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             if (displacement > 4 && length > 0x12)
                 throw new InvalidOperationException("Invalid match for Lze.");
