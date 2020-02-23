@@ -66,7 +66,7 @@ namespace Kore.Utilities.Palettes
         public byte BlueDepth { get; }
         public byte AlphaDepth { get; }
 
-        public KPal(IList<Color> palette, int version, byte redDepth, byte greenDepth, byte blueDepth, byte alphaDepth)
+        public KPal(IList<Color> palette, int version, byte redDepth = 8, byte greenDepth = 8, byte blueDepth = 8, byte alphaDepth = 8)
         {
             Palette = palette;
             Version = version;

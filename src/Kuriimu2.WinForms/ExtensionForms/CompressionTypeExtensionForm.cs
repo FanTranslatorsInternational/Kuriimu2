@@ -55,15 +55,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
-            //var reportFilePath = Path.Combine(rootDir, "compressionReport.txt");
-
-            // Write errors to log
-            //var reportFile = File.CreateText(reportFilePath);
             foreach (var result in results)
                 if (!result.Item2)
                     Logger.QueueMessage(LogLevel.Error, $"Not processed successfully: {result.Item1}");
-
-            //reportFile.Close();
 
             // Report finish
             Logger.QueueMessage(LogLevel.Information, "Done!");

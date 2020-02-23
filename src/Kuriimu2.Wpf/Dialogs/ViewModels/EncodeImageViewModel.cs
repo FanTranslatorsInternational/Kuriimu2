@@ -7,7 +7,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
 using Kontract.Interfaces.Plugins.State.Image;
-using Kontract.Models.Image;
 using Kore.Managers.Plugins;
 using Kore.Models;
 using Kuriimu2.Wpf.Dialogs.Common;
@@ -19,7 +18,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
     {
         private readonly PluginManager _pluginManager;
         private readonly IImageAdapter _adapter;
-        private readonly BitmapInfo _bitmapInfo;
+        private readonly ImageInfo _imageInfo;
 
         private EncodingInfo _selectedEncoding;
         private bool _controlsEnabled = true;
@@ -38,14 +37,14 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public EncodeImageViewModel(PluginManager pluginManager, IImageAdapter adapter, BitmapInfo bitmapInfo)
+        public EncodeImageViewModel(PluginManager pluginManager, IImageAdapter adapter, ImageInfo imageInfo)
         {
             _pluginManager = pluginManager;
             _adapter = adapter;
-            _bitmapInfo = bitmapInfo;
+            _imageInfo = imageInfo;
 
-            SelectedEncoding = _bitmapInfo.ImageEncoding;
-            SourceImage = _bitmapInfo.Image.ToBitmapImage(true);
+            SelectedEncoding = _imageInfo.ImageEncoding;
+            SourceImage = _imageInfo.Image.ToBitmapImage(true);
             OutputImage = SourceImage;
         }
 
@@ -111,12 +110,12 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
                 if (_adapter is IIndexedImageAdapter indexed && _selectedEncoding.IsIndexed)
                 {
-                    var ibi = _bitmapInfo as IndexedBitmapInfo;
-                    result = await indexed.TranscodeImage(_bitmapInfo, _selectedEncoding, ibi.PaletteEncoding, report);
+                    var ibi = _imageInfo as IndexedImageInfo;
+                    result = await indexed.TranscodeImage(_imageInfo, _selectedEncoding, ibi.PaletteEncoding, report);
                 }
                 else
                 {
-                    result = await _adapter.TranscodeImage(_bitmapInfo, _selectedEncoding, report);
+                    result = await _adapter.TranscodeImage(_imageInfo, _selectedEncoding, report);
                 }
 
                 if (result.Exception != null)

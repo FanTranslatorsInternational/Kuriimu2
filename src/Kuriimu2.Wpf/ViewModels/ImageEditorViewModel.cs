@@ -11,7 +11,6 @@ using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State.Image;
-using Kontract.Models.Image;
 using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -115,8 +114,8 @@ namespace Kuriimu2.Wpf.ViewModels
             {
                 if (value == _selectedBitmapEntry) return;
                 _selectedBitmapEntry = value;
-                SelectedImage = _selectedBitmapEntry?.BitmapInfo.Image.ToBitmapImage(true);
-                if (_adapter is IIndexedImageAdapter indexed && _selectedBitmapEntry.BitmapInfo is IndexedBitmapInfo indexedInfo)
+                SelectedImage = _selectedBitmapEntry?.ImageInfo.Image.ToBitmapImage(true);
+                if (_adapter is IIndexedImageAdapter indexed && _selectedBitmapEntry.ImageInfo is IndexedImageInfo indexedInfo)
                 {
                     var dimensions = (int)Math.Sqrt(indexedInfo.ColorCount);
                     SelectedPaletteImage = Kore.Utilities.Image.ComposeImage(indexedInfo.Palette, dimensions, dimensions).ToBitmapImage(true);
@@ -138,7 +137,7 @@ namespace Kuriimu2.Wpf.ViewModels
         }
 
         // Palette
-        public Visibility PaletteImageVisibility => (_adapter is IIndexedImageAdapter && _selectedBitmapEntry.BitmapInfo is IndexedBitmapInfo) ? Visibility.Visible : Visibility.Hidden;
+        public Visibility PaletteImageVisibility => (_adapter is IIndexedImageAdapter && _selectedBitmapEntry.ImageInfo is IndexedImageInfo) ? Visibility.Visible : Visibility.Hidden;
 
         public ImageSource SelectedPaletteImage
         {
@@ -202,7 +201,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
             if ((bool)sfd.ShowDialog())
             {
-                SelectedBitmap.BitmapInfo.Image.Save(sfd.FileName, ImageFormat.Png);
+                SelectedBitmap.ImageInfo.Image.Save(sfd.FileName, ImageFormat.Png);
             }
         }
 
@@ -241,7 +240,7 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             if (!(_adapter is IImageAdapter img)) return;
 
-            var ei = new EncodeImageViewModel(_pluginManager, _adapter, _selectedBitmapEntry.BitmapInfo)
+            var ei = new EncodeImageViewModel(_pluginManager, _adapter, _selectedBitmapEntry.ImageInfo)
             {
                 Title = $"Change Format",
                 SelectedZoomLevel = SelectedZoomLevel
@@ -343,8 +342,8 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             if (path != null && File.Exists(path))
             {
-                SelectedBitmap.BitmapInfo.Image = new System.Drawing.Bitmap(path);
-                SelectedImage = _selectedBitmapEntry?.BitmapInfo.Image.ToBitmapImage(true);
+                SelectedBitmap.ImageInfo.Image = new System.Drawing.Bitmap(path);
+                SelectedImage = _selectedBitmapEntry?.ImageInfo.Image.ToBitmapImage(true);
                 NotifyOfPropertyChange(() => SelectedBitmap);
             }
         }

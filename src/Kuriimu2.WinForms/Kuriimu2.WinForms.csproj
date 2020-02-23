@@ -10,6 +10,7 @@
     <!--This tag needed to build projects on this new csproj structure with 'dotnet build' and 'dotnet publish' 
     if binary resources are used (our icon images)-->
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <!--https://github.com/dotnet/corefx/issues/30106-->
@@ -28,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Kompression\Kompression.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
     <ProjectReference Include="..\Kore\Kore.csproj" />
