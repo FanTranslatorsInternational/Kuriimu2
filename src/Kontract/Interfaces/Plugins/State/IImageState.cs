@@ -13,5 +13,9 @@ namespace Kontract.Interfaces.Plugins.State
         IDictionary<int, IColorIndexEncoding> SupportedIndexEncodings { get; }
 
         IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
+
+        ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo);
+
+        IndexImageInfo ConvertToIndexImageInfo(ImageInfo imageInfo, int paletteFormat, byte[] paletteData);
     }
 }

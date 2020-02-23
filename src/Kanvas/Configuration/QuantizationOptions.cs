@@ -85,19 +85,19 @@ namespace Kanvas.Configuration
 
             var colorDitherer = _dithererFunc?.Invoke(imageSize, _taskCount);
             var indices = colorDitherer?.Process(colorList, colorCache) ??
-                          Composition.ComposeIndices(colorList, colorCache, _taskCount);
+                          colorList.ToIndices(colorCache);
 
             return (indices, colorCache.Palette);
         }
 
         public Image ProcessImage(Bitmap image)
         {
-            var colors = Composition.DecomposeImage(image, Size.Empty);
+            var colors = image.ToColors();
 
             var (indices, palette) = Process(colors, image.Size);
             var newColors = indices.Select(i => palette[i]);
 
-            return Composition.ComposeImage(newColors, image.Size);
+            return newColors.ToBitmap(image.Size);
         }
 
         private IColorCache GetColorCache(IEnumerable<Color> colors, int taskCount)

@@ -55,8 +55,8 @@ namespace Kanvas.Configuration
             var colors = _colorEncoding.Load(data);
 
             // Compose image
-            var imageSize = _paddedSize == Size.Empty ? _imageSize : _paddedSize;
-            return Composition.ComposeImage(colors, imageSize, _swizzle);
+            var imageSize = _paddedSize.IsEmpty ? _imageSize : _paddedSize;
+            return colors.ToBitmap(imageSize, _swizzle);
         }
 
         public Image Decode(byte[] data, byte[] paletteData)
@@ -68,8 +68,8 @@ namespace Kanvas.Configuration
             var colors = _indexEncoding.Load(data, palette);
 
             // Compose image
-            var imageSize = _paddedSize == Size.Empty ? _imageSize : _paddedSize;
-            return Composition.ComposeImage(colors, imageSize, _swizzle);
+            var imageSize = _paddedSize.IsEmpty ? _imageSize : _paddedSize;
+            return colors.ToBitmap(imageSize, _swizzle);
         }
 
         byte[] IColorTranscoder.Encode(Bitmap image)
@@ -85,10 +85,8 @@ namespace Kanvas.Configuration
             }
             else
             {
-                var imageSize = _paddedSize == Size.Empty ? image.Size : _paddedSize;
-
                 // Decompose image to colors
-                colors = Composition.DecomposeImage(image, imageSize, _swizzle);
+                colors = image.ToColors(_paddedSize, _swizzle);
             }
 
             // Save color data
@@ -111,10 +109,10 @@ namespace Kanvas.Configuration
 
         private (IEnumerable<int> indices, IList<Color> palette) QuantizeImage(Bitmap image)
         {
-            var imageSize = _paddedSize == Size.Empty ? image.Size : _paddedSize;
+            var imageSize = _paddedSize.IsEmpty ? image.Size : _paddedSize;
 
             // Decompose unswizzled image to colors
-            var colors = Composition.DecomposeImage(image, imageSize);
+            var colors = image.ToColors(_paddedSize);
 
             // Quantize unswizzled indexColors
             var (indices, palette) = _quantizer.Process(colors, imageSize);
@@ -125,9 +123,9 @@ namespace Kanvas.Configuration
             return (indices, palette);
         }
 
-        private IEnumerable<int> SwizzleIndices(IEnumerable<int> indeces, Size imageSize, IImageSwizzle swizzle)
+        private IEnumerable<int> SwizzleIndices(IEnumerable<int> indices, Size imageSize, IImageSwizzle swizzle)
         {
-            var indexPoints = Zip(indeces, Composition.GetPointSequence(imageSize, swizzle));
+            var indexPoints = Zip(indices, Composition.GetPointSequence(imageSize, swizzle));
             return indexPoints.OrderBy(cp => GetIndex(cp.Second, imageSize)).Select(x => x.First);
         }
 

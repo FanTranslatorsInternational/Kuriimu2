@@ -589,18 +589,25 @@ namespace Kuriimu2.WinForms.MainForms
             IKuriimuForm kuriimuForm = null;
             try
             {
+                switch (stateInfo.State)
+                {
+                    case IImageState imageState:
+                        kuriimuForm = new ImageForm(stateInfo);
+                        break;
+
+                    case IArchiveState archiveState:
+                        kuriimuForm = new ArchiveForm(stateInfo, _pluginManager);
+                        ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Unknown plugin state type {stateInfo.State.GetType().Name}.");
+                }
                 //if (stateInfo.State is ITextAdapter)
                 //    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _pluginManager.GetAdapters<IGameAdapter>());
-                //else if (kfi.Adapter is IImageAdapter)
-                //    tabControl = new ImageForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
                 //else if (kfi.Adapter is ILayoutAdapter)
                 //    tabControl = new LayoutForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
                 /*else*/
-                if (stateInfo.State is IArchiveState)
-                {
-                    kuriimuForm = new ArchiveForm(stateInfo, _pluginManager);
-                    (kuriimuForm as IArchiveForm).OpenFilesDelegate = Kuriimu2_OpenTab;
-                }
             }
             catch (Exception e)
             {
@@ -608,8 +615,8 @@ namespace Kuriimu2.WinForms.MainForms
                 return null;
             }
 
-            if (kuriimuForm is UserControl userControl)
-                userControl.Dock = DockStyle.Fill;
+            var userControl = (UserControl)kuriimuForm;
+            userControl.Dock = DockStyle.Fill;
 
             kuriimuForm.SaveFilesDelegate = TabControl_SaveTab;
             kuriimuForm.UpdateTabDelegate = TabControl_UpdateTab;
@@ -751,7 +758,7 @@ namespace Kuriimu2.WinForms.MainForms
             if (stateInfo.ParentStateInfo != null)
             {
                 var parentForm = _stateTabDictionary[stateInfo.ParentStateInfo].Controls[0] as IKuriimuForm;
-                parentForm.UpdateForm();
+                parentForm?.UpdateForm();
 
                 UpdateParentTabs(stateInfo.ParentStateInfo);
             }
@@ -766,7 +773,7 @@ namespace Kuriimu2.WinForms.MainForms
             }
 
             var form = _stateTabDictionary[stateInfo].Controls[0] as IKuriimuForm;
-            form.UpdateForm();
+            form?.UpdateForm();
         }
 
         private string CreateFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)

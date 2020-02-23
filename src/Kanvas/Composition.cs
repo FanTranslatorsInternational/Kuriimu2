@@ -10,6 +10,17 @@ namespace Kanvas
 {
     public static class Composition
     {
+        #region ToBitmap
+
+        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize) =>
+            indices.Select(i => palette[i]).ToBitmap(imageSize);
+
+        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize, IImageSwizzle swizzle) =>
+            indices.Select(i => palette[i]).ToBitmap(imageSize, swizzle);
+
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
+            colors.ToBitmap(imageSize, null);
+
         /// <summary>
         /// Compose an image from a collection of colors.
         /// </summary>
@@ -17,7 +28,7 @@ namespace Kanvas
         /// <param name="imageSize">The dimensions of the composed image.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
         /// <returns>The composed image.</returns>
-        public static Image ComposeImage(IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle = null)
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle)
         {
             var image = new Bitmap(imageSize.Width, imageSize.Height);
 
@@ -40,6 +51,22 @@ namespace Kanvas
             return image;
         }
 
+        #endregion
+
+        #region ToColors
+
+        public static IEnumerable<Color> ToColors(this IEnumerable<int> indices, IList<Color> palette) =>
+            indices.Select(i => palette[i]);
+
+        public static IEnumerable<Color> ToColors(this Bitmap image) =>
+            image.ToColors(Size.Empty, null);
+
+        public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize) =>
+            image.ToColors(paddedSize, null);
+
+        public static IEnumerable<Color> ToColors(this Bitmap image, IImageSwizzle swizzle) =>
+            image.ToColors(Size.Empty, swizzle);
+
         /// <summary>
         /// Decomposes an image to a collection of colors.
         /// </summary>
@@ -47,12 +74,12 @@ namespace Kanvas
         /// <param name="paddedSize">The padded dimensions of the image.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
         /// <returns>The collection of colors.</returns>
-        public static IEnumerable<Color> DecomposeImage(Bitmap image, Size paddedSize, IImageSwizzle swizzle = null)
+        public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize, IImageSwizzle swizzle)
         {
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppArgb);
 
-            var imageSize = paddedSize == Size.Empty ? image.Size : paddedSize;
+            var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
             var points = GetPointSequence(imageSize, swizzle)
                 .Clamp(Point.Empty, new Point(image.Width - 1, image.Height));
 
@@ -65,19 +92,23 @@ namespace Kanvas
             image.UnlockBits(bitmapData);
         }
 
-        /// <summary>
-        /// Composes indices from a collection of colors in relation to an <see cref="IColorCache"/>.
-        /// </summary>
-        /// <param name="colors">The colors to compose to indices.</param>
-        /// <param name="colorCache">The color cache to find the indices with.</param>
-        /// <param name="taskCount">The degree of parallelism.</param>
-        /// <returns>The composed indices.</returns>
-        public static IEnumerable<int> ComposeIndices(IEnumerable<Color> colors, IColorCache colorCache, int taskCount)
-        {
-            return colors.AsParallel().AsOrdered()
-                .WithDegreeOfParallelism(taskCount)
-                .Select(colorCache.GetPaletteIndex);
-        }
+        #endregion
+
+        #region ToIndices
+
+        public static IEnumerable<int> ToIndices(this Bitmap image, IList<Color> palette) =>
+            image.ToColors().ToIndices(palette);
+
+        public static IEnumerable<int> ToIndices(this Bitmap image, IColorCache colorCache) =>
+            image.ToColors().ToIndices(colorCache);
+
+        public static IEnumerable<int> ToIndices(this IEnumerable<Color> colors, IList<Color> palette) =>
+            colors.Select(palette.IndexOf);
+
+        public static IEnumerable<int> ToIndices(this IEnumerable<Color> colors, IColorCache colorCache) =>
+            colors.Select(colorCache.GetPaletteIndex);
+
+        #endregion
 
         /// <summary>
         /// Create a sequence of <see cref="Point"/>s.
@@ -98,16 +129,14 @@ namespace Kanvas
                 }
         }
 
-        private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max)
-        {
-            return points.Select(p => new Point(Clamp(p.X, min.X, max.X), Clamp(p.Y, min.Y, max.Y)));
-        }
+        private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max) => 
+            points.Select(p => new Point(Clamp(p.X, min.X, max.X), Clamp(p.Y, min.Y, max.Y)));
 
-        private static unsafe Color GetColor(BitmapData bitmapData, int index)
-        {
-            return Color.FromArgb(((int*)bitmapData.Scan0)[index]);
-        }
+        // ReSharper disable once PossibleNullReferenceException
+        private static unsafe Color GetColor(BitmapData bitmapData, int index) =>
+            Color.FromArgb(((int*)bitmapData.Scan0)[index]);
 
+        // ReSharper disable once PossibleNullReferenceException
         private static unsafe void SetColor(BitmapData bitmapData, int index, Color color)
         {
             ((int*)bitmapData.Scan0)[index] = color.ToArgb();

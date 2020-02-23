@@ -240,7 +240,7 @@ namespace Kuriimu2.WinForms.FormatForms
             this.imbPreview.DragEnter += new System.Windows.Forms.DragEventHandler(this.imbPreview_DragEnter);
             this.imbPreview.KeyDown += new System.Windows.Forms.KeyEventHandler(this.imbPreview_KeyDown);
             this.imbPreview.KeyUp += new System.Windows.Forms.KeyEventHandler(this.imbPreview_KeyUp);
-            this.imbPreview.MouseClick += new System.Windows.Forms.MouseEventHandler(this.ImbPreview_MouseClick);
+            this.imbPreview.MouseClick += new System.Windows.Forms.MouseEventHandler(this.imbPreview_MouseClick);
             this.imbPreview.MouseEnter += new System.EventHandler(this.imbPreview_MouseEnter);
             // 
             // cmsPreview
@@ -410,10 +410,10 @@ namespace Kuriimu2.WinForms.FormatForms
             this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbPalette.TabIndex = 0;
             this.pbPalette.TabStop = false;
-            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PbPalette_MouseClick);
-            this.pbPalette.MouseEnter += new System.EventHandler(this.PbPalette_MouseEnter);
-            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.PbPalette_KeyDown);
-            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.PbPalette_KeyUp);
+            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pbPalette_MouseClick);
+            this.pbPalette.MouseEnter += new System.EventHandler(this.pbPalette_MouseEnter);
+            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyDown);
+            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyUp);
             // 
             // tlsPalette
             // 
@@ -444,7 +444,7 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tsbPaletteImport.Name = "tsbPaletteImport";
             this.tsbPaletteImport.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.tsbPaletteImport.Size = new System.Drawing.Size(23, 22);
-            this.tsbPaletteImport.Click += new System.EventHandler(this.TsbPaletteImport_Click);
+            this.tsbPaletteImport.Click += new System.EventHandler(this.tsbPaletteImport_Click);
             // 
             // tsbPaletteExport
             // 
@@ -454,7 +454,7 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tsbPaletteExport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPaletteExport.Name = "tsbPaletteExport";
             this.tsbPaletteExport.Size = new System.Drawing.Size(23, 22);
-            this.tsbPaletteExport.Click += new System.EventHandler(this.TsbPaletteExport_Click);
+            this.tsbPaletteExport.Click += new System.EventHandler(this.tsbPaletteExport_Click);
             // 
             // ImageForm
             // 
