@@ -4,7 +4,7 @@ using Kontract.Models.Images;
 
 namespace Kontract.Interfaces.Plugins.State
 {
-    public interface IImageState
+    public interface IImageState : IPluginState
     {
         IList<ImageInfo> Images { get; }
 

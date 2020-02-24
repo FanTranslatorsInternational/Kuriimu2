@@ -1,11 +1,10 @@
-﻿using System;
-using System.Drawing;
-
-namespace Kontract.Kanvas.Configuration
+﻿namespace Kontract.Kanvas.Configuration
 {
+    public delegate IColorEncoding CreatePaletteEncoding();
+
     public interface IIndexConfiguration : IImageConfiguration
     {
-        IIndexConfiguration TranscodePaletteWith(Func<IColorEncoding> func);
+        IIndexConfiguration TranscodePaletteWith(CreatePaletteEncoding func);
 
         IIndexTranscoder Build();
     }

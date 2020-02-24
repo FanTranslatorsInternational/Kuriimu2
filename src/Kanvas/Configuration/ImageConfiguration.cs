@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using Kontract;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Configuration;
@@ -10,17 +9,14 @@ namespace Kanvas.Configuration
     // TODO: PixelShader
     public class ImageConfiguration : IColorConfiguration, IIndexConfiguration
     {
-        private Size _imageSize;
-        private Size _paddedSize;
-
         private int _taskCount = Environment.ProcessorCount;
 
-        private Func<Size, IColorEncoding> _colorFunc;
+        private CreateColorEncoding _colorFunc;
 
-        private Func<Size, IColorIndexEncoding> _indexFunc;
-        private Func<IColorEncoding> _paletteFunc;
+        private CreateColorIndexEncoding _indexFunc;
+        private CreatePaletteEncoding _paletteFunc;
 
-        private Func<Size, IImageSwizzle> _swizzleFunc;
+        private CreatePixelRemapper _swizzleFunc;
 
         private Action<IQuantizationOptions> _quantizationAction;
 
@@ -31,27 +27,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IImageConfiguration HasImageSize(Size size)
-        {
-            if (size == Size.Empty)
-                throw new InvalidOperationException("Image size cannot be empty.");
-
-            _imageSize = size;
-
-            return this;
-        }
-
-        public IImageConfiguration HasPaddedImageSize(Size size)
-        {
-            if (size == Size.Empty)
-                throw new InvalidOperationException("Padded image size cannot be empty.");
-
-            _paddedSize = size;
-
-            return this;
-        }
-
-        public IColorConfiguration TranscodeWith(Func<Size, IColorEncoding> func)
+        public IColorConfiguration TranscodeWith(CreateColorEncoding func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -61,7 +37,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IIndexConfiguration TranscodeWith(Func<Size, IColorIndexEncoding> func)
+        public IIndexConfiguration TranscodeWith(CreateColorIndexEncoding func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -71,7 +47,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IIndexConfiguration TranscodePaletteWith(Func<IColorEncoding> func)
+        public IIndexConfiguration TranscodePaletteWith(CreatePaletteEncoding func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -80,7 +56,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IImageConfiguration RemapPixelsWith(Func<Size, IImageSwizzle> func)
+        public IImageConfiguration RemapPixelsWith(CreatePixelRemapper func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -100,44 +76,23 @@ namespace Kanvas.Configuration
 
         IIndexTranscoder IIndexConfiguration.Build()
         {
-            if (_imageSize == Size.Empty)
-                throw new ArgumentException("imageSize");
-
             ContractAssertions.IsNotNull(_indexFunc, "indexFunc");
             ContractAssertions.IsNotNull(_paletteFunc, "paletteFunc");
 
-            var imageSize = _paddedSize == Size.Empty ? _imageSize : _paddedSize;
-
-            var swizzle = _swizzleFunc?.Invoke(imageSize);
-
-            var indexEncoding = _indexFunc(imageSize);
-            var paletteEncoding = _paletteFunc();
-
             var quantizer = BuildQuantizer();
 
-            return new Transcoder(_imageSize, _paddedSize, indexEncoding, paletteEncoding, quantizer, swizzle);
+            return new Transcoder(_indexFunc, _paletteFunc, _swizzleFunc, quantizer);
         }
 
         IColorTranscoder IColorConfiguration.Build()
         {
-            if (_imageSize == Size.Empty)
-                throw new InvalidOperationException("Image size needs to be set.");
-
             ContractAssertions.IsNotNull(_colorFunc, "colorFunc");
-
-            var imageSize = _paddedSize == Size.Empty ? _imageSize : _paddedSize;
-
-            var swizzle = _swizzleFunc?.Invoke(imageSize);
-
-            // TODO: Size is currently only used for block compression with native libs,
-            // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
-            var colorEncoding = _colorFunc(_imageSize);
 
             // Quantization for normal images is optional
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationAction == null ? null : BuildQuantizer();
 
-            return new Transcoder(_imageSize, _paddedSize, colorEncoding, quantizer, swizzle);
+            return new Transcoder(_colorFunc, _swizzleFunc, quantizer);
         }
 
         IQuantizer BuildQuantizer()

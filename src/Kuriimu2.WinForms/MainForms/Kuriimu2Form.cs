@@ -586,7 +586,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private TabPage AddTabPage(IStateInfo stateInfo, Color tabColor)
         {
-            IKuriimuForm kuriimuForm = null;
+            IKuriimuForm kuriimuForm;
             try
             {
                 switch (stateInfo.State)
@@ -611,7 +611,11 @@ namespace Kuriimu2.WinForms.MainForms
             }
             catch (Exception e)
             {
+#if DEBUG
                 MessageBox.Show(e.ToString(), "Exception catched.");
+#else
+                MessageBox.Show(e.Message, "Exception catched.");
+#endif
                 return null;
             }
 
@@ -782,7 +786,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins))
             {
-                filters.Add($"{plugin.Metadata.Name}|{string.Join(";", plugin.FileExtensions)}");
+                filters.Add($"{plugin.Metadata?.Name ?? plugin.GetType().Name}|{string.Join(";", plugin.FileExtensions)}");
             }
 
             return string.Join("|", filters);

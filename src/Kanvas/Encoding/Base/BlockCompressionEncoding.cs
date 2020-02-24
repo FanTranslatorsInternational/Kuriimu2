@@ -37,10 +37,14 @@ namespace Kanvas.Encoding.Base
             var blockByteDepth = BlockBitDepth / 8;
             var blocks = (int)br.BaseStream.Length / blockByteDepth;
 
-            return Enumerable.Range(0, blocks).AsParallel()
-                .WithDegreeOfParallelism(_taskCount)
-                .AsOrdered()
+            return Enumerable.Range(0, blocks)
                 .SelectMany(x => DecodeNextBlock(br));
+
+            // TODO: Fix race conditioning
+            //return Enumerable.Range(0, blocks).AsParallel()
+            //    .AsOrdered()
+            //    .WithDegreeOfParallelism(_taskCount)
+            //    .SelectMany(x => DecodeNextBlock(br));
         }
 
         public byte[] Save(IEnumerable<Color> colors)
@@ -48,10 +52,13 @@ namespace Kanvas.Encoding.Base
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, _byteOrder))
             {
-                colors.Batch(ColorsInBlock).AsParallel()
-                    .WithDegreeOfParallelism(_taskCount)
-                    .AsOrdered()
-                    .ForAll(colorBatch => EncodeNextBlock(bw, colorBatch.ToArray()));
+                colors.Batch(ColorsInBlock).ForEach(colorBatch =>
+                    EncodeNextBlock(bw, colorBatch.ToArray()));
+                // TODO: Fix race conditioning
+                //colors.Batch(ColorsInBlock).AsParallel()
+                //    .AsOrdered()
+                //    .WithDegreeOfParallelism(_taskCount)
+                //    .ForAll(colorBatch => EncodeNextBlock(bw, colorBatch.ToArray()));
             }
 
             return ms.ToArray();

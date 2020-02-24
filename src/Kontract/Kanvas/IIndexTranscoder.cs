@@ -9,8 +9,10 @@ namespace Kontract.Kanvas
 {
     public interface IIndexTranscoder
     {
-        Image Decode(byte[] indexData, byte[] paletteData);
+        Image Decode(byte[] indexData, byte[] paletteData, Size imageSize);
+        Image Decode(byte[] indexData, byte[] paletteData, Size imageSize, Size paddedSize);
 
         (byte[] indexData, byte[] paletteData) Encode(Bitmap image);
+        (byte[] indexData, byte[] paletteData) Encode(Bitmap image, Size paddedSize);
     }
 }

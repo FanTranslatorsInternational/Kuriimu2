@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\net472\plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,21 +25,12 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\dist\Release\net472\plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kanvas, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kanvas.2.0.6\lib\net472\Kanvas.dll</HintPath>
-    </Reference>
-    <Reference Include="Komponent, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Komponent.2.0.6\lib\net472\Komponent.dll</HintPath>
-    </Reference>
-    <Reference Include="Kontract, Version=2.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Kuriimu2.Kontract.2.0.6\lib\net472\Kontract.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
@@ -58,12 +49,27 @@
     <Compile Include="BCLIM\BCLIM.cs" />
     <Compile Include="BCLIM\BclimAdapter.cs" />
     <Compile Include="BCLIM\BclimSupport.cs" />
+    <Compile Include="Images\CtpkPlugin.cs" />
+    <Compile Include="Images\Ctpk.cs" />
+    <Compile Include="Images\CtpkState.cs" />
+    <Compile Include="Images\CtpkSupport.cs" />
     <Compile Include="NW4C\ImageFormats.cs" />
     <Compile Include="NW4C\NW4CHeader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Kanvas">
+      <Version>2.0.8</Version>
+    </PackageReference>
+    <PackageReference Include="Komponent">
+      <Version>2.0.8</Version>
+    </PackageReference>
+    <PackageReference Include="Kontract">
+      <Version>2.0.8</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

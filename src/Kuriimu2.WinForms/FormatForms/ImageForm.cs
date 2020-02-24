@@ -44,6 +44,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
         private readonly IList<Bitmap> _images;
         private readonly IList<Bitmap> _bestImages;
+        private readonly IList<IList<Color>> _imagePalettes;
         private int _selectedImageIndex;
 
         private Image _thumbnailBackground;
@@ -64,17 +65,30 @@ namespace Kuriimu2.WinForms.FormatForms
             InitializeComponent();
 
             // ReSharper disable once SuspiciousTypeConversion.Global
-            if (!(_stateInfo is IImageState imageState))
+            if (!(stateInfo.State is IImageState imageState))
                 throw new InvalidOperationException($"This state is not an {nameof(IImageState)}.");
 
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
             ContractAssertions.IsNotNull(imageState.Images, nameof(imageState.Images));
 
+            if (imageState.SupportedEncodings == null && imageState.SupportedIndexEncodings == null)
+                throw new InvalidOperationException("The plugin has no supported encodings defined.");
+            if (imageState.SupportedIndexEncodings != null && imageState.SupportedPaletteEncodings == null)
+                throw new InvalidOperationException("The plugin has no supported palette encodings defined.");
+
+            // Check for ambiguous format values
+            if (imageState.SupportedEncodings?.Keys.Any(x => imageState.SupportedIndexEncodings?.Keys.Contains(x) ?? false) ?? false)
+                throw new InvalidOperationException($"Ambiguous image format identifiers in plugin {_imageState.GetType().FullName}.");
+
+            // TODO: Check that all image infos contain supported image formats
+
             _stateInfo = stateInfo;
             _imageState = imageState;
 
-            _images = _imageState.Images?.Select(CreateImage).ToArray() ?? Array.Empty<Bitmap>();
-            _bestImages = new Bitmap[_imageState.Images?.Count ?? 0];
+            _images = imageState.Images?.Select(CreateImage).ToArray() ?? Array.Empty<Bitmap>();
+            _imagePalettes = imageState.Images?.Select(CreatePalette).ToArray() ?? Array.Empty<IList<Color>>();
+            _bestImages = _images.Select(x => (Bitmap) x.Clone()).ToArray();
+
             imbPreview.Image = _images.FirstOrDefault();
 
             // Populate format dropdown
@@ -106,14 +120,27 @@ namespace Kuriimu2.WinForms.FormatForms
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
                     .Build();
 
-                return (Bitmap)indexTranscoder.Decode(indexInfo.ImageData, indexInfo.PaletteData);
+                return (Bitmap)indexTranscoder.Decode(indexInfo.ImageData, indexInfo.PaletteData, indexInfo.ImageSize);
             }
 
             var transcoder = imageInfo.Configuration
                 .TranscodeWith(imageSize => _imageState.SupportedEncodings[imageInfo.ImageFormat])
                 .Build();
 
-            return (Bitmap)transcoder.Decode(imageInfo.ImageData);
+            return (Bitmap)transcoder.Decode(imageInfo.ImageData, imageInfo.ImageSize);
+        }
+
+        /// <summary>
+        /// Creates a list of colors of an <see cref="ImageInfo"/>.
+        /// </summary>
+        /// <param name="imageInfo">The <see cref="ImageInfo"/> to create the palette from.</param>
+        /// <returns>The created palette.</returns>
+        private IList<Color> CreatePalette(ImageInfo imageInfo)
+        {
+            if (!(imageInfo is IndexImageInfo indexInfo))
+                return null;
+
+            return _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData).ToArray();
         }
 
         /// <summary>
@@ -121,19 +148,15 @@ namespace Kuriimu2.WinForms.FormatForms
         /// </summary>
         /// <param name="imageIndex">The index to the image to transcode.</param>
         /// <param name="newImageFormat">The new image format.</param>
-        /// <param name="newPaletteFormat">The new palette format.</param>
+        /// <param name="newPaletteFormat">The new palette format. -1, if not an index format.</param>
+        /// <param name="replaceImageInfo">If the image info at <paramref name="imageIndex"/> should be replaced by the new image information.</param>
         /// <returns>The transcoded image.</returns>
-        private Bitmap Transcode(int imageIndex, int newImageFormat, int newPaletteFormat = -1)
+        private Bitmap Transcode(int imageIndex, int newImageFormat, int newPaletteFormat, bool replaceImageInfo)
         {
             var image = _bestImages[imageIndex] ?? _images[imageIndex];
 
             if (_imageState.Images[imageIndex].ImageFormat == newImageFormat && newPaletteFormat == -1)
                 return image;
-
-            // TODO: Check at form creation time that all encodings aren't ambiguous
-            if (_imageState.SupportedEncodings.ContainsKey(newImageFormat) &&
-               _imageState.SupportedIndexEncodings.ContainsKey(newImageFormat))
-                throw new InvalidOperationException($"Ambiguous image format identifier {newImageFormat}.");
 
             Bitmap newImage;
             if (_imageState.SupportedEncodings.ContainsKey(newImageFormat))
@@ -144,19 +167,22 @@ namespace Kuriimu2.WinForms.FormatForms
                     .Build();
 
                 var imageData = transcoder.Encode(image);
-                newImage = (Bitmap)transcoder.Decode(imageData);
+                newImage = (Bitmap)transcoder.Decode(imageData, _imageState.Images[imageIndex].ImageSize);
 
-                // If old image was an indexed image info
-                if (_imageState.Images[imageIndex] is IndexImageInfo indexInfo)
+                if (replaceImageInfo)
                 {
-                    // Convert it to a normal image info
-                    _imageState.Images[imageIndex] = _imageState.ConvertToImageInfo(indexInfo);
-                }
+                    // If old image was an indexed image info
+                    if (_imageState.Images[imageIndex] is IndexImageInfo indexInfo)
+                    {
+                        // Convert it to a normal image info
+                        _imageState.Images[imageIndex] = _imageState.ConvertToImageInfo(indexInfo);
+                    }
 
-                // And set its image properties
-                _imageState.Images[imageIndex].ImageFormat = newImageFormat;
-                _imageState.Images[imageIndex].ImageData = imageData;
-                _imageState.Images[imageIndex].ImageSize = image.Size;
+                    // And set its image properties
+                    _imageState.Images[imageIndex].ImageFormat = newImageFormat;
+                    _imageState.Images[imageIndex].ImageData = imageData;
+                    _imageState.Images[imageIndex].ImageSize = image.Size;
+                }
             }
             else
             {
@@ -170,24 +196,27 @@ namespace Kuriimu2.WinForms.FormatForms
                     .Build();
 
                 var (indexData, paletteData) = transcoder.Encode(image);
-                newImage = (Bitmap)transcoder.Decode(indexData, paletteData);
+                newImage = (Bitmap)transcoder.Decode(indexData, paletteData, _imageState.Images[imageIndex].ImageSize);
 
-                // If old image was not an indexed image info
-                var indexInfo = _imageState.Images[imageIndex] as IndexImageInfo;
-                if (indexInfo == null)
+                if (replaceImageInfo)
                 {
-                    // Convert it to an indexed image info
-                    indexInfo = _imageState.ConvertToIndexImageInfo(
-                        _imageState.Images[imageIndex], newPaletteFormat, paletteData);
-                    _imageState.Images[imageIndex] = indexInfo;
-                }
+                    // If old image was not an indexed image info
+                    var indexInfo = _imageState.Images[imageIndex] as IndexImageInfo;
+                    if (indexInfo == null)
+                    {
+                        // Convert it to an indexed image info
+                        indexInfo = _imageState.ConvertToIndexImageInfo(
+                            _imageState.Images[imageIndex], newPaletteFormat, paletteData);
+                        _imageState.Images[imageIndex] = indexInfo;
+                    }
 
-                // And set its image properties
-                indexInfo.ImageFormat = newImageFormat;
-                indexInfo.ImageData = indexData;
-                indexInfo.ImageSize = image.Size;
-                indexInfo.PaletteFormat = newPaletteFormat;
-                indexInfo.PaletteData = paletteData;
+                    // And set its image properties
+                    indexInfo.ImageFormat = newImageFormat;
+                    indexInfo.ImageData = indexData;
+                    indexInfo.ImageSize = image.Size;
+                    indexInfo.PaletteFormat = newPaletteFormat;
+                    indexInfo.PaletteData = paletteData;
+                }
             }
 
             return newImage;
@@ -275,7 +304,12 @@ namespace Kuriimu2.WinForms.FormatForms
             var tsb = (ToolStripMenuItem)sender;
 
             var newImageFormat = (int)tsb.Tag;
-            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, newImageFormat, SelectedPaletteFormat);
+            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, newImageFormat, SelectedPaletteFormat, true);
+
+            if (SelectedImageInfo is IndexImageInfo)
+                _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo);
+            else
+                _imagePalettes[_selectedImageIndex] = null;
 
             UpdateForm();
             UpdateImageList();
@@ -287,7 +321,12 @@ namespace Kuriimu2.WinForms.FormatForms
             var tsb = (ToolStripMenuItem)sender;
 
             var newPaletteFormat = (int)tsb.Tag;
-            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, SelectedImageFormat, newPaletteFormat);
+            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, SelectedImageFormat, newPaletteFormat, true);
+
+            if (SelectedImageInfo is IndexImageInfo)
+                _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo);
+            else
+                _imagePalettes[_selectedImageIndex] = null;
 
             UpdateForm();
             UpdateImageList();
@@ -536,7 +575,12 @@ namespace Kuriimu2.WinForms.FormatForms
             try
             {
                 _bestImages[_selectedImageIndex] = new Bitmap(filePath.FullName);
-                _images[_selectedImageIndex] = Transcode(_selectedImageIndex, SelectedImageFormat, SelectedPaletteFormat);
+                _images[_selectedImageIndex] = Transcode(_selectedImageIndex, SelectedImageFormat, SelectedPaletteFormat, true);
+
+                if (SelectedImageInfo is IndexImageInfo)
+                    _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo);
+                else
+                    _imagePalettes[_selectedImageIndex] = null;
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -628,8 +672,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
                 // PaletteData Picture Box
                 var dimPalette = (int)Math.Ceiling(Math.Sqrt(indexedInfo.ColorCount));
-                var paletteImg = _imageState.SupportedPaletteEncodings[indexedInfo.PaletteFormat]
-                    .Load(indexedInfo.PaletteData)
+                var paletteImg = _imagePalettes[_selectedImageIndex]
                     .ToBitmap(new Size(dimPalette, dimPalette));
                 if (paletteImg != null)
                     pbPalette.Image = paletteImg;
@@ -760,18 +803,15 @@ namespace Kuriimu2.WinForms.FormatForms
                 return;
             }
 
-            IList<Color> palette;
             IList<int> indices;
             try
             {
-                palette = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                    .Load(indexInfo.PaletteData)
-                    .ToArray();
-                indices = _images[_selectedImageIndex].ToIndices(palette).ToList();
+                indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
-                palette[index] = setColor;
+                _imagePalettes[_selectedImageIndex][index] = setColor;
 
-                indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Save(palette);
+                indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
+                    .Save(_imagePalettes[_selectedImageIndex]);
             }
             catch (Exception ex)
             {
@@ -781,7 +821,8 @@ namespace Kuriimu2.WinForms.FormatForms
             }
 
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
-            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] = indices.ToBitmap(palette, SelectedImageInfo.ImageSize);
+            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
+                indices.ToBitmap(_imagePalettes[_selectedImageIndex], SelectedImageInfo.ImageSize);
 
             UpdateForm();
             UpdatePreview();
@@ -806,18 +847,14 @@ namespace Kuriimu2.WinForms.FormatForms
                 return;
             }
 
-            IList<Color> palette;
             IList<int> indices;
             try
             {
-                palette = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                    .Load(indexInfo.PaletteData)
-                    .ToArray();
-                indices = _images[_selectedImageIndex].ToIndices(palette).ToList();
+                indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
                 indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
-                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Save(indices, palette);
+                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Save(indices, _imagePalettes[_selectedImageIndex]);
             }
             catch (Exception ex)
             {
@@ -827,7 +864,8 @@ namespace Kuriimu2.WinForms.FormatForms
             }
 
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
-            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] = indices.ToBitmap(palette, SelectedImageInfo.ImageSize);
+            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
+                indices.ToBitmap(_imagePalettes[_selectedImageIndex], SelectedImageInfo.ImageSize);
 
             UpdateForm();
             UpdatePreview();
@@ -868,12 +906,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
             var pixelColor = _images[_selectedImageIndex].GetPixel(pointInImg.X, pointInImg.Y);
 
-            var indexInfo = SelectedImageInfo as IndexImageInfo;
-            var palette = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                .Load(indexInfo.PaletteData)
-                .ToList();
-
-            return palette.IndexOf(pixelColor);
+            return _imagePalettes[_selectedImageIndex].IndexOf(pixelColor);
         }
 
         private void ImportPalette()
@@ -888,16 +921,13 @@ namespace Kuriimu2.WinForms.FormatForms
             DisablePaletteControls();
             DisableImageControls();
 
-            IList<Color> palette;
             IList<int> indices;
             try
             {
                 var paletteEncoding = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat];
-                palette = paletteEncoding
-                    .Load(indexInfo.PaletteData)
-                    .ToArray();
-                indices = _images[_selectedImageIndex].ToIndices(palette).ToList();
+                indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
+                _imagePalettes[_selectedImageIndex] = colors;
                 indexInfo.PaletteData = paletteEncoding.Save(colors);
             }
             catch (Exception ex)
@@ -908,7 +938,8 @@ namespace Kuriimu2.WinForms.FormatForms
             }
 
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
-            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] = indices.ToBitmap(palette, SelectedImageInfo.ImageSize);
+            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
+                indices.ToBitmap(colors, SelectedImageInfo.ImageSize);
 
             UpdateForm();
             UpdatePreview();
@@ -964,14 +995,10 @@ namespace Kuriimu2.WinForms.FormatForms
 
         private void ExportPalette()
         {
-            if (!(SelectedImageInfo is IndexImageInfo indexInfo))
+            if (!(SelectedImageInfo is IndexImageInfo))
                 return;
 
-            var palette = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                .Load(indexInfo.PaletteData)
-                .ToArray();
-
-            SavePaletteFile(palette);
+            SavePaletteFile(_imagePalettes[_selectedImageIndex]);
         }
 
         private void SavePaletteFile(IList<Color> colors)
