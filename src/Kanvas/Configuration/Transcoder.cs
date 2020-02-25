@@ -10,6 +10,8 @@ namespace Kanvas.Configuration
 {
     class Transcoder : IColorTranscoder, IIndexTranscoder
     {
+        private readonly int _taskCount;
+
         private CreatePixelRemapper _swizzle;
 
         private CreateColorIndexEncoding _indexEncoding;
@@ -19,7 +21,7 @@ namespace Kanvas.Configuration
         private CreateColorEncoding _colorEncoding;
 
         public Transcoder(CreateColorIndexEncoding indexEncoding, CreatePaletteEncoding paletteEncoding,
-            CreatePixelRemapper swizzle, IQuantizer quantizer)
+            CreatePixelRemapper swizzle, IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
             ContractAssertions.IsNotNull(paletteEncoding, nameof(paletteEncoding));
@@ -29,16 +31,20 @@ namespace Kanvas.Configuration
             _paletteEncoding = paletteEncoding;
             _swizzle = swizzle;
             _quantizer = quantizer;
+
+            _taskCount = taskCount;
         }
 
         public Transcoder(CreateColorEncoding colorEncoding, CreatePixelRemapper swizzle,
-            IQuantizer quantizer)
+            IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
 
             _colorEncoding = colorEncoding;
             _swizzle = swizzle;
             _quantizer = quantizer;
+
+            _taskCount = taskCount;
         }
 
         public Image Decode(byte[] data, Size imageSize) =>
@@ -49,7 +55,7 @@ namespace Kanvas.Configuration
             // Load colors
             // TODO: Size is currently only used for block compression with native libs,
             // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
-            var colors = _colorEncoding(imageSize).Load(data);
+            var colors = _colorEncoding(imageSize).Load(data, _taskCount);
 
             // Compose image
             var size = paddedSize.IsEmpty ? imageSize : paddedSize;
@@ -62,7 +68,7 @@ namespace Kanvas.Configuration
         public Image Decode(byte[] data, byte[] paletteData, Size imageSize, Size paddedSize)
         {
             // Load palette indexColors
-            var palette = _paletteEncoding().Load(paletteData).ToList();
+            var palette = _paletteEncoding().Load(paletteData, _taskCount).ToList();
 
             // Load image indexColors
             // TODO: Size is currently only used for block compression with native libs,
@@ -100,7 +106,7 @@ namespace Kanvas.Configuration
 
             // Save color data
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;
-            return _colorEncoding(size).Save(colors);
+            return _colorEncoding(size).Save(colors, _taskCount);
         }
 
         (byte[] indexData, byte[] paletteData) IIndexTranscoder.Encode(Bitmap image) =>
@@ -115,7 +121,7 @@ namespace Kanvas.Configuration
             var (indices, palette) = QuantizeImage(image, paddedSize);
 
             // Save palette indexColors
-            var paletteData = _paletteEncoding().Save(palette);
+            var paletteData = _paletteEncoding().Save(palette, _taskCount);
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;

@@ -20,19 +20,16 @@ namespace Kanvas.Encoding
 
         public override int BitDepth { get; }
 
-        public override int BlockBitDepth { get; }
-
         public override string FormatName { get; }
 
-        public ETC1(bool useAlpha, bool useZOrder, ByteOrder byteOrder, int taskCount) : base(byteOrder, taskCount)
+        public ETC1(bool useAlpha, bool useZOrder, ByteOrder byteOrder) : base(byteOrder)
         {
             _useAlpha = useAlpha;
             _transcoder = new Etc1Transcoder(useZOrder);
 
             ColorsInBlock = 16;
 
-            BitDepth = useAlpha ? 8 : 4;
-            BlockBitDepth = useAlpha ? 128 : 64;
+            BitDepth = useAlpha ? 128 : 64;
 
             FormatName = "ETC1" + (useAlpha ? "A4" : "");
         }

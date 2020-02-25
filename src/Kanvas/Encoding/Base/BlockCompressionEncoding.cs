@@ -12,29 +12,23 @@ namespace Kanvas.Encoding.Base
     public abstract class BlockCompressionEncoding : IColorEncoding
     {
         private readonly ByteOrder _byteOrder;
-        private readonly int _taskCount;
 
         protected abstract int ColorsInBlock { get; }
 
         public abstract int BitDepth { get; }
 
-        public abstract int BlockBitDepth { get; }
-
         public abstract string FormatName { get; }
 
-        public bool IsBlockCompression => true;
-
-        protected BlockCompressionEncoding(ByteOrder byteOrder, int taskCount)
+        protected BlockCompressionEncoding(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
-            _taskCount = taskCount;
         }
 
-        public IEnumerable<Color> Load(byte[] input)
+        public IEnumerable<Color> Load(byte[] input, int taskCount)
         {
             var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
-            var blockByteDepth = BlockBitDepth / 8;
+            var blockByteDepth = BitDepth / 8;
             var blocks = (int)br.BaseStream.Length / blockByteDepth;
 
             return Enumerable.Range(0, blocks)
@@ -47,7 +41,7 @@ namespace Kanvas.Encoding.Base
             //    .SelectMany(x => DecodeNextBlock(br));
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             var ms = new MemoryStream();
             using (var bw = new BinaryWriterX(ms, true, _byteOrder))

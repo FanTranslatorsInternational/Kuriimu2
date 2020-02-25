@@ -81,7 +81,7 @@ namespace Kanvas.Configuration
 
             var quantizer = BuildQuantizer();
 
-            return new Transcoder(_indexFunc, _paletteFunc, _swizzleFunc, quantizer);
+            return new Transcoder(_indexFunc, _paletteFunc, _swizzleFunc, quantizer, _taskCount);
         }
 
         IColorTranscoder IColorConfiguration.Build()
@@ -92,7 +92,7 @@ namespace Kanvas.Configuration
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationAction == null ? null : BuildQuantizer();
 
-            return new Transcoder(_colorFunc, _swizzleFunc, quantizer);
+            return new Transcoder(_colorFunc, _swizzleFunc, quantizer, _taskCount);
         }
 
         IQuantizer BuildQuantizer()

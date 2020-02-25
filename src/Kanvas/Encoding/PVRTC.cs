@@ -19,28 +19,21 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
 
-        /// <summary>
-        /// The number of bits one block contains of.
-        /// </summary>
-        public int BlockBitDepth { get; }
-
         /// <inheritdoc cref="IColorEncoding.FormatName"/>
         public string FormatName { get; }
 
-        /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
-        public bool IsBlockCompression => true;
-
         public PVRTC(PvrtcFormat format, int width, int height)
         {
-            BitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 2 : 4;
-            BlockBitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 32 : 64;
+            BitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 32 : 64;
 
             _format = format;
+            _width = width;
+            _height = height;
 
             FormatName = format.ToString();
         }
 
-        public IEnumerable<Color> Load(byte[] tex)
+        public IEnumerable<Color> Load(byte[] tex,int taskCount)
         {
             var pvrtcTex = PVRTexture.CreateTexture(tex, (uint)_width, (uint)_height, 1, (PixelFormat)_format, false, VariableType.UnsignedByte, ColorSpace.lRGB);
 
@@ -62,7 +55,7 @@ namespace Kanvas.Encoding
             }
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             var ms = new MemoryStream();
             using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))

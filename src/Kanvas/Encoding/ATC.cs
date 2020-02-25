@@ -20,19 +20,16 @@ namespace Kanvas.Encoding
 
         public override int BitDepth { get; }
 
-        public override int BlockBitDepth { get; }
-
         public override string FormatName { get; }
 
-        public ATC(AtcFormat format, ByteOrder byteOrder, int taskCount) : base(byteOrder, taskCount)
+        public ATC(AtcFormat format, ByteOrder byteOrder) : base(byteOrder)
         {
             _transcoder = new AtcTranscoder(format);
             _hasSecondBlock = HasSecondBlock(format);
 
             ColorsInBlock = 16;
 
-            BitDepth = _hasSecondBlock ? 8 : 4;
-            BlockBitDepth = _hasSecondBlock ? 128 : 64;
+            BitDepth = _hasSecondBlock ? 128 : 64;
 
             FormatName = format.ToString();
         }

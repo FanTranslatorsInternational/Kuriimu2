@@ -9,22 +9,9 @@ namespace Kontract.Kanvas
     public interface IColorEncoding
     {
         /// <summary>
-        /// The number of bits one pixel takes in the format specification.
+        /// The number of bits one pixel or block takes in the format specification.
         /// </summary>
-        /// <remarks>Known as bits per pixel (bpp).</remarks>
         int BitDepth { get; }
-
-        /// <summary>
-        /// The number of bits one block takes in the block compression specification.
-        /// </summary>
-        /// <remarks>If encoding is no block compression, equals <see cref="BitDepth"/>.</remarks>
-        int BlockBitDepth { get; }
-
-        // TODO: Remove BlockCompression indicator?
-        /// <summary>
-        /// Defines if an encoding is a block compression.
-        /// </summary>
-        bool IsBlockCompression { get; }
 
         /// <summary>
         /// The name to display for this encoding.
@@ -35,14 +22,16 @@ namespace Kontract.Kanvas
         /// Decodes image data to a list of colors.
         /// </summary>
         /// <param name="input">Image data to decode.</param>
+        /// <param name="taskCount">The number of tasks to use.</param>
         /// <returns>Decoded list of colors.</returns>
-        IEnumerable<Color> Load(byte[] input);
+        IEnumerable<Color> Load(byte[] input, int taskCount);
 
         /// <summary>
         /// Encodes a list of colors.
         /// </summary>
         /// <param name="colors">List of colors to encode.</param>
+        /// <param name="taskCount">The number of tasks to use.</param>
         /// <returns>Encoded data.</returns>
-        byte[] Save(IEnumerable<Color> colors);
+        byte[] Save(IEnumerable<Color> colors,int taskCount);
     }
 }

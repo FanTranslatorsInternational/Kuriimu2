@@ -65,7 +65,7 @@ namespace Kanvas.Encoding
                 throw new InvalidDataException($"Block mode {FormatName} is not supported.");
         }
 
-        public IEnumerable<Color> Load(byte[] tex)
+        public IEnumerable<Color> Load(byte[] tex, int taskCount)
         {
             // TODO: Use block compression base class
 
@@ -114,7 +114,7 @@ namespace Kanvas.Encoding
             astc.Close();
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             if (Width <= 0 || Height <= 0)
                 throw new InvalidDataException("Height and Width has to be set for ASTC.");

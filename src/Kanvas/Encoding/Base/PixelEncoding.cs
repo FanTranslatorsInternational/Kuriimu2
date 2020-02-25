@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
+using Kontract;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
@@ -18,39 +20,50 @@ namespace Kanvas.Encoding.Base
 
         public int BitDepth { get; }
 
-        public int BlockBitDepth { get; }
-
-        public bool IsBlockCompression => false;
-
         public string FormatName { get; }
 
         protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
-            _descriptor = pixelDescriptor;
+            ContractAssertions.IsNotNull(pixelDescriptor, nameof(pixelDescriptor));
 
-            BitDepth = BlockBitDepth = pixelDescriptor.GetBitDepth();
+            _descriptor = pixelDescriptor;
+            _byteOrder = byteOrder;
+
+            BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
 
             SetValueDelegates(BitDepth);
         }
 
-        public IEnumerable<Color> Load(byte[] input)
+        public IEnumerable<Color> Load(byte[] input, int taskCount)
         {
-            using var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
+            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
-            while (br.BaseStream.Position < br.BaseStream.Length)
-                yield return _descriptor.GetColor(_readValueDelegate(br));
+            return ReadValues(br).AsParallel().AsOrdered()
+                .WithDegreeOfParallelism(taskCount)
+                .Select(_descriptor.GetColor);
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder);
 
-            foreach (var color in colors)
-                _writeValueDelegate(bw, _descriptor.GetValue(color));
+            // Collect encoded values
+            var values = colors.AsParallel().AsOrdered()
+                .WithDegreeOfParallelism(taskCount)
+                .Select(_descriptor.GetValue);
+
+            foreach (var value in values)
+                _writeValueDelegate(bw, value);
 
             return ms.ToArray();
+        }
+
+        private IEnumerable<long> ReadValues(BinaryReaderX br)
+        {
+            while (br.BaseStream.Position < br.BaseStream.Length)
+                yield return _readValueDelegate(br);
         }
 
         private void SetValueDelegates(int bitDepth)
