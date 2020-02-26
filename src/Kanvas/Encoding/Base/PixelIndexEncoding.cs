@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
@@ -10,7 +11,7 @@ namespace Kanvas.Encoding.Base
 {
     public abstract class PixelIndexEncoding : IColorIndexEncoding
     {
-        private readonly IPixelIndexDescriptor _indexDescriptor;
+        private readonly IPixelIndexDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
 
         private Func<BinaryReaderX, long> _readValueDelegate;
@@ -18,37 +19,46 @@ namespace Kanvas.Encoding.Base
 
         public int BitDepth { get; }
 
-        public bool IsBlockCompression => false;
-
         public string FormatName { get; }
 
-        protected PixelIndexEncoding(IPixelIndexDescriptor pixelIndexDescriptor, ByteOrder byteOrder)
+        protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
-            _indexDescriptor = pixelIndexDescriptor;
+            _descriptor = pixelDescriptor;
 
-            BitDepth = pixelIndexDescriptor.GetBitDepth();
-            FormatName = pixelIndexDescriptor.GetPixelName();
+            BitDepth = pixelDescriptor.GetBitDepth();
+            FormatName = pixelDescriptor.GetPixelName();
 
             SetValueDelegates(BitDepth);
         }
 
-        public IEnumerable<Color> Load(byte[] input, IList<Color> palette)
+        public IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount)
         {
-            using var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
+            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
-            while (br.BaseStream.Position < br.BaseStream.Length)
-                yield return _indexDescriptor.GetColor(_readValueDelegate(br), palette);
+            return ReadValues(br).AsParallel().AsOrdered()
+                .WithDegreeOfParallelism(taskCount)
+                .Select(c => _descriptor.GetColor(c, palette));
         }
 
-        public byte[] Save(IEnumerable<int> indices, IList<Color> palette)
+        public byte[] Save(IEnumerable<int> indices, IList<Color> palette, int taskCount)
         {
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder);
 
-            foreach (var index in indices)
-                _writeValueDelegate(bw, _indexDescriptor.GetValue(index, palette));
+            var values = indices.AsParallel().AsOrdered()
+                .WithDegreeOfParallelism(taskCount)
+                .Select(i => _descriptor.GetValue(i, palette));
+
+            foreach (var value in values)
+                _writeValueDelegate(bw, value);
 
             return ms.ToArray();
+        }
+
+        private IEnumerable<long> ReadValues(BinaryReaderX br)
+        {
+            while (br.BaseStream.Position < br.BaseStream.Length)
+                yield return _readValueDelegate(br);
         }
 
         private void SetValueDelegates(int bitDepth)

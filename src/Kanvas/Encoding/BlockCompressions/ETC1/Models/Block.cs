@@ -3,7 +3,7 @@
 namespace Kanvas.Encoding.BlockCompressions.ETC1.Models
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    internal struct Block
+    public struct Block
     {
         public ushort LSB { get; set; }
         public ushort MSB { get; set; }

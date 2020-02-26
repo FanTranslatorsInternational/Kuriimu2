@@ -17,29 +17,19 @@ namespace Kanvas.Encoding.BlockCompressions
             _zOrdered = zOrdered;
         }
 
-        public IEnumerable<Color> DecodeBlocks(ulong colorData, ulong alphaData)
+        public IEnumerable<Color> DecodeBlocks(Etc1PixelData data)
         {
-            var etc1Block = new Block
-            {
-                LSB = (ushort)(colorData & 0xFFFF),
-                MSB = (ushort)((colorData >> 16) & 0xFFFF),
-                Flags = (byte)((colorData >> 32) & 0xFF),
-                B = (byte)((colorData >> 40) & 0xFF),
-                G = (byte)((colorData >> 48) & 0xFF),
-                R = (byte)((colorData >> 56) & 0xFF)
-            };
+            var basec0 = data.Block.Color0.Scale(data.Block.ColorDepth);
+            var basec1 = data.Block.Color1.Scale(data.Block.ColorDepth);
 
-            var basec0 = etc1Block.Color0.Scale(etc1Block.ColorDepth);
-            var basec1 = etc1Block.Color1.Scale(etc1Block.ColorDepth);
-
-            int flipbitmask = etc1Block.FlipBit ? 2 : 8;
+            var flipbitmask = data.Block.FlipBit ? 2 : 8;
             foreach (var i in _zOrdered ? Constants.ZOrder : Constants.NormalOrder)
             {
                 var basec = (i & flipbitmask) == 0 ? basec0 : basec1;
-                var mod = Constants.Modifiers[(i & flipbitmask) == 0 ? etc1Block.Table0 : etc1Block.Table1];
-                var c = basec + mod[etc1Block[i]];
+                var mod = Constants.Modifiers[(i & flipbitmask) == 0 ? data.Block.Table0 : data.Block.Table1];
+                var c = basec + mod[data.Block[i]];
 
-                yield return Color.FromArgb((int)((alphaData >> (4 * i)) % 16 * 17), c.R, c.G, c.B);
+                yield return Color.FromArgb((int)((data.Alpha >> (4 * i)) % 16 * 17), c.R, c.G, c.B);
             }
         }
 

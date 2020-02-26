@@ -24,8 +24,8 @@ namespace Kanvas.Encoding.BlockCompressions.ATC
             var data = BC1BlockEncoder.Instance.LoadBlock(colors);
             var outColor = BC1BlockEncoder.Instance.Encode(data).PackedValue;
 
-            // ATC specific modifications to BC1
-            // According to http://www.guildsoftware.com/papers/2012.Converting.DXTC.to.ATC.pdf
+            // Atc specific modifications to BC1
+            // According to http://www.guildsoftware.com/papers/2012.Converting.DXTC.to.Atc.pdf
 
             // Change color0 from rgb565 to rgb555 with method 0
             outColor = (outColor & ~0xFFFFUL) | FromRgb565ToRgb555((ushort)outColor);

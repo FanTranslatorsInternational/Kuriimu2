@@ -15,11 +15,6 @@ namespace Kontract.Kanvas
         int BitDepth { get; }
 
         /// <summary>
-        /// Defines if an encoding is a block compression.
-        /// </summary>
-        bool IsBlockCompression { get; }
-
-        /// <summary>
         /// The name to display for this encoding.
         /// </summary>
         string FormatName { get; }
@@ -29,13 +24,13 @@ namespace Kontract.Kanvas
         /// </summary>
         /// <param name="input">Image data to decode.</param>
         /// <returns>Decoded list of colors.</returns>
-        IEnumerable<Color> Load(byte[] input, IList<Color> palette);
+        IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount);
 
         /// <summary>
         /// Encodes a list of colors.
         /// </summary>
         /// <param name="colors">List of colors to encode.</param>
         /// <returns>Encoded data and palette.</returns>
-        byte[] Save(IEnumerable<int> indeces, IList<Color> palette);
+        byte[] Save(IEnumerable<int> indeces, IList<Color> palette, int taskCount);
     }
 }

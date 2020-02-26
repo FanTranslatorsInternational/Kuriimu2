@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Encoding.BlockCompressions.ATC.Models
 {
-    class AtcBlockData
+    public class AtcBlockData
     {
         public ulong Block1 { get; set; }
 

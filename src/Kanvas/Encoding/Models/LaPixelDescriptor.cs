@@ -128,7 +128,7 @@ namespace Kanvas.Encoding.Models
             // Depth lookup table holds depth of components in order of reading
             _depthTable = new int[2];
 
-            // Depth index table holds index into depth table in order LA
+            // Depth index table holds index into depth table in order La
             _componentIndexTable = new int[2];
 
             // Shift lookup table holds the shift Values for each depth in order of reading

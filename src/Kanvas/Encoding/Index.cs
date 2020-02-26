@@ -12,9 +12,23 @@ namespace Kanvas.Encoding
         /// <summary>
         /// Creates a new instance of <see cref="Index"/>.
         /// </summary>
-        /// <param name="indexDepth">Depth of the index component.</param>
-        public Index(int indexDepth, int alphaDepth, string componentOrder = "IA", ByteOrder byteOrder = ByteOrder.LittleEndian) :
-            base(new IndexPixelDescriptor(componentOrder, indexDepth, alphaDepth), byteOrder)
+        /// <param name="i">Value of the index component.</param>
+        /// <param name="componentOrder">The order of the components.</param>
+        /// <param name="byteOrder">The byte order in which atomic values are read.</param>
+        public Index(int i, string componentOrder = "IA", ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            this(i, 0, componentOrder, byteOrder)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="Index"/>.
+        /// </summary>
+        /// <param name="i">Value of the index component.</param>
+        /// <param name="a">Value of the alpha component.</param>
+        /// <param name="componentOrder">The order of the components.</param>
+        /// <param name="byteOrder">The byte order in which atomic values are read.</param>
+        public Index(int i, int a, string componentOrder = "IA", ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            base(new IndexPixelDescriptor(componentOrder, i, a), byteOrder)
         {
         }
     }

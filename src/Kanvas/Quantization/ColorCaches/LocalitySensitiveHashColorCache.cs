@@ -12,7 +12,7 @@ namespace Kanvas.Quantization.ColorCaches
         private const byte DefaultQuality = 16;
         private const long MaximalDistance = 4096;
         private const float NormalizedDistanceRgb = 1.0f / 196608.0f; // 256*256*3 (RGB) = 196608 / 768.0f
-        private const float NormalizedDistanceRgba = 1.0f / 262144.0f; // 256*256*4 (RGBA) = 262144 / 1024.0f
+        private const float NormalizedDistanceRgba = 1.0f / 262144.0f; // 256*256*4 (Rgba) = 262144 / 1024.0f
         private const float NormalizedDistanceHsl = 1.0f / 260672.0f; // 360*360 (H) + 256*256*2 (SL) = 260672 / 872.0f
         private const float NormalizedDistanceLab = 1.0f / 507.0f; // 13*13*3 = 507 / 300.0f
 

@@ -87,7 +87,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
             _images = imageState.Images?.Select(CreateImage).ToArray() ?? Array.Empty<Bitmap>();
             _imagePalettes = imageState.Images?.Select(CreatePalette).ToArray() ?? Array.Empty<IList<Color>>();
-            _bestImages = _images.Select(x => (Bitmap) x.Clone()).ToArray();
+            _bestImages = _images.Select(x => (Bitmap)x.Clone()).ToArray();
 
             imbPreview.Image = _images.FirstOrDefault();
 
@@ -140,7 +140,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (!(imageInfo is IndexImageInfo indexInfo))
                 return null;
 
-            return _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData).ToArray();
+            return _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData, Environment.ProcessorCount).ToArray();
         }
 
         /// <summary>
@@ -811,7 +811,7 @@ namespace Kuriimu2.WinForms.FormatForms
                 _imagePalettes[_selectedImageIndex][index] = setColor;
 
                 indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                    .Save(_imagePalettes[_selectedImageIndex]);
+                    .Save(_imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
             }
             catch (Exception ex)
             {
@@ -854,7 +854,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
                 indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
-                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Save(indices, _imagePalettes[_selectedImageIndex]);
+                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Save(indices, _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
             }
             catch (Exception ex)
             {
@@ -928,7 +928,7 @@ namespace Kuriimu2.WinForms.FormatForms
                 indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
                 _imagePalettes[_selectedImageIndex] = colors;
-                indexInfo.PaletteData = paletteEncoding.Save(colors);
+                indexInfo.PaletteData = paletteEncoding.Save(colors, Environment.ProcessorCount);
             }
             catch (Exception ex)
             {

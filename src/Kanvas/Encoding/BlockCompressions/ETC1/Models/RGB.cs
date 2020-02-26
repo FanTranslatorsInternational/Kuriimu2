@@ -5,7 +5,7 @@ using System.Linq;
 namespace Kanvas.Encoding.BlockCompressions.ETC1.Models
 {
     [DebuggerDisplay("{R},{G},{B}")]
-    internal struct RGB
+    public struct RGB
     {
         public byte R { get; }
         public byte G { get; }

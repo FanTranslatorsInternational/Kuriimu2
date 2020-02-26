@@ -17,22 +17,22 @@ namespace Kanvas.Encoding.BlockCompressions.ATC
             _format = format;
         }
 
-        public IEnumerable<Color> DecodeBlocks(ulong block1, ulong block2)
+        public IEnumerable<Color> DecodeBlocks(AtcBlockData block)
         {
             switch (_format)
             {
                 case AtcFormat.ATC:
-                    return AtcBlockDecoder.Instance.Process(block1);
+                    return AtcBlockDecoder.Instance.Process(block.Block1);
 
                 case AtcFormat.ATCA_Exp:
-                    var alphas = BC2AlphaBlockDecoder.Instance.Process(block1);
-                    var colors = AtcBlockDecoder.Instance.Process(block2);
+                    var alphas = BC2AlphaBlockDecoder.Instance.Process(block.Block1);
+                    var colors = AtcBlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(alphas, colors).Select(c => Color.FromArgb(c.First, c.Second));
 
                 case AtcFormat.ATCA_Int:
-                    var alphas1 = BC4BlockDecoder.Instance.Process(block1);
-                    var colors1 = AtcBlockDecoder.Instance.Process(block2);
+                    var alphas1 = BC4BlockDecoder.Instance.Process(block.Block1);
+                    var colors1 = AtcBlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(alphas1, colors1).Select(c => Color.FromArgb(c.First, c.Second));
             }

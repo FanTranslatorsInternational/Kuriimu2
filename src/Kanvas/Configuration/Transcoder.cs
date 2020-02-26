@@ -74,7 +74,7 @@ namespace Kanvas.Configuration
             // TODO: Size is currently only used for block compression with native libs,
             // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
             // Yes, this even applies for index encodings, just in case
-            var colors = _indexEncoding(imageSize).Load(data, palette);
+            var colors = _indexEncoding(imageSize).Load(data, palette, _taskCount);
 
             // Compose image
             var size = paddedSize.IsEmpty ? imageSize : paddedSize;
@@ -125,7 +125,7 @@ namespace Kanvas.Configuration
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;
-            var indexData = _indexEncoding(size).Save(indices, palette);
+            var indexData = _indexEncoding(size).Save(indices, palette, _taskCount);
 
             return (indexData, paletteData);
         }

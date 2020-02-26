@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using Kanvas.Encoding.Base;
 using Kanvas.Encoding.BlockCompressions;
 using Kanvas.Encoding.BlockCompressions.BCn.Models;
@@ -8,43 +9,53 @@ using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
-    public class BC : BlockCompressionEncoding
+    public class Bc : BlockCompressionEncoding<BcPixelData>
     {
         private readonly BcTranscoder _transcoder;
         private readonly bool _hasSecondBlock;
 
-        protected override int ColorsInBlock { get; }
+        protected override int ColorsInBlock => 16;
 
         public override int BitDepth { get; }
 
         public override string FormatName { get; }
 
-        public BC(BcFormat format, ByteOrder byteOrder) : base(byteOrder)
+        public Bc(BcFormat format, ByteOrder byteOrder = ByteOrder.LittleEndian) : base(byteOrder)
         {
             _transcoder = new BcTranscoder(format);
             _hasSecondBlock = HasSecondBlock(format);
-
-            ColorsInBlock = 16;
 
             BitDepth = _hasSecondBlock ? 128 : 64;
 
             FormatName = format.ToString();
         }
 
-        protected override IEnumerable<Color> DecodeNextBlock(BinaryReaderX br)
+        protected override BcPixelData ReadNextBlock(BinaryReaderX br)
         {
             var block1 = br.ReadUInt64();
             var block2 = _hasSecondBlock ? br.ReadUInt64() : ulong.MaxValue;
 
-            return _transcoder.DecodeBlocks(block1, block2);
+            return new BcPixelData
+            {
+                Block1 = block1,
+                Block2 = block2
+            };
         }
 
-        protected override void EncodeNextBlock(BinaryWriterX bw, IList<Color> colors)
+        protected override void WriteNextBlock(BinaryWriterX bw, BcPixelData block)
         {
-            var pixelData = _transcoder.EncodeColors(colors);
+            bw.Write(block.Block1);
+            if (_hasSecondBlock) bw.Write(block.Block2);
+        }
 
-            bw.Write(pixelData.Block1);
-            if (_hasSecondBlock) bw.Write(pixelData.Block2);
+        protected override IList<Color> DecodeNextBlock(BcPixelData block)
+        {
+            return _transcoder.DecodeBlocks(block).ToList();
+        }
+
+        protected override BcPixelData EncodeNextBlock(IList<Color> colors)
+        {
+            return _transcoder.EncodeColors(colors);
         }
 
         private bool HasSecondBlock(BcFormat format)

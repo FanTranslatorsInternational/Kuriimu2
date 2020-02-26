@@ -16,49 +16,49 @@ namespace Kanvas.Encoding.BlockCompressions
             _format = format;
         }
 
-        public IEnumerable<Color> DecodeBlocks(ulong block1, ulong block2)
+        public IEnumerable<Color> DecodeBlocks(BcPixelData block)
         {
             switch (_format)
             {
                 case BcFormat.BC1:
-                    return BC1BlockDecoder.Instance.Process(block1);
+                    return BC1BlockDecoder.Instance.Process(block.Block1);
 
                 case BcFormat.BC2:
-                    var alphas = BC2AlphaBlockDecoder.Instance.Process(block1);
-                    var colors = BC1BlockDecoder.Instance.Process(block2);
+                    var alphas = BC2AlphaBlockDecoder.Instance.Process(block.Block1);
+                    var colors = BC1BlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(alphas, colors).Select(c => Color.FromArgb(c.First, c.Second));
 
                 case BcFormat.BC3:
-                    var alphas1 = BC4BlockDecoder.Instance.Process(block1);
-                    var colors1 = BC1BlockDecoder.Instance.Process(block2);
+                    var alphas1 = BC4BlockDecoder.Instance.Process(block.Block1);
+                    var colors1 = BC1BlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(alphas1, colors1).Select(c => Color.FromArgb(c.First, c.Second));
 
                 case BcFormat.BC4:
-                    var reds = BC4BlockDecoder.Instance.Process(block1);
+                    var reds = BC4BlockDecoder.Instance.Process(block.Block1);
 
                     return reds.Select(r => Color.FromArgb(r, 0, 0));
 
                 case BcFormat.BC5:
-                    var reds1 = BC4BlockDecoder.Instance.Process(block1);
-                    var greens = BC4BlockDecoder.Instance.Process(block2);
+                    var reds1 = BC4BlockDecoder.Instance.Process(block.Block1);
+                    var greens = BC4BlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(reds1, greens).Select(c => Color.FromArgb(c.First, c.Second, 0));
 
                 case BcFormat.ATI1A_WiiU:
-                    var alphas2 = BC4BlockDecoder.Instance.Process(block1);
+                    var alphas2 = BC4BlockDecoder.Instance.Process(block.Block1);
 
                     return alphas2.Select(a => Color.FromArgb(a, 0, 0, 0));
 
                 case BcFormat.ATI1L_WiiU:
-                    var lums = BC4BlockDecoder.Instance.Process(block1);
+                    var lums = BC4BlockDecoder.Instance.Process(block.Block1);
 
                     return lums.Select(l => Color.FromArgb(l, l, l));
 
                 case BcFormat.ATI2_WiiU:
-                    var lums1 = BC4BlockDecoder.Instance.Process(block1);
-                    var alphas3 = BC4BlockDecoder.Instance.Process(block2);
+                    var lums1 = BC4BlockDecoder.Instance.Process(block.Block1);
+                    var alphas3 = BC4BlockDecoder.Instance.Process(block.Block2);
 
                     return Zip(lums1, alphas3).Select(c => Color.FromArgb(c.Second, c.First, c.First, c.First));
             }

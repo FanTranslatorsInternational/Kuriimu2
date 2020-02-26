@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Kanvas.Encoding.BlockCompressions.BCn.Models
 {
-    class BcPixelData
+    public class BcPixelData
     {
         public ulong Block1 { get; set; }
 

@@ -49,7 +49,6 @@ namespace Kanvas.Encoding.Base
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder);
 
-            // Collect encoded values
             var values = colors.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
                 .Select(_descriptor.GetValue);
@@ -68,7 +67,7 @@ namespace Kanvas.Encoding.Base
 
         private void SetValueDelegates(int bitDepth)
         {
-            var bytesToRead = bitDepth / 8 + (bitDepth % 8 > 0 ? 1 : 0);
+            var bytesToRead = (bitDepth + 7) / 8;
 
             if (bitDepth == 4)
             {
