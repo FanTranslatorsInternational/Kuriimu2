@@ -5,6 +5,9 @@
     /// </summary>
     public class IndexImageInfo : ImageInfo
     {
+        /// <inheritdoc />
+        public override bool IsIndexed => true;
+
         /// <summary>
         /// The paletteData of the main image.
         /// </summary>

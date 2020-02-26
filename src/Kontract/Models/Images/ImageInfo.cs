@@ -10,6 +10,11 @@ namespace Kontract.Models.Images
     public class ImageInfo
     {
         /// <summary>
+        /// If the value image info contains an indexed image format.
+        /// </summary>
+        public virtual bool IsIndexed => false;
+
+        /// <summary>
         /// The name of this image.
         /// </summary>
         public string Name { get; set; }

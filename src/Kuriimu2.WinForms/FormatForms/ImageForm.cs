@@ -163,6 +163,7 @@ namespace Kuriimu2.WinForms.FormatForms
             {
                 // Transcode image to new image format
                 var transcoder = _imageState.Images[imageIndex].Configuration
+                    .WithTaskCount(1)
                     .TranscodeWith(imageSize => _imageState.SupportedEncodings[newImageFormat])
                     .Build();
 

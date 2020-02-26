@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
-using Kontract.Models.IO;
 
 namespace plugin_nintendo.Images
 {
@@ -16,20 +9,20 @@ namespace plugin_nintendo.Images
     {
         public static Dictionary<int, IColorEncoding> CtrFormat = new Dictionary<int, IColorEncoding>
         {
-            [0] = new RGBA(8, 8, 8, 8),
-            [1] = new RGBA(8, 8, 8),
-            [2] = new RGBA(5, 5, 5, 1),
-            [3] = new RGBA(5, 6, 5),
-            [4] = new RGBA(4, 4, 4, 4),
-            [5] = new LA(8, 8),
-            [6] = new RGBA(8, 8, 0),
-            [7] = new LA(8, 0),
-            [8] = new LA(0, 8),
-            [9] = new LA(4, 4),
-            [10] = new LA(4, 0),
-            [11] = new LA(0, 4),
-            [12] = new ETC1(true, true, ByteOrder.LittleEndian, 8),
-            [13] = new ETC1(true, true, ByteOrder.LittleEndian, 8)
+            [0] = new Rgba(8, 8, 8, 8),
+            [1] = new Rgba(8, 8, 8),
+            [2] = new Rgba(5, 5, 5, 1),
+            [3] = new Rgba(5, 6, 5),
+            [4] = new Rgba(4, 4, 4, 4),
+            [5] = new La(8, 8),
+            [6] = new Rgba(8, 8, 0),
+            [7] = new La(8, 0),
+            [8] = new La(0, 8),
+            [9] = new La(4, 4),
+            [10] = new La(4, 0),
+            [11] = new La(0, 4),
+            [12] = new Etc1(false, true),
+            [13] = new Etc1(true, true)
         };
     }
 

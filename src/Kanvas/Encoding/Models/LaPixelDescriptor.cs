@@ -66,7 +66,7 @@ namespace Kanvas.Encoding.Models
             if (_depthTable[_componentIndexTable[1]] == 0)
                 colorBuffer[_indexTable[_componentIndexTable[1]]] = 255;
 
-            return Color.FromArgb(colorBuffer[0], colorBuffer[1], colorBuffer[1], colorBuffer[1]);
+            return Color.FromArgb(colorBuffer[1], colorBuffer[0], colorBuffer[0], colorBuffer[0]);
         }
 
         public long GetValue(Color color)
@@ -128,7 +128,7 @@ namespace Kanvas.Encoding.Models
             // Depth lookup table holds depth of components in order of reading
             _depthTable = new int[2];
 
-            // Depth index table holds index into depth table in order La
+            // Depth index table holds index into depth table in order LA
             _componentIndexTable = new int[2];
 
             // Shift lookup table holds the shift Values for each depth in order of reading
@@ -146,18 +146,18 @@ namespace Kanvas.Encoding.Models
                 {
                     case 'l':
                     case 'L':
-                        SetTableValues(length - i - 1, 1, l, ref shift, ref lSet);
+                        SetTableValues(length - i - 1, 0, l, ref shift, ref lSet);
                         break;
 
                     case 'a':
                     case 'A':
-                        SetTableValues(length - i - 1, 0, a, ref shift, ref aSet);
+                        SetTableValues(length - i - 1, 1, a, ref shift, ref aSet);
                         break;
                 }
             }
 
-            if (!lSet) SetTableValues(length++, 1, 0, ref shift, ref lSet);
-            if (!aSet) SetTableValues(length, 0, 0, ref shift, ref aSet);
+            if (!lSet) SetTableValues(length++, 0, 0, ref shift, ref lSet);
+            if (!aSet) SetTableValues(length, 1, 0, ref shift, ref aSet);
         }
 
         private int ReadComponent(long value, int shift, int mask, int depth)
