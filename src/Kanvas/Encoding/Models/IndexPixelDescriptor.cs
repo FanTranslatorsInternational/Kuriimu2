@@ -30,7 +30,7 @@ namespace Kanvas.Encoding.Models
         {
             var componentBuilder = new StringBuilder();
             var depthBuilder = new StringBuilder();
-            var componentLetters = new[] { "A", "I" };
+            var componentLetters = new[] { "I", "A" };
 
             void AppendComponent(int level)
             {
@@ -61,16 +61,16 @@ namespace Kanvas.Encoding.Models
 
             // If alpha depth 0 then return color from palette
             if (_depthTable[_componentIndexTable[1]] == 0)
-                return palette[colorBuffer[1]];
+                return palette[colorBuffer[0]];
 
-            var paletteColor = palette[colorBuffer[1]];
-            return Color.FromArgb(colorBuffer[0], paletteColor.R, paletteColor.G, paletteColor.B);
+            var paletteColor = palette[colorBuffer[0]];
+            return Color.FromArgb(colorBuffer[1], paletteColor.R, paletteColor.G, paletteColor.B);
         }
 
         public long GetValue(int index, IList<Color> palette)
         {
             var result = 0L;
-            var colorBuffer = new[] { palette[index].A, index };
+            var colorBuffer = new[] { index, palette[index].A };
 
             var componentIndex = _componentIndexTable[0];
             WriteComponent(colorBuffer[_indexTable[componentIndex]], _shiftTable[componentIndex], _maskTable[componentIndex], _depthTable[componentIndex], ref result);
@@ -144,18 +144,18 @@ namespace Kanvas.Encoding.Models
                 {
                     case 'i':
                     case 'I':
-                        SetTableValues(length - j - 1, 1, i, ref shift, ref iSet);
+                        SetTableValues(length - j - 1, 0, i, ref shift, ref iSet);
                         break;
 
                     case 'a':
                     case 'A':
-                        SetTableValues(length - j - 1, 0, a, ref shift, ref aSet);
+                        SetTableValues(length - j - 1, 1, a, ref shift, ref aSet);
                         break;
                 }
             }
 
-            if (!iSet) SetTableValues(length++, 1, 0, ref shift, ref iSet);
-            if (!aSet) SetTableValues(length, 0, 0, ref shift, ref aSet);
+            if (!iSet) SetTableValues(length++, 0, 0, ref shift, ref iSet);
+            if (!aSet) SetTableValues(length, 1, 0, ref shift, ref aSet);
         }
 
         private int ReadComponent(long value, int shift, int mask, int depth)

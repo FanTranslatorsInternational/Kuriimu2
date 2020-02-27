@@ -163,7 +163,6 @@ namespace Kuriimu2.WinForms.FormatForms
             {
                 // Transcode image to new image format
                 var transcoder = _imageState.Images[imageIndex].Configuration
-                    .WithTaskCount(1)
                     .TranscodeWith(imageSize => _imageState.SupportedEncodings[newImageFormat])
                     .Build();
 
@@ -305,7 +304,10 @@ namespace Kuriimu2.WinForms.FormatForms
             var tsb = (ToolStripMenuItem)sender;
 
             var newImageFormat = (int)tsb.Tag;
-            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, newImageFormat, SelectedPaletteFormat, true);
+            var paletteFormat = SelectedPaletteFormat;
+            if (_imageState.SupportedIndexEncodings.ContainsKey(newImageFormat) && SelectedPaletteFormat == -1)
+                paletteFormat = _imageState.SupportedPaletteEncodings.First().Key;
+            _images[_selectedImageIndex] = Transcode(_selectedImageIndex, newImageFormat, paletteFormat, true);
 
             if (SelectedImageInfo is IndexImageInfo)
                 _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo);
@@ -467,7 +469,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (_setIndexInImage && _paletteChosenColorIndex >= 0)
                 SetIndexInImage(e.Location, _paletteChosenColorIndex);
             else
-                SetColorInPalette(clrDialog.Color, GetPaletteIndexByImageLocation, e.Location);
+                SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
         }
 
         private void tsbPaletteImport_Click(object sender, EventArgs e)
@@ -485,7 +487,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (_paletteChooseColor)
                 _paletteChosenColorIndex = GetPaletteIndex(e.Location);
             else
-                SetColorInPalette(clrDialog.Color, GetPaletteIndex, e.Location);
+                SetColorInPalette(GetPaletteIndex, e.Location);
         }
 
         private void pbPalette_MouseEnter(object sender, EventArgs e)
@@ -654,7 +656,9 @@ namespace Kuriimu2.WinForms.FormatForms
             tsbImageBorderColor.Image = ibcBitmap;
 
             // Format Dropdown
-            tsbFormat.Text = _imageState.SupportedEncodings[SelectedImageFormat].FormatName;
+            tsbFormat.Text = _imageState.SupportedEncodings.ContainsKey(SelectedImageFormat) ?
+                _imageState.SupportedEncodings[SelectedImageFormat].FormatName :
+                _imageState.SupportedIndexEncodings[SelectedImageFormat].FormatName;
             tsbFormat.Tag = SelectedImageInfo.ImageFormat;
 
             // Update selected format
@@ -672,7 +676,7 @@ namespace Kuriimu2.WinForms.FormatForms
                     tsm.Checked = (int)tsm.Tag == indexedInfo.PaletteFormat;
 
                 // PaletteData Picture Box
-                var dimPalette = (int)Math.Ceiling(Math.Sqrt(indexedInfo.ColorCount));
+                var dimPalette = (int)Math.Ceiling(Math.Sqrt(_imagePalettes[_selectedImageIndex].Count));
                 var paletteImg = _imagePalettes[_selectedImageIndex]
                     .ToBitmap(new Size(dimPalette, dimPalette));
                 if (paletteImg != null)
@@ -689,6 +693,8 @@ namespace Kuriimu2.WinForms.FormatForms
             if (_imageState.Images.Count <= 0)
                 return;
 
+            var selectedIndex = treBitmaps.SelectedNode?.Index ?? -1;
+
             treBitmaps.BeginUpdate();
             treBitmaps.Nodes.Clear();
             imlBitmaps.Images.Clear();
@@ -699,13 +705,19 @@ namespace Kuriimu2.WinForms.FormatForms
             for (var i = 0; i < _imageState.Images.Count; i++)
             {
                 imlBitmaps.Images.Add(i.ToString(), GenerateThumbnail(_images[i]));
-                treBitmaps.Nodes.Add(new TreeNode
+                var treeNode = new TreeNode
                 {
-                    Text = !string.IsNullOrEmpty(_imageState.Images[i].Name) ? _imageState.Images[i].Name : i.ToString("00"),
+                    Text = !string.IsNullOrEmpty(_imageState.Images[i].Name)
+                        ? _imageState.Images[i].Name
+                        : i.ToString("00"),
                     Tag = i,
                     ImageKey = i.ToString(),
                     SelectedImageKey = i.ToString()
-                });
+                };
+
+                treBitmaps.Nodes.Add(treeNode);
+                if (i == selectedIndex)
+                    treBitmaps.SelectedNode = treeNode;
             }
 
             treBitmaps.EndUpdate();
@@ -783,7 +795,7 @@ namespace Kuriimu2.WinForms.FormatForms
             return thumb;
         }
 
-        private void SetColorInPalette(Color setColor, Func<Point, int> indexFunc, Point controlPoint)
+        private void SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
         {
             if (!(SelectedImageInfo is IndexImageInfo indexInfo))
                 return;
@@ -792,7 +804,7 @@ namespace Kuriimu2.WinForms.FormatForms
             DisableImageControls();
 
             var index = indexFunc(controlPoint);
-            if (index < 0 || index >= indexInfo.ColorCount)
+            if (index < 0 || index >= _imagePalettes[_selectedImageIndex].Count)
             {
                 UpdateForm();
                 return;
@@ -809,7 +821,7 @@ namespace Kuriimu2.WinForms.FormatForms
             {
                 indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
-                _imagePalettes[_selectedImageIndex][index] = setColor;
+                _imagePalettes[_selectedImageIndex][index] = clrDialog.Color;
 
                 indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
                     .Save(_imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
@@ -835,7 +847,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (!(SelectedImageInfo is IndexImageInfo indexInfo))
                 return;
 
-            if (newIndex >= indexInfo.ColorCount)
+            if (newIndex >= _imagePalettes[_selectedImageIndex].Count)
                 return;
 
             DisablePaletteControls();

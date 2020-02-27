@@ -89,6 +89,8 @@ namespace Kanvas.Configuration
 
         private byte[] EncodeInternal(Bitmap image, Size paddedSize)
         {
+            var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
+
             // If we have quantization enabled
             IEnumerable<Color> colors;
             if (_quantizer != null)
@@ -101,12 +103,11 @@ namespace Kanvas.Configuration
             else
             {
                 // Decompose image to colors
-                colors = image.ToColors(paddedSize, _swizzle?.Invoke(paddedSize));
+                colors = image.ToColors(paddedSize, _swizzle?.Invoke(imageSize));
             }
 
             // Save color data
-            var size = paddedSize.IsEmpty ? image.Size : paddedSize;
-            return _colorEncoding(size).Save(colors, _taskCount);
+            return _colorEncoding(imageSize).Save(colors, _taskCount);
         }
 
         (byte[] indexData, byte[] paletteData) IIndexTranscoder.Encode(Bitmap image) =>

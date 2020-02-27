@@ -645,6 +645,8 @@ namespace Kuriimu2.WinForms.MainForms
             tabPage.ImageKey = "close-button";  // setting ImageKey before adding, makes the image not working
             openFiles.SelectedTab = tabPage;
 
+            TabControl_UpdateTab(stateInfo);
+
             return tabPage;
         }
 

@@ -17,10 +17,5 @@
         /// The format in which the paletteData is encoded.
         /// </summary>
         public int PaletteFormat { get; set; }
-
-        /// <summary>
-        /// The number of colors in the palette.
-        /// </summary>
-        public int ColorCount { get; set; }
     }
 }

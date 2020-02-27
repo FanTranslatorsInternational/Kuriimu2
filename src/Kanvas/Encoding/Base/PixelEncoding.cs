@@ -15,7 +15,7 @@ namespace Kanvas.Encoding.Base
         private readonly IPixelDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
 
-        private Func<BinaryReaderX, long> _readValueDelegate;
+        private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
 
         public int BitDepth { get; }
@@ -62,7 +62,8 @@ namespace Kanvas.Encoding.Base
         private IEnumerable<long> ReadValues(BinaryReaderX br)
         {
             while (br.BaseStream.Position < br.BaseStream.Length)
-                yield return _readValueDelegate(br);
+                foreach (var value in _readValuesDelegate(br))
+                    yield return value;
         }
 
         private void SetValueDelegates(int bitDepth)
@@ -71,7 +72,7 @@ namespace Kanvas.Encoding.Base
 
             if (bitDepth == 4)
             {
-                _readValueDelegate = br => br.ReadNibble();
+                _readValuesDelegate = br => new long[] { br.ReadNibble(), br.ReadNibble() };
                 _writeValueDelegate = (bw, value) => bw.WriteNibble((int)value);
                 return;
             }
@@ -79,20 +80,20 @@ namespace Kanvas.Encoding.Base
             switch (bytesToRead)
             {
                 case 1:
-                    _readValueDelegate = br => br.ReadByte();
+                    _readValuesDelegate = br => new long[] { br.ReadByte() };
                     _writeValueDelegate = (bw, value) => bw.Write((byte)value);
                     break;
 
                 case 2:
-                    _readValueDelegate = br => br.ReadUInt16();
+                    _readValuesDelegate = br => new long[] { br.ReadUInt16() };
                     _writeValueDelegate = (bw, value) => bw.Write((ushort)value);
                     break;
 
                 case 3:
-                    _readValueDelegate = br =>
+                    _readValuesDelegate = br =>
                     {
                         var bytes = br.ReadBytes(3);
-                        return (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
+                        return new long[] { (bytes[0] << 16) | (bytes[1] << 8) | bytes[2] };
                     };
                     _writeValueDelegate = (bw, value) =>
                     {
@@ -102,7 +103,7 @@ namespace Kanvas.Encoding.Base
                     break;
 
                 case 4:
-                    _readValueDelegate = br => br.ReadUInt32();
+                    _readValuesDelegate = br => new long[] { br.ReadUInt32() };
                     _writeValueDelegate = (bw, value) => bw.Write((uint)value);
                     break;
             }

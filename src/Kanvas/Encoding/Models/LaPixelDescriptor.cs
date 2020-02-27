@@ -72,7 +72,7 @@ namespace Kanvas.Encoding.Models
         public long GetValue(Color color)
         {
             var result = 0L;
-            var colorBuffer = new[] { (int)color.GetBrightness(), color.A };
+            var colorBuffer = new[] { (int)(color.GetBrightness() * 255), color.A };
 
             var index = _componentIndexTable[0];
             WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);

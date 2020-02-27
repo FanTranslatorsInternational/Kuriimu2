@@ -1,18 +1,18 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\net472\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kuriimu2.Kanvas" Version="2.0.7" />
-    <PackageReference Include="Kuriimu2.Komponent" Version="2.0.7" />
-    <PackageReference Include="Kuriimu2.Kontract" Version="2.0.7" />
+    <PackageReference Include="Kanvas" Version="2.0.8" />
+    <PackageReference Include="Komponent" Version="2.0.8" />
+    <PackageReference Include="Kontract" Version="2.0.8" />
   </ItemGroup>
 
 </Project>
