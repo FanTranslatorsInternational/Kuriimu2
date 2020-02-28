@@ -71,16 +71,8 @@ namespace Kuriimu2.WinForms.FormatForms
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
             ContractAssertions.IsNotNull(imageState.Images, nameof(imageState.Images));
 
-            if (imageState.SupportedEncodings == null && imageState.SupportedIndexEncodings == null)
-                throw new InvalidOperationException("The plugin has no supported encodings defined.");
-            if (imageState.SupportedIndexEncodings != null && imageState.SupportedPaletteEncodings == null)
-                throw new InvalidOperationException("The plugin has no supported palette encodings defined.");
-
-            // Check for ambiguous format values
-            if (imageState.SupportedEncodings?.Keys.Any(x => imageState.SupportedIndexEncodings?.Keys.Contains(x) ?? false) ?? false)
-                throw new InvalidOperationException($"Ambiguous image format identifiers in plugin {_imageState.GetType().FullName}.");
-
-            // TODO: Check that all image infos contain supported image formats
+            // Check integrity of the image state
+            CheckIntegrity(imageState);
 
             _stateInfo = stateInfo;
             _imageState = imageState;
@@ -95,7 +87,7 @@ namespace Kuriimu2.WinForms.FormatForms
             PopulateFormatDropdown();
 
             // Populate palette format dropdown
-            PopulatePaletteDropdown();
+            PopulatePaletteDropdown(SelectedImageInfo);
 
             // Populate border style drop down
             PopulateBorderStyleDropdown();
@@ -104,6 +96,40 @@ namespace Kuriimu2.WinForms.FormatForms
             UpdateForm();
             UpdatePreview();
             UpdateImageList();
+        }
+
+        private void CheckIntegrity(IImageState imageState)
+        {
+            if (imageState.SupportedEncodings == null && imageState.SupportedIndexEncodings == null)
+                throw new InvalidOperationException("The plugin has no supported encodings defined.");
+            if (imageState.SupportedIndexEncodings != null && imageState.SupportedPaletteEncodings == null)
+                throw new InvalidOperationException("The plugin has no supported palette encodings defined.");
+
+            // Check for ambiguous format values
+            if (imageState.SupportedEncodings?.Keys.Any(x => imageState.SupportedIndexEncodings?.Keys.Contains(x) ?? false) ?? false)
+                throw new InvalidOperationException($"Ambiguous image format identifiers in plugin {_imageState.GetType().FullName}.");
+
+            // Check that all image infos contain supported image formats
+            foreach (var image in imageState.Images)
+            {
+                var encodingSupported = imageState.SupportedEncodings?.ContainsKey(image.ImageFormat) ?? false;
+                var indexEncodingSupported = imageState.SupportedIndexEncodings?.ContainsKey(image.ImageFormat) ?? false;
+                if (!encodingSupported && !indexEncodingSupported)
+                    throw new InvalidOperationException($"Image format {image.ImageFormat} is not supported by the plugin.");
+
+                if (indexEncodingSupported && !(image is IndexImageInfo))
+                    throw new InvalidOperationException($"The image format {image.ImageFormat} is indexed, but the image is not.");
+                if (encodingSupported && image is IndexImageInfo)
+                    throw new InvalidOperationException($"The image format {image.ImageFormat} is not indexed, but the image is.");
+
+                if (image is IndexImageInfo indexImage)
+                {
+                    var indexEncoding = imageState.SupportedIndexEncodings[indexImage.ImageFormat];
+                    if (indexEncoding.PaletteEncodingIndices != null &&
+                        !indexEncoding.PaletteEncodingIndices.All(x => imageState.SupportedPaletteEncodings.ContainsKey(x)))
+                        throw new InvalidOperationException($"The image format {image.ImageFormat} depends on palette encodings not supported by the plugin.");
+                }
+            }
         }
 
         /// <summary>
@@ -116,7 +142,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (imageInfo is IndexImageInfo indexInfo)
             {
                 var indexTranscoder = indexInfo.Configuration
-                    .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[indexInfo.ImageFormat])
+                    .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
                     .Build();
 
@@ -191,7 +217,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
                 // Transcode image to new image format
                 var transcoder = _imageState.Images[imageIndex].Configuration
-                    .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[newImageFormat])
+                    .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[newImageFormat].Encoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[newPaletteFormat])
                     .Build();
 
@@ -242,7 +268,7 @@ namespace Kuriimu2.WinForms.FormatForms
             {
                 items.AddRange(_imageState.SupportedIndexEncodings.Select(f => new ToolStripMenuItem
                 {
-                    Text = f.Value.FormatName,
+                    Text = f.Value.Encoding.FormatName,
                     Tag = f.Key,
                     Checked = f.Key == _imageState.Images[_selectedImageIndex].ImageFormat
                 }));
@@ -254,13 +280,20 @@ namespace Kuriimu2.WinForms.FormatForms
                     ((ToolStripMenuItem)tsb).Click += tsbFormat_Click;
         }
 
-        private void PopulatePaletteDropdown()
+        private void PopulatePaletteDropdown(ImageInfo imageInfo)
         {
             var items = new List<ToolStripItem>();
 
             if (_imageState.SupportedPaletteEncodings != null)
             {
-                items.AddRange(_imageState.SupportedPaletteEncodings.Select(f => new ToolStripMenuItem
+                var paletteEncodings = _imageState.SupportedPaletteEncodings;
+
+                var indices = _imageState.SupportedIndexEncodings[imageInfo.ImageFormat].PaletteEncodingIndices;
+                if (imageInfo.IsIndexed && indices == null)
+                    paletteEncodings = _imageState.SupportedPaletteEncodings.Where(x => indices.Contains(x.Key))
+                        .ToDictionary(x => x.Key, y => y.Value);
+
+                items.AddRange(paletteEncodings.Select(f => new ToolStripMenuItem
                 {
                     Text = f.Value.FormatName,
                     Tag = f.Key,
@@ -268,6 +301,7 @@ namespace Kuriimu2.WinForms.FormatForms
                 }));
             }
 
+            tsbPalette.DropDownItems.Clear();
             tsbPalette.DropDownItems.AddRange(items.ToArray());
             if (tsbPalette.DropDownItems.Count > 0)
                 foreach (var tsb in tsbPalette.DropDownItems)
@@ -306,13 +340,17 @@ namespace Kuriimu2.WinForms.FormatForms
             var newImageFormat = (int)tsb.Tag;
             var paletteFormat = SelectedPaletteFormat;
             if (_imageState.SupportedIndexEncodings.ContainsKey(newImageFormat) && SelectedPaletteFormat == -1)
-                paletteFormat = _imageState.SupportedPaletteEncodings.First().Key;
+                paletteFormat = _imageState.SupportedIndexEncodings[newImageFormat].PaletteEncodingIndices?.First() ??
+                                _imageState.SupportedPaletteEncodings.First().Key;
+
             _images[_selectedImageIndex] = Transcode(_selectedImageIndex, newImageFormat, paletteFormat, true);
 
             if (SelectedImageInfo is IndexImageInfo)
                 _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo);
             else
                 _imagePalettes[_selectedImageIndex] = null;
+
+            PopulatePaletteDropdown(SelectedImageInfo);
 
             UpdateForm();
             UpdateImageList();
@@ -606,7 +644,7 @@ namespace Kuriimu2.WinForms.FormatForms
             tsbSave.Enabled = _imageState is ISaveFiles;
             tsbSaveAs.Enabled = _imageState is ISaveFiles && _stateInfo.ParentStateInfo == null;
 
-            var isIndexed = SelectedImageInfo is IndexImageInfo;
+            var isIndexed = SelectedImageInfo.IsIndexed;
             tslPalette.Visible = isIndexed;
             tsbPalette.Visible = isIndexed;
             tsbPalette.Enabled = isIndexed && (_imageState.SupportedPaletteEncodings?.Any() ?? false);
@@ -658,7 +696,7 @@ namespace Kuriimu2.WinForms.FormatForms
             // Format Dropdown
             tsbFormat.Text = _imageState.SupportedEncodings.ContainsKey(SelectedImageFormat) ?
                 _imageState.SupportedEncodings[SelectedImageFormat].FormatName :
-                _imageState.SupportedIndexEncodings[SelectedImageFormat].FormatName;
+                _imageState.SupportedIndexEncodings[SelectedImageFormat].Encoding.FormatName;
             tsbFormat.Tag = SelectedImageInfo.ImageFormat;
 
             // Update selected format
@@ -727,13 +765,13 @@ namespace Kuriimu2.WinForms.FormatForms
 
         #region Private methods
 
-        private void SetGridColor(Color color, Action<Color> setColorToProperties)
+        private void SetGridColor(Color startColor, Action<Color> setColorToProperties)
         {
-            clrDialog.Color = imbPreview.GridColor;
+            clrDialog.Color = startColor;
             if (clrDialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            setColorToProperties(color);
+            setColorToProperties(clrDialog.Color);
 
             UpdatePreview();
             GenerateThumbnailBackground();
@@ -867,7 +905,8 @@ namespace Kuriimu2.WinForms.FormatForms
 
                 indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
-                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Save(indices, _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
+                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Encoding
+                    .Save(indices, _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
             }
             catch (Exception ex)
             {

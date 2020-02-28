@@ -10,7 +10,7 @@ namespace Kontract.Interfaces.Plugins.State
 
         IDictionary<int, IColorEncoding> SupportedEncodings { get; }
 
-        IDictionary<int, (IColorIndexEncoding Encoding, IDictionary<int, IColorEncoding> SupportedPaletteEncodings)> SupportedIndexEncodings { get; }
+        IDictionary<int, (IColorIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings { get; }
 
         IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
