@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -103,8 +102,30 @@ namespace Kanvas
         public static IEnumerable<int> ToIndices(this Bitmap image, IColorCache colorCache) =>
             image.ToColors().ToIndices(colorCache);
 
-        public static IEnumerable<int> ToIndices(this IEnumerable<Color> colors, IList<Color> palette) =>
-            colors.Select(palette.IndexOf);
+        public static IEnumerable<int> ToIndices(this IEnumerable<Color> colors, IList<Color> palette)
+        {
+            var foundColors = new Dictionary<int, int>();
+
+            foreach (var color in colors)
+            {
+                var colorValue = color.ToArgb();
+                if (foundColors.ContainsKey(colorValue))
+                {
+                    yield return foundColors[colorValue];
+                    continue;
+                }
+
+                for (var i = 0; i < palette.Count; i++)
+                {
+                    if (palette[i].ToArgb() == colorValue)
+                    {
+                        foundColors[palette[i].ToArgb()] = i;
+                        yield return i;
+                        break;
+                    }
+                }
+            }
+        }
 
         public static IEnumerable<int> ToIndices(this IEnumerable<Color> colors, IColorCache colorCache) =>
             colors.Select(colorCache.GetPaletteIndex);
@@ -130,7 +151,7 @@ namespace Kanvas
                 }
         }
 
-        private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max) => 
+        private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max) =>
             points.Select(p => new Point(Clamp(p.X, min.X, max.X), Clamp(p.Y, min.Y, max.Y)));
 
         // ReSharper disable once PossibleNullReferenceException

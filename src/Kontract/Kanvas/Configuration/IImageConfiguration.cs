@@ -15,8 +15,12 @@ namespace Kontract.Kanvas.Configuration
 
         IImageConfiguration QuantizeWith(Action<IQuantizationOptions> configure);
 
+        IImageConfiguration WithoutQuantization();
+
         IColorConfiguration TranscodeWith(CreateColorEncoding func);
 
         IIndexConfiguration TranscodeWith(CreateColorIndexEncoding func);
+
+        IImageConfiguration Clone();
     }
 }

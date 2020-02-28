@@ -74,6 +74,37 @@ namespace Kanvas.Configuration
             return this;
         }
 
+        public IImageConfiguration WithoutQuantization()
+        {
+            _quantizationAction = null;
+
+            return this;
+        }
+
+        public IImageConfiguration Clone()
+        {
+            var config=new ImageConfiguration();
+
+            if (_taskCount != Environment.ProcessorCount)
+                config.WithTaskCount(_taskCount);
+            if (_swizzleFunc != null)
+                config.RemapPixelsWith(_swizzleFunc);
+            if (_quantizationAction != null)
+                config.QuantizeWith(_quantizationAction);
+
+            if (_colorFunc != null)
+                return config.TranscodeWith(_colorFunc);
+
+            if (_indexFunc != null)
+            {
+                var indexConfig=config.TranscodeWith(_indexFunc);
+                if (_paletteFunc != null)
+                    return indexConfig.TranscodePaletteWith(_paletteFunc);
+            }
+
+            return config;
+        }
+
         IIndexTranscoder IIndexConfiguration.Build()
         {
             ContractAssertions.IsNotNull(_indexFunc, "indexFunc");

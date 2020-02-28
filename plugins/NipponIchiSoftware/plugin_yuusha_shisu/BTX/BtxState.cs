@@ -124,7 +124,7 @@ namespace plugin_yuusha_shisu.BTX
 
         public IList<ImageInfo> Images { get; private set; }
         public IDictionary<int, IColorEncoding> SupportedEncodings => BtxSupport.Encodings;
-        public IDictionary<int, IColorIndexEncoding> SupportedIndexEncodings => BtxSupport.IndexEncodings;
+        public IDictionary<int, (IColorIndexEncoding, IList<int>)> SupportedIndexEncodings => BtxSupport.IndexEncodings;
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings => BtxSupport.PaletteEncodings;
 
         public BtxState()

@@ -70,6 +70,7 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tsbPaletteImport = new System.Windows.Forms.ToolStripButton();
             this.tsbPaletteExport = new System.Windows.Forms.ToolStripButton();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
+            this.tsbDeletePaletteColorSelection = new System.Windows.Forms.ToolStripButton();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -316,7 +317,7 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tslTool.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tslTool.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslTool.Name = "tslTool";
-            this.tslTool.Size = new System.Drawing.Size(68, 22);
+            this.tslTool.Size = new System.Drawing.Size(67, 22);
             this.tslTool.Text = "Tool: Zoom";
             // 
             // toolStripSeparator3
@@ -410,10 +411,11 @@ namespace Kuriimu2.WinForms.FormatForms
             this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pbPalette.TabIndex = 0;
             this.pbPalette.TabStop = false;
+            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyUp);
+            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyDown);
+            this.pbPalette.Paint += new System.Windows.Forms.PaintEventHandler(this.pbPalette_Paint);
             this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pbPalette_MouseClick);
             this.pbPalette.MouseEnter += new System.EventHandler(this.pbPalette_MouseEnter);
-            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyDown);
-            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyUp);
             // 
             // tlsPalette
             // 
@@ -422,7 +424,8 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tlsPalette.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tslPaletteLabel,
             this.tsbPaletteImport,
-            this.tsbPaletteExport});
+            this.tsbPaletteExport,
+            this.tsbDeletePaletteColorSelection});
             this.tlsPalette.Location = new System.Drawing.Point(0, 0);
             this.tlsPalette.Name = "tlsPalette";
             this.tlsPalette.Size = new System.Drawing.Size(215, 25);
@@ -455,6 +458,16 @@ namespace Kuriimu2.WinForms.FormatForms
             this.tsbPaletteExport.Name = "tsbPaletteExport";
             this.tsbPaletteExport.Size = new System.Drawing.Size(23, 22);
             this.tsbPaletteExport.Click += new System.EventHandler(this.tsbPaletteExport_Click);
+            // 
+            // tsbDeletePaletteColorSelection
+            // 
+            this.tsbDeletePaletteColorSelection.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+            this.tsbDeletePaletteColorSelection.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbDeletePaletteColorSelection.Image = ((System.Drawing.Image)(resources.GetObject("tsbDeletePaletteColorSelection.Image")));
+            this.tsbDeletePaletteColorSelection.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbDeletePaletteColorSelection.Name = "tsbDeletePaletteColorSelection";
+            this.tsbDeletePaletteColorSelection.Size = new System.Drawing.Size(23, 22);
+            this.tsbDeletePaletteColorSelection.Click += new System.EventHandler(this.tsbDeletePaletteColorSelection_Click);
             // 
             // ImageForm
             // 
@@ -528,5 +541,6 @@ namespace Kuriimu2.WinForms.FormatForms
         private ToolStripLabel tslWidth;
         private ToolStripLabel tslHeightLabel;
         private ToolStripLabel tslHeight;
+        private ToolStripButton tsbDeletePaletteColorSelection;
     }
 }

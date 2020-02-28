@@ -16,7 +16,7 @@ namespace plugin_nintendo.Images
 
         public IList<ImageInfo> Images { get; private set; }
         public IDictionary<int, IColorEncoding> SupportedEncodings => Support.CtrFormat;
-        public IDictionary<int, IColorIndexEncoding> SupportedIndexEncodings { get; }
+        public IDictionary<int, (IColorIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
         public bool ContentChanged { get; }

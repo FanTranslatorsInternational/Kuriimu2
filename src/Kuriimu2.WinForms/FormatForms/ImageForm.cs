@@ -21,6 +21,7 @@ using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.FormatForms
 {
+    // TODO: Recode image to data only at saving
     public partial class ImageForm : UserControl, IKuriimuForm
     {
         readonly Dictionary<string, string> _stylesText = new Dictionary<string, string>
@@ -141,7 +142,7 @@ namespace Kuriimu2.WinForms.FormatForms
         {
             if (imageInfo is IndexImageInfo indexInfo)
             {
-                var indexTranscoder = indexInfo.Configuration
+                var indexTranscoder = indexInfo.Configuration.Clone()
                     .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
                     .Build();
@@ -149,7 +150,7 @@ namespace Kuriimu2.WinForms.FormatForms
                 return (Bitmap)indexTranscoder.Decode(indexInfo.ImageData, indexInfo.PaletteData, indexInfo.ImageSize);
             }
 
-            var transcoder = imageInfo.Configuration
+            var transcoder = imageInfo.Configuration.Clone()
                 .TranscodeWith(imageSize => _imageState.SupportedEncodings[imageInfo.ImageFormat])
                 .Build();
 
@@ -188,7 +189,7 @@ namespace Kuriimu2.WinForms.FormatForms
             if (_imageState.SupportedEncodings.ContainsKey(newImageFormat))
             {
                 // Transcode image to new image format
-                var transcoder = _imageState.Images[imageIndex].Configuration
+                var transcoder = _imageState.Images[imageIndex].Configuration.Clone()
                     .TranscodeWith(imageSize => _imageState.SupportedEncodings[newImageFormat])
                     .Build();
 
@@ -216,7 +217,7 @@ namespace Kuriimu2.WinForms.FormatForms
                     throw new InvalidOperationException("A palette format has to be set.");
 
                 // Transcode image to new image format
-                var transcoder = _imageState.Images[imageIndex].Configuration
+                var transcoder = _imageState.Images[imageIndex].Configuration.Clone()
                     .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[newImageFormat].Encoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[newPaletteFormat])
                     .Build();
@@ -282,14 +283,18 @@ namespace Kuriimu2.WinForms.FormatForms
 
         private void PopulatePaletteDropdown(ImageInfo imageInfo)
         {
-            var items = new List<ToolStripItem>();
+            tsbPalette.DropDownItems.Clear();
 
+            if (!imageInfo.IsIndexed)
+                return;
+
+            var items = new List<ToolStripItem>();
             if (_imageState.SupportedPaletteEncodings != null)
             {
                 var paletteEncodings = _imageState.SupportedPaletteEncodings;
 
                 var indices = _imageState.SupportedIndexEncodings[imageInfo.ImageFormat].PaletteEncodingIndices;
-                if (imageInfo.IsIndexed && indices == null)
+                if (imageInfo.IsIndexed && indices != null)
                     paletteEncodings = _imageState.SupportedPaletteEncodings.Where(x => indices.Contains(x.Key))
                         .ToDictionary(x => x.Key, y => y.Value);
 
@@ -301,7 +306,6 @@ namespace Kuriimu2.WinForms.FormatForms
                 }));
             }
 
-            tsbPalette.DropDownItems.Clear();
             tsbPalette.DropDownItems.AddRange(items.ToArray());
             if (tsbPalette.DropDownItems.Count > 0)
                 foreach (var tsb in tsbPalette.DropDownItems)
@@ -466,8 +470,11 @@ namespace Kuriimu2.WinForms.FormatForms
 
         private void treBitmaps_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            _selectedImageIndex = treBitmaps.SelectedNode.Index;
-            UpdatePreview();
+            if (_selectedImageIndex != treBitmaps.SelectedNode.Index)
+            {
+                _selectedImageIndex = treBitmaps.SelectedNode.Index;
+                UpdatePreview();
+            }
         }
 
         private void tsbSave_Click(object sender, EventArgs e)
@@ -502,12 +509,17 @@ namespace Kuriimu2.WinForms.FormatForms
                 Import(files[0]);
         }
 
-        private void imbPreview_MouseClick(object sender, MouseEventArgs e)
+        private async void imbPreview_MouseClick(object sender, MouseEventArgs e)
         {
-            if (_setIndexInImage && _paletteChosenColorIndex >= 0)
-                SetIndexInImage(e.Location, _paletteChosenColorIndex);
-            else
-                SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
+            if (_setIndexInImage)
+            {
+                if (_paletteChosenColorIndex >= 0)
+                    await SetIndexInImage(e.Location, _paletteChosenColorIndex);
+                else
+                    await SetColorInPalette(GetPaletteIndexByImageLocation, e.Location);
+
+                _setIndexInImage = false;
+            }
         }
 
         private void tsbPaletteImport_Click(object sender, EventArgs e)
@@ -520,12 +532,15 @@ namespace Kuriimu2.WinForms.FormatForms
             ExportPalette();
         }
 
-        private void pbPalette_MouseClick(object sender, MouseEventArgs e)
+        private async void pbPalette_MouseClick(object sender, MouseEventArgs e)
         {
             if (_paletteChooseColor)
+            {
                 _paletteChosenColorIndex = GetPaletteIndex(e.Location);
+                UpdatePaletteImage();
+            }
             else
-                SetColorInPalette(GetPaletteIndex, e.Location);
+                await SetColorInPalette(GetPaletteIndex, e.Location);
         }
 
         private void pbPalette_MouseEnter(object sender, EventArgs e)
@@ -655,6 +670,8 @@ namespace Kuriimu2.WinForms.FormatForms
 
             tsbFormat.Enabled = _imageState.SupportedEncodings?.Any() ?? false;
 
+            imbPreview.Enabled = _imageState.Images.Any();
+
             UpdateTabDelegate?.Invoke(_stateInfo);
         }
 
@@ -662,9 +679,14 @@ namespace Kuriimu2.WinForms.FormatForms
         {
             if (_imageState.Images.Count > 0)
             {
+                var horizontalScroll = imbPreview.HorizontalScroll.Value;
+                var verticalScroll = imbPreview.VerticalScroll.Value;
+
                 imbPreview.Image = _images[_selectedImageIndex];
                 imbPreview.Zoom -= 1;
                 imbPreview.Zoom += 1;
+
+                imbPreview.ScrollTo(horizontalScroll, verticalScroll);
             }
 
             // Grid Color 1
@@ -703,6 +725,15 @@ namespace Kuriimu2.WinForms.FormatForms
             foreach (ToolStripMenuItem tsm in tsbFormat.DropDownItems)
                 tsm.Checked = (int)tsm.Tag == SelectedImageInfo.ImageFormat;
 
+            UpdatePaletteImage();
+
+            // Dimensions
+            tslWidth.Text = SelectedImageInfo.ImageSize.Width.ToString();
+            tslHeight.Text = SelectedImageInfo.ImageSize.Height.ToString();
+        }
+
+        private void UpdatePaletteImage()
+        {
             if (SelectedImageInfo is IndexImageInfo indexedInfo)
             {
                 // PaletteData Dropdown
@@ -720,10 +751,6 @@ namespace Kuriimu2.WinForms.FormatForms
                 if (paletteImg != null)
                     pbPalette.Image = paletteImg;
             }
-
-            // Dimensions
-            tslWidth.Text = SelectedImageInfo.ImageSize.Width.ToString();
-            tslHeight.Text = SelectedImageInfo.ImageSize.Height.ToString();
         }
 
         private void UpdateImageList()
@@ -833,7 +860,7 @@ namespace Kuriimu2.WinForms.FormatForms
             return thumb;
         }
 
-        private void SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
+        private async Task SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
         {
             if (!(SelectedImageInfo is IndexImageInfo indexInfo))
                 return;
@@ -854,15 +881,18 @@ namespace Kuriimu2.WinForms.FormatForms
                 return;
             }
 
-            IList<int> indices;
+            IList<int> indices = Array.Empty<int>();
             try
             {
-                indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
+                await Task.Run(() =>
+                {
+                    indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
-                _imagePalettes[_selectedImageIndex][index] = clrDialog.Color;
+                    _imagePalettes[_selectedImageIndex][index] = clrDialog.Color;
 
-                indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
-                    .Save(_imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
+                    indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
+                        .Save(_imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
+                });
             }
             catch (Exception ex)
             {
@@ -880,7 +910,7 @@ namespace Kuriimu2.WinForms.FormatForms
             UpdateImageList();
         }
 
-        private void SetIndexInImage(Point controlPoint, int newIndex)
+        private async Task SetIndexInImage(Point controlPoint, int newIndex)
         {
             if (!(SelectedImageInfo is IndexImageInfo indexInfo))
                 return;
@@ -898,15 +928,17 @@ namespace Kuriimu2.WinForms.FormatForms
                 return;
             }
 
-            IList<int> indices;
             try
             {
-                indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
+                await Task.Run(() =>
+                {
+                    var indices = _images[_selectedImageIndex].ToIndices(_imagePalettes[_selectedImageIndex]).ToList();
 
-                indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
+                    indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
-                indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Encoding
-                    .Save(indices, _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
+                    indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.PaletteFormat].Encoding
+                        .Save(indices, _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
+                });
             }
             catch (Exception ex)
             {
@@ -916,8 +948,8 @@ namespace Kuriimu2.WinForms.FormatForms
             }
 
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
-            _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
-                indices.ToBitmap(_imagePalettes[_selectedImageIndex], SelectedImageInfo.ImageSize);
+            _bestImages[_selectedImageIndex].SetPixel(pointInImg.X, pointInImg.Y, _imagePalettes[_selectedImageIndex][newIndex]);
+            _images[_selectedImageIndex].SetPixel(pointInImg.X, pointInImg.Y, _imagePalettes[_selectedImageIndex][newIndex]);
 
             UpdateForm();
             UpdatePreview();
@@ -932,6 +964,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
         private void DisableImageControls()
         {
+            imbPreview.Enabled = false;
             tsbFormat.Enabled = false;
         }
 
@@ -956,9 +989,14 @@ namespace Kuriimu2.WinForms.FormatForms
             if (pointInImg == Point.Empty)
                 return -1;
 
-            var pixelColor = _images[_selectedImageIndex].GetPixel(pointInImg.X, pointInImg.Y);
+            var pixelColor = _images[_selectedImageIndex].GetPixel(pointInImg.X, pointInImg.Y).ToArgb();
 
-            return _imagePalettes[_selectedImageIndex].IndexOf(pixelColor);
+            var palette = _imagePalettes[_selectedImageIndex];
+            for (var i = 0; i < palette.Count; i++)
+                if (palette[i].ToArgb() == pixelColor)
+                    return i;
+
+            return -1;
         }
 
         private void ImportPalette()
@@ -1082,5 +1120,33 @@ namespace Kuriimu2.WinForms.FormatForms
         }
 
         #endregion
+
+        private void pbPalette_Paint(object sender, PaintEventArgs e)
+        {
+            if (_paletteChosenColorIndex >= 0 &&
+                _paletteChosenColorIndex < _imagePalettes[_selectedImageIndex].Count)
+            {
+                var dimPalette = (int)Math.Ceiling(Math.Sqrt(_imagePalettes[_selectedImageIndex].Count));
+
+                var colorOnIndex = _imagePalettes[_selectedImageIndex][_paletteChosenColorIndex];
+                var brushColor = colorOnIndex.GetBrightness() <= 0.49 ? Color.White : Color.Black;
+
+                var width = pbPalette.Width / dimPalette;
+                var height = pbPalette.Height / dimPalette;
+                var rect = new Rectangle(_paletteChosenColorIndex % dimPalette * width, _paletteChosenColorIndex / dimPalette * height,
+                    width, height);
+
+                e.Graphics.DrawRectangle(new Pen(new SolidBrush(brushColor), 3), rect);
+            }
+        }
+
+        private void tsbDeletePaletteColorSelection_Click(object sender, EventArgs e)
+        {
+            if (_paletteChosenColorIndex >= 0)
+            {
+                _paletteChosenColorIndex = -1;
+                UpdatePaletteImage();
+            }
+        }
     }
 }
