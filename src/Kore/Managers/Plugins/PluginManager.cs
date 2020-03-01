@@ -9,6 +9,7 @@ using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -46,12 +47,12 @@ namespace Kore.Managers.Plugins
 
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x => x.FilePath == filePath);
+            return _loadedFiles.Any(x => UPath.Combine(x.FileSystem.ConvertPathToInternal(UPath.Root), x.SubPath, x.FilePath) == filePath);
         }
 
         public IStateInfo GetLoadedFile(UPath filePath)
         {
-            return _loadedFiles.FirstOrDefault(x => x.FilePath == filePath);
+            return _loadedFiles.FirstOrDefault(x => UPath.Combine(x.FileSystem.ConvertPathToInternal(UPath.Root), x.SubPath, x.FilePath) == filePath);
         }
 
         /// <inheritdoc />
@@ -83,7 +84,7 @@ namespace Kore.Managers.Plugins
         /// <param name="file">The path to the path to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(string file, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(string file, IProgressContext progress = null)
         {
             return await LoadFile(file, Guid.Empty, progress);
         }
@@ -95,7 +96,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The Id of the plugin to use for loading.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(string file, Guid pluginId, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(string file, Guid pluginId, IProgressContext progress = null)
         {
             PhysicalLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
@@ -125,13 +126,13 @@ namespace Kore.Managers.Plugins
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null)
         {
             return await LoadFile(stateInfo, afi, Guid.Empty, progress);
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null)
         {
             if (!(stateInfo.State is IArchiveState archiveState))
                 throw new InvalidOperationException("The state represents no archive.");
@@ -161,7 +162,7 @@ namespace Kore.Managers.Plugins
         /// <param name="path">The path of the file to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
         {
             return await LoadFile(fileSystem, path, Guid.Empty, progress);
         }
@@ -174,7 +175,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The Id of the plugin to use for loading.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
         {
             PluginLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))

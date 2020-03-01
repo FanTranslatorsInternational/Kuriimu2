@@ -15,7 +15,8 @@ namespace Kanvas
         public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize) =>
             indices.Select(i => palette[i]).ToBitmap(imageSize);
 
-        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize, IImageSwizzle swizzle) =>
+        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize,
+            IImageSwizzle swizzle) =>
             indices.Select(i => palette[i]).ToBitmap(imageSize, swizzle);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
@@ -56,7 +57,7 @@ namespace Kanvas
         #region ToColors
 
         public static IEnumerable<Color> ToColors(this IEnumerable<int> indices, IList<Color> palette) =>
-            indices.Select(i => palette[i]);
+            indices.Select(x => palette[x]);
 
         public static IEnumerable<Color> ToColors(this Bitmap image) =>
             image.ToColors(Size.Empty, null);

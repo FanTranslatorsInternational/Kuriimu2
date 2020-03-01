@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Kontract;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Managers;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kuriimu2.WinForms.Interfaces
@@ -11,8 +11,6 @@ namespace Kuriimu2.WinForms.Interfaces
     {
         Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         Action<IStateInfo> UpdateTabDelegate { get; set; }
-        // TODO: Add progress report?
-        //event EventHandler<ProgressReport> ReportProgress;
 
         void UpdateForm();
     }

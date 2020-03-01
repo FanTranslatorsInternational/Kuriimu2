@@ -18,9 +18,11 @@ namespace Kanvas.Encoding
         private readonly AtcTranscoder _transcoder;
         private readonly bool _hasSecondBlock;
 
-        protected override int ColorsInBlock => 16;
-
         public override int BitDepth { get; }
+
+        public override int BitsPerValue { get; protected set; }
+
+        public override int ColorsPerValue => 16;
 
         public override string FormatName { get; }
 
@@ -29,7 +31,7 @@ namespace Kanvas.Encoding
             _transcoder = new AtcTranscoder(format);
             _hasSecondBlock = HasSecondBlock(format);
 
-            BitDepth = _hasSecondBlock ? 128 : 64;
+            BitDepth = BitsPerValue = _hasSecondBlock ? 128 : 64;
 
             FormatName = format.ToString();
         }

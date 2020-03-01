@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Kontract.Interfaces.Progress;
 
 namespace Kontract.Interfaces.Plugins.State.Intermediate
 {
@@ -15,6 +16,6 @@ namespace Kontract.Interfaces.Plugins.State.Intermediate
         /// <param name="toHash"></param>
         /// <param name="progress"></param>
         /// <returns></returns>
-        Task<HashResult> Compute(Stream toHash, IKuriimuProgress progress);
+        Task<HashResult> Compute(Stream toHash, IProgressContext progress);
     }
 }

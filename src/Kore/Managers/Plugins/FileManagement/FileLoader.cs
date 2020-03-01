@@ -9,6 +9,7 @@ using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.IO;
@@ -36,7 +37,7 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -51,7 +52,7 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -73,7 +74,7 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager, IKuriimuProgress progress = null)
+        public async Task<IStateInfo> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -109,7 +110,7 @@ namespace Kore.Managers.Plugins.FileManagement
             UPath filePath,
             IStreamManager streamManager,
             IPluginManager pluginManager,
-            IKuriimuProgress progress = null,
+            IProgressContext progress = null,
             IFilePlugin plugin = null,
             bool identifyPluginManually = true)
         {

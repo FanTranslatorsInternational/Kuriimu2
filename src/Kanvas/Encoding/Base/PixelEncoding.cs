@@ -20,6 +20,10 @@ namespace Kanvas.Encoding.Base
 
         public int BitDepth { get; }
 
+        public int BitsPerValue { get; private set; }
+
+        public int ColorsPerValue { get; }
+
         public string FormatName { get; }
 
         protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder)
@@ -31,6 +35,7 @@ namespace Kanvas.Encoding.Base
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
+            ColorsPerValue = 1;
 
             SetValueDelegates(BitDepth);
         }
@@ -72,6 +77,7 @@ namespace Kanvas.Encoding.Base
 
             if (bitDepth == 4)
             {
+                BitsPerValue = 4;
                 _readValuesDelegate = br => new long[] { br.ReadNibble(), br.ReadNibble() };
                 _writeValueDelegate = (bw, value) => bw.WriteNibble((int)value);
                 return;
@@ -80,16 +86,19 @@ namespace Kanvas.Encoding.Base
             switch (bytesToRead)
             {
                 case 1:
+                    BitsPerValue = 8;
                     _readValuesDelegate = br => new long[] { br.ReadByte() };
                     _writeValueDelegate = (bw, value) => bw.Write((byte)value);
                     break;
 
                 case 2:
+                    BitsPerValue = 16;
                     _readValuesDelegate = br => new long[] { br.ReadUInt16() };
                     _writeValueDelegate = (bw, value) => bw.Write((ushort)value);
                     break;
 
                 case 3:
+                    BitsPerValue = 24;
                     _readValuesDelegate = br =>
                     {
                         var bytes = br.ReadBytes(3);
@@ -103,6 +112,7 @@ namespace Kanvas.Encoding.Base
                     break;
 
                 case 4:
+                    BitsPerValue = 32;
                     _readValuesDelegate = br => new long[] { br.ReadUInt32() };
                     _writeValueDelegate = (bw, value) => bw.Write((uint)value);
                     break;

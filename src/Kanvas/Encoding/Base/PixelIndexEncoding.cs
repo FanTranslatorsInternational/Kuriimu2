@@ -19,14 +19,20 @@ namespace Kanvas.Encoding.Base
 
         public int BitDepth { get; }
 
+        public int BitsPerValue { get; private set; }
+
+        public int ColorsPerValue { get; }
+
         public string FormatName { get; }
 
         protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
             _descriptor = pixelDescriptor;
+            _byteOrder = byteOrder;
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
+            ColorsPerValue = 1;
 
             SetValueDelegates(BitDepth);
         }
@@ -75,6 +81,7 @@ namespace Kanvas.Encoding.Base
                 return result;
             }
 
+            BitsPerValue = bitDepth;
             switch (bitDepth)
             {
                 case 1:

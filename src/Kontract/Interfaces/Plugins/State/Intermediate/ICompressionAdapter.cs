@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Kontract.Interfaces.Progress;
 
 namespace Kontract.Interfaces.Plugins.State.Intermediate
 {
@@ -15,7 +16,7 @@ namespace Kontract.Interfaces.Plugins.State.Intermediate
         /// <param name="toCompress"></param>
         /// <param name="compressInto"></param>
         /// <param name="progress"></param>
-        Task<bool> Compress(Stream toCompress, Stream compressInto, IKuriimuProgress progress);
+        Task<bool> Compress(Stream toCompress, Stream compressInto, IProgressContext progress);
 
         /// <summary>
         /// Decompresses a file.
@@ -23,6 +24,6 @@ namespace Kontract.Interfaces.Plugins.State.Intermediate
         /// <param name="toDecompress"></param>
         /// <param name="decompressInto"></param>
         /// <param name="progress"></param>
-        Task<bool> Decompress(Stream toDecompress, Stream decompressInto, IKuriimuProgress progress);
+        Task<bool> Decompress(Stream toDecompress, Stream decompressInto, IProgressContext progress);
     }
 }

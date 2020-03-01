@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using Kanvas.Encoding.BlockCompressions.ASTC;
-using Kanvas.Encoding.BlockCompressions.ASTC.KTX;
 using Kanvas.Encoding.BlockCompressions.ASTC.Models;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS;
 using Komponent.IO;
@@ -28,6 +26,10 @@ namespace Kanvas.Encoding
 
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
+
+        public int BitsPerValue { get; }
+
+        public int ColorsPerValue { get; }
 
         /// <summary>
         /// The number of bits one block contains of.
@@ -58,7 +60,8 @@ namespace Kanvas.Encoding
             _decoder = new AstcBlockDecoder(xdim, ydim, zdim);
 
             BitDepth = -1;
-            BlockBitDepth = 128;
+            BlockBitDepth = BitsPerValue = 128;
+            ColorsPerValue = xdim * ydim * zdim;
 
             FormatName = $"ASTC{xdim}x{ydim}" + (zdim > 1 ? $"x{zdim}" : "");
             if (!Enum.TryParse(FormatName, out _blockMode))

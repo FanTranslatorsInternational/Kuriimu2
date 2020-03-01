@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces;
+using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Models.IO;
 
@@ -66,7 +67,7 @@ namespace Kontract.Models.Archive
         /// <param name="progress">The context to report progress to.</param>
         /// <returns>The file data for this file info.</returns>
         /// <remarks>The <see cref="ITemporaryStreamProvider"/> is used for decrypting or decompressing files temporarily onto the disk to minimize memory usage.</remarks>
-        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider, IKuriimuProgress progress = null)
+        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider, IProgressContext progress = null)
         {
             return Task.FromResult(FileData);
         }
@@ -92,17 +93,17 @@ namespace Kontract.Models.Archive
         /// </summary>
         /// <param name="output">The output to write the file data to.</param>
         /// <param name="progress">The context to report progress to.</param>
-        public virtual void SaveFileData(Stream output, IKuriimuProgress progress)
+        public virtual void SaveFileData(Stream output, IProgressContext progress)
         {
             var bkPos = FileData.Position;
             FileData.Position = 0;
 
-            progress?.Report($"Writing file '{FilePath}'.", 0.0);
+            progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
             // TODO: Change that to a manual bulk copy to better watch progress?
             FileData.CopyTo(output);
 
-            progress?.Report($"Writing file '{FilePath}'.", 100.0);
+            progress?.ReportProgress($"Writing file '{FilePath}'.", 1, 1);
 
             FileData.Position = bkPos;
 

@@ -13,9 +13,11 @@ namespace Kanvas.Encoding.Base
     {
         private readonly ByteOrder _byteOrder;
 
-        protected abstract int ColorsInBlock { get; }
-
         public abstract int BitDepth { get; }
+
+        public abstract int BitsPerValue { get; protected set; }
+
+        public abstract int ColorsPerValue { get; }
 
         public abstract string FormatName { get; }
 
@@ -38,7 +40,7 @@ namespace Kanvas.Encoding.Base
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder);
 
-            var blocks = colors.Batch(ColorsInBlock)
+            var blocks = colors.Batch(ColorsPerValue)
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
                 .Select(c => EncodeNextBlock(c.ToArray()));

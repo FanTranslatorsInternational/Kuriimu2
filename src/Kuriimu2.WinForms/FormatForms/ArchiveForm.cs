@@ -12,6 +12,7 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -28,12 +29,13 @@ namespace Kuriimu2.WinForms.FormatForms
         private readonly IInternalPluginManager _pluginManager;
         private readonly IStateInfo _stateInfo;
         private readonly IArchiveState _archiveState;
+        private readonly IProgressContext _progressContext;
 
         public Func<OpenFileEventArgs, Task<bool>> OpenFilesDelegate { get; set; }
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
 
-        public ArchiveForm(IStateInfo loadedState, IInternalPluginManager pluginManager)
+        public ArchiveForm(IStateInfo loadedState, IInternalPluginManager pluginManager, IProgressContext progressContext)
         {
             InitializeComponent();
 
@@ -51,6 +53,7 @@ namespace Kuriimu2.WinForms.FormatForms
 
             _stateInfo = loadedState;
             _archiveState = _stateInfo.State as IArchiveState;
+            _progressContext = progressContext;
 
             _pluginManager = pluginManager;
 

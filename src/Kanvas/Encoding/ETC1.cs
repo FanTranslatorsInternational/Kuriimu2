@@ -17,9 +17,11 @@ namespace Kanvas.Encoding
         private readonly bool _useAlpha;
         private readonly Etc1Transcoder _transcoder;
 
-        protected override int ColorsInBlock => 16;
-
         public override int BitDepth { get; }
+
+        public override int BitsPerValue { get; protected set; }
+
+        public override int ColorsPerValue => 16;
 
         public override string FormatName { get; }
 
@@ -28,7 +30,7 @@ namespace Kanvas.Encoding
             _useAlpha = useAlpha;
             _transcoder = new Etc1Transcoder(useZOrder);
 
-            BitDepth = useAlpha ? 128 : 64;
+            BitDepth = BitsPerValue = useAlpha ? 128 : 64;
 
             FormatName = "ETC1" + (useAlpha ? "A4" : "");
         }

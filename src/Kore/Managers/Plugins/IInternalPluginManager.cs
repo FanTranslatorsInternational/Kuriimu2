@@ -4,6 +4,7 @@ using Kontract.Interfaces;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -33,9 +34,9 @@ namespace Kore.Managers.Plugins
         /// <param name="file">The path to the path to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(string file, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(string file, IProgressContext progress = null);
 
-        Task<IStateInfo> LoadFile(string file, Guid pluginId, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(string file, Guid pluginId, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -44,7 +45,7 @@ namespace Kore.Managers.Plugins
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -54,7 +55,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null);
 
         Task SaveFile(IStateInfo stateInfo, UPath saveName);
 

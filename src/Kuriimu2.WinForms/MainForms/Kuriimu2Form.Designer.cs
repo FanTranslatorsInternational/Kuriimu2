@@ -1,4 +1,5 @@
-﻿using Kuriimu2.WinForms.Controls;
+﻿using System.Windows.Forms;
+using Kuriimu2.WinForms.Controls;
 
 namespace Kuriimu2.WinForms.MainForms
 {
@@ -43,16 +44,16 @@ namespace Kuriimu2.WinForms.MainForms
             this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hashesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.compressionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.decompressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawImageViewerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imageTranscoderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFiles = new System.Windows.Forms.TabControl();
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
-            this.operationProgress = new Kuriimu2.WinForms.Controls.InfoToolStripProgressBar();
+            this.operationProgress = new Kuriimu2.WinForms.Controls.NewProgressBarToolStrip();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
-            this.decompressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             this.operationStatusBar.SuspendLayout();
@@ -160,6 +161,20 @@ namespace Kuriimu2.WinForms.MainForms
             this.compressionsToolStripMenuItem.Size = new System.Drawing.Size(94, 20);
             this.compressionsToolStripMenuItem.Text = "Compressions";
             // 
+            // decompressToolStripMenuItem
+            // 
+            this.decompressToolStripMenuItem.Name = "decompressToolStripMenuItem";
+            this.decompressToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.decompressToolStripMenuItem.Text = "Decompress";
+            this.decompressToolStripMenuItem.Click += new System.EventHandler(this.decompressToolStripMenuItem_Click);
+            // 
+            // compressToolStripMenuItem
+            // 
+            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
+            this.compressToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.compressToolStripMenuItem.Text = "Compress";
+            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
+            // 
             // rawImageViewerToolStripMenuItem
             // 
             this.rawImageViewerToolStripMenuItem.Enabled = false;
@@ -186,7 +201,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 507);
+            this.openFiles.Size = new System.Drawing.Size(953, 505);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -204,7 +219,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.pnlMain.Location = new System.Drawing.Point(0, 24);
             this.pnlMain.Name = "pnlMain";
             this.pnlMain.Padding = new System.Windows.Forms.Padding(3, 2, 1, 2);
-            this.pnlMain.Size = new System.Drawing.Size(957, 511);
+            this.pnlMain.Size = new System.Drawing.Size(957, 509);
             this.pnlMain.TabIndex = 2;
             // 
             // operationStatusBar
@@ -212,37 +227,22 @@ namespace Kuriimu2.WinForms.MainForms
             this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.operationProgress,
             this.operationTimer});
-            this.operationStatusBar.Location = new System.Drawing.Point(0, 535);
+            this.operationStatusBar.Location = new System.Drawing.Point(0, 533);
             this.operationStatusBar.Name = "operationStatusBar";
-            this.operationStatusBar.Size = new System.Drawing.Size(957, 22);
+            this.operationStatusBar.Size = new System.Drawing.Size(957, 24);
             this.operationStatusBar.TabIndex = 3;
             // 
             // operationProgress
             // 
+            this.operationProgress.Margin = new System.Windows.Forms.Padding(2, 4, 0, 4);
             this.operationProgress.Name = "operationProgress";
-            this.operationProgress.ProgressColor = System.Drawing.Color.ForestGreen;
             this.operationProgress.Size = new System.Drawing.Size(500, 16);
-            this.operationProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
-            this.operationProgress.TextColor = System.Drawing.Color.Black;
+            this.operationProgress.Value = 0;
             // 
             // operationTimer
             // 
             this.operationTimer.Name = "operationTimer";
-            this.operationTimer.Size = new System.Drawing.Size(0, 17);
-            // 
-            // decompressToolStripMenuItem
-            // 
-            this.decompressToolStripMenuItem.Name = "decompressToolStripMenuItem";
-            this.decompressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.decompressToolStripMenuItem.Text = "Decompress";
-            this.decompressToolStripMenuItem.Click += new System.EventHandler(this.decompressToolStripMenuItem_Click);
-            // 
-            // compressToolStripMenuItem
-            // 
-            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
-            this.compressToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.compressToolStripMenuItem.Text = "Compress";
-            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
+            this.operationTimer.Size = new System.Drawing.Size(0, 19);
             // 
             // Kuriimu2Form
             // 
@@ -278,7 +278,7 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
         private System.Windows.Forms.StatusStrip operationStatusBar;
-        private InfoToolStripProgressBar operationProgress;
+        private NewProgressBarToolStrip operationProgress;
         private System.Windows.Forms.ToolStripStatusLabel operationTimer;
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;

@@ -68,6 +68,8 @@ namespace Kuriimu2.WinForms.Controls
         /// <param name="e"></param>
         protected override void OnPaint(PaintEventArgs e)
         {
+            base.OnPaint(e);
+
             var controlRect = new Rectangle(
                 ProgressBar.DisplayRectangle.X,
                 ProgressBar.DisplayRectangle.Y,
@@ -81,7 +83,8 @@ namespace Kuriimu2.WinForms.Controls
 
             // Draw background
             e.Graphics.FillRectangle(new SolidBrush(SystemColors.Control), controlRect);
-            e.Graphics.FillRectangle(new SolidBrush(_progressColor), progressRect);
+            ProgressBarRenderer.DrawHorizontalBar(e.Graphics, progressRect);
+            //e.Graphics.FillRectangle(new SolidBrush(_progressColor), progressRect);
 
             // Draw border
             e.Graphics.DrawRectangle(new Pen(SystemColors.ControlDark), controlRect);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.IO;
 
@@ -20,7 +21,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a file from a given file system.
@@ -30,7 +31,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IKuriimuProgress progress = null);
+        Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null);
 
         Task SaveFile(IStateInfo stateInfo);
     }

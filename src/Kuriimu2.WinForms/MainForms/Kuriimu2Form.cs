@@ -10,12 +10,14 @@ using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
+using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins;
+using Kore.Progress;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.FormatForms;
 using Kuriimu2.WinForms.Interfaces;
+using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms
@@ -40,9 +42,13 @@ namespace Kuriimu2.WinForms.MainForms
         private Timer _timer;
         private Stopwatch _globalOperationWatch;
 
+        private IProgressContext _progressContext;
+
         public Kuriimu2Form()
         {
             InitializeComponent();
+
+            _progressContext = new ConcurrentProgress(new ToolStripProgressBarOutput(operationProgress, 50));
 
             _hashForm = new HashTypeExtensionForm();
             _encryptForm = new EncryptTypeExtensionForm();
@@ -356,11 +362,12 @@ namespace Kuriimu2.WinForms.MainForms
             return Task.FromResult(true);
         }
 
-        //private void Report_ProgressChanged(object sender, ProgressReport e)
-        //{
-        //    operationProgress.Text = $"{(e.HasMessage ? $"{e.Message} - " : string.Empty)}{e.Percentage}%";
-        //    operationProgress.Value = Convert.ToInt32(e.Percentage);
-        //}
+        private void TabControl_UpdateTab(IStateInfo stateInfo)
+        {
+            var tabPage = _stateTabDictionary[stateInfo];
+
+            tabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
+        }
 
         #endregion
 
@@ -592,11 +599,11 @@ namespace Kuriimu2.WinForms.MainForms
                 switch (stateInfo.State)
                 {
                     case IImageState imageState:
-                        kuriimuForm = new ImageForm(stateInfo);
+                        kuriimuForm = new ImageForm(stateInfo, _progressContext);
                         break;
 
                     case IArchiveState archiveState:
-                        kuriimuForm = new ArchiveForm(stateInfo, _pluginManager);
+                        kuriimuForm = new ArchiveForm(stateInfo, _pluginManager, _progressContext);
                         ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
                         break;
 
@@ -624,7 +631,6 @@ namespace Kuriimu2.WinForms.MainForms
 
             kuriimuForm.SaveFilesDelegate = TabControl_SaveTab;
             kuriimuForm.UpdateTabDelegate = TabControl_UpdateTab;
-            //kuriimuForm.ReportProgress += Report_ProgressChanged;
 
             var tabPage = new TabPage
             {
@@ -648,13 +654,6 @@ namespace Kuriimu2.WinForms.MainForms
             TabControl_UpdateTab(stateInfo);
 
             return tabPage;
-        }
-
-        private void TabControl_UpdateTab(IStateInfo stateInfo)
-        {
-            var tabPage = _stateTabDictionary[stateInfo];
-
-            tabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
         }
 
         #endregion

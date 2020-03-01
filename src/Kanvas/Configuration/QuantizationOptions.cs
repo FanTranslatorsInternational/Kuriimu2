@@ -5,6 +5,8 @@ using System.Linq;
 using Kanvas.Quantization.ColorCaches;
 using Kanvas.Quantization.Quantizers;
 using Kontract;
+using Kontract.Extensions;
+using Kontract.Interfaces.Progress;
 using Kontract.Kanvas.Configuration;
 using Kontract.Kanvas.Quantization;
 
@@ -78,27 +80,28 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public (IEnumerable<int>, IList<Color>) Process(IEnumerable<Color> colors, Size imageSize)
+        public Image ProcessImage(Bitmap image, IProgressContext progress = null)
+        {
+            var (indices, palette) = Process(image.ToColors(), image.Size, progress);
+
+            return indices.ToColors(palette).ToBitmap(image.Size);
+        }
+
+        public (IEnumerable<int>, IList<Color>) Process(IEnumerable<Color> colors, Size imageSize,
+            IProgressContext progress = null)
         {
             var colorList = colors.ToList();
 
             var colorCache = GetColorCache(colorList, _taskCount);
 
+            var setMaxProgress = progress?.SetMaxValue(colorList.Count);
+
             var colorDitherer = _dithererFunc?.Invoke(imageSize, _taskCount);
-            var indices = colorDitherer?.Process(colorList, colorCache) ??
-                          colorList.ToIndices(colorCache);
+            var indices = colorDitherer == null ?
+                colorList.ToIndices(colorCache) :
+                colorDitherer.Process(colorList, colorCache);
 
-            return (indices, colorCache.Palette);
-        }
-
-        public Image ProcessImage(Bitmap image)
-        {
-            var colors = image.ToColors();
-
-            var (indices, palette) = Process(colors, image.Size);
-            var newColors = indices.Select(i => palette[i]);
-
-            return newColors.ToBitmap(image.Size);
+            return (indices.AttachProgress(setMaxProgress, "Encode indices"), colorCache.Palette);
         }
 
         private IColorCache GetColorCache(IEnumerable<Color> colors, int taskCount)

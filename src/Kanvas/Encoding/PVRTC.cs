@@ -19,12 +19,16 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
 
+        public int BitsPerValue { get; }
+
+        public int ColorsPerValue => 16;
+
         /// <inheritdoc cref="IColorEncoding.FormatName"/>
         public string FormatName { get; }
 
         public PVRTC(PvrtcFormat format, int width, int height)
         {
-            BitDepth = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 32 : 64;
+            BitDepth = BitsPerValue = format == PvrtcFormat.PVRTCA_2bpp || format == PvrtcFormat.PVRTC_2bpp || format == PvrtcFormat.PVRTC2_2bpp ? 32 : 64;
 
             _format = format;
             _width = width;
@@ -33,7 +37,7 @@ namespace Kanvas.Encoding
             FormatName = format.ToString();
         }
 
-        public IEnumerable<Color> Load(byte[] tex,int taskCount)
+        public IEnumerable<Color> Load(byte[] tex, int taskCount)
         {
             var pvrtcTex = PVRTexture.CreateTexture(tex, (uint)_width, (uint)_height, 1, (PixelFormat)_format, false, VariableType.UnsignedByte, ColorSpace.lRGB);
 
