@@ -106,7 +106,7 @@ namespace Kanvas.Configuration
         private Image DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize, Size paddedSize,
             IProgressContext progress = null)
         {
-            var progresses = progress.SplitIntoScopes(2);
+            var progresses = progress.SplitIntoEvenScopes(2);
 
             var size = paddedSize.IsEmpty ? imageSize : paddedSize;
 
@@ -142,7 +142,7 @@ namespace Kanvas.Configuration
             IEnumerable<Color> colors;
             if (_quantizer != null)
             {
-                var scopedProgresses = progress?.SplitIntoScopes(2);
+                var scopedProgresses = progress?.SplitIntoEvenScopes(2);
 
                 var (indices, palette) = QuantizeImage(image, paddedSize, scopedProgresses?[0]);
 

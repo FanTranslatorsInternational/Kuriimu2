@@ -1,43 +1,50 @@
-﻿//using System.Drawing;
-//using System.IO;
-//using Kanvas;
-//using Kanvas.Models;
-//using Kanvas.Swizzle;
-//using Komponent.IO;
-//using plugin_nintendo.NW4C;
+﻿using System.Drawing;
+using System.IO;
+using Kanvas.Configuration;
+using Kanvas.Swizzle;
+using Komponent.IO;
+using Kontract.Models.Images;
+using plugin_nintendo.NW4C;
 
-//namespace plugin_nintendo.BCLIM
-//{
-//    public class BCLIM
-//    {
-//        public NW4CHeader FileHeader { get; private set; }
-//        public BclimHeader TextureHeader { get; private set; }
-//        public ImageSettings Settings { get; set; }
+namespace plugin_nintendo.BCLIM
+{
+    public class Bclim
+    {
+        private static readonly int Nw4CHeaderSize = Tools.MeasureType(typeof(NW4CHeader));
+        private static readonly int BclimHeaderSize = Tools.MeasureType(typeof(BclimHeader));
 
-//        public Bitmap Texture { get; set; }
+        private NW4CHeader _header;
+        private BclimHeader _textureHeader;
 
-//        public BCLIM(Stream input)
-//        {
-//            using (var br = new BinaryReaderX(input))
-//            {
-//                var texture = br.ReadBytes((int)br.BaseStream.Length - 0x28);
+        public ImageInfo Load(Stream input)
+        {
+            var dataLength = (int)input.Length - (Nw4CHeaderSize + BclimHeaderSize);
 
-//                FileHeader = br.ReadType<NW4CHeader>();
-//                br.ByteOrder = FileHeader.ByteOrder;
-//                TextureHeader = br.ReadType<BclimHeader>();
+            using (var br = new BinaryReaderX(input))
+            {
+                var textureData = br.ReadBytes(dataLength);
 
-//                Settings = new ImageSettings(ImageFormats.CtrFormats[TextureHeader.Format], TextureHeader.Width, TextureHeader.Height)
-//                {
-//                    Swizzle = new CTRSwizzle(TextureHeader.Width, TextureHeader.Height, TextureHeader.SwizzleTileMode)
-//                };
+                _header = br.ReadType<NW4CHeader>();
+                br.ByteOrder = _header.ByteOrder;
 
-//                Texture = Common.Load(texture, Settings);
-//            }
-//        }
+                _textureHeader = br.ReadType<BclimHeader>();
 
-//        public void Save(Stream output)
-//        {
+                var imageInfo = new ImageInfo
+                {
+                    ImageData = textureData,
+                    ImageFormat = _textureHeader.Format,
+                    ImageSize = new Size(_textureHeader.Width, _textureHeader.Height),
+                    Configuration = new ImageConfiguration().
+                        RemapPixelsWith(size => new CTRSwizzle(_textureHeader.Width, _textureHeader.Height, _textureHeader.SwizzleTileMode, true))
+                };
 
-//        }
-//    }
-//}
+                return imageInfo;
+            }
+        }
+
+        public void Save(Stream output, ImageInfo imageInfo)
+        {
+
+        }
+    }
+}

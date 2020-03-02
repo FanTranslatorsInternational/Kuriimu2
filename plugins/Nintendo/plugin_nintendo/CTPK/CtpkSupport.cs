@@ -3,7 +3,7 @@ using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 
-namespace plugin_nintendo.Images
+namespace plugin_nintendo.CTPK
 {
     public class Support
     {

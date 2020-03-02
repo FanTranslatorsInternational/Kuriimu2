@@ -46,19 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BCLIM\BCLIM.cs" />
-    <Compile Include="BCLIM\BclimAdapter.cs" />
+    <Compile Include="BCLIM\Bclim.cs" />
+    <Compile Include="BCLIM\BclimPlugin.cs" />
+    <Compile Include="BCLIM\BclimState.cs" />
     <Compile Include="BCLIM\BclimSupport.cs" />
-    <Compile Include="Images\CtpkPlugin.cs" />
-    <Compile Include="Images\Ctpk.cs" />
-    <Compile Include="Images\CtpkState.cs" />
-    <Compile Include="Images\CtpkSupport.cs" />
+    <Compile Include="CTPK\CtpkPlugin.cs" />
+    <Compile Include="CTPK\Ctpk.cs" />
+    <Compile Include="CTPK\CtpkState.cs" />
+    <Compile Include="CTPK\CtpkSupport.cs" />
     <Compile Include="NW4C\ImageFormats.cs" />
     <Compile Include="NW4C\NW4CHeader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Kanvas">
@@ -71,6 +69,7 @@
       <Version>2.0.8</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>mkdir "$(SolutionDir)..\..\dist\$(ConfigurationName)\plugins" &gt; nul 2&gt;&amp;1

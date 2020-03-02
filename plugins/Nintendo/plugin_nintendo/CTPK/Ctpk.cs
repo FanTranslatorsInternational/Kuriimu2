@@ -8,7 +8,7 @@ using Kanvas.Swizzle.Models;
 using Komponent.IO;
 using Kontract.Models.Images;
 
-namespace plugin_nintendo.Images
+namespace plugin_nintendo.CTPK
 {
     class Ctpk
     {

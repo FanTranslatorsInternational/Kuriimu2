@@ -9,7 +9,7 @@ using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.IO;
 
-namespace plugin_nintendo.Images
+namespace plugin_nintendo.CTPK
 {
     public class CtpkPlugin : IFilePlugin, IIdentifyFiles
     {
