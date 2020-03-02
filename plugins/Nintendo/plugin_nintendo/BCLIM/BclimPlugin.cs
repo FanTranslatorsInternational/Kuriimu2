@@ -21,12 +21,18 @@ namespace plugin_nintendo.BCLIM
         public string[] FileExtensions => new[] { "*.bclim" };
         public PluginMetadata Metadata { get; }
 
+        public BclimPlugin()
+        {
+            Metadata = new PluginMetadata("BCLIM", "IcySon55, onepiecefreak",
+                "", "This is the BCLIM image adapter for Kuriimu.");
+        }
+
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using (var br = new BinaryReaderX(fileStream))
             {
-                if (br.BaseStream.Length < 0x28) 
+                if (br.BaseStream.Length < 0x28)
                     return false;
 
                 br.BaseStream.Position = br.BaseStream.Length - 0x28;

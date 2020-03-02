@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
 using Kanvas.Configuration;
 using Komponent.IO;
@@ -7,9 +6,6 @@ using Kontract.Models.Images;
 
 namespace plugin_yuusha_shisu.BTX
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public class BTX
     {
         public ImageInfo Load(Stream input)
@@ -37,6 +33,8 @@ namespace plugin_yuusha_shisu.BTX
 
                     return new IndexImageInfo
                     {
+                        Name = fileName,
+
                         ImageData = texture,
                         ImageFormat = (int)header.Format,
                         ImageSize = new Size(header.Width, header.Height),
@@ -45,29 +43,17 @@ namespace plugin_yuusha_shisu.BTX
                         PaletteData = palette,
                         PaletteFormat = (int)header.Format
                     };
-
-                    //var settings = new IndexedImageSettings(IndexEncodings[(int)Header.Format], PaletteEncodings[(int)Header.Format], Header.Width, Header.Height);
-                    //var data = Kolors.Load(texture, palette, settings);
-                    //Texture = data.image;
-                    //Palette = data.palette;
-                    //FormatName = IndexEncodings[(int)Header.Format].FormatName;
-                    //PaletteFormatName = PaletteEncodings[(int)Header.Format].FormatName;
-                    //HasPalette = true;
                 }
-                else
+
+                return new ImageInfo
                 {
-                    return new ImageInfo
-                    {
-                        ImageData = texture,
-                        ImageFormat = (int)header.Format,
-                        ImageSize = new Size(header.Width, header.Height),
-                        Configuration = new ImageConfiguration()
-                    };
+                    Name = fileName,
 
-                    //var settings = new ImageSettings(Encodings[(int)Header.Format], Header.Width, Header.Height);
-                    //Texture = Kolors.Load(texture, settings);
-                    //FormatName = Encodings[(int)Header.Format].FormatName;
-                }
+                    ImageData = texture,
+                    ImageFormat = (int)header.Format,
+                    ImageSize = new Size(header.Width, header.Height),
+                    Configuration = new ImageConfiguration()
+                };
             }
         }
 

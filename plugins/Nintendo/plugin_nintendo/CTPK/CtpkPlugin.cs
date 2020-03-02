@@ -17,6 +17,11 @@ namespace plugin_nintendo.CTPK
         public string[] FileExtensions => new[] { "*.ctpk" };
         public PluginMetadata Metadata { get; }
 
+        public CtpkPlugin()
+        {
+            Metadata = new PluginMetadata("CTPK", "onepiecefreak", "", "This is the CTPK image adapter for Kuriimu.");
+        }
+
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);

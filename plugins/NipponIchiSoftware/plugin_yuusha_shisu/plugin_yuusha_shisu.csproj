@@ -10,6 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="PAC\PacPlugin.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PAC\PacPlugin.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Kanvas" Version="2.0.8" />
     <PackageReference Include="Komponent" Version="2.0.8" />
     <PackageReference Include="Kontract" Version="2.0.8" />
