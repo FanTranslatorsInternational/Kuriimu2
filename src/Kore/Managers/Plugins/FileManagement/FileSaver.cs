@@ -5,6 +5,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.IO;
@@ -17,6 +18,13 @@ namespace Kore.Managers.Plugins.FileManagement
     /// </summary>
     class FileSaver : IFileSaver
     {
+        private readonly IProgressContext _progress;
+
+        public FileSaver(IProgressContext progress)
+        {
+            _progress = progress;
+        }
+
         // TODO: Communicate errors properly
         /// <inheritdoc />
         public async Task SaveAsync(IStateInfo stateInfo, UPath savePath)
@@ -92,7 +100,7 @@ namespace Kore.Managers.Plugins.FileManagement
         {
             try
             {
-                await Task.Factory.StartNew(() => saveState.Save(temporaryContainer, fileName));
+                await Task.Factory.StartNew(() => saveState.Save(temporaryContainer, fileName, _progress));
                 return true;
             }
             catch (Exception)
@@ -167,8 +175,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                // TODO: Pass progress
-                await Task.Factory.StartNew(() => loadableState.Load(fileSystem, savePath, temporaryStreamProvider));
+                await Task.Factory.StartNew(() => loadableState.Load(fileSystem, savePath, temporaryStreamProvider, _progress));
                 return true;
             }
             catch (Exception)

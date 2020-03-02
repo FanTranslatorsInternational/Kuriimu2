@@ -25,14 +25,16 @@ namespace Kore.Managers.Plugins.FileManagement
     /// </summary>
     internal class FileLoader : IFileLoader
     {
+        private readonly IProgressContext _progress;
         private readonly IPluginLoader<IFilePlugin>[] _pluginLoaders;
 
         /// <summary>
         /// Creates a new instance of <see cref="FileLoader"/>.
         /// </summary>
         /// <param name="pluginLoaders">The plugin loaders to use.</param>
-        public FileLoader(params IPluginLoader<IFilePlugin>[] pluginLoaders)
+        public FileLoader(IProgressContext progress, params IPluginLoader<IFilePlugin>[] pluginLoaders)
         {
+            _progress = progress;
             _pluginLoaders = pluginLoaders;
         }
 
@@ -236,8 +238,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                // TODO: Pass progress
-                await Task.Factory.StartNew(() => loadableState.Load(fileSystem, filePath, temporaryStreamProvider));
+                await Task.Factory.StartNew(() => loadableState.Load(fileSystem, filePath, temporaryStreamProvider, _progress));
                 return true;
             }
             catch (Exception)

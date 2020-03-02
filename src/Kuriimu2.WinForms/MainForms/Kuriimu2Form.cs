@@ -62,7 +62,7 @@ namespace Kuriimu2.WinForms.MainForms
             _formTabDictionary = new Dictionary<IKuriimuForm, TabPage>();
             _tabColorDictionary = new Dictionary<TabPage, Color>();
 
-            _pluginManager = new PluginManager("plugins");
+            _pluginManager = new PluginManager(_progressContext, "plugins");
             // TODO: Display plugin loading errors/warnings
             //if (_pluginManager.CompositionErrors?.Any() ?? false)
             //    DisplayCompositionErrors(_pluginManager.CompositionErrors);

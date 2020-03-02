@@ -35,12 +35,12 @@ namespace Kore.Managers.Plugins
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(params string[] pluginPaths)
+        public PluginManager(IProgressContext progress, params string[] pluginPaths)
         {
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsPluginLoader(pluginPaths) };
 
-            _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver();
+            _fileLoader = new FileLoader(progress,_filePluginLoaders);
+            _fileSaver = new FileSaver(progress);
 
             _loadedFiles = new List<IStateInfo>();
         }
