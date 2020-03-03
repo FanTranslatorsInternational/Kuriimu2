@@ -1,7 +1,7 @@
 ﻿using System.Windows.Forms;
 using Kuriimu2.WinForms.Controls;
 
-namespace Kuriimu2.WinForms.FormatForms
+namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
     partial class ImageForm
     {

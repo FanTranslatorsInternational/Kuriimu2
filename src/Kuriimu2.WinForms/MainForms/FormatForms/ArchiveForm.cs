@@ -13,16 +13,14 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Progress;
-using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers.Plugins;
-using Kuriimu2.WinForms.Interfaces;
-using Kuriimu2.WinForms.MainForms;
+using Kuriimu2.WinForms.MainForms.Interfaces;
 using Kuriimu2.WinForms.Properties;
 
-namespace Kuriimu2.WinForms.FormatForms
+namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
     public partial class ArchiveForm : UserControl, IArchiveForm
     {

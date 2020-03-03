@@ -1,4 +1,4 @@
-﻿namespace Kuriimu2.WinForms.FormatForms
+﻿namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
     partial class ArchiveForm
     {

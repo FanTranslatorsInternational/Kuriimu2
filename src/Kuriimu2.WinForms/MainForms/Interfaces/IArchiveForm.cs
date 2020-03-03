@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Kontract.Interfaces.Managers;
 using Kontract.Models.Archive;
 
-namespace Kuriimu2.WinForms.Interfaces
+namespace Kuriimu2.WinForms.MainForms.Interfaces
 {
     public interface IArchiveForm : IKuriimuForm
     {

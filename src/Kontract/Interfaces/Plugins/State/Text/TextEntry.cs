@@ -28,7 +28,6 @@ namespace Kontract.Interfaces.Plugins.State.Text
         /// <summary>
         /// The entry's name.
         /// </summary>
-        [XmlAttribute("name")]
         public virtual string Name
         {
             get => _name;
@@ -44,7 +43,6 @@ namespace Kontract.Interfaces.Plugins.State.Text
         /// <summary>
         /// Stores the original text for the entry.
         /// </summary>
-        [XmlElement("original")]
         public virtual string OriginalText
         {
             get => _originalText;
@@ -60,7 +58,6 @@ namespace Kontract.Interfaces.Plugins.State.Text
         /// <summary>
         /// Stores the edited text for the entry.
         /// </summary>
-        [XmlElement("edited")]
         public virtual string EditedText
         {
             get => _editedText;
@@ -76,7 +73,6 @@ namespace Kontract.Interfaces.Plugins.State.Text
         /// <summary>
         /// Stores the note text for the entry.
         /// </summary>
-        [XmlElement("notes")]
         public virtual string Notes
         {
             get => _notes;
@@ -94,7 +90,7 @@ namespace Kontract.Interfaces.Plugins.State.Text
         /// 0 for unlimited.
         /// </summary>
         [XmlAttribute("max_length")]
-        public virtual int MaxLength { get; set; } = 0;
+        public virtual int MaxLength { get; set; }
 
         /// <summary>
         /// Determines whether this entry can be edited.
