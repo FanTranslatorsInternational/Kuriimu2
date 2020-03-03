@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Kore.Utilities;
+using Kore.Utilities.Text;
 using Kuriimu2.WinForms.MainForms.Models;
 using Kuriimu2.WinForms.Properties;
 

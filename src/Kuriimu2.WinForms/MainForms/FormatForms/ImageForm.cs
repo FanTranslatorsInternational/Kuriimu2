@@ -951,7 +951,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 await Task.Run(() =>
                 {
-                    var progresses = _progressContext.SplitIntoScopes(2);
+                    var progresses = _progressContext.SplitIntoEvenScopes(2);
 
                     var setMaxProgress = progresses[0].SetMaxValue(_images[_selectedImageIndex].Width * _images[_selectedImageIndex].Height);
                     indices = _images[_selectedImageIndex]
@@ -1006,7 +1006,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 await Task.Run(() =>
                 {
-                    var progresses = _progressContext.SplitIntoScopes(2);
+                    var progresses = _progressContext.SplitIntoEvenScopes(2);
 
                     var setMaxProgress = progresses[0].SetMaxValue(_images[_selectedImageIndex].Width * _images[_selectedImageIndex].Height);
                     var indices = _images[_selectedImageIndex]
@@ -1097,7 +1097,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             IList<int> indices;
             try
             {
-                var progresses = _progressContext.SplitIntoScopes(2);
+                var progresses = _progressContext.SplitIntoEvenScopes(2);
 
                 var setMaxProgress = progresses[0].SetMaxValue(_images[_selectedImageIndex].Width * _images[_selectedImageIndex].Height);
                 indices = _images[_selectedImageIndex]

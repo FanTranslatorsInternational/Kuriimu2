@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Kore.Utilities
+namespace Kore.Utilities.Text
 {
     /// <summary>
     /// Knuth-Morris-Pratt String pattern searcher.

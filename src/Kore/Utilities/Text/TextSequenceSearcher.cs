@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using Kore.Utilities.Models;
 
-namespace Kore.Utilities
+namespace Kore.Utilities.Text
 {
     /// <summary>
     /// The main implementation for text sequence searching.

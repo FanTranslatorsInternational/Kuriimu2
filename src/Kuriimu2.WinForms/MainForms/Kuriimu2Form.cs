@@ -15,8 +15,8 @@ using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 using Kore.Progress;
 using Kuriimu2.WinForms.ExtensionForms;
-using Kuriimu2.WinForms.FormatForms;
-using Kuriimu2.WinForms.Interfaces;
+using Kuriimu2.WinForms.MainForms.FormatForms;
+using Kuriimu2.WinForms.MainForms.Interfaces;
 using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
 
