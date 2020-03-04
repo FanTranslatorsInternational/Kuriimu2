@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Models;
 
 namespace Kontract.Interfaces.Plugins.State.Game
 {
@@ -9,6 +10,8 @@ namespace Kontract.Interfaces.Plugins.State.Game
     /// </summary>
     public interface IGameAdapter : IGamePlugin
     {
+        PluginMetadata MetaData { get; }
+
         //TODO: Implement game adapters
         /// <summary>
         /// 

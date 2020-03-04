@@ -1,220 +1,224 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Data;
-//using System.Drawing;
-//using System.IO;
-//using System.Linq;
-//using System.Windows.Forms;
-//using Cyotek.Windows.Forms;
-//using Kontract;
-//using Kontract.Attributes;
-//using Kontract.Interfaces.Archive;
-//using Kontract.Interfaces.Common;
-//using Kontract.Interfaces.Game;
-//using Kontract.Interfaces.Text;
-//using Kontract.Models;
-//using Kore;
-//using Kore.Files.Models;
-//using Kuriimu2.WinForms.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using Cyotek.Windows.Forms;
+using Kontract.Attributes;
+using Kontract.Extensions;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Game;
+using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Models.IO;
+using Kuriimu2.WinForms.MainForms.Interfaces;
+using MoreLinq.Experimental;
 
-//namespace Kuriimu2.WinForms.FormatForms
-//{
-//    public partial class TextForm : UserControl, IKuriimuForm
-//    {
-//        private ITextAdapter _textAdapter => Kfi.Adapter as ITextAdapter;
-//        private List<TextEntry> _textEntries;
-//        private TabPage _currentTab;
-//        private TabPage _parentTab;
-//        private IArchiveAdapter _parentAdapter;
-//        private IList<IGameAdapter> _gameAdapters;
+namespace Kuriimu2.WinForms.MainForms.FormatForms
+{
+    public partial class TextForm : UserControl, IKuriimuForm
+    {
+        private readonly IStateInfo _stateInfo;
+        private readonly ITextState _textState;
 
-//        private int _selectedPreviewPluginIndex;
-//        private int _selectedTextEntryIndex;
-//        private IGameAdapter _selectedGameAdapter => _gameAdapters.Any() ? _gameAdapters[_selectedPreviewPluginIndex] : null;
+        private List<TextEntry> _textEntries;
+        private IList<IGameAdapter> _gameAdapters;
 
-//        public TextForm(KoreFileInfo kfi, TabPage tabPage, IArchiveAdapter parentAdapter, TabPage parentTabPage, IList<IGameAdapter> gameAdapters)
-//        {
-//            InitializeComponent();
+        private IGameAdapter _selectedGameAdapter => _gameAdapters.Any() ? _gameAdapters[_selectedPreviewPluginIndex] : null;
 
-//            Kfi = kfi;
+        private int _selectedPreviewPluginIndex;
+        private int _selectedTextEntryIndex;
 
-//            _currentTab = tabPage;
-//            _parentTab = parentTabPage;
-//            _parentAdapter = parentAdapter;
+        public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
+        public Action<IStateInfo> UpdateTabDelegate { get; set; }
 
-//            LoadGameAdapters(gameAdapters);
-//            LoadEntries(_textAdapter.Entries);
+        public TextForm(IStateInfo state, IList<IGameAdapter> gameAdapters)
+        {
+            InitializeComponent();
 
-//            UpdatePreview();
-//            UpdateForm();
-//        }
+            var textState = state.State as ITextState;
+            if (textState == null)
+                throw new InvalidOperationException($"The state is no '{nameof(ITextState)}'.");
 
-//        public KoreFileInfo Kfi { get; set; }
+            _stateInfo = state;
+            _textState = textState;
 
-//        public Color TabColor { get; set; }
+            LoadGameAdapters(gameAdapters);
+            LoadEntries(textState.Texts);
 
-//        public event EventHandler<OpenFileEventArgs> OpenTab;
-//        public event EventHandler<SaveTabEventArgs> SaveTab;
-//        public event EventHandler<CloseTabEventArgs> CloseTab;
-//        public event EventHandler<ProgressReport> ReportProgress;
+            UpdatePreview();
+            UpdateForm();
+        }
 
-//        public void Close()
-//        {
-            
-//        }
+        private void LoadGameAdapters(IList<IGameAdapter> gameAdapters)
+        {
+            _gameAdapters = gameAdapters.ToList();
 
-//        #region Utilities
+            var items = new List<ToolStripItem>(gameAdapters.Count);
+            foreach (var gameAdapter in gameAdapters)
+            {
+                items.Add(new ToolStripMenuItem
+                {
+                    Text = gameAdapter.MetaData?.Name,
+                    Image = string.IsNullOrWhiteSpace(gameAdapter.IconPath) || !File.Exists(gameAdapter.IconPath) ?
+                        null :
+                    Image.FromFile(gameAdapter.IconPath),
+                    Tag = gameAdapter
+                });
+            }
 
-//        #region Save
-//        public void Save(string filename = "")
-//        {
-//            SaveTab?.Invoke(this, new SaveTabEventArgs(Kfi) { NewSaveFile = filename });
+            tlsPreviewPlugin.DropDownItems.AddRange(items.ToArray());
 
-//            UpdateParent();
-//            UpdateForm();
-//        }
+            if (tlsPreviewPlugin.DropDownItems.Count > 0)
+                foreach (var tsb in tlsPreviewPlugin.DropDownItems)
+                    ((ToolStripMenuItem)tsb).Click += PreviewItem_Click;
 
-//        private void SaveAs()
-//        {
-//            var sfd = new SaveFileDialog();
-//            sfd.FileName = Path.GetFileName(Kfi.StreamFileInfo.FileName);
-//            sfd.Filter = "All Files (*.*)|*.*";
+            _selectedPreviewPluginIndex = 0;
+        }
 
-//            if (sfd.ShowDialog() == DialogResult.OK)
-//                Save(sfd.FileName);
-//            else
-//                MessageBox.Show("No save location was chosen.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-//        }
-//        #endregion
+        #region Save
 
-//        #region Load
-//        private void LoadGameAdapters(IEnumerable<IGameAdapter> gameAdapters)
-//        {
-//            _gameAdapters = gameAdapters.ToList();
+        private void SaveAs()
+        {
+            var sfd = new SaveFileDialog
+            {
+                FileName = _stateInfo.FilePath.GetName(),
+                Filter = "All Files (*.*)|*.*"
+            };
 
-//            tlsPreviewPlugin.DropDownItems.AddRange(_gameAdapters.Select(g =>
-//                new ToolStripMenuItem
-//                {
-//                    Text = g.GetType().GetCustomAttributes(typeof(PluginInfoAttribute), false).Cast<PluginInfoAttribute>().FirstOrDefault()?.Name,
-//                    Image = string.IsNullOrEmpty(g.IconPath) || !File.Exists(g.IconPath) ? null : new Bitmap(g.IconPath),
-//                    Tag = g
-//                }).ToArray());
+            if (sfd.ShowDialog() == DialogResult.OK)
+                Save(sfd.FileName);
+            else
+                MessageBox.Show("No save location was chosen.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
 
-//            if (tlsPreviewPlugin.DropDownItems.Count > 0)
-//                foreach (var tsb in tlsPreviewPlugin.DropDownItems)
-//                    ((ToolStripMenuItem)tsb).Click += PreviewItem_Click;
+        public async void Save(UPath savePath)
+        {
+            if (savePath == UPath.Empty)
+                savePath = _stateInfo.FilePath;
 
-//            _selectedPreviewPluginIndex = 0;
-//        }
+            var result = await SaveFilesDelegate?.Invoke(new SaveTabEventArgs(_stateInfo, savePath));
+            if (!result)
+                MessageBox.Show("The file could not be saved.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-//        private void LoadEntries(IEnumerable<TextEntry> textEntries)
-//        {
-//            _textEntries = textEntries.ToList();
+            UpdateForm();
+        }
 
-//            lstText.Items.Clear();
-//            lstText.Items.AddRange(_textAdapter.Entries.Select(x => new ListViewItem(new[] { x.Name, x.OriginalText, x.OriginalText, x.Notes }) { Tag = x }).ToArray());
-//        }
-//        #endregion
+        #endregion
 
-//        #region Updates
-//        public void UpdateForm()
-//        {
-//            _currentTab.Text = Kfi.DisplayName;
+        #region Load
 
-//            // Menu
-//            tlsMainSave.Enabled = _textAdapter is ISaveFiles;
-//            tlsMainSaveAs.Enabled = _textAdapter is ISaveFiles && Kfi.ParentKfi == null;
-//            //tsbProperties.Enabled = _archiveAdapter.FileHasExtendedProperties;
+        private void LoadEntries(IEnumerable<TextEntry> textEntries)
+        {
+            _textEntries = textEntries.ToList();
 
-//            // Text
-//            tlsTextAdd.Enabled = _textAdapter is IAddEntries;
-//            tlsTextEntryCount.Text = $"Entries: {_textAdapter.Entries.Count()}";
+            lstText.Items.Clear();
+            lstText.Items.AddRange(_textAdapter.Entries.Select(x => new ListViewItem(new[] { x.Name, x.OriginalText, x.OriginalText, x.Notes }) { Tag = x }).ToArray());
+        }
+        #endregion
 
-//            // Preview
-//            tlsPreviewPlugin.Enabled = _gameAdapters.Any();
-//            tlsPreviewPlugin.Text = tlsPreviewPlugin.Enabled ? tlsPreviewPlugin.DropDownItems[_selectedPreviewPluginIndex].Text : "No game plugin";
-//            tlsPreviewPlugin.Image = tlsPreviewPlugin.Enabled ? tlsPreviewPlugin.DropDownItems[_selectedPreviewPluginIndex].Image : null;
-//        }
+        #region Updates
 
-//        public void UpdateParent()
-//        {
-//            if (_parentTab != null)
-//                if (_parentTab.Controls[0] is IArchiveForm archiveForm)
-//                {
-//                    archiveForm.UpdateForm();
-//                    archiveForm.UpdateParent();
-//                }
-//        }
+        public void UpdateForm()
+        {
+            _currentTab.Text = Kfi.DisplayName;
 
-//        private void UpdatePreview()
-//        {
-//            if (_selectedGameAdapter == null)
-//                return;
+            // Menu
+            tlsMainSave.Enabled = _textAdapter is ISaveFiles;
+            tlsMainSaveAs.Enabled = _textAdapter is ISaveFiles && Kfi.ParentKfi == null;
+            //tsbProperties.Enabled = _archiveAdapter.FileHasExtendedProperties;
 
-//            if (!_textEntries.Any() || _selectedTextEntryIndex < 0)
-//            {
-//                imgPreview.Image = null;
-//                return;
-//            }
+            // Text
+            tlsTextAdd.Enabled = _textAdapter is IAddEntries;
+            tlsTextEntryCount.Text = $"Entries: {_textAdapter.Entries.Count()}";
 
-//            if (_selectedGameAdapter is IGenerateGamePreviews generator)
-//                imgPreview.Image = generator.GeneratePreview(_textEntries[_selectedTextEntryIndex]);
-//        }
-//        #endregion
+            // Preview
+            tlsPreviewPlugin.Enabled = _gameAdapters.Any();
+            tlsPreviewPlugin.Text = tlsPreviewPlugin.Enabled ? tlsPreviewPlugin.DropDownItems[_selectedPreviewPluginIndex].Text : "No game plugin";
+            tlsPreviewPlugin.Image = tlsPreviewPlugin.Enabled ? tlsPreviewPlugin.DropDownItems[_selectedPreviewPluginIndex].Image : null;
+        }
 
-//        #endregion
+        public void UpdateParent()
+        {
+            if (_parentTab != null)
+                if (_parentTab.Controls[0] is IArchiveForm archiveForm)
+                {
+                    archiveForm.UpdateForm();
+                    archiveForm.UpdateParent();
+                }
+        }
 
-//        #region Events
-//        private void tlsMainSave_Click(object sender, EventArgs e)
-//        {
-//            Save();
-//        }
+        private void UpdatePreview()
+        {
+            if (_selectedGameAdapter == null)
+                return;
 
-//        private void tlsMainSaveAs_Click(object sender, EventArgs e)
-//        {
-//            SaveAs();
-//        }
+            if (!_textEntries.Any() || _selectedTextEntryIndex < 0)
+            {
+                imgPreview.Image = null;
+                return;
+            }
 
-//        private void PreviewItem_Click(object sender, EventArgs e)
-//        {
-//            var tsi = (ToolStripMenuItem)sender;
-//            _selectedPreviewPluginIndex = _gameAdapters.IndexOf((IGameAdapter)tsi.Tag);
+            if (_selectedGameAdapter is IGenerateGamePreviews generator)
+                imgPreview.Image = generator.GeneratePreview(_textEntries[_selectedTextEntryIndex]);
+        }
+        #endregion
 
-//            UpdatePreview();
-//        }
+#endregion
 
-//        private void lstText_SelectedIndexChanged(object sender, EventArgs e)
-//        {
-//            if (lstText.SelectedIndices.Count > 0)
-//                _selectedTextEntryIndex = lstText.SelectedIndices[0];
+        #region Events
+        private void tlsMainSave_Click(object sender, EventArgs e)
+        {
+            Save();
+        }
 
-//            UpdatePreview();
-//        }
-//        #endregion
+        private void tlsMainSaveAs_Click(object sender, EventArgs e)
+        {
+            SaveAs();
+        }
 
-//        private void imgPreview_Zoomed(object sender, Cyotek.Windows.Forms.ImageBoxZoomEventArgs e)
-//        {
-//            tlsPreviewZoom.Text = "Zoom: " + imgPreview.Zoom + "%";
-//        }
+        private void PreviewItem_Click(object sender, EventArgs e)
+        {
+            var tsi = (ToolStripMenuItem)sender;
+            _selectedPreviewPluginIndex = _gameAdapters.IndexOf((IGameAdapter)tsi.Tag);
 
-//        private void imgPreview_KeyDown(object sender, KeyEventArgs e)
-//        {
-//            if (e.KeyCode == Keys.Space)
-//            {
-//                imgPreview.SelectionMode = ImageBoxSelectionMode.None;
-//                imgPreview.Cursor = Cursors.SizeAll;
-//                tlsPreviewTool.Text = "Tool: Pan";
-//            }
-//        }
+            UpdatePreview();
+        }
 
-//        private void imgPreview_KeyUp(object sender, KeyEventArgs e)
-//        {
-//            if (e.KeyCode == Keys.Space)
-//            {
-//                imgPreview.SelectionMode = ImageBoxSelectionMode.Zoom;
-//                imgPreview.Cursor = Cursors.Default;
-//                tlsPreviewTool.Text = "Tool: Zoom";
-//            }
-//        }
-//    }
-//}
+        private void lstText_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstText.SelectedIndices.Count > 0)
+                _selectedTextEntryIndex = lstText.SelectedIndices[0];
+
+            UpdatePreview();
+        }
+        #endregion
+
+        private void imgPreview_Zoomed(object sender, Cyotek.Windows.Forms.ImageBoxZoomEventArgs e)
+        {
+            tlsPreviewZoom.Text = "Zoom: " + imgPreview.Zoom + "%";
+        }
+
+        private void imgPreview_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                imgPreview.SelectionMode = ImageBoxSelectionMode.None;
+                imgPreview.Cursor = Cursors.SizeAll;
+                tlsPreviewTool.Text = "Tool: Pan";
+            }
+        }
+
+        private void imgPreview_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                imgPreview.SelectionMode = ImageBoxSelectionMode.Zoom;
+                imgPreview.Cursor = Cursors.Default;
+                tlsPreviewTool.Text = "Tool: Zoom";
+            }
+        }
+    }
+}

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Kontract.Interfaces.Plugins.State.Text;
 using Kore.Utilities.Models;
+using MoreLinq;
 
 namespace Kore.Utilities.Text
 {
@@ -11,14 +13,37 @@ namespace Kore.Utilities.Text
     {
         public IList<TextEntry> TextEntries { get; }
 
-        private PO(IList<TextEntry> entries)
+        public PO(IList<TextEntry> entries)
         {
             TextEntries = entries;
         }
 
         public void Save(Stream output)
         {
-            // TODO: Save a PO
+            using (var writer = new StreamWriter(output, Encoding.UTF8))
+            {
+                foreach (PoEntry entry in TextEntries)
+                {
+                    if (entry.Comments?.Any() ?? false)
+                        entry.Comments.ForEach(x => writer.WriteLine($"# {x}"));
+                    if (entry.ExtractedComments?.Any() ?? false)
+                        entry.ExtractedComments.ForEach(x => writer.WriteLine($"#. {x}"));
+                    if (entry.SourceReference?.Any() ?? false)
+                        entry.SourceReference.ForEach(x => writer.WriteLine($"#: {x}"));
+                    if (entry.Flags?.Any() ?? false)
+                        entry.Flags.ForEach(x => writer.WriteLine($"#, {x}"));
+
+                    if (!string.IsNullOrWhiteSpace(entry.Context))
+                        writer.WriteLine($"msgctxt {entry.Context}");
+                    if (!string.IsNullOrWhiteSpace(entry.OriginalText))
+                        writer.WriteLine($"msgid {entry.OriginalText}");
+                    if (!string.IsNullOrWhiteSpace(entry.EditedText))
+                        writer.WriteLine($"msgstr {entry.EditedText}");
+
+                    writer.WriteLine();
+                    writer.WriteLine();
+                }
+            }
         }
 
         /// <summary>
