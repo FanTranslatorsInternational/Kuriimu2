@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
-using Kontract.Interfaces;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
-using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins.FileManagement;
@@ -25,6 +24,7 @@ namespace Kore.Managers.Plugins
     public class PluginManager : IInternalPluginManager
     {
         private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
+        private readonly IPluginLoader<IGameAdapter>[] _gameAdapterLoaders;
 
         private readonly IFileLoader _fileLoader;
         private readonly IFileSaver _fileSaver;
@@ -34,12 +34,14 @@ namespace Kore.Managers.Plugins
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
+        /// <param name="progress">The progress context for plugin processes.</param>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
         public PluginManager(IProgressContext progress, params string[] pluginPaths)
         {
-            _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsPluginLoader(pluginPaths) };
+            _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
+            _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
 
-            _fileLoader = new FileLoader(progress,_filePluginLoaders);
+            _fileLoader = new FileLoader(progress, _filePluginLoaders);
             _fileSaver = new FileSaver(progress);
 
             _loadedFiles = new List<IStateInfo>();
@@ -59,6 +61,11 @@ namespace Kore.Managers.Plugins
         public IPluginLoader<IFilePlugin>[] GetFilePluginLoaders()
         {
             return _filePluginLoaders;
+        }
+
+        public IPluginLoader<IGameAdapter>[] GetGamePluginLoaders()
+        {
+            return _gameAdapterLoaders;
         }
 
         /// <summary>

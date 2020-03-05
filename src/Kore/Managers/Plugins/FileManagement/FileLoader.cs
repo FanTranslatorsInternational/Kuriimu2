@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
-using Kontract.Interfaces;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
@@ -11,7 +9,6 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
-using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Extensions;
 using Kore.Factories;
@@ -26,16 +23,16 @@ namespace Kore.Managers.Plugins.FileManagement
     internal class FileLoader : IFileLoader
     {
         private readonly IProgressContext _progress;
-        private readonly IPluginLoader<IFilePlugin>[] _pluginLoaders;
+        private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
 
         /// <summary>
         /// Creates a new instance of <see cref="FileLoader"/>.
         /// </summary>
-        /// <param name="pluginLoaders">The plugin loaders to use.</param>
-        public FileLoader(IProgressContext progress, params IPluginLoader<IFilePlugin>[] pluginLoaders)
+        /// <param name="filePluginLoaders">The plugin loaders to use.</param>
+        public FileLoader(IProgressContext progress, params IPluginLoader<IFilePlugin>[] filePluginLoaders)
         {
             _progress = progress;
-            _pluginLoaders = pluginLoaders;
+            _filePluginLoaders = filePluginLoaders;
         }
 
         /// <inheritdoc />
@@ -163,7 +160,7 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, IStreamManager streamManager, bool identifyPluginManually)
         {
             // 1. Get all plugins that implement IIdentifyFile
-            var identifiablePlugins = _pluginLoaders.SelectMany(pl => pl.GetIdentifiablePlugins());
+            var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
             foreach (var identifiablePlugin in identifiablePlugins)
             {
@@ -209,7 +206,7 @@ namespace Kore.Managers.Plugins.FileManagement
         private IFilePlugin GetManualSelection()
         {
             // 1. Get all plugins that don't implement IIdentifyFile
-            var nonIdentifiablePlugins = _pluginLoaders.SelectMany(pl => pl.GetNonIdentifiablePlugins());
+            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins();
 
             // TODO: 2. Request selection of non identifiable plugins from external sources
 

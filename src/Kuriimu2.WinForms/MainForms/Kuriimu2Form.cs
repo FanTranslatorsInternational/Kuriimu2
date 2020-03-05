@@ -12,6 +12,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
+using Kore.Extensions;
 using Kore.Managers.Plugins;
 using Kore.Progress;
 using Kuriimu2.WinForms.ExtensionForms;
@@ -571,7 +572,7 @@ namespace Kuriimu2.WinForms.MainForms
             }
             else
             {
-                var pluginChooser = new ChoosePluginForm(_pluginManager.GetFilePluginLoaders());
+                var pluginChooser = new ChoosePluginForm(_pluginManager.GetFilePlugins().ToArray());
                 if (pluginChooser.ShowDialog() != DialogResult.OK)
                 {
                     MessageBox.Show("No plugin was selected.");
@@ -598,6 +599,10 @@ namespace Kuriimu2.WinForms.MainForms
             {
                 switch (stateInfo.State)
                 {
+                    case ITextState textState:
+                        kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(), _progressContext);
+                        break;
+
                     case IImageState imageState:
                         kuriimuForm = new ImageForm(stateInfo, _progressContext);
                         break;

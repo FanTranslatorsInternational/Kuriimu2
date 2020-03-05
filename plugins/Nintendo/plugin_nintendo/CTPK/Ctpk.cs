@@ -6,7 +6,7 @@ using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 
 namespace plugin_nintendo.CTPK
 {

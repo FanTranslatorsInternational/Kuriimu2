@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Kontract.Kanvas;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 
 namespace Kontract.Interfaces.Plugins.State
 {

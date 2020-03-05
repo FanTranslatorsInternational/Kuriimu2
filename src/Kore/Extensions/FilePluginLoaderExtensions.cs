@@ -5,27 +5,16 @@ using Kontract.Interfaces.Plugins.Identifier;
 
 namespace Kore.Extensions
 {
-    /// <summary>
-    /// Offers methods to extend on <see cref="IPluginLoader{IFilePlugin}"/>.
-    /// </summary>
     public static class FilePluginLoaderExtensions
     {
-        /// <summary>
-        /// Enumerate all plugins that implement <see cref="IIdentifyFiles"/>.
-        /// </summary>
-        /// <returns>All identifiable plugins.</returns>
-        public static IEnumerable<IIdentifyFiles> GetIdentifiablePlugins(this IPluginLoader<IFilePlugin> filePluginLoader)
+        public static IEnumerable<IIdentifyFiles> GetIdentifiableFilePlugins(this IEnumerable<IPluginLoader<IFilePlugin>> filePluginLoaders)
         {
-            return filePluginLoader.Plugins.Where(ep => ep is IIdentifyFiles).Cast<IIdentifyFiles>();
+            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => x is IIdentifyFiles).Cast<IIdentifyFiles>();
         }
 
-        /// <summary>
-        /// Enumerate all plugins that don't implement <see cref="IIdentifyFiles"/>.
-        /// </summary>
-        /// <returns>All non-identifiable plugins.</returns>
-        public static IEnumerable<IFilePlugin> GetNonIdentifiablePlugins(this IPluginLoader<IFilePlugin> filePluginLoader)
+        public static IEnumerable<IFilePlugin> GetNonIdentifiableFilePlugins(this IEnumerable<IPluginLoader<IFilePlugin>> filePluginLoaders)
         {
-            return filePluginLoader.Plugins.Where(ep => !(ep is IIdentifyFiles));
+            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => !(x is IIdentifyFiles));
         }
     }
 }

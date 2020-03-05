@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Game
 {

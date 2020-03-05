@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Models.Text;
 
 namespace Kore.Utilities.Models
 {

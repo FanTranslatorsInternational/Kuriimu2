@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Kontract.Interfaces;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
-using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -22,7 +21,11 @@ namespace Kore.Managers.Plugins
         /// <returns></returns>
         IPluginLoader<IFilePlugin>[] GetFilePluginLoaders();
 
-        // TODO: GetGamePluginLoaders()
+        /// <summary>
+        /// Retrieves all <see cref="IPluginLoader"/>s that can render game previews.
+        /// </summary>
+        /// <returns></returns>
+        IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
 
         bool IsLoaded(UPath filePath);
 

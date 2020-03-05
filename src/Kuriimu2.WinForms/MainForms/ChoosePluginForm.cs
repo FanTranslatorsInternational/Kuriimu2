@@ -1,29 +1,27 @@
 ﻿using System;
-using System.Linq;
 using System.Windows.Forms;
-using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Plugins.Identifier;
 
 namespace Kuriimu2.WinForms.MainForms
 {
     public partial class ChoosePluginForm : Form
     {
-        private readonly IPluginLoader<IFilePlugin>[] _pluginLoaders;
+        private readonly IFilePlugin[] _filePlugins;
 
         public Guid SelectedPluginId { get; private set; }
 
-        public ChoosePluginForm(params IPluginLoader<IFilePlugin>[] filePluginLoaders)
+        public ChoosePluginForm(params IFilePlugin[] filePlugins)
         {
             InitializeComponent();
 
-            _pluginLoaders = filePluginLoaders;
+            _filePlugins = filePlugins;
 
             AddPlugins();
         }
 
         private void AddPlugins()
         {
-            foreach (var plugin in _pluginLoaders.SelectMany(x => x.Plugins))
+            foreach (var plugin in _filePlugins)
             {
                 var metadataName = plugin.Metadata?.Name ?? "<undefined>";
                 var listViewItem = new ListViewItem(new[] { plugin.PluginId.ToString("D"), metadataName })

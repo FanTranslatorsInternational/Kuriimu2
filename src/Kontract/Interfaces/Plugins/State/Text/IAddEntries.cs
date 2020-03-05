@@ -1,4 +1,6 @@
-﻿namespace Kontract.Interfaces.Plugins.State.Text
+﻿using Kontract.Models.Text;
+
+namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// This interface allows the text adapter to add new entries through the UI.

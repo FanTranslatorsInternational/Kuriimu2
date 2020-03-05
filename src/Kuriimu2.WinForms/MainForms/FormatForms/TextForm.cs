@@ -6,15 +6,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Cyotek.Windows.Forms;
-using Kontract.Attributes;
 using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
+using Kontract.Models.Text;
 using Kuriimu2.WinForms.MainForms.Interfaces;
-using MoreLinq.Experimental;
 
 namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
@@ -22,11 +22,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
     {
         private readonly IStateInfo _stateInfo;
         private readonly ITextState _textState;
+        private readonly IProgressContext _progressContext;
 
-        private List<TextEntry> _textEntries;
-        private IList<IGameAdapter> _gameAdapters;
+        private readonly IList<TextEntry> _textEntries;
+        private readonly IList<IGameAdapter> _gameAdapters;
 
-        private IGameAdapter _selectedGameAdapter => _gameAdapters.Any() ? _gameAdapters[_selectedPreviewPluginIndex] : null;
+        private IGameAdapter SelectedGameAdapter => _gameAdapters.Any() ? _gameAdapters[_selectedPreviewPluginIndex] : null;
 
         private int _selectedPreviewPluginIndex;
         private int _selectedTextEntryIndex;
@@ -34,30 +35,31 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
 
-        public TextForm(IStateInfo state, IList<IGameAdapter> gameAdapters)
+        public TextForm(IStateInfo state, IList<IGameAdapter> gameAdapters, IProgressContext progressContext)
         {
             InitializeComponent();
 
-            var textState = state.State as ITextState;
-            if (textState == null)
+            if (!(state.State is ITextState textState))
                 throw new InvalidOperationException($"The state is no '{nameof(ITextState)}'.");
 
             _stateInfo = state;
             _textState = textState;
+            _progressContext = progressContext;
 
-            LoadGameAdapters(gameAdapters);
-            LoadEntries(textState.Texts);
+            _textEntries = textState.Texts;
+            _gameAdapters = gameAdapters;
+
+            LoadGameAdapters();
+            LoadEntries();
 
             UpdatePreview();
             UpdateForm();
         }
 
-        private void LoadGameAdapters(IList<IGameAdapter> gameAdapters)
+        private void LoadGameAdapters()
         {
-            _gameAdapters = gameAdapters.ToList();
-
-            var items = new List<ToolStripItem>(gameAdapters.Count);
-            foreach (var gameAdapter in gameAdapters)
+            var items = new List<ToolStripItem>(_gameAdapters.Count);
+            foreach (var gameAdapter in _gameAdapters)
             {
                 items.Add(new ToolStripMenuItem
                 {
@@ -78,6 +80,29 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _selectedPreviewPluginIndex = 0;
         }
 
+        private void LoadEntries()
+        {
+            lstText.Items.Clear();
+
+            var items = new List<ListViewItem>(_textEntries.Count);
+            foreach (var entry in _textEntries)
+            {
+                var itemContent = new[]
+                {
+                    entry.Name,
+                    entry.OriginalText,
+                    entry.EditedText,
+                    entry.Notes
+                };
+                items.Add(new ListViewItem(itemContent)
+                {
+                    Tag = entry
+                });
+            }
+
+            lstText.Items.AddRange(items.ToArray());
+        }
+
         #region Save
 
         private void SaveAs()
@@ -94,7 +119,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 MessageBox.Show("No save location was chosen.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        public async void Save(UPath savePath)
+        private async void Save(UPath savePath)
         {
             if (savePath == UPath.Empty)
                 savePath = _stateInfo.FilePath;
@@ -108,31 +133,17 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
-        #region Load
-
-        private void LoadEntries(IEnumerable<TextEntry> textEntries)
-        {
-            _textEntries = textEntries.ToList();
-
-            lstText.Items.Clear();
-            lstText.Items.AddRange(_textAdapter.Entries.Select(x => new ListViewItem(new[] { x.Name, x.OriginalText, x.OriginalText, x.Notes }) { Tag = x }).ToArray());
-        }
-        #endregion
-
         #region Updates
 
         public void UpdateForm()
         {
-            _currentTab.Text = Kfi.DisplayName;
-
             // Menu
-            tlsMainSave.Enabled = _textAdapter is ISaveFiles;
-            tlsMainSaveAs.Enabled = _textAdapter is ISaveFiles && Kfi.ParentKfi == null;
-            //tsbProperties.Enabled = _archiveAdapter.FileHasExtendedProperties;
+            tlsMainSave.Enabled = _textState is ISaveFiles;
+            tlsMainSaveAs.Enabled = _textState is ISaveFiles && _stateInfo.ParentStateInfo == null;
 
             // Text
-            tlsTextAdd.Enabled = _textAdapter is IAddEntries;
-            tlsTextEntryCount.Text = $"Entries: {_textAdapter.Entries.Count()}";
+            tlsTextAdd.Enabled = _textState is IAddEntries;
+            tlsTextEntryCount.Text = $"Entries: {_textEntries.Count}";
 
             // Preview
             tlsPreviewPlugin.Enabled = _gameAdapters.Any();
@@ -140,19 +151,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tlsPreviewPlugin.Image = tlsPreviewPlugin.Enabled ? tlsPreviewPlugin.DropDownItems[_selectedPreviewPluginIndex].Image : null;
         }
 
-        public void UpdateParent()
-        {
-            if (_parentTab != null)
-                if (_parentTab.Controls[0] is IArchiveForm archiveForm)
-                {
-                    archiveForm.UpdateForm();
-                    archiveForm.UpdateParent();
-                }
-        }
-
         private void UpdatePreview()
         {
-            if (_selectedGameAdapter == null)
+            if (SelectedGameAdapter == null)
                 return;
 
             if (!_textEntries.Any() || _selectedTextEntryIndex < 0)
@@ -161,17 +162,17 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
             }
 
-            if (_selectedGameAdapter is IGenerateGamePreviews generator)
+            if (SelectedGameAdapter is IGenerateGamePreviews generator)
                 imgPreview.Image = generator.GeneratePreview(_textEntries[_selectedTextEntryIndex]);
         }
+
         #endregion
 
-#endregion
-
         #region Events
+
         private void tlsMainSave_Click(object sender, EventArgs e)
         {
-            Save();
+            Save(UPath.Empty);
         }
 
         private void tlsMainSaveAs_Click(object sender, EventArgs e)
@@ -194,9 +195,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             UpdatePreview();
         }
-        #endregion
 
-        private void imgPreview_Zoomed(object sender, Cyotek.Windows.Forms.ImageBoxZoomEventArgs e)
+        private void imgPreview_Zoomed(object sender, ImageBoxZoomEventArgs e)
         {
             tlsPreviewZoom.Text = "Zoom: " + imgPreview.Zoom + "%";
         }
@@ -220,5 +220,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 tlsPreviewTool.Text = "Tool: Zoom";
             }
         }
+
+        #endregion
     }
 }

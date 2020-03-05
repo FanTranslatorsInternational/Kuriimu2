@@ -1,4 +1,6 @@
-﻿namespace Kontract.Interfaces.Plugins.State.Text
+﻿using Kontract.Models.Text;
+
+namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// This interface allows the text adapter to rename entries through the UI making use of the NameList.

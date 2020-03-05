@@ -14,7 +14,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 using Kontract.Models.IO;
 using Kore.Utilities.Palettes;
 using Kuriimu2.WinForms.MainForms.Interfaces;

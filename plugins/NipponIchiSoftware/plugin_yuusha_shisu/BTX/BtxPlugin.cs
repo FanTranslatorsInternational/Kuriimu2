@@ -19,7 +19,7 @@ namespace plugin_yuusha_shisu.BTX
 
         public BtxPlugin()
         {
-            Metadata = new PluginMetadata("Death of a Hero", "IcySon55");
+            Metadata = new PluginMetadata("BTX", "IcySon55", "Death of a Hero");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)

@@ -14,7 +14,7 @@ namespace plugin_yuusha_shisu.PAC
 
 		public BtxPlugin()
 		{
-			Metadata = new PluginMetadata("Death of a Hero", "StorMyu");
+			Metadata = new PluginMetadata("PAC", "StorMyu", "Death of a Hero");
 		}
 
 		public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)

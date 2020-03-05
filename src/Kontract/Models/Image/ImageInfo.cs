@@ -2,7 +2,7 @@
 using System.Drawing;
 using Kontract.Kanvas.Configuration;
 
-namespace Kontract.Models.Images
+namespace Kontract.Models.Image
 {
     /// <summary>
     /// The base bitmap info class.

@@ -2,7 +2,7 @@
 using System.IO;
 using Kanvas.Configuration;
 using Komponent.IO;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 
 namespace plugin_yuusha_shisu.BTX
 {

@@ -3,41 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Kontract.Interfaces.Loaders;
-using Kontract.Interfaces.Plugins.Identifier;
 using Kore.Models;
 
 namespace Kore.Managers.Plugins.PluginLoader
 {
-    class CsPluginLoader : IPluginLoader<IFilePlugin>
+    abstract class CsPluginLoader
     {
-        /// <inheritdoc />
-        public IReadOnlyList<IFilePlugin> Plugins { get; private set; }
-
-        public CsPluginLoader(params string[] pluginPaths)
-        {
-            if (!TryLoadPlugins(pluginPaths, out var errors))
-            {
-                throw new AggregateException(errors.Select(e => new InvalidOperationException(e.ToString())));
-            }
-        }
-
-        /// <inheritdoc />
-        public bool Exists(Guid pluginId)
-        {
-            return Plugins.Any(p => p.PluginId == pluginId);
-        }
-
-        /// <inheritdoc />
-        public IFilePlugin GetPlugin(Guid pluginId)
-        {
-            return Plugins.FirstOrDefault(ep => ep.PluginId == pluginId);
-        }
-
         // TODO: Make more separate methods for better error handling
-        private bool TryLoadPlugins(string[] pluginPaths, out PluginLoadError[] errors)
+        protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out PluginLoadError[] errors)
         {
-            var pluginType = typeof(IFilePlugin);
+            var pluginType = typeof(TPlugin);
 
             // 1. Get all assembly file paths from the designated plugin directories
             var assemblyFilePaths = pluginPaths.Where(Directory.Exists)
@@ -52,7 +27,7 @@ namespace Kore.Managers.Plugins.PluginLoader
                 a.GetExportedTypes().Where(t => pluginType.IsAssignableFrom(t)));
 
             // 4. Create an instance of each IPlugin
-            Plugins = pluginTypes.Select(pt => (IFilePlugin)Activator.CreateInstance(pt)).ToList();
+            loadedPlugins = pluginTypes.Select(pt => (TPlugin)Activator.CreateInstance(pt)).ToList();
 
             errors = null;
             return true;

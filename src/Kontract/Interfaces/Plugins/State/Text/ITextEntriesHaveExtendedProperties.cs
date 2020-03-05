@@ -1,4 +1,6 @@
-﻿namespace Kontract.Interfaces.Plugins.State.Text
+﻿using Kontract.Models.Text;
+
+namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// Entries provide an extended properties dialog?

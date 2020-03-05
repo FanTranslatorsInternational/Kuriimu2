@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Xml.Serialization;
 
-namespace Kontract.Interfaces.Plugins.State.Text
+namespace Kontract.Models.Text
 {
     /// <summary>
     /// The base text entry class.

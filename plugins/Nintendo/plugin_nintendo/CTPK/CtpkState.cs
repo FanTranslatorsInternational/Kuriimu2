@@ -6,7 +6,7 @@ using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Kanvas;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 using Kontract.Models.IO;
 
 namespace plugin_nintendo.CTPK

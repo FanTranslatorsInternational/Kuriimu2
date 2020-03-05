@@ -3,7 +3,7 @@ using System.IO;
 using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
-using Kontract.Models.Images;
+using Kontract.Models.Image;
 using plugin_nintendo.NW4C;
 
 namespace plugin_nintendo.BCLIM

@@ -1,4 +1,4 @@
-﻿namespace Kontract.Models.Images
+﻿namespace Kontract.Models.Image
 {
     /// <summary>
     /// Extended <see cref="ImageInfo"/> to add paletteData information.

@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Interfaces.Plugins.State.Text;
 using Kontract.Models;
+using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Game
 {
@@ -16,7 +17,7 @@ namespace Kontract.Interfaces.Plugins.State.Game
         /// <summary>
         /// 
         /// </summary>
-        string ID { get; }
+        Guid PluginId { get; }
 
         /// <summary>
         /// 
