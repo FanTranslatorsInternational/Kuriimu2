@@ -3,7 +3,7 @@ using Kompression.Exceptions;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Nintendo
 {
     public class Lz11Decoder : IDecoder
     {
@@ -12,7 +12,7 @@ namespace Kompression.Implementations.Decoders
             var compressionHeader = new byte[4];
             input.Read(compressionHeader, 0, 4);
             if (compressionHeader[0] != 0x11)
-                throw new InvalidCompressionException("Lz11");
+                throw new InvalidCompressionException("Nintendo Lz11");
 
             var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
 

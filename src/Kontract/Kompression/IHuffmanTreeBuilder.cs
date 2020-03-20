@@ -13,8 +13,8 @@ namespace Kontract.Kompression
         /// </summary>
         /// <param name="input">The input data to convert to a tree.</param>
         /// <param name="bitDepth">The bit depth of a unit to encode.</param>
-        /// <param name="byteOrder">The order of bytes to read the values in.</param>
+        /// <param name="nibbleOrder">The order of nibbles to order the values in.</param>
         /// <returns>The root node of the created tree.</returns>
-        HuffmanTreeNode Build(byte[] input, int bitDepth, ByteOrder byteOrder);
+        HuffmanTreeNode Build(byte[] input, int bitDepth, NibbleOrder nibbleOrder);
     }
 }

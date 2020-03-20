@@ -6,14 +6,14 @@ using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;
 
-namespace Kompression.Implementations.Encoders
+namespace Kompression.Implementations.Encoders.Nintendo
 {
-    public class Yay0Encoder : IEncoder
+    public class Mio0Encoder : IEncoder
     {
         private readonly ByteOrder _byteOrder;
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
-        public Yay0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
+        public Mio0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
         {
             _byteOrder = byteOrder;
             _matchParser = matchParser;
@@ -40,16 +40,8 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the compressed table
-                var firstByte = (byte)((match.Displacement - 1) >> 8);
+                var firstByte = (byte)((byte)((match.Length - 3) << 4) | (byte)((match.Displacement - 1) >> 8));
                 var secondByte = (byte)(match.Displacement - 1);
-
-                if (match.Length < 0x12)
-                    // Since minimum _length should be 3 for Yay0, we get a minimum matchLength of 1 in this case
-                    firstByte |= (byte)((match.Length - 2) << 4);
-                else
-                    // Yes, we do write the _length for a match into the uncompressed data stream, if it's >=0x12
-                    bwUncompressed.Write((byte)(match.Length - 0x12));
-
                 bitLayoutWriter.WriteBit(0);
                 bwCompressed.Write(firstByte);
                 bwCompressed.Write(secondByte);
@@ -84,7 +76,7 @@ namespace Kompression.Implementations.Encoders
                 : ((int)(compressedTableOffsetInt + compressedTableStream.Length)).GetArrayBigEndian();
 
             // Write header
-            output.Write(Encoding.ASCII.GetBytes("Yay0"), 0, 4);
+            output.Write(Encoding.ASCII.GetBytes("MIO0"), 0, 4);
             output.Write(uncompressedLength, 0, 4);
             output.Write(compressedTableOffset, 0, 4);
             output.Write(uncompressedTableOffset, 0, 4);

@@ -5,7 +5,7 @@ using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
-namespace Kompression.Implementations.Encoders
+namespace Kompression.Implementations.Encoders.Nintendo
 {
     public class Lz11Encoder : IEncoder
     {

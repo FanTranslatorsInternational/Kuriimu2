@@ -1,21 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
-using Kompression.Exceptions;
-using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Headerless
 {
-    public class NintendoRleDecoder : IDecoder
+    public class RleHeaderlessDecoder
     {
-        public void Decode(Stream input, Stream output)
+        public void Decode(Stream input, Stream output, int decompressedSize)
         {
-            var compressionHeader = new byte[4];
-            input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x30)
-                throw new InvalidCompressionException("NintendoRle");
-
-            var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
-
             while (output.Length < decompressedSize)
             {
                 var flag = input.ReadByte();
@@ -32,11 +23,6 @@ namespace Kompression.Implementations.Decoders
                     output.Write(uncompressedData, 0, length);
                 }
             }
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose
         }
     }
 }

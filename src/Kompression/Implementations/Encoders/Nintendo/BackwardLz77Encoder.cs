@@ -8,7 +8,7 @@ using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
-namespace Kompression.Implementations.Encoders
+namespace Kompression.Implementations.Encoders.Nintendo
 {
     // TODO: Refactor block class
     public class BackwardLz77Encoder : IEncoder

@@ -232,8 +232,10 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new HuffmanReader(4);
+
                 case 2:
                     return new HuffmanReader(8);
+
                 default:
                     return new DefaultValueReader();
             }
@@ -245,12 +247,16 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new SlimeMode1Decoder(huffmanReader);
+
                 case 2:
                     return new SlimeMode2Decoder(huffmanReader);
+
                 case 3:
                     return new SlimeMode3Decoder(huffmanReader);
+
                 case 4:
                     return new SlimeMode4Decoder(huffmanReader);
+
                 default:
                     return new SlimeMode5Decoder(huffmanReader);
             }
@@ -262,10 +268,13 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new SlimeMode1Deobfuscator();
+
                 case 2:
                     return new SlimeMode2Deobfuscator();
+
                 case 3:
                     return new SlimeMode3Deobfuscator();
+
                 case 4:
                     return new SlimeMode4Deobfuscator();
             }
@@ -279,14 +288,16 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     var tree = new HuffmanTreeBuilder();
-                    var rootNode = tree.Build(input, 4, ByteOrder.LittleEndian);
+                    var rootNode = tree.Build(input, 4, NibbleOrder.LowNibbleFirst);
                     SortHuffmanTree(rootNode);
                     return rootNode;
+
                 case 2:
                     tree = new HuffmanTreeBuilder();
-                    rootNode = tree.Build(input, 8, ByteOrder.LittleEndian);
+                    rootNode = tree.Build(input, 8, NibbleOrder.LowNibbleFirst);
                     SortHuffmanTree(rootNode);
                     return rootNode;
+
                 default:
                     return null;
             }

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Kompression.Implementations.Encoders.Headerless;
 using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 
@@ -6,18 +7,18 @@ namespace Kompression.Implementations.Encoders
 {
     public class LzssEncoder : IEncoder
     {
-        private Lz10Encoder _lz10Encoder;
+        private Lz10HeaderlessEncoder _encoder;
 
         public LzssEncoder(IMatchParser matchParser)
         {
-            _lz10Encoder = new Lz10Encoder(matchParser);
+            _encoder = new Lz10HeaderlessEncoder(matchParser);
         }
 
         public void Encode(Stream input, Stream output)
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;
-            _lz10Encoder.WriteCompressedData(input, output);
+            _encoder.Encode(input, output);
 
             var outputPos = output.Position;
             output.Position = outputStartPos;
@@ -37,8 +38,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _lz10Encoder?.Dispose();
-            _lz10Encoder = null;
+            _encoder = null;
         }
     }
 }

@@ -7,7 +7,7 @@ using Kompression.IO;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Nintendo
 {
     public class Mio0Decoder : IDecoder
     {

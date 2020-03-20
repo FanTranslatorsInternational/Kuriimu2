@@ -12,10 +12,10 @@ namespace Kompression.Huffman
     /// </summary>
     public class HuffmanTreeBuilder : IHuffmanTreeBuilder
     {
-        public HuffmanTreeNode Build(byte[] input, int bitDepth, ByteOrder byteOrder)
+        public HuffmanTreeNode Build(byte[] input, int bitDepth, NibbleOrder nibbleOrder)
         {
             // Get value frequencies of input
-            var frequencies = GetFrequencies(input, bitDepth, byteOrder).ToList();
+            var frequencies = GetFrequencies(input, bitDepth, nibbleOrder).ToList();
 
             // Add a stub entry in the special case that there's only one item;
             // We want at least 2 elements in the tree to encode
@@ -32,18 +32,16 @@ namespace Kompression.Huffman
             return rootNode;
         }
 
-        private IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, ByteOrder? byteOrder)
+        private IEnumerable<HuffmanTreeNode> GetFrequencies(byte[] input, int bitDepth, NibbleOrder? byteOrder)
         {
             if (bitDepth != 4 && bitDepth != 8)
                 throw new BitDepthNotSupportedException(bitDepth);
 
             // Split input into elements of bitDepth size
             IEnumerable<byte> data = input;
-            if (bitDepth == 4)
-                if (byteOrder == ByteOrder.LittleEndian)
-                    data = input.SelectMany(b => new[] { (byte)(b % 16), (byte)(b / 16) });
-                else
-                    data = input.SelectMany(b => new[] { (byte)(b / 16), (byte)(b % 16) });
+            if (bitDepth == 4) data = byteOrder == NibbleOrder.LowNibbleFirst ? 
+                input.SelectMany(b => new[] { (byte)(b % 16), (byte)(b / 16) }) : 
+                input.SelectMany(b => new[] { (byte)(b / 16), (byte)(b % 16) });
 
             // Group elements by value
             var groupedElements = data.GroupBy(b => b);

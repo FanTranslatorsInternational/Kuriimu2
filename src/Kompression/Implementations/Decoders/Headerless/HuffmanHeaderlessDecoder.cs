@@ -1,32 +1,24 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using Kompression.Exceptions;
-using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Headerless
 {
-    class NintendoHuffmanDecoder : IDecoder
+    public class HuffmanHeaderlessDecoder
     {
         private readonly int _bitDepth;
-        private readonly ByteOrder _byteOrder;
+        private readonly NibbleOrder _nibbleOrder;
 
-        public NintendoHuffmanDecoder(int bitDepth, ByteOrder byteOrder)
+        public HuffmanHeaderlessDecoder(int bitDepth, NibbleOrder nibbleOrder)
         {
             _bitDepth = bitDepth;
-            _byteOrder = byteOrder;
+            _nibbleOrder = nibbleOrder;
         }
 
-        public void Decode(Stream input, Stream output)
+        public void Decode(Stream input, Stream output, int decompressedSize)
         {
-            var compressionHeader = new byte[4];
-            input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x20 + _bitDepth)
-                throw new InvalidCompressionException($"Huffman{_bitDepth}");
-
-            var decompressedLength = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
-            var result = new byte[decompressedLength * 8 / _bitDepth];
+            var result = new byte[decompressedSize * 8 / _bitDepth];
 
             using (var br = new BinaryReader(input, Encoding.ASCII, true))
             {
@@ -57,18 +49,12 @@ namespace Kompression.Implementations.Decoders
                 output.Write(result, 0, result.Length);
             else
             {
-                byte[] combinedData;
-                if (_byteOrder == ByteOrder.LittleEndian)
-                    combinedData = Enumerable.Range(0, decompressedLength).Select(j => (byte)(result[2 * j + 1] * 16 + result[2 * j])).ToArray();
-                else
-                    combinedData = Enumerable.Range(0, decompressedLength).Select(j => (byte)(result[2 * j] * 16 + result[2 * j + 1])).ToArray();
+                var combinedData = _nibbleOrder == NibbleOrder.LowNibbleFirst ?
+                    Enumerable.Range(0, decompressedSize).Select(j => (byte)(result[2 * j] | (result[2 * j + 1] << 4))).ToArray() :
+                    Enumerable.Range(0, decompressedSize).Select(j => (byte)((result[2 * j] << 4) | result[2 * j + 1])).ToArray();
+
                 output.Write(combinedData, 0, combinedData.Length);
             }
-        }
-
-        public void Dispose()
-        {
-            // nothing to dispose
         }
     }
 }

@@ -6,7 +6,7 @@ using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;
 
-namespace Kompression.Implementations.Encoders
+namespace Kompression.Implementations.Encoders.Nintendo
 {
     // TODO: Refactor block class
     public class Yaz0Encoder : IEncoder

@@ -1,25 +1,12 @@
 ﻿using System.IO;
 using Kompression.Exceptions;
 using Kompression.IO;
-using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Headerless
 {
-    public class Lz10Decoder : IDecoder
+    public class Lz10HeaderlessDecoder
     {
-        public void Decode(Stream input, Stream output)
-        {
-            var compressionHeader = new byte[4];
-            input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x10)
-                throw new InvalidCompressionException("LZ10");
-
-            var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
-
-            ReadCompressedData(input, output, decompressedSize);
-        }
-
-        internal void ReadCompressedData(Stream input, Stream output, int decompressedSize)
+        public void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000);
 
@@ -39,13 +26,13 @@ namespace Kompression.Implementations.Decoders
                 }
 
                 if ((flags & mask) > 0)
-                    HandleCompressedBlock(input, output,circularBuffer);
+                    HandleCompressedBlock(input, output, circularBuffer);
                 else
-                    HandleUncompressedBlock(input, output,circularBuffer);
+                    HandleUncompressedBlock(input, output, circularBuffer);
             }
         }
 
-        private void HandleUncompressedBlock(Stream input, Stream output,CircularBuffer circularBuffer)
+        private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)
         {
             var next = input.ReadByte();
             if (next < 0)
@@ -78,6 +65,7 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
+            // Nothing to dispose
         }
     }
 }

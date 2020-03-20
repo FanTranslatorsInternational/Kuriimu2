@@ -3,7 +3,7 @@ using System.IO;
 using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Encoders
+namespace Kompression.Implementations.Encoders.Nintendo
 {
     public class Lz60Encoder : IEncoder
     {

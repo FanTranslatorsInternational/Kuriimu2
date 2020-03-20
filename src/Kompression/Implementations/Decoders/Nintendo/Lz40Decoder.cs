@@ -3,7 +3,7 @@ using Kompression.Exceptions;
 using Kompression.IO;
 using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Nintendo
 {
     public class Lz40Decoder : IDecoder
     {

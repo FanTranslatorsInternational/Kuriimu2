@@ -132,17 +132,17 @@ namespace Kompression.Implementations.Encoders
         private HuffmanTreeNode CreateRawValueTree(Stream input, Match[] matches)
         {
             var huffmanInput = RemoveMatchesFromInput(input.ToArray(), matches);
-            return _treeBuilder.Build(huffmanInput, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(huffmanInput, 8, NibbleOrder.LowNibbleFirst);
         }
 
         private HuffmanTreeNode CreateIndexValueTree(Block block)
         {
-            return _treeBuilder.Build(block.countIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(block.countIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
         private HuffmanTreeNode CreateDisplacementIndexTree(Block block)
         {
-            return _treeBuilder.Build(block.dispIndexes, 8, ByteOrder.LittleEndian);
+            return _treeBuilder.Build(block.dispIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
         private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)

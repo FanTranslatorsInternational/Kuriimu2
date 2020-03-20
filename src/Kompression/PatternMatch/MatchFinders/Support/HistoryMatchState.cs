@@ -13,6 +13,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
     {
         private readonly Func<byte[], int, int> _readValue;
         private readonly Func<byte[], int, int, int, int, int> _calculateMatchSize;
+        private readonly int _unitSize;
 
         private readonly int _valueLength;
         private int[] _offsetTable;
@@ -46,6 +47,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                     break;
             }
 
+            _unitSize = (int)unitSize;
             switch (unitSize)
             {
                 case UnitSize.Byte:
@@ -68,6 +70,9 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <returns>All matches found at this position.</returns>
         public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
+            if (input.Length - position < _unitSize)
+                return null;
+
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
             var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
 
@@ -84,6 +89,10 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                 matchOffset != -1 && position - matchOffset <= maxDisplacement;
                 matchOffset = _offsetTable[matchOffset])
             {
+                // If longest match already goes to end of file
+                if(position + longestMatchSize >= input.Length)
+                    break;
+
                 // Check if match and current position have min distance to each other
                 if (position - matchOffset < _limits.MinDisplacement)
                     continue;
@@ -116,7 +125,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
             _offsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
             var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength)).ToArray();
 
-            for (var i = startPosition; i < input.Length - _valueLength; i++)
+            for (var i = startPosition; i < input.Length - _valueLength; i+=_unitSize)
             {
                 var value = _readValue(input, i);
 
@@ -159,6 +168,9 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         {
             while (minSize < maxSize)
             {
+                if (input.Length - (inputPosition + minSize) < 2)
+                    break;
+
                 if (input[searchPosition + minSize] != input[inputPosition + minSize] ||
                     input[searchPosition + minSize + 1] != input[inputPosition + minSize + 1])
                     break;

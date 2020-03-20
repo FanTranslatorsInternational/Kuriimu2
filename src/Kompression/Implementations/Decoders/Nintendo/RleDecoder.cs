@@ -1,26 +1,29 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.Exceptions;
-using Kompression.Implementations;
-using Kompression.PatternMatch;
+using Kompression.Implementations.Decoders.Headerless;
 using Kontract.Kompression.Configuration;
 
-namespace Kompression.Implementations.Decoders
+namespace Kompression.Implementations.Decoders.Nintendo
 {
-    public class Lz60Decoder : IDecoder
+    public class RleDecoder : IDecoder
     {
+        private readonly RleHeaderlessDecoder _decoder;
+
+        public RleDecoder()
+        {
+            _decoder = new RleHeaderlessDecoder();
+        }
+
         public void Decode(Stream input, Stream output)
         {
             var compressionHeader = new byte[4];
             input.Read(compressionHeader, 0, 4);
-            if (compressionHeader[0] != 0x60)
-                throw new InvalidCompressionException("Lz60");
+            if (compressionHeader[0] != 0x30)
+                throw new InvalidCompressionException("Nintendo Rle");
 
             var decompressedSize = compressionHeader[1] | (compressionHeader[2] << 8) | (compressionHeader[3] << 16);
 
-            var lz40Decoder = new Lz40Decoder();
-            lz40Decoder.ReadCompressedData(input, output, decompressedSize);
-            lz40Decoder.Dispose();
+            _decoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()
