@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Managers
@@ -18,10 +17,15 @@ namespace Kontract.Interfaces.Managers
         IPluginState State { get; }
 
         /// <summary>
-        /// The path of the file initially opened for this state.
+        /// The path of the file initially opened for this state relative to the file system.
         /// <see cref="UPath.Empty"/> if a file of this format was newly created.
         /// </summary>
         UPath FilePath { get; }
+
+        /// <summary>
+        /// The absolute directory of the file system for this state over all parents.
+        /// </summary>
+        UPath AbsoluteDirectory { get; }
 
         /// <summary>
         /// The file system <see cref="FilePath"/> is relative to.
@@ -46,16 +50,16 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         IStateInfo ParentStateInfo { get; set; }
 
-        // TODO: Remove setter
-        /// <summary>
-        /// The directory of this file in relation to the parent file system.
-        /// <see cref="UPath.Empty"/> if this file wasn't opened from another state.
-        /// </summary>
-        UPath SubPath { get; set; }
-
         /// <summary>
         /// Gets a value determining if the plugin state changed.
         /// </summary>
         bool StateChanged { get; }
+
+        /// <summary>
+        /// Sets <see cref="FileSystem"/> and <see cref="FilePath"/> for a new input file.
+        /// </summary>
+        /// <param name="fileSystem">The new file system for this state.</param>
+        /// <param name="filePath">The new file path relative to the file system for this state.</param>
+        void SetNewFileInput(IFileSystem fileSystem, UPath filePath);
     }
 }

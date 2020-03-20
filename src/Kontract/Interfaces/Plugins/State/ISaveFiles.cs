@@ -12,7 +12,7 @@ namespace Kontract.Interfaces.Plugins.State
         /// <summary>
         /// Determine if the state got modified.
         /// </summary>
-        bool ContentChanged { get; }
+        bool ContentChanged { get; set; }
 
         /// <summary>
         /// Try to save the current state to a file.

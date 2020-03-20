@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Progress;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Managers
@@ -33,6 +30,6 @@ namespace Kontract.Interfaces.Managers
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
         Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null);
 
-        Task SaveFile(IStateInfo stateInfo);
+        Task<bool> SaveFile(IStateInfo stateInfo);
     }
 }
