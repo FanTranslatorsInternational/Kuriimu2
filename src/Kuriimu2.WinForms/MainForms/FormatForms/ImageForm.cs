@@ -42,7 +42,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         };
 
         private readonly IStateInfo _stateInfo;
-        private readonly IImageState _imageState;
         private readonly IProgressContext _progressContext;
 
         private readonly IList<Bitmap> _images;
@@ -56,7 +55,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private bool _paletteChooseColor;
         private int _paletteChosenColorIndex = -1;
 
-        private ImageInfo SelectedImageInfo => _imageState.Images[_selectedImageIndex];
+        private ISaveFiles SaveState => _stateInfo.State as ISaveFiles;
+        private IImageState ImageState => _stateInfo.State as IImageState;
+
+        private ImageInfo SelectedImageInfo => ImageState.Images[_selectedImageIndex];
         private int SelectedImageFormat => SelectedImageInfo.ImageFormat;
         private int SelectedPaletteFormat => (SelectedImageInfo as IndexImageInfo)?.PaletteFormat ?? -1;
 
@@ -78,7 +80,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             CheckIntegrity(imageState);
 
             _stateInfo = stateInfo;
-            _imageState = imageState;
             _progressContext = progressContext;
 
             _imagePalettes = CreatePalettes(imageState.Images).ToArray();
@@ -112,7 +113,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             // Check for ambiguous format values
             if (imageState.SupportedEncodings?.Keys.Any(x => imageState.SupportedIndexEncodings?.Keys.Contains(x) ?? false) ?? false)
-                throw new InvalidOperationException($"Ambiguous image format identifiers in plugin {_imageState.GetType().FullName}.");
+                throw new InvalidOperationException($"Ambiguous image format identifiers in plugin {ImageState.GetType().FullName}.");
 
             // Check that all image infos contain supported image formats
             foreach (var image in imageState.Images)
@@ -156,8 +157,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 if (infos[i] is IndexImageInfo indexInfo)
                 {
                     var indexTranscoder = indexInfo.Configuration.Clone()
-                        .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding)
-                        .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
+                        .TranscodeWith(imageSize => ImageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding)
+                        .TranscodePaletteWith(() => ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
                         .Build();
 
                     yield return (Bitmap)indexTranscoder.Decode(indexInfo.ImageData, indexInfo.PaletteData, indexInfo.ImageSize, progress);
@@ -165,7 +166,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 else
                 {
                     var transcoder = infos[i].Configuration.Clone()
-                        .TranscodeWith(imageSize => _imageState.SupportedEncodings[infos[i].ImageFormat])
+                        .TranscodeWith(imageSize => ImageState.SupportedEncodings[infos[i].ImageFormat])
                         .Build();
 
                     yield return (Bitmap)transcoder.Decode(infos[i].ImageData, infos[i].ImageSize, progress);
@@ -201,7 +202,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
 
             progress?.ReportProgress("Decode colors", 0, 1);
-            var palette = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData, Environment.ProcessorCount).ToArray();
+            var palette = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData, Environment.ProcessorCount).ToArray();
             progress?.ReportProgress("Done", 1, 1);
 
             return palette;
@@ -218,7 +219,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private Bitmap Transcode(int imageIndex, int newImageFormat, int newPaletteFormat, bool replaceImageInfo)
         {
             var image = _bestImages[imageIndex] ?? _images[imageIndex];
-            var imageInfo = _imageState.Images[imageIndex];
+            var imageInfo = ImageState.Images[imageIndex];
             var indexInfo = imageInfo as IndexImageInfo;
 
             if (imageInfo.ImageFormat == newImageFormat &&
@@ -234,11 +235,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var decodeProgress = _progressContext.CreateScope(50, 100);
 
             Bitmap newImage;
-            if (_imageState.SupportedEncodings.ContainsKey(newImageFormat))
+            if (ImageState.SupportedEncodings.ContainsKey(newImageFormat))
             {
                 // Transcode image to new image format
                 var transcoder = imageInfo.Configuration.Clone()
-                    .TranscodeWith(imageSize => _imageState.SupportedEncodings[newImageFormat])
+                    .TranscodeWith(imageSize => ImageState.SupportedEncodings[newImageFormat])
                     .Build();
 
                 var imageData = transcoder.Encode(image, encodeProgress);
@@ -250,13 +251,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     if (indexInfo != null)
                     {
                         // Convert it to a normal image info
-                        _imageState.Images[imageIndex] = _imageState.ConvertToImageInfo(indexInfo);
+                        ImageState.Images[imageIndex] = ImageState.ConvertToImageInfo(indexInfo);
                     }
 
                     // And set its image properties
-                    _imageState.Images[imageIndex].ImageFormat = newImageFormat;
-                    _imageState.Images[imageIndex].ImageData = imageData;
-                    _imageState.Images[imageIndex].ImageSize = image.Size;
+                    ImageState.Images[imageIndex].ImageFormat = newImageFormat;
+                    ImageState.Images[imageIndex].ImageData = imageData;
+                    ImageState.Images[imageIndex].ImageSize = image.Size;
                 }
             }
             else
@@ -266,8 +267,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 // Transcode image to new image format
                 var transcoder = imageInfo.Configuration.Clone()
-                    .TranscodeWith(imageSize => _imageState.SupportedIndexEncodings[newImageFormat].Encoding)
-                    .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[newPaletteFormat])
+                    .TranscodeWith(imageSize => ImageState.SupportedIndexEncodings[newImageFormat].Encoding)
+                    .TranscodePaletteWith(() => ImageState.SupportedPaletteEncodings[newPaletteFormat])
                     .Build();
 
                 var (indexData, paletteData) = transcoder.Encode(image, encodeProgress);
@@ -279,7 +280,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     if (indexInfo == null)
                     {
                         // Convert it to an indexed image info
-                        _imageState.Images[imageIndex] = indexInfo = _imageState.ConvertToIndexImageInfo(
+                        ImageState.Images[imageIndex] = indexInfo = ImageState.ConvertToIndexImageInfo(
                             imageInfo, newPaletteFormat, paletteData);
                     }
 
@@ -294,6 +295,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             _progressContext.ReportProgress("Done", 1, 1);
 
+            if (SaveState != null)
+                SaveState.ContentChanged = true;
+
             return newImage;
         }
 
@@ -303,23 +307,23 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var items = new List<ToolStripItem>();
 
-            if (_imageState.SupportedEncodings != null)
+            if (ImageState.SupportedEncodings != null)
             {
-                items.AddRange(_imageState.SupportedEncodings.Select(f => new ToolStripMenuItem
+                items.AddRange(ImageState.SupportedEncodings.Select(f => new ToolStripMenuItem
                 {
                     Text = f.Value.FormatName,
                     Tag = f.Key,
-                    Checked = f.Key == _imageState.Images[_selectedImageIndex].ImageFormat
+                    Checked = f.Key == ImageState.Images[_selectedImageIndex].ImageFormat
                 }));
             }
 
-            if (_imageState.SupportedIndexEncodings != null)
+            if (ImageState.SupportedIndexEncodings != null)
             {
-                items.AddRange(_imageState.SupportedIndexEncodings.Select(f => new ToolStripMenuItem
+                items.AddRange(ImageState.SupportedIndexEncodings.Select(f => new ToolStripMenuItem
                 {
                     Text = f.Value.Encoding.FormatName,
                     Tag = f.Key,
-                    Checked = f.Key == _imageState.Images[_selectedImageIndex].ImageFormat
+                    Checked = f.Key == ImageState.Images[_selectedImageIndex].ImageFormat
                 }));
             }
 
@@ -337,20 +341,20 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
 
             var items = new List<ToolStripItem>();
-            if (_imageState.SupportedPaletteEncodings != null)
+            if (ImageState.SupportedPaletteEncodings != null)
             {
-                var paletteEncodings = _imageState.SupportedPaletteEncodings;
+                var paletteEncodings = ImageState.SupportedPaletteEncodings;
 
-                var indices = _imageState.SupportedIndexEncodings[imageInfo.ImageFormat].PaletteEncodingIndices;
+                var indices = ImageState.SupportedIndexEncodings[imageInfo.ImageFormat].PaletteEncodingIndices;
                 if (imageInfo.IsIndexed && indices != null)
-                    paletteEncodings = _imageState.SupportedPaletteEncodings.Where(x => indices.Contains(x.Key))
+                    paletteEncodings = ImageState.SupportedPaletteEncodings.Where(x => indices.Contains(x.Key))
                         .ToDictionary(x => x.Key, y => y.Value);
 
                 items.AddRange(paletteEncodings.Select(f => new ToolStripMenuItem
                 {
                     Text = f.Value.FormatName,
                     Tag = f.Key,
-                    Checked = f.Key == _imageState.Images[_selectedImageIndex].ImageFormat
+                    Checked = f.Key == ImageState.Images[_selectedImageIndex].ImageFormat
                 }));
             }
 
@@ -391,9 +395,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var newImageFormat = (int)tsb.Tag;
             var paletteFormat = SelectedPaletteFormat;
-            if (_imageState.SupportedIndexEncodings.ContainsKey(newImageFormat) && SelectedPaletteFormat == -1)
-                paletteFormat = _imageState.SupportedIndexEncodings[newImageFormat].PaletteEncodingIndices?.First() ??
-                                _imageState.SupportedPaletteEncodings.First().Key;
+            if (ImageState.SupportedIndexEncodings?.ContainsKey(newImageFormat) ?? false && SelectedPaletteFormat == -1)
+                paletteFormat = ImageState.SupportedIndexEncodings[newImageFormat].PaletteEncodingIndices?.First() ??
+                                ImageState.SupportedPaletteEncodings.First().Key;
 
             DisableImageControls();
             DisablePaletteControls();
@@ -637,24 +641,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 Filter = "All Files (*.*)|*.*"
             };
 
-            if (sfd.ShowDialog() != DialogResult.OK)
-            {
-                MessageBox.Show("No save location selected", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            Save(sfd.FileName);
+            if (sfd.ShowDialog() == DialogResult.OK)
+                Save(sfd.FileName);
         }
 
         private async void Save(UPath savePath)
         {
             if (savePath == UPath.Empty)
-                savePath = _stateInfo.FilePath;
+                savePath = _stateInfo.FileSystem.ConvertPathToInternal(UPath.Root) / _stateInfo.FilePath;
 
             var result = await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
 
-            if (!result)
-                MessageBox.Show("The file could not be saved.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (result && SaveState != null)
+                SaveState.ContentChanged = false;
 
             UpdateForm();
         }
@@ -721,28 +720,28 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public void UpdateForm()
         {
-            tsbSave.Enabled = _imageState is ISaveFiles;
-            tsbSaveAs.Enabled = _imageState is ISaveFiles && _stateInfo.ParentStateInfo == null;
+            tsbSave.Enabled = ImageState is ISaveFiles;
+            tsbSaveAs.Enabled = ImageState is ISaveFiles && _stateInfo.ParentStateInfo == null;
 
             var isIndexed = SelectedImageInfo.IsIndexed;
             tslPalette.Visible = isIndexed;
             tsbPalette.Visible = isIndexed;
-            tsbPalette.Enabled = isIndexed && (_imageState.SupportedPaletteEncodings?.Any() ?? false);
+            tsbPalette.Enabled = isIndexed && (ImageState.SupportedPaletteEncodings?.Any() ?? false);
             pbPalette.Enabled = isIndexed;
             tsbPaletteImport.Enabled = isIndexed;
 
             splProperties.Panel2Collapsed = !isIndexed;
 
-            tsbFormat.Enabled = _imageState.SupportedEncodings?.Any() ?? false;
+            tsbFormat.Enabled = ImageState.SupportedEncodings?.Any() ?? false;
 
-            imbPreview.Enabled = _imageState.Images.Any();
+            imbPreview.Enabled = ImageState.Images.Any();
 
             UpdateTabDelegate?.Invoke(_stateInfo);
         }
 
         private void UpdatePreview()
         {
-            if (_imageState.Images.Count > 0)
+            if (ImageState.Images.Count > 0)
             {
                 var horizontalScroll = imbPreview.HorizontalScroll.Value;
                 var verticalScroll = imbPreview.VerticalScroll.Value;
@@ -781,9 +780,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tsbImageBorderColor.Image = ibcBitmap;
 
             // Format Dropdown
-            tsbFormat.Text = _imageState.SupportedEncodings.ContainsKey(SelectedImageFormat) ?
-                _imageState.SupportedEncodings[SelectedImageFormat].FormatName :
-                _imageState.SupportedIndexEncodings[SelectedImageFormat].Encoding.FormatName;
+            tsbFormat.Text = ImageState.SupportedEncodings.ContainsKey(SelectedImageFormat) ?
+                ImageState.SupportedEncodings[SelectedImageFormat].FormatName :
+                ImageState.SupportedIndexEncodings[SelectedImageFormat].Encoding.FormatName;
             tsbFormat.Tag = SelectedImageInfo.ImageFormat;
 
             // Update selected format
@@ -802,7 +801,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (SelectedImageInfo is IndexImageInfo indexedInfo)
             {
                 // PaletteData Dropdown
-                tsbPalette.Text = _imageState.SupportedPaletteEncodings[indexedInfo.PaletteFormat].FormatName;
+                tsbPalette.Text = ImageState.SupportedPaletteEncodings[indexedInfo.PaletteFormat].FormatName;
                 tsbPalette.Tag = indexedInfo.PaletteFormat;
 
                 // Update selected palette format
@@ -820,7 +819,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void UpdateImageList()
         {
-            if (_imageState.Images.Count <= 0)
+            if (ImageState.Images.Count <= 0)
                 return;
 
             var selectedIndex = treBitmaps.SelectedNode?.Index ?? -1;
@@ -832,13 +831,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             imlBitmaps.ImageSize = new Size(Settings.Default.ThumbnailWidth, Settings.Default.ThumbnailHeight);
             treBitmaps.ItemHeight = Settings.Default.ThumbnailHeight + 6;
 
-            for (var i = 0; i < _imageState.Images.Count; i++)
+            for (var i = 0; i < ImageState.Images.Count; i++)
             {
                 imlBitmaps.Images.Add(i.ToString(), GenerateThumbnail(_images[i]));
                 var treeNode = new TreeNode
                 {
-                    Text = !string.IsNullOrEmpty(_imageState.Images[i].Name)
-                        ? _imageState.Images[i].Name
+                    Text = !string.IsNullOrEmpty(ImageState.Images[i].Name)
+                        ? ImageState.Images[i].Name
                         : i.ToString("00"),
                     Tag = i,
                     ImageKey = i.ToString(),
@@ -962,7 +961,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     _imagePalettes[_selectedImageIndex][index] = clrDialog.Color;
 
                     setMaxProgress = progresses[1].SetMaxValue(_imagePalettes[_selectedImageIndex].Count);
-                    indexInfo.PaletteData = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
+                    indexInfo.PaletteData = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
                         .Save(_imagePalettes[_selectedImageIndex].AttachProgress(setMaxProgress, "Encode palette colors"), Environment.ProcessorCount);
 
                     _progressContext.ReportProgress("Done", 1, 1);
@@ -978,6 +977,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
             _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
                 indices.ToBitmap(_imagePalettes[_selectedImageIndex], SelectedImageInfo.ImageSize);
+
+            if (SaveState != null)
+                SaveState.ContentChanged = true;
 
             UpdateForm();
             UpdatePreview();
@@ -1017,7 +1019,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
                     setMaxProgress = progresses[1].SetMaxValue(_images[_selectedImageIndex].Width * _images[_selectedImageIndex].Height);
-                    indexInfo.ImageData = _imageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding
+                    indexInfo.ImageData = ImageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding
                         .Save(indices.AttachProgress(setMaxProgress, "Encode indices"), _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
 
                     _progressContext.ReportProgress("Done", 1, 1);
@@ -1033,6 +1035,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
             _bestImages[_selectedImageIndex].SetPixel(pointInImg.X, pointInImg.Y, _imagePalettes[_selectedImageIndex][newIndex]);
             _images[_selectedImageIndex].SetPixel(pointInImg.X, pointInImg.Y, _imagePalettes[_selectedImageIndex][newIndex]);
+
+            if (SaveState != null)
+                SaveState.ContentChanged = true;
 
             UpdateForm();
             UpdatePreview();
@@ -1107,7 +1112,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 _imagePalettes[_selectedImageIndex] = colors;
 
-                var paletteEncoding = _imageState.SupportedPaletteEncodings[indexInfo.PaletteFormat];
+                var paletteEncoding = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat];
                 setMaxProgress = progresses[1].SetMaxValue(colors.Count);
                 indexInfo.PaletteData = paletteEncoding.Save(colors.AttachProgress(setMaxProgress, "Encode palette colors"), Environment.ProcessorCount);
 
@@ -1123,6 +1128,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // TODO: Currently reset the best bitmap to quantized image, so Encode will encode the quantized image with changed palette
             _bestImages[_selectedImageIndex] = _images[_selectedImageIndex] =
                 indices.ToBitmap(colors, SelectedImageInfo.ImageSize);
+
+            if (SaveState != null)
+                SaveState.ContentChanged = true;
 
             UpdateForm();
             UpdatePreview();

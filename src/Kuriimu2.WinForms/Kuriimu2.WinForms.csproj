@@ -24,6 +24,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Be.Windows.Forms.HexBox" Version="1.6.1" />
     <PackageReference Include="CyotekImageBox" Version="1.3.0-Alpha1" />
     <PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
   </ItemGroup>
@@ -37,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="MainForms\FormatForms\HexForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

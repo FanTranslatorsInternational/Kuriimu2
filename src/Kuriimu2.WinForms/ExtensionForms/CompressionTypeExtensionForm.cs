@@ -103,22 +103,22 @@ namespace Kuriimu2.WinForms.ExtensionForms
             switch (selectedExtension.Name)
             {
                 case "Lz10":
-                    return Compressions.Lz10.Build();
+                    return Compressions.Nintendo.Lz10.Build();
 
                 case "Lz11":
-                    return Compressions.Lz11.Build();
+                    return Compressions.Nintendo.Lz11.Build();
 
                 case "Lz40":
-                    return Compressions.Lz40.Build();
+                    return Compressions.Nintendo.Lz40.Build();
 
                 case "Lz60":
-                    return Compressions.Lz60.Build();
+                    return Compressions.Nintendo.Lz60.Build();
 
                 case "Lz77":
                     return Compressions.Lz77.Build();
 
                 case "Backwards Lz77":
-                    return Compressions.BackwardLz77.Build();
+                    return Compressions.Nintendo.BackwardLz77.Build();
 
                 case "LzEcd":
                     return Compressions.LzEcd.Build();
@@ -133,30 +133,28 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     return Compressions.LzssVlc.Build();
 
                 case "Huffman 4Bit (Nintendo)":
-                    return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
-                        Compressions.NintendoHuffman4BitLe.Build() :
-                        Compressions.NintendoHuffman4BitBe.Build();
+                    return Compressions.Nintendo.Huffman4Bit.Build();
 
                 case "Huffman 8Bit (Nintendo)":
-                    return Compressions.NintendoHuffman8Bit.Build();
+                    return Compressions.Nintendo.Huffman8Bit.Build();
 
                 case "Rle (Nintendo)":
-                    return Compressions.NintendoRle.Build();
+                    return Compressions.Nintendo.Rle.Build();
 
                 case "Mio0":
                     return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
-                        Compressions.Mio0Le.Build() :
-                        Compressions.Mio0Be.Build();
+                        Compressions.Nintendo.Mio0Le.Build() :
+                        Compressions.Nintendo.Mio0Be.Build();
 
                 case "Yay0":
                     return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
-                        Compressions.Yay0Le.Build() :
-                        Compressions.Yay0Be.Build();
+                        Compressions.Nintendo.Yay0Le.Build() :
+                        Compressions.Nintendo.Yay0Be.Build();
 
                 case "Yaz0":
                     return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
-                        Compressions.Yaz0Le.Build() :
-                        Compressions.Yaz0Be.Build();
+                        Compressions.Nintendo.Yaz0Le.Build() :
+                        Compressions.Nintendo.Yaz0Be.Build();
 
                 case "TaikoLz":
                     switch (selectedExtension.GetParameterValue<TaikoLzVersion>("Version"))

@@ -3,16 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.Extensions;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
+using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Extensions;
+using Kore.Factories;
+using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kore.Progress;
 using Kuriimu2.WinForms.ExtensionForms;
@@ -64,9 +69,8 @@ namespace Kuriimu2.WinForms.MainForms
             _tabColorDictionary = new Dictionary<TabPage, Color>();
 
             _pluginManager = new PluginManager(_progressContext, "plugins");
-            // TODO: Display plugin loading errors/warnings
-            //if (_pluginManager.CompositionErrors?.Any() ?? false)
-            //    DisplayCompositionErrors(_pluginManager.CompositionErrors);
+            if (_pluginManager.LoadErrors.Any())
+                DisplayPluginErrors(_pluginManager.LoadErrors);
 
             _timer = new Timer { Interval = 14 };
             _timer.Tick += _timer_Tick;
@@ -87,17 +91,15 @@ namespace Kuriimu2.WinForms.MainForms
             //LoadImageViews();
         }
 
-        //private void DisplayCompositionErrors(IList<IErrorReport> reports)
-        //{
-        //    var sb = new StringBuilder();
-        //    sb.AppendLine("Following plugins produced errors and are not available:");
-        //    foreach (var report in reports)
-        //    {
-        //        sb.AppendLine($"{Environment.NewLine}{report}");
-        //    }
+        private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Following plugins could not be loaded:");
+            foreach (var error in errors)
+                sb.AppendLine(error.AssemblyPath);
 
-        //    MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //}
+            MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
 
         private void _timer_Tick(object sender, EventArgs e)
         {
@@ -332,9 +334,10 @@ namespace Kuriimu2.WinForms.MainForms
         private async Task<bool> Kuriimu2_OpenTab(OpenFileEventArgs e)
         {
             // Check if file is already opened
-            if (_pluginManager.IsLoaded(e.Afi.FilePath))
+            var absoluteFilePath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
+            if (_pluginManager.IsLoaded(absoluteFilePath))
             {
-                openFiles.SelectedTab = _stateTabDictionary[_pluginManager.GetLoadedFile(e.Afi.FilePath)];
+                openFiles.SelectedTab = _stateTabDictionary[_pluginManager.GetLoadedFile(absoluteFilePath)];
 
                 return true;
             }
@@ -343,10 +346,12 @@ namespace Kuriimu2.WinForms.MainForms
                 _pluginManager.LoadFile(e.StateInfo, e.Afi) :
                 _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
 
+            var tabColor = _tabColorDictionary[_stateTabDictionary[e.StateInfo]];
+
+            // Not loaded states are opened by the HexForm
             if (loadedState == null)
                 return false;
 
-            var tabColor = _tabColorDictionary[_stateTabDictionary[e.StateInfo]];
             var newTabPage = AddTabPage(loadedState, tabColor);
             if (newTabPage == null)
                 _pluginManager.Close(loadedState);
@@ -354,13 +359,10 @@ namespace Kuriimu2.WinForms.MainForms
             return true;
         }
 
-        private Task<bool> TabControl_SaveTab(SaveTabEventArgs e)
+        private async Task<bool> TabControl_SaveTab(SaveTabEventArgs e)
         {
             // TODO: Add version of file
-            SaveFile(e.StateInfo, e.SavePath, 0);
-
-            // TODO: Return save state
-            return Task.FromResult(true);
+            return await SaveFile(e.StateInfo, e.SavePath, 0);
         }
 
         private void TabControl_UpdateTab(IStateInfo stateInfo)
@@ -368,6 +370,8 @@ namespace Kuriimu2.WinForms.MainForms
             var tabPage = _stateTabDictionary[stateInfo];
 
             tabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
+
+            UpdateParentTabs(stateInfo);
         }
 
         #endregion
@@ -600,7 +604,8 @@ namespace Kuriimu2.WinForms.MainForms
                 switch (stateInfo.State)
                 {
                     case ITextState textState:
-                        kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(), _progressContext);
+                        kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(),
+                            _progressContext);
                         break;
 
                     case IImageState imageState:
@@ -612,9 +617,15 @@ namespace Kuriimu2.WinForms.MainForms
                         ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
                         break;
 
+                    case IHexState hexState:
+                        kuriimuForm = new HexForm(stateInfo);
+                        break;
+
                     default:
-                        throw new InvalidOperationException($"Unknown plugin state type {stateInfo.State.GetType().Name}.");
+                        throw new InvalidOperationException(
+                            $"Unknown plugin state type {stateInfo.State.GetType().Name}.");
                 }
+
                 //if (stateInfo.State is ITextAdapter)
                 //    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _pluginManager.GetAdapters<IGameAdapter>());
                 //else if (kfi.Adapter is ILayoutAdapter)
@@ -671,15 +682,23 @@ namespace Kuriimu2.WinForms.MainForms
         /// <param name="stateInfo"></param>
         /// <param name="savePath"></param>
         /// <param name="version"></param>
-        private async void SaveFile(IStateInfo stateInfo, UPath savePath, int version = 0)
+        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath, int version = 0)
         {
-            await _pluginManager.SaveFile(stateInfo, savePath);
+            var result = await _pluginManager.SaveFile(stateInfo, savePath);
+            if (!result)
+            {
+                MessageBox.Show("File could not be saved.", "File not saved.", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return false;
+            }
 
             // Update children
             UpdateChildrenTabs(stateInfo);
 
             // Update parents
             UpdateParentTabs(stateInfo);
+
+            return true;
         }
 
         #endregion
@@ -718,10 +737,12 @@ namespace Kuriimu2.WinForms.MainForms
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        await _pluginManager.SaveFile(stateInfo);
+                        if (await _pluginManager.SaveFile(stateInfo))
+                            (stateInfo.State as ISaveFiles).ContentChanged = false;
                         break;
 
                     case DialogResult.No:
+                        (stateInfo.State as ISaveFiles).ContentChanged = false;
                         break;
 
                     default:
@@ -732,11 +753,11 @@ namespace Kuriimu2.WinForms.MainForms
             // Remove all tabs related to states
             CloseOpenTabs(stateInfo);
 
+            // Update parents before state is disposed
+            UpdateParentTabs(stateInfo);
+
             // Close all related states
             _pluginManager.Close(stateInfo);
-
-            // Update parents
-            UpdateParentTabs(stateInfo);
 
             return true;
         }
