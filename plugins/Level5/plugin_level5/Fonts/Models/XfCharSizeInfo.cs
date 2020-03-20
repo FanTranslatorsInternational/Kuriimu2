@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Level5.Fonts.Models
+namespace plugin_level5.Fonts.Models
 {
     [DebuggerDisplay("[Offset: {offsetX},{offsetY}; Glyph: {glyphWidth},{glyphHeight}]")]
     public class XfCharSizeInfo

@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 
-namespace Level5.Fonts.Interface
+namespace plugin_level5.Fonts.Interface
 {
     public interface IFilePlugin
     {

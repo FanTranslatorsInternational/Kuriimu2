@@ -8,37 +8,40 @@ using Kontract.Interfaces.Providers;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
-using plugin_nintendo.NW4C;
 
-namespace plugin_nintendo.BCLIM
+namespace plugin_level5.Images
 {
-    public class BclimState : IImageState, ILoadFiles, ISaveFiles
+    class ImgcState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly Bclim _bclim;
+        private Imgc _imgc;
 
         public IList<ImageInfo> Images { get; private set; }
-        public IDictionary<int, IColorEncoding> SupportedEncodings => ImageFormats.CtrFormats;
-        public IDictionary<int, (IColorIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
+        public IDictionary<int, IColorEncoding> SupportedEncodings => ImgcSupport.ImgcFormats;
+        public IDictionary<int, (IColorIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings
+        {
+            get;
+        }
+
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
         public bool ContentChanged { get; set; }
 
-        public BclimState()
+        public ImgcState()
         {
-            _bclim = new Bclim();
+            _imgc = new Imgc();
         }
 
         public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = new List<ImageInfo> { _bclim.Load(fileStream) };
+            Images = new List<ImageInfo> { _imgc.Load(fileStream) };
         }
 
-        public async void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
-            var saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
-            _bclim.Save(saveStream, Images[0]);
+            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
+            _imgc.Save(fileStream, Images[0]);
         }
 
         public ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo)

@@ -15,7 +15,7 @@ namespace plugin_yuusha_shisu.MSG
 
         public IList<TextEntry> Texts { get; private set; }
 
-        public bool ContentChanged { get; }
+        public bool ContentChanged { get; set; }
 
         public MsgState()
         {

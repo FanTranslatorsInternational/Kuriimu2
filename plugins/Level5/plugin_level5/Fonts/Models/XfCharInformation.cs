@@ -1,6 +1,6 @@
 ﻿using Komponent.IO.Attributes;
 
-namespace Level5.Fonts.Models
+namespace plugin_level5.Fonts.Models
 {
     [BitFieldInfo(BlockSize = 2)]
     public class XfCharInformation

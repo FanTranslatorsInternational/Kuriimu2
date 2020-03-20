@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Level5.Fonts.Models
+namespace plugin_level5.Fonts.Models
 {
     [DebuggerDisplay("[{codePoint}; Image: {imageInformation.imageOffsetX},{imageInformation.imageOffsetY}]")]
     public class XfCharMap

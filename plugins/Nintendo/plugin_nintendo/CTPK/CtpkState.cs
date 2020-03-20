@@ -20,7 +20,7 @@ namespace plugin_nintendo.CTPK
         public IDictionary<int, (IColorIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
-        public bool ContentChanged { get; }
+        public bool ContentChanged { get; set; }
 
         public CtpkState()
         {

@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using Kanvas.Encoding;
-using Kanvas.Interface;
 using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
+using Kontract.Kanvas;
 
-namespace Level5.Fonts.IMGC
+namespace plugin_level5.Images
 {
-    public class IMGCHeader
+    class ImgcHeader
     {
         [FixedLength(4)]
         public string magic; // IMGC
@@ -28,38 +28,16 @@ namespace Level5.Fonts.IMGC
         public int const8; // 00 00 00 00
         public int const9; // 00 00 00 00
         public int const10; // 00 00 00 00
-        public int tableSize1;
-        public int tableSize2;
+        public int tileTableSize;
+        public int tileTableSizePadded;
         public int imgDataSize;
         public int const11; // 00 00 00 00
         public int const12; // 00 00 00 00
     }
 
-    public class Support
+    class ImgcSwizzle : IImageSwizzle
     {
-        public static Dictionary<byte, IColorEncoding> Format = new Dictionary<byte, IColorEncoding>
-        {
-            [0] = new RGBA(8, 8, 8, 8),
-            [1] = new RGBA(4, 4, 4, 4),
-            [2] = new RGBA(5, 5, 5, 1),
-            [3] = new RGBA(8, 8, 8),
-            [4] = new RGBA(5, 6, 5),
-            [11] = new LA(8, 8),
-            [12] = new LA(4, 4),
-            [13] = new LA(8, 0),
-            [14] = new HILO(8, 8),
-            [15] = new LA(0, 8),
-            [26] = new LA(4, 0),
-            //[27] = new LA(0, 4),
-            //[27] = new ETC1(),
-            //[28] = new ETC1(),
-            //[29] = new ETC1(true)
-        };
-    }
-
-    public class ImgcSwizzle : IImageSwizzle
-    {
-        MasterSwizzle _zorderTrans;
+        private readonly MasterSwizzle _zOrder;
 
         public int Width { get; }
         public int Height { get; }
@@ -69,12 +47,34 @@ namespace Level5.Fonts.IMGC
             Width = (width + 0x7) & ~0x7;
             Height = (height + 0x7) & ~0x7;
 
-            _zorderTrans = new MasterSwizzle(Width, new Point(0, 0), new[] { (0, 1), (1, 0), (0, 2), (2, 0), (0, 4), (4, 0) });
+            _zOrder = new MasterSwizzle(Width, new Point(0, 0), new[] { (0, 1), (1, 0), (0, 2), (2, 0), (0, 4), (4, 0) });
         }
 
-        public Point Get(Point point)
+        public Point Transform(Point point)
         {
-            return _zorderTrans.Get(point.Y * Width + point.X);
+            return _zOrder.Get(point.Y * Width + point.X);
         }
+    }
+
+    class ImgcSupport
+    {
+        public static IDictionary<int, IColorEncoding> ImgcFormats = new Dictionary<int, IColorEncoding>
+        {
+            [0] = new Rgba(8, 8, 8, 8),
+            [1] = new Rgba(4, 4, 4, 4),
+            [2] = new Rgba(5, 5, 5, 1),
+            [3] = new Rgba(8, 8, 8,"BGR"),
+            [4] = new Rgba(5, 6, 5),
+            [11] = new La(8, 8),
+            [12] = new La(4, 4),
+            [13] = new La(8, 0),
+            [14] = new Rgba(8, 8, 0),
+            [15] = new La(0, 8),
+            [26] = new La(4, 0),
+            //[27] = new LA(0, 4),
+            [27] = new Etc1(false, true),
+            [28] = new Etc1(false, true),
+            [29] = new Etc1(true, true)
+        };
     }
 }
