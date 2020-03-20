@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
+using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -15,6 +17,11 @@ namespace Kore.Managers.Plugins
     /// </summary>
     public interface IInternalPluginManager : IPluginManager
     {
+        /// <summary>
+        /// The errors the plugins produced when loaded.
+        /// </summary>
+        IReadOnlyList<PluginLoadError> LoadErrors { get; }
+
         /// <summary>
         /// Retrieves all <see cref="IPluginLoader"/>s that can load files.
         /// </summary>
@@ -27,8 +34,18 @@ namespace Kore.Managers.Plugins
         /// <returns></returns>
         IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
 
+        /// <summary>
+        /// Determines if a file is already loaded.
+        /// </summary>
+        /// <param name="filePath">The path of the file to check.</param>
+        /// <returns>If the file is already loaded.</returns>
         bool IsLoaded(UPath filePath);
 
+        /// <summary>
+        /// Gets the <see cref="IStateInfo"/> of the requested file.
+        /// </summary>
+        /// <param name="filePath">The path of the file to request.</param>
+        /// <returns>The <see cref="IStateInfo"/> of the file.</returns>
         IStateInfo GetLoadedFile(UPath filePath);
 
         /// <summary>
@@ -39,6 +56,13 @@ namespace Kore.Managers.Plugins
         /// <returns>The loaded state of the path.</returns>
         Task<IStateInfo> LoadFile(string file, IProgressContext progress = null);
 
+        /// <summary>
+        /// Loads a physical path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="file">The path to the path to load.</param>
+        /// <param name="pluginId">the plugin with which to load the file.</param>
+        /// <param name="progress">The context to report progress.</param>
+        /// <returns>The loaded state of the path.</returns>
         Task<IStateInfo> LoadFile(string file, Guid pluginId, IProgressContext progress = null);
 
         /// <summary>
@@ -60,10 +84,23 @@ namespace Kore.Managers.Plugins
         /// <returns>The loaded state of the path.</returns>
         Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null);
 
-        Task SaveFile(IStateInfo stateInfo, UPath saveName);
+        /// <summary>
+        /// Save a loaded state to the given path.
+        /// </summary>
+        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="saveName">The path at which to save the file.</param>
+        /// <returns></returns>
+        Task<bool> SaveFile(IStateInfo stateInfo, UPath saveName);
 
+        /// <summary>
+        /// Closes a loaded state.
+        /// </summary>
+        /// <param name="stateInfo">The state to close and release.</param>
         void Close(IStateInfo stateInfo);
 
+        /// <summary>
+        /// Closes all loaded states.
+        /// </summary>
         void CloseAll();
     }
 }

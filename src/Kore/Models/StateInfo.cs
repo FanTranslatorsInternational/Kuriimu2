@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kontract;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.FileSystem;
 
@@ -18,6 +18,9 @@ namespace Kore.Models
 
         /// <inheritdoc />
         public UPath FilePath { get; private set; }
+
+        /// <inheritdoc />
+        public UPath AbsoluteDirectory => BuildAbsoluteDirectory();
 
         /// <inheritdoc />
         public IFileSystem FileSystem { get; private set; }
@@ -67,6 +70,12 @@ namespace Kore.Models
             ArchiveChildren = new List<IStateInfo>();
         }
 
+        public void SetNewFileInput(IFileSystem fileSystem, UPath filePath)
+        {
+            FileSystem = fileSystem;
+            FilePath = filePath;
+        }
+
         public virtual void Dispose()
         {
             ArchiveChildren?.Clear();
@@ -87,6 +96,19 @@ namespace Kore.Models
                 return false;
 
             return saveState.ContentChanged || ArchiveChildren.Any(child => child.StateChanged);
+        }
+
+        private UPath BuildAbsoluteDirectory()
+        {
+            if (ParentStateInfo != null)
+            {
+                var parentDirectory = ParentStateInfo.AbsoluteDirectory / ParentStateInfo.FilePath;
+                var innerDirectory = ((UPath)FileSystem.ConvertPathToInternal(UPath.Root)).ToRelative();
+
+                return parentDirectory / innerDirectory;
+            }
+
+            return FileSystem.ConvertPathToInternal(UPath.Root);
         }
     }
 }

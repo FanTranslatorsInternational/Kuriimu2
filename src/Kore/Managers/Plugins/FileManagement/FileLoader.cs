@@ -14,6 +14,7 @@ using Kore.Extensions;
 using Kore.Factories;
 using Kore.Models;
 using Kore.Models.LoadInfo;
+using Kore.Models.UnsupportedPlugin;
 
 namespace Kore.Managers.Plugins.FileManagement
 {
@@ -57,17 +58,14 @@ namespace Kore.Managers.Plugins.FileManagement
             var streamManager = new StreamManager();
 
             // 2. Create file system
-            var directory = loadInfo.Afi.FilePath.GetDirectory();
-            var fileSystem = FileSystemFactory.CreateAfiFileSystem(loadInfo.ArchiveState, directory, streamManager);
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(loadInfo.ArchiveState, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var fileName = loadInfo.Afi.FilePath.GetName();
-            var loadedFile = await InternalLoadAsync(fileSystem, fileName, streamManager, pluginManager, progress, loadInfo.Plugin);
+            var loadedFile = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin);
 
             // 4. Set children and parent accordingly
             loadInfo.ParentStateInfo.ArchiveChildren.Add(loadedFile);
             loadedFile.ParentStateInfo = loadInfo.ParentStateInfo;
-            loadedFile.SubPath = directory;
 
             return loadedFile;
         }
@@ -79,16 +77,13 @@ namespace Kore.Managers.Plugins.FileManagement
             var streamManager = new StreamManager();
 
             // 2. Create file system
-            var directory = loadInfo.FilePath.GetDirectory();
-            var fileSystem = FileSystemFactory.CloneFileSystem(loadInfo.FileSystem, directory, streamManager);
+            var fileSystem = FileSystemFactory.CloneFileSystem(loadInfo.FileSystem, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var fileName = loadInfo.FilePath.GetName();
-            var loadedFile = await InternalLoadAsync(fileSystem, fileName, streamManager, pluginManager, progress, loadInfo.Plugin, false);
+            var loadedFile = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, false);
 
             // 4. Set parent objects accordingly
             loadedFile.ParentStateInfo = loadedFile;
-            loadedFile.SubPath = directory;
 
             return loadedFile;
         }
@@ -123,14 +118,8 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Identify the plugin to use
             if (plugin == null)
             {
-                plugin = await IdentifyPluginAsync(fileSystem, filePath, streamManager, identifyPluginManually);
-                if (plugin == null)
-                {
-                    streamManager.ReleaseAll();
-
-                    // TODO: Handle errors
-                    return null;
-                }
+                plugin = await IdentifyPluginAsync(fileSystem, filePath, streamManager, identifyPluginManually) ?? 
+                         new HexPlugin();
             }
 
             // 3. Create state from identified plugin

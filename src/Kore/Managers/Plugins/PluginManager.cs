@@ -10,11 +10,13 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
+using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models.LoadInfo;
+using MoreLinq;
 
 namespace Kore.Managers.Plugins
 {
@@ -31,6 +33,8 @@ namespace Kore.Managers.Plugins
 
         private readonly IList<IStateInfo> _loadedFiles;
 
+        public IReadOnlyList<PluginLoadError> LoadErrors { get; }
+
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
@@ -41,6 +45,11 @@ namespace Kore.Managers.Plugins
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
             _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
 
+            LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
+                .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
+                .DistinctBy(e => e.AssemblyPath)
+                .ToList();
+
             _fileLoader = new FileLoader(progress, _filePluginLoaders);
             _fileSaver = new FileSaver(progress);
 
@@ -49,12 +58,12 @@ namespace Kore.Managers.Plugins
 
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x => UPath.Combine(x.FileSystem.ConvertPathToInternal(UPath.Root), x.SubPath, x.FilePath) == filePath);
+            return _loadedFiles.Any(x => x.AbsoluteDirectory / x.FilePath == filePath);
         }
 
         public IStateInfo GetLoadedFile(UPath filePath)
         {
-            return _loadedFiles.FirstOrDefault(x => UPath.Combine(x.FileSystem.ConvertPathToInternal(UPath.Root), x.SubPath, x.FilePath) == filePath);
+            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath == filePath);
         }
 
         /// <inheritdoc />
@@ -202,12 +211,12 @@ namespace Kore.Managers.Plugins
             return loadedFile;
         }
 
-        public Task SaveFile(IStateInfo stateInfo)
+        public Task<bool> SaveFile(IStateInfo stateInfo)
         {
             return SaveFile(stateInfo, stateInfo.FilePath);
         }
 
-        public Task SaveFile(IStateInfo stateInfo, UPath saveName)
+        public Task<bool> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
 

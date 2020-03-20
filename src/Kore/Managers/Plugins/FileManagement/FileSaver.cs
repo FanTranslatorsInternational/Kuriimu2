@@ -7,7 +7,6 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
-using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Factories;
 
@@ -27,52 +26,66 @@ namespace Kore.Managers.Plugins.FileManagement
 
         // TODO: Communicate errors properly
         /// <inheritdoc />
-        public async Task SaveAsync(IStateInfo stateInfo, UPath savePath)
+        public async Task<bool> SaveAsync(IStateInfo stateInfo, UPath savePath)
         {
             // 1. Check if state is saveable and if the contents are changed
             if (!(stateInfo.State is ISaveFiles saveState) || !stateInfo.StateChanged)
-                return;
+                return true;
 
             // 2. Save child states
             foreach (var archiveChild in stateInfo.ArchiveChildren)
-                await SaveAsync(archiveChild, archiveChild.FilePath);
+                if (!await SaveAsync(archiveChild, archiveChild.FilePath))
+                    return false;
 
             // 3. Save state to a temporary destination
-            var streamManager = stateInfo.StreamManager;
+            var streamManager = stateInfo.ParentStateInfo?.StreamManager ?? stateInfo.StreamManager;
             var temporaryContainer = CreateTemporaryFileSystem(streamManager);
             if (!await TrySaveState(saveState, temporaryContainer, savePath.GetName()))
             {
-                streamManager.ReleaseAll();
-
                 // TODO: Handle errors
-                return;
+                return false;
             }
 
             // 4. Dispose of all streams in this state
-            streamManager.ReleaseAll();
+            stateInfo.StreamManager.ReleaseAll();
 
             if (stateInfo.ParentStateInfo != null)
             {
                 // 5. Put the temporary destination into the parent state
                 if (!await TryReplaceFilesInParentAsync(stateInfo, temporaryContainer))
-                    return;
+                    return false;
 
                 // 6. Load the initial file from the parent state
                 var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                if (!await TryLoadStateAsync(stateInfo.State, stateInfo.FileSystem, savePath, temporaryStreamProvider))
-                    ;
+                var result = await TryLoadStateAsync(stateInfo.State, stateInfo.FileSystem, savePath,
+                    temporaryStreamProvider);
+
+                // 7. Set ContentChanged in state
+                if (result)
+                    saveState.ContentChanged = false;
+
+                return result;
             }
             else
             {
                 // 5. Move files to final destination
                 var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), streamManager);
                 if (!await TryCopyFiles(temporaryContainer, destinationFileSystem))
-                    return;
+                    return false;
 
                 // 6. Load the initial file from the parent state
                 var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                if (!await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath.GetName(), temporaryStreamProvider))
-                    ;
+                if (!await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath.GetName(),
+                    temporaryStreamProvider))
+                    return false;
+
+                // 7. Use file path and file system in newly loaded state
+                stateInfo.SetNewFileInput(destinationFileSystem, savePath.GetName());
+
+                // 8. Set ContentChanged in state
+                saveState.ContentChanged = false;
+
+                return true;
             }
         }
 
@@ -100,7 +113,8 @@ namespace Kore.Managers.Plugins.FileManagement
         {
             try
             {
-                await Task.Factory.StartNew(() => saveState.Save(temporaryContainer, fileName, _progress));
+                await Task.Factory.StartNew(() =>
+                    saveState.Save(temporaryContainer, fileName, _progress));
                 return true;
             }
             catch (Exception)
@@ -122,7 +136,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 1. Check that all saved files exist in the parent filesystem already
             foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
             {
-                var parentPath = UPath.Combine(stateInfo.SubPath, file);
+                var parentPath = stateInfo.FilePath.GetDirectory() / file;
                 if (!parentFileSystem.FileExists(parentPath))
                     return false;
             }
@@ -130,7 +144,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Set new file data into parent file system
             foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
             {
-                var parentPath = UPath.Combine(stateInfo.SubPath, file);
+                var parentPath = stateInfo.FilePath.GetDirectory() / file;
                 var openedFile = await temporaryContainer.OpenFileAsync(file);
                 parentFileSystem.SetFileData(parentPath, openedFile);
             }
@@ -176,6 +190,7 @@ namespace Kore.Managers.Plugins.FileManagement
             try
             {
                 await Task.Factory.StartNew(() => loadableState.Load(fileSystem, savePath, temporaryStreamProvider, _progress));
+
                 return true;
             }
             catch (Exception)

@@ -44,13 +44,14 @@ namespace Kore.Factories
         /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IArchiveState"/>.
         /// </summary>
         /// <param name="archiveState"><see cref="IArchiveState"/> to create the file system from.</param>
-        /// <param name="streamManager">The path of the virtual file system.</param>
+        /// <param name="path">The path of the virtual file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IArchiveState"/> for this state.</returns>
         public static IFileSystem CreateAfiFileSystem(IArchiveState archiveState, UPath path, IStreamManager streamManager)
         {
             var fileSystem = (IFileSystem)new AfiFileSystem(archiveState, streamManager);
-            fileSystem = new SubFileSystem(fileSystem, path);
+            if (path != UPath.Empty)
+                fileSystem = new SubFileSystem(fileSystem, path);
 
             return fileSystem;
         }
@@ -65,7 +66,8 @@ namespace Kore.Factories
         public static IFileSystem CloneFileSystem(IFileSystem fileSystem, UPath path, IStreamManager streamManager)
         {
             var newFileSystem = fileSystem.Clone(streamManager);
-            newFileSystem = new SubFileSystem(newFileSystem, path);
+            if (path != UPath.Empty)
+                newFileSystem = new SubFileSystem(newFileSystem, path);
 
             return newFileSystem;
         }
