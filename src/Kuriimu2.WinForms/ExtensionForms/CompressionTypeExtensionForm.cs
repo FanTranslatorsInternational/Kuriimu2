@@ -67,18 +67,12 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             return new List<ExtensionType>
             {
-                new ExtensionType("Lz10",true),
-                new ExtensionType("Lz11",true),
-                new ExtensionType("Lz40",true),
-                new ExtensionType("Lz60",true),
-                new ExtensionType("Lz77",true),
-                new ExtensionType("Backwards Lz77",true),
-                new ExtensionType("LzEcd",true),
-                new ExtensionType("Lze",true),
-                new ExtensionType("Lzss",true),
-                new ExtensionType("LzssVlc",true),
-                new ExtensionType("Huffman 4Bit (Nintendo)",true,
-                    new ExtensionTypeParameter("LittleEndian",typeof(bool))),
+                new ExtensionType("Lz10 (Nintendo)",true),
+                new ExtensionType("Lz11 (Nintendo)",true),
+                new ExtensionType("Lz40 (Nintendo)",true),
+                new ExtensionType("Lz60 (Nintendo)",true),
+                new ExtensionType("Backwards Lz77 (Nintendo)",true),
+                new ExtensionType("Huffman 4Bit (Nintendo)",true),
                 new ExtensionType("Huffman 8Bit (Nintendo)",true),
                 new ExtensionType("Rle (Nintendo)",true),
                 new ExtensionType("Mio0",true,
@@ -87,6 +81,17 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     new ExtensionTypeParameter("LittleEndian",typeof(bool))),
                 new ExtensionType("Yaz0",true,
                     new ExtensionTypeParameter("LittleEndian",typeof(bool))),
+
+                new ExtensionType("Lz10 (Level5)",true),
+                new ExtensionType("Huffman 4Bit (Level5)",true),
+                new ExtensionType("Huffman 8Bit (Level5)",true),
+                new ExtensionType("Rle (Level5)",true),
+
+                new ExtensionType("Lz77",true),
+                new ExtensionType("LzEcd",true),
+                new ExtensionType("Lze",true),
+                new ExtensionType("Lzss",true),
+                new ExtensionType("LzssVlc",true),
                 new ExtensionType("TaikoLz",true,
                     new ExtensionTypeParameter("Version",typeof(TaikoLzVersion))),
                 new ExtensionType("Wp16",true),
@@ -102,35 +107,20 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             switch (selectedExtension.Name)
             {
-                case "Lz10":
+                case "Lz10 (Nintendo)":
                     return Compressions.Nintendo.Lz10.Build();
 
-                case "Lz11":
+                case "Lz11 (Nintendo)":
                     return Compressions.Nintendo.Lz11.Build();
 
-                case "Lz40":
+                case "Lz40 (Nintendo)":
                     return Compressions.Nintendo.Lz40.Build();
 
-                case "Lz60":
+                case "Lz60 (Nintendo)":
                     return Compressions.Nintendo.Lz60.Build();
 
-                case "Lz77":
-                    return Compressions.Lz77.Build();
-
-                case "Backwards Lz77":
+                case "Backwards Lz77 (Nintendo)":
                     return Compressions.Nintendo.BackwardLz77.Build();
-
-                case "LzEcd":
-                    return Compressions.LzEcd.Build();
-
-                case "Lze":
-                    return Compressions.Lze.Build();
-
-                case "Lzss":
-                    return Compressions.Lzss.Build();
-
-                case "LzssVlc":
-                    return Compressions.LzssVlc.Build();
 
                 case "Huffman 4Bit (Nintendo)":
                     return Compressions.Nintendo.Huffman4Bit.Build();
@@ -155,6 +145,33 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     return selectedExtension.GetParameterValue<bool>("LittleEndian") ?
                         Compressions.Nintendo.Yaz0Le.Build() :
                         Compressions.Nintendo.Yaz0Be.Build();
+
+                case "Lz10 (Level5)":
+                    return Compressions.Level5.Lz10.Build();
+
+                case "Huffman 4Bit (Level5)":
+                    return Compressions.Level5.Huffman4Bit.Build();
+
+                case "Huffman 8Bit (Level5)":
+                    return Compressions.Level5.Huffman8Bit.Build();
+
+                case "Rle (Level5)":
+                    return Compressions.Level5.Rle.Build();
+
+                case "Lz77":
+                    return Compressions.Lz77.Build();
+
+                case "LzEcd":
+                    return Compressions.LzEcd.Build();
+
+                case "Lze":
+                    return Compressions.Lze.Build();
+
+                case "Lzss":
+                    return Compressions.Lzss.Build();
+
+                case "LzssVlc":
+                    return Compressions.LzssVlc.Build();
 
                 case "TaikoLz":
                     switch (selectedExtension.GetParameterValue<TaikoLzVersion>("Version"))

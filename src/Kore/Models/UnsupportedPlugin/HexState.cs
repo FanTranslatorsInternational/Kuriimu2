@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
@@ -11,7 +12,7 @@ namespace Kore.Models.UnsupportedPlugin
     {
         public Stream FileStream { get; private set; }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
+        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             FileStream = await fileSystem.OpenFileAsync(filePath);

@@ -9,6 +9,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
+using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Extensions;
 using Kore.Factories;
@@ -37,7 +38,7 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -52,7 +53,7 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -61,17 +62,19 @@ namespace Kore.Managers.Plugins.FileManagement
             var fileSystem = FileSystemFactory.CreateAfiFileSystem(loadInfo.ArchiveState, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var loadedFile = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin);
+            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin);
+            if (!loadResult.IsSuccessful)
+                return loadResult;
 
             // 4. Set children and parent accordingly
-            loadInfo.ParentStateInfo.ArchiveChildren.Add(loadedFile);
-            loadedFile.ParentStateInfo = loadInfo.ParentStateInfo;
+            loadInfo.ParentStateInfo.ArchiveChildren.Add(loadResult.LoadedState);
+            loadResult.LoadedState.ParentStateInfo = loadInfo.ParentStateInfo;
 
-            return loadedFile;
+            return loadResult;
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -80,12 +83,14 @@ namespace Kore.Managers.Plugins.FileManagement
             var fileSystem = FileSystemFactory.CloneFileSystem(loadInfo.FileSystem, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var loadedFile = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, false);
+            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, false);
+            if (!loadResult.IsSuccessful)
+                return loadResult;
 
-            // 4. Set parent objects accordingly
-            loadedFile.ParentStateInfo = loadedFile;
+            // TODO: 4. Set parent objects accordingly
+            loadResult.LoadedState.ParentStateInfo = loadResult.LoadedState;
 
-            return loadedFile;
+            return loadResult;
         }
 
         /// <summary>
@@ -99,7 +104,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="identifyPluginManually">Defines if the plugin should be identified by a manual selection.</param>
         /// <param name="progress">The progress context for the Kuriimu runtime.</param>
         /// <returns>The loaded file.</returns>
-        private async Task<IStateInfo> InternalLoadAsync(
+        private async Task<LoadResult> InternalLoadAsync(
             IFileSystem fileSystem,
             UPath filePath,
             IStreamManager streamManager,
@@ -118,7 +123,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Identify the plugin to use
             if (plugin == null)
             {
-                plugin = await IdentifyPluginAsync(fileSystem, filePath, streamManager, identifyPluginManually) ?? 
+                plugin = await IdentifyPluginAsync(fileSystem, filePath, streamManager, identifyPluginManually) ??
                          new HexPlugin();
             }
 
@@ -126,16 +131,16 @@ namespace Kore.Managers.Plugins.FileManagement
             var state = plugin.CreatePluginState(pluginManager);
 
             // 4. Load data from state
-            if (!await TryLoadStateAsync(state, fileSystem, filePath, temporaryStreamProvider))
+            var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, temporaryStreamProvider);
+            if (!loadStateResult.IsSuccessful)
             {
                 streamManager.ReleaseAll();
-
-                // TODO: Handle error
-                return null;
+                return loadStateResult;
             }
 
             // 5. Create new state info
-            return new StateInfo(state, fileSystem, filePath, streamManager);
+            var stateInfo = new StateInfo(state, fileSystem, filePath, streamManager);
+            return new LoadResult(stateInfo);
         }
 
         /// <summary>
@@ -213,24 +218,23 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="filePath">The path of the identified file.</param>
         /// <param name="temporaryStreamProvider">The stream provider for temporary files.</param>
         /// <returns>If the loading was successful.</returns>
-        private async Task<bool> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
+        private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
         {
             // 1. Check if state implements ILoadFile
             if (!(pluginState is ILoadFiles loadableState))
-            {
-                return false;
-            }
+                return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Factory.StartNew(() => loadableState.Load(fileSystem, filePath, temporaryStreamProvider, _progress));
-                return true;
+                await loadableState.Load(fileSystem, filePath, temporaryStreamProvider, _progress);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return false;
+                return new LoadResult(ex);
             }
+
+            return new LoadResult(true);
         }
     }
 }

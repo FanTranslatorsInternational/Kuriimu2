@@ -342,19 +342,28 @@ namespace Kuriimu2.WinForms.MainForms
                 return true;
             }
 
-            var loadedState = await (e.PluginId == Guid.Empty ?
+            var loadResult = await (e.PluginId == Guid.Empty ?
                 _pluginManager.LoadFile(e.StateInfo, e.Afi) :
                 _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
 
             var tabColor = _tabColorDictionary[_stateTabDictionary[e.StateInfo]];
 
             // Not loaded states are opened by the HexForm
-            if (loadedState == null)
-                return false;
+            if (!loadResult.IsSuccessful)
+            {
+#if DEBUG
+                var message = loadResult.Exception?.ToString() ?? loadResult.Message;
+#else
+                var message = loadResult.Message;
+#endif
 
-            var newTabPage = AddTabPage(loadedState, tabColor);
+                MessageBox.Show(message, "File not loaded", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            var newTabPage = AddTabPage(loadResult.LoadedState, tabColor);
             if (newTabPage == null)
-                _pluginManager.Close(loadedState);
+                _pluginManager.Close(loadResult.LoadedState);
 
             return true;
         }
@@ -569,10 +578,10 @@ namespace Kuriimu2.WinForms.MainForms
                 return;
             }
 
-            IStateInfo loadedState;
+            LoadResult loadResult;
             if (!manualIdentification)
             {
-                loadedState = await _pluginManager.LoadFile(filePath.FullName);
+                loadResult = await _pluginManager.LoadFile(filePath.FullName);
             }
             else
             {
@@ -584,16 +593,25 @@ namespace Kuriimu2.WinForms.MainForms
                 }
 
                 var pluginId = pluginChooser.SelectedPluginId;
-                loadedState = await _pluginManager.LoadFile(filePath.FullName, pluginId);
+                loadResult = await _pluginManager.LoadFile(filePath.FullName, pluginId);
             }
 
-            if (loadedState == null)
+            if (!loadResult.IsSuccessful)
+            {
+#if DEBUG
+                var message = loadResult.Exception?.ToString() ?? loadResult.Message;
+#else
+                var message = loadResult.Message;
+#endif
+
+                MessageBox.Show(message, "File not loaded", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
+            }
 
             var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
-            var newTabPage = AddTabPage(loadedState, tabColor);
+            var newTabPage = AddTabPage(loadResult.LoadedState, tabColor);
             if (newTabPage == null)
-                _pluginManager.Close(loadedState);
+                _pluginManager.Close(loadResult.LoadedState);
         }
 
         private TabPage AddTabPage(IStateInfo stateInfo, Color tabColor)
@@ -685,9 +703,14 @@ namespace Kuriimu2.WinForms.MainForms
         private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath, int version = 0)
         {
             var result = await _pluginManager.SaveFile(stateInfo, savePath);
-            if (!result)
+            if (!result.IsSuccessful)
             {
-                MessageBox.Show("File could not be saved.", "File not saved.", MessageBoxButtons.OK,
+#if DEBUG
+                var message = result.Exception?.ToString() ?? result.Message;
+#else
+                var message = result.Message;
+#endif
+                MessageBox.Show(message, "File not saved.", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return false;
             }
@@ -737,8 +760,12 @@ namespace Kuriimu2.WinForms.MainForms
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        if (await _pluginManager.SaveFile(stateInfo))
+                        var saveResult = await _pluginManager.SaveFile(stateInfo);
+                        if (saveResult.IsSuccessful)
                             (stateInfo.State as ISaveFiles).ContentChanged = false;
+
+                        // TODO: Somehow propagate save error to user?
+
                         break;
 
                     case DialogResult.No:

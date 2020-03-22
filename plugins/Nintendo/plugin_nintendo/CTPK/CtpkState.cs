@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
@@ -27,17 +28,19 @@ namespace plugin_nintendo.CTPK
             _ctpk = new Ctpk();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
+        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = _ctpk.Load(fileStream);
         }
 
-        public async void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
-            var saveStream = await fileSystem.OpenFileAsync(savePath, FileMode.Create);
+            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _ctpk.Save(Images, saveStream);
+
+            return Task.CompletedTask;
         }
 
         public ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo)

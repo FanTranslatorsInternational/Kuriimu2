@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
@@ -22,17 +23,19 @@ namespace plugin_yuusha_shisu.MSG
             _msg = new MSG();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
+        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Texts = new[] { _msg.Load(fileStream) };
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _msg.Save(output, Texts[0]);
+
+            return Task.CompletedTask;
         }
     }
 }

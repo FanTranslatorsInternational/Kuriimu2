@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
@@ -22,17 +23,19 @@ namespace plugin_level5.Archives
             _arc0 = new Arc0();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
+        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc0.Load(fileStream);
+            Files = _arc0.Load(fileSystem, fileStream);
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _arc0.Save(output, Files);
+            _arc0.Save(output, Files, progress);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

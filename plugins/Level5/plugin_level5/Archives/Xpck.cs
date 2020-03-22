@@ -8,6 +8,7 @@ using plugin_level5.Compression;
 
 namespace plugin_level5.Archives
 {
+    // TODO: Recreate name table and enable adding files
     class Xpck
     {
         private XpckHeader _header;

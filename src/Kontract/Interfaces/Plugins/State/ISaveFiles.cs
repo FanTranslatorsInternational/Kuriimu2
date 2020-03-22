@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.FileSystem;
+﻿using System.Threading.Tasks;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
 
@@ -21,6 +22,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <param name="savePath">The new path to the initial file.</param>
         /// <param name="progress">The progress for this action.</param>
         /// <returns>If the save procedure was successful.</returns>
-        void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress);
+        Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress);
     }
 }

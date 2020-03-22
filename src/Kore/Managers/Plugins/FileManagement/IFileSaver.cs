@@ -15,7 +15,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// </summary>
         /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
         /// <param name="savePath">The physical path to where the state should be saved to.</param>
-        /// <remarks>If the given state is an archive child, it will not be saved in <paramref name="physicalSavePath"/> but in its parent only.</remarks>
-        Task<bool> SaveAsync(IStateInfo stateInfo, UPath savePath);
+        /// <remarks>If the given state is an archive child, it will not be saved in <paramref name="savePath"/> but in its parent only.</remarks>
+        Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath);
     }
 }

@@ -54,7 +54,7 @@ namespace Kore.Managers.Plugins
         /// <param name="file">The path to the path to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(string file, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(string file, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a physical path into the Kuriimu runtime.
@@ -63,7 +63,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">the plugin with which to load the file.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(string file, Guid pluginId, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(string file, Guid pluginId, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -72,7 +72,7 @@ namespace Kore.Managers.Plugins
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -82,7 +82,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null);
 
         /// <summary>
         /// Save a loaded state to the given path.
@@ -90,7 +90,7 @@ namespace Kore.Managers.Plugins
         /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
         /// <param name="saveName">The path at which to save the file.</param>
         /// <returns></returns>
-        Task<bool> SaveFile(IStateInfo stateInfo, UPath saveName);
+        Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName);
 
         /// <summary>
         /// Closes a loaded state.

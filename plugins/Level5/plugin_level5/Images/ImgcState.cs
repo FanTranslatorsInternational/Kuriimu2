@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
@@ -31,17 +32,19 @@ namespace plugin_level5.Images
             _imgc = new Imgc();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
+        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<ImageInfo> { _imgc.Load(fileStream) };
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _imgc.Save(fileStream, Images[0]);
+
+            return Task.CompletedTask;
         }
 
         public ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo)

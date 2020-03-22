@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.FileSystem;
+﻿using System.Threading.Tasks;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Models.IO;
@@ -18,6 +19,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <param name="temporaryStreamProvider">A provider for temporary streams.</param>
         /// <param name="progress">The progress for this action.</param>
         /// <returns>If the load procedure was successful.</returns>
-        void Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider, IProgressContext progress);
+        Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider, IProgressContext progress);
     }
 }

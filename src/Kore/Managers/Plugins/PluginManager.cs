@@ -100,7 +100,7 @@ namespace Kore.Managers.Plugins
         /// <param name="file">The path to the path to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(string file, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(string file, IProgressContext progress = null)
         {
             return await LoadFile(file, Guid.Empty, progress);
         }
@@ -112,7 +112,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The Id of the plugin to use for loading.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(string file, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(string file, Guid pluginId, IProgressContext progress = null)
         {
             PhysicalLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
@@ -126,13 +126,13 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PhysicalLoadInfo(file);
             }
 
-            var loadedFile = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
 
-            if (loadedFile == null)
-                return null;
+            if (!loadResult.IsSuccessful)
+                return loadResult;
 
-            _loadedFiles.Add(loadedFile);
-            return loadedFile;
+            _loadedFiles.Add(loadResult.LoadedState);
+            return loadResult;
         }
 
         /// <summary>
@@ -142,13 +142,13 @@ namespace Kore.Managers.Plugins
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null)
         {
             return await LoadFile(stateInfo, afi, Guid.Empty, progress);
         }
 
         /// <inheritdoc />
-        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null)
         {
             if (!(stateInfo.State is IArchiveState archiveState))
                 throw new InvalidOperationException("The state represents no archive.");
@@ -165,10 +165,12 @@ namespace Kore.Managers.Plugins
                 loadInfo = new VirtualLoadInfo(stateInfo, archiveState, afi);
             }
 
-            var loadedFile = await _fileLoader.LoadAsync(loadInfo, this, progress);
-            _loadedFiles.Add(loadedFile);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            if (!loadResult.IsSuccessful)
+                return loadResult;
 
-            return loadedFile;
+            _loadedFiles.Add(loadResult.LoadedState);
+            return loadResult;
         }
 
         /// <summary>
@@ -178,7 +180,7 @@ namespace Kore.Managers.Plugins
         /// <param name="path">The path of the file to load.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
         {
             return await LoadFile(fileSystem, path, Guid.Empty, progress);
         }
@@ -191,7 +193,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginId">The Id of the plugin to use for loading.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        public async Task<IStateInfo> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
         {
             PluginLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
@@ -205,18 +207,20 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PluginLoadInfo(fileSystem, path);
             }
 
-            var loadedFile = await _fileLoader.LoadAsync(loadInfo, this, progress);
-            _loadedFiles.Add(loadedFile);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            if (!loadResult.IsSuccessful)
+                return loadResult;
 
-            return loadedFile;
+            _loadedFiles.Add(loadResult.LoadedState);
+            return loadResult;
         }
 
-        public Task<bool> SaveFile(IStateInfo stateInfo)
+        public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
             return SaveFile(stateInfo, stateInfo.FilePath);
         }
 
-        public Task<bool> SaveFile(IStateInfo stateInfo, UPath saveName)
+        public Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
 

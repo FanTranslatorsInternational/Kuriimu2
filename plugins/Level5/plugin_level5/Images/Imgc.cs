@@ -152,7 +152,7 @@ namespace plugin_level5.Images
             var tileDictionary = new Dictionary<uint, int>();
 
             // Add placeholder tile for all 0's
-            var zeroTileHash = ToUInt32LittleEndian(crc32.Compute(new byte[tileByteDepth]));
+            var zeroTileHash = ToUInt32BigEndian(crc32.Compute(new byte[tileByteDepth]));
             tileDictionary[zeroTileHash] = -1;
 
             var imageOffset = 0;
@@ -160,7 +160,7 @@ namespace plugin_level5.Images
             while (imageOffset < image.Length)
             {
                 var tile = new SubStream(image, imageOffset, tileByteDepth);
-                var tileHash = ToUInt32LittleEndian(crc32.Compute(tile));
+                var tileHash = ToUInt32BigEndian(crc32.Compute(tile));
                 if (!tileDictionary.ContainsKey(tileHash))
                 {
                     tile.Position = 0;
@@ -182,12 +182,12 @@ namespace plugin_level5.Images
         }
 
         // TODO: Remove when only net core
-        private uint ToUInt32LittleEndian(byte[] input)
+        private uint ToUInt32BigEndian(byte[] input)
         {
 #if NET_CORE_31
-            return BinaryPrimitives.ReadUInt32LittleEndian(input);
+            return BinaryPrimitives.ReadUInt32BigEndian(input);
 #else
-            return (uint)((input[3] << 24) | (input[2] << 16) | (input[1] << 8) | input[0]);
+            return (uint)((input[0] << 24) | (input[1] << 16) | (input[2] << 8) | input[3]);
 #endif
         }
     }
