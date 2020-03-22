@@ -9,8 +9,8 @@ namespace plugin_level5.Archives
 {
     class Arc0Header
     {
-        [FixedLength(4)]
-        public string magic;
+        [FixedLength(4)] 
+        public string magic = "ARC0";
         public int directoryEntriesOffset;
         public int directoryHashOffset;
         public int fileEntriesOffset;

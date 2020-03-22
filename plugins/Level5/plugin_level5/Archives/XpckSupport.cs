@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
@@ -10,8 +8,8 @@ namespace plugin_level5.Archives
 {
     class XpckHeader
     {
-        [FixedLength(4)]
-        public string magic;
+        [FixedLength(4)] 
+        public string magic = "XPCK";
 
         public byte fc1;
         public byte fc2;

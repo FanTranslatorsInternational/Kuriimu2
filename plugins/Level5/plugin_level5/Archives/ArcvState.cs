@@ -11,29 +11,29 @@ using Kontract.Models.IO;
 
 namespace plugin_level5.Archives
 {
-    class Arc0State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class ArcvState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly Arc0 _arc0;
+        private readonly Arcv _arcv;
 
         public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged { get; set; }
 
-        public Arc0State()
+        public ArcvState()
         {
-            _arc0 = new Arc0();
+            _arcv = new Arcv();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _arc0.Load(fileStream);
+            Files = _arcv.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _arc0.Save(output, Files, progress);
+            _arcv.Save(output, Files);
 
             return Task.CompletedTask;
         }

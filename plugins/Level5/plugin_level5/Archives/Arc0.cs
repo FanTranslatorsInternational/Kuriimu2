@@ -26,7 +26,7 @@ namespace plugin_level5.Archives
 
         private Stream _nameComp;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(IFileSystem fileSystem, Stream input)
+        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -70,7 +70,7 @@ namespace plugin_level5.Archives
 
                     result.Add(new Arc0ArchiveFileInfo(fileStream, directoryName + fileName, file)
                     {
-                        PluginIds = Arc0Support.RetrievePluginMapping(fileStream,fileName)
+                        PluginIds = Arc0Support.RetrievePluginMapping(fileStream, fileName)
                     });
                 }
             }
