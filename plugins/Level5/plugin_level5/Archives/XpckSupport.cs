@@ -130,9 +130,18 @@ namespace plugin_level5.Archives
 
     static class XpckSupport
     {
-        public static IDictionary<string, Guid[]> PluginMappings = new Dictionary<string, Guid[]>
+        public static Guid[] RetrievePluginMapping(string fileName)
         {
-            [".xi"] = new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") }
-        };
+            var extension = Path.GetExtension(fileName);
+
+            switch (extension)
+            {
+                case ".xi":
+                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
+
+                default:
+                    return null;
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
@@ -75,13 +75,36 @@ namespace plugin_level5.Archives
 
     static class Arc0Support
     {
-        public static IDictionary<string, Guid[]> PluginMappings = new Dictionary<string, Guid[]>
+        public static Guid[] RetrievePluginMapping(Stream fileStream, string fileName)
         {
-            [".xi"] = new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") },
-            [".xr"] = new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") },
-            [".xc"] = new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") },
-            [".xa"] = new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") },
-            [".xk"] = new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") }
-        };
+            var extension = Path.GetExtension(fileName);
+            using var br = new BinaryReaderX(fileStream, true);
+
+            switch (extension)
+            {
+                case ".xi":
+                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
+
+                case ".xr":
+                case ".xc":
+                case ".xa":
+                case ".xk":
+                    return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
+
+                // TODO: add t2b cfg.bin
+                //case ".bin":
+                //    if (!fileName.EndsWith(".cfg.bin"))
+                //        return null;
+
+                //    fileStream.Position = fileStream.Length - 0xF;
+                //    if (br.ReadString(3) == "t2b")
+                //        return null;
+
+                //    return null;
+
+                default:
+                    return null;
+            }
+        }
     }
 }

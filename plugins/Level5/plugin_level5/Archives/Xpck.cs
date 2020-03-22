@@ -41,12 +41,9 @@ namespace plugin_level5.Archives
                 var name = nameList.ReadCStringASCII();
 
                 var fileData = new SubStream(input, _header.DataOffset + entry.FileOffset, entry.FileSize);
-                var pluginIds = XpckSupport.PluginMappings.ContainsKey(Path.GetExtension(name)) ?
-                    XpckSupport.PluginMappings[Path.GetExtension(name)] :
-                    null;
                 files.Add(new XpckArchiveFileInfo(fileData, name, entry)
                 {
-                    PluginIds = pluginIds
+                    PluginIds = XpckSupport.RetrievePluginMapping(name)
                 });
             }
 

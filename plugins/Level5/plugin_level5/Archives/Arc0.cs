@@ -68,13 +68,9 @@ namespace plugin_level5.Archives
                     names.BaseStream.Position = directory.directoryNameStartOffset;
                     var directoryName = names.ReadCStringSJIS();
 
-                    var pluginIds = Arc0Support.PluginMappings.ContainsKey(Path.GetExtension(fileName)) ?
-                        Arc0Support.PluginMappings[Path.GetExtension(fileName)] :
-                        null;
-
                     result.Add(new Arc0ArchiveFileInfo(fileStream, directoryName + fileName, file)
                     {
-                        PluginIds = pluginIds
+                        PluginIds = Arc0Support.RetrievePluginMapping(fileStream,fileName)
                     });
                 }
             }
