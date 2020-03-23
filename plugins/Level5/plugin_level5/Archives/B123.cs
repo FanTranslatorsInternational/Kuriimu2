@@ -5,29 +5,26 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
 namespace plugin_level5.Archives
 {
-    class Arc0
+    class B123
     {
-        private readonly int _headerSize = Tools.MeasureType(typeof(Arc0Header));
-
-        private Arc0Header _header;
+        private readonly int _headerSize = Tools.MeasureType(typeof(B123Header));
+        private B123Header _header;
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
-            _header = br.ReadType<Arc0Header>();
+            _header = br.ReadType<B123Header>();
 
             // Read directory entries
-            var directoryEntries = ReadCompressedTableEntries<Arc0DirectoryEntry>(input,
+            var directoryEntries = ReadCompressedTableEntries<B123DirectoryEntry>(input,
                 _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset,
                 _header.directoryEntriesCount);
 
@@ -37,7 +34,7 @@ namespace plugin_level5.Archives
                 _header.directoryHashCount);
 
             // Read file entry table
-            var entries = ReadCompressedTableEntries<Arc0FileEntry>(input,
+            var entries = ReadCompressedTableEntries<B123FileEntry>(input,
                 _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset,
                 _header.fileEntriesCount);
 
@@ -61,9 +58,9 @@ namespace plugin_level5.Archives
                     names.BaseStream.Position = directory.directoryNameStartOffset;
                     var directoryName = names.ReadCStringSJIS();
 
-                    result.Add(new Arc0ArchiveFileInfo(fileStream, directoryName + fileName, file)
+                    result.Add(new B123ArchiveFileInfo(fileStream, directoryName + fileName, file)
                     {
-                        PluginIds = Arc0Support.RetrievePluginMapping(fileStream, fileName)
+                        PluginIds = B123Support.RetrievePluginMapping(fileStream, fileName)
                     });
                 }
             }
@@ -71,10 +68,10 @@ namespace plugin_level5.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
         {
             // Group files by directory
-            var castedFiles = files.Cast<Arc0ArchiveFileInfo>();
+            var castedFiles = files.Cast<B123ArchiveFileInfo>();
 
             // Build directory, file, and name tables
             BuildTables(castedFiles, out var directoryEntries, out var directoryHashes, out var fileEntries, out var nameStream);
@@ -139,9 +136,9 @@ namespace plugin_level5.Archives
             return new BinaryReaderX(stream).ReadMultiple<TTable>(count);
         }
 
-        private void BuildTables(IEnumerable<Arc0ArchiveFileInfo> files,
-            out IList<Arc0DirectoryEntry> directoryEntries, out IList<uint> directoryHashes,
-            out IList<Arc0ArchiveFileInfo> fileEntries, out Stream nameStream)
+        private void BuildTables(IEnumerable<B123ArchiveFileInfo> files,
+            out IList<B123DirectoryEntry> directoryEntries, out IList<uint> directoryHashes,
+            out IList<B123ArchiveFileInfo> fileEntries, out Stream nameStream)
         {
             var groupedFiles = files.OrderBy(x => x.FilePath.GetDirectory())
                 .GroupBy(x => x.FilePath.GetDirectory())
@@ -153,8 +150,8 @@ namespace plugin_level5.Archives
             nameStream = new MemoryStream();
             using var nameBw = new BinaryWriterX(nameStream, true);
 
-            var fileInfos = new List<Arc0ArchiveFileInfo>();
-            directoryEntries = new List<Arc0DirectoryEntry>();
+            var fileInfos = new List<B123ArchiveFileInfo>();
+            directoryEntries = new List<B123DirectoryEntry>();
             directoryHashes = new List<uint>();
             var fileOffset = 0u;
             foreach (var fileGroup in groupedFiles)
@@ -170,7 +167,7 @@ namespace plugin_level5.Archives
                 nameBw.WriteString(directoryName, sjis, false);
 
                 var hash = ToUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName.ToLower())));
-                var newDirectoryEntry = new Arc0DirectoryEntry
+                var newDirectoryEntry = new B123DirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
 
@@ -209,7 +206,7 @@ namespace plugin_level5.Archives
             var directoryIndex = 0;
             directoryEntries = directoryEntries.OrderBy(x => x.crc32).Select(x =>
             {
-                x.firstDirectoryIndex = (short)directoryIndex;
+                x.firstDirectoryIndex = directoryIndex;
                 directoryIndex += x.directoryCount;
                 return x;
             }).ToList();
