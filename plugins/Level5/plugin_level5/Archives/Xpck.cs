@@ -9,6 +9,7 @@ using plugin_level5.Compression;
 namespace plugin_level5.Archives
 {
     // TODO: Recreate name table and enable adding files
+    // Game: Yo-kai Watch, Time Travelers
     class Xpck
     {
         private XpckHeader _header;
@@ -29,7 +30,7 @@ namespace plugin_level5.Archives
             // File names
             _compNameTable = new SubStream(input, _header.FilenameTableOffset, _header.FilenameTableSize);
             var decNames = new MemoryStream();
-            Compressor.Decompress(_compNameTable, decNames);
+            Level5Compressor.Decompress(_compNameTable, decNames);
 
             // Files
             using var nameList = new BinaryReaderX(decNames);

@@ -4,34 +4,34 @@ using Kontract.Kompression.Configuration;
 
 namespace plugin_level5.Compression
 {
-    static class Compressor
+    static class Level5Compressor
     {
         public static void Decompress(Stream input, Stream output)
         {
-            var method = (CompressionMethod)(input.ReadByte() & 0x7);
+            var method = (Level5CompressionMethod)(input.ReadByte() & 0x7);
             input.Position--;
 
             IKompressionConfiguration configuration;
             switch (method)
             {
-                case CompressionMethod.NoCompression:
+                case Level5CompressionMethod.NoCompression:
                     input.Position += 4;
                     input.CopyTo(output);
                     return;
 
-                case CompressionMethod.Lz10:
+                case Level5CompressionMethod.Lz10:
                     configuration = Kompression.Implementations.Compressions.Level5.Lz10;
                     break;
 
-                case CompressionMethod.Huffman4Bit:
+                case Level5CompressionMethod.Huffman4Bit:
                     configuration = Kompression.Implementations.Compressions.Level5.Huffman4Bit;
                     break;
 
-                case CompressionMethod.Huffman8Bit:
+                case Level5CompressionMethod.Huffman8Bit:
                     configuration = Kompression.Implementations.Compressions.Level5.Huffman8Bit;
                     break;
 
-                case CompressionMethod.Rle:
+                case Level5CompressionMethod.Rle:
                     configuration = Kompression.Implementations.Compressions.Level5.Rle;
                     break;
 
@@ -42,12 +42,12 @@ namespace plugin_level5.Compression
             configuration.Build().Decompress(input, output);
         }
 
-        public static void Compress(Stream input, Stream output, CompressionMethod method)
+        public static void Compress(Stream input, Stream output, Level5CompressionMethod method)
         {
             IKompressionConfiguration configuration;
             switch (method)
             {
-                case CompressionMethod.NoCompression:
+                case Level5CompressionMethod.NoCompression:
                     var compressionHeader = new[] {
                         (byte)(input.Length << 3),
                         (byte)(input.Length >> 5),
@@ -58,19 +58,19 @@ namespace plugin_level5.Compression
                     input.CopyTo(output);
                     return;
 
-                case CompressionMethod.Lz10:
+                case Level5CompressionMethod.Lz10:
                     configuration = Kompression.Implementations.Compressions.Level5.Lz10;
                     break;
 
-                case CompressionMethod.Huffman4Bit:
+                case Level5CompressionMethod.Huffman4Bit:
                     configuration = Kompression.Implementations.Compressions.Level5.Huffman4Bit;
                     break;
 
-                case CompressionMethod.Huffman8Bit:
+                case Level5CompressionMethod.Huffman8Bit:
                     configuration = Kompression.Implementations.Compressions.Level5.Huffman8Bit;
                     break;
 
-                case CompressionMethod.Rle:
+                case Level5CompressionMethod.Rle:
                     configuration = Kompression.Implementations.Compressions.Level5.Rle;
                     break;
 

@@ -7,6 +7,7 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
 {
+    // Game: Inazuma 3 Ogre Team
     class Arcv
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(ArcvHeader));

@@ -21,8 +21,8 @@ namespace plugin_level5.Images
 
         private byte[] _tileTableLegacyStart;
 
-        private CompressionMethod _tileTableCompression;
-        private CompressionMethod _imageDataCompression;
+        private Level5CompressionMethod _tileTableCompression;
+        private Level5CompressionMethod _imageDataCompression;
 
         public ImageInfo Load(Stream input)
         {
@@ -36,19 +36,19 @@ namespace plugin_level5.Images
             // Get tile table
             var tileTableComp = new SubStream(input, _header.tableDataOffset, _header.tileTableSize);
             var tileTable = new MemoryStream();
-            Compressor.Decompress(tileTableComp, tileTable);
+            Level5Compressor.Decompress(tileTableComp, tileTable);
 
             tileTableComp.Position = 0;
-            _tileTableCompression = (CompressionMethod)(tileTableComp.ReadByte() & 0x7);
+            _tileTableCompression = (Level5CompressionMethod)(tileTableComp.ReadByte() & 0x7);
 
             // Get image data
             var imageDataComp = new SubStream(input, _header.tableDataOffset + _header.tileTableSizePadded,
                 _header.imgDataSize);
             var imageData = new MemoryStream();
-            Compressor.Decompress(imageDataComp, imageData);
+            Level5Compressor.Decompress(imageDataComp, imageData);
 
             imageDataComp.Position = 0;
-            _imageDataCompression = (CompressionMethod)(imageDataComp.ReadByte() & 0x7);
+            _imageDataCompression = (Level5CompressionMethod)(imageDataComp.ReadByte() & 0x7);
 
             // Combine tiles to full image
             tileTable.Position = imageData.Position = 0;
@@ -80,14 +80,14 @@ namespace plugin_level5.Images
 
             // Write tile table
             output.Position = _headerSize;
-            Compressor.Compress(tileTable, output, _tileTableCompression);
+            Level5Compressor.Compress(tileTable, output, _tileTableCompression);
 
             _header.tileTableSize = (int)output.Length - _headerSize;
             _header.tileTableSizePadded = (_header.tileTableSize + 3) & ~3;
 
             // Write image tiles
             output.Position = _headerSize + _header.tileTableSizePadded;
-            Compressor.Compress(imageData, output, _imageDataCompression);
+            Level5Compressor.Compress(imageData, output, _imageDataCompression);
             bw.WriteAlignment(4);
 
             _header.imgDataSize = (int)(output.Length - (_headerSize + _header.tileTableSizePadded));

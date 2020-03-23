@@ -1,6 +1,6 @@
 ﻿namespace plugin_level5.Compression
 {
-    public enum CompressionMethod
+    public enum Level5CompressionMethod
     {
         NoCompression = 0,
         Lz10 = 1,

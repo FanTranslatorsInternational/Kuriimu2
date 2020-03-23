@@ -13,6 +13,7 @@ using plugin_level5.Compression;
 
 namespace plugin_level5.Archives
 {
+    // Game: Yo-kai Watch
     class Arc0
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(Arc0Header));
@@ -44,7 +45,7 @@ namespace plugin_level5.Archives
             // Read nameTable
             var nameComp = new SubStream(input, _header.nameOffset, _header.dataOffset - _header.nameOffset);
             var nameStream = new MemoryStream();
-            Compressor.Decompress(nameComp, nameStream);
+            Level5Compressor.Decompress(nameComp, nameStream);
 
             // Add Files
             var names = new BinaryReaderX(nameStream);
@@ -111,7 +112,7 @@ namespace plugin_level5.Archives
             _header.nameOffset = (int)bw.BaseStream.Position;
 
             var nameStreamComp = new MemoryStream();
-            Compress(nameStream, nameStreamComp, CompressionMethod.Lz10);
+            Compress(nameStream, nameStreamComp, Level5CompressionMethod.Lz10);
             nameStreamComp.CopyTo(bw.BaseStream);
             bw.WriteAlignment(4);
 
@@ -133,7 +134,7 @@ namespace plugin_level5.Archives
         {
             var streamComp = new SubStream(input, offset, length);
             var stream = new MemoryStream();
-            Compressor.Decompress(streamComp, stream);
+            Level5Compressor.Decompress(streamComp, stream);
 
             stream.Position = 0;
             return new BinaryReaderX(stream).ReadMultiple<TTable>(count);
@@ -222,12 +223,12 @@ namespace plugin_level5.Archives
             decompressedBw.WriteMultiple(table);
 
             var optimalCompressedStream = new MemoryStream();
-            Compress(decompressedStream, optimalCompressedStream, CompressionMethod.NoCompression);
+            Compress(decompressedStream, optimalCompressedStream, Level5CompressionMethod.NoCompression);
 
             for (var i = 1; i < 5; i++)
             {
                 var compressedStream = new MemoryStream();
-                Compress(decompressedStream, compressedStream, (CompressionMethod)i);
+                Compress(decompressedStream, compressedStream, (Level5CompressionMethod)i);
 
                 if (compressedStream.Length < optimalCompressedStream.Length)
                     optimalCompressedStream = compressedStream;
@@ -236,12 +237,12 @@ namespace plugin_level5.Archives
             optimalCompressedStream.CopyTo(output);
         }
 
-        private void Compress(Stream input, Stream output, CompressionMethod compressionMethod)
+        private void Compress(Stream input, Stream output, Level5CompressionMethod compressionMethod)
         {
             input.Position = 0;
             output.Position = 0;
 
-            Compressor.Compress(input, output, compressionMethod);
+            Level5Compressor.Compress(input, output, compressionMethod);
 
             output.Position = 0;
             input.Position = 0;
