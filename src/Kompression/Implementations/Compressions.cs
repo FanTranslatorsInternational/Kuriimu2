@@ -176,6 +176,16 @@ namespace Kompression.Implementations
                         .FindMatchesWith((limits, findOptions) => new RleMatchFinder(limits, findOptions))
                         .WithinLimitations(() => new FindLimitations(0x3, 0x82))
                         .CalculatePricesWith(() => new NintendoRlePriceCalculator()));
+
+            public static IKompressionConfiguration Inazuma3Lzss =>
+                NewKompressionConfiguration
+                    .DecodeWith(() => new Decoders.Level5.InazumaLzssDecoder(0xFEE))
+                    .EncodeWith((parser, builder) => new Encoders.Level5.InazumaLzssEncoder(parser))
+                    .WithMatchOptions(options => options
+                        .WithPreBufferSize(0xFEE)
+                        .FindMatchesWithDefault()
+                        .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
+                        .CalculatePricesWith(() => new Lzss01PriceCalculator()));
         }
 
         public static IKompressionConfiguration Lz77
@@ -338,7 +348,7 @@ namespace Kompression.Implementations
                     .WithPreBufferSize(0xFEE)
                     .FindMatchesWithDefault()
                     .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
-                    .CalculatePricesWith(() => new TalesOf01PriceCalculator()));
+                    .CalculatePricesWith(() => new Lzss01PriceCalculator()));
 
                 return config;
             }

@@ -11,7 +11,6 @@ using plugin_level5.Compression;
 
 namespace plugin_level5.Archives
 {
-    // TODO: Test plugin
     // Game: Inazuma 3 Ogre Team
     class B123
     {
@@ -26,27 +25,18 @@ namespace plugin_level5.Archives
             _header = br.ReadType<B123Header>();
 
             // Read directory entries
-            var directoryEntries = ReadCompressedTableEntries<B123DirectoryEntry>(input,
-                _header.directoryEntriesOffset, _header.directoryHashOffset - _header.directoryEntriesOffset,
-                _header.directoryEntriesCount);
+            br.BaseStream.Position = _header.directoryEntriesOffset;
+            var directoryEntries = br.ReadMultiple<B123DirectoryEntry>(_header.directoryEntriesCount);
 
             // Read directory hashes
-            var directoryHashes = ReadCompressedTableEntries<uint>(input,
-                _header.directoryHashOffset, _header.fileEntriesOffset - _header.directoryHashOffset,
-                _header.directoryHashCount);
+            br.BaseStream.Position = _header.directoryHashOffset;
+            var directoryHashes = br.ReadMultiple<uint>(_header.directoryHashCount);
 
             // Read file entry table
-            var entries = ReadCompressedTableEntries<B123FileEntry>(input,
-                _header.fileEntriesOffset, _header.nameOffset - _header.fileEntriesOffset,
-                _header.fileEntriesCount);
-
-            // Read nameTable
-            var nameComp = new SubStream(input, _header.nameOffset, _header.dataOffset - _header.nameOffset);
-            var nameStream = new MemoryStream();
-            Level5Compressor.Decompress(nameComp, nameStream);
+            br.BaseStream.Position = _header.fileEntriesOffset;
+            var entries = br.ReadMultiple<B123FileEntry>(_header.fileEntriesCount);
 
             // Add Files
-            var names = new BinaryReaderX(nameStream);
             var result = new List<ArchiveFileInfo>();
             foreach (var directory in directoryEntries)
             {
@@ -55,10 +45,14 @@ namespace plugin_level5.Archives
                 {
                     var fileStream = new SubStream(input, _header.dataOffset + file.fileOffset, file.fileSize);
 
-                    names.BaseStream.Position = directory.fileNameStartOffset + file.nameOffsetInFolder;
-                    var fileName = names.ReadCStringSJIS();
-                    names.BaseStream.Position = directory.directoryNameStartOffset;
-                    var directoryName = names.ReadCStringSJIS();
+                    br.BaseStream.Position =_header.nameOffset + 
+                                            directory.fileNameStartOffset + 
+                                            file.nameOffsetInFolder;
+                    var fileName = br.ReadCStringSJIS();
+
+                    br.BaseStream.Position = _header.nameOffset +
+                                             directory.directoryNameStartOffset;
+                    var directoryName = br.ReadCStringSJIS();
 
                     result.Add(new B123ArchiveFileInfo(fileStream, directoryName + fileName, file)
                     {
@@ -88,14 +82,14 @@ namespace plugin_level5.Archives
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = _headerSize;
 
-            WriteCompressedTableEntries(bw.BaseStream, directoryEntries);
+            bw.WriteMultiple(directoryEntries);
             bw.WriteAlignment(4);
 
             // Write directory hashes
             _header.directoryHashCount = (short)directoryHashes.Count;
             _header.directoryHashOffset = (int)bw.BaseStream.Position;
 
-            WriteCompressedTableEntries(bw.BaseStream, directoryHashes);
+            bw.WriteMultiple(directoryHashes);
             bw.WriteAlignment(4);
 
             // Write file entry hashes
@@ -103,15 +97,14 @@ namespace plugin_level5.Archives
             _header.fileEntriesCount = (short)fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
-            WriteCompressedTableEntries(bw.BaseStream, fileEntries.Select(x => x.Entry));
+            bw.WriteMultiple(fileEntries.Select(x => x.Entry));
             bw.WriteAlignment(4);
 
             // Write name table
             _header.nameOffset = (int)bw.BaseStream.Position;
 
-            var nameStreamComp = new MemoryStream();
-            Compress(nameStream, nameStreamComp, Level5CompressionMethod.Lz10);
-            nameStreamComp.CopyTo(bw.BaseStream);
+            nameStream.Position = 0;
+            nameStream.CopyTo(bw.BaseStream);
             bw.WriteAlignment(4);
 
             // Write file data
@@ -126,16 +119,6 @@ namespace plugin_level5.Archives
             // Write header
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
-        }
-
-        private IList<TTable> ReadCompressedTableEntries<TTable>(Stream input, int offset, int length, int count)
-        {
-            var streamComp = new SubStream(input, offset, length);
-            var stream = new MemoryStream();
-            Level5Compressor.Decompress(streamComp, stream);
-
-            stream.Position = 0;
-            return new BinaryReaderX(stream).ReadMultiple<TTable>(count);
         }
 
         private void BuildTables(IEnumerable<B123ArchiveFileInfo> files,
@@ -212,38 +195,6 @@ namespace plugin_level5.Archives
                 directoryIndex += x.directoryCount;
                 return x;
             }).ToList();
-        }
-
-        private void WriteCompressedTableEntries<TTable>(Stream output, IEnumerable<TTable> table)
-        {
-            var decompressedStream = new MemoryStream();
-            using var decompressedBw = new BinaryWriterX(decompressedStream, true);
-            decompressedBw.WriteMultiple(table);
-
-            var optimalCompressedStream = new MemoryStream();
-            Compress(decompressedStream, optimalCompressedStream, Level5CompressionMethod.NoCompression);
-
-            for (var i = 1; i < 5; i++)
-            {
-                var compressedStream = new MemoryStream();
-                Compress(decompressedStream, compressedStream, (Level5CompressionMethod)i);
-
-                if (compressedStream.Length < optimalCompressedStream.Length)
-                    optimalCompressedStream = compressedStream;
-            }
-
-            optimalCompressedStream.CopyTo(output);
-        }
-
-        private void Compress(Stream input, Stream output, Level5CompressionMethod compressionMethod)
-        {
-            input.Position = 0;
-            output.Position = 0;
-
-            Level5Compressor.Compress(input, output, compressionMethod);
-
-            output.Position = 0;
-            input.Position = 0;
         }
 
         // TODO: Remove when only net core

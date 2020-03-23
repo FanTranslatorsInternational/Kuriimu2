@@ -86,6 +86,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 new ExtensionType("Huffman 4Bit (Level5)",true),
                 new ExtensionType("Huffman 8Bit (Level5)",true),
                 new ExtensionType("Rle (Level5)",true),
+                new ExtensionType("Inazuma3Lzss (Level5)",true),
 
                 new ExtensionType("Lz77",true),
                 new ExtensionType("LzEcd",true),
@@ -157,6 +158,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 case "Rle (Level5)":
                     return Compressions.Level5.Rle.Build();
+
+                case "Inazuma3Lzss (Level5)":
+                    return Compressions.Level5.Inazuma3Lzss.Build();
 
                 case "Lz77":
                     return Compressions.Lz77.Build();

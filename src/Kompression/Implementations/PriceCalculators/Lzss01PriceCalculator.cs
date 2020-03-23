@@ -2,7 +2,7 @@
 
 namespace Kompression.Implementations.PriceCalculators
 {
-    public class TalesOf01PriceCalculator : IPriceCalculator
+    public class Lzss01PriceCalculator : IPriceCalculator
     {
         public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
