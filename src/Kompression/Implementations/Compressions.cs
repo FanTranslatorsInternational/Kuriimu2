@@ -1,4 +1,5 @@
-﻿using Kompression.Configuration;
+﻿using System.IO.Compression;
+using Kompression.Configuration;
 using Kompression.Huffman;
 using Kompression.Implementations.Decoders;
 using Kompression.Implementations.Decoders.Nintendo;
@@ -431,5 +432,10 @@ namespace Kompression.Implementations
                 return config;
             }
         }
+
+        public static IKompressionConfiguration ZLib =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new ZLibDecoder())
+                .EncodeWith((parser, builder) => new ZlibEncoder(CompressionLevel.Optimal));
     }
 }
