@@ -7,7 +7,7 @@ using Kontract.Kompression.Model.PatternMatch;
 namespace Kompression.Implementations.Encoders.Headerless
 {
     // TODO: Refactor block class
-    public class Lzss01HeaderlessEncoder:IEncoder
+    public class Lzss01HeaderlessEncoder : IEncoder
     {
         private const int WindowBufferLength = 0x1000;
 
@@ -27,19 +27,21 @@ namespace Kompression.Implementations.Encoders.Headerless
 
         public void Encode(Stream input, Stream output)
         {
-            var block=new Block();
+            var block = new Block();
 
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
-                if (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
-                    WriteRawData(input, output, block, match.Position - _matchParser.FindOptions.PreBufferSize - input.Position);
+                if (input.Position < match.Position)
+                    WriteRawData(input, output, block, match.Position - input.Position);
 
                 WriteMatchData(input, output, block, match);
             }
 
             if (input.Position < input.Length)
                 WriteRawData(input, output, block, input.Length - input.Position);
+
+            WriteAndResetBuffer(output, block);
         }
 
         private void WriteRawData(Stream input, Stream output, Block block, long rawLength)
@@ -59,7 +61,7 @@ namespace Kompression.Implementations.Encoders.Headerless
             if (block.flagCount == 8)
                 WriteAndResetBuffer(output, block);
 
-            var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
+            var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
 
             var byte2 = (byte)((match.Length - 3) & 0xF);
             byte2 |= (byte)((bufferPosition >> 4) & 0xF0);

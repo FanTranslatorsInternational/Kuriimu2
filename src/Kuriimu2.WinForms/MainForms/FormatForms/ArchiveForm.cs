@@ -506,7 +506,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         public async void Save(UPath savePath)
         {
             if (savePath == UPath.Empty)
-                savePath = _stateInfo.AbsoluteDirectory/_stateInfo.FilePath;
+                savePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath;
 
             await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
 
@@ -573,9 +573,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath0, _stateInfo.StreamManager);
 
+            var temporaryStreamProvider = _stateInfo.StreamManager.CreateTemporaryStreamProvider();
             foreach (var afi in files)
             {
-                var fileData = await afi.GetFileData(_stateInfo.StreamManager.CreateTemporaryStreamProvider());
+                var fileData = _stateInfo.StreamManager.WrapUndisposable(await afi.GetFileData(temporaryStreamProvider));
 
                 var subPath = (UPath)afi.FilePath.FullName.Substring(rootPath.FullName.Length);
                 destinationFileSystem.CreateDirectory(subPath.GetDirectory());

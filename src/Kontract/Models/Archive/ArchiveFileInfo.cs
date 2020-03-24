@@ -124,7 +124,8 @@ namespace Kontract.Models.Archive
         /// </summary>
         /// <param name="output">The output to write the file data to.</param>
         /// <param name="progress">The context to report progress to.</param>
-        public virtual void SaveFileData(Stream output, IProgressContext progress)
+        /// <returns>The size of the file written.</returns>
+        public virtual long SaveFileData(Stream output, IProgressContext progress)
         {
             Stream dataToCopy;
             if (UsesCompression)
@@ -146,6 +147,8 @@ namespace Kontract.Models.Archive
             progress?.ReportProgress($"Writing file '{FilePath}'.", 1, 1);
 
             ContentChanged = false;
+
+            return dataToCopy.Length;
         }
 
         /// <inheritdoc />

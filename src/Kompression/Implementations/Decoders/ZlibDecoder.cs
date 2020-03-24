@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.IO.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
@@ -8,7 +9,7 @@ namespace Kompression.Implementations.Decoders
     {
         public void Decode(Stream input, Stream output)
         {
-            var zlib = new DeflateStream(input, CompressionMode.Decompress, true);
+            var zlib = new InflaterInputStream(input);
             zlib.CopyTo(output);
         }
 

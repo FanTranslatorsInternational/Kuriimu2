@@ -39,7 +39,7 @@ namespace Kompression.Implementations.Encoders
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
-                while (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
+                while (input.Position < match.Position)
                 {
                     if (block.codeBlockPosition == 8)
                         WriteAndResetBuffer(output, block);
@@ -49,7 +49,7 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the buffer
-                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 
@@ -74,7 +74,8 @@ namespace Kompression.Implementations.Encoders
             }
 
             // Flush remaining buffer to stream
-            WriteAndResetBuffer(output, block);
+            if (block.codeBlockPosition > 0)
+                WriteAndResetBuffer(output, block);
 
             // Write header information
             WriteHeaderData(input, output, originalOutputPosition);

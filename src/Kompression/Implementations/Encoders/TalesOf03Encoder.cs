@@ -35,8 +35,8 @@ namespace Kompression.Implementations.Encoders
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
-                if (input.Position < match.Position - _matchParser.FindOptions.PreBufferSize)
-                    WriteRawData(input, output, block, match.Position - _matchParser.FindOptions.PreBufferSize - input.Position);
+                if (input.Position < match.Position)
+                    WriteRawData(input, output, block, match.Position - input.Position);
 
                 WriteMatchData(input, output, block, match);
             }
@@ -44,7 +44,8 @@ namespace Kompression.Implementations.Encoders
             if (input.Position < input.Length)
                 WriteRawData(input, output, block, input.Length - input.Position);
 
-            WriteAndResetBuffer(output, block);
+            if (block.flagCount > 0)
+                WriteAndResetBuffer(output, block);
 
             WriteHeaderData(output, (int)input.Length);
         }
@@ -65,9 +66,6 @@ namespace Kompression.Implementations.Encoders
         {
             if (block.flagCount == 8)
                 WriteAndResetBuffer(output, block);
-
-            if (match.Position - _matchParser.FindOptions.PreBufferSize > 0x3c700)
-                ;//Debugger.Break();
 
             if (match.Displacement == 0)
             {
@@ -96,7 +94,7 @@ namespace Kompression.Implementations.Encoders
             else
             {
                 // Encode LZ
-                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
 
                 var byte1 = (byte)bufferPosition;
                 var byte2 = (byte)((match.Length - 3) & 0xF);
