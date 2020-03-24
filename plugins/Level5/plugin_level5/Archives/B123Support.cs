@@ -12,6 +12,7 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
 {
+    // TODO: Research unk1
     class B123Header
     {
         [FixedLength(4)]

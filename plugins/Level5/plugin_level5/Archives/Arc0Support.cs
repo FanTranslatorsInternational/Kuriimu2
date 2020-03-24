@@ -7,6 +7,7 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
 {
+    // TODO: Research unk1
     class Arc0Header
     {
         [FixedLength(4)] 
@@ -65,9 +66,9 @@ namespace plugin_level5.Archives
 
         public override void SaveFileData(Stream output, IProgressContext progress)
         {
-            FileData.Position = 0;
-            FileData.CopyTo(output);
+            base.SaveFileData(output,progress);
 
+            output.Position = output.Length;
             while (output.Position % 4 != 0)
                 output.WriteByte(0);
         }
