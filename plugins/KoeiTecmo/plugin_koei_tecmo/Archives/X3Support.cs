@@ -10,14 +10,12 @@ namespace plugin_koei_tecmo.Archives
         [FixedLength(4)]
         public string magic;
         public int fileCount;
-        public int alignment;
-        public int padding;
+        public int fileAlignment;
     }
 
     class X3FileEntry
     {
-        public int offset;
-        public int padding;
+        public long offset;
         public int compressedSize;
         public int decompressedSize;
 

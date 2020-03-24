@@ -19,6 +19,7 @@ namespace plugin_koei_tecmo.Archives
 
             // Read header
             _header = br.ReadType<X3Header>();
+            br.BaseStream.Position += 4;
 
             // Read file entries
             var entries = br.ReadMultiple<X3FileEntry>(_header.fileCount);
@@ -27,11 +28,13 @@ namespace plugin_koei_tecmo.Archives
             var result = new List<ArchiveFileInfo>();
             foreach (var entry in entries)
             {
-                br.BaseStream.Position = entry.offset * _header.alignment + (entry.IsCompressed ? 0x4 : 0);
+                var fileOffset = entry.offset * _header.fileAlignment + (entry.IsCompressed ? 0x8 : 0);
+                br.BaseStream.Position = fileOffset;
 
                 Stream firstBlock;
                 if (entry.IsCompressed)
                 {
+                    br.BaseStream.Position -= 4;
                     var firstBlockLength = br.ReadInt32();
                     firstBlock = PeekFirstCompressedBlock(input, input.Position, firstBlockLength);
                 }
@@ -39,7 +42,7 @@ namespace plugin_koei_tecmo.Archives
                     firstBlock = new SubStream(input, br.BaseStream.Position, 4);
 
                 using var fileBr = new BinaryReaderX(firstBlock);
-                var magic = fileBr.ReadCStringASCII();
+                var magic = fileBr.ReadString(4);
                 var extension = ".bin";
 
                 if (magic == "GT1G")
@@ -47,7 +50,7 @@ namespace plugin_koei_tecmo.Archives
                 else if (magic == "SMDH")
                     extension = ".icn";
 
-                var fileStream = new SubStream(br.BaseStream, entry.offset * _header.alignment, entry.compressedSize);
+                var fileStream = new SubStream(br.BaseStream, fileOffset, entry.compressedSize);
                 var fileName = result.Count.ToString("00000000") + extension;
                 if (entry.IsCompressed)
                     result.Add(new ArchiveFileInfo(fileStream, fileName,
