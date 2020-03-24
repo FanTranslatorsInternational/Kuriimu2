@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kompression.Implementations;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
@@ -45,8 +47,8 @@ namespace plugin_level5.Archives
                 {
                     var fileStream = new SubStream(input, _header.dataOffset + file.fileOffset, file.fileSize);
 
-                    br.BaseStream.Position =_header.nameOffset + 
-                                            directory.fileNameStartOffset + 
+                    br.BaseStream.Position = _header.nameOffset +
+                                            directory.fileNameStartOffset +
                                             file.nameOffsetInFolder;
                     var fileName = br.ReadCStringSJIS();
 
@@ -54,10 +56,7 @@ namespace plugin_level5.Archives
                                              directory.directoryNameStartOffset;
                     var directoryName = br.ReadCStringSJIS();
 
-                    result.Add(new B123ArchiveFileInfo(fileStream, directoryName + fileName, file)
-                    {
-                        PluginIds = B123Support.RetrievePluginMapping(fileStream, fileName)
-                    });
+                    result.Add(CreateAfi(fileStream, directoryName + fileName, file));
                 }
             }
 
@@ -119,6 +118,30 @@ namespace plugin_level5.Archives
             // Write header
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
+        }
+
+        private ArchiveFileInfo CreateAfi(Stream input, string filePath, B123FileEntry entry)
+        {
+            input.Position = 0;
+            using var br = new BinaryReaderX(input, true);
+
+            if (br.ReadString(4) == "SSZL")
+            {
+                br.BaseStream.Position = 0xC;
+                var decompressedSize = br.ReadInt32();
+
+                return new B123ArchiveFileInfo(input, filePath,
+                    Compressions.Level5.Inazuma3Lzss, decompressedSize,
+                    entry)
+                {
+                    PluginIds = B123Support.RetrievePluginMapping(input, filePath)
+                };
+            }
+
+            return new B123ArchiveFileInfo(input, filePath, entry)
+            {
+                PluginIds = B123Support.RetrievePluginMapping(input, filePath)
+            };
         }
 
         private void BuildTables(IEnumerable<B123ArchiveFileInfo> files,

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
+using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
@@ -67,11 +68,19 @@ namespace plugin_level5.Archives
             Entry = entry;
         }
 
+        public B123ArchiveFileInfo(Stream fileData, string filePath,
+            IKompressionConfiguration configuration, long decompressedSize,
+            B123FileEntry entry) :
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+            Entry = entry;
+        }
+
         public override void SaveFileData(Stream output, IProgressContext progress)
         {
-            FileData.Position = 0;
-            FileData.CopyTo(output);
+            base.SaveFileData(output, progress);
 
+            output.Position = output.Length;
             while (output.Position % 4 != 0)
                 output.WriteByte(0);
         }
