@@ -30,13 +30,15 @@ namespace plugin_level5.Archives
             Entry = entry;
         }
 
-        public override void SaveFileData(Stream output, IProgressContext progress)
+        public override long SaveFileData(Stream output, IProgressContext progress)
         {
-            FileData.Position = 0;
-            FileData.CopyTo(output);
+            var writtenSize = base.SaveFileData(output, progress);
 
+            output.Position = output.Length;
             while (output.Position % 0x7F != 0)
                 output.WriteByte(0xAC);
+
+            return writtenSize;
         }
     }
 }

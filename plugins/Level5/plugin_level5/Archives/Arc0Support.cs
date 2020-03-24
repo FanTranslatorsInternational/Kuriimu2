@@ -7,10 +7,9 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
 {
-    // TODO: Research unk1
     class Arc0Header
     {
-        [FixedLength(4)] 
+        [FixedLength(4)]
         public string magic = "ARC0";
         public int directoryEntriesOffset;
         public int directoryHashOffset;
@@ -20,7 +19,7 @@ namespace plugin_level5.Archives
         public short directoryEntriesCount;
         public short directoryHashCount;
         public int fileEntriesCount;
-        public uint unk1;
+        public int tableChunkSize;
         public int zero1;
 
         //Hashes?
@@ -29,7 +28,7 @@ namespace plugin_level5.Archives
         public uint unk4;
         public uint unk5;
 
-        public uint directoryCount;
+        public int directoryCount;
         public int fileCount;
         public uint unk7;
         public int zero2;
@@ -64,13 +63,15 @@ namespace plugin_level5.Archives
             Entry = entry;
         }
 
-        public override void SaveFileData(Stream output, IProgressContext progress)
+        public override long SaveFileData(Stream output, IProgressContext progress)
         {
-            base.SaveFileData(output,progress);
+            var writtenSize = base.SaveFileData(output, progress);
 
             output.Position = output.Length;
             while (output.Position % 4 != 0)
                 output.WriteByte(0);
+
+            return writtenSize;
         }
     }
 

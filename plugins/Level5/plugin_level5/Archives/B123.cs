@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -6,10 +7,9 @@ using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
 using Kontract.Extensions;
+using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
-using Kontract.Models.IO;
 using Kryptography.Hash.Crc;
-using plugin_level5.Compression;
 
 namespace plugin_level5.Archives
 {
@@ -17,6 +17,10 @@ namespace plugin_level5.Archives
     class B123
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(B123Header));
+        private readonly int _directoryEntrySize = Tools.MeasureType(typeof(B123DirectoryEntry));
+        private readonly int _directoryHashSize = Tools.MeasureType(typeof(uint));
+        private readonly int _fileEntrySize = Tools.MeasureType(typeof(B123FileEntry));
+
         private B123Header _header;
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
@@ -63,8 +67,11 @@ namespace plugin_level5.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files, IProgressContext progress)
         {
+            // Prepare progressbar
+            var splittedProgress = progress.SplitIntoEvenScopes(2);
+
             // Group files by directory
             var castedFiles = files.Cast<B123ArchiveFileInfo>();
 
@@ -76,48 +83,70 @@ namespace plugin_level5.Archives
             using var bw = new BinaryWriterX(output);
             bw.BaseStream.Position = _headerSize;
 
+            _header.dataOffset = (int)(_headerSize +
+                                  directoryEntries.Count * _directoryEntrySize +
+                                  directoryHashes.Count * _directoryHashSize +
+                                  fileEntries.Count * _fileEntrySize +
+                                  nameStream.Length + 3) & ~3;
+
+            // Write file data
+            var fileOffset = 0u;
+            var fileIndex = 1;
+            foreach (var fileEntry in fileEntries)
+            {
+                splittedProgress[0].ReportProgress($"Write file data {fileIndex}/{fileEntries.Count}", fileIndex++, fileEntries.Count);
+
+                if (fileEntry.FilePath.FullName.Contains("staff_credit"))
+                    Debugger.Break();
+
+                bw.BaseStream.Position = _header.dataOffset + fileOffset;
+                var writtenSize = fileEntry.SaveFileData(bw.BaseStream, null);
+
+                fileEntry.Entry.fileOffset = fileOffset;
+                fileEntry.Entry.fileSize = (uint)writtenSize;
+
+                fileOffset = (uint)(bw.BaseStream.Position - _header.dataOffset);
+            }
+
+            bw.BaseStream.Position = _headerSize;
+
             // Write directory entries
-            _header.directoryCount = (uint)directoryEntries.Count;
+            _header.directoryCount = directoryEntries.Count;
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = _headerSize;
 
+            splittedProgress[1].ReportProgress("Write directory entries", 0, 4);
             bw.WriteMultiple(directoryEntries);
-            bw.WriteAlignment(4);
 
             // Write directory hashes
             _header.directoryHashCount = (short)directoryHashes.Count;
             _header.directoryHashOffset = (int)bw.BaseStream.Position;
 
+            splittedProgress[1].ReportProgress("Write directory hashes", 1, 4);
             bw.WriteMultiple(directoryHashes);
-            bw.WriteAlignment(4);
 
             // Write file entry hashes
             _header.fileCount = fileEntries.Count;
             _header.fileEntriesCount = (short)fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
+            splittedProgress[1].ReportProgress("Write file entries", 2, 4);
             bw.WriteMultiple(fileEntries.Select(x => x.Entry));
-            bw.WriteAlignment(4);
 
             // Write name table
             _header.nameOffset = (int)bw.BaseStream.Position;
+            _header.tableChunkSize = (int)((_header.nameOffset + nameStream.Length + 3) & ~3) - _headerSize;
 
+            splittedProgress[1].ReportProgress("Write file & directory names", 3, 4);
             nameStream.Position = 0;
             nameStream.CopyTo(bw.BaseStream);
             bw.WriteAlignment(4);
 
-            // Write file data
-            _header.dataOffset = (int)bw.BaseStream.Position;
-
-            foreach (var fileEntry in fileEntries)
-            {
-                bw.BaseStream.Position = _header.dataOffset + fileEntry.Entry.fileOffset;
-                fileEntry.SaveFileData(bw.BaseStream, null);
-            }
-
             // Write header
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
+
+            splittedProgress[1].ReportProgress("Done", 4, 4);
         }
 
         private ArchiveFileInfo CreateAfi(Stream input, string filePath, B123FileEntry entry)
@@ -161,7 +190,6 @@ namespace plugin_level5.Archives
             var fileInfos = new List<B123ArchiveFileInfo>();
             directoryEntries = new List<B123DirectoryEntry>();
             directoryHashes = new List<uint>();
-            var fileOffset = 0u;
             foreach (var fileGroup in groupedFiles)
             {
                 var fileIndex = fileInfos.Count;
@@ -196,10 +224,6 @@ namespace plugin_level5.Archives
                 {
                     fileEntry.Entry.nameOffsetInFolder = (uint)(nameBw.BaseStream.Position - newDirectoryEntry.fileNameStartOffset);
                     fileEntry.Entry.crc32 = ToUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName().ToLower())));
-                    fileEntry.Entry.fileOffset = fileOffset;
-                    fileEntry.Entry.fileSize = (uint)fileEntry.FileSize;
-
-                    fileOffset = (uint)((fileOffset + fileEntry.FileSize + 3) & ~3);
 
                     nameBw.WriteString(fileEntry.FilePath.GetName(), sjis, false);
                 }

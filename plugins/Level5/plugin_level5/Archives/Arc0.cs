@@ -17,6 +17,9 @@ namespace plugin_level5.Archives
     class Arc0
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(Arc0Header));
+        private readonly int _directoryEntrySize = Tools.MeasureType(typeof(Arc0DirectoryEntry));
+        private readonly int _directoryHashSize = Tools.MeasureType(typeof(uint));
+        private readonly int _fileEntrySize = Tools.MeasureType(typeof(Arc0FileEntry));
 
         private Arc0Header _header;
 
@@ -86,7 +89,7 @@ namespace plugin_level5.Archives
             bw.BaseStream.Position = _headerSize;
 
             // Write directory entries
-            _header.directoryCount = (uint)directoryEntries.Count;
+            _header.directoryCount = directoryEntries.Count;
             _header.directoryEntriesCount = (short)directoryEntries.Count;
             _header.directoryEntriesOffset = _headerSize;
 
@@ -126,6 +129,11 @@ namespace plugin_level5.Archives
             }
 
             // Write header
+            _header.tableChunkSize = (int)(directoryEntries.Count * _directoryEntrySize +
+                                    directoryHashes.Count * _directoryHashSize +
+                                    fileEntries.Count * _fileEntrySize +
+                                    nameStream.Length + 0x20 + 3) & ~3;
+
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
         }

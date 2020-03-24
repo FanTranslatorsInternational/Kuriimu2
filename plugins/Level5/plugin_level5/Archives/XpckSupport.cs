@@ -109,10 +109,9 @@ namespace plugin_level5.Archives
             FileEntry = entry;
         }
 
-        public override void SaveFileData(Stream output, IProgressContext progress)
+        public override long SaveFileData(Stream output, IProgressContext progress)
         {
-            FileData.Position = 0;
-            FileData.CopyTo(output);
+            var writtenSize = base.SaveFileData(output, progress);
 
             if (output.Position % 4 > 0)
             {
@@ -123,6 +122,8 @@ namespace plugin_level5.Archives
             {
                 output.Write(new byte[4], 0, 4);
             }
+
+            return writtenSize;
         }
     }
 

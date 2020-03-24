@@ -36,7 +36,7 @@ namespace plugin_level5.Archives
         public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            _b123.Save(fileStream, Files);
+            _b123.Save(fileStream, Files, progress);
 
             return Task.CompletedTask;
         }
