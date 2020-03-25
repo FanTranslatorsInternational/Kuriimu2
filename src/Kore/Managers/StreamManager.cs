@@ -17,6 +17,7 @@ namespace Kore.Managers
     public class StreamManager : IStreamManager
     {
         private readonly Timer _streamCollectionTimer;
+        private readonly object _releaseLock = new object();
 
         private readonly Guid _guid;
 
@@ -98,7 +99,13 @@ namespace Kore.Managers
             _parentStreams.Clear();
 
             foreach (var stream in _streams.ToList())
-                Release(stream);
+            {
+                lock (_releaseLock)
+                {
+                    if (ContainsStream(stream))
+                        Release(stream);
+                }
+            }
         }
 
         /// <summary>
@@ -111,7 +118,13 @@ namespace Kore.Managers
             foreach (var stream in _streams.ToList())
             {
                 if (!stream.CanRead && !stream.CanWrite && !stream.CanSeek)
-                    Release(stream, true);
+                {
+                    lock (_releaseLock)
+                    {
+                        if (ContainsStream(stream))
+                            Release(stream, true);
+                    }
+                }
             }
         }
     }

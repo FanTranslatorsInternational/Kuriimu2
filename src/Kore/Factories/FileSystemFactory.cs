@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.FileSystem.Implementations;
 
@@ -16,6 +15,9 @@ namespace Kore.Factories
     /// </summary>
     public static class FileSystemFactory
     {
+        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]");
+        private static readonly Regex MountRegex = new Regex(@"^/mnt/[a-zA-Z][/]?");
+
         /// <summary>
         /// Create a <see cref="PhysicalFileSystem"/> based on the directory in <paramref name="path"/>.
         /// </summary>
@@ -34,8 +36,15 @@ namespace Kore.Factories
                 Directory.CreateDirectory(physicalPath.FullName);
 
             var fileSystem = (IFileSystem)new PhysicalFileSystem(streamManager);
-            fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 7));
-            fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(6));
+            if (IsOnlyDrive(internalPath))
+            {
+                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 6));
+            }
+            else
+            {
+                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 7));
+                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(6));
+            }
 
             return fileSystem;
         }
@@ -79,10 +88,7 @@ namespace Kore.Factories
         /// <returns>If the path is rooted.</returns>
         private static bool IsRooted(UPath path)
         {
-            var mntRegex = new Regex("^/mnt/[a-zA-Z]/");
-            var driveRegex = new Regex(@"^[a-zA-Z]:[/\\]");
-
-            return mntRegex.IsMatch(path.FullName) || driveRegex.IsMatch(path.FullName);
+            return MountRegex.IsMatch(path.FullName) || DriveRegex.IsMatch(path.FullName);
         }
 
         /// <summary>
@@ -92,12 +98,11 @@ namespace Kore.Factories
         /// <returns>The modified path.</returns>
         private static UPath ReplaceWindowsDrive(UPath path)
         {
-            var driveRegex = new Regex(@"^[a-zA-Z]:[/\\]");
-            if (!driveRegex.IsMatch(path.FullName))
+            if (!DriveRegex.IsMatch(path.FullName))
                 return path;
 
             var driveLetter = path.FullName[0];
-            return new UPath(driveRegex.Replace(path.FullName, $"/mnt/{char.ToLower(driveLetter)}/"));
+            return new UPath(DriveRegex.Replace(path.FullName, $"/mnt/{char.ToLower(driveLetter)}/"));
         }
 
         /// <summary>
@@ -107,12 +112,24 @@ namespace Kore.Factories
         /// <returns>The modified path.</returns>
         private static UPath ReplaceMountPoint(UPath path)
         {
-            var mntRegex = new Regex("^/mnt/[a-zA-Z]/");
-            if (!mntRegex.IsMatch(path.FullName))
+            if (!MountRegex.IsMatch(path.FullName))
                 return path;
 
             var driveLetter = path.FullName[5];
-            return new UPath(mntRegex.Replace(path.FullName, $"{char.ToUpper(driveLetter)}:/"));
+            return new UPath(MountRegex.Replace(path.FullName, $"{char.ToUpper(driveLetter)}:/"));
+        }
+
+        /// <summary>
+        /// Checks if the path is only the mount drive or mount point.
+        /// </summary>
+        /// <param name="path">The path to check.</param>
+        /// <returns></returns>
+        private static bool IsOnlyDrive(UPath path)
+        {
+            var driveMatch = DriveRegex.Match(path.FullName).Value;
+            var mountMatch = MountRegex.Match(path.FullName).Value;
+
+            return driveMatch == path.FullName || mountMatch == path.FullName;
         }
     }
 }

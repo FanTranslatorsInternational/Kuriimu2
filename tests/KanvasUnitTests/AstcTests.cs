@@ -22,7 +22,7 @@ namespace KanvasUnitTests
                 0b00011011, 0b01101100, 0b10110001, 0b11000110
             };
             var astcEncoder = new ASTC(4, 4, 1);
-            var colors = astcEncoder.Load(block).ToArray();
+            var colors = astcEncoder.Load(block, 8).ToArray();
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace KanvasUnitTests
                 0b00011011, 0b01101100, 0b10110001, 0b11000110
             };
             var astcEncoder = new ASTC(4, 4, 1);
-            var colors = astcEncoder.Load(block).ToArray();
+            var colors = astcEncoder.Load(block, 8).ToArray();
         }
     }
 }

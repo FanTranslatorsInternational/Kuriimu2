@@ -96,9 +96,6 @@ namespace plugin_level5.Archives
             {
                 splittedProgress[0].ReportProgress($"Write file data {fileIndex}/{fileEntries.Count}", fileIndex++, fileEntries.Count);
 
-                if (fileEntry.FilePath.FullName.Contains("staff_credit"))
-                    Debugger.Break();
-
                 bw.BaseStream.Position = _header.dataOffset + fileOffset;
                 var writtenSize = fileEntry.SaveFileData(bw.BaseStream, null);
 
