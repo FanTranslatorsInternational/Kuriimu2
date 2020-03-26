@@ -34,13 +34,13 @@ jobs:
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
     - name: Publish Level5 plugin with dotnet
-      run: dotnet publish ./plugins/Level5/Level5.sln --configuration Release
+      run: dotnet publish ./plugins/Level5/Level5.sln --output ./dist/final --configuration Release
     - name: Publish Nintendo plugin with dotnet
-      run: dotnet publish ./plugins/Nintendo/Nintendo.sln --configuration Release
+      run: dotnet publish ./plugins/Nintendo/Nintendo.sln --output ./dist/final --configuration Release
     - name: Publish Koei Tecmo plugin with dotnet
-      run: dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --configuration Release
+      run: dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final --configuration Release
     - name: Publish NipponIchi Software plugin with dotnet
-      run: dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --configuration Release
+      run: dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final --configuration Release
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
