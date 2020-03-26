@@ -9,8 +9,8 @@
 
   <PropertyGroup>
     <SelfContained>false</SelfContained>
-    <PublishSingleFile>True</PublishSingleFile>
-    <PublishReadyToRun>False</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
