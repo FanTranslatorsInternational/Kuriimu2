@@ -17,7 +17,14 @@ jobs:
         dotnet-version: 3.1.100
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
-    - name: Publish libraries
+    - name: Build libraries
+      run: |
+        dotnet build ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+    - name: Pack libraries
       run: |
         dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
         dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
