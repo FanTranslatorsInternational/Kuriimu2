@@ -9,12 +9,38 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - uses: nuget/setup-nuget@v1
+        
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.100
-    - name: Publish with dotnet
+    - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --configuration Release
+    - name: Build libraries
+      run: |
+        dotnet build ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
+        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+    - name: Pack libraries
+      run: |
+        dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+    - name: Setup NuGet sources
+      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+    - name: Publish Level5 plugin with dotnet
+      run: dotnet publish ./plugins/Level5/Level5.sln --configuration Release
+    - name: Publish Nintendo plugin with dotnet
+      run: dotnet publish ./plugins/Nintendo/Nintendo.sln --configuration Release
+    - name: Publish Koei Tecmo plugin with dotnet
+      run: dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --configuration Release
+    - name: Publish NipponIchi Software plugin with dotnet
+      run: dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --configuration Release
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
