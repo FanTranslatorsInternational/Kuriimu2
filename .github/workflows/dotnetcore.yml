@@ -23,7 +23,7 @@ jobs:
         dotnet publish ./src/Kompression/Kompression.csproj --framework net472 --configuration Release
         dotnet publish ./src/Kryptography/Kryptography.csproj --framework net472 --configuration Release
     - name: Setup NuGet sources
-      run: nuget sources add -name LocalFeed -source .\nuget
+      run: nuget sources add -name LocalFeed -source .\nuget -verbosity detailed
     - name: Publish Level5 plugin with dotnet
       run: dotnet publish ./plugins/Level5/Level5.sln --configuration Release
     - name: Publish Nintendo plugin with dotnet
