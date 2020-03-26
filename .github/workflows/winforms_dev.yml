@@ -49,5 +49,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Kuriimu2.WinForms
+        name: Kuriimu2.WinForms-dev
         path: ./dist/final
