@@ -1,7 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Komponent.IO;
+using Kontract.Interfaces.FileSystem;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.Identifier;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Providers;
+using Kontract.Models;
+using Kontract.Models.IO;
+using System;
 using System.Threading.Tasks;
 
 namespace plugin_yuusha_shisu.PAC
@@ -12,7 +17,7 @@ namespace plugin_yuusha_shisu.PAC
 		public string[] FileExtensions => new[] { "*.pac" };
 		public PluginMetadata Metadata { get; }
 
-		public BtxPlugin()
+		public PacPlugin()
 		{
 			Metadata = new PluginMetadata("PAC", "StorMyu", "Death of a Hero");
 		}
