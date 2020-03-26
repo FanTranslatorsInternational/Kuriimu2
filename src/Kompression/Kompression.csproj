@@ -26,6 +26,12 @@
     <PackageTags>Compression, Kuriimu2</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>

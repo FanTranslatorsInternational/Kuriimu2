@@ -24,6 +24,12 @@
     <PackageTags>Image, Transcoding, Quantization, Kuriimu2</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="lib\astcenc.dll" />
     <None Remove="lib\PVRTexLib.dll" />
