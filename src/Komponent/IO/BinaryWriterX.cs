@@ -61,6 +61,8 @@ namespace Komponent.IO
             NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         public BinaryWriterX(Stream input,
@@ -74,6 +76,8 @@ namespace Komponent.IO
             NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         public BinaryWriterX(Stream input,
@@ -89,6 +93,8 @@ namespace Komponent.IO
             BlockSize = blockSize;
 
             _encoding = encoding;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         public BinaryWriterX(Stream input,
@@ -105,6 +111,8 @@ namespace Komponent.IO
             BlockSize = blockSize;
 
             _encoding = encoding;
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
 
         #endregion

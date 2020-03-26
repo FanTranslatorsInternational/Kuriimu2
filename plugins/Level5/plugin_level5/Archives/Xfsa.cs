@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -169,7 +170,7 @@ namespace plugin_level5.Archives
                     directoryName += "/";
                 nameBw.WriteString(directoryName, sjis, false);
 
-                var hash = ToUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName.ToLower())));
+                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName.ToLower())));
                 var newDirectoryEntry = new XfsaDirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
@@ -190,7 +191,7 @@ namespace plugin_level5.Archives
                 foreach (var fileEntry in fileGroupEntries)
                 {
                     fileEntry.Entry.NameOffset = (int)(nameBw.BaseStream.Position - newDirectoryEntry.FileNameStartOffset);
-                    fileEntry.Entry.crc32 = ToUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName().ToLower())));
+                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName().ToLower())));
                     fileEntry.Entry.FileOffset = fileOffset;
                     fileEntry.Entry.FileSize = (int)fileEntry.FileSize;
 
@@ -245,16 +246,6 @@ namespace plugin_level5.Archives
 
             output.Position = 0;
             input.Position = 0;
-        }
-
-        // TODO: Remove when only net core
-        private uint ToUInt32BigEndian(byte[] input)
-        {
-#if NET_CORE_31
-            return BinaryPrimitives.ReadUInt32BigEndian(input);
-#else
-            return (uint)((input[0] << 24) | (input[1] << 16) | (input[2] << 8) | input[3]);
-#endif
         }
     }
 }
