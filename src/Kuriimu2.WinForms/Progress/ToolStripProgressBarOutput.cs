@@ -28,6 +28,8 @@ namespace Kuriimu2.WinForms.Progress
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
+            if (_progressState == null) return;
+
             var percentageValue = _progressState.PartialValue / (double)_progressState.MaxValue;
             var percentageInRange = (_progressState.MaxPercentage - _progressState.MinPercentage) * percentageValue;
 
