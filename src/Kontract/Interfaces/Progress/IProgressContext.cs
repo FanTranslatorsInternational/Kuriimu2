@@ -1,4 +1,6 @@
-﻿namespace Kontract.Interfaces.Progress
+﻿using System;
+
+namespace Kontract.Interfaces.Progress
 {
     /// <summary>
     /// Exposes methods to report progress to the Kuriimu runtime.

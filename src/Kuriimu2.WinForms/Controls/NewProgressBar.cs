@@ -5,7 +5,7 @@ namespace Kuriimu2.WinForms.Controls
 {
     public class NewProgressBarToolStrip : ToolStripControlHost
     {
-        protected NewProgressBar ProgressBar => ((NewProgressBar)Control);
+        protected NewProgressBar ProgressBar => (NewProgressBar)Control;
 
         public NewProgressBarToolStrip() : base(new NewProgressBar())
         {

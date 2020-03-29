@@ -9,11 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Cyotek.Windows.Forms;
 using Kanvas;
+using Kanvas.Configuration;
 using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
+using Kontract.Kanvas;
+using Kontract.Kanvas.Configuration;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 using Kore.Utilities.Palettes;
@@ -59,8 +62,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private IImageState ImageState => _stateInfo.State as IImageState;
 
         private ImageInfo SelectedImageInfo => ImageState.Images[_selectedImageIndex];
+        private IndexImageInfo SelectedIndexImageInfo => SelectedImageInfo as IndexImageInfo;
         private int SelectedImageFormat => SelectedImageInfo.ImageFormat;
         private int SelectedPaletteFormat => (SelectedImageInfo as IndexImageInfo)?.PaletteFormat ?? -1;
+        private IImageConfiguration SelectedImageConfiguration =>
+            SelectedImageInfo.Configuration ?? new ImageConfiguration();
+
+        private IDictionary<int, IColorEncoding> ColorEncodings =>
+            ImageState.SupportedEncodings ?? new Dictionary<int, IColorEncoding>();
+        private IDictionary<int, (IColorIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> IndexEncodings =>
+            ImageState.SupportedIndexEncodings ?? new Dictionary<int, (IColorIndexEncoding, IList<int>)>();
+        private IDictionary<int, IColorEncoding> PaletteEncodings =>
+            ImageState.SupportedPaletteEncodings ?? new Dictionary<int, IColorEncoding>();
 
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
@@ -156,17 +169,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 if (infos[i] is IndexImageInfo indexInfo)
                 {
-                    var indexTranscoder = indexInfo.Configuration.Clone()
-                        .TranscodeWith(imageSize => ImageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding)
-                        .TranscodePaletteWith(() => ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat])
+                    var configuration = indexInfo.Configuration ?? new ImageConfiguration();
+                    var indexTranscoder = configuration.Clone()
+                        .TranscodeWith(imageSize => IndexEncodings[indexInfo.ImageFormat].Encoding)
+                        .TranscodePaletteWith(() => PaletteEncodings[indexInfo.PaletteFormat])
                         .Build();
 
                     yield return (Bitmap)indexTranscoder.Decode(indexInfo.ImageData, indexInfo.PaletteData, indexInfo.ImageSize, progress);
                 }
                 else
                 {
-                    var transcoder = infos[i].Configuration.Clone()
-                        .TranscodeWith(imageSize => ImageState.SupportedEncodings[infos[i].ImageFormat])
+                    var configuration = infos[i].Configuration ?? new ImageConfiguration();
+                    var transcoder = configuration.Clone()
+                        .TranscodeWith(imageSize => ColorEncodings[infos[i].ImageFormat])
                         .Build();
 
                     yield return (Bitmap)transcoder.Decode(infos[i].ImageData, infos[i].ImageSize, progress);
@@ -202,14 +217,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
 
             progress?.ReportProgress("Decode colors", 0, 1);
-            var palette = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData, Environment.ProcessorCount).ToArray();
+            var palette = PaletteEncodings[indexInfo.PaletteFormat].Load(indexInfo.PaletteData, Environment.ProcessorCount).ToArray();
             progress?.ReportProgress("Done", 1, 1);
 
             return palette;
         }
 
         /// <summary>
-        /// Transcodes the image at <paramref name="imageIndex"/> into the given formats.
+        /// Transcode the image at <paramref name="imageIndex"/> into the given formats.
         /// </summary>
         /// <param name="imageIndex">The index to the image to transcode.</param>
         /// <param name="newImageFormat">The new image format.</param>
@@ -224,26 +239,35 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             if (imageInfo.ImageFormat == newImageFormat &&
                 newPaletteFormat == -1)
-                return image;
+                return _images[imageIndex];
 
             if (indexInfo != null &&
                 indexInfo.PaletteFormat == newPaletteFormat &&
                 imageInfo.ImageFormat == newImageFormat)
-                return image;
+                return _images[imageIndex];
 
             var encodeProgress = _progressContext.CreateScope(0, 50);
             var decodeProgress = _progressContext.CreateScope(50, 100);
 
             Bitmap newImage;
-            if (ImageState.SupportedEncodings.ContainsKey(newImageFormat))
+            if (ColorEncodings.ContainsKey(newImageFormat))
             {
                 // Transcode image to new image format
                 var transcoder = imageInfo.Configuration.Clone()
-                    .TranscodeWith(imageSize => ImageState.SupportedEncodings[newImageFormat])
+                    .TranscodeWith(imageSize => ColorEncodings[newImageFormat])
                     .Build();
 
-                var imageData = transcoder.Encode(image, encodeProgress);
-                newImage = (Bitmap)transcoder.Decode(imageData, imageInfo.ImageSize, decodeProgress);
+                byte[] imageData;
+                try
+                {
+                    imageData = transcoder.Encode(image, encodeProgress);
+                    newImage = (Bitmap)transcoder.Decode(imageData, imageInfo.ImageSize, decodeProgress);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Transcoding error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return _images[imageIndex];
+                }
 
                 if (replaceImageInfo)
                 {
@@ -267,12 +291,22 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 // Transcode image to new image format
                 var transcoder = imageInfo.Configuration.Clone()
-                    .TranscodeWith(imageSize => ImageState.SupportedIndexEncodings[newImageFormat].Encoding)
-                    .TranscodePaletteWith(() => ImageState.SupportedPaletteEncodings[newPaletteFormat])
+                    .ConfigureQuantization(options => options.WithColorCount(IndexEncodings[newImageFormat].Encoding.MaxColors))
+                    .TranscodeWith(imageSize => IndexEncodings[newImageFormat].Encoding)
+                    .TranscodePaletteWith(() => PaletteEncodings[newPaletteFormat])
                     .Build();
 
-                var (indexData, paletteData) = transcoder.Encode(image, encodeProgress);
-                newImage = (Bitmap)transcoder.Decode(indexData, paletteData, imageInfo.ImageSize, decodeProgress);
+                byte[] indexData, paletteData;
+                try
+                {
+                    (indexData, paletteData) = transcoder.Encode(image, encodeProgress);
+                    newImage = (Bitmap)transcoder.Decode(indexData, paletteData, imageInfo.ImageSize, decodeProgress);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Transcoding error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return _images[imageIndex];
+                }
 
                 if (replaceImageInfo)
                 {
@@ -395,9 +429,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var newImageFormat = (int)tsb.Tag;
             var paletteFormat = SelectedPaletteFormat;
-            if (ImageState.SupportedIndexEncodings?.ContainsKey(newImageFormat) ?? false && SelectedPaletteFormat == -1)
-                paletteFormat = ImageState.SupportedIndexEncodings[newImageFormat].PaletteEncodingIndices?.First() ??
-                                ImageState.SupportedPaletteEncodings.First().Key;
+            if (IndexEncodings.ContainsKey(newImageFormat) && SelectedPaletteFormat == -1)
+                paletteFormat = IndexEncodings[newImageFormat].PaletteEncodingIndices?.First() ??
+                                PaletteEncodings.First().Key;
 
             DisableImageControls();
             DisablePaletteControls();
@@ -426,7 +460,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var newPaletteFormat = (int)tsb.Tag;
             _images[_selectedImageIndex] = Transcode(_selectedImageIndex, SelectedImageFormat, newPaletteFormat, true);
 
-            if (SelectedImageInfo is IndexImageInfo)
+            if (SelectedImageInfo.IsIndexed)
                 _imagePalettes[_selectedImageIndex] = CreatePalette(SelectedImageInfo, _progressContext);
             else
                 _imagePalettes[_selectedImageIndex] = null;
@@ -726,13 +760,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var isIndexed = SelectedImageInfo.IsIndexed;
             tslPalette.Visible = isIndexed;
             tsbPalette.Visible = isIndexed;
-            tsbPalette.Enabled = isIndexed && (ImageState.SupportedPaletteEncodings?.Any() ?? false);
+            tsbPalette.Enabled = isIndexed && PaletteEncodings.Any();
             pbPalette.Enabled = isIndexed;
             tsbPaletteImport.Enabled = isIndexed;
 
             splProperties.Panel2Collapsed = !isIndexed;
 
-            tsbFormat.Enabled = ImageState.SupportedEncodings?.Any() ?? false;
+            tsbFormat.Enabled = ColorEncodings.Any() || IndexEncodings.Any();
 
             imbPreview.Enabled = ImageState.Images.Any();
 
@@ -780,9 +814,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tsbImageBorderColor.Image = ibcBitmap;
 
             // Format Dropdown
-            tsbFormat.Text = ImageState.SupportedEncodings.ContainsKey(SelectedImageFormat) ?
-                ImageState.SupportedEncodings[SelectedImageFormat].FormatName :
-                ImageState.SupportedIndexEncodings[SelectedImageFormat].Encoding.FormatName;
+            tsbFormat.Text = ColorEncodings.ContainsKey(SelectedImageFormat) ?
+                ColorEncodings[SelectedImageFormat].FormatName :
+                IndexEncodings[SelectedImageFormat].Encoding.FormatName;
             tsbFormat.Tag = SelectedImageInfo.ImageFormat;
 
             // Update selected format
@@ -801,7 +835,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (SelectedImageInfo is IndexImageInfo indexedInfo)
             {
                 // PaletteData Dropdown
-                tsbPalette.Text = ImageState.SupportedPaletteEncodings[indexedInfo.PaletteFormat].FormatName;
+                tsbPalette.Text = PaletteEncodings[indexedInfo.PaletteFormat].FormatName;
                 tsbPalette.Tag = indexedInfo.PaletteFormat;
 
                 // Update selected palette format
@@ -926,7 +960,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async Task SetColorInPalette(Func<Point, int> indexFunc, Point controlPoint)
         {
-            if (!(SelectedImageInfo is IndexImageInfo indexInfo))
+            if (!SelectedImageInfo.IsIndexed)
                 return;
 
             DisablePaletteControls();
@@ -961,7 +995,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     _imagePalettes[_selectedImageIndex][index] = clrDialog.Color;
 
                     setMaxProgress = progresses[1].SetMaxValue(_imagePalettes[_selectedImageIndex].Count);
-                    indexInfo.PaletteData = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat]
+                    SelectedIndexImageInfo.PaletteData = ImageState.SupportedPaletteEncodings[SelectedIndexImageInfo.PaletteFormat]
                         .Save(_imagePalettes[_selectedImageIndex].AttachProgress(setMaxProgress, "Encode palette colors"), Environment.ProcessorCount);
 
                     _progressContext.ReportProgress("Done", 1, 1);
@@ -988,7 +1022,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async Task SetIndexInImage(Point controlPoint, int newIndex)
         {
-            if (!(SelectedImageInfo is IndexImageInfo indexInfo))
+            if (!SelectedImageInfo.IsIndexed)
                 return;
 
             if (newIndex >= _imagePalettes[_selectedImageIndex].Count)
@@ -1019,7 +1053,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     indices[pointInImg.Y * SelectedImageInfo.ImageSize.Width + pointInImg.X] = newIndex;
 
                     setMaxProgress = progresses[1].SetMaxValue(_images[_selectedImageIndex].Width * _images[_selectedImageIndex].Height);
-                    indexInfo.ImageData = ImageState.SupportedIndexEncodings[indexInfo.ImageFormat].Encoding
+                    SelectedIndexImageInfo.ImageData = IndexEncodings[SelectedIndexImageInfo.ImageFormat].Encoding
                         .Save(indices.AttachProgress(setMaxProgress, "Encode indices"), _imagePalettes[_selectedImageIndex], Environment.ProcessorCount);
 
                     _progressContext.ReportProgress("Done", 1, 1);
@@ -1089,7 +1123,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void ImportPalette()
         {
-            if (!(SelectedImageInfo is IndexImageInfo indexInfo))
+            if (SelectedImageInfo.IsIndexed)
                 return;
 
             var colors = LoadPaletteFile();
@@ -1112,9 +1146,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 _imagePalettes[_selectedImageIndex] = colors;
 
-                var paletteEncoding = ImageState.SupportedPaletteEncodings[indexInfo.PaletteFormat];
+                var paletteEncoding = PaletteEncodings[SelectedIndexImageInfo.PaletteFormat];
                 setMaxProgress = progresses[1].SetMaxValue(colors.Count);
-                indexInfo.PaletteData = paletteEncoding.Save(colors.AttachProgress(setMaxProgress, "Encode palette colors"), Environment.ProcessorCount);
+                SelectedIndexImageInfo.PaletteData = paletteEncoding.Save(colors.AttachProgress(setMaxProgress, "Encode palette colors"), Environment.ProcessorCount);
 
                 _progressContext.ReportProgress("Done", 1, 1);
             }
@@ -1186,7 +1220,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void ExportPalette()
         {
-            if (!(SelectedImageInfo is IndexImageInfo))
+            if (!SelectedImageInfo.IsIndexed)
                 return;
 
             SavePaletteFile(_imagePalettes[_selectedImageIndex]);

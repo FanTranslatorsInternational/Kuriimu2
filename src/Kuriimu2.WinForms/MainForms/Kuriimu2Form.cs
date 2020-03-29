@@ -253,6 +253,9 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
         {
+            if(!_tabColorDictionary.ContainsKey(openFiles.TabPages[e.Index]))
+                return;
+
             var tabColor = _tabColorDictionary[openFiles.TabPages[e.Index]];
             var textColor = tabColor.GetBrightness() <= 0.49 ? Color.White : Color.Black;
 
