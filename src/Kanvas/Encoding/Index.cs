@@ -1,4 +1,5 @@
-﻿using Kanvas.Encoding.Base;
+﻿using System;
+using Kanvas.Encoding.Base;
 using Kanvas.Encoding.Models;
 using Kontract.Models.IO;
 
@@ -17,7 +18,6 @@ namespace Kanvas.Encoding
         public Index(int i, ByteOrder byteOrder = ByteOrder.LittleEndian) :
             this(i, 0, "IA", byteOrder)
         {
-
         }
 
         /// <summary>
@@ -29,7 +29,6 @@ namespace Kanvas.Encoding
         public Index(int i, int a, ByteOrder byteOrder = ByteOrder.LittleEndian) :
             this(i, a, "IA", byteOrder)
         {
-
         }
 
         /// <summary>
@@ -53,6 +52,7 @@ namespace Kanvas.Encoding
         public Index(int i, int a, string componentOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) :
             base(new IndexPixelDescriptor(componentOrder, i, a), byteOrder)
         {
+            MaxColors = (int)Math.Pow(2, i);
         }
     }
 }

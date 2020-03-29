@@ -83,22 +83,20 @@ namespace Kanvas.Encoding.Base
                 return;
             }
 
+            BitsPerValue = bytesToRead * 8;
             switch (bytesToRead)
             {
                 case 1:
-                    BitsPerValue = 8;
                     _readValuesDelegate = br => new long[] { br.ReadByte() };
                     _writeValueDelegate = (bw, value) => bw.Write((byte)value);
                     break;
 
                 case 2:
-                    BitsPerValue = 16;
                     _readValuesDelegate = br => new long[] { br.ReadUInt16() };
                     _writeValueDelegate = (bw, value) => bw.Write((ushort)value);
                     break;
 
                 case 3:
-                    BitsPerValue = 24;
                     _readValuesDelegate = br =>
                     {
                         var bytes = br.ReadBytes(3);
@@ -112,7 +110,6 @@ namespace Kanvas.Encoding.Base
                     break;
 
                 case 4:
-                    BitsPerValue = 32;
                     _readValuesDelegate = br => new long[] { br.ReadUInt32() };
                     _writeValueDelegate = (bw, value) => bw.Write((uint)value);
                     break;

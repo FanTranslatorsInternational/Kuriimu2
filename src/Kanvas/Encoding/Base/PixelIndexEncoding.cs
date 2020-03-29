@@ -25,6 +25,8 @@ namespace Kanvas.Encoding.Base
 
         public string FormatName { get; }
 
+        public int MaxColors { get; protected set; }
+
         protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
             _descriptor = pixelDescriptor;

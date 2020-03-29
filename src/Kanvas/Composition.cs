@@ -17,26 +17,30 @@ namespace Kanvas
 
         public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize,
             IImageSwizzle swizzle) =>
-            indices.Select(i => palette[i]).ToBitmap(imageSize, swizzle);
+            indices.Select(i => palette[i]).ToBitmap(imageSize, Size.Empty, swizzle);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
-            colors.ToBitmap(imageSize, null);
+            colors.ToBitmap(imageSize, Size.Empty, null);
+
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle) =>
+            colors.ToBitmap(imageSize, Size.Empty, swizzle);
 
         /// <summary>
         /// Compose an image from a collection of colors.
         /// </summary>
         /// <param name="colors">The colors to compose in the image.</param>
         /// <param name="imageSize">The dimensions of the composed image.</param>
+        /// <param name="paddedSize">The padded dimensions of the composed image. Used for the swizzle operation.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
         /// <returns>The composed image.</returns>
-        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle)
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, Size paddedSize, IImageSwizzle swizzle)
         {
             var image = new Bitmap(imageSize.Width, imageSize.Height);
 
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, imageSize), ImageLockMode.WriteOnly,
                 PixelFormat.Format32bppArgb);
 
-            var colorPoints = Zip(colors, GetPointSequence(imageSize, swizzle));
+            var colorPoints = Zip(colors, GetPointSequence(paddedSize.IsEmpty ? imageSize : paddedSize, swizzle));
 
             foreach (var (color, point) in colorPoints)
             {
@@ -84,9 +88,13 @@ namespace Kanvas
             var points = GetPointSequence(imageSize, swizzle)
                 .Clamp(Point.Empty, new Point(image.Width - 1, image.Height));
 
+            var bitmapPointCount = bitmapData.Width * bitmapData.Height;
             foreach (var point in points)
             {
                 var index = point.Y * image.Width + point.X;
+                if (index >= bitmapPointCount)
+                    throw new InvalidOperationException($"Tried to read a point outside the image. Point={point}");
+
                 yield return GetColor(bitmapData, index);
             }
 

@@ -14,6 +14,8 @@ namespace Kanvas.Configuration
     {
         private readonly int _taskCount;
 
+        private CreatePaddedSize _paddedSize;
+
         private CreatePixelRemapper _swizzle;
 
         private CreateColorIndexEncoding _indexEncoding;
@@ -22,12 +24,15 @@ namespace Kanvas.Configuration
 
         private CreateColorEncoding _colorEncoding;
 
-        public Transcoder(CreateColorIndexEncoding indexEncoding, CreatePaletteEncoding paletteEncoding,
+        public Transcoder(CreatePaddedSize paddedSizeFunc,
+            CreateColorIndexEncoding indexEncoding, CreatePaletteEncoding paletteEncoding,
             CreatePixelRemapper swizzle, IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
             ContractAssertions.IsNotNull(paletteEncoding, nameof(paletteEncoding));
             ContractAssertions.IsNotNull(quantizer, nameof(quantizer));
+
+            _paddedSize = paddedSizeFunc;
 
             _indexEncoding = indexEncoding;
             _paletteEncoding = paletteEncoding;
@@ -37,10 +42,13 @@ namespace Kanvas.Configuration
             _taskCount = taskCount;
         }
 
-        public Transcoder(CreateColorEncoding colorEncoding, CreatePixelRemapper swizzle,
+        public Transcoder(CreatePaddedSize paddedSizeFunc,
+            CreateColorEncoding colorEncoding, CreatePixelRemapper swizzle,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
+
+            _paddedSize = paddedSizeFunc;
 
             _colorEncoding = colorEncoding;
             _swizzle = swizzle;
@@ -52,41 +60,26 @@ namespace Kanvas.Configuration
         #region Decode interface methods
 
         public Image Decode(byte[] data, Size imageSize, IProgressContext progress = null) =>
-            Decode(data, imageSize, Size.Empty, progress);
-
-        public Image Decode(byte[] data, Size imageSize, Size paddedSize, IProgressContext progress = null) =>
-            DecodeInternal(data, imageSize, paddedSize, progress);
+            DecodeInternal(data, imageSize, progress);
 
         public Image Decode(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress = null) =>
-            Decode(data, paletteData, imageSize, Size.Empty, progress);
-
-        public Image Decode(byte[] data, byte[] paletteData, Size imageSize, Size paddedSize,
-            IProgressContext progress = null) =>
-            DecodeIndexInternal(data, paletteData, imageSize, paddedSize, progress);
+            DecodeIndexInternal(data, paletteData, imageSize, progress);
 
         #endregion
 
         #region Encode interface methods
 
         byte[] IColorTranscoder.Encode(Bitmap image, IProgressContext progress = null) =>
-            EncodeInternal(image, Size.Empty, progress);
-
-        byte[] IColorTranscoder.Encode(Bitmap image, Size paddedSize, IProgressContext progress = null) =>
-            EncodeInternal(image, paddedSize, progress);
+            EncodeInternal(image, progress);
 
         (byte[] indexData, byte[] paletteData) IIndexTranscoder.Encode(Bitmap image, IProgressContext progress = null) =>
-            EncodeIndexInternal(image, Size.Empty, progress);
-
-        // ReSharper disable PossibleMultipleEnumeration
-        (byte[] indexData, byte[] paletteData) IIndexTranscoder.Encode(Bitmap image, Size paddedSize, IProgressContext progress = null) =>
-            EncodeIndexInternal(image, paddedSize, progress);
+            EncodeIndexInternal(image, progress);
 
         #endregion
 
-        private Image DecodeInternal(byte[] data, Size imageSize, Size paddedSize,
-            IProgressContext progress = null)
+        private Image DecodeInternal(byte[] data, Size imageSize, IProgressContext progress = null)
         {
-            var size = paddedSize.IsEmpty ? imageSize : paddedSize;
+            var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
 
             var colorEncoding = _colorEncoding(imageSize);
 
@@ -99,16 +92,16 @@ namespace Kanvas.Configuration
                 .Load(data, _taskCount)
                 .AttachProgress(setMaxProgress, "Decode colors");
 
-            // Create image
-            return colors.ToBitmap(size, _swizzle?.Invoke(size));
+            // Create image with unpadded dimensions
+            return colors.ToBitmap(imageSize, paddedSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
         }
 
-        private Image DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize, Size paddedSize,
+        private Image DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize,
             IProgressContext progress = null)
         {
             var progresses = progress.SplitIntoEvenScopes(2);
 
-            var size = paddedSize.IsEmpty ? imageSize : paddedSize;
+            var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
 
             var paletteEncoding = _paletteEncoding();
             var indexEncoding = _indexEncoding(imageSize);
@@ -131,12 +124,13 @@ namespace Kanvas.Configuration
                 .Load(data, palette, _taskCount)
                 .AttachProgress(setMaxProgress, "Decode colors");
 
-            return colors.ToBitmap(size, _swizzle?.Invoke(size));
+            return colors.ToBitmap(imageSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
         }
 
-        private byte[] EncodeInternal(Bitmap image, Size paddedSize, IProgressContext progress = null)
+        private byte[] EncodeInternal(Bitmap image, IProgressContext progress = null)
         {
-            var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
+            var paddedSize = _paddedSize?.Invoke(image.Size) ?? Size.Empty;
+            var size = paddedSize.IsEmpty ? image.Size : paddedSize;
 
             // If we have quantization enabled
             IEnumerable<Color> colors;
@@ -154,15 +148,17 @@ namespace Kanvas.Configuration
             {
                 // Decompose image to colors
                 var setMaxProgress = progress?.SetMaxValue(image.Width * image.Height);
-                colors = image.ToColors(paddedSize, _swizzle?.Invoke(imageSize)).AttachProgress(setMaxProgress, "Encode colors");
+                colors = image.ToColors(paddedSize, _swizzle?.Invoke(size)).AttachProgress(setMaxProgress, "Encode colors");
             }
 
             // Save color data
-            return _colorEncoding(imageSize).Save(colors, _taskCount);
+            return _colorEncoding(image.Size).Save(colors, _taskCount);
         }
 
-        private (byte[] indexData, byte[] paletteData) EncodeIndexInternal(Bitmap image, Size paddedSize, IProgressContext progress = null)
+        private (byte[] indexData, byte[] paletteData) EncodeIndexInternal(Bitmap image, IProgressContext progress = null)
         {
+            var paddedSize = _paddedSize?.Invoke(image.Size) ?? Size.Empty;
+
             var (indices, palette) = QuantizeImage(image, paddedSize, progress);
 
             // Save palette indexColors

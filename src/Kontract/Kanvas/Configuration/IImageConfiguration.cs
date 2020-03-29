@@ -3,6 +3,7 @@ using System.Drawing;
 
 namespace Kontract.Kanvas.Configuration
 {
+    public delegate Size CreatePaddedSize(Size imageSize);
     public delegate IImageSwizzle CreatePixelRemapper(Size imageSize);
     public delegate IColorEncoding CreateColorEncoding(Size imageSize);
     public delegate IColorIndexEncoding CreateColorIndexEncoding(Size imageSize);
@@ -11,9 +12,11 @@ namespace Kontract.Kanvas.Configuration
     {
         IImageConfiguration WithTaskCount(int taskCount);
 
+        IImageConfiguration PadSizeWith(CreatePaddedSize func);
+
         IImageConfiguration RemapPixelsWith(CreatePixelRemapper func);
 
-        IImageConfiguration QuantizeWith(Action<IQuantizationOptions> configure);
+        IImageConfiguration ConfigureQuantization(Action<IQuantizationOptions> configure);
 
         IImageConfiguration WithoutQuantization();
 

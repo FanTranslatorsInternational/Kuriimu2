@@ -30,6 +30,11 @@ namespace Kontract.Kanvas
         string FormatName { get; }
 
         /// <summary>
+        /// The maximum number of colors possible with the index depth given.
+        /// </summary>
+        int MaxColors { get; }
+
+        /// <summary>
         /// Decodes image data to a list of colors.
         /// </summary>
         /// <param name="input">Image data to decode.</param>

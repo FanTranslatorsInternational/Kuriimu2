@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Kontract;
 using Kontract.Kanvas.Configuration;
 using Kontract.Kanvas.Quantization;
@@ -9,12 +10,13 @@ namespace Kanvas.Configuration
     {
         private int _taskCount = Environment.ProcessorCount;
 
-        private Action<IQuantizationOptions> _configureAction;
+        private List<Action<IQuantizationOptions>> _configureActions = new List<Action<IQuantizationOptions>>();
 
-        public IQuantizationConfiguration WithOptions(Action<IQuantizationOptions> configure)
+        public IQuantizationConfiguration ConfigureOptions(Action<IQuantizationOptions> configure)
         {
             ContractAssertions.IsNotNull(configure, nameof(configure));
-            _configureAction = configure;
+
+            _configureActions.Add(configure);
 
             return this;
         }
@@ -29,10 +31,23 @@ namespace Kanvas.Configuration
             return this;
         }
 
+        public IQuantizationConfiguration Clone()
+        {
+            var configuration=new QuantizationConfiguration();
+
+            foreach (var configureAction in _configureActions)
+                configuration.ConfigureOptions(configureAction);
+
+            configuration.WithTaskCount(_taskCount);
+
+            return configuration;
+        }
+
         public IQuantizer Build()
         {
             var options = new QuantizationOptions();
-            _configureAction?.Invoke(options);
+            foreach (var configureAction in _configureActions)
+                configureAction(options);
 
             options.WithTaskCount(_taskCount);
 

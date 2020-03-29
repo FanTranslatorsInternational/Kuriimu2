@@ -11,6 +11,8 @@ namespace Kanvas.Configuration
     {
         private int _taskCount = Environment.ProcessorCount;
 
+        private CreatePaddedSize _paddedSizeFunc;
+
         private CreateColorEncoding _colorFunc;
 
         private CreateColorIndexEncoding _indexFunc;
@@ -18,12 +20,20 @@ namespace Kanvas.Configuration
 
         private CreatePixelRemapper _swizzleFunc;
 
-        private Action<IQuantizationOptions> _quantizationAction;
+        private IQuantizationConfiguration _quantizationConfiguration;
 
         public IImageConfiguration WithTaskCount(int taskCount)
         {
             _taskCount = taskCount;
 
+            return this;
+        }
+
+        public IImageConfiguration PadSizeWith(CreatePaddedSize func)
+        {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
+            _paddedSizeFunc = func;
             return this;
         }
 
@@ -65,39 +75,44 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IImageConfiguration QuantizeWith(Action<IQuantizationOptions> configure)
+        public IImageConfiguration ConfigureQuantization(Action<IQuantizationOptions> configure)
         {
             ContractAssertions.IsNotNull(configure, nameof(configure));
 
-            _quantizationAction = configure;
+            if (_quantizationConfiguration == null)
+                _quantizationConfiguration = new QuantizationConfiguration();
+
+            _quantizationConfiguration.ConfigureOptions(configure);
 
             return this;
         }
 
         public IImageConfiguration WithoutQuantization()
         {
-            _quantizationAction = null;
+            _quantizationConfiguration = null;
 
             return this;
         }
 
         public IImageConfiguration Clone()
         {
-            var config=new ImageConfiguration();
+            var config = new ImageConfiguration();
 
             if (_taskCount != Environment.ProcessorCount)
                 config.WithTaskCount(_taskCount);
+            if (_paddedSizeFunc != null)
+                config.PadSizeWith(_paddedSizeFunc);
             if (_swizzleFunc != null)
                 config.RemapPixelsWith(_swizzleFunc);
-            if (_quantizationAction != null)
-                config.QuantizeWith(_quantizationAction);
+            if (_quantizationConfiguration != null)
+                config.SetQuantizationConfiguration(_quantizationConfiguration);
 
             if (_colorFunc != null)
                 return config.TranscodeWith(_colorFunc);
 
             if (_indexFunc != null)
             {
-                var indexConfig=config.TranscodeWith(_indexFunc);
+                var indexConfig = config.TranscodeWith(_indexFunc);
                 if (_paletteFunc != null)
                     return indexConfig.TranscodePaletteWith(_paletteFunc);
             }
@@ -112,7 +127,7 @@ namespace Kanvas.Configuration
 
             var quantizer = BuildQuantizer();
 
-            return new Transcoder(_indexFunc, _paletteFunc, _swizzleFunc, quantizer, _taskCount);
+            return new Transcoder(_paddedSizeFunc, _indexFunc, _paletteFunc, _swizzleFunc, quantizer, _taskCount);
         }
 
         IColorTranscoder IColorConfiguration.Build()
@@ -121,20 +136,22 @@ namespace Kanvas.Configuration
 
             // Quantization for normal images is optional
             // If no quantization configuration was done beforehand we assume no quantization to be used here
-            var quantizer = _quantizationAction == null ? null : BuildQuantizer();
+            var quantizer = _quantizationConfiguration != null ? BuildQuantizer() : null;
 
-            return new Transcoder(_colorFunc, _swizzleFunc, quantizer, _taskCount);
+            return new Transcoder(_paddedSizeFunc, _colorFunc, _swizzleFunc, quantizer, _taskCount);
         }
 
         IQuantizer BuildQuantizer()
         {
-            var quantizationConfiguration = new QuantizationConfiguration();
-            if (_quantizationAction != null)
-                quantizationConfiguration.WithOptions(_quantizationAction);
+            var configuration = _quantizationConfiguration ?? new QuantizationConfiguration();
 
-            quantizationConfiguration.WithTaskCount(_taskCount);
+            configuration.WithTaskCount(_taskCount);
+            return configuration.Build();
+        }
 
-            return quantizationConfiguration.Build();
+        private void SetQuantizationConfiguration(IQuantizationConfiguration quantizationConfiguration)
+        {
+            _quantizationConfiguration = quantizationConfiguration.Clone();
         }
     }
 }

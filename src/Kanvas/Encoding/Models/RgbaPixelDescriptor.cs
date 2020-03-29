@@ -105,8 +105,8 @@ namespace Kanvas.Encoding.Models
         {
             ContractAssertions.IsInRange(bitDepth, "bitDepth", 4, 32);
 
-            if (bitDepth != 4 && bitDepth % 8 > 0)
-                throw new InvalidOperationException("Bit depth has to be 4 or dividable by 8.");
+            //if (bitDepth != 4 && bitDepth % 8 > 0)
+            //    throw new InvalidOperationException("Bit depth has to be 4 or dividable by 8.");
         }
 
         private void SetupLookupTables(string componentOrder, int r, int g, int b, int a)
