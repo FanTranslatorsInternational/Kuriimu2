@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -7,10 +8,12 @@ using Kontract.Models.Archive;
 namespace plugin_koei_tecmo.Archives
 {
     // TODO: Test plugin
-    // TODO: Add save
     // Game: Yo-Kai Watch: Sangoukushi
     class X3
     {
+        private static int _headerSize = Tools.MeasureType(typeof(X3Header));
+        private static int _entrySize = Tools.MeasureType(typeof(X3FileEntry));
+
         private X3Header _header;
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
@@ -28,43 +31,83 @@ namespace plugin_koei_tecmo.Archives
             var result = new List<ArchiveFileInfo>();
             foreach (var entry in entries)
             {
-                var fileOffset = entry.offset * _header.fileAlignment + (entry.IsCompressed ? 0x8 : 0);
+                var fileOffset = entry.offset * _header.offsetMultiplier;
                 br.BaseStream.Position = fileOffset;
 
+                var firstBlockLength = -1;
                 Stream firstBlock;
                 if (entry.IsCompressed)
                 {
-                    br.BaseStream.Position -= 4;
-                    var firstBlockLength = br.ReadInt32();
+                    // Compressed files have decompressed size and size of the first "block" prefixed
+                    br.BaseStream.Position += 4;
+                    firstBlockLength = br.ReadInt32();
                     firstBlock = PeekFirstCompressedBlock(input, input.Position, firstBlockLength);
                 }
                 else
+                {
+                    // Uncompressed files have only uncompressed size prefixed
                     firstBlock = new SubStream(input, br.BaseStream.Position, 4);
+                }
 
-                using var fileBr = new BinaryReaderX(firstBlock);
-                var magic = fileBr.ReadString(4);
-                var extension = ".bin";
+                var extension = DetermineExtension(firstBlock);
 
-                if (magic == "GT1G")
-                    extension = ".3ds.g1t";
-                else if (magic == "SMDH")
-                    extension = ".icn";
-
-                var fileStream = new SubStream(br.BaseStream, fileOffset, entry.compressedSize);
+                var fileStream = new SubStream(br.BaseStream, fileOffset + (entry.IsCompressed ? 8 : 0), entry.fileSize);
                 var fileName = result.Count.ToString("00000000") + extension;
+
                 if (entry.IsCompressed)
-                    result.Add(new ArchiveFileInfo(fileStream, fileName,
-                        Kompression.Implementations.Compressions.ZLib, entry.decompressedSize));
+                    result.Add(new X3ArchiveFileInfo(fileStream, fileName,
+                        Kompression.Implementations.Compressions.ZLib, entry.decompressedFileSize,
+                        entry, firstBlockLength));
                 else
-                    result.Add(new ArchiveFileInfo(fileStream, fileName));
+                    result.Add(new X3ArchiveFileInfo(fileStream, fileName,
+                        entry, firstBlockLength));
             }
 
             return result;
         }
 
+        // TODO: Set firstBlockLength again (need to understand enough ZLib for that)
         public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
         {
+            using var bw = new BinaryWriterX(output);
+            var castedFiles = files.Cast<X3ArchiveFileInfo>().ToArray();
 
+            var header = new X3Header
+            {
+                fileCount = files.Count
+            };
+
+            // Write files
+            bw.BaseStream.Position = (_headerSize + 4 + files.Count * _entrySize + header.offsetMultiplier - 1) & ~(header.offsetMultiplier - 1);
+
+            foreach (var file in castedFiles)
+            {
+                var fileOffset = bw.BaseStream.Position;
+
+                if (file.Entry.IsCompressed)
+                {
+                    // Write prefix information when compressed
+                    bw.Write((uint)file.FileSize);
+                    bw.Write(file.FirstBlockSize);
+                }
+
+                var writtenSize = file.SaveFileData(bw.BaseStream, null);
+                bw.WriteAlignment(header.offsetMultiplier);
+
+                file.Entry.offset = fileOffset / header.offsetMultiplier;
+                file.Entry.fileSize = (int)writtenSize;
+                if (file.Entry.IsCompressed)
+                    file.Entry.decompressedFileSize = (int)file.FileSize;
+            }
+
+            // Write file entries
+            bw.BaseStream.Position = _headerSize + 4;
+            foreach(var file in castedFiles)
+                bw.WriteType(file.Entry);
+
+            // Write header
+            bw.BaseStream.Position = 0;
+            bw.WriteType(header);
         }
 
         private Stream PeekFirstCompressedBlock(Stream input, long offset, long firstBlockSize)
@@ -76,6 +119,23 @@ namespace plugin_koei_tecmo.Archives
 
             ms.Position = 0;
             return ms;
+        }
+
+        private string DetermineExtension(Stream input)
+        {
+            using var br = new BinaryReaderX(input, true);
+
+            switch (br.ReadString(4))
+            {
+                case "GT1G":
+                    return ".3ds.gt1";
+
+                case "SMDH":
+                    return ".icn";
+
+                default:
+                    return ".bin";
+            }
         }
     }
 }

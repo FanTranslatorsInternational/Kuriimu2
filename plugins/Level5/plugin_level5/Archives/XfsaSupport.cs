@@ -26,28 +26,28 @@ namespace plugin_level5.Archives
     class XfsaFileEntry
     {
         public uint crc32;  // filename.ToLower()
-        public int tmp1;  //offset combined with an unknown value, offset is last 24 bits with 4bit left-shift
-        public int tmp2;   //size combined with an unknown value, size is last 20 bits
+        public uint tmp1;  //offset combined with an unknown value, offset is last 24 bits with 4bit left-shift
+        public uint tmp2;   //size combined with an unknown value, size is last 20 bits
 
-        public int FileOffset
+        public long FileOffset
         {
-            get => tmp1 & 0x03FFFFFF;
-            set => tmp1 = (tmp1 & ~0x03FFFFFF) | (value & 0x03FFFFFF);
+            get => (tmp1 & 0x03FFFFFF) << 4;
+            set => tmp1 = (uint)((tmp1 & ~0x03FFFFFF) | ((value >> 4) & 0x03FFFFFF));
         }
 
-        public int FileSize
+        public long FileSize
         {
-            get => tmp2 & 0x007FFFF;
-            set => tmp2 = (tmp2 & ~0x007FFFFF) | (value & 0x007FFFFF);
+            get => tmp2 & 0x007FFFFF;
+            set => tmp2 = (uint)((tmp2 & ~0x007FFFFF) | (value & 0x007FFFFF));
         }
 
-        public int NameOffset
+        public long NameOffset
         {
             get => (tmp1 >> 26 << 9) | (tmp2 >> 23);
             set
             {
-                tmp1 = (tmp1 & ~0x03FFFFFF) | (value >> 9 << 26);
-                tmp2 = (tmp2 & ~0x007FFFFF) | (value << 23);
+                tmp1 = (uint)((tmp1 & ~0x03FFFFFF) | (value >> 9 << 26));
+                tmp2 = (uint)((tmp2 & ~0x007FFFFF) | (value << 23));
             }
         }
     }
@@ -55,33 +55,33 @@ namespace plugin_level5.Archives
     class XfsaDirectoryEntry
     {
         public uint crc32;  // directoryName.ToLower()
-        public int tmp1;
+        public uint tmp1;
         public short firstFileIndex;
         public short firstDirectoryIndex;
-        public int tmp2;
+        public uint tmp2;
 
-        public int FileNameStartOffset
+        public long FileNameStartOffset
         {
             get => tmp1 >> 14;
-            set => tmp1 = (tmp1 & 0x3FFF) | (value << 14);
+            set => tmp1 = (uint)((tmp1 & 0x3FFF) | (value << 14));
         }
 
-        public int DirectoryNameOffset
+        public long DirectoryNameOffset
         {
             get => tmp2 >> 14;
-            set => tmp2 = (tmp2 & 0x3FFF) | (value << 14);
+            set => tmp2 = (uint)((tmp2 & 0x3FFF) | (value << 14));
         }
 
         public int FileCount
         {
-            get => tmp1 & 0x3FFF;
-            set => tmp1 = (tmp1 & ~0x3FFF) | (value & 0x3FFF);
+            get => (int)(tmp1 & 0x3FFF);
+            set => tmp1 = (uint)((tmp1 & ~0x3FFF) | (value & 0x3FFF));
         }
 
         public int DirectoryCount
         {
-            get => tmp2 & 0x3FFF;
-            set => tmp2 = (tmp2 & ~0x3FFF) | (value & 0x3FFF);
+            get => (int)(tmp2 & 0x3FFF);
+            set => tmp2 = (uint)((tmp2 & ~0x3FFF) | (value & 0x3FFF));
         }
     }
 
@@ -97,10 +97,10 @@ namespace plugin_level5.Archives
 
         public override long SaveFileData(Stream output, IProgressContext progress)
         {
-            var writtenSize = base.SaveFileData(output,progress);
+            var writtenSize = base.SaveFileData(output, progress);
 
             output.Position = output.Length;
-            while (output.Position % 4 != 0)
+            while (output.Position % 16 != 0)
                 output.WriteByte(0);
 
             return writtenSize;

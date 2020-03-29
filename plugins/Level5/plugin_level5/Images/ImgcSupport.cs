@@ -71,7 +71,6 @@ namespace plugin_level5.Images
             [14] = new Rgba(8, 8, 0),
             [15] = new La(0, 8),
             [26] = new La(4, 0),
-            //[27] = new LA(0, 4),
             [27] = new Etc1(false, true),
             [28] = new Etc1(false, true),
             [29] = new Etc1(true, true)

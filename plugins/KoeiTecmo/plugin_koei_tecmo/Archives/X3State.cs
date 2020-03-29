@@ -11,7 +11,7 @@ using Kontract.Models.IO;
 
 namespace plugin_koei_tecmo.Archives
 {
-    class X3State : IArchiveState, ILoadFiles, IReplaceFiles
+    class X3State : IArchiveState, ILoadFiles
     {
         private readonly X3 _x3;
 

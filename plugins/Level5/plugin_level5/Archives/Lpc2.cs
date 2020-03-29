@@ -16,7 +16,7 @@ namespace plugin_level5.Archives
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
         {
-            using var br = new BinaryReaderX(input);
+            using var br = new BinaryReaderX(input, true);
 
             // Read header
             var header = br.ReadType<Lpc2Header>();
@@ -33,7 +33,10 @@ namespace plugin_level5.Archives
                 var name = br.ReadCStringASCII();
 
                 var fileStream = new SubStream(input, header.dataOffset + entry.fileOffset, entry.fileSize);
-                result.Add(new ArchiveFileInfo(fileStream, name));
+                result.Add(new ArchiveFileInfo(fileStream, name)
+                {
+                    PluginIds = Lpc2Support.RetrievePluginMapping(name)
+                });
             }
 
             return result;

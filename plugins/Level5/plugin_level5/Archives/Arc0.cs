@@ -209,13 +209,13 @@ namespace plugin_level5.Archives
                     nameBw.WriteString(fileEntry.FilePath.GetName(), sjis, false);
                 }
 
-                // Add file entries in order of ascending crc32
+                // Add file entries in order of ascending hash
                 fileInfos.AddRange(fileGroupEntries.OrderBy(x => x.Entry.crc32));
             }
 
             fileEntries = fileInfos;
 
-            // Order directory entries by crc32 and set directoryIndex accordingly
+            // Order directory entries by hash and set directoryIndex accordingly
             var directoryIndex = 0;
             directoryEntries = directoryEntries.OrderBy(x => x.crc32).Select(x =>
             {

@@ -1,5 +1,6 @@
 ﻿using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ using plugin_level5.Compression;
 namespace plugin_level5.Archives
 {
     // TODO: Test plugin
-    // Game: ???
+    // Game: PWvPL
     class Xfsa
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(XfsaHeader));
@@ -62,6 +63,9 @@ namespace plugin_level5.Archives
                     var fileName = names.ReadCStringSJIS();
                     names.BaseStream.Position = directory.DirectoryNameOffset;
                     var directoryName = names.ReadCStringSJIS();
+
+                    if(fileName=="0a.xc")
+                        Debugger.Break();
 
                     // TODO: Add plugin ids
                     result.Add(new XfsaArchiveFileInfo(fileStream, directoryName + fileName, file)
@@ -195,18 +199,18 @@ namespace plugin_level5.Archives
                     fileEntry.Entry.FileOffset = fileOffset;
                     fileEntry.Entry.FileSize = (int)fileEntry.FileSize;
 
-                    fileOffset = (int)((fileOffset + fileEntry.FileSize + 3) & ~3);
+                    fileOffset = (int)((fileOffset + fileEntry.FileSize + 15) & ~15);
 
                     nameBw.WriteString(fileEntry.FilePath.GetName(), sjis, false);
                 }
 
-                // Add file entries in order of ascending crc32
+                // Add file entries in order of ascending hash
                 fileInfos.AddRange(fileGroupEntries.OrderBy(x => x.Entry.crc32));
             }
 
             fileEntries = fileInfos;
 
-            // Order directory entries by crc32 and set directoryIndex accordingly
+            // Order directory entries by hash and set directoryIndex accordingly
             var directoryIndex = 0;
             directoryEntries = directoryEntries.OrderBy(x => x.crc32).Select(x =>
             {

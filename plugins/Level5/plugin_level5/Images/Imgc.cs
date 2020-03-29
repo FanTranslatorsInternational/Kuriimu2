@@ -60,6 +60,7 @@ namespace plugin_level5.Images
                 ImageFormat = _header.imageFormat,
                 ImageSize = new Size(_header.width, _header.height),
                 Configuration = new ImageConfiguration()
+                    .PadSizeWith(size => new Size((size.Width + 7) & ~7, (size.Height + 7) & ~7))
                     .RemapPixelsWith(size => new ImgcSwizzle(size.Width, size.Height))
             };
         }

@@ -8,7 +8,7 @@ namespace plugin_level5.Archives
 {
     class XpckHeader
     {
-        [FixedLength(4)] 
+        [FixedLength(4)]
         public string magic = "XPCK";
 
         public byte fc1;
@@ -63,14 +63,14 @@ namespace plugin_level5.Archives
 
         public uint DataSize
         {
-            get => (ushort)(dataSizeUnshifted << 2);
-            set => dataSizeUnshifted = (ushort)(value >> 2);
+            get => dataSizeUnshifted << 2;
+            set => dataSizeUnshifted = value >> 2;
         }
     }
 
     class XpckFileInfo
     {
-        public uint crc32;
+        public uint hash;
         public ushort nameOffset;
 
         public ushort tmp;
