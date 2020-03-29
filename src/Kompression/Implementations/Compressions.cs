@@ -436,6 +436,6 @@ namespace Kompression.Implementations
         public static IKompressionConfiguration ZLib =>
             NewKompressionConfiguration
                 .DecodeWith(() => new ZLibDecoder())
-                .EncodeWith((parser, builder) => new ZlibEncoder(CompressionLevel.Optimal));
+                .EncodeWith((parser, builder) => new ZlibEncoder());
     }
 }

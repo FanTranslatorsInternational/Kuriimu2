@@ -9,7 +9,7 @@ namespace Kompression.Implementations.Decoders
     {
         public void Decode(Stream input, Stream output)
         {
-            var zlib = new InflaterInputStream(input);
+            using var zlib = new InflaterInputStream(input) { IsStreamOwner = false };
             zlib.CopyTo(output);
         }
 

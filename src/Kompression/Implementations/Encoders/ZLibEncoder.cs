@@ -1,21 +1,14 @@
 ﻿using System.IO;
-using System.IO.Compression;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Encoders
 {
     public class ZlibEncoder : IEncoder
     {
-        private readonly CompressionLevel _compressionLevel;
-
-        public ZlibEncoder(CompressionLevel compressionLevel)
-        {
-            _compressionLevel = compressionLevel;
-        }
-
         public void Encode(Stream input, Stream output)
         {
-            using var zlib = new DeflateStream(output, _compressionLevel, true);
+            using var zlib = new DeflaterOutputStream(output) { IsStreamOwner = false };
             input.CopyTo(zlib);
         }
 
