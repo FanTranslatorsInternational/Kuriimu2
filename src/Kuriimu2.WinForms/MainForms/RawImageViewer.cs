@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Kanvas.Encoding;
 using Kanvas.Encoding.BlockCompressions.ATC.Models;
 using Kanvas.Encoding.BlockCompressions.BCn.Models;
+using Kanvas.Swizzle;
 using Kontract.Attributes.Intermediate;
 using Kontract.Interfaces.Plugins.State.Intermediate;
 using Kontract.Kanvas;
@@ -22,8 +23,6 @@ namespace Kuriimu2.WinForms.MainForms
     public partial class RawImageViewer : Form
     {
         private ByteOrder _byteOrder = ByteOrder.LittleEndian;
-
-        private readonly IInternalPluginManager manager;
 
         private bool _fileLoaded;
         private Stream _openedFile;
@@ -56,17 +55,17 @@ namespace Kuriimu2.WinForms.MainForms
             }
         }
 
-        public RawImageViewer(PluginManager manager)
+        public RawImageViewer()
         {
             InitializeComponent();
 
-            this.manager = manager;
             _pnlEncodingProperties = splExtendedProperties.Panel1;
             _pnlSwizzleProperties = splExtendedProperties.Panel2;
 
             cbEncoding.SelectedIndexChanged -= CbEncoding_SelectedIndexChanged;
             cbSwizzle.SelectedIndexChanged -= CbSwizzle_SelectedIndexChanged;
-            LoadComboBoxes();
+            LoadEncodings(cbEncoding);
+            LoadSwizzles(cbSwizzle);
             cbEncoding.SelectedIndexChanged += CbEncoding_SelectedIndexChanged;
             cbSwizzle.SelectedIndexChanged += CbSwizzle_SelectedIndexChanged;
 
@@ -74,40 +73,34 @@ namespace Kuriimu2.WinForms.MainForms
             UpdateExtendedProperties();
         }
 
-        private void LoadComboBoxes()
+        private void LoadEncodings(ComboBox cb)
         {
-            LoadEncodings();
-            LoadSwizzles();
-        }
-
-        private void LoadEncodings()
-        {
-            var selectedIndex = cbEncoding.SelectedIndex;
-            cbEncoding.Items.Clear();
+            var selectedIndex = cb.SelectedIndex;
+            cb.Items.Clear();
 
             // Populate encoding dropdown
             foreach (var (encodingAction, name) in GetEncodings())
-                cbEncoding.Items.Add(new ComboBoxElement(encodingAction, name));
+                cb.Items.Add(new ComboBoxElement(encodingAction, name));
 
-            if (selectedIndex < cbEncoding.Items.Count)
-                cbEncoding.SelectedIndex = selectedIndex;
+            if (selectedIndex < cb.Items.Count)
+                cb.SelectedIndex = selectedIndex;
 
             _selectedEncodingIndex = selectedIndex;
         }
 
-        private void LoadSwizzles()
+        private void LoadSwizzles(ComboBox cb)
         {
-            var selectedIndex = cbSwizzle.SelectedIndex;
-            cbSwizzle.Items.Clear();
+            var selectedIndex = cb.SelectedIndex;
+            cb.Items.Clear();
 
             // Populate swizzle dropdown
             foreach (var (swizzleAction, name) in GetSwizzles())
-                cbSwizzle.Items.Add(new ComboBoxElement(swizzleAction, name));
+                cb.Items.Add(new ComboBoxElement(swizzleAction, name));
 
-            foreach (var adapter in manager.GetAdapters<IImageSwizzleAdapter>().Where(x => x.Name != "Custom"))
-                cbSwizzle.Items.Add(new SwizzleWrapper(adapter));
-            if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
-                cbSwizzle.SelectedIndex = _selectedSwizzleIndex;
+            if (selectedIndex < cb.Items.Count)
+                cb.SelectedIndex = selectedIndex;
+
+            _selectedSwizzleIndex = selectedIndex;
         }
 
         private IEnumerable<(Func<ByteOrder, IEncodingInfo>, string)> GetEncodings()
@@ -168,7 +161,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             var swizzles = new List<(Func<Size, IImageSwizzle>, string)>
             {
-
+                (size=>new NitroSwizzle(size.Width,size.Height),"Nitro")
             };
 
             foreach (var swizzle in swizzles)
@@ -179,6 +172,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             _selectedEncodingIndex = cbEncoding.SelectedIndex;
             SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
+
             UpdateEncodingProperties();
         }
 
@@ -186,6 +180,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             _selectedSwizzleIndex = cbSwizzle.SelectedIndex;
             SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
+
             UpdateSwizzleProperty();
         }
 
