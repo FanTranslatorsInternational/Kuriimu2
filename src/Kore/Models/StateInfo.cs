@@ -35,8 +35,6 @@ namespace Kore.Models
         public IStateInfo ParentStateInfo { get; set; }
 
         /// <inheritdoc />
-        public UPath SubPath { get; set; }
-
         public bool StateChanged => IsStateChanged();
 
         /// <summary>
@@ -47,8 +45,8 @@ namespace Kore.Models
         /// <param name="filePath">The path of the file to be opened.</param>
         /// <param name="streamManager">The stream manager used for this opened state.</param>
         /// <param name="parentStateInfo">The parent state info from which this file got opened.</param>
-        /// <param name="subPath">The sub directory in relation to the parent file system.</param>
-        public StateInfo(IPluginState pluginState, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager, IStateInfo parentStateInfo = null, UPath? subPath = null)
+        public StateInfo(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
+            IStreamManager streamManager, IStateInfo parentStateInfo = null)
         {
             ContractAssertions.IsNotNull(pluginState, nameof(pluginState));
             ContractAssertions.IsNotNull(fileSystem, nameof(fileSystem));
@@ -65,17 +63,18 @@ namespace Kore.Models
             StreamManager = streamManager;
 
             ParentStateInfo = parentStateInfo;
-            SubPath = subPath ?? UPath.Empty;
 
             ArchiveChildren = new List<IStateInfo>();
         }
 
+        /// <inheritdoc />
         public void SetNewFileInput(IFileSystem fileSystem, UPath filePath)
         {
             FileSystem = fileSystem;
             FilePath = filePath;
         }
 
+        /// <inheritdoc />
         public virtual void Dispose()
         {
             ArchiveChildren?.Clear();
@@ -87,7 +86,6 @@ namespace Kore.Models
             StreamManager = null;
 
             ParentStateInfo = null;
-            SubPath = UPath.Empty;
         }
 
         private bool IsStateChanged()
@@ -100,15 +98,14 @@ namespace Kore.Models
 
         private UPath BuildAbsoluteDirectory()
         {
-            if (ParentStateInfo != null)
-            {
-                var parentDirectory = ParentStateInfo.AbsoluteDirectory / ParentStateInfo.FilePath;
-                var innerDirectory = ((UPath)FileSystem.ConvertPathToInternal(UPath.Root)).ToRelative();
+            if (ParentStateInfo == null)
+                return FileSystem.ConvertPathToInternal(UPath.Root);
 
-                return parentDirectory / innerDirectory;
-            }
+            var parentDirectory = ParentStateInfo.AbsoluteDirectory / ParentStateInfo.FilePath;
+            var innerDirectory = ((UPath)FileSystem.ConvertPathToInternal(UPath.Root)).ToRelative();
 
-            return FileSystem.ConvertPathToInternal(UPath.Root);
+            return parentDirectory / innerDirectory;
+
         }
     }
 }

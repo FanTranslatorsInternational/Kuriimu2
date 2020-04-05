@@ -187,7 +187,6 @@ namespace Kuriimu2.WinForms.MainForms
             this.imageTranscoderToolStripMenuItem.Name = "imageTranscoderToolStripMenuItem";
             this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(112, 20);
             this.imageTranscoderToolStripMenuItem.Text = "Image Transcoder";
-            this.imageTranscoderToolStripMenuItem.Click += new System.EventHandler(this._imgTransToolStrip_Click);
             // 
             // openFiles
             // 

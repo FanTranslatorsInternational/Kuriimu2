@@ -13,6 +13,16 @@ namespace Kontract.Interfaces.Managers
     public interface IPluginManager
     {
         /// <summary>
+        /// An event to allow for manual selection by the user.
+        /// </summary>
+        event EventHandler<ManualSelectionEventArgs> OnManualSelection;
+
+        /// <summary>
+        /// Declares if manual plugin selection on Load is allowed.
+        /// </summary>
+        bool AllowManualSelection { get; set; }
+
+        /// <summary>
         /// Loads a file from a given file system.
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>

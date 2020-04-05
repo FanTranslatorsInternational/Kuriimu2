@@ -62,7 +62,7 @@ namespace Kuriimu2.WinForms.MainForms
             _decryptForm = new DecryptTypeExtensionForm();
             _decompressForm = new DecompressTypeExtensionForm();
             _compressForm = new CompressTypeExtensionForm();
-            _rawImageViewer=new RawImageViewer();
+            _rawImageViewer = new RawImageViewer();
 
             _stateTabDictionary = new Dictionary<IStateInfo, TabPage>();
             _tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
@@ -71,11 +71,14 @@ namespace Kuriimu2.WinForms.MainForms
             _tabColorDictionary = new Dictionary<TabPage, Color>();
 
             _pluginManager = new PluginManager(_progressContext, "plugins");
+            _pluginManager.AllowManualSelection = Settings.Default.AllowManualSelection;
+            _pluginManager.OnManualSelection += PluginManager_OnManualSelection;
+
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
             _timer = new Timer { Interval = 14 };
-            _timer.Tick += _timer_Tick;
+            _timer.Tick += Timer_Tick;
             _globalOperationWatch = new Stopwatch();
 
             Icon = Resources.kuriimu2winforms;
@@ -100,51 +103,12 @@ namespace Kuriimu2.WinForms.MainForms
             MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void _timer_Tick(object sender, EventArgs e)
+        #region Events
+
+        private void Timer_Tick(object sender, EventArgs e)
         {
             operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
         }
-
-        //private void LoadImageViews()
-        //{
-        //    LoadRawImageViewer();
-        //    LoadImageTranscoder();
-        //}
-
-        //private void LoadCiphers()
-        //{
-        //    var ciphers = _pluginManager.GetAdapters<ICipherAdapter>();
-        //    var cipherMenuBuilder = new CipherToolStripMenuBuilder(ciphers, AddCipherDelegates);
-
-        //    cipherMenuBuilder.AddTreeToMenuStrip(ciphersToolStripMenuItem);
-        //    ciphersToolStripMenuItem.Enabled = ciphersToolStripMenuItem.DropDownItems.Count > 0;
-        //}
-
-        //private void LoadCompressions()
-        //{
-        //    var compressions = _pluginManager.GetAdapters<ICompressionAdapter>();
-        //    var compMenuBuilder = new CompressionToolStripMenuBuilder(compressions, AddCompressionDelegates);
-
-        //    compMenuBuilder.AddTreeToMenuStrip(compressionsToolStripMenuItem);
-        //    compressionsToolStripMenuItem.Enabled = compressionsToolStripMenuItem.DropDownItems.Count > 0;
-        //}
-
-        //private void LoadRawImageViewer()
-        //{
-        //    rawImageViewerToolStripMenuItem.Enabled = _pluginManager.GetAdapters<IColorEncodingAdapter>().Any();
-        //}
-
-        //private void LoadImageTranscoder()
-        //{
-        //    imageTranscoderToolStripMenuItem.Enabled = _pluginManager.GetAdapters<IColorEncodingAdapter>().Any();
-        //}
-
-        private void _imgTransToolStrip_Click(object sender, EventArgs e)
-        {
-            //new ImageTranscoder(_pluginManager).ShowDialog();
-        }
-
-        #region Events
 
         private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -156,6 +120,18 @@ namespace Kuriimu2.WinForms.MainForms
                     e.Cancel = true;
                     break;
                 }
+            }
+        }
+
+        private void PluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        {
+            // Display form for manual selection
+            var chooseForm = new ChoosePluginForm(e.FilePlugins);
+            var result = chooseForm.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                e.Result = chooseForm.SelectedFilePlugin;
             }
         }
 
@@ -241,7 +217,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
         {
-            if(!_tabColorDictionary.ContainsKey(openFiles.TabPages[e.Index]))
+            if (!_tabColorDictionary.ContainsKey(openFiles.TabPages[e.Index]))
                 return;
 
             var tabColor = _tabColorDictionary[openFiles.TabPages[e.Index]];
@@ -583,8 +559,8 @@ namespace Kuriimu2.WinForms.MainForms
                     return;
                 }
 
-                var pluginId = pluginChooser.SelectedPluginId;
-                loadResult = await _pluginManager.LoadFile(filePath.FullName, pluginId);
+                var selectedPlugin = pluginChooser.SelectedFilePlugin;
+                loadResult = await _pluginManager.LoadFile(filePath.FullName, selectedPlugin.PluginId);
             }
 
             if (!loadResult.IsSuccessful)

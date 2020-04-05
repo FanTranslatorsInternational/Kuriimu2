@@ -33,6 +33,13 @@ namespace Kore.Managers.Plugins
 
         private readonly IList<IStateInfo> _loadedFiles;
 
+        /// <inheritdoc />
+        public event EventHandler<ManualSelectionEventArgs> OnManualSelection;
+
+        /// <inheritdoc />
+        public bool AllowManualSelection { get; set; } = true;
+
+        /// <inheritdoc />
         public IReadOnlyList<PluginLoadError> LoadErrors { get; }
 
         /// <summary>
@@ -53,28 +60,9 @@ namespace Kore.Managers.Plugins
             _fileLoader = new FileLoader(progress, _filePluginLoaders);
             _fileSaver = new FileSaver(progress);
 
+            _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
+
             _loadedFiles = new List<IStateInfo>();
-        }
-
-        public bool IsLoaded(UPath filePath)
-        {
-            return _loadedFiles.Any(x => x.AbsoluteDirectory / x.FilePath == filePath);
-        }
-
-        public IStateInfo GetLoadedFile(UPath filePath)
-        {
-            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath == filePath);
-        }
-
-        /// <inheritdoc />
-        public IPluginLoader<IFilePlugin>[] GetFilePluginLoaders()
-        {
-            return _filePluginLoaders;
-        }
-
-        public IPluginLoader<IGameAdapter>[] GetGamePluginLoaders()
-        {
-            return _gameAdapterLoaders;
         }
 
         /// <summary>
@@ -92,6 +80,30 @@ namespace Kore.Managers.Plugins
             _fileSaver = fileSaver;
 
             _loadedFiles = new List<IStateInfo>();
+        }
+
+        /// <inheritdoc />
+        public bool IsLoaded(UPath filePath)
+        {
+            return _loadedFiles.Any(x => x.AbsoluteDirectory / x.FilePath == filePath);
+        }
+
+        /// <inheritdoc />
+        public IStateInfo GetLoadedFile(UPath filePath)
+        {
+            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath == filePath);
+        }
+
+        /// <inheritdoc />
+        public IPluginLoader<IFilePlugin>[] GetFilePluginLoaders()
+        {
+            return _filePluginLoaders;
+        }
+
+        /// <inheritdoc />
+        public IPluginLoader<IGameAdapter>[] GetGamePluginLoaders()
+        {
+            return _gameAdapterLoaders;
         }
 
         /// <summary>
@@ -126,7 +138,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PhysicalLoadInfo(file);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
 
             if (!loadResult.IsSuccessful)
                 return loadResult;
@@ -165,7 +177,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new VirtualLoadInfo(stateInfo, archiveState, afi);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -207,7 +219,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PluginLoadInfo(fileSystem, path);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -258,6 +270,11 @@ namespace Kore.Managers.Plugins
 
             // Remove from the file tracking of this instance
             _loadedFiles.Remove(stateInfo);
+        }
+
+        private void FileLoader_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        {
+            OnManualSelection?.Invoke(sender, e);
         }
     }
 }

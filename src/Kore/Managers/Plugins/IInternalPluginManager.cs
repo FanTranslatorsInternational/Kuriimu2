@@ -23,18 +23,6 @@ namespace Kore.Managers.Plugins
         IReadOnlyList<PluginLoadError> LoadErrors { get; }
 
         /// <summary>
-        /// Retrieves all <see cref="IPluginLoader"/>s that can load files.
-        /// </summary>
-        /// <returns></returns>
-        IPluginLoader<IFilePlugin>[] GetFilePluginLoaders();
-
-        /// <summary>
-        /// Retrieves all <see cref="IPluginLoader"/>s that can render game previews.
-        /// </summary>
-        /// <returns></returns>
-        IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
-
-        /// <summary>
         /// Determines if a file is already loaded.
         /// </summary>
         /// <param name="filePath">The path of the file to check.</param>
@@ -47,6 +35,18 @@ namespace Kore.Managers.Plugins
         /// <param name="filePath">The path of the file to request.</param>
         /// <returns>The <see cref="IStateInfo"/> of the file.</returns>
         IStateInfo GetLoadedFile(UPath filePath);
+
+        /// <summary>
+        /// Retrieves all <see cref="IPluginLoader"/>s that can load files.
+        /// </summary>
+        /// <returns></returns>
+        IPluginLoader<IFilePlugin>[] GetFilePluginLoaders();
+
+        /// <summary>
+        /// Retrieves all <see cref="IPluginLoader"/>s that can render game previews.
+        /// </summary>
+        /// <returns></returns>
+        IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
 
         /// <summary>
         /// Loads a physical path into the Kuriimu runtime.

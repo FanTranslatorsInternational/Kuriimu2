@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using Kontract.Interfaces.Plugins.Identifier;
 
@@ -6,11 +7,11 @@ namespace Kuriimu2.WinForms.MainForms
 {
     public partial class ChoosePluginForm : Form
     {
-        private readonly IFilePlugin[] _filePlugins;
+        private readonly IReadOnlyList<IFilePlugin> _filePlugins;
 
-        public Guid SelectedPluginId { get; private set; }
+        public IFilePlugin SelectedFilePlugin { get; private set; }
 
-        public ChoosePluginForm(params IFilePlugin[] filePlugins)
+        public ChoosePluginForm(IReadOnlyList<IFilePlugin> filePlugins)
         {
             InitializeComponent();
 
@@ -26,7 +27,7 @@ namespace Kuriimu2.WinForms.MainForms
                 var metadataName = plugin.Metadata?.Name ?? "<undefined>";
                 var listViewItem = new ListViewItem(new[] { plugin.PluginId.ToString("D"), metadataName })
                 {
-                    Tag = plugin.PluginId
+                    Tag = plugin
                 };
 
                 pluginList.Items.Add(listViewItem);
@@ -50,7 +51,7 @@ namespace Kuriimu2.WinForms.MainForms
         private void pluginList_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (pluginList.SelectedItems.Count > 0)
-                SelectedPluginId = (Guid)pluginList.SelectedItems[0].Tag;
+                SelectedFilePlugin = (IFilePlugin)pluginList.SelectedItems[0].Tag;
         }
 
         private void pluginList_MouseDoubleClick(object sender, MouseEventArgs e)

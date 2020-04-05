@@ -8,150 +8,202 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Kuriimu2.WinForms.Properties {
-    
-    
+namespace Kuriimu2.WinForms.Properties
+{
+
+
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.5.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
-            get {
+
+        public static Settings Default
+        {
+            get
+            {
                 return defaultInstance;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LastDirectory {
-            get {
+        public string LastDirectory
+        {
+            get
+            {
                 return ((string)(this["LastDirectory"]));
             }
-            set {
+            set
+            {
                 this["LastDirectory"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Silver")]
-        public global::System.Drawing.Color GridColor1 {
-            get {
+        public global::System.Drawing.Color GridColor1
+        {
+            get
+            {
                 return ((global::System.Drawing.Color)(this["GridColor1"]));
             }
-            set {
+            set
+            {
                 this["GridColor1"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("White")]
-        public global::System.Drawing.Color GridColor2 {
-            get {
+        public global::System.Drawing.Color GridColor2
+        {
+            get
+            {
                 return ((global::System.Drawing.Color)(this["GridColor2"]));
             }
-            set {
+            set
+            {
                 this["GridColor2"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("None")]
-        public global::Cyotek.Windows.Forms.ImageBoxBorderStyle ImageBorderStyle {
-            get {
+        public global::Cyotek.Windows.Forms.ImageBoxBorderStyle ImageBorderStyle
+        {
+            get
+            {
                 return ((global::Cyotek.Windows.Forms.ImageBoxBorderStyle)(this["ImageBorderStyle"]));
             }
-            set {
+            set
+            {
                 this["ImageBorderStyle"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Black")]
-        public global::System.Drawing.Color ImageBorderColor {
-            get {
+        public global::System.Drawing.Color ImageBorderColor
+        {
+            get
+            {
                 return ((global::System.Drawing.Color)(this["ImageBorderColor"]));
             }
-            set {
+            set
+            {
                 this["ImageBorderColor"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("64")]
-        public int ThumbnailHeight {
-            get {
+        public int ThumbnailHeight
+        {
+            get
+            {
                 return ((int)(this["ThumbnailHeight"]));
             }
-            set {
+            set
+            {
                 this["ThumbnailHeight"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("96")]
-        public int ThumbnailWidth {
-            get {
+        public int ThumbnailWidth
+        {
+            get
+            {
                 return ((int)(this["ThumbnailWidth"]));
             }
-            set {
+            set
+            {
                 this["ThumbnailWidth"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string SequenceSearchDirectory {
-            get {
+        public string SequenceSearchDirectory
+        {
+            get
+            {
                 return ((string)(this["SequenceSearchDirectory"]));
             }
-            set {
+            set
+            {
                 this["SequenceSearchDirectory"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string BatchInputDirectory {
-            get {
+        public string BatchInputDirectory
+        {
+            get
+            {
                 return ((string)(this["BatchInputDirectory"]));
             }
-            set {
+            set
+            {
                 this["BatchInputDirectory"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string BatchOutputDirectory {
-            get {
+        public string BatchOutputDirectory
+        {
+            get
+            {
                 return ((string)(this["BatchOutputDirectory"]));
             }
-            set {
+            set
+            {
                 this["BatchOutputDirectory"] = value;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string TypeExtensionLastDirectory {
-            get {
+        public string TypeExtensionLastDirectory
+        {
+            get
+            {
                 return ((string)(this["TypeExtensionLastDirectory"]));
             }
-            set {
+            set
+            {
                 this["TypeExtensionLastDirectory"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("true")]
+        public bool AllowManualSelection
+        {
+            get
+            {
+                return ((bool)(this["AllowManualSelection"]));
+            }
+            set
+            {
+                this["AllowManualSelection"] = value;
             }
         }
     }

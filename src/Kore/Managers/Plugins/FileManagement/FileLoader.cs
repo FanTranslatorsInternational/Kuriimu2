@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
@@ -27,6 +28,8 @@ namespace Kore.Managers.Plugins.FileManagement
         private readonly IProgressContext _progress;
         private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
 
+        public event EventHandler<ManualSelectionEventArgs> OnManualSelection;
+
         /// <summary>
         /// Creates a new instance of <see cref="FileLoader"/>.
         /// </summary>
@@ -38,7 +41,8 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager,
+            bool loadPluginManually, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -49,11 +53,12 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 3. Load the file
             var fileName = loadInfo.FilePath.GetName();
-            return await InternalLoadAsync(fileSystem, fileName, streamManager, pluginManager, progress, loadInfo.Plugin);
+            return await InternalLoadAsync(fileSystem, fileName, streamManager, pluginManager, progress, loadInfo.Plugin, loadPluginManually);
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager,
+            bool loadPluginManually, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -62,7 +67,7 @@ namespace Kore.Managers.Plugins.FileManagement
             var fileSystem = FileSystemFactory.CreateAfiFileSystem(loadInfo.ArchiveState, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin);
+            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, loadPluginManually);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -74,7 +79,8 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager, IProgressContext progress = null)
+        public async Task<LoadResult> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager,
+            bool loadPluginManually, IProgressContext progress = null)
         {
             // 1. Create stream manager
             var streamManager = new StreamManager();
@@ -83,7 +89,7 @@ namespace Kore.Managers.Plugins.FileManagement
             var fileSystem = FileSystemFactory.CloneFileSystem(loadInfo.FileSystem, UPath.Empty, streamManager);
 
             // 3. Load the file
-            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, false);
+            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, loadInfo.Plugin, loadPluginManually);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -200,14 +206,13 @@ namespace Kore.Managers.Plugins.FileManagement
         private IFilePlugin GetManualSelection()
         {
             // 1. Get all plugins that don't implement IIdentifyFile
-            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins();
+            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
 
-            // TODO: 2. Request selection of non identifiable plugins from external sources
+            // 2. Request manual selection by the user
+            var selectionArgs = new ManualSelectionEventArgs(nonIdentifiablePlugins);
+            OnManualSelection?.Invoke(this, selectionArgs);
 
-            // TODO: 3. Return selection
-
-            // TODO: Remove stub return from manual selection
-            return null;
+            return selectionArgs.Result;
         }
 
         /// <summary>
