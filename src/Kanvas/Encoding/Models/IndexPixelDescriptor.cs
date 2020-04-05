@@ -18,6 +18,9 @@ namespace Kanvas.Encoding.Models
         private int[] _shiftTable;
         private int[] _maskTable;
 
+        private Func<long, int>[] _readActions;
+        private Func<long, int, long>[] _writeActions;
+
         public IndexPixelDescriptor(string componentOrder, int i, int a)
         {
             AssertValidOrder(componentOrder.ToLower());
@@ -56,8 +59,8 @@ namespace Kanvas.Encoding.Models
         {
             var colorBuffer = new int[2];
 
-            colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
-            colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
+            colorBuffer[_indexTable[0]] = _readActions[0](value);
+            colorBuffer[_indexTable[1]] = _readActions[1](value);
 
             // If alpha depth 0 then return color from palette
             if (_depthTable[_componentIndexTable[1]] == 0)
@@ -73,10 +76,10 @@ namespace Kanvas.Encoding.Models
             var colorBuffer = new[] { index, palette[index].A };
 
             var componentIndex = _componentIndexTable[0];
-            WriteComponent(colorBuffer[_indexTable[componentIndex]], _shiftTable[componentIndex], _maskTable[componentIndex], _depthTable[componentIndex], ref result);
+            result = _writeActions[componentIndex](result, colorBuffer[_indexTable[componentIndex]]);
 
             componentIndex = _componentIndexTable[1];
-            WriteComponent(colorBuffer[_indexTable[componentIndex]], _shiftTable[componentIndex], _maskTable[componentIndex], _depthTable[componentIndex], ref result);
+            result = _writeActions[componentIndex](result, colorBuffer[_indexTable[componentIndex]]);
 
             return result;
         }
@@ -135,21 +138,34 @@ namespace Kanvas.Encoding.Models
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
             _maskTable = new int[2];
 
+            // Table for the read/write action per index lookup
+            _readActions = new Func<long, int>[2];
+            _writeActions = new Func<long, int, long>[2];
+
             bool iSet = false, aSet = false;
             var shift = 0;
             var length = componentOrder.Length;
             for (var j = length - 1; j >= 0; j--)
             {
+                var tableIndex = length - j - 1;
                 switch (componentOrder[j])
                 {
                     case 'i':
                     case 'I':
-                        SetTableValues(length - j - 1, 0, i, ref shift, ref iSet);
+                        _readActions[tableIndex] = value =>
+                            ReadIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
+                        _writeActions[tableIndex] = (result, value) =>
+                            WriteIndexComponent(result, value, _shiftTable[tableIndex], _maskTable[tableIndex]);
+                        SetTableValues(tableIndex, 0, i, ref shift, ref iSet);
                         break;
 
                     case 'a':
                     case 'A':
-                        SetTableValues(length - j - 1, 1, a, ref shift, ref aSet);
+                        _readActions[tableIndex] = value =>
+                            ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+                        _writeActions[tableIndex] = (result, value) =>
+                            WriteComponent(result, value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+                        SetTableValues(tableIndex, 1, a, ref shift, ref aSet);
                         break;
                 }
             }
@@ -163,9 +179,19 @@ namespace Kanvas.Encoding.Models
             return Conversion.ChangeBitDepth((int)((value >> shift) & mask), depth, 8);
         }
 
-        private void WriteComponent(int value, int shift, int mask, int depth, ref long result)
+        private int ReadIndexComponent(long value, int shift, int mask)
         {
-            result |= (Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+            return (int)((value >> shift) & mask);
+        }
+
+        private long WriteComponent(long input, int value, int shift, int mask, int depth)
+        {
+            return input |= (Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+        }
+
+        private long WriteIndexComponent(long input, int value, int shift, int mask)
+        {
+            return input |= (value & mask) << shift;
         }
     }
 }

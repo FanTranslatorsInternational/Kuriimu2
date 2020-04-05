@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using Kontract;
 using Kontract.Extensions;
@@ -178,19 +179,19 @@ namespace Kanvas.Configuration
             // Decompose unswizzled image to colors
             var colors = image.ToColors(paddedSize);
 
-            // Quantize unswizzled indexColors
+            // Quantize unswizzled indices
             var (indices, palette) = _quantizer.Process(colors, imageSize, progress);
 
-            // Swizzle indexColors to correct positions
-            indices = SwizzleIndices(indices, imageSize, _swizzle?.Invoke(imageSize));
+            // Swizzle indices to correct positions
+            var swizzledIndices = SwizzleIndices(indices.ToArray(), imageSize, _swizzle?.Invoke(imageSize));
 
-            return (indices, palette);
+            return (swizzledIndices, palette);
         }
 
-        private IEnumerable<int> SwizzleIndices(IEnumerable<int> indices, Size imageSize, IImageSwizzle swizzle)
+        private IEnumerable<int> SwizzleIndices(IList<int> indices, Size imageSize, IImageSwizzle swizzle)
         {
-            var indexPoints = Zip(indices, Composition.GetPointSequence(imageSize, swizzle));
-            return indexPoints.OrderBy(cp => GetIndex(cp.Second, imageSize)).Select(x => x.First);
+            return Composition.GetPointSequence(imageSize, swizzle)
+                .Select(point => indices[GetIndex(point, imageSize)]);
         }
 
         private int GetIndex(Point point, Size imageSize)

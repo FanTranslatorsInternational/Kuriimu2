@@ -7,11 +7,11 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
 {
     class ParameterBuilder
     {
-        private readonly GroupBox _groupBox;
+        private const int LineHeight_ = 40;
+        private const int ControlDelta_ = 10;
 
+        private readonly GroupBox _groupBox;
         private readonly Point _topLeftCorner = new Point(5, 15);
-        private readonly int _lineHeight = 40;
-        private readonly int _controlDiff = 10;
 
         private int _paddingLeft;
         private int _paddingTop;
@@ -78,7 +78,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             var labelHeight = 15;
             var width = 100;
 
-            UpdateLine(width + _controlDiff);
+            UpdateLine(width + ControlDelta_);
 
             var label = new Label
             {
@@ -95,10 +95,13 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
                 Tag = parameter
             };
 
+            if (parameter.HasDefaultValue)
+                textBox.Text = parameter.Value.ToString();
+
             _groupBox.Controls.Add(label);
             _groupBox.Controls.Add(textBox);
 
-            UpdateWidth(width + _controlDiff);
+            UpdateWidth(width + ControlDelta_);
         }
 
         private void CreateCheckBox(ExtensionTypeParameter parameter)
@@ -106,7 +109,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             var labelHeight = 15;
             var width = 100;
 
-            UpdateLine(width + _controlDiff);
+            UpdateLine(width + ControlDelta_);
 
             var chk = new CheckBox
             {
@@ -114,12 +117,15 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
                 Size = new Size(width, 20),
                 Text = parameter.Name,
                 Name = parameter.Name,
-                Tag = parameter
+                Tag = parameter,
             };
+
+            if (parameter.HasDefaultValue)
+                chk.Checked = (bool)parameter.Value;
 
             _groupBox.Controls.Add(chk);
 
-            UpdateWidth(width + _controlDiff);
+            UpdateWidth(width + ControlDelta_);
         }
 
         private void CreateComboBox(ExtensionTypeParameter parameter)
@@ -127,7 +133,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             var labelHeight = 15;
             var width = 100;
 
-            UpdateLine(width + _controlDiff);
+            UpdateLine(width + ControlDelta_);
 
             var label = new Label
             {
@@ -140,16 +146,19 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             {
                 Location = new Point(_topLeftCorner.X + _paddingLeft, _topLeftCorner.Y + _paddingTop + labelHeight),
                 Size = new Size(width, 20),
-                Text = Enum.GetNames(parameter.ParameterType)[0],
                 Name = parameter.Name,
                 Tag = parameter
             };
             comboBox.Items.AddRange(Enum.GetNames(parameter.ParameterType));
 
+            comboBox.Text = parameter.HasDefaultValue ?
+                parameter.Value.ToString() :
+                Enum.GetNames(parameter.ParameterType)[0];
+
             _groupBox.Controls.Add(label);
             _groupBox.Controls.Add(comboBox);
 
-            UpdateWidth(width + _controlDiff);
+            UpdateWidth(width + ControlDelta_);
         }
 
         private void CreateFileInput(ExtensionTypeParameter parameter)
@@ -157,7 +166,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             var labelHeight = 15;
             var width = 100;
 
-            UpdateLine(width + _controlDiff);
+            UpdateLine(width + ControlDelta_);
 
             var label = new Label
             {
@@ -187,7 +196,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             _groupBox.Controls.Add(textBox);
             _groupBox.Controls.Add(button);
 
-            UpdateWidth(width + _controlDiff);
+            UpdateWidth(width + ControlDelta_);
         }
 
         private void Button_Click(object sender, EventArgs e)
@@ -197,8 +206,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
 
             var ofd = new OpenFileDialog
             {
-                Filter = "All Files (*.*)|*.*",
-                //InitialDirectory = 
+                Filter = "All Files (*.*)|*.*"
             };
 
             if (ofd.ShowDialog() != DialogResult.OK)
@@ -212,7 +220,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
             if (_paddingLeft + controlWidth >= _groupBox.Width)
             {
                 _paddingLeft = 0;
-                _paddingTop += _lineHeight;
+                _paddingTop += LineHeight_;
             }
         }
 

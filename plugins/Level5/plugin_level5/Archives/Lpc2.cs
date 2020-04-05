@@ -8,7 +8,7 @@ using Kontract.Models.Archive;
 namespace plugin_level5.Archives
 {
     // TODO: Test plugin
-    // Game: Any Professor Layton on DS
+    // Game: Professor Layton 3 on DS
     class Lpc2
     {
         private readonly int _headerSize = Tools.MeasureType(typeof(Lpc2Header));

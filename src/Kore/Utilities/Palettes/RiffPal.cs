@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Text;
+using Kontract.Models.IO;
 using Kore.Exceptions.RiffPal;
 using Kore.Utilities.Models;
 

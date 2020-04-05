@@ -52,7 +52,6 @@ namespace Kuriimu2.WinForms.MainForms
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
-            this.operationProgress = new Kuriimu2.WinForms.Controls.NewProgressBarToolStrip();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -177,11 +176,10 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             // rawImageViewerToolStripMenuItem
             // 
-            this.rawImageViewerToolStripMenuItem.Enabled = false;
             this.rawImageViewerToolStripMenuItem.Name = "rawImageViewerToolStripMenuItem";
             this.rawImageViewerToolStripMenuItem.Size = new System.Drawing.Size(115, 20);
             this.rawImageViewerToolStripMenuItem.Text = "Raw Image Viewer";
-            this.rawImageViewerToolStripMenuItem.Click += new System.EventHandler(this._imgDecToolStrip_Click);
+            this.rawImageViewerToolStripMenuItem.Click += new System.EventHandler(this.rawImageViewerToolStripMenuItem_Click);
             // 
             // imageTranscoderToolStripMenuItem
             // 
@@ -201,7 +199,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 505);
+            this.openFiles.Size = new System.Drawing.Size(953, 507);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -219,30 +217,22 @@ namespace Kuriimu2.WinForms.MainForms
             this.pnlMain.Location = new System.Drawing.Point(0, 24);
             this.pnlMain.Name = "pnlMain";
             this.pnlMain.Padding = new System.Windows.Forms.Padding(3, 2, 1, 2);
-            this.pnlMain.Size = new System.Drawing.Size(957, 509);
+            this.pnlMain.Size = new System.Drawing.Size(957, 511);
             this.pnlMain.TabIndex = 2;
             // 
             // operationStatusBar
             // 
             this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.operationProgress,
             this.operationTimer});
-            this.operationStatusBar.Location = new System.Drawing.Point(0, 533);
+            this.operationStatusBar.Location = new System.Drawing.Point(0, 535);
             this.operationStatusBar.Name = "operationStatusBar";
-            this.operationStatusBar.Size = new System.Drawing.Size(957, 24);
+            this.operationStatusBar.Size = new System.Drawing.Size(957, 22);
             this.operationStatusBar.TabIndex = 3;
-            // 
-            // operationProgress
-            // 
-            this.operationProgress.Margin = new System.Windows.Forms.Padding(2, 4, 0, 4);
-            this.operationProgress.Name = "operationProgress";
-            this.operationProgress.Size = new System.Drawing.Size(500, 16);
-            this.operationProgress.Value = 0;
             // 
             // operationTimer
             // 
             this.operationTimer.Name = "operationTimer";
-            this.operationTimer.Size = new System.Drawing.Size(0, 19);
+            this.operationTimer.Size = new System.Drawing.Size(0, 17);
             // 
             // Kuriimu2Form
             // 

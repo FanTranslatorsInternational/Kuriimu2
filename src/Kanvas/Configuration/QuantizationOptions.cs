@@ -12,7 +12,6 @@ using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Configuration
 {
-    // TODO: Derive max color count from index encoding used, for best usage of space
     class QuantizationOptions : IQuantizationOptions, IQuantizer
     {
         private int _colorCount = 256;

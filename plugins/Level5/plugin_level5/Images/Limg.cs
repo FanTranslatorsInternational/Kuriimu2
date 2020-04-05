@@ -19,7 +19,7 @@ namespace plugin_level5.Images
         private static int _colorEntrySize = 0x2;
         private static int _tileEntrySize = 0x40;
         private static int _unk1EntrySize = 0x8;
-        private static int _unk2EntrySize = 0xC;
+        private static int _unk2EntrySize = 0x3;
 
         private LimgHeader _header;
         private byte[] _unkHeader;
@@ -71,7 +71,6 @@ namespace plugin_level5.Images
             using var bw = new BinaryWriterX(output);
             var indexImage = image as IndexImageInfo;
             var encoding = LimgSupport.LimgFormats[image.ImageFormat];
-            var paletteEncoding = LimgSupport.LimgPaletteFormats[indexImage.PaletteFormat];
 
             // Split into tiles
             var (tileIndices, imageStream) = SplitTiles(image.ImageData, encoding.Item1.BitsPerValue);
@@ -82,20 +81,24 @@ namespace plugin_level5.Images
             _header.paletteOffset = (uint)bw.BaseStream.Position;
             _header.colorCount = (short)(indexImage.PaletteData.Length / _colorEntrySize);
             bw.Write(indexImage.PaletteData);
+            bw.WriteAlignment(4);
 
             // Write unknown tables
             _header.unkOffset1 = (short)bw.BaseStream.Position;
             _header.unkCount1 = (short)(_unkChunk1.Length / _unk1EntrySize);
             bw.Write(_unkChunk1);
+            bw.WriteAlignment(4);
 
             _header.unkOffset2 = (short)bw.BaseStream.Position;
             _header.unkCount2 = (short)(_unkChunk2.Length / _unk2EntrySize);
             bw.Write(_unkChunk2);
+            bw.WriteAlignment(4);
 
             // Write tiles
             _header.tileDataOffset = (short)bw.BaseStream.Position;
             _header.tileEntryCount = (short)tileIndices.Count;
             bw.WriteMultiple(tileIndices);
+            bw.WriteAlignment(4);
 
             // Write image data
             _header.imageDataOffset = (short)bw.BaseStream.Position;
@@ -103,6 +106,7 @@ namespace plugin_level5.Images
 
             imageStream.Position = 0;
             imageStream.CopyTo(bw.BaseStream);
+            bw.WriteAlignment(4);
 
             // Header
             bw.BaseStream.Position = 0;

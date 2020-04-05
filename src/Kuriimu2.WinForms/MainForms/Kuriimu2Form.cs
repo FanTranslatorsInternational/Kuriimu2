@@ -35,6 +35,7 @@ namespace Kuriimu2.WinForms.MainForms
         private CipherTypeExtensionForm _decryptForm;
         private DecompressTypeExtensionForm _decompressForm;
         private CompressTypeExtensionForm _compressForm;
+        private RawImageViewer _rawImageViewer;
 
         private IDictionary<IStateInfo, TabPage> _stateTabDictionary;
         private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
@@ -61,6 +62,7 @@ namespace Kuriimu2.WinForms.MainForms
             _decryptForm = new DecryptTypeExtensionForm();
             _decompressForm = new DecompressTypeExtensionForm();
             _compressForm = new CompressTypeExtensionForm();
+            _rawImageViewer=new RawImageViewer();
 
             _stateTabDictionary = new Dictionary<IStateInfo, TabPage>();
             _tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
@@ -86,9 +88,6 @@ namespace Kuriimu2.WinForms.MainForms
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, "close-button");
-
-            LoadExtensions();
-            //LoadImageViews();
         }
 
         private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
@@ -104,12 +103,6 @@ namespace Kuriimu2.WinForms.MainForms
         private void _timer_Tick(object sender, EventArgs e)
         {
             operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
-        }
-
-        private void LoadExtensions()
-        {
-            //LoadCiphers();
-            //LoadCompressions();
         }
 
         //private void LoadImageViews()
@@ -140,11 +133,6 @@ namespace Kuriimu2.WinForms.MainForms
         //{
         //    rawImageViewerToolStripMenuItem.Enabled = _pluginManager.GetAdapters<IColorEncodingAdapter>().Any();
         //}
-
-        private void _imgDecToolStrip_Click(object sender, EventArgs e)
-        {
-            //new RawImageViewer(_pluginManager).ShowDialog();
-        }
 
         //private void LoadImageTranscoder()
         //{
@@ -882,6 +870,11 @@ namespace Kuriimu2.WinForms.MainForms
         private void compressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _compressForm.ShowDialog();
+        }
+
+        private void rawImageViewerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _rawImageViewer.ShowDialog();
         }
     }
 }

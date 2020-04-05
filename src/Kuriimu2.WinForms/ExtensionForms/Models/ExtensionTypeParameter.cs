@@ -13,6 +13,17 @@ namespace Kuriimu2.WinForms.ExtensionForms.Models
 
         public object Value { get; set; }
 
+        public bool HasDefaultValue { get; }
+
+        public ExtensionTypeParameter(string name, Type type, object defaultValue) :
+            this(name, type)
+        {
+            ContractAssertions.IsNotNull(defaultValue, nameof(defaultValue));
+
+            Value = defaultValue;
+            HasDefaultValue = true;
+        }
+
         public ExtensionTypeParameter(string name, Type type)
         {
             ContractAssertions.IsNotNull(name, nameof(name));

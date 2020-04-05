@@ -4,25 +4,26 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Kanvas.Configuration;
 using Kanvas.Encoding;
 using Kanvas.Encoding.BlockCompressions.ATC.Models;
 using Kanvas.Encoding.BlockCompressions.BCn.Models;
 using Kanvas.Swizzle;
-using Kontract.Attributes.Intermediate;
-using Kontract.Interfaces.Plugins.State.Intermediate;
+using Kanvas.Swizzle.Models;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
-using Kore.Managers.Plugins;
+using Kuriimu2.WinForms.ExtensionForms.Models;
+using Kuriimu2.WinForms.ExtensionForms.Support;
+using Kuriimu2.WinForms.Extensions;
 using Kuriimu2.WinForms.MainForms.Models;
 
 namespace Kuriimu2.WinForms.MainForms
 {
     public partial class RawImageViewer : Form
     {
-        private ByteOrder _byteOrder = ByteOrder.LittleEndian;
+        //private ByteOrder _byteOrder = ByteOrder.LittleEndian;
 
         private bool _fileLoaded;
         private Stream _openedFile;
@@ -30,26 +31,26 @@ namespace Kuriimu2.WinForms.MainForms
         private int _selectedEncodingIndex;
         private int _selectedSwizzleIndex;
 
-        private readonly SplitterPanel _pnlEncodingProperties;
-        private readonly SplitterPanel _pnlSwizzleProperties;
+        private readonly ParameterBuilder _encodingParameterBuilder;
+        private readonly ParameterBuilder _swizzleParameterBuilder;
 
-        private IColorEncodingAdapter SelectedColorEncodingAdapter
+        private ExtensionType SelectedColorEncodingExtension
         {
             get
             {
                 if (_selectedEncodingIndex < cbEncoding.Items.Count)
-                    return (cbEncoding.Items[_selectedEncodingIndex] as EncodingWrapper)?.EncodingAdapter;
+                    return (cbEncoding.Items[_selectedEncodingIndex] as ComboBoxElement).Value as ExtensionType;
 
                 return null;
             }
         }
 
-        private IImageSwizzleAdapter SelectedSwizzleAdapter
+        private ExtensionType SelectedSwizzleExtension
         {
             get
             {
                 if (_selectedSwizzleIndex < cbSwizzle.Items.Count)
-                    return (cbSwizzle.Items[_selectedSwizzleIndex] as SwizzleWrapper)?.SwizzleAdapter;
+                    return (cbSwizzle.Items[_selectedSwizzleIndex] as ComboBoxElement).Value as ExtensionType;
 
                 return null;
             }
@@ -59,8 +60,8 @@ namespace Kuriimu2.WinForms.MainForms
         {
             InitializeComponent();
 
-            _pnlEncodingProperties = splExtendedProperties.Panel1;
-            _pnlSwizzleProperties = splExtendedProperties.Panel2;
+            _encodingParameterBuilder = new ParameterBuilder(gbEncParameters);
+            _swizzleParameterBuilder = new ParameterBuilder(gbSwizzleParameters);
 
             cbEncoding.SelectedIndexChanged -= CbEncoding_SelectedIndexChanged;
             cbSwizzle.SelectedIndexChanged -= CbSwizzle_SelectedIndexChanged;
@@ -73,18 +74,21 @@ namespace Kuriimu2.WinForms.MainForms
             UpdateExtendedProperties();
         }
 
+        #region Load
+
         private void LoadEncodings(ComboBox cb)
         {
             var selectedIndex = cb.SelectedIndex;
             cb.Items.Clear();
 
             // Populate encoding dropdown
-            foreach (var (encodingAction, name) in GetEncodings())
-                cb.Items.Add(new ComboBoxElement(encodingAction, name));
+            foreach (var encodingExtension in GetEncodings())
+                cb.Items.Add(new ComboBoxElement(encodingExtension, encodingExtension.Name));
 
-            if (selectedIndex < cb.Items.Count)
-                cb.SelectedIndex = selectedIndex;
+            if (selectedIndex < 0)
+                selectedIndex = 0;
 
+            cb.SelectedIndex = selectedIndex;
             _selectedEncodingIndex = selectedIndex;
         }
 
@@ -94,495 +98,17 @@ namespace Kuriimu2.WinForms.MainForms
             cb.Items.Clear();
 
             // Populate swizzle dropdown
-            foreach (var (swizzleAction, name) in GetSwizzles())
-                cb.Items.Add(new ComboBoxElement(swizzleAction, name));
+            foreach (var swizzleExtension in GetSwizzles())
+                cb.Items.Add(new ComboBoxElement(swizzleExtension, swizzleExtension.Name));
 
-            if (selectedIndex < cb.Items.Count)
-                cb.SelectedIndex = selectedIndex;
+            if (selectedIndex < 0)
+                selectedIndex = 0;
 
+            cb.SelectedIndex = selectedIndex;
             _selectedSwizzleIndex = selectedIndex;
         }
 
-        private IEnumerable<(Func<ByteOrder, IEncodingInfo>, string)> GetEncodings()
-        {
-            var encodings = new List<(Func<ByteOrder, IEncodingInfo>, string)>
-            {
-                (bo => new Rgba(8, 8, 8, 8, bo), "RGBA8888"),
-                (bo => new Rgba(8, 8, 8, 0, bo), "RGB888"),
-                (bo => new Rgba(5, 6, 5, 0, bo), "RGB565"),
-                (bo => new Rgba(5, 5, 5, 1, bo), "RGBA5551"),
-                (bo => new Rgba(5, 5, 5, 0, bo), "RGB555"),
-                (bo => new Rgba(4, 4, 4, 4, bo), "RGBA4444"),
-                (bo => new Rgba(8, 8, 0, 0, bo), "RG88"),
-                (bo => new Rgba(8, 0, 0, 0, bo), "R8"),
-                (bo => new Rgba(0, 8, 0, 0, bo), "G8"),
-                (bo => new Rgba(0, 0, 8, 0, bo), "B8"),
-
-                (bo => new Rgba(8, 8, 8, 8, "ABGR", bo), "ABGR8888"),
-                (bo => new Rgba(8, 8, 8, 0, "BGR", bo), "BGR888"),
-                (bo => new Rgba(5, 6, 5, 0, "BGR", bo), "BGR565"),
-                (bo => new Rgba(5, 5, 5, 1, "ABGR", bo), "ABGR1555"),
-                (bo => new Rgba(5, 5, 5, 0, "BGR", bo), "BGR555"),
-                (bo => new Rgba(4, 4, 4, 4, "ABGR", bo), "ABGR4444"),
-                (bo => new Rgba(8, 8, 0, 0, "GR", bo), "GR88"),
-                (bo => new Rgba(8, 0, 0, 0, "R", bo), "R8"),
-                (bo => new Rgba(0, 8, 0, 0, "G", bo), "G8"),
-                (bo => new Rgba(0, 0, 8, 0, "B", bo), "B8"),
-
-                (bo => new La(8, 8, bo), "LA88"),
-                (bo => new La(8, 0, bo), "L8"),
-                (bo => new La(0, 8, bo), "A8"),
-                (bo => new La(4, 4, bo), "LA44"),
-                (bo => new La(4, 0, bo), "L4"),
-                (bo => new La(0, 4, bo), "A4"),
-
-                (bo => new Etc1(false, false), "ETC1"),
-                (bo => new Etc1(true, false), "ETC1A4"),
-
-                (bo => new Bc(BcFormat.DXT1), "DXT1"),
-                (bo => new Bc(BcFormat.DXT3), "DXT3"),
-                (bo => new Bc(BcFormat.DXT5), "DXT5"),
-                (bo => new Bc(BcFormat.ATI1), "ATI1"),
-                (bo => new Bc(BcFormat.ATI1L_WiiU), "ATI1L (WiiU)"),
-                (bo => new Bc(BcFormat.ATI1A_WiiU), "ATI1A (WiiU)"),
-                (bo => new Bc(BcFormat.ATI2), "ATI2"),
-                (bo => new Bc(BcFormat.ATI2_WiiU), "ATI2 (WiiU)"),
-
-                (bo => new Atc(AtcFormat.ATC, bo), "ATC"),
-                (bo => new Atc(AtcFormat.ATCA_Exp, bo), "ATC (Explicit Alpha)"),
-                (bo => new Atc(AtcFormat.ATCA_Int, bo), "ATC (Interpolated Alpha)")
-            };
-
-            foreach (var encoding in encodings)
-                yield return encoding;
-        }
-
-        private IEnumerable<(Func<Size, IImageSwizzle>, string)> GetSwizzles()
-        {
-            var swizzles = new List<(Func<Size, IImageSwizzle>, string)>
-            {
-                (size=>new NitroSwizzle(size.Width,size.Height),"Nitro")
-            };
-
-            foreach (var swizzle in swizzles)
-                yield return swizzle;
-        }
-
-        private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _selectedEncodingIndex = cbEncoding.SelectedIndex;
-            SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
-
-            UpdateEncodingProperties();
-        }
-
-        private void CbSwizzle_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            _selectedSwizzleIndex = cbSwizzle.SelectedIndex;
-            SelectedColorEncodingAdapter.Swizzle = SelectedSwizzleAdapter;
-
-            UpdateSwizzleProperty();
-        }
-
-        #region Update
-
-        private void UpdateForm()
-        {
-            cbEncoding.Enabled = cbEncoding.Items.Count > 0;
-            cbSwizzle.Enabled = cbSwizzle.Items.Count > 0;
-            tbOffset.Enabled = true;
-            btnDecode.Enabled = _fileLoaded;
-        }
-
-        private void UpdateExtendedProperties()
-        {
-            UpdateEncodingProperties();
-            UpdateSwizzleProperty();
-        }
-
-        private void UpdateEncodingProperties()
-        {
-            _pnlEncodingProperties.Controls.Clear();
-
-            if (SelectedColorEncodingAdapter != null)
-                UpdateExtendedPropertiesWith(
-                    _pnlEncodingProperties,
-                    80,
-                    EncodingPropertyTextBox_TextChanged,
-                    EncodingPropertyComboBox_SelectedIndexChanged,
-                    EncodingPropertyCheckBox_CheckedChanged,
-                    SelectedColorEncodingAdapter.
-                        GetType().
-                        GetCustomAttributes(typeof(PropertyAttribute), false).
-                        Cast<PropertyAttribute>().
-                        ToArray());
-        }
-
-        private void UpdateSwizzleProperty()
-        {
-            _pnlSwizzleProperties.Controls.Clear();
-            tbWidth.TextChanged -= SwizzlePropertyTextBox_TextChanged;
-            tbWidth.Tag = null;
-            tbHeight.TextChanged -= SwizzlePropertyTextBox_TextChanged;
-            tbHeight.Tag = null;
-
-            if (SelectedSwizzleAdapter != null && SelectedSwizzleAdapter.Name == "Custom")
-            {
-                var label = new Label
-                {
-                    // ReSharper disable once LocalizableElement
-                    Text = "Bit Field:",
-                    Location = new Point(3, 0),
-                    Size = new Size(200, 15)
-                };
-                var textBox = new TextBox
-                {
-                    Location = new Point(3, 0 + label.Height),
-                    Size = new Size(200, 20),
-                    Tag = SelectedSwizzleAdapter.GetType().GetProperty("BitField")
-                };
-
-                _pnlSwizzleProperties.Controls.Add(label);
-                _pnlSwizzleProperties.Controls.Add(textBox);
-                textBox.TextChanged += CustomSwizzleBitField_TextChanged;
-            }
-
-            if (SelectedSwizzleAdapter != null)
-                UpdateExtendedPropertiesWith(
-                    _pnlSwizzleProperties,
-                    80,
-                    SwizzlePropertyTextBox_TextChanged,
-                    SwizzlePropertyComboBox_SelectedIndexChanged,
-                    SwizzlePropertyCheckBox_CheckedChanged,
-                    SelectedSwizzleAdapter.
-                        GetType().
-                        GetCustomAttributes(typeof(PropertyAttribute), false).
-                        Cast<PropertyAttribute>().
-                        ToArray());
-        }
-
-        private void CustomSwizzleBitField_TextChanged(object sender, EventArgs e)
-        {
-            var tb = (TextBox)sender;
-            var prop = (PropertyInfo)tb.Tag;
-
-            var splitted = Regex.Split(tb.Text, "\\)[ ]*,[ ]*\\(").Select(x => Regex.Match(x, "\\d+[ ]*,[ ]*\\d+").Value).ToArray();
-            if (splitted.Any(x => string.IsNullOrEmpty(x)))
-                return;
-
-            prop.SetValue(SelectedSwizzleAdapter, splitted.Select(x =>
-            {
-                var internalSplit = Regex.Split(x, "[ ]*,[ ]*").ToArray();
-                return (int.Parse(internalSplit[0]), int.Parse(internalSplit[1]));
-            }).ToList());
-        }
-
-        private void UpdateExtendedPropertiesWith(SplitterPanel panel, int width, EventHandler textChangedEvent,
-            EventHandler indexChangedEvent, EventHandler checkedChangedEvent, params PropertyAttribute[] propAttributes)
-        {
-            int x = 3;
-            foreach (var attr in propAttributes)
-            {
-                if (attr.PropertyType == typeof(bool))
-                {
-                    AddBooleanProperty(attr, panel, checkedChangedEvent, width, x, 0);
-                }
-                else if (attr.PropertyType.IsPrimitive)
-                {
-                    if (attr.PropertyName == "Width")
-                    {
-                        tbWidth.TextChanged += textChangedEvent;
-                        tbWidth.Tag = attr;
-                        tbWidth.Text = tbWidth.Text;
-                        continue;
-                    }
-
-                    if (attr.PropertyName == "Height")
-                    {
-                        tbHeight.TextChanged += textChangedEvent;
-                        tbHeight.Tag = attr;
-                        tbHeight.Text = tbHeight.Text;
-                        continue;
-                    }
-
-                    AddPrimitiveProperty(attr, panel, textChangedEvent, width, x, 0);
-                }
-                else if (attr.PropertyType.IsEnum)
-                {
-                    AddEnumProperty(attr, panel, indexChangedEvent, width, x, 0);
-                }
-
-                x += width + 3;
-            }
-        }
-
-        private void AddPrimitiveProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler textChangedEvent, int width, int x, int y)
-        {
-            if (!propAttr.PropertyType.IsPrimitive)
-                return;
-
-            var label = new Label
-            {
-                // ReSharper disable once LocalizableElement
-                Text = $"{propAttr.PropertyName}:",
-                Location = new Point(x, y),
-                Size = new Size(width, 15)
-            };
-            var textBox = new TextBox
-            {
-                Location = new Point(x, y + label.Height),
-                Size = new Size(width, 20),
-                Tag = propAttr
-            };
-
-            textBox.TextChanged += textChangedEvent;
-            textBox.Text = propAttr.DefaultValue.ToString();
-
-            panel.Controls.Add(label);
-            panel.Controls.Add(textBox);
-        }
-
-        private void EncodingPropertyTextBox_TextChanged(object sender, EventArgs e)
-        {
-            var tb = (TextBox)sender;
-            var propAttr = (PropertyAttribute)tb.Tag;
-
-            object value;
-            switch (Type.GetTypeCode(propAttr.PropertyType))
-            {
-                case TypeCode.Byte:
-                    byte val1;
-                    if (!byte.TryParse(tb.Text, out val1))
-                        return;
-                    value = val1;
-                    break;
-                case TypeCode.SByte:
-                    sbyte val2;
-                    if (!sbyte.TryParse(tb.Text, out val2))
-                        return;
-                    value = val2;
-                    break;
-                case TypeCode.Int16:
-                    short val3;
-                    if (!short.TryParse(tb.Text, out val3))
-                        return;
-                    value = val3;
-                    break;
-                case TypeCode.UInt16:
-                    ushort val4;
-                    if (!ushort.TryParse(tb.Text, out val4))
-                        return;
-                    value = val4;
-                    break;
-                case TypeCode.Int32:
-                    int val5;
-                    if (!int.TryParse(tb.Text, out val5))
-                        return;
-                    value = val5;
-                    break;
-                case TypeCode.UInt32:
-                    uint val6;
-                    if (!uint.TryParse(tb.Text, out val6))
-                        return;
-                    value = val6;
-                    break;
-                case TypeCode.Int64:
-                    long val7;
-                    if (!long.TryParse(tb.Text, out val7))
-                        return;
-                    value = val7;
-                    break;
-                case TypeCode.UInt64:
-                    ulong val8;
-                    if (!ulong.TryParse(tb.Text, out val8))
-                        return;
-                    value = val8;
-                    break;
-                default:
-                    return;
-            }
-
-            var adapterProperty = SelectedColorEncodingAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedColorEncodingAdapter, value);
-        }
-
-        private void SwizzlePropertyTextBox_TextChanged(object sender, EventArgs e)
-        {
-            var tb = (TextBox)sender;
-            var propAttr = (PropertyAttribute)tb.Tag;
-
-            object value;
-            switch (Type.GetTypeCode(propAttr.PropertyType))
-            {
-                case TypeCode.Byte:
-                    byte val1;
-                    if (!byte.TryParse(tb.Text, out val1))
-                        return;
-                    value = val1;
-                    break;
-                case TypeCode.SByte:
-                    sbyte val2;
-                    if (!sbyte.TryParse(tb.Text, out val2))
-                        return;
-                    value = val2;
-                    break;
-                case TypeCode.Int16:
-                    short val3;
-                    if (!short.TryParse(tb.Text, out val3))
-                        return;
-                    value = val3;
-                    break;
-                case TypeCode.UInt16:
-                    ushort val4;
-                    if (!ushort.TryParse(tb.Text, out val4))
-                        return;
-                    value = val4;
-                    break;
-                case TypeCode.Int32:
-                    int val5;
-                    if (!int.TryParse(tb.Text, out val5))
-                        return;
-                    value = val5;
-                    break;
-                case TypeCode.UInt32:
-                    uint val6;
-                    if (!uint.TryParse(tb.Text, out val6))
-                        return;
-                    value = val6;
-                    break;
-                case TypeCode.Int64:
-                    long val7;
-                    if (!long.TryParse(tb.Text, out val7))
-                        return;
-                    value = val7;
-                    break;
-                case TypeCode.UInt64:
-                    ulong val8;
-                    if (!ulong.TryParse(tb.Text, out val8))
-                        return;
-                    value = val8;
-                    break;
-                default:
-                    return;
-            }
-
-            var adapterProperty = SelectedSwizzleAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedSwizzleAdapter, value);
-        }
-
-        private void EncodingPropertyCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            var cb = (CheckBox)sender;
-            var propAttr = (PropertyAttribute)cb.Tag;
-
-            var adapterProperty = SelectedColorEncodingAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedColorEncodingAdapter, cb.Checked);
-        }
-
-        private void SwizzlePropertyCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            var cb = (CheckBox)sender;
-            var propAttr = (PropertyAttribute)cb.Tag;
-
-            var adapterProperty = SelectedSwizzleAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedSwizzleAdapter, cb.Checked);
-        }
-
-        private void AddEnumProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler indexChangedEvent, int width, int x, int y)
-        {
-            if (!propAttr.PropertyType.IsEnum)
-                return;
-
-            var formatWrappers = Enum.GetNames(propAttr.PropertyType).
-                Zip(Enum.GetValues(propAttr.PropertyType).Cast<object>(), Tuple.Create).
-                Select(enumValue => (object)new FormatWrapper(enumValue.Item2, enumValue.Item1)).
-                ToArray();
-
-            var label = new Label
-            {
-                // ReSharper disable once LocalizableElement
-                Text = $"{propAttr.PropertyName}:",
-                Location = new Point(x, y),
-                Size = new Size(width, 15)
-            };
-            var comboBox = new ComboBox
-            {
-                Location = new Point(x, y + label.Height),
-                Size = new Size(width, 20),
-                Tag = propAttr
-            };
-            comboBox.Items.AddRange(formatWrappers);
-
-            comboBox.SelectedIndexChanged += indexChangedEvent;
-            var defaultIndex = formatWrappers.ToList().IndexOf(
-                formatWrappers.ToList().FirstOrDefault(fw =>
-                    (fw as FormatWrapper)?.Name == Enum.GetName(propAttr.PropertyType, propAttr.DefaultValue)));
-            comboBox.SelectedIndex = defaultIndex < 0 ? 0 : defaultIndex;
-
-            panel.Controls.Add(label);
-            panel.Controls.Add(comboBox);
-        }
-
-        private void AddBooleanProperty(PropertyAttribute propAttr, SplitterPanel panel, EventHandler checkedChanged,
-            int width, int x, int y)
-        {
-            if (propAttr.PropertyType != typeof(bool))
-                return;
-
-            var label = new Label
-            {
-                // ReSharper disable once LocalizableElement
-                Text = $"{propAttr.PropertyName}:",
-                Location = new Point(x, y),
-                Size = new Size(width, 15)
-            };
-            var checkBox = new CheckBox
-            {
-                Location = new Point(x, y + label.Height),
-                //Size = new Size(width, 20),
-                Tag = propAttr
-            };
-
-            checkBox.CheckedChanged += checkedChanged;
-            checkBox.Checked = Convert.ToBoolean(propAttr.DefaultValue);
-
-            panel.Controls.Add(label);
-            panel.Controls.Add(checkBox);
-        }
-
-        private void EncodingPropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var cb = (ComboBox)sender;
-            var index = cb.SelectedIndex;
-            var format = (FormatWrapper)cb.Items[index];
-
-            var propAttr = (PropertyAttribute)cb.Tag;
-
-            var adapterProperty = SelectedColorEncodingAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedColorEncodingAdapter, format.Value);
-        }
-
-        private void SwizzlePropertyComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var cb = (ComboBox)sender;
-            var index = cb.SelectedIndex;
-            var format = (FormatWrapper)cb.Items[index];
-
-            var propAttr = (PropertyAttribute)cb.Tag;
-
-            var adapterProperty = SelectedSwizzleAdapter.GetType()
-                .GetProperty(propAttr.PropertyName, propAttr.PropertyType);
-            adapterProperty?.SetValue(SelectedSwizzleAdapter, format.Value);
-        }
-
-        #endregion
-
-        private async void LoadImage()
+        private void LoadImage(bool throwOnError = true)
         {
             if (!_fileLoaded || _openedFile == null)
                 return;
@@ -596,63 +122,78 @@ namespace Kuriimu2.WinForms.MainForms
             if (offset < 0 || offset >= _openedFile.Length || width <= 0 || height <= 0)
                 return;
 
-            ToggleProperties(false);
+            if (!TryParseParameters(gbEncParameters, SelectedColorEncodingExtension.Parameters.Values.ToArray()) ||
+                !TryParseParameters(gbSwizzleParameters, SelectedSwizzleExtension.Parameters.Values.ToArray()))
+                return;
+
+            if (SelectedSwizzleExtension.Name == "Custom" && CheckCustomSwizzle())
+                return;
+
+            var activeControl = this.GetActiveControl();
+
+            ToggleParameters(false);
             ToggleForm(false);
 
-            var neededData = SelectedColorEncodingAdapter.CalculateLength(width, height);
-
-            _openedFile.Position = offset;
-            var imgData = new byte[Math.Min(neededData, _openedFile.Length - offset)];
-            _openedFile.Read(imgData, 0, imgData.Length);
-
-            var progress = new Progress<ProgressReport>();
+            //var progress = new Progress<ProgressReport>();
             try
             {
-                pbMain.Image = await SelectedColorEncodingAdapter.Decode(imgData, width, height, progress);
+                var encoding = CreateEncoding();
+
+                var totalColors = width * height;
+                if (totalColors % encoding.ColorsPerValue > 0)
+                    return;
+
+                var bitsPerColor = encoding.BitsPerValue / encoding.ColorsPerValue;
+                var dataLength = totalColors * bitsPerColor / 8;
+
+                var minDataLength = Math.Min(dataLength, _openedFile.Length - offset);
+                var imgData = new byte[minDataLength];
+
+                _openedFile.Position = offset;
+                _openedFile.Read(imgData, 0, imgData.Length);
+
+                var imageConfiguration = new ImageConfiguration();
+                if (SelectedSwizzleExtension.Name != "None")
+                    imageConfiguration.RemapPixelsWith(size => CreateSwizzle(size, encoding));
+
+                var transcoder = imageConfiguration.TranscodeWith(size => encoding).Build();
+
+                pbMain.Image = transcoder.Decode(imgData, new Size(width, height));
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (throwOnError)
+                    MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            tslPbWidth.Text = pbMain.Width.ToString();
-            tslPbHeight.Text = pbMain.Height.ToString();
+            tslWidth.Text = pbMain.Width.ToString();
+            tslHeight.Text = pbMain.Height.ToString();
 
-            ToggleProperties(true);
+            ToggleParameters(true);
             ToggleForm(true);
+
+            if (activeControl != null && Contains(activeControl))
+                activeControl.Focus();
         }
 
-        private void ToggleProperties(bool toggle)
+        #endregion
+
+        #region Events
+
+        private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var textBoxes = splExtendedProperties.Panel1.Controls.OfType<TextBox>();
-            var comboBoxes = splExtendedProperties.Panel1.Controls.OfType<ComboBox>();
-            var checkBoxes = splExtendedProperties.Panel1.Controls.OfType<CheckBox>();
+            _selectedEncodingIndex = cbEncoding.SelectedIndex;
 
-            foreach (var textBox in textBoxes)
-                textBox.Enabled = toggle;
-            foreach (var comboBox in comboBoxes)
-                comboBox.Enabled = toggle;
-            foreach (var checkBox in checkBoxes)
-                checkBox.Enabled = toggle;
-
-            textBoxes = splExtendedProperties.Panel2.Controls.OfType<TextBox>();
-            comboBoxes = splExtendedProperties.Panel2.Controls.OfType<ComboBox>();
-            checkBoxes = splExtendedProperties.Panel2.Controls.OfType<CheckBox>();
-
-            foreach (var textBox in textBoxes)
-                textBox.Enabled = toggle;
-            foreach (var comboBox in comboBoxes)
-                comboBox.Enabled = toggle;
-            foreach (var checkBox in checkBoxes)
-                checkBox.Enabled = toggle;
+            UpdateEncodingProperties();
+            LoadImage(false);
         }
 
-        private void ToggleForm(bool toggle)
+        private void CbSwizzle_SelectedIndexChanged(object sender, EventArgs e)
         {
-            cbEncoding.Enabled = toggle;
-            cbSwizzle.Enabled = toggle;
-            openToolStripMenuItem.Enabled = toggle;
-            btnDecode.Enabled = toggle;
+            _selectedSwizzleIndex = cbSwizzle.SelectedIndex;
+
+            UpdateSwizzleProperties();
+            LoadImage(false);
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -670,6 +211,347 @@ namespace Kuriimu2.WinForms.MainForms
             LoadImage();
         }
 
+        private void PbMain_ZoomChanged(object sender, EventArgs e)
+        {
+            // ReSharper disable once LocalizableElement
+            tslZoom.Text = $"Zoom: {pbMain.Zoom}%";
+        }
+
+        private void tbWidth_TextChanged(object sender, EventArgs e)
+        {
+            LoadImage(false);
+        }
+
+        private void tbHeight_TextChanged(object sender, EventArgs e)
+        {
+            LoadImage(false);
+        }
+
+        private void tbOffset_TextChanged(object sender, EventArgs e)
+        {
+            LoadImage(false);
+        }
+
+        #endregion
+
+        #region Update
+
+        private void UpdateForm()
+        {
+            cbEncoding.Enabled = cbEncoding.Items.Count > 0;
+            cbSwizzle.Enabled = cbSwizzle.Items.Count > 0;
+
+            tbOffset.Enabled = true;
+
+            btnProcess.Enabled = _fileLoaded;
+        }
+
+        private void UpdateExtendedProperties()
+        {
+            UpdateEncodingProperties();
+            UpdateSwizzleProperties();
+        }
+
+        private void UpdateEncodingProperties()
+        {
+            UpdateProperties(_encodingParameterBuilder, SelectedColorEncodingExtension.Parameters.Values.ToArray(), gbEncParameters);
+        }
+
+        private void UpdateSwizzleProperties()
+        {
+            UpdateProperties(_swizzleParameterBuilder, SelectedSwizzleExtension.Parameters.Values.ToArray(), gbSwizzleParameters);
+        }
+
+        private void UpdateProperties(ParameterBuilder parameterBuilder, ExtensionTypeParameter[] parameters, GroupBox groupBox)
+        {
+            parameterBuilder.Reset();
+            if (!(parameters?.Any() ?? false))
+                return;
+
+            parameterBuilder.AddParameters(parameters);
+
+            foreach (var parameter in parameters)
+            {
+                var parameterControl = groupBox.Controls.Find(parameter.Name, false)[0];
+
+                switch (parameterControl)
+                {
+                    case TextBox textBox:
+                        textBox.TextChanged += (sender, args) => LoadImage(false);
+                        break;
+
+                    case CheckBox checkBox:
+                        checkBox.CheckedChanged += (sender, args) => LoadImage(false);
+                        break;
+
+                    case ComboBox comboBox:
+                        comboBox.SelectedIndexChanged += (sender, args) => LoadImage(false);
+                        break;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Toggles
+
+        private void ToggleParameters(bool toggle)
+        {
+            gbEncParameters.Enabled = toggle;
+            gbSwizzleParameters.Enabled = toggle;
+        }
+
+        private void ToggleForm(bool toggle)
+        {
+            cbEncoding.Enabled = toggle;
+            cbSwizzle.Enabled = toggle;
+            openToolStripMenuItem.Enabled = toggle;
+            btnProcess.Enabled = toggle;
+        }
+
+        #endregion
+
+        #region List setup and values
+
+        private enum AtcAlpha
+        {
+            Explicit,
+            Interpolated
+        }
+
+        private class CustomSwizzle : IImageSwizzle
+        {
+            private readonly MasterSwizzle _swizzle;
+
+            public int Width { get; }
+
+            public int Height { get; }
+
+            public CustomSwizzle(int width, int height, MasterSwizzle swizzle)
+            {
+                Width = width;
+                Height = height;
+
+                _swizzle = swizzle;
+            }
+
+            public Point Transform(Point point) =>
+                _swizzle.Get(point.Y * Width + point.X);
+        }
+
+        private IList<ExtensionType> GetEncodings()
+        {
+            return new List<ExtensionType>
+            {
+                new ExtensionType("RGBA8888", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                new ExtensionType("RGB888", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                new ExtensionType("RGB565", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                new ExtensionType("RGB555", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                new ExtensionType("RGBA5551", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                new ExtensionType("RGBA4444", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                new ExtensionType("RG88", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG")),
+                new ExtensionType("R8", true),
+                new ExtensionType("G8", true),
+                new ExtensionType("B8", true),
+
+                new ExtensionType("LA88", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                new ExtensionType("LA44", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                new ExtensionType("L8", true),
+                new ExtensionType("A8", true),
+                new ExtensionType("L4", true),
+                new ExtensionType("A4", true),
+
+                new ExtensionType("ETC1", true,
+                    new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
+                new ExtensionType("ETC1A4", true,
+                    new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
+
+                new ExtensionType("DXT1", true),
+                new ExtensionType("DXT3", true),
+                new ExtensionType("DXT5", true),
+                new ExtensionType("ATI1", true),
+                new ExtensionType("ATI1L", true),
+                new ExtensionType("ATI1A", true),
+                new ExtensionType("ATI2", true,
+                    new ExtensionTypeParameter("WiiU Variant", typeof(bool), false)),
+
+                new ExtensionType("ATC", true),
+                new ExtensionType("ATCA", true,
+                    new ExtensionTypeParameter("AlphaMode", typeof(AtcAlpha), AtcAlpha.Explicit)),
+            };
+        }
+
+        private IList<ExtensionType> GetSwizzles()
+        {
+            return new List<ExtensionType>
+            {
+                new ExtensionType("None",true),
+                new ExtensionType("NDS",true),
+                new ExtensionType("3DS",true),
+                new ExtensionType("WiiU",true,
+                    new ExtensionTypeParameter("SwizzleTileMode",typeof(int))),
+
+                new ExtensionType("Custom",true,
+                    new ExtensionTypeParameter("BitMapping",typeof(string),"{1,0},{0,1}"))
+            };
+        }
+
+        private IColorEncoding CreateEncoding()
+        {
+            switch (SelectedColorEncodingExtension.Name)
+            {
+                case "RGBA8888":
+                    var componentOrder1 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(8, 8, 8, 8, componentOrder1);
+
+                case "RGB888":
+                    var componentOrder2 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(8, 8, 8, componentOrder2);
+
+                case "RGB565":
+                    var componentOrder3 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(5, 6, 5, componentOrder3);
+
+                case "RGB555":
+                    var componentOrder4 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(5, 5, 5, componentOrder4);
+
+                case "RGBA5551":
+                    var componentOrder5 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(5, 5, 5, 1, componentOrder5);
+
+                case "RGBA4444":
+                    var componentOrder6 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(4, 4, 4, 4, componentOrder6);
+
+                case "RG88":
+                    var componentOrder7 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new Rgba(8, 8, 0, componentOrder7);
+
+                case "R8":
+                    return new Rgba(8, 0, 0);
+
+                case "G8":
+                    return new Rgba(0, 8, 0);
+
+                case "LA88":
+                    var componentOrder8 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new La(8, 8, componentOrder8);
+
+                case "LA44":
+                    var componentOrder9 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    return new La(4, 4, componentOrder9);
+
+                case "L8":
+                    return new La(8, 0);
+
+                case "A8":
+                    return new La(0, 8);
+
+                case "L4":
+                    return new La(4, 0);
+
+                case "A4":
+                    return new La(0, 4);
+
+                case "B8":
+                    return new Rgba(0, 0, 8);
+
+                case "ETC1":
+                    var zOrder1 = SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order");
+                    return new Etc1(false, zOrder1);
+
+                case "ETC1A4":
+                    var zOrder2 = SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order");
+                    return new Etc1(true, zOrder2);
+
+                case "DXT1":
+                    return new Bc(BcFormat.DXT1);
+
+                case "DXT3":
+                    return new Bc(BcFormat.DXT3);
+
+                case "DXT5":
+                    return new Bc(BcFormat.DXT5);
+
+                case "ATI1":
+                    return new Bc(BcFormat.ATI1);
+
+                case "ATI1L":
+                    return new Bc(BcFormat.ATI1L_WiiU);
+
+                case "ATI1A":
+                    return new Bc(BcFormat.ATI1A_WiiU);
+
+                case "ATI2":
+                    var wiiU = SelectedColorEncodingExtension.GetParameterValue<bool>("WiiU Variant");
+                    return wiiU ? new Bc(BcFormat.ATI2) : new Bc(BcFormat.ATI2_WiiU);
+
+                case "ATC":
+                    return new Atc(AtcFormat.ATC, ByteOrder.LittleEndian);
+
+                case "ATCA":
+                    var atcAlpha = SelectedColorEncodingExtension.GetParameterValue<AtcAlpha>("AlphaMode");
+                    return atcAlpha == AtcAlpha.Explicit ?
+                        new Atc(AtcFormat.ATCA_Exp, ByteOrder.LittleEndian) :
+                        new Atc(AtcFormat.ATCA_Int, ByteOrder.LittleEndian);
+
+                default:
+                    return null;
+            }
+        }
+
+        private IImageSwizzle CreateSwizzle(Size size, IEncodingInfo encoding)
+        {
+            switch (SelectedSwizzleExtension.Name)
+            {
+                case "NDS":
+                    return new NitroSwizzle(size.Width, size.Height);
+
+                case "3DS":
+                    return new CTRSwizzle(size.Width, size.Height, CtrTransformation.None, true);
+
+                case "WiiU":
+                    var swizzleTileMode = SelectedSwizzleExtension.GetParameterValue<byte>("SwizzleTileMode");
+                    return new CafeSwizzle(swizzleTileMode, encoding.BitsPerValue > 32, encoding.BitDepth, size.Width, size.Height);
+
+                case "Custom":
+                    var swizzleText = SelectedSwizzleExtension.GetParameterValue<string>("BitMapping");
+                    var escapedSwizzleText = swizzleText.Replace(" ", "");
+
+                    var pointStrings = escapedSwizzleText.Substring(1, escapedSwizzleText.Length - 2)
+                        .Split(new[] { "},{" }, StringSplitOptions.None);
+                    var finalPoints = pointStrings.Select(x => x.Split(','))
+                        .Select(x => (int.Parse(x[0]), int.Parse(x[1])));
+
+                    var masterSwizzle = new MasterSwizzle(size.Width, Point.Empty, finalPoints.ToArray());
+                    return new CustomSwizzle(size.Width, size.Height, masterSwizzle);
+
+                default:
+                    return null;
+            }
+        }
+
+        private bool CheckCustomSwizzle()
+        {
+            var swizzleText = SelectedSwizzleExtension.GetParameterValue<string>("BitMapping");
+            var escapedSwizzleText = swizzleText.Replace(" ", "");
+
+            var regex = new Regex(@"^({\d+,\d+}[,]?)+$");
+            return regex.Match(escapedSwizzleText).Value != escapedSwizzleText;
+        }
+
+        #endregion
+
         private void OpenFile(string fileName)
         {
             if (!File.Exists(fileName))
@@ -679,15 +561,20 @@ namespace Kuriimu2.WinForms.MainForms
             _fileLoaded = true;
         }
 
-        private void BtnDecode_Click(object sender, EventArgs e)
+        private bool TryParseParameters(GroupBox gbControl, ExtensionTypeParameter[] parameters)
         {
-            LoadImage();
-        }
+            foreach (var parameter in parameters)
+            {
+                var control = gbControl.Controls.Find(parameter.Name, false)[0];
 
-        private void PbMain_ZoomChanged(object sender, EventArgs e)
-        {
-            // ReSharper disable once LocalizableElement
-            tslZoom.Text = $"Zoom: {pbMain.Zoom}%";
+                if (!parameter.TryParse(control, out var error))
+                {
+                    //Logger.QueueMessage(LogLevel.Error, error);
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

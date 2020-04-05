@@ -10,6 +10,7 @@ using Kore.Batch;
 using Kore.Logging;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 using Kuriimu2.WinForms.ExtensionForms.Support;
+using Kuriimu2.WinForms.Extensions;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.ExtensionForms
@@ -140,91 +141,13 @@ namespace Kuriimu2.WinForms.ExtensionForms
             {
                 var control = gbTypeExtensionParameters.Controls.Find(parameter.Name, false)[0];
 
-                // If type is a file
-                if (parameter.IsFile)
+                if (!parameter.TryParse(control, out var error))
                 {
-                    var fileTextBox = control as TextBox;
-                    if (string.IsNullOrEmpty(fileTextBox.Text))
-                    {
-                        Logger.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
-                        return false;
-                    }
-
-                    parameter.Value = fileTextBox.Text;
-                    continue;
-                }
-
-                // If type is an enum
-                if (parameter.ParameterType.IsEnum)
-                {
-                    var enumName = ((ComboBox)control).SelectedText;
-                    if (!Enum.IsDefined(parameter.ParameterType, enumName))
-                    {
-                        Logger.QueueMessage(LogLevel.Error, $"'{enumName}' is no valid member of  parameter '{parameter.Name}'.");
-                        return false;
-                    }
-
-                    parameter.Value = Enum.Parse(parameter.ParameterType, enumName);
-                    continue;
-                }
-
-                // If type is a boolean
-                if (parameter.ParameterType == typeof(bool))
-                {
-                    parameter.Value = ((CheckBox)control).Checked;
-                    continue;
-                }
-
-                // If type is text based
-                var textBox = (TextBox)control;
-
-                if (string.IsNullOrEmpty(textBox.Text))
-                {
-                    Logger.QueueMessage(LogLevel.Error, $"Parameter '{parameter.Name}' is empty.");
+                    Logger.QueueMessage(LogLevel.Error, error);
                     return false;
                 }
-
-                if (parameter.ParameterType == typeof(char))
-                {
-                    if (!char.TryParse(textBox.Text, out var result))
-                    {
-                        Logger.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid character.");
-                        return false;
-                    }
-
-                    parameter.Value = result;
-                    continue;
-                }
-
-                if (parameter.ParameterType == typeof(string))
-                {
-                    parameter.Value = textBox.Text;
-                    continue;
-                }
-
-                if (!TryParseNumber(parameter.ParameterType, textBox.Text, out var value))
-                {
-                    Logger.QueueMessage(LogLevel.Error, $"'{textBox.Text}' in parameter '{parameter.Name}' is no valid '{parameter.ParameterType.Name}'.");
-                    return false;
-                }
-
-                parameter.Value = value;
             }
 
-            return true;
-        }
-
-        private bool TryParseNumber(Type numberType, string stringValue, out object parsedValue)
-        {
-            parsedValue = null;
-
-            var method = numberType.GetMethod("TryParse", new[] { typeof(string), numberType.MakeByRefType() });
-            var inputObjects = new[] { stringValue, Activator.CreateInstance(numberType) };
-
-            if (!(bool)method.Invoke(null, inputObjects))
-                return false;
-
-            parsedValue = inputObjects[1];
             return true;
         }
 
