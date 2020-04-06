@@ -9,6 +9,7 @@ using Kontract.Models.Archive;
 
 namespace plugin_nintendo.Archives
 {
+    // Game: Unknown
     class Cgrp
     {
         private static int _headerSize = 0x14;
