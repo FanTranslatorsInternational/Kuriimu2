@@ -2,7 +2,7 @@
 {
     class QpHeader
     {
-        public uint hash;
+        public uint hash = 0x55aa382d;
         public int entryDataOffset;
         public int entryDataSize;
         public int dataOffset;

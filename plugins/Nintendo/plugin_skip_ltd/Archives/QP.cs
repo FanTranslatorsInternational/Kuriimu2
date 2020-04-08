@@ -7,6 +7,7 @@ using Kontract.Models.IO;
 using System.Linq;
 using System.Text;
 using Kontract.Extensions;
+using Kryptography.Hash.Crc;
 
 namespace plugin_skip_ltd.Archives
 {
@@ -73,7 +74,7 @@ namespace plugin_skip_ltd.Archives
 
         public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
         {
-            using var bw = new BinaryWriterX(output);
+            using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Build directory tree
             var directoryTree = BuildDirectoryTree(files);
@@ -130,13 +131,14 @@ namespace plugin_skip_ltd.Archives
                     }
 
                     // Add sub directories
-                    var subDirectories = directories.Where(x => x.Item1.IsInDirectory(currentDirectory.Item1, true)).ToArray();
+                    var subDirectories = directories.Where(x => x != currentDirectory &&
+                                                                x.Item1.IsInDirectory(currentDirectory.Item1, true)).ToArray();
                     PopulateEntryList(subDirectories, currentDirectoryIndex);
 
                     // Edit fileSize field
                     currentDirectoryEntry.fileSize = entries.Count;
 
-                    i += subDirectories.Length - 1;
+                    i += subDirectories.Length;
                 }
             }
 
@@ -168,12 +170,11 @@ namespace plugin_skip_ltd.Archives
             bw.BaseStream.Position = 0;
             bw.WriteType(new QpHeader
             {
-                // TODO: Set hash for header
-                hash = 0xFFFFFFFF,
                 entryDataOffset = _headerSize,
                 entryDataSize = entries.Count * _entrySize + (int)nameStream.Length,
                 dataOffset = dataOffset
             });
+            bw.WritePadding(0x10, 0xCC);
         }
 
         private IList<(UPath, int)> BuildDirectoryTree(IReadOnlyList<ArchiveFileInfo> files)
@@ -183,7 +184,7 @@ namespace plugin_skip_ltd.Archives
                 .Select(x => x.FilePath.GetDirectory())
                 .Distinct();
 
-            var directories = new List<(UPath, int)> { (UPath.Empty, -1) };
+            var directories = new List<(UPath, int)> { (UPath.Root, -1) };
             foreach (var directory in distinctDirectories)
             {
                 var splittedDirectory = directory.Split();
@@ -193,7 +194,7 @@ namespace plugin_skip_ltd.Archives
                     var combinedPath = UPath.Combine(takenParts);
 
                     if (directories.All(x => x.Item1 != combinedPath))
-                        directories.Add((combinedPath, directories.FindIndex(x => x.Item1 == combinedPath.GetDirectory())));
+                        directories.Add((combinedPath.ToAbsolute(), directories.FindIndex(x => x.Item1 == combinedPath.GetDirectory())));
                 }
             }
 
