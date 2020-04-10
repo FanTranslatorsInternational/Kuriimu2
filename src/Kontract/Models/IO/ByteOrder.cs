@@ -5,7 +5,7 @@
     /// </summary>
     public enum ByteOrder : ushort
     {
-        LittleEndian = 0xFEFF,
-        BigEndian = 0xFFFE
+        LittleEndian = 0xFFFE,
+        BigEndian = 0xFEFF
     }
 }

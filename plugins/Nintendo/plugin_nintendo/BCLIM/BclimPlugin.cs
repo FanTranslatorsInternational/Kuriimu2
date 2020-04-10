@@ -36,7 +36,10 @@ namespace plugin_nintendo.BCLIM
                     return false;
 
                 br.BaseStream.Position = br.BaseStream.Length - 0x28;
-                return br.ReadString(4) == "CLIM";
+                var magic = br.ReadString(4);
+                br.BaseStream.Position += 8;
+
+                return magic == "CLIM" && br.ReadInt32() == fileStream.Length;
             }
         }
 

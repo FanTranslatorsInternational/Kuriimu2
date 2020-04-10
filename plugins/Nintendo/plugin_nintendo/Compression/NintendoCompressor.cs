@@ -1,28 +1,12 @@
 ﻿using System;
 using System.IO;
 using Kontract.Kompression.Configuration;
+using plugin_nintendo.Compression;
 
 namespace plugin_level5.Compression
 {
     class NintendoCompressor
     {
-        public static void Decompress(Stream input, Stream output)
-        {
-            var method = (NintendoCompressionMethod)input.ReadByte();
-            input.Position--;
-
-            var configuration = GetConfiguration(method);
-
-            configuration.Build().Decompress(input, output);
-        }
-
-        public static void Compress(Stream input, Stream output, NintendoCompressionMethod method)
-        {
-            var configuration = GetConfiguration(method);
-
-            configuration.Build().Compress(input, output);
-        }
-
         public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)
         {
             switch (method)
