@@ -574,22 +574,25 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath0, _stateInfo.StreamManager);
 
             var temporaryStreamProvider = _stateInfo.StreamManager.CreateTemporaryStreamProvider();
+            var extractionPath = files.Count > 1 ? rootPath.GetDirectory() : rootPath;
             foreach (var afi in files)
             {
                 var fileData = _stateInfo.StreamManager.WrapUndisposable(await afi.GetFileData(temporaryStreamProvider));
 
-                var subPath = (UPath)afi.FilePath.FullName.Substring(rootPath.FullName.Length);
+                var subPath = (UPath)afi.FilePath.ToRelative().FullName.Substring(extractionPath.FullName.Length);
                 destinationFileSystem.CreateDirectory(subPath.GetDirectory());
 
                 var filePath = subPath;
                 if (selectedFile0 != string.Empty)
                     filePath = subPath.GetDirectory() / selectedFile0;
+
                 destinationFileSystem.SetFileData(filePath, fileData);
 
                 fileData.Close();
             }
 
-            MessageBox.Show($"'{rootPath}' extracted successfully.", "Extraction Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            extractionPath = files.Count > 1 ? rootPath : files[0].FilePath.GetName();
+            MessageBox.Show($"'{extractionPath}' extracted successfully.", "Extraction Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         #endregion

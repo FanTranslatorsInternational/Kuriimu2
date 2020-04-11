@@ -13,6 +13,7 @@ namespace plugin_nintendo.Archives
         [FixedLength(4)]
         public string magic = "CRAG";
         public uint headerSize;
+        [Endianness(ByteOrder = ByteOrder.BigEndian)]
         public ushort byteOrder;
         public byte minor;
         public byte major = 2;
@@ -27,6 +28,7 @@ namespace plugin_nintendo.Archives
         [FixedLength(4)]
         public string magic = "CRAG";
         public uint headerSize;
+        [Endianness(ByteOrder = ByteOrder.BigEndian)]
         public ushort byteOrder;
         public byte minor;
         public byte major = 4;

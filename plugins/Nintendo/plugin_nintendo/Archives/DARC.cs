@@ -1,35 +1,46 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
 using System.Linq;
 using System.Text;
+using Komponent.IO;
+using Komponent.IO.Streams;
+using Kontract.Extensions;
+using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
-    public class QP
+    public class DARC
     {
-        private static int _headerSize = 0x20;
-        private static int _entrySize = Tools.MeasureType(typeof(QpEntry));
+        private static int _headerSize = Tools.MeasureType(typeof(DarcHeader));
+        private static int _entrySize = Tools.MeasureType(typeof(DarcEntry));
+
+        private ByteOrder _byteOrder;
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
         {
-            using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
+            using var br = new BinaryReaderX(input, true);
+
+            // Select byte order
+            br.ByteOrder = ByteOrder.BigEndian;
+            br.BaseStream.Position = 4;
+            _byteOrder = br.ReadType<ByteOrder>();
+
+            br.ByteOrder = _byteOrder;
 
             // Read header
-            var header = br.ReadType<QpHeader>();
+            br.BaseStream.Position = 0;
+            var header = br.ReadType<DarcHeader>();
 
             // Read entries
-            br.BaseStream.Position = header.entryDataOffset;
-            var rootEntry = br.ReadType<QpEntry>();
+            br.BaseStream.Position = header.tableOffset;
+            var rootEntry = br.ReadType<DarcEntry>();
 
-            br.BaseStream.Position = header.entryDataOffset;
-            var entries = br.ReadMultiple<QpEntry>(rootEntry.size);
+            br.BaseStream.Position = header.tableOffset;
+            var entries = br.ReadMultiple<DarcEntry>(rootEntry.size);
 
             // Read names
-            var nameStream = new SubStream(input, br.BaseStream.Position, header.entryDataSize + header.entryDataOffset - br.BaseStream.Position);
+            var nameStream = new SubStream(input, br.BaseStream.Position, header.dataOffset - br.BaseStream.Position);
 
             // Add files
             using var nameBr = new BinaryReaderX(nameStream);
@@ -54,14 +65,14 @@ namespace plugin_skip_ltd.Archives
                 while (currentDirectoryEntry != entries[0])
                 {
                     nameBr.BaseStream.Position = currentDirectoryEntry.NameOffset;
-                    currentPath = nameBr.ReadCStringASCII() / currentPath;
+                    currentPath = nameBr.ReadCStringUTF16() / currentPath;
 
                     currentDirectoryEntry = entries[currentDirectoryEntry.offset];
                 }
 
                 // Get file name
                 nameBr.BaseStream.Position = entry.NameOffset;
-                var fileName = currentPath / nameBr.ReadCStringASCII();
+                var fileName = currentPath / nameBr.ReadCStringUTF16();
 
                 var fileStream = new SubStream(input, entry.offset, entry.size);
                 result.Add(new ArchiveFileInfo(fileStream, fileName.FullName));
@@ -72,48 +83,52 @@ namespace plugin_skip_ltd.Archives
 
         public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
         {
-            var darcTreeBuilder = new QpTreeBuilder(Encoding.ASCII);
+            var darcTreeBuilder = new DarcTreeBuilder(Encoding.Unicode);
             darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
 
             var entries = darcTreeBuilder.Entries;
             var nameStream = darcTreeBuilder.NameStream;
 
             var namePosition = _headerSize + entries.Count * _entrySize;
-            var dataOffset = (namePosition + (int)nameStream.Length + 0x1F) & ~0x1F;
+            var dataOffset = (namePosition + (int)nameStream.Length + 3) & ~3;
 
-            using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
+            using var bw = new BinaryWriterX(output, _byteOrder);
 
             // Write names
             bw.BaseStream.Position = namePosition;
             nameStream.Position = 0;
             nameStream.CopyTo(bw.BaseStream);
-            bw.WriteAlignment(0x20);
+            bw.WriteAlignment(4);
 
             // Write files
-            foreach (var (qpEntry, afi) in entries.Where(x => x.Item2 != null))
+            foreach (var (darcEntry, afi) in entries.Where(x => x.Item2 != null))
             {
-                bw.WriteAlignment(0x20);
+                var alignment = 4;
+                if (afi.FilePath.GetExtensionWithDot() == ".bclim")
+                    alignment = 0x80;
+
+                bw.WriteAlignment(alignment);
                 var fileOffset = (int)bw.BaseStream.Position;
 
                 var writtenSize = afi.SaveFileData(bw.BaseStream, null);
 
-                qpEntry.offset = fileOffset;
-                qpEntry.size = (int)writtenSize;
+                darcEntry.offset = fileOffset;
+                darcEntry.size = (int)writtenSize;
             }
 
             // Write entries
             bw.BaseStream.Position = _headerSize;
-            bw.WriteMultiple(entries.Select(x=>x.Item1));
+            bw.WriteMultiple(entries.Select(x => x.Item1));
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(new QpHeader
+            bw.WriteType(new DarcHeader
             {
-                entryDataOffset = _headerSize,
-                entryDataSize = entries.Count * _entrySize + (int)nameStream.Length,
-                dataOffset = dataOffset
+                byteOrder = _byteOrder,
+                dataOffset = dataOffset,
+                fileSize = (int)bw.BaseStream.Length,
+                tableLength = entries.Count * _entrySize + (int)nameStream.Length
             });
-            bw.WritePadding(0x10, 0xCC);
         }
     }
 }

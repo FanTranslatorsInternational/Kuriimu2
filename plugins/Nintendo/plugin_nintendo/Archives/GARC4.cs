@@ -24,7 +24,7 @@ namespace plugin_nintendo.Archives
             // Select byte order
             br.ByteOrder = ByteOrder.BigEndian;
             br.BaseStream.Position = 0x8;
-            _byteOrder = (ByteOrder)br.ReadUInt16();
+            _byteOrder = br.ReadType<ByteOrder>();
 
             br.ByteOrder = _byteOrder;
 
@@ -134,16 +134,12 @@ namespace plugin_nintendo.Archives
             bw.BaseStream.Position = 0;
             bw.WriteType(new Garc4Header
             {
+                byteOrder = (ushort)_byteOrder,
                 dataOffset = (uint)dataPosition,
                 fileSize = (uint)bw.BaseStream.Length,
                 headerSize = (uint)_headerSize,
                 largestFileSize = (uint)largestFileSize
             });
-
-            // Write byte order
-            bw.BaseStream.Position = 8;
-            bw.ByteOrder = ByteOrder.BigEndian;
-            bw.Write((ushort)_byteOrder);
         }
     }
 }

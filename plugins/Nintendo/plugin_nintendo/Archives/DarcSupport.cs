@@ -4,19 +4,27 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
+using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
-    class QpHeader
+    class DarcHeader
     {
-        public uint hash = 0x55aa382d;
-        public int entryDataOffset;
-        public int entryDataSize;
+        [FixedLength(4)]
+        public string magic = "darc";
+        [Endianness(ByteOrder = ByteOrder.BigEndian)]
+        public ByteOrder byteOrder = ByteOrder.LittleEndian;
+        public short headerSize = 0x1C;
+        public int version = 0x1000000;
+        public int fileSize;
+        public int tableOffset = 0x1C;
+        public int tableLength;
         public int dataOffset;
     }
 
-    class QpEntry
+    class DarcEntry
     {
         public int tmp1;
         public int offset;
@@ -24,7 +32,7 @@ namespace plugin_skip_ltd.Archives
 
         public bool IsDirectory
         {
-            get => tmp1 >> 24 == 1;
+            get => (tmp1 >> 24) == 1;
             set => tmp1 = (tmp1 & 0xFFFFFF) | ((value ? 1 : 0) << 24);
         }
 
@@ -35,16 +43,16 @@ namespace plugin_skip_ltd.Archives
         }
     }
 
-    class QpTreeBuilder
+    class DarcTreeBuilder
     {
         private Encoding _nameEncoding;
         private BinaryWriterX _nameBw;
 
-        public IList<(QpEntry, ArchiveFileInfo)> Entries { get; private set; }
+        public IList<(DarcEntry, ArchiveFileInfo)> Entries { get; private set; }
 
         public Stream NameStream { get; private set; }
 
-        public QpTreeBuilder(Encoding nameEncoding)
+        public DarcTreeBuilder(Encoding nameEncoding)
         {
             _nameEncoding = nameEncoding;
         }
@@ -59,7 +67,7 @@ namespace plugin_skip_ltd.Archives
             _nameBw = new BinaryWriterX(NameStream, true);
 
             // Populate entries
-            Entries = new List<(QpEntry, ArchiveFileInfo)>();
+            Entries = new List<(DarcEntry, ArchiveFileInfo)>();
             PopulateEntryList(files, directoryTree, 0);
         }
 
@@ -105,7 +113,7 @@ namespace plugin_skip_ltd.Archives
 
                 // Add directory entry
                 var currentDirectoryIndex = Entries.Count;
-                var currentDirectoryEntry = new QpEntry
+                var currentDirectoryEntry = new DarcEntry
                 {
                     IsDirectory = true,
                     NameOffset = directoryNameOffset,
@@ -122,7 +130,7 @@ namespace plugin_skip_ltd.Archives
                     _nameBw.WriteString(GetName(file.path), _nameEncoding, false);
 
                     // Add file entry
-                    var fileEntry = new QpEntry
+                    var fileEntry = new DarcEntry
                     {
                         IsDirectory = false,
                         NameOffset = nameOffset
