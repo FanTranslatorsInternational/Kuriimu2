@@ -15,36 +15,36 @@ namespace plugin_grezzo.Archives
         public byte version;
         public uint fileSize;
 
-        public short directoryCount;
+        public short fileTypeCount;
         public short fileCount;
 
-        public int directoryEntryOffset;
+        public int fileTypeEntryOffset;
         public int fileEntryOffset;
-        public int filePositionOffset;
+        public int fileOffsetsOffset;
 
         [FixedLength(8)]
         public string hold0; //jenkins
     }
 
-    class Gar2DirectoryEntry
+    class Gar2FileTypeEntry
     {
         public int fileCount;
-        public int fileIdOffset;
-        public int directoryNameOffset;
+        public int fileIndexOffset;
+        public int fileTypeNameOffset;
         public int unk1 = -1;
     }
 
     [Alignment(0x20)]
-    class Gar5DirectoryEntry
+    class Gar5FileTypeEntry
     {
         public int fileCount;
         public int unk1;
         public int fileEntryIndex;
-        public int directoryNameOffset;
-        public int directoryInfoOffset;
+        public int fileTypeNameOffset;
+        public int fileTypeInfoOffset;
     }
 
-    class Gar5DirectoryInfo
+    class Gar5FileTypeInfo
     {
         public int unk1;
         public int unk2;

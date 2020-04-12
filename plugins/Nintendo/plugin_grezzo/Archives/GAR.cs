@@ -15,18 +15,18 @@ namespace plugin_grezzo.Archives
     {
         private static int _headerSize = Tools.MeasureType(typeof(GarHeader));
 
-        private static int _gar2DirectoryEntrySize = Tools.MeasureType(typeof(Gar2DirectoryEntry));
+        private static int _gar2FileTypeEntrySize = Tools.MeasureType(typeof(Gar2FileTypeEntry));
         private static int _gar2FileEntrySize = Tools.MeasureType(typeof(Gar2FileEntry));
 
-        private static int _gar5DirectoryEntrySize = 0x20;
-        private static int _gar5DirectoryInfoSize = Tools.MeasureType(typeof(Gar5DirectoryInfo));
+        private static int _gar5FileTypeEntrySize = 0x20;
+        private static int _gar5FileTpyeInfoSize = Tools.MeasureType(typeof(Gar5FileTypeInfo));
         private static int _gar5FileEntrySize = Tools.MeasureType(typeof(Gar5FileEntry));
 
         private byte _headerVersion;
         private string _headerString;
 
-        private IList<(Gar5DirectoryEntry, string)> _directoryEntries;
-        private IList<Gar5DirectoryInfo> _directoryInfos;
+        private IList<(Gar5FileTypeEntry, string)> _fileTypeEntries;
+        private IList<Gar5FileTypeInfo> _fileTypeInfos;
 
         public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
         {
@@ -70,40 +70,36 @@ namespace plugin_grezzo.Archives
 
         private IReadOnlyList<ArchiveFileInfo> ParseGar2(BinaryReaderX br, GarHeader header)
         {
-            // Read directory entries
-            var directoryEntries = br.ReadMultiple<Gar2DirectoryEntry>(header.directoryCount);
+            // Read file type entries
+            var fileTypeEntries = br.ReadMultiple<Gar2FileTypeEntry>(header.fileTypeCount);
 
             var result = new List<ArchiveFileInfo>();
-            foreach (var directoryEntry in directoryEntries)
+            foreach (var fileTypeEntry in fileTypeEntries)
             {
-                if (directoryEntry.fileIdOffset < 0)
+                if (fileTypeEntry.fileIndexOffset < 0)
                     continue;
 
-                // Read directory name
-                br.BaseStream.Position = directoryEntry.directoryNameOffset;
-                var directoryName = br.ReadCStringASCII();
-
                 // Read file entry indices
-                br.BaseStream.Position = directoryEntry.fileIdOffset;
-                var fileIds = br.ReadMultiple<int>(directoryEntry.fileCount);
+                br.BaseStream.Position = fileTypeEntry.fileIndexOffset;
+                var fileIndices = br.ReadMultiple<int>(fileTypeEntry.fileCount);
 
                 // Read file entries
                 br.BaseStream.Position = header.fileEntryOffset;
                 var fileEntries = br.ReadMultiple<Gar2FileEntry>(header.fileCount);
 
                 // Read file offsets
-                br.BaseStream.Position = header.filePositionOffset;
+                br.BaseStream.Position = header.fileOffsetsOffset;
                 var fileOffsets = br.ReadMultiple<int>(header.fileCount);
 
                 // Add files
-                foreach (var fileId in fileIds)
+                foreach (var fileIndex in fileIndices)
                 {
-                    var fileStream = new SubStream(br.BaseStream, fileOffsets[fileId], fileEntries[fileId].fileSize);
+                    var fileStream = new SubStream(br.BaseStream, fileOffsets[fileIndex], fileEntries[fileIndex].fileSize);
 
-                    br.BaseStream.Position = fileEntries[fileId].fileNameOffset;
+                    br.BaseStream.Position = fileEntries[fileIndex].fileNameOffset;
                     var fileName = br.ReadCStringASCII();
 
-                    result.Add(new ArchiveFileInfo(fileStream, directoryName + "/" + fileName));
+                    result.Add(new ArchiveFileInfo(fileStream, fileName));
                 }
             }
 
@@ -112,42 +108,40 @@ namespace plugin_grezzo.Archives
 
         private IReadOnlyList<ArchiveFileInfo> ParseGar5(BinaryReaderX br, GarHeader header)
         {
-            // Read directory entries
-            _directoryEntries = new List<(Gar5DirectoryEntry, string)>();
-            var directoryEntries = br.ReadMultiple<Gar5DirectoryEntry>(header.directoryCount);
+            // Read file type entries
+            _fileTypeEntries = new List<(Gar5FileTypeEntry, string)>();
+            var fileTypeEntries = br.ReadMultiple<Gar5FileTypeEntry>(header.fileTypeCount);
 
             // Read directory infos
-            var directoryInfoPosition = directoryEntries.Where(x => x.directoryInfoOffset > 0).Min(x => x.directoryInfoOffset);
-            var directoryInfoLength = header.fileEntryOffset - directoryInfoPosition;
-            br.BaseStream.Position = directoryInfoPosition;
-            _directoryInfos = br.ReadMultiple<Gar5DirectoryInfo>(directoryInfoLength / _gar5DirectoryInfoSize);
+            var fileTypeInfoPosition = fileTypeEntries.Where(x => x.fileTypeInfoOffset > 0).Min(x => x.fileTypeInfoOffset);
+            var fileTypeInfoLength = header.fileEntryOffset - fileTypeInfoPosition;
+            br.BaseStream.Position = fileTypeInfoPosition;
+            _fileTypeInfos = br.ReadMultiple<Gar5FileTypeInfo>(fileTypeInfoLength / _gar5FileTpyeInfoSize);
 
             var result = new List<ArchiveFileInfo>();
-            foreach (var directoryEntry in directoryEntries)
+            foreach (var fileTypeEntry in fileTypeEntries)
             {
-                // Read directory name
-                br.BaseStream.Position = directoryEntry.directoryNameOffset;
-                var directoryName = br.ReadCStringASCII();
-                _directoryEntries.Add((directoryEntry, directoryName));
+                // Read file type name
+                br.BaseStream.Position = fileTypeEntry.fileTypeNameOffset;
+                var fileTypeName = br.ReadCStringASCII();
+                _fileTypeEntries.Add((fileTypeEntry, "." + fileTypeName));
 
                 // Read file entries
                 br.BaseStream.Position = header.fileEntryOffset;
                 var fileEntries = br.ReadMultiple<Gar5FileEntry>(header.fileCount);
 
                 // Add files
-                if (directoryEntry.fileEntryIndex >= 0)
+                if (fileTypeEntry.fileEntryIndex >= 0)
                 {
-                    var fileEntryIndexEnd = directoryEntry.fileEntryIndex + directoryEntry.fileCount;
-                    for (var i = directoryEntry.fileEntryIndex; i < fileEntryIndexEnd; i++)
+                    var fileEntryIndexEnd = fileTypeEntry.fileEntryIndex + fileTypeEntry.fileCount;
+                    for (var i = fileTypeEntry.fileEntryIndex; i < fileEntryIndexEnd; i++)
                     {
-                        var fileStream = new SubStream(br.BaseStream, fileEntries[i].fileOffset,
-                            fileEntries[i].fileSize);
+                        var fileStream = new SubStream(br.BaseStream, fileEntries[i].fileOffset, fileEntries[i].fileSize);
 
                         br.BaseStream.Position = fileEntries[i].fileNameOffset;
                         var fileName = br.ReadCStringASCII();
 
-                        result.Add(
-                            new ArchiveFileInfo(fileStream, directoryName + "/" + fileName + "." + directoryName));
+                        result.Add(new ArchiveFileInfo(fileStream, fileName + "." + fileTypeName));
                     }
                 }
             }
@@ -159,49 +153,49 @@ namespace plugin_grezzo.Archives
         {
             using var bw = new BinaryWriterX(output);
 
-            var directories = files.Select(x => x.FilePath.GetDirectory().ToRelative()).Distinct().ToArray();
+            var fileTypes = files.Select(x => x.FilePath.GetExtensionWithDot()).Distinct().ToArray();
 
-            var directoryEntryPosition = _headerSize;
-            var directoryNamePosition = directoryEntryPosition + directories.Length * _gar2DirectoryEntrySize;
+            var fileTypeEntryPosition = _headerSize;
+            var fileTypeNamePosition = fileTypeEntryPosition + fileTypes.Length * _gar2FileTypeEntrySize;
 
             // Write directory entries
             var fileInfos = new List<ArchiveFileInfo>();
 
-            var fileId = 0;
-            var directoryEntryOffset = directoryEntryPosition;
-            var directoryNameOffset = directoryNamePosition;
-            foreach (var directory in directories)
+            var fileIndex = 0;
+            var fileTypeEntryOffset = fileTypeEntryPosition;
+            var fileTypeNameOffset = fileTypeNamePosition;
+            foreach (var fileType in fileTypes)
             {
                 // Write directory name
-                bw.BaseStream.Position = directoryNameOffset;
-                bw.WriteString(directory.FullName, Encoding.ASCII, false);
+                bw.BaseStream.Position = fileTypeNameOffset;
+                bw.WriteString(fileType.Substring(1, fileType.Length - 1), Encoding.ASCII, false);
                 bw.WriteAlignment(4);
 
                 // Select files in directory
-                var relevantFiles = files.Where(x => x.FilePath.IsInDirectory(directory.ToAbsolute(), true)).ToArray();
+                var relevantFiles = files.Where(x => x.FilePath.GetExtensionWithDot() == fileType).ToArray();
                 fileInfos.AddRange(relevantFiles);
 
-                // Write file ids
-                var fileIdOffset = (int)bw.BaseStream.Position;
-                bw.WriteMultiple(Enumerable.Range(fileId, relevantFiles.Length));
-                fileId += relevantFiles.Length;
+                // Write file indices
+                var fileIndexOffset = (int)bw.BaseStream.Position;
+                bw.WriteMultiple(Enumerable.Range(fileIndex, relevantFiles.Length));
+                fileIndex += relevantFiles.Length;
 
                 var newDirectoryNameOffset = (int)bw.BaseStream.Position;
 
                 // Write directory entry
-                bw.BaseStream.Position = directoryEntryOffset;
-                bw.WriteType(new Gar2DirectoryEntry
+                bw.BaseStream.Position = fileTypeEntryOffset;
+                bw.WriteType(new Gar2FileTypeEntry
                 {
                     fileCount = relevantFiles.Length,
-                    directoryNameOffset = directoryNameOffset,
-                    fileIdOffset = fileIdOffset
+                    fileTypeNameOffset = fileTypeNameOffset,
+                    fileIndexOffset = fileIndexOffset
                 });
 
-                directoryNameOffset = newDirectoryNameOffset;
-                directoryEntryOffset += _gar2DirectoryEntrySize;
+                fileTypeNameOffset = newDirectoryNameOffset;
+                fileTypeEntryOffset += _gar2FileTypeEntrySize;
             }
 
-            var fileEntryPosition = directoryNameOffset;
+            var fileEntryPosition = fileTypeNameOffset;
 
             // Write file entries
             var fileEntryOffset = fileEntryPosition;
@@ -255,14 +249,14 @@ namespace plugin_grezzo.Archives
             bw.BaseStream.Position = 0;
             bw.WriteType(new GarHeader
             {
-                directoryCount = (short)directories.Length,
+                fileTypeCount = (short)fileTypes.Length,
                 fileCount = (short)fileInfos.Count,
 
                 fileSize = (uint)bw.BaseStream.Length,
 
-                directoryEntryOffset = directoryEntryPosition,
+                fileTypeEntryOffset = fileTypeEntryPosition,
                 fileEntryOffset = fileEntryPosition,
-                filePositionOffset = fileOffsetPosition,
+                fileOffsetsOffset = fileOffsetPosition,
 
                 version = _headerVersion,
                 hold0 = _headerString
@@ -271,49 +265,47 @@ namespace plugin_grezzo.Archives
 
         private void SaveGar5(Stream output, IReadOnlyList<ArchiveFileInfo> files)
         {
-            var directoryEntryPosition = _headerSize;
-            var directoryNamePosition = directoryEntryPosition + _directoryEntries.Count * _gar5DirectoryEntrySize;
+            var fileTypeEntryPosition = _headerSize;
+            var fileTypeNamePosition = fileTypeEntryPosition + _fileTypeEntries.Count * _gar5FileTypeEntrySize;
 
             using var bw = new BinaryWriterX(output);
 
-            // Write directory entries
+            // Write file type entries
             var fileInfos = new List<ArchiveFileInfo>();
 
             var fileEntryIndex = 0;
-            var directoryNameOffset = directoryNamePosition;
-            var directoryEntryOffset = directoryEntryPosition;
-            foreach (var directoryEntry in _directoryEntries)
+            var fileTypeNameOffset = fileTypeNamePosition;
+            var fileTypeEntryOffset = fileTypeEntryPosition;
+            foreach (var fileTypeEntry in _fileTypeEntries)
             {
-                var relevantFiles = directoryEntry.Item2 == null
-                    ? Array.Empty<ArchiveFileInfo>()
-                    : files.Where(x => x.FilePath.IsInDirectory(((UPath)directoryEntry.Item2).ToAbsolute(), false))
-                        .ToArray();
+                var relevantFiles = files.Where(x => x.FilePath.GetExtensionWithDot() == fileTypeEntry.Item2).ToArray();
                 fileInfos.AddRange(relevantFiles);
 
-                // Write directory name
-                bw.BaseStream.Position = directoryNameOffset;
-                bw.WriteString(directoryEntry.Item2, Encoding.ASCII, false);
+                // Write file type name
+                bw.BaseStream.Position = fileTypeNameOffset;
+                var fileTypeName = fileTypeEntry.Item2.Substring(1, fileTypeEntry.Item2.Length - 1);
+                bw.WriteString(fileTypeName, Encoding.ASCII, false);
 
                 // Update entry information
-                directoryEntry.Item1.fileCount = relevantFiles.Length;
-                directoryEntry.Item1.fileEntryIndex = relevantFiles.Length == 0 ? -1 : fileEntryIndex;
-                directoryEntry.Item1.directoryNameOffset = directoryNameOffset;
+                fileTypeEntry.Item1.fileCount = relevantFiles.Length;
+                fileTypeEntry.Item1.fileEntryIndex = relevantFiles.Length == 0 ? -1 : fileEntryIndex;
+                fileTypeEntry.Item1.fileTypeNameOffset = fileTypeNameOffset;
 
-                directoryNameOffset = (int)bw.BaseStream.Position;
+                fileTypeNameOffset = (int)bw.BaseStream.Position;
                 fileEntryIndex += relevantFiles.Length;
 
-                // Write directory entry
-                bw.BaseStream.Position = directoryEntryOffset;
-                bw.WriteType(directoryEntry);
+                // Write file type entry
+                bw.BaseStream.Position = fileTypeEntryOffset;
+                bw.WriteType(fileTypeEntry);
 
-                directoryEntryOffset = (int)bw.BaseStream.Position;
+                fileTypeEntryOffset = (int)bw.BaseStream.Position;
             }
 
-            var directoryInfoPosition = (directoryNameOffset + 3) & ~3;
+            var fileTypeInfoPosition = (fileTypeNameOffset + 3) & ~3;
 
-            // Write directory infos
-            bw.BaseStream.Position = directoryInfoPosition;
-            bw.WriteMultiple(_directoryInfos);
+            // Write file type infos
+            bw.BaseStream.Position = fileTypeInfoPosition;
+            bw.WriteMultiple(_fileTypeInfos);
 
             var fileEntryPosition = (int)bw.BaseStream.Position;
             var fileNamePosition = fileEntryPosition + fileInfos.Count * _gar5FileEntrySize;
@@ -357,12 +349,12 @@ namespace plugin_grezzo.Archives
             bw.BaseStream.Position = 0;
             bw.WriteType(new GarHeader
             {
-                directoryCount = (short)_directoryEntries.Count,
+                fileTypeCount = (short)_fileTypeEntries.Count,
                 fileCount = (short)fileInfos.Count,
 
-                directoryEntryOffset = directoryEntryPosition,
+                fileTypeEntryOffset = fileTypeEntryPosition,
                 fileEntryOffset = fileEntryPosition,
-                filePositionOffset = dataPosition,
+                fileOffsetsOffset = dataPosition,
 
                 fileSize = (uint)bw.BaseStream.Length,
 
