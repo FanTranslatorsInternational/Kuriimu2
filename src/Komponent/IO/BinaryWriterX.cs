@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
 using Komponent.IO.Attributes;
+using Komponent.IO.BinarySupport;
 using Kontract.Models.IO;
 
 namespace Komponent.IO

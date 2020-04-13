@@ -1,4 +1,5 @@
 ﻿using System;
+using Kontract;
 
 namespace Komponent.IO.Attributes
 {
@@ -6,11 +7,13 @@ namespace Komponent.IO.Attributes
     public class VariableLengthAttribute : Attribute
     {
         public string FieldName { get; }
-        public StringEncoding StringEncoding = StringEncoding.ASCII;
-        public int Offset;
+        public StringEncoding StringEncoding { get; set; } = StringEncoding.ASCII;
+        public int Offset { get; set; }
 
         public VariableLengthAttribute(string fieldName)
         {
+            ContractAssertions.IsNotNull(fieldName, nameof(fieldName));
+
             FieldName = fieldName;
         }
     }

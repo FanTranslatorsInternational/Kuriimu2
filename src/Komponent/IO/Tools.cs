@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Komponent.IO.Attributes;
+using Komponent.IO.BinarySupport;
 
 namespace Komponent.IO
 {
