@@ -53,7 +53,7 @@ namespace Komponent.IO.BinarySupport
             }
             else if (readType.IsClass || Tools.IsStruct(readType))
             {
-                returnValue = ReadTypeClass(br, readType, storage);
+                returnValue = ReadTypeClass(br, readType, storage.CreateScope(fieldInfo?.Name));
             }
             else if (readType.IsEnum)
             {
@@ -123,7 +123,7 @@ namespace Komponent.IO.BinarySupport
 
             for (var i = 0; i < length; i++)
             {
-                var elementValue = ReadTypeInternal(br, elementType, storage);
+                var elementValue = ReadTypeInternal(br, elementType, storage.CreateScope($"[{i}]"));
                 if (list.IsFixedSize)
                     list[i] = elementValue;
                 else
@@ -156,10 +156,7 @@ namespace Komponent.IO.BinarySupport
                 if (bitInfo != null)
                     fieldValue = Convert.ChangeType(br.ReadBits(bitInfo.BitLength), field.FieldType);
                 else
-                {
-                    var fieldInfo = field.CustomAttributes.Any() ? field : null;
-                    fieldValue = ReadTypeInternal(br, field.FieldType, storage.CreateScope(field.Name), fieldInfo);
-                }
+                    fieldValue = ReadTypeInternal(br, field.FieldType, storage, field);
 
                 storage.Add(field.Name, fieldValue);
                 field.SetValue(item, fieldValue);

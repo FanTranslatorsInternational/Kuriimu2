@@ -16,9 +16,6 @@ namespace Komponent.IO.Attributes
             if (!calculationType.IsClass)
                 throw new ArgumentException("Type needs to be a class.");
 
-            if (calculationType.GetConstructors().All(x => x.GetParameters().Length != 0))
-                throw new InvalidOperationException("Class needs to have an empty constructor.");
-
             var method = calculationType.GetMethod(calculationMethod);
             if (method == null)
                 throw new InvalidOperationException($"Class does not contain a Method '{calculationMethod}'.");
@@ -37,6 +34,9 @@ namespace Komponent.IO.Attributes
             else
             {
                 // If class has to be instantiated
+                if (calculationType.GetConstructors().All(x => x.GetParameters().Length != 0))
+                    throw new InvalidOperationException("Class needs to have an empty constructor.");
+
                 var classInstance = Activator.CreateInstance(calculationType);
                 CalculationAction = storage => (int)method.Invoke(classInstance, new object[] { storage });
             }
