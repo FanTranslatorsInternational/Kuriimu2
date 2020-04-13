@@ -3,7 +3,7 @@
     /// <summary>
     /// Offers additional information to the plugin.
     /// </summary>
-    public class PluginMetadata
+    public sealed class PluginMetadata
     {
         /// <summary>
         /// The name of the plugin or its supported format(s).
