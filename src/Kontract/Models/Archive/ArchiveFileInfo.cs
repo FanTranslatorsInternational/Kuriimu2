@@ -27,7 +27,7 @@ namespace Kontract.Models.Archive
         private bool UsesCompression => _configuration != null;
 
         /// <summary>
-        /// Determines of the content of this file info was modified.
+        /// Determines if the content of this file info was modified.
         /// </summary>
         public bool ContentChanged { get; set; }
 
@@ -88,7 +88,7 @@ namespace Kontract.Models.Archive
         /// <param name="progress">The context to report progress to.</param>
         /// <returns>The file data for this file info.</returns>
         /// <remarks>The <see cref="ITemporaryStreamProvider"/> is used for decrypting or decompressing files temporarily onto the disk to minimize memory usage.</remarks>
-        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider, IProgressContext progress = null)
+        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
         {
             if (UsesCompression)
                 return Task.Factory.StartNew(() => _decompressedStream.Value);
@@ -125,7 +125,7 @@ namespace Kontract.Models.Archive
         /// <param name="output">The output to write the file data to.</param>
         /// <param name="progress">The context to report progress to.</param>
         /// <returns>The size of the file written.</returns>
-        public virtual long SaveFileData(Stream output, IProgressContext progress)
+        public virtual long SaveFileData(Stream output, IProgressContext progress = null)
         {
             Stream dataToCopy;
             if (UsesCompression)
