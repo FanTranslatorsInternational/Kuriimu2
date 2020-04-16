@@ -12,7 +12,7 @@ namespace Kontract.Models.Image
         /// <summary>
         /// If the value image info contains an indexed image format.
         /// </summary>
-        public virtual bool IsIndexed => false;
+        public virtual bool IsIndexed => PaletteData != null && PaletteFormat >= 0;
 
         /// <summary>
         /// The name of this image.
@@ -33,6 +33,16 @@ namespace Kontract.Models.Image
         /// The format to use with this image.
         /// </summary>
         public int ImageFormat { get; set; }
+
+        /// <summary>
+        /// The palette data of the main image.
+        /// </summary>
+        public byte[] PaletteData { get; set; }
+
+        /// <summary>
+        /// The format in which the palette data is encoded.
+        /// </summary>
+        public int PaletteFormat { get; set; } = -1;
 
         /// <summary>
         /// The mip map data for this image.

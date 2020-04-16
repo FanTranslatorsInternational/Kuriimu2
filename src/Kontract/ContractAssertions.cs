@@ -46,5 +46,16 @@ namespace Kontract
             if (value < min || value > max)
                 throw new InvalidOperationException($"The value '{valueName}' is not in the range of '{min}' and '{max}'.");
         }
+
+        /// <summary>
+        /// Asserts the value to be true.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <param name="valueName">The value name.</param>
+        public static void IsTrue(bool value, string valueName)
+        {
+            if(!value)
+                throw new InvalidOperationException($"The value '{valueName}' is not true.");
+        }
     }
 }
