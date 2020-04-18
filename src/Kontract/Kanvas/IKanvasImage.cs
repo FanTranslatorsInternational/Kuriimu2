@@ -5,12 +5,25 @@ using Kontract.Models.Image;
 
 namespace Kontract.Kanvas
 {
+    /// <summary>
+    /// Exposes properties and methods to retrieve and manipulate an image given by an image plugin;
+    /// </summary>
     public interface IKanvasImage
     {
         /// <summary>
         /// If the image is encoded with an <see cref="IColorIndexEncoding"/>.
         /// </summary>
         bool IsIndexed { get; }
+
+        /// <summary>
+        /// The current format the image is encoded in.
+        /// </summary>
+        int ImageFormat { get; }
+
+        /// <summary>
+        /// The current format the palette is encoded in.
+        /// </summary>
+        int PaletteFormat { get; }
 
         /// <summary>
         /// Gets the image of the set <see cref="ImageInfo"/>.

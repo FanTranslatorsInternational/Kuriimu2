@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas.Configuration;
 using Kontract;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Image;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Configuration;
 
 namespace Kanvas
 {
@@ -28,9 +30,23 @@ namespace Kanvas
             set => _imageState.Images[_imageIndex] = value;
         }
 
+        private IImageConfiguration ImageConfiguration =>
+            ImageInfo.Configuration ?? new ImageConfiguration();
+
         /// <inheritdoc />
         public bool IsIndexed => IsIndexEncoding(ImageInfo.ImageFormat);
 
+        /// <inheritdoc />
+        public int ImageFormat => ImageInfo.ImageFormat;
+
+        /// <inheritdoc />
+        public int PaletteFormat => ImageInfo.PaletteFormat;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="KanvasImage"/>.
+        /// </summary>
+        /// <param name="imageState">The image plugin the plugin information come from.</param>
+        /// <param name="imageInfo">The image info to represent.</param>
         public KanvasImage(IImageState imageState, ImageInfo imageInfo)
         {
             ContractAssertions.IsNotNull(imageState, nameof(imageState));
@@ -79,7 +95,12 @@ namespace Kanvas
         /// <inheritdoc />
         public void TranscodeImage(int imageFormat, IProgressContext progress = null)
         {
-            TranscodeInternal(imageFormat, ImageInfo.PaletteFormat, true, progress);
+            var paletteFormat = -1;
+            if (!IsIndexed && IsIndexEncoding(imageFormat))
+                paletteFormat = _imageState.SupportedIndexEncodings[imageFormat].PaletteEncodingIndices?.First() ??
+                               _imageState.SupportedPaletteEncodings.First().Key;
+
+            TranscodeInternal(imageFormat, paletteFormat, true, progress);
         }
 
         /// <inheritdoc />
@@ -163,7 +184,7 @@ namespace Kanvas
             Func<Bitmap> decodeImageAction;
             if (IsIndexed)
             {
-                var transcoder = ImageInfo.Configuration.Clone()
+                var transcoder = ImageConfiguration.Clone()
                     .TranscodeWith(size => _imageState.SupportedIndexEncodings[ImageInfo.ImageFormat].Encoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[ImageInfo.PaletteFormat])
                     .Build();
@@ -172,7 +193,7 @@ namespace Kanvas
             }
             else
             {
-                var transcoder = ImageInfo.Configuration.Clone()
+                var transcoder = ImageConfiguration.Clone()
                     .TranscodeWith(size => _imageState.SupportedEncodings[ImageInfo.ImageFormat])
                     .Build();
 
@@ -197,7 +218,7 @@ namespace Kanvas
         {
             if (IsColorEncoding(imageFormat))
             {
-                var transcoder = ImageInfo.Configuration.Clone()
+                var transcoder = ImageConfiguration.Clone()
                     .TranscodeWith(size => _imageState.SupportedEncodings[imageFormat])
                     .Build();
 
@@ -206,7 +227,7 @@ namespace Kanvas
             else
             {
                 var indexEncoding = _imageState.SupportedIndexEncodings[imageFormat].Encoding;
-                var transcoder = ImageInfo.Configuration.Clone()
+                var transcoder = ImageConfiguration.Clone()
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
                     .TranscodeWith(size => indexEncoding)
                     .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[paletteFormat])
