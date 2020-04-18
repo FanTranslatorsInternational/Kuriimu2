@@ -34,9 +34,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private const string AllFilesFilter_ = "All Files (*.*)|*.*";
         private const string PngFileFilter_ = "Portable Network Graphics (*.png)|*.png";
+        private const string KuriimuPaletteFilter_ = "Kuriimu PaletteData (*.kpal)|*.kpal";
+        private const string RiffPaletteFilter_ = "Microsoft RIFF PaletteData (*.pal)|*.pal";
 
         private const string ExportPngTitle_ = "Export Png...";
         private const string ImportPngTitle_ = "Import Png...";
+
+        private const string ExportPaletteTitle_ = "Export palette...";
+        private const string ImportPaletteTitle_ = "Import palette...";
+        private const string PaletteCouldNotOpenMessage_ = "Could not open palette file.";
+        private const string PaletteCouldNotSaveMessage_ = "Could not save palette file.";
+        private const string InvalidPaletteFileTitle_ = "Invalid palette";
+
+        private const string DefaultCatchTitle_ = "Exception catched";
 
         private readonly Dictionary<string, string> _stylesText = new Dictionary<string, string>
         {
@@ -75,8 +85,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private IDictionary<int, IColorEncoding> ColorEncodings =>
             ImageState.SupportedEncodings ?? new Dictionary<int, IColorEncoding>();
-        private IDictionary<int, (IColorIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> IndexEncodings =>
-            ImageState.SupportedIndexEncodings ?? new Dictionary<int, (IColorIndexEncoding, IList<int>)>();
+        private IDictionary<int, (IIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> IndexEncodings =>
+            ImageState.SupportedIndexEncodings ?? new Dictionary<int, (IIndexEncoding, IList<int>)>();
         private IDictionary<int, IColorEncoding> PaletteEncodings =>
             ImageState.SupportedPaletteEncodings ?? new Dictionary<int, IColorEncoding>();
 
@@ -799,7 +809,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 UpdateForm();
                 return;
             }
@@ -841,7 +851,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 UpdateForm();
                 return;
             }
@@ -875,10 +885,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private Point GetPointInImage(Point controlPoint)
         {
-            if (!imbPreview.IsPointInImage(controlPoint))
-                return Point.Empty;
-
-            return imbPreview.PointToImage(controlPoint);
+            return imbPreview.IsPointInImage(controlPoint) ?
+                imbPreview.PointToImage(controlPoint) :
+                Point.Empty;
         }
 
         private int GetPaletteIndexByImageLocation(Point point)
@@ -909,7 +918,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             DisablePaletteControls();
             DisableImageControls();
 
-            IList<int> indices;
             try
             {
                 SelectedImage.SetPalette(colors, _progressContext);
@@ -918,7 +926,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Exception catched", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 UpdateForm();
                 return;
             }
@@ -935,14 +943,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var ofd = new OpenFileDialog
             {
-                Title = "Open palette...",
+                Title = ImportPaletteTitle_,
                 InitialDirectory = Settings.Default.LastDirectory,
-                Filter = "Kuriimu PaletteData (*.kpal)|*.kpal|Microsoft RIFF PaletteData (*.pal)|*.pal"
+                Filter = string.Join("|", KuriimuPaletteFilter_, RiffPaletteFilter_)
             };
 
             if (ofd.ShowDialog() != DialogResult.OK)
             {
-                MessageBox.Show("Couldn't open palette file.", "Invalid file", MessageBoxButtons.OK,
+                MessageBox.Show(PaletteCouldNotOpenMessage_, InvalidPaletteFileTitle_, MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return null;
             }
@@ -957,7 +965,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                    MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 }
             }
@@ -970,7 +978,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                    MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
                 }
             }
@@ -990,14 +998,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var sfd = new SaveFileDialog
             {
-                Title = "Save palette...",
+                Title = ExportPaletteTitle_,
                 InitialDirectory = Settings.Default.LastDirectory,
-                Filter = "Kuriimu PaletteData (*.kpal)|*.kpal"
+                Filter = KuriimuPaletteFilter_
             };
 
             if (sfd.ShowDialog() != DialogResult.OK)
             {
-                MessageBox.Show("Couldn't save palette file.", "Invalid file", MessageBoxButtons.OK,
+                MessageBox.Show(PaletteCouldNotSaveMessage_, InvalidPaletteFileTitle_, MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
             }
@@ -1009,7 +1017,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString(), "Exception catched.", MessageBoxButtons.OK,
+                MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
             }
         }

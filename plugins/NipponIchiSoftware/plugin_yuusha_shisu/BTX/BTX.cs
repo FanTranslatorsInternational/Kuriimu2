@@ -26,26 +26,7 @@ namespace plugin_yuusha_shisu.BTX
                 var texture = br.ReadBytes(dataLength);
 
                 // Palette
-                if (header.Format == ImageFormat.Palette_8)
-                {
-                    br.BaseStream.Position = header.PaletteOffset;
-                    var palette = br.ReadBytes(paletteDataLength);
-
-                    return new IndexImageInfo
-                    {
-                        Name = fileName,
-
-                        ImageData = texture,
-                        ImageFormat = (int)header.Format,
-                        ImageSize = new Size(header.Width, header.Height),
-                        Configuration = new ImageConfiguration(),
-
-                        PaletteData = palette,
-                        PaletteFormat = (int)header.Format
-                    };
-                }
-
-                return new ImageInfo
+                var imageInfo= new ImageInfo
                 {
                     Name = fileName,
 
@@ -54,6 +35,17 @@ namespace plugin_yuusha_shisu.BTX
                     ImageSize = new Size(header.Width, header.Height),
                     Configuration = new ImageConfiguration()
                 };
+
+                if (header.Format == ImageFormat.Palette_8)
+                {
+                    br.BaseStream.Position = header.PaletteOffset;
+                    var palette = br.ReadBytes(paletteDataLength);
+
+                    imageInfo.PaletteFormat = (int)header.Format;
+                    imageInfo.PaletteData = palette;
+                }
+
+                return imageInfo;
             }
         }
 

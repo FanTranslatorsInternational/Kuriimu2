@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using Kontract;
 using Kontract.Extensions;
@@ -11,74 +11,90 @@ using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Configuration
 {
-    class Transcoder : IColorTranscoder, IIndexTranscoder
+    /// <summary>
+    /// The class to implement transcoding actions on data and images.
+    /// </summary>
+    class ImageTranscoder : IImageTranscoder
     {
         private readonly int _taskCount;
 
-        private CreatePaddedSize _paddedSize;
+        private readonly CreatePixelRemapper _swizzle;
+        private readonly CreatePaddedSize _paddedSize;
 
-        private CreatePixelRemapper _swizzle;
+        private readonly CreateIndexEncoding _indexEncoding;
+        private readonly CreatePaletteEncoding _paletteEncoding;
+        private readonly IQuantizer _quantizer;
 
-        private CreateColorIndexEncoding _indexEncoding;
-        private CreatePaletteEncoding _paletteEncoding;
-        private IQuantizer _quantizer;
+        private readonly CreateColorEncoding _colorEncoding;
 
-        private CreateColorEncoding _colorEncoding;
+        private bool IsIndexed => _indexEncoding != null && _paletteEncoding != null;
 
-        public Transcoder(CreatePaddedSize paddedSizeFunc,
-            CreateColorIndexEncoding indexEncoding, CreatePaletteEncoding paletteEncoding,
-            CreatePixelRemapper swizzle, IQuantizer quantizer, int taskCount)
+        /// <summary>
+        /// Creates a new instance of <see cref="ImageTranscoder"/> for usage on indexed images.
+        /// </summary>
+        /// <param name="indexEncoding"></param>
+        /// <param name="paletteEncoding"></param>
+        /// <param name="swizzle"></param>
+        /// <param name="paddedSizeFunc"></param>
+        /// <param name="quantizer"></param>
+        /// <param name="taskCount"></param>
+        public ImageTranscoder(CreateIndexEncoding indexEncoding, CreatePaletteEncoding paletteEncoding,
+            CreatePixelRemapper swizzle, CreatePaddedSize paddedSizeFunc,
+            IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
             ContractAssertions.IsNotNull(paletteEncoding, nameof(paletteEncoding));
             ContractAssertions.IsNotNull(quantizer, nameof(quantizer));
 
-            _paddedSize = paddedSizeFunc;
-
             _indexEncoding = indexEncoding;
             _paletteEncoding = paletteEncoding;
-            _swizzle = swizzle;
             _quantizer = quantizer;
+
+            _swizzle = swizzle;
+            _paddedSize = paddedSizeFunc;
 
             _taskCount = taskCount;
         }
 
-        public Transcoder(CreatePaddedSize paddedSizeFunc,
-            CreateColorEncoding colorEncoding, CreatePixelRemapper swizzle,
+        /// <summary>
+        /// Creates a new instance of <see cref="ImageTranscoder"/> for usage on non-indexed images.
+        /// </summary>
+        /// <param name="colorEncoding"></param>
+        /// <param name="swizzle"></param>
+        /// <param name="paddedSizeFunc"></param>
+        /// <param name="quantizer"></param>
+        /// <param name="taskCount"></param>
+        public ImageTranscoder(CreateColorEncoding colorEncoding, CreatePixelRemapper swizzle,
+            CreatePaddedSize paddedSizeFunc,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
 
-            _paddedSize = paddedSizeFunc;
-
             _colorEncoding = colorEncoding;
-            _swizzle = swizzle;
             _quantizer = quantizer;
+
+            _swizzle = swizzle;
+            _paddedSize = paddedSizeFunc;
 
             _taskCount = taskCount;
         }
 
-        #region Decode interface methods
+        #region Decode methods
 
-        public Image Decode(byte[] data, Size imageSize, IProgressContext progress = null) =>
-            DecodeInternal(data, imageSize, progress);
+        public Bitmap Decode(byte[] data, Size imageSize, IProgressContext progress = null) =>
+            Decode(data, null, imageSize, progress);
 
-        public Image Decode(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress = null) =>
-            DecodeIndexInternal(data, paletteData, imageSize, progress);
+        public Bitmap Decode(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress = null)
+        {
+            if (IsIndexed && paletteData == null)
+                throw new ArgumentNullException(nameof(paletteData));
 
-        #endregion
+            return IsIndexed ?
+                DecodeIndexInternal(data, paletteData, imageSize, progress) :
+                DecodeColorInternal(data, imageSize, progress);
+        }
 
-        #region Encode interface methods
-
-        byte[] IColorTranscoder.Encode(Bitmap image, IProgressContext progress = null) =>
-            EncodeInternal(image, progress);
-
-        (byte[] indexData, byte[] paletteData) IIndexTranscoder.Encode(Bitmap image, IProgressContext progress = null) =>
-            EncodeIndexInternal(image, progress);
-
-        #endregion
-
-        private Image DecodeInternal(byte[] data, Size imageSize, IProgressContext progress = null)
+        private Bitmap DecodeColorInternal(byte[] data, Size imageSize, IProgressContext progress)
         {
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
 
@@ -97,9 +113,10 @@ namespace Kanvas.Configuration
             return colors.ToBitmap(imageSize, paddedSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
         }
 
-        private Image DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize,
-            IProgressContext progress = null)
+        private Bitmap DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress)
         {
+            ContractAssertions.IsTrue(IsIndexed, nameof(IsIndexed));
+
             var progresses = progress.SplitIntoEvenScopes(2);
 
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
@@ -128,7 +145,18 @@ namespace Kanvas.Configuration
             return colors.ToBitmap(imageSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
         }
 
-        private byte[] EncodeInternal(Bitmap image, IProgressContext progress = null)
+        #endregion
+
+        #region Encode interface methods
+
+        public (byte[] imageData, byte[] paletteData) Encode(Bitmap image, IProgressContext progress = null)
+        {
+            return IsIndexed ?
+                EncodeIndexInternal(image, progress) :
+                (EncodeColorInternal(image, progress), null);
+        }
+
+        private byte[] EncodeColorInternal(Bitmap image, IProgressContext progress = null)
         {
             var paddedSize = _paddedSize?.Invoke(image.Size) ?? Size.Empty;
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;
@@ -172,6 +200,8 @@ namespace Kanvas.Configuration
             return (indexData, paletteData);
         }
 
+        #endregion
+
         private (IEnumerable<int> indices, IList<Color> palette) QuantizeImage(Bitmap image, Size paddedSize, IProgressContext progress = null)
         {
             var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
@@ -197,16 +227,6 @@ namespace Kanvas.Configuration
         private int GetIndex(Point point, Size imageSize)
         {
             return point.Y * imageSize.Width + point.X;
-        }
-
-        // TODO: Remove when targeting only netcoreapp31
-        private IEnumerable<(TFirst First, TSecond Second)> Zip<TFirst, TSecond>(IEnumerable<TFirst> first, IEnumerable<TSecond> second)
-        {
-#if NET_CORE_31
-            return first.Zip(second);
-#else
-            return first.Zip(second, (f, s) => (f, s));
-#endif
         }
     }
 }

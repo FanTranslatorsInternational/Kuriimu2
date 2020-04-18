@@ -14,6 +14,7 @@ namespace plugin_level5.Images
     public class ImgcPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c");
+        public PluginType PluginType => PluginType.Image;
         public string[] FileExtensions => new[] { "*.xi" };
         public PluginMetadata Metadata { get; }
 

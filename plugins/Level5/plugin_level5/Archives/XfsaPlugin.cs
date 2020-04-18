@@ -17,6 +17,7 @@ namespace plugin_level5.Archives
     public class XfsaPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("f712c7ef-1585-48a2-857c-86d0f40054fb");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.fa" };
         public PluginMetadata Metadata { get; }
 

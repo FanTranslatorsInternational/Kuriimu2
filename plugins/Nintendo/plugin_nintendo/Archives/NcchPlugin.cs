@@ -6,21 +6,21 @@ using Kontract.Models;
 
 namespace plugin_nintendo.Archives
 {
-    public class CiaPlugin : IFilePlugin
+    public class NcchPlugin : IFilePlugin
     {
-        public Guid PluginId => Guid.Parse("509a72a2-445f-4a62-8a13-7b82d773c03e");
+        public Guid PluginId => Guid.Parse("7d0177a6-1cab-44b3-bf22-39f5548d6cac");
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.cia" };
+        public string[] FileExtensions => new[] { "*.cxi","*.cfa" };
         public PluginMetadata Metadata { get; }
 
-        public CiaPlugin()
+        public NcchPlugin()
         {
-            Metadata = new PluginMetadata("CIA", "onepiecefreak", "Installable 3DS game container.");
+            Metadata = new PluginMetadata("NCCH", "onepiecefreak", "3DS Content Container.");
         }
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
-            return new CiaState();
+            return new NcchState();
         }
     }
 }

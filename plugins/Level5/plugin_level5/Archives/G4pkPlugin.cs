@@ -17,6 +17,7 @@ namespace plugin_level5.Archives
     public class G4pkPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("0964a630-2ca3-4063-8e53-bf7210cbc70e");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.g4pk","*.g4pkm" };
         public PluginMetadata Metadata { get; }
 

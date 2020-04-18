@@ -14,6 +14,7 @@ namespace plugin_nintendo.CTPK
     public class CtpkPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("5033920c-b6d9-4e44-8f3d-de8380cfce27");
+        public PluginType PluginType => PluginType.Image;
         public string[] FileExtensions => new[] { "*.ctpk" };
         public PluginMetadata Metadata { get; }
 

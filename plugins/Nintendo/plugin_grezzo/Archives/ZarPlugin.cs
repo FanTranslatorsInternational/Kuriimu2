@@ -14,6 +14,7 @@ namespace plugin_grezzo.Archives
     public class ZarPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("184e9010-0c35-4ab9-a556-262cbbd2d452");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.zar" };
         public PluginMetadata Metadata { get; }
 

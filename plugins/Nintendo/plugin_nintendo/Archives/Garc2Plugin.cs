@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class Garc2Plugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("379f0519-a3c9-4248-9264-0e53d8b6b023");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.garc" };
         public PluginMetadata Metadata { get; }
 

@@ -48,7 +48,10 @@ namespace plugin_nintendo.Archives
                 partition.Read(flags, 0, 8);
                 partition.Position = 0;
 
-                result.Add(new ArchiveFileInfo(partition, GetPartitionName(flags[5], index++)));
+                result.Add(new ArchiveFileInfo(partition, GetPartitionName(flags[5], index++))
+                {
+                    PluginIds = new[] { Guid.Parse("7d0177a6-1cab-44b3-bf22-39f5548d6cac") }
+                });
             }
 
             // Read meta data

@@ -48,12 +48,12 @@ namespace plugin_level5.Images
             br.BaseStream.Position = _header.tileDataOffset;
             var tileIndices = br.ReadMultiple<short>(_header.tileEntryCount);
 
-            // Inflate image
+            // Inflate imageInfo
             var encoding = LimgSupport.LimgFormats[_header.imgFormat];
             var imageStream = new SubStream(input, _header.imageDataOffset, input.Length - _header.imageDataOffset);
             var imageData = CombineTiles(imageStream, tileIndices, encoding.Item1.BitsPerValue);
 
-            return new IndexImageInfo
+            return new ImageInfo
             {
                 ImageFormat = _header.imgFormat,
                 ImageData = imageData,
@@ -66,21 +66,20 @@ namespace plugin_level5.Images
             };
         }
 
-        public void Save(Stream output, ImageInfo image)
+        public void Save(Stream output, ImageInfo imageInfo)
         {
             using var bw = new BinaryWriterX(output);
-            var indexImage = image as IndexImageInfo;
-            var encoding = LimgSupport.LimgFormats[image.ImageFormat];
+            var encoding = LimgSupport.LimgFormats[imageInfo.ImageFormat];
 
             // Split into tiles
-            var (tileIndices, imageStream) = SplitTiles(image.ImageData, encoding.Item1.BitsPerValue);
+            var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.Item1.BitsPerValue);
 
             // Write palette
             bw.BaseStream.Position = _headerSize + _unkHeader.Length;
 
             _header.paletteOffset = (uint)bw.BaseStream.Position;
-            _header.colorCount = (short)(indexImage.PaletteData.Length / _colorEntrySize);
-            bw.Write(indexImage.PaletteData);
+            _header.colorCount = (short)(imageInfo.PaletteData.Length / _colorEntrySize);
+            bw.Write(imageInfo.PaletteData);
             bw.WriteAlignment(4);
 
             // Write unknown tables
@@ -100,7 +99,7 @@ namespace plugin_level5.Images
             bw.WriteMultiple(tileIndices);
             bw.WriteAlignment(4);
 
-            // Write image data
+            // Write imageInfo data
             _header.imageDataOffset = (short)bw.BaseStream.Position;
             _header.imageTileCount = (short)(imageStream.Length / _tileEntrySize);
 
@@ -111,11 +110,11 @@ namespace plugin_level5.Images
             // Header
             bw.BaseStream.Position = 0;
 
-            _header.width = (short)image.ImageSize.Width;
-            _header.height = (short)image.ImageSize.Height;
+            _header.width = (short)imageInfo.ImageSize.Width;
+            _header.height = (short)imageInfo.ImageSize.Height;
             _header.paddedWidth = (short)((_header.width + 0xFF) & ~0xFF);
             _header.paddedHeight = (short)((_header.height + 0xFF) & ~0xFF);
-            _header.imgFormat = (short)image.ImageFormat;
+            _header.imgFormat = (short)imageInfo.ImageFormat;
 
             bw.WriteType(_header);
             bw.Write(_unkHeader);

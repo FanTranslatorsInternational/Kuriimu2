@@ -14,6 +14,7 @@ namespace plugin_level5.Archives
     public class ArcvPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.arc" };
         public PluginMetadata Metadata { get; }
 

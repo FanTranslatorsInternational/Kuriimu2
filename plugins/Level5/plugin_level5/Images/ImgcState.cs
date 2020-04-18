@@ -18,7 +18,7 @@ namespace plugin_level5.Images
 
         public IList<ImageInfo> Images { get; private set; }
         public IDictionary<int, IColorEncoding> SupportedEncodings => ImgcSupport.ImgcFormats;
-        public IDictionary<int, (IColorIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings
+        public IDictionary<int, (IIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings
         {
             get;
         }
@@ -45,16 +45,6 @@ namespace plugin_level5.Images
             limg.Save(fileStream, Images[0]);
 
             return Task.CompletedTask;
-        }
-
-        public ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IndexImageInfo ConvertToIndexImageInfo(ImageInfo imageInfo, int paletteFormat, byte[] paletteData)
-        {
-            throw new NotImplementedException();
         }
     }
 }

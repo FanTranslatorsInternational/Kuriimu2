@@ -17,6 +17,7 @@ namespace plugin_level5.Archives
     public class PckPlugin : IFilePlugin
     {
         public Guid PluginId => Guid.Parse("65178a15-caf5-4f3f-8ece-beb3e4308d0c");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.pck" };
         public PluginMetadata Metadata { get; }
 

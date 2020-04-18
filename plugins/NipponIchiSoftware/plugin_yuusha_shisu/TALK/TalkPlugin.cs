@@ -9,6 +9,7 @@ namespace plugin_yuusha_shisu.TALK
     public class TalkPlugin : IFilePlugin/*, IIdentifyFiles*/
     {
         public Guid PluginId => Guid.Parse("161932f1-9152-45e8-a421-f84ac077bea4");
+        public PluginType PluginType => PluginType.Text;
         public string[] FileExtensions => new[] { "*.bin" };
         public PluginMetadata Metadata { get; }
 

@@ -14,6 +14,7 @@ namespace plugin_level5.Archives
     public class Lpc2Plugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("d139ebf0-cba1-4338-b688-d7ed49cad392");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.cani" };
         public PluginMetadata Metadata { get; }
 

@@ -7,7 +7,7 @@ using Kontract.Kanvas.Quantization;
 namespace Kanvas.Configuration
 {
     // TODO: PixelShader
-    public class ImageConfiguration : IColorConfiguration, IIndexConfiguration
+    public class ImageConfiguration : IIndexConfiguration
     {
         private int _taskCount = Environment.ProcessorCount;
 
@@ -15,12 +15,14 @@ namespace Kanvas.Configuration
 
         private CreateColorEncoding _colorFunc;
 
-        private CreateColorIndexEncoding _indexFunc;
+        private CreateIndexEncoding _indexFunc;
         private CreatePaletteEncoding _paletteFunc;
 
         private CreatePixelRemapper _swizzleFunc;
 
         private IQuantizationConfiguration _quantizationConfiguration;
+
+        private bool IsIndexConfiguration => _indexFunc != null;
 
         public IImageConfiguration WithTaskCount(int taskCount)
         {
@@ -37,7 +39,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IColorConfiguration TranscodeWith(CreateColorEncoding func)
+        public IImageConfiguration TranscodeWith(CreateColorEncoding func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -47,7 +49,7 @@ namespace Kanvas.Configuration
             return this;
         }
 
-        public IIndexConfiguration TranscodeWith(CreateColorIndexEncoding func)
+        public IIndexConfiguration TranscodeWith(CreateIndexEncoding func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -110,38 +112,44 @@ namespace Kanvas.Configuration
             if (_colorFunc != null)
                 return config.TranscodeWith(_colorFunc);
 
-            if (_indexFunc != null)
-            {
-                var indexConfig = config.TranscodeWith(_indexFunc);
-                if (_paletteFunc != null)
-                    return indexConfig.TranscodePaletteWith(_paletteFunc);
-            }
+            if (_indexFunc == null) 
+                return config;
 
-            return config;
+            var indexConfig = config.TranscodeWith(_indexFunc);
+            return _paletteFunc != null ? 
+                indexConfig.TranscodePaletteWith(_paletteFunc) : 
+                config;
         }
 
-        IIndexTranscoder IIndexConfiguration.Build()
+        public IImageTranscoder Build()
         {
-            ContractAssertions.IsNotNull(_indexFunc, "indexFunc");
-            ContractAssertions.IsNotNull(_paletteFunc, "paletteFunc");
-
-            var quantizer = BuildQuantizer();
-
-            return new Transcoder(_paddedSizeFunc, _indexFunc, _paletteFunc, _swizzleFunc, quantizer, _taskCount);
+            return IsIndexConfiguration ? 
+                BuildIndexInternal() : 
+                BuildColorInternal();
         }
 
-        IColorTranscoder IColorConfiguration.Build()
+        private IImageTranscoder BuildColorInternal()
         {
-            ContractAssertions.IsNotNull(_colorFunc, "colorFunc");
+            ContractAssertions.IsNotNull(_colorFunc, nameof(_colorFunc));
 
             // Quantization for normal images is optional
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationConfiguration != null ? BuildQuantizer() : null;
 
-            return new Transcoder(_paddedSizeFunc, _colorFunc, _swizzleFunc, quantizer, _taskCount);
+            return new ImageTranscoder(_colorFunc, _swizzleFunc, _paddedSizeFunc, quantizer, _taskCount);
         }
 
-        IQuantizer BuildQuantizer()
+        private IImageTranscoder BuildIndexInternal()
+        {
+            ContractAssertions.IsNotNull(_indexFunc, nameof(_indexFunc));
+            ContractAssertions.IsNotNull(_paletteFunc, nameof(_paletteFunc));
+
+            var quantizer = BuildQuantizer();
+
+            return new ImageTranscoder(_indexFunc, _paletteFunc, _swizzleFunc, _paddedSizeFunc, quantizer, _taskCount);
+        }
+
+        private IQuantizer BuildQuantizer()
         {
             var configuration = _quantizationConfiguration ?? new QuantizationConfiguration();
 

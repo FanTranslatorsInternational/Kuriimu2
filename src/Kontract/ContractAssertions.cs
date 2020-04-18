@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Kontract
 {
@@ -14,6 +15,7 @@ namespace Kontract
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <param name="valueName">The value name.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IsNotNull(object value, string valueName)
         {
             if (value == null)
@@ -28,6 +30,7 @@ namespace Kontract
         /// <param name="element">The element to assert in the list.</param>
         /// <param name="listName">The name of the list.</param>
         /// <param name="elementName">The name of the element.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IsElementContained<T>(IEnumerable<T> list, T element, string listName, string elementName)
         {
             if (!list.Contains(element))
@@ -41,6 +44,7 @@ namespace Kontract
         /// <param name="valueName">The value name.</param>
         /// <param name="min">The inclusive minimum of the range.</param>
         /// <param name="max">The inclusive maximum of the range.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IsInRange(int value, string valueName, int min, int max)
         {
             if (value < min || value > max)
@@ -52,10 +56,23 @@ namespace Kontract
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <param name="valueName">The value name.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IsTrue(bool value, string valueName)
         {
             if(!value)
-                throw new InvalidOperationException($"The value '{valueName}' is not true.");
+                throw new ArgumentException($"The value '{valueName}' is not true.");
+        }
+
+        /// <summary>
+        /// Asserts the value to be false.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <param name="valueName">The value name.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void IsFalse(bool value, string valueName)
+        {
+            if (value)
+                throw new ArgumentException($"The value '{valueName}' is not false.");
         }
     }
 }

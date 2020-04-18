@@ -16,6 +16,7 @@ namespace plugin_level5.Archives
     public class B123Plugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("948cde6d-e0e8-4518-a38a-9ba5bf6d4e9e");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.fa" };
         public PluginMetadata Metadata { get; }
 

@@ -11,33 +11,33 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
-    class CiaState : IArchiveState, ILoadFiles, IReplaceFiles
+    class NcchState : IArchiveState, ILoadFiles, IReplaceFiles
     {
-        private readonly CIA _cia;
+        private readonly NCCH _ncch;
 
         public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged { get; set; }
 
-        public CiaState()
+        public NcchState()
         {
-            _cia = new CIA();
+            _ncch = new NCCH();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
             IProgressContext progress)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _cia.Load(fileStream);
+            Files = _ncch.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
-        {
-            var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _cia.Save(output, Files);
+        //public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        //{
+        //    var output = fileSystem.OpenFile(savePath, FileMode.Create);
+        //    _ncch.Save(output, Files);
 
-            return Task.CompletedTask;
-        }
+        //    return Task.CompletedTask;
+        //}
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
         {

@@ -6,7 +6,7 @@ namespace Kontract.Kanvas
     /// <summary>
     /// An interface for defining a color encoding to use in the Kanvas image library.
     /// </summary>
-    public interface IColorIndexEncoding : IEncodingInfo
+    public interface IIndexEncoding : IEncodingInfo
     {
         /// <summary>
         /// The maximum number of colors possible with the index depth given.

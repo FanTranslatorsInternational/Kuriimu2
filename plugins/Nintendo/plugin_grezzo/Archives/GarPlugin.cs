@@ -14,6 +14,7 @@ namespace plugin_grezzo.Archives
     public class GarPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("bf1e60d4-2613-46d0-a338-b94befabc889");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.gar" };
         public PluginMetadata Metadata { get; }
 

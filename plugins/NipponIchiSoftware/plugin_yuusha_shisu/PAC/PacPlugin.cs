@@ -14,6 +14,7 @@ namespace plugin_yuusha_shisu.PAC
 	public class PacPlugin : IFilePlugin, IIdentifyFiles
 	{
 		public Guid PluginId => Guid.Parse("0066a5a4-1303-4673-bc7f-1742879c3562");
+        public PluginType PluginType => PluginType.Archive;
 		public string[] FileExtensions => new[] { "*.pac" };
 		public PluginMetadata Metadata { get; }
 

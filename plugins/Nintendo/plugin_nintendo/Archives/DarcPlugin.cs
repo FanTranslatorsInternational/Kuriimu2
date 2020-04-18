@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class DarcPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("f49fda83-44d8-42be-bdba-5c6a787edc11");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.arc" };
         public PluginMetadata Metadata { get; }
 

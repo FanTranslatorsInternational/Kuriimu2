@@ -9,7 +9,7 @@ using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.Base
 {
-    public abstract class PixelIndexEncoding : IColorIndexEncoding
+    public abstract class PixelIndexEncoding : IIndexEncoding
     {
         private readonly IPixelIndexDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;

@@ -6,7 +6,7 @@ namespace Kontract.Kanvas.Configuration
     public delegate Size CreatePaddedSize(Size imageSize);
     public delegate IImageSwizzle CreatePixelRemapper(Size imageSize);
     public delegate IColorEncoding CreateColorEncoding(Size imageSize);
-    public delegate IColorIndexEncoding CreateColorIndexEncoding(Size imageSize);
+    public delegate IIndexEncoding CreateIndexEncoding(Size imageSize);
 
     public interface IImageConfiguration
     {
@@ -20,9 +20,11 @@ namespace Kontract.Kanvas.Configuration
 
         IImageConfiguration WithoutQuantization();
 
-        IColorConfiguration TranscodeWith(CreateColorEncoding func);
+        IImageConfiguration TranscodeWith(CreateColorEncoding func);
 
-        IIndexConfiguration TranscodeWith(CreateColorIndexEncoding func);
+        IIndexConfiguration TranscodeWith(CreateIndexEncoding func);
+
+        IImageTranscoder Build();
 
         IImageConfiguration Clone();
     }

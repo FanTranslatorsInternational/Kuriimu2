@@ -23,15 +23,7 @@ namespace Kuriimu2.WinForms.MainForms
         private void AddPlugins()
         {
             foreach (var plugin in _filePlugins)
-            {
-                var metadataName = plugin.Metadata?.Name ?? "<undefined>";
-                var listViewItem = new ListViewItem(new[] { plugin.PluginId.ToString("D"), metadataName })
-                {
-                    Tag = plugin
-                };
-
-                pluginList.Items.Add(listViewItem);
-            }
+                pluginList.Items.Add(CreateListItem(plugin));
         }
 
         private void okBtn_Click(object sender, EventArgs e)
@@ -50,8 +42,11 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void pluginList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (pluginList.SelectedItems.Count > 0)
-                SelectedFilePlugin = (IFilePlugin)pluginList.SelectedItems[0].Tag;
+            if (pluginList.SelectedItems.Count <= 0) 
+                return;
+
+            SelectedFilePlugin = (IFilePlugin) pluginList.SelectedItems[0].Tag;
+            okBtn.Enabled = true;
         }
 
         private void pluginList_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -59,6 +54,16 @@ namespace Kuriimu2.WinForms.MainForms
             DialogResult = DialogResult.OK;
 
             Close();
+        }
+
+        private ListViewItem CreateListItem(IFilePlugin plugin)
+        {
+            var item = new ListViewItem(plugin.Metadata?.Name ?? "<undefined>") { Tag = plugin };
+
+            item.SubItems.Add(plugin.PluginType.ToString());
+            item.SubItems.Add(plugin.PluginId.ToString("D"));
+
+            return item;
         }
     }
 }

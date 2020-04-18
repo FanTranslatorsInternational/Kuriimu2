@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class CgrpPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("61553a57-c6bb-40fb-9c8d-c0e4425d29ee");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.cgrp" };
         public PluginMetadata Metadata { get; }
 

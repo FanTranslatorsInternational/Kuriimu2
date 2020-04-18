@@ -17,6 +17,11 @@ namespace Kontract.Interfaces.Plugins.Identifier
         Guid PluginId { get; }
 
         /// <summary>
+        /// The type of file the plugin can handle.
+        /// </summary>
+        PluginType PluginType { get; }
+
+        /// <summary>
         /// All file extensions the format can be identified with.
         /// </summary>
         string[] FileExtensions { get; }

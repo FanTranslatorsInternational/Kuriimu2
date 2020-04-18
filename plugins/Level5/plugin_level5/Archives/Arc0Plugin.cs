@@ -17,6 +17,7 @@ namespace plugin_level5.Archives
     public class Arc0Plugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("e75ba21c-f0f4-4d0e-8989-103ea2ac3cda");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.fa" };
         public PluginMetadata Metadata { get; }
 

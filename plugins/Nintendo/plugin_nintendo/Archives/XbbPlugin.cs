@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class XbbPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("4e9136f3-924b-40fa-ad17-446e8f2824aa");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.xbb" };
         public PluginMetadata Metadata { get; }
 

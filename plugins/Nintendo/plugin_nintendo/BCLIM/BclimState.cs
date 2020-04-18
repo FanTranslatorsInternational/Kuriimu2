@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
@@ -19,7 +18,7 @@ namespace plugin_nintendo.BCLIM
 
         public IList<ImageInfo> Images { get; private set; }
         public IDictionary<int, IColorEncoding> SupportedEncodings => ImageFormats.CtrFormats;
-        public IDictionary<int, (IColorIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
+        public IDictionary<int, (IIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
         public bool ContentChanged { get; set; }
@@ -42,16 +41,6 @@ namespace plugin_nintendo.BCLIM
             _bclim.Save(saveStream, Images[0]);
 
             return Task.CompletedTask;
-        }
-
-        public ImageInfo ConvertToImageInfo(IndexImageInfo indexImageInfo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IndexImageInfo ConvertToIndexImageInfo(ImageInfo imageInfo, int paletteFormat, byte[] paletteData)
-        {
-            throw new NotImplementedException();
         }
     }
 }

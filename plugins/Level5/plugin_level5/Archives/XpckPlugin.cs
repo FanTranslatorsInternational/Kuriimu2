@@ -14,6 +14,7 @@ namespace plugin_level5.Archives
     public class XpckPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.xr", "*.xc", "*.xa", "*.xk" };
         public PluginMetadata Metadata { get; }
 

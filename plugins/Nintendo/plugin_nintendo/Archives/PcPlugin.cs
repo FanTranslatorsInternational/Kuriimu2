@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class PcPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("50d54c18-cb15-49fc-b002-1210126f502f");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.pc" };
         public PluginMetadata Metadata { get; }
 

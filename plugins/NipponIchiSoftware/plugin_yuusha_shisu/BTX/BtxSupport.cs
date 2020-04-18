@@ -13,7 +13,7 @@ namespace plugin_yuusha_shisu.BTX
             [0] = new Rgba(8, 8, 8, 8, ByteOrder.BigEndian)
         };
 
-        public static IDictionary<int, (IColorIndexEncoding, IList<int>)> IndexEncodings = new Dictionary<int, (IColorIndexEncoding, IList<int>)>
+        public static IDictionary<int, (IIndexEncoding, IList<int>)> IndexEncodings = new Dictionary<int, (IIndexEncoding, IList<int>)>
         {
             [5] = (new Index(8), new[] { 5 })
         };

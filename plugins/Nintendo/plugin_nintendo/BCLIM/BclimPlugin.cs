@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -11,13 +8,13 @@ using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.IO;
-using plugin_nintendo.CTPK;
 
 namespace plugin_nintendo.BCLIM
 {
     public class BclimPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("cf5ae49f-0ce9-4241-900c-668b5c62ce33");
+        public PluginType PluginType => PluginType.Image;
         public string[] FileExtensions => new[] { "*.bclim" };
         public PluginMetadata Metadata { get; }
 

@@ -33,7 +33,7 @@ namespace plugin_level5.Images
 
     class LimgSupport
     {
-        public static IDictionary<int, (IColorIndexEncoding, IList<int>)> LimgFormats = new Dictionary<int, (IColorIndexEncoding, IList<int>)>
+        public static IDictionary<int, (IIndexEncoding, IList<int>)> LimgFormats = new Dictionary<int, (IIndexEncoding, IList<int>)>
         {
             [0] = (new Index(4), new List<int> { 0 }),
             [1] = (new Index(8), new List<int> { 0 }),

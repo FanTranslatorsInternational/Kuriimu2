@@ -14,6 +14,7 @@ namespace plugin_skip_ltd.Archives
     public class QpPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("410009a3-49ef-4356-b9be-a7685c4f786c");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.bin" };
         public PluginMetadata Metadata { get; }
 

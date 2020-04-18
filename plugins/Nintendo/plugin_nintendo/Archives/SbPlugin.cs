@@ -14,6 +14,7 @@ namespace plugin_nintendo.Archives
     public class SbPlugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("daad1871-8a85-4f92-adbd-054ac5a91dc7");
+        public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.sb" };
         public PluginMetadata Metadata { get; }
 
