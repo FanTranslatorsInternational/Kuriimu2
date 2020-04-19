@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using Kontract.Kompression.Configuration;
 
@@ -6,6 +7,15 @@ namespace plugin_level5.Compression
 {
     static class Level5Compressor
     {
+        public static int PeekDecompressedSize(Stream input)
+        {
+            var sizeMethodBuffer = new byte[4];
+            input.Read(sizeMethodBuffer, 0, 4);
+            input.Position -= 4;
+
+            return (int)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) >> 3);
+        }
+
         public static void Decompress(Stream input, Stream output)
         {
             var method = (Level5CompressionMethod)(input.ReadByte() & 0x7);
