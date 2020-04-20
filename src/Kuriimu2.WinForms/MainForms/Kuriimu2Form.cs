@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
@@ -16,8 +15,6 @@ using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Extensions;
-using Kore.Factories;
-using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kore.Progress;
 using Kuriimu2.WinForms.ExtensionForms;
@@ -30,26 +27,27 @@ namespace Kuriimu2.WinForms.MainForms
 {
     public partial class Kuriimu2Form : Form
     {
-        private HashTypeExtensionForm _hashForm;
-        private CipherTypeExtensionForm _encryptForm;
-        private CipherTypeExtensionForm _decryptForm;
-        private DecompressTypeExtensionForm _decompressForm;
-        private CompressTypeExtensionForm _compressForm;
-        private RawImageViewer _rawImageViewer;
+        private readonly HashTypeExtensionForm _hashForm;
+        private readonly CipherTypeExtensionForm _encryptForm;
+        private readonly CipherTypeExtensionForm _decryptForm;
+        private readonly DecompressTypeExtensionForm _decompressForm;
+        private readonly CompressTypeExtensionForm _compressForm;
+        private readonly RawImageViewer _rawImageViewer;
 
-        private IDictionary<IStateInfo, TabPage> _stateTabDictionary;
-        private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
-        private IDictionary<IKuriimuForm, Color> _formColorDictionary;
-        private IDictionary<IKuriimuForm, TabPage> _formTabDictionary;
-        private IDictionary<TabPage, Color> _tabColorDictionary;
+        private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
+        private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
+        //private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
+        //private IDictionary<IKuriimuForm, Color> _formColorDictionary;
+        //private IDictionary<IKuriimuForm, TabPage> _formTabDictionary;
+        //private IDictionary<TabPage, Color> _tabColorDictionary;
 
-        private IInternalPluginManager _pluginManager;
-        private Random _rand = new Random();
+        private readonly IInternalPluginManager _pluginManager;
+        private readonly IProgressContext _progressContext;
+
+        private readonly Random _rand = new Random();
 
         private Timer _timer;
         private Stopwatch _globalOperationWatch;
-
-        private IProgressContext _progressContext;
 
         public Kuriimu2Form()
         {
@@ -64,20 +62,26 @@ namespace Kuriimu2.WinForms.MainForms
             _compressForm = new CompressTypeExtensionForm();
             _rawImageViewer = new RawImageViewer();
 
-            _stateTabDictionary = new Dictionary<IStateInfo, TabPage>();
-            _tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
-            _formColorDictionary = new Dictionary<IKuriimuForm, Color>();
-            _formTabDictionary = new Dictionary<IKuriimuForm, TabPage>();
-            _tabColorDictionary = new Dictionary<TabPage, Color>();
+            _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
+            _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
+            //_tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
+            //_formColorDictionary = new Dictionary<IKuriimuForm, Color>();
+            //_formTabDictionary = new Dictionary<IKuriimuForm, TabPage>();
+            //_tabColorDictionary = new Dictionary<TabPage, Color>();
 
-            _pluginManager = new PluginManager(_progressContext, "plugins");
-            _pluginManager.AllowManualSelection = Settings.Default.AllowManualSelection;
+            _pluginManager = new PluginManager(_progressContext, "plugins")
+            {
+                AllowManualSelection = Settings.Default.AllowManualSelection
+            };
             _pluginManager.OnManualSelection += PluginManager_OnManualSelection;
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
-            _timer = new Timer { Interval = 14 };
+            _timer = new Timer
+            {
+                Interval = 14
+            };
             _timer.Tick += Timer_Tick;
             _globalOperationWatch = new Stopwatch();
 
@@ -112,10 +116,10 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
         {
-            while (openFiles.TabPages.Count > 0)
+            while (_stateDictionary.Keys.Count > 0)
             {
-                var tabPage = openFiles.TabPages[0];
-                if (!CloseFile(_tabStateDictionary[tabPage], true).Result)
+                var stateInfo = _stateDictionary.Keys.First();
+                if (!CloseFile(stateInfo, true).Result)
                 {
                     e.Cancel = true;
                     break;
@@ -217,14 +221,14 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
         {
-            if (!_tabColorDictionary.ContainsKey(openFiles.TabPages[e.Index]))
+            if (!_tabDictionary.ContainsKey(openFiles.TabPages[e.Index]))
                 return;
 
-            var tabColor = _tabColorDictionary[openFiles.TabPages[e.Index]];
-            var textColor = tabColor.GetBrightness() <= 0.49 ? Color.White : Color.Black;
+            var tabEntry = _tabDictionary[openFiles.TabPages[e.Index]];
+            var textColor = tabEntry.TabColor.GetBrightness() <= 0.49 ? Color.White : Color.Black;
 
             // Color the Tab Header
-            e.Graphics.FillRectangle(new SolidBrush(tabColor), e.Bounds);
+            e.Graphics.FillRectangle(new SolidBrush(tabEntry.TabColor), e.Bounds);
 
             // Format String
             var drawFormat = new StringFormat
@@ -237,18 +241,24 @@ namespace Kuriimu2.WinForms.MainForms
             e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
 
             //Draw image
-            var drawPoint = (openFiles.SelectedIndex == e.Index) ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
+            var drawPoint = openFiles.SelectedIndex == e.Index ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
             e.Graphics.DrawImage(tabCloseButtons.Images["close-button"], drawPoint);
         }
 
         private async void openFiles_MouseUp(object sender, MouseEventArgs e)
         {
-            Rectangle r = openFiles.GetTabRect(openFiles.SelectedIndex);
-            Rectangle closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
+            var r = openFiles.GetTabRect(openFiles.SelectedIndex);
+            var closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
             if (closeButton.Contains(e.Location))
             {
-                var selectedTab = openFiles.SelectedTab;
-                await CloseFile(_tabStateDictionary[selectedTab]);
+                var tabEntry = _tabDictionary[openFiles.SelectedTab];
+
+                // Select parent
+                var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
+                if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
+                    openFiles.SelectedTab = _stateDictionary[parentStateInfo].TabPage;
+
+                await CloseFile(tabEntry.StateInfo);
             }
         }
 
@@ -304,7 +314,8 @@ namespace Kuriimu2.WinForms.MainForms
             var absoluteFilePath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
             if (_pluginManager.IsLoaded(absoluteFilePath))
             {
-                openFiles.SelectedTab = _stateTabDictionary[_pluginManager.GetLoadedFile(absoluteFilePath)];
+                var stateEntry = _stateDictionary[_pluginManager.GetLoadedFile(absoluteFilePath)];
+                openFiles.SelectedTab = stateEntry.TabPage;
 
                 return true;
             }
@@ -313,7 +324,7 @@ namespace Kuriimu2.WinForms.MainForms
                 _pluginManager.LoadFile(e.StateInfo, e.Afi) :
                 _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
 
-            var tabColor = _tabColorDictionary[_stateTabDictionary[e.StateInfo]];
+            var tabColor = _stateDictionary[e.StateInfo].TabColor;
 
             // Not loaded states are opened by the HexForm
             if (!loadResult.IsSuccessful)
@@ -343,9 +354,9 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void TabControl_UpdateTab(IStateInfo stateInfo)
         {
-            var tabPage = _stateTabDictionary[stateInfo];
+            var stateEntry = _stateDictionary[stateInfo];
 
-            tabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
+            stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
 
             UpdateParentTabs(stateInfo);
         }
@@ -538,9 +549,9 @@ namespace Kuriimu2.WinForms.MainForms
             {
                 if (openFiles.InvokeRequired)
                     openFiles.Invoke(new Action(() =>
-                        openFiles.SelectedTab = _stateTabDictionary[_pluginManager.GetLoadedFile(filePath)]));
+                        openFiles.SelectedTab = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage));
                 else
-                    openFiles.SelectedTab = _stateTabDictionary[_pluginManager.GetLoadedFile(filePath)];
+                    openFiles.SelectedTab = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage;
 
                 return;
             }
@@ -642,11 +653,8 @@ namespace Kuriimu2.WinForms.MainForms
 
             tabPage.Controls.Add(kuriimuForm as UserControl);
 
-            _stateTabDictionary[stateInfo] = tabPage;
-            _tabStateDictionary[tabPage] = stateInfo;
-            _formColorDictionary[tabPage.Controls[0] as IKuriimuForm] = tabColor;
-            _tabColorDictionary[tabPage] = tabColor;
-            _formTabDictionary[tabPage.Controls[0] as IKuriimuForm] = tabPage;
+            _stateDictionary[stateInfo] = (tabPage.Controls[0] as IKuriimuForm, tabPage, tabColor);
+            _tabDictionary[tabPage] = (tabPage.Controls[0] as IKuriimuForm, stateInfo, tabColor);
 
             openFiles.TabPages.Add(tabPage);
             tabPage.ImageKey = "close-button";  // setting ImageKey before adding, makes the image not working
@@ -761,17 +769,18 @@ namespace Kuriimu2.WinForms.MainForms
             foreach (var child in stateInfo.ArchiveChildren)
                 CloseOpenTabs(child);
 
-            if (_stateTabDictionary.ContainsKey(stateInfo))
-            {
-                var tabPage = _stateTabDictionary[stateInfo];
-                _tabStateDictionary.Remove(tabPage);
-                _tabColorDictionary.Remove(tabPage);
-                _formColorDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
-                _formTabDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
+            if (!_stateDictionary.ContainsKey(stateInfo))
+                return;
 
-                _stateTabDictionary[stateInfo].Dispose();
-                _stateTabDictionary.Remove(stateInfo);
-            }
+            var stateEntry = _stateDictionary[stateInfo];
+            _tabDictionary.Remove(stateEntry.TabPage);
+            //_tabStateDictionary.Remove(tabPage);
+            //_tabColorDictionary.Remove(tabPage);
+            //_formColorDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
+            //_formTabDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
+
+            stateEntry.TabPage.Dispose();
+            _stateDictionary.Remove(stateInfo);
         }
 
         #endregion
@@ -780,13 +789,13 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void UpdateParentTabs(IStateInfo stateInfo)
         {
-            if (stateInfo.ParentStateInfo != null)
-            {
-                var parentForm = _stateTabDictionary[stateInfo.ParentStateInfo].Controls[0] as IKuriimuForm;
-                parentForm?.UpdateForm();
+            if (stateInfo.ParentStateInfo == null)
+                return;
 
-                UpdateParentTabs(stateInfo.ParentStateInfo);
-            }
+            var parentForm = _stateDictionary[stateInfo.ParentStateInfo].KuriimuForm;
+            parentForm?.UpdateForm();
+
+            UpdateParentTabs(stateInfo.ParentStateInfo);
         }
 
         private void UpdateChildrenTabs(IStateInfo stateInfo)
@@ -797,8 +806,7 @@ namespace Kuriimu2.WinForms.MainForms
                     UpdateChildrenTabs(child);
             }
 
-            var form = _stateTabDictionary[stateInfo].Controls[0] as IKuriimuForm;
-            form?.UpdateForm();
+            _stateDictionary[stateInfo].KuriimuForm?.UpdateForm();
         }
 
         private string CreateFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
