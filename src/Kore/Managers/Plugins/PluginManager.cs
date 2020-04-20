@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
@@ -85,13 +86,14 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x => x.AbsoluteDirectory / x.FilePath == filePath);
+            return _loadedFiles.Any(x => 
+                x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
         }
 
         /// <inheritdoc />
         public IStateInfo GetLoadedFile(UPath filePath)
         {
-            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath == filePath);
+            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
         }
 
         /// <inheritdoc />
