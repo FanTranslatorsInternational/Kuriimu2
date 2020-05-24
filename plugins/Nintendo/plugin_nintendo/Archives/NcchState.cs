@@ -11,7 +11,7 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
-    class NcchState : IArchiveState, ILoadFiles, IReplaceFiles
+    class NcchState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private readonly NCCH _ncch;
 
@@ -31,13 +31,13 @@ namespace plugin_nintendo.Archives
             Files = _ncch.Load(fileStream);
         }
 
-        //public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
-        //{
-        //    var output = fileSystem.OpenFile(savePath, FileMode.Create);
-        //    _ncch.Save(output, Files);
+        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        {
+            var output = fileSystem.OpenFile(savePath, FileMode.Create);
+            _ncch.Save(output, Files);
 
-        //    return Task.CompletedTask;
-        //}
+            return Task.CompletedTask;
+        }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
         {
