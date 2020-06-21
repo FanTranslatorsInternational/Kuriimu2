@@ -14,9 +14,10 @@ namespace Kontract.Models.Archive
     /// </summary>
     public class ArchiveFileInfo
     {
+        private readonly IKompressionConfiguration _configuration;
+
         private UPath _filePath;
 
-        private IKompressionConfiguration _configuration;
         private Lazy<Stream> _decompressedStream;
         private long _decompressedSize;
         private bool _hasSetFileData;
@@ -119,20 +120,36 @@ namespace Kontract.Models.Archive
             }
         }
 
+        public long SaveFileData(Stream output, IProgressContext progress = null)
+        {
+            return SaveFileData(output, true, progress);
+        }
+
         /// <summary>
         /// Save the file data to an output stream.
         /// </summary>
         /// <param name="output">The output to write the file data to.</param>
+        /// <param name="compress">If <see cref="UsesCompression"/> is true, determines if the file data may be compressed.</param>
         /// <param name="progress">The context to report progress to.</param>
         /// <returns>The size of the file written.</returns>
-        public virtual long SaveFileData(Stream output, IProgressContext progress = null)
+        public virtual long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
             Stream dataToCopy;
             if (UsesCompression)
             {
-                dataToCopy = _hasSetFileData ?
-                    GetCompressedStream(FileData, _configuration) :
-                    GetBaseStream();
+                if (!compress)
+                {
+                    // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
+                    // get decompressed data
+                    dataToCopy = _decompressedStream.Value;
+                }
+                else
+                {
+                    // Otherwise compress data or use the original compressed data, if never set
+                    dataToCopy = _hasSetFileData ?
+                        GetCompressedStream(FileData, _configuration) :
+                        GetBaseStream();
+                }
             }
             else
             {

@@ -104,7 +104,7 @@ namespace Kontract.Models.IO
         /// <summary>
         /// Gets a value indicating whether this path is a file by ending with a `/`.
         /// </summary>
-        public bool IsFile => FullName?.EndsWith("/") ?? false;
+        public bool IsFile => !IsDirectory;
 
         /// <summary>
         /// Performs an implicit conversion from <see cref="System.String"/> to <see cref="UPath"/>.

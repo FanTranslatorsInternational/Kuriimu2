@@ -106,6 +106,32 @@ namespace Kontract.Extensions
         }
 
         /// <summary>
+        /// Gets the absolute sub directory from within a given root.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="root">The root from which the sub directory starts.</param>
+        /// <returns>The absolute sub directory.</returns>
+        public static UPath GetSubDirectory(this UPath path, UPath root)
+        {
+            path.AssertNotNull();
+            root.AssertNotNull(nameof(root));
+
+            if (path.IsAbsolute != root.IsAbsolute)
+            {
+                throw new ArgumentException("Cannot mix absolute and relative paths", nameof(root));
+            }
+
+            var pathFullName = path.FullName;
+            var rootFullName = root.FullName;
+            if (!pathFullName.StartsWith(rootFullName))
+            {
+                throw new ArgumentException("Path must start with the given root.", nameof(path));
+            }
+
+            return ((UPath)pathFullName.Substring(rootFullName.Length)).ToAbsolute();
+        }
+
+        /// <summary>
         /// Splits the specified path by directories using the directory separator character `/`
         /// </summary>
         /// <param name="path">The path.</param>
