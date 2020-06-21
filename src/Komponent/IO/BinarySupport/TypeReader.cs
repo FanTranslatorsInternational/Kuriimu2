@@ -183,7 +183,7 @@ namespace Komponent.IO.BinarySupport
             Type chosenType = null;
             foreach (var typeChoice in typeChoices)
             {
-                if (storage.Exists(typeChoice.FieldName))
+                if (!storage.Exists(typeChoice.FieldName))
                     throw new InvalidOperationException($"Field '{typeChoice.FieldName}' could not be found.");
 
                 var value = storage.Get(typeChoice.FieldName);
