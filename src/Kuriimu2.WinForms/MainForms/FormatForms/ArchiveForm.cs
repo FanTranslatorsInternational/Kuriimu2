@@ -477,9 +477,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             // Toolbar
             tsbFileExtract.Enabled = true;
-            tsbFileReplace.Enabled = ArchiveState is IReplaceFiles;
-            tsbFileRename.Enabled = ArchiveState is IRenameFiles;
-            tsbFileDelete.Enabled = ArchiveState is IRemoveFiles;
+            tsbFileReplace.Enabled = ArchiveState is IReplaceFiles && ArchiveState is ISaveFiles;
+            tsbFileRename.Enabled = ArchiveState is IRenameFiles && ArchiveState is ISaveFiles;
+            tsbFileDelete.Enabled = ArchiveState is IRemoveFiles && ArchiveState is ISaveFiles;
 
             if (SaveState != null)
                 SaveState.ContentChanged = ArchiveState.Files.Any(x => x.ContentChanged);
