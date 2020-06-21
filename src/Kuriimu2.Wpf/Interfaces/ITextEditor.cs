@@ -1,5 +1,5 @@
 ﻿using System.Collections.ObjectModel;
-using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Models.Text;
 
 namespace Kuriimu2.Wpf.Interfaces
 {

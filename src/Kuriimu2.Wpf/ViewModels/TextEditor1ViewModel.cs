@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Plugins.State.Text;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Models.Text;
 using Kuriimu2.Wpf.Interfaces;
 
 namespace Kuriimu2.Wpf.ViewModels
 {
     public sealed class TextEditor1ViewModel : Screen, ITextEditor
     {
-        private ITextAdapter _adapter;
+        private ITextState _state;
 
         public IStateInfo KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; }
@@ -25,10 +24,10 @@ namespace Kuriimu2.Wpf.ViewModels
 
             // TODO: What is display name
             //DisplayName = KoreFile.DisplayName;
-            _adapter = KoreFile.State as ITextAdapter;
+            _state = KoreFile.State as ITextState;
 
-            if (_adapter != null)
-                Entries = new ObservableCollection<TextEntry>(_adapter.Entries);
+            if (_state != null)
+                Entries = new ObservableCollection<TextEntry>(_state.Texts);
 
             SelectedEntry = Entries.First();
         }

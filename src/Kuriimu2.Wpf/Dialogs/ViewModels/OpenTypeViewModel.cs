@@ -30,7 +30,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         {
             _pluginManager = pluginManager;
 
-            SelectedPluginType = nameof(ITextAdapter);
+            SelectedPluginType = nameof(ITextState);
         }
 
         // TODO: Get file loading adapter names
@@ -96,7 +96,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         {
             if (SelectedFormatType == null) return;
 
-            var ofd = new OpenFileDialog { Filter = Kore.Utilities.Common.GetAdapterFilter(SelectedFormatType) };
+            // TODO: Add filter
+            var ofd = new OpenFileDialog { /*Filter = Kore.Utilities.Common.GetAdapterFilter(SelectedFormatType)*/ };
             if (ofd.ShowDialog() != true) return;
 
             SelectedFilePath = ofd.FileName;

@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Caliburn.Micro;
-using Kontract.Attributes;
-using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.Identifier;
+using Kore.Extensions;
 using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.Common;
 
@@ -26,10 +26,10 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public SelectAdapterViewModel(List<ILoadFiles> adapters, PluginManager pluginManager, string fileName)
+        public SelectAdapterViewModel(List<IFilePlugin> adapters, PluginManager pluginManager, string fileName)
         {
             foreach (var adapter in adapters)
-                Adapters.Add(new SelectableAdapter(adapter, pluginManager));
+                Adapters.Add(new SelectableAdapter(adapter.PluginId, pluginManager));
 
             SelectedAdapter = Adapters.FirstOrDefault();
 
@@ -60,11 +60,11 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public ILoadFiles Adapter;
+        public IFilePlugin Adapter;
 
         public void OKButton()
         {
-            Adapter = SelectedAdapter?.Adapter;
+            Adapter = SelectedAdapter?.FilePlugin;
 
             if (ValidationCallback != null)
             {
@@ -87,7 +87,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
     public sealed class SelectableAdapter
     {
-        public ILoadFiles Adapter { get; }
+        public IFilePlugin FilePlugin { get; }
         public string ID { get; }
         public string Name { get; }
         public string ShortName { get; }
@@ -95,26 +95,24 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         public string About { get; }
         public string Version { get; }
 
-        public SelectableAdapter(ILoadFiles adapter, PluginManager pluginManager)
+        public SelectableAdapter(Guid pluginId, PluginManager pluginManager)
         {
-            Adapter = adapter;
+            FilePlugin = pluginManager.GetFilePlugins().FirstOrDefault(x => x.PluginId == pluginId);
 
             // TODO: Get metadata from plugin
             try
             {
-                var attr = new PluginInfoAttribute("test"); //pluginLoader.GetMetadata<PluginInfoAttribute>(Adapter));
-
-                ID = attr.ID;
-                Name = attr.Name;
-                ShortName = attr.ShortName;
-                Author = attr.Author;
-                About = attr.About;
-                Version = FileVersionInfo.GetVersionInfo(Adapter.GetType().Assembly.Location).ProductVersion;
+                ID = pluginId.ToString();
+                Name = FilePlugin.Metadata.Name;
+                ShortName = FilePlugin.Metadata.ShortDescription;
+                Author = FilePlugin.Metadata.Author;
+                About = FilePlugin.Metadata.LongDescription;
+                Version = FileVersionInfo.GetVersionInfo(FilePlugin.GetType().Assembly.Location).ProductVersion;
             }
             catch (Exception ex)
             {
-                Name = Adapter.GetType().AssemblyQualifiedName;
-                Version = FileVersionInfo.GetVersionInfo(Adapter.GetType().Assembly.Location).ProductVersion;
+                Name = FilePlugin.GetType().AssemblyQualifiedName;
+                Version = FileVersionInfo.GetVersionInfo(FilePlugin.GetType().Assembly.Location).ProductVersion;
             }
         }
     }

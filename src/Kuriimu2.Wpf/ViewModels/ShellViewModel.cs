@@ -8,10 +8,8 @@ using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Font;
-using Kontract.Interfaces.Plugins.State.Image;
-using Kontract.Interfaces.Plugins.State.Text;
 using Kore.Managers.Plugins;
-using Kore.Utilities;
+using Kore.Progress;
 using Kuriimu2.Wpf.Interfaces;
 using Microsoft.Win32;
 
@@ -32,7 +30,7 @@ namespace Kuriimu2.Wpf.ViewModels
             DisplayName = "Kuriimu2.Wpf";
 
             // Assign plugin loading event handler.
-            _pluginManager = new PluginManager("plugins");
+            _pluginManager = new PluginManager(new ConcurrentProgress(new NullProgressOutput()), "plugins");
 
             // TODO: Add event for failed identification
             //_pluginManager.IdentificationFailed += FileIdentificationFailed;
@@ -141,7 +139,7 @@ namespace Kuriimu2.Wpf.ViewModels
         public void TextEditorExportFile()
         {
             var editor = (IFileEditor)ActiveItem;
-            if (!(editor.KoreFile.State is ITextAdapter adapter)) return;
+            if (!(editor.KoreFile.State is ITextState)) return;
 
             // TODO: Get text adapters
             //var creators = _pluginLoader.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
@@ -151,7 +149,8 @@ namespace Kuriimu2.Wpf.ViewModels
                 // TODO: Create correct save file dialog
                 FileName = Path.GetFileName(editor.KoreFile.FilePath.FullName) + ".ext"/*Common.GetAdapterExtension(creators.First())*/,
                 InitialDirectory = Path.GetDirectoryName(editor.KoreFile.FilePath.FullName),
-                Filter = Common.GetAdapterFilters(new List<string>())
+                // TODO: Re-enable filter
+                //Filter = Common.GetAdapterFilters(new List<string>())
             };
             if (sfd.ShowDialog() != true) return;
 
@@ -203,14 +202,17 @@ namespace Kuriimu2.Wpf.ViewModels
 
         #region Private Methods
 
-        private bool LoadFile(string filename)
+        private async Task<bool> LoadFile(string filename)
         {
             IStateInfo kfi = null;
 
             try
             {
-                // TODO: Be asynchronous
-                kfi = _pluginManager.LoadFile(filename).Result;
+                var loadResult = await _pluginManager.LoadFile(filename);
+                if (!loadResult.IsSuccessful)
+                    return false;
+
+                kfi = loadResult.LoadedState;
             }
             catch (Exception ex)
             {
@@ -228,12 +230,14 @@ namespace Kuriimu2.Wpf.ViewModels
 
             switch (kfi.State)
             {
-                case ITextAdapter txt2:
+                case ITextState txt2:
                     ActivateItemAsync(new TextEditor2ViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
                     break;
-                case IImageAdapter img:
+
+                case IImageState img:
                     ActivateItemAsync(new ImageEditorViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
                     break;
+
                 case IFontAdapter2 fnt:
                     ActivateItemAsync(new FontEditorViewModel(kfi), new System.Threading.CancellationToken());
                     break;

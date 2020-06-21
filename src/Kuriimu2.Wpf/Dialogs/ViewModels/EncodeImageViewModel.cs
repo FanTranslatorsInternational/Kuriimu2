@@ -1,26 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract.Interfaces.Plugins.State.Image;
+using Kanvas;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Kanvas;
+using Kontract.Models.Image;
 using Kore.Managers.Plugins;
-using Kore.Models;
+using Kore.Progress;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Tools;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
+    // TODO: Revise encoding selection and process
     public sealed class EncodeImageViewModel : Screen
     {
         private readonly PluginManager _pluginManager;
-        private readonly IImageAdapter _adapter;
-        private readonly ImageInfo _imageInfo;
+        private readonly IImageState _state;
+        private readonly KanvasImage _kanvasImage;
 
-        private EncodingInfo _selectedEncoding;
+        private IEncodingInfo _selectedEncoding;
         private bool _controlsEnabled = true;
 
         private ImageSource _sourceImage;
@@ -37,14 +42,14 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public EncodeImageViewModel(PluginManager pluginManager, IImageAdapter adapter, ImageInfo imageInfo)
+        public EncodeImageViewModel(PluginManager pluginManager, IImageState state, ImageInfo imageInfo)
         {
             _pluginManager = pluginManager;
-            _adapter = adapter;
-            _imageInfo = imageInfo;
+            _state = state;
+            _kanvasImage = new KanvasImage(state, imageInfo);
 
-            SelectedEncoding = _imageInfo.ImageEncoding;
-            SourceImage = _imageInfo.Image.ToBitmapImage(true);
+            SelectedEncoding = state.SupportedEncodings[_kanvasImage.ImageFormat];
+            SourceImage = _kanvasImage.GetImage().ToBitmapImage();
             OutputImage = SourceImage;
         }
 
@@ -70,9 +75,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public List<EncodingInfo> EncodingInfos => _adapter.ImageEncodingInfos.ToList();
-
-        public EncodingInfo SelectedEncoding
+        public IEncodingInfo SelectedEncoding
         {
             get => _selectedEncoding;
             set
@@ -100,28 +103,30 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public async void EncodeImage()
         {
-            var report = new KuriimuProgress();
+            //var report = new ConcurrentProgress();
             //report.ProgressChanged += Report_ProgressChanged;
             ControlsEnabled = false;
 
             try
             {
-                ImageTranscodeResult result;
+                //_kanvasImage.TranscodeImage();
 
-                if (_adapter is IIndexedImageAdapter indexed && _selectedEncoding.IsIndexed)
-                {
-                    var ibi = _imageInfo as IndexedImageInfo;
-                    result = await indexed.TranscodeImage(_imageInfo, _selectedEncoding, ibi.PaletteEncoding, report);
-                }
-                else
-                {
-                    result = await _adapter.TranscodeImage(_imageInfo, _selectedEncoding, report);
-                }
+                //ImageTranscodeResult result;
 
-                if (result.Exception != null)
-                    throw result.Exception;
+                //if (_state is IIndexedImageAdapter indexed && _selectedEncoding.IsIndexed)
+                //{
+                //    var ibi = _kanvasImage as IndexedImageInfo;
+                //    result = await indexed.TranscodeImage(_kanvasImage, _selectedEncoding, ibi.PaletteEncoding, report);
+                //}
+                //else
+                //{
+                //    result = await _state.TranscodeImage(_kanvasImage, _selectedEncoding, report);
+                //}
 
-                OutputImage = result.Image.ToBitmapImage(true);
+                //if (result.Exception != null)
+                //    throw result.Exception;
+
+                //OutputImage = result.Image.ToBitmapImage(true);
             }
             catch (Exception ex)
             {
