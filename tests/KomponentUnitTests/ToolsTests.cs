@@ -69,7 +69,7 @@ namespace KomponentUnitTests
         }
         private class StringTest5
         {
-            [FixedLength(3,StringEncoding =StringEncoding.UTF32)]
+            [FixedLength(3, StringEncoding = StringEncoding.UTF32)]
             public string var1;
         }
 
@@ -111,7 +111,7 @@ namespace KomponentUnitTests
         private class ListTest6
         {
             [FixedLength(3)]
-            public List<byte> var1;
+            public List<int> var1;
         }
 
         [TestMethod]
@@ -122,7 +122,7 @@ namespace KomponentUnitTests
             Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest3)));
             Assert.ThrowsException<InvalidOperationException>(() => Tools.MeasureType(typeof(ListTest4)));
             Assert.AreEqual(3, Tools.MeasureType(typeof(ListTest5)));
-            Assert.AreEqual(3, Tools.MeasureType(typeof(ListTest6)));
+            Assert.AreEqual(12, Tools.MeasureType(typeof(ListTest6)));
         }
 
         private enum TestEnum : int
@@ -158,7 +158,7 @@ namespace KomponentUnitTests
         [TestMethod]
         public void LimitedMeasure()
         {
-            Assert.AreEqual(12,Tools.MeasureTypeUntil(typeof(LimitedTest1),"var1.var2"));
+            Assert.AreEqual(12, Tools.MeasureTypeUntil(typeof(LimitedTest1), "var1.var2"));
         }
     }
 }
