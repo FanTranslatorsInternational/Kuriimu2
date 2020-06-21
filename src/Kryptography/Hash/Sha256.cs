@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
+using System.Security.Cryptography;
 
 namespace Kryptography.Hash
 {
-    class Sha256
+    public class Sha256 : IHash
     {
+        private static readonly SHA256 HashInstance = SHA256.Create();
+
+        public byte[] Compute(byte[] input) => HashInstance.ComputeHash(input);
+
+        public byte[] Compute(Stream input) => HashInstance.ComputeHash(input);
     }
 }
