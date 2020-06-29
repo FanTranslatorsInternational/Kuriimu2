@@ -36,10 +36,6 @@ namespace Kuriimu2.WinForms.MainForms
 
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
         private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
-        //private IDictionary<TabPage, IStateInfo> _tabStateDictionary;
-        //private IDictionary<IKuriimuForm, Color> _formColorDictionary;
-        //private IDictionary<IKuriimuForm, TabPage> _formTabDictionary;
-        //private IDictionary<TabPage, Color> _tabColorDictionary;
 
         private readonly IInternalPluginManager _pluginManager;
         private readonly IProgressContext _progressContext;
@@ -64,10 +60,6 @@ namespace Kuriimu2.WinForms.MainForms
 
             _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
             _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
-            //_tabStateDictionary = new Dictionary<TabPage, IStateInfo>();
-            //_formColorDictionary = new Dictionary<IKuriimuForm, Color>();
-            //_formTabDictionary = new Dictionary<IKuriimuForm, TabPage>();
-            //_tabColorDictionary = new Dictionary<TabPage, Color>();
 
             _pluginManager = new PluginManager(_progressContext, "plugins")
             {
@@ -138,84 +130,6 @@ namespace Kuriimu2.WinForms.MainForms
                 e.Result = chooseForm.SelectedFilePlugin;
             }
         }
-
-        //#region Ciphers
-        //private void Cipher_RequestData(object sender, RequestDataEventArgs e)
-        //{
-        //    _globalOperationWatch.Stop();
-
-        //    var input = new InputBox("Requesting data", e.RequestMessage);
-        //    var ofd = new OpenFileDialog() { Title = e.RequestMessage };
-
-        //    while (true)
-        //    {
-        //        if (e.IsRequestFile)
-        //        {
-        //            if (ofd.ShowDialog() == DialogResult.OK && ofd.CheckFileExists)
-        //            {
-        //                e.Data = ofd.FileName;
-        //                _globalOperationWatch.Start();
-        //                return;
-        //            }
-
-        //            MessageBox.Show("No valid file selected. Please choose a valid file.", "Invalid file", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        }
-        //        else
-        //        {
-        //            if (input.ShowDialog() == DialogResult.OK && input.InputText.Length == e.DataSize)
-        //            {
-        //                e.Data = input.InputText;
-        //                _globalOperationWatch.Start();
-        //                return;
-        //            }
-
-        //            MessageBox.Show("No valid data input. Please input valid data.", "Invalid data", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        }
-        //    }
-        //}
-
-        //private void EncItem_Click(object sender, EventArgs e)
-        //{
-        //    var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
-        //    cipher.RequestData += Cipher_RequestData;
-        //    DoCipher(cipher.Encrypt);
-        //    cipher.RequestData -= Cipher_RequestData;
-        //}
-
-        //private void DecItem_Click(object sender, EventArgs e)
-        //{
-        //    var cipher = (sender as ToolStripItem).Tag as ICipherAdapter;
-        //    cipher.RequestData += Cipher_RequestData;
-        //    DoCipher(cipher.Decrypt);
-        //    cipher.RequestData -= Cipher_RequestData;
-        //}
-        //#endregion
-
-        //#region Compression
-
-        //private void CompressItem_Click(object sender, EventArgs e)
-        //{
-        //    var compressor = (sender as ToolStripItem).Tag as ICompressionAdapter;
-        //    DoCompression(compressor.Compress);
-        //}
-
-        //private void DecompressItem_Click(object sender, EventArgs e)
-        //{
-        //    var compressor = (sender as ToolStripItem).Tag as ICompressionAdapter;
-        //    DoCompression(compressor.Decompress);
-        //}
-
-        //#endregion
-
-        //#region Hash
-
-        //private void Hash_Click(object sender, EventArgs e)
-        //{
-        //    var hash = (sender as ToolStripItem).Tag as IHashAdapter;
-        //    DoHash(hash.Compute);
-        //}
-
-        //#endregion
 
         #region Tab Item
 
@@ -367,174 +281,6 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Utilities
 
-        //#region Ciphers
-
-        //private async void DoCipher(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> cipherFunc)
-        //{
-        //    // File to open
-        //    var openFile = new OpenFileDialog();
-        //    if (openFile.ShowDialog() != DialogResult.OK)
-        //    {
-        //        //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    // File to save
-        //    var saveFile = new SaveFileDialog();
-        //    if (saveFile.ShowDialog() != DialogResult.OK)
-        //    {
-        //        //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    ciphersToolStripMenuItem.Enabled = false;
-        //    var report = new Progress<ProgressReport>();
-        //    report.ProgressChanged += Report_ProgressChanged;
-
-        //    var openFileStream = openFile.OpenFile();
-        //    var saveFileStream = saveFile.OpenFile();
-
-        //    _timer.Start();
-        //    _globalOperationWatch.Reset();
-        //    _globalOperationWatch.Start();
-        //    await cipherFunc(openFileStream, saveFileStream, report);
-        //    _globalOperationWatch.Stop();
-        //    _timer.Stop();
-
-        //    openFileStream.Close();
-        //    saveFileStream.Close();
-
-        //    ciphersToolStripMenuItem.Enabled = true;
-        //}
-
-        //private void AddCipherDelegates(ToolStripMenuItem item, ICipherAdapter cipher, bool ignoreDecrypt, bool ignoreEncrypt)
-        //{
-        //    if (!ignoreDecrypt)
-        //    {
-        //        var decItem = new ToolStripMenuItem("Decrypt");
-        //        decItem.Click += DecItem_Click;
-        //        decItem.Tag = cipher;
-        //        item?.DropDownItems.Add(decItem);
-        //    }
-
-        //    if (!ignoreEncrypt)
-        //    {
-        //        var encItem = new ToolStripMenuItem("Encrypt");
-        //        encItem.Click += EncItem_Click;
-        //        encItem.Tag = cipher;
-        //        item?.DropDownItems.Add(encItem);
-        //    }
-        //}
-
-        //#endregion
-
-        //#region Compression
-
-        //private async void DoCompression(Func<Stream, Stream, IProgress<ProgressReport>, Task<bool>> compFunc)
-        //{
-        //    // File to open
-        //    var openFile = new OpenFileDialog();
-        //    if (openFile.ShowDialog() != DialogResult.OK)
-        //    {
-        //        //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    // File to save
-        //    var saveFile = new SaveFileDialog();
-        //    if (saveFile.ShowDialog() != DialogResult.OK)
-        //    {
-        //        //MessageBox.Show("An error occured while selecting a file to save to.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    compressionsToolStripMenuItem.Enabled = false;
-        //    var report = new Progress<ProgressReport>();
-        //    report.ProgressChanged += Report_ProgressChanged;
-
-        //    var openFileStream = openFile.OpenFile();
-        //    var saveFileStream = saveFile.OpenFile();
-
-        //    _timer.Start();
-        //    _globalOperationWatch.Reset();
-        //    _globalOperationWatch.Start();
-        //    await compFunc(openFileStream, saveFileStream, report);
-        //    _globalOperationWatch.Stop();
-        //    _timer.Stop();
-
-        //    openFileStream.Close();
-        //    saveFileStream.Close();
-
-        //    compressionsToolStripMenuItem.Enabled = true;
-        //}
-
-        //private void AddCompressionDelegates(ToolStripMenuItem item, ICompressionAdapter compressor, bool ignoreDecompression, bool ignoreCompression)
-        //{
-        //    if (!ignoreDecompression)
-        //    {
-        //        var decItem = new ToolStripMenuItem("Decompress");
-        //        decItem.Click += DecompressItem_Click;
-        //        decItem.Tag = compressor;
-        //        item?.DropDownItems.Add(decItem);
-        //    }
-
-        //    if (!ignoreCompression)
-        //    {
-        //        var compItem = new ToolStripMenuItem("Compress");
-        //        compItem.Click += CompressItem_Click;
-        //        compItem.Tag = compressor;
-        //        item?.DropDownItems.Add(compItem);
-        //    }
-        //}
-
-        //#endregion
-
-        //#region Hash
-
-        //private async void DoHash(Func<Stream, IProgress<ProgressReport>, Task<HashResult>> hashFunc)
-        //{
-        //    // File to open
-        //    var openFile = new OpenFileDialog();
-        //    if (openFile.ShowDialog() != DialogResult.OK)
-        //    {
-        //        //MessageBox.Show("An error occured while selecting a file to open.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        //        return;
-        //    }
-
-        //    hashesToolStripMenuItem.Enabled = false;
-        //    var report = new Progress<ProgressReport>();
-        //    report.ProgressChanged += Report_ProgressChanged;
-
-        //    var openFileStream = openFile.OpenFile();
-
-        //    _timer.Start();
-        //    _globalOperationWatch.Reset();
-        //    _globalOperationWatch.Start();
-        //    var hashResult = await hashFunc(openFileStream, report);
-        //    _globalOperationWatch.Stop();
-        //    _timer.Stop();
-
-        //    openFileStream.Close();
-
-        //    if (hashResult.IsSuccessful)
-        //    {
-        //        return;
-        //    }
-
-        //    MessageBox.Show(
-        //        $"The hash of {openFile.FileName} is:{Environment.NewLine}{hashResult.Result.Aggregate("", (a, b) => a + b.ToString("X2"))}");
-
-        //    hashesToolStripMenuItem.Enabled = true;
-        //}
-
-        //private void AddHashDelegates(ToolStripMenuItem item, IHashAdapter hash)
-        //{
-        //    item.Click += Hash_Click;
-        //    item.Tag = hash;
-        //}
-
-        //#endregion
-
         #region Open File
 
         /// <summary>
@@ -621,12 +367,6 @@ namespace Kuriimu2.WinForms.MainForms
                         throw new InvalidOperationException(
                             $"Unknown plugin state type {stateInfo.State.GetType().Name}.");
                 }
-
-                //if (stateInfo.State is ITextAdapter)
-                //    tabControl = new TextForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi), _pluginManager.GetAdapters<IGameAdapter>());
-                //else if (kfi.Adapter is ILayoutAdapter)
-                //    tabControl = new LayoutForm(kfi, tabPage, parentKfi?.Adapter as IArchiveAdapter, GetTabPageForKfi(parentKfi));
-                /*else*/
             }
             catch (Exception e)
             {
@@ -736,15 +476,13 @@ namespace Kuriimu2.WinForms.MainForms
                 {
                     case DialogResult.Yes:
                         var saveResult = await _pluginManager.SaveFile(stateInfo);
-                        if (saveResult.IsSuccessful)
-                            (stateInfo.State as ISaveFiles).ContentChanged = false;
 
                         // TODO: Somehow propagate save error to user?
 
                         break;
 
                     case DialogResult.No:
-                        (stateInfo.State as ISaveFiles).ContentChanged = false;
+                        // Close state and tabs without doing anything
                         break;
 
                     default:

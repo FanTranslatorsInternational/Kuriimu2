@@ -481,9 +481,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tsbFileRename.Enabled = ArchiveState is IRenameFiles && ArchiveState is ISaveFiles;
             tsbFileDelete.Enabled = ArchiveState is IRemoveFiles && ArchiveState is ISaveFiles;
 
-            if (SaveState != null)
-                SaveState.ContentChanged = ArchiveState.Files.Any(x => x.ContentChanged);
-
             UpdateTabDelegate?.Invoke(_stateInfo);
         }
 

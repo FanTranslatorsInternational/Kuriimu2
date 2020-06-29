@@ -509,9 +509,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var result = await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
 
-            if (result && SaveState != null)
-                SaveState.ContentChanged = false;
-
             UpdateForm();
         }
 
@@ -814,9 +811,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
             }
 
-            if (SaveState != null)
-                SaveState.ContentChanged = true;
-
             UpdateForm();
             UpdatePreview();
             UpdateImageList();
@@ -855,9 +849,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 UpdateForm();
                 return;
             }
-
-            if (SaveState != null)
-                SaveState.ContentChanged = true;
 
             UpdateForm();
             UpdatePreview();
@@ -930,9 +921,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 UpdateForm();
                 return;
             }
-
-            if (SaveState != null)
-                SaveState.ContentChanged = true;
 
             UpdateForm();
             UpdatePreview();
