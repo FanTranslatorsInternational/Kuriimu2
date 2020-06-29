@@ -118,6 +118,9 @@ namespace Komponent.IO.BinarySupport
             var bitFieldInfoAttribute = typeAttributes.BitFieldInfoAttribute;
             var alignmentAttribute = typeAttributes.AlignmentAttribute;
 
+            if (bitFieldInfoAttribute != null)
+                bw.Flush();
+
             bw.BitOrder = (bitFieldInfoAttribute?.BitOrder != BitOrder.Default ? bitFieldInfoAttribute?.BitOrder : bw.BitOrder) ?? bw.BitOrder;
             bw.BlockSize = bitFieldInfoAttribute?.BlockSize ?? bw.BlockSize;
             if (bw.BlockSize != 8 && bw.BlockSize != 4 && bw.BlockSize != 2 && bw.BlockSize != 1)
