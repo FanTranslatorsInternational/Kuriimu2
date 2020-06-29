@@ -11,7 +11,13 @@
     <Version>2.0.0</Version>
     <Copyright>Fan Translators International</Copyright>
     <ApplicationIcon>Images\kuriimu2.ico</ApplicationIcon>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -87,6 +93,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
+	<ProjectReference Include="..\Kompression\Kompression.csproj" />
+	<ProjectReference Include="..\Kryptography\Kryptography.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
     <ProjectReference Include="..\Kore\Kore.csproj" />
   </ItemGroup>

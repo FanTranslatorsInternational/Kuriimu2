@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Font;
 using Kore.Generators;
 using Kuriimu2.Wpf.Tools;
@@ -51,7 +52,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         private string _error;
 
         public BitmapImage Icon { get; }
-        public IFontAdapter2 Adapter { get; set; } = null;
+        public IFontState State { get; set; } = null;
 
         public string Error
         {
@@ -166,7 +167,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public string Generator { get; set; } = "GDI+";
 
-        public List<string> FontFamilies => 
+        public List<string> FontFamilies =>
             new InstalledFontCollection().Families.Select(ff => ff.Name).ToList();
 
         public string FontFamily
@@ -280,7 +281,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public List<string> TextRenderingHints => 
+        public List<string> TextRenderingHints =>
             Enum.GetNames(typeof(TextRenderingHint)).ToList();
 
         public string TextRenderingHint
@@ -348,7 +349,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         /// </summary>
         public void AddAdjustedCharacter()
         {
-            if (AdjustedCharacters.Any(ac => ac.Character == PreviewCharacter)) 
+            if (AdjustedCharacters.Any(ac => ac.Character == PreviewCharacter))
                 return;
 
             AdjustedCharacters.Add(new AdjustedCharacter
@@ -356,7 +357,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
                 Character = PreviewCharacter,
                 Padding = new Padding
                 {
-                    Left = PaddingLeft, 
+                    Left = PaddingLeft,
                     Right = PaddingRight
                 }
             });
@@ -369,7 +370,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         /// </summary>
         public void DeleteAdjustedCharacter()
         {
-            if (SelectedAdjustedCharacter == null) 
+            if (SelectedAdjustedCharacter == null)
                 return;
 
             AdjustedCharacters.Remove(SelectedAdjustedCharacter);
@@ -388,7 +389,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         public void LoadProfileButton()
         {
             var ofd = new OpenFileDialog { FileName = "", Filter = _profileFilter };
-            if (ofd.ShowDialog() == false) 
+            if (ofd.ShowDialog() == false)
                 return;
 
             var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
@@ -420,7 +421,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         public void SaveProfileButton()
         {
             var sfd = new SaveFileDialog { FileName = "", Filter = _profileFilter };
-            if (sfd.ShowDialog() == false) 
+            if (sfd.ShowDialog() == false)
                 return;
 
             var profile = new BitmapFontGeneratorGdiProfile
@@ -481,19 +482,16 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             var glyphs = GenerateGlyphs(chars).ToArray();
 
             // Set and update new characters
-            Adapter.Baseline = Baseline;
-            Adapter.Characters.Clear();
+            State.Baseline = Baseline;
+            (State as IRemoveCharacters).RemoveAll();
 
             for (var i = 0; i < chars.Length; i++)
             {
-                var newFontCharacter = (Adapter as IAddCharacters).NewCharacter(Characters[i]);
-                newFontCharacter.Glyph = glyphs[i];
-                if (newFontCharacter.CharacterInfo == null)
-                    newFontCharacter.CharacterInfo = new CharacterInfo(glyphs[i].Width);
-                else
-                    newFontCharacter.CharacterInfo.CharWidth = glyphs[i].Width;
+                var newFontCharacter = (State as IAddCharacters).CreateCharacterInfo(Characters[i]);
+                newFontCharacter.SetGlyph(glyphs[i]);
+                newFontCharacter.SetCharacterSize(new Size(glyphs[i].Width, 0));
 
-                Adapter.Characters.Add(newFontCharacter);
+                (State as IAddCharacters).AddCharacter(newFontCharacter);
             }
 
             GenerationCompleteCallback?.Invoke();
@@ -601,7 +599,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
                 gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 255, 0), 1),
                     new Rectangle(0, 0, glyphWidth - 1, GlyphHeight - 1));
 
-                // Glyph Box
+                // GlyphInfo Box
                 gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 0, 0), 1),
                     new Rectangle(padding?.Left ?? 0, 0, (int)Math.Round(measuredWidth) - 1, GlyphHeight - 1));
             }

@@ -206,18 +206,18 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             IStateInfo kfi = null;
 
-            try
+            var loadResult = await _pluginManager.LoadFile(filename);
+            if (!loadResult.IsSuccessful)
             {
-                var loadResult = await _pluginManager.LoadFile(filename);
-                if (!loadResult.IsSuccessful)
-                    return false;
+#if DEBUG
+                MessageBox.Show(loadResult.Exception.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show(loadResult.Message, "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                return false;
+            }
 
-                kfi = loadResult.LoadedState;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Open File", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            kfi = loadResult.LoadedState;
 
             ActivateTab(kfi);
 
@@ -238,7 +238,7 @@ namespace Kuriimu2.Wpf.ViewModels
                     ActivateItemAsync(new ImageEditorViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
                     break;
 
-                case IFontAdapter2 fnt:
+                case IFontState fnt:
                     ActivateItemAsync(new FontEditorViewModel(kfi), new System.Threading.CancellationToken());
                     break;
             }
@@ -259,7 +259,16 @@ namespace Kuriimu2.Wpf.ViewModels
                 if (!currentTab.KoreFile.StateChanged && filename == string.Empty)
                     return;
 
-                await _pluginManager.SaveFile(currentTab.KoreFile, filename);
+                var saveResult = await _pluginManager.SaveFile(currentTab.KoreFile, filename);
+                if (!saveResult.IsSuccessful)
+                {
+#if DEBUG
+                    MessageBox.Show(saveResult.Exception.ToString(), "Save File", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show(saveResult.Message, "Save File", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                    return;
+                }
 
                 // Handle archive editors.
                 // TODO: Port the win forms code for this behaviour to WPF MVVM

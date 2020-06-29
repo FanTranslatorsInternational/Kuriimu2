@@ -6,7 +6,9 @@ using System.Windows;
 using System.Windows.Media;
 using Caliburn.Micro;
 using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Font;
+using Kontract.Models.Font;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Dialogs.ViewModels;
 using Kuriimu2.Wpf.Interfaces;
@@ -18,21 +20,21 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private IFontAdapter2 _adapter;
+        private IFontState _state;
 
-        private FontCharacter2 _selectedCharacter;
+        private CharacterInfo _selectedCharacter;
         private ImageSource _selectedCharacterTexture;
 
         public IStateInfo KoreFile { get; set; }
-        public ObservableCollection<FontCharacter2> Characters { get; private set; }
+        public ObservableCollection<CharacterInfo> Characters { get; private set; }
 
-        public FontCharacter2 SelectedCharacter
+        public CharacterInfo SelectedCharacter
         {
             get => _selectedCharacter;
             set
             {
                 _selectedCharacter = value;
-                SelectedCharacterImage = _adapter.Characters.First(x => x == value).Glyph.ToBitmapImage();
+                SelectedCharacterImage = _state.Characters.First(x => x == value).Glyph.ToBitmapImage();
 
                 NotifyOfPropertyChange(() => SelectedCharacter);
                 NotifyOfPropertyChange(() => SelectedCharacterGlyphWidth);
@@ -42,9 +44,9 @@ namespace Kuriimu2.Wpf.ViewModels
             }
         }
 
-        public int SelectedCharacterGlyphWidth => SelectedCharacter?.Glyph.Width ?? 0;
+        public int SelectedCharacterGlyphWidth => SelectedCharacter?.Glyph.Size.Width ?? 0;
 
-        public int SelectedCharacterGlyphHeight => SelectedCharacter?.Glyph.Height ?? 0;
+        public int SelectedCharacterGlyphHeight => SelectedCharacter?.Glyph.Size.Height ?? 0;
 
         public ImageSource SelectedCharacterImage
         {
@@ -66,25 +68,25 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             KoreFile = koreFile;
 
-            _adapter = KoreFile.State as IFontAdapter2;
+            _state = KoreFile.State as IFontState;
 
-            if (_adapter != null)
-                Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
+            if (_state != null)
+                Characters = new ObservableCollection<CharacterInfo>(_state.Characters);
 
-            SelectedCharacter = Characters.First();
+            SelectedCharacter = Characters.FirstOrDefault();
         }
 
         // TODO: Make Font Properties available again
         //public void FontProperties()
         //{
-        //    if (!(_adapter is IFontAdapter2 fnt))
+        //    if (!(_state is IFontAdapter2 fnt))
         //        return;
 
         //    var pe = new FontCharacter2PropertyEditorViewModel
         //    {
         //        Title = "Font Properties",
         //        Message = "Properties:",
-        //        Object = _adapter
+        //        Object = _state
         //    };
         //    _windows.Add(pe);
 
@@ -99,19 +101,19 @@ namespace Kuriimu2.Wpf.ViewModels
 
         #region Add characters
 
-        public bool AddEnabled => _adapter is IAddCharacters;
+        public bool AddEnabled => _state is IAddCharacters;
 
         // TODO: Adding a new character in v2 should also ask for a new glyph image somehow
         public void AddCharacter()
         {
-            if (!(_adapter is IAddCharacters add))
+            if (!(_state is IAddCharacters add))
                 return;
 
             // Add a new character based on the selected character
-            var character = (FontCharacter2)SelectedCharacter.Clone();
+            var character = (CharacterInfo)SelectedCharacter.Clone();
 
             // Open editor to edit character properties
-            var pe = new PropertyEditorViewModel<FontCharacter2>
+            var pe = new PropertyEditorViewModel<CharacterInfo>
             {
                 Title = "Add Character",
                 Mode = DialogMode.Add,
@@ -119,8 +121,8 @@ namespace Kuriimu2.Wpf.ViewModels
                 Object = character,
                 ValidationCallback = () => new ValidationResult
                 {
-                    CanClose = _adapter.Characters.All(c => c.Character != character.Character),
-                    ErrorMessage = $"The '{(char)character.Character}' character already exists in the list."
+                    CanClose = _state.Characters.All(c => c.CodePoint != character.CodePoint),
+                    ErrorMessage = $"Character '{(char)character.CodePoint}' already exists in the list."
                 }
             };
             _windows.Add(pe);
@@ -129,7 +131,7 @@ namespace Kuriimu2.Wpf.ViewModels
             if (_wm.ShowDialogAsync(pe).Result == true && add.AddCharacter(character))
             {
                 NotifyOfPropertyChange(() => DisplayName);
-                Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
+                Characters = new ObservableCollection<CharacterInfo>(_state.Characters);
                 NotifyOfPropertyChange(() => Characters);
                 SelectedCharacter = character;
             }
@@ -143,21 +145,21 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public void EditCharacter()
         {
-            if (!(_adapter is IFontAdapter2 fnt))
+            if (!(_state is IFontState fnt))
                 return;
 
             // Clone the selected character so that changes don't propagate to the plugin
-            var clonedCharacter = (FontCharacter2)SelectedCharacter.Clone();
+            var clonedCharacter = (CharacterInfo)SelectedCharacter.Clone();
 
             // Open editor to edit character properties
-            var pe = new PropertyEditorViewModel<FontCharacter2>
+            var pe = new PropertyEditorViewModel<CharacterInfo>
             {
                 Title = "Edit Character",
                 Message = "Edit character properties:",
                 Object = clonedCharacter,
                 ValidationCallback = () => new ValidationResult
                 {
-                    CanClose = clonedCharacter.Character == SelectedCharacter.Character,
+                    CanClose = clonedCharacter.CodePoint == SelectedCharacter.CodePoint,
                     ErrorMessage = "You cannot change the character while editing."
                 }
             };
@@ -178,18 +180,18 @@ namespace Kuriimu2.Wpf.ViewModels
 
         #region Delete Characters
 
-        public bool DeleteEnabled => _adapter is IDeleteCharacters && SelectedCharacter != null;
+        public bool DeleteEnabled => _state is IRemoveCharacters && SelectedCharacter != null;
 
         public void DeleteCharacter()
         {
-            if (!(_adapter is IDeleteCharacters del))
+            if (!(_state is IRemoveCharacters del))
                 return;
 
-            if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedCharacter.Character}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedCharacter.CodePoint}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
-                if (del.DeleteCharacter(SelectedCharacter))
+                if (del.RemoveCharacter(SelectedCharacter))
                 {
-                    Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
+                    Characters = new ObservableCollection<CharacterInfo>(_state.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
@@ -202,15 +204,15 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             var fg = _windows.FirstOrDefault(x => x is BitmapFontGeneratorViewModel) ?? new BitmapFontGeneratorViewModel
             {
-                Adapter = _adapter,
-                Baseline = _adapter.Baseline,
-                Characters = string.Join("", _adapter.Characters),
+                State = _state,
+                Baseline = _state.Baseline,
+                Characters = string.Join("", _state.Characters),
                 //CanvasWidth = 512,
                 //CanvasHeight = 512,
                 GenerationCompleteCallback = () =>
                 {
                     NotifyOfPropertyChange(() => DisplayName);
-                    Characters = new ObservableCollection<FontCharacter2>(_adapter.Characters);
+                    Characters = new ObservableCollection<CharacterInfo>(_state.Characters);
                     SelectedCharacter = Characters.FirstOrDefault();
                     NotifyOfPropertyChange(() => Characters);
                 }
