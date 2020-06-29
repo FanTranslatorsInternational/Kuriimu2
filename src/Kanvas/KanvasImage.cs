@@ -74,6 +74,8 @@ namespace Kanvas
 
             (_imageInfo.ImageData, _imageInfo.PaletteData) = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat, progress);
             _imageInfo.ImageSize = image.Size;
+
+            _imageInfo.ContentChanged = true;
         }
 
         /// <inheritdoc />
@@ -85,6 +87,8 @@ namespace Kanvas
             _decodedPalette = palette;
 
             _imageInfo.PaletteData = EncodePalette(palette, _imageInfo.PaletteFormat);
+
+            _imageInfo.ContentChanged = true;
         }
 
         /// <inheritdoc />
@@ -136,6 +140,8 @@ namespace Kanvas
 
             _decodedImage = image;
             (_imageInfo.ImageData, _imageInfo.PaletteData) = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat);
+
+            _imageInfo.ContentChanged = true;
         }
 
         private void TranscodeInternal(int imageFormat, int paletteFormat, bool checkFormatEquality, IProgressContext progress = null)
@@ -170,6 +176,7 @@ namespace Kanvas
 
             _decodedImage = null;
             _decodedPalette = null;
+            _imageInfo.ContentChanged = true;
         }
 
         private Bitmap DecodeImage(IProgressContext progress = null)

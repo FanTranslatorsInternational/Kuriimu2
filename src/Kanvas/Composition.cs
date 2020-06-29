@@ -88,13 +88,17 @@ namespace Kanvas
             var points = GetPointSequence(imageSize, swizzle)
                 .Clamp(Point.Empty, new Point(image.Width - 1, image.Height));
 
-            var bitmapPointCount = bitmapData.Width * bitmapData.Height;
             foreach (var point in points)
             {
-                var index = point.Y * image.Width + point.X;
-                if (index >= bitmapPointCount)
-                    throw new InvalidOperationException($"Tried to read a point outside the image. Point={point}");
+                // If point is out of bounds of source image, return default color
+                if (point.X >= bitmapData.Width || point.Y >= bitmapData.Height)
+                {
+                    yield return Color.Black;
+                    continue;
+                }
 
+                // Otherwise return color from source image at the given index
+                var index = point.Y * bitmapData.Width + point.X;
                 yield return GetColor(bitmapData, index);
             }
 
