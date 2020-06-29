@@ -45,9 +45,9 @@ namespace plugin_level5.Archives
     class Arc0DirectoryEntry
     {
         public uint crc32;   // directoryName.ToLower()
-        public short firstDirectoryIndex;
+        public ushort firstDirectoryIndex;
         public short directoryCount;
-        public short firstFileIndex;
+        public ushort firstFileIndex;
         public short fileCount;
         public int fileNameStartOffset;
         public int directoryNameStartOffset;
@@ -63,9 +63,9 @@ namespace plugin_level5.Archives
             Entry = entry;
         }
 
-        public override long SaveFileData(Stream output, IProgressContext progress)
+        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            var writtenSize = base.SaveFileData(output, progress);
+            var writtenSize = base.SaveFileData(output, compress, progress);
 
             output.Position = output.Length;
             while (output.Position % 4 != 0)

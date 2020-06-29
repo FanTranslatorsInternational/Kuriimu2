@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -24,7 +24,7 @@ namespace plugin_level5.Images
 
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings => LimgSupport.LimgPaletteFormats;
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public LimgState()
         {
@@ -44,6 +44,11 @@ namespace plugin_level5.Images
             _limg.Save(fileStream, Images[0]);
 
             return Task.CompletedTask;
+        }
+
+        private bool IsChanged()
+        {
+            return Images.Any(x => x.ContentChanged);
         }
     }
 }

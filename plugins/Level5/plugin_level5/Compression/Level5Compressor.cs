@@ -5,7 +5,7 @@ using Kontract.Kompression.Configuration;
 
 namespace plugin_level5.Compression
 {
-    static class Level5Compressor
+    public static class Level5Compressor
     {
         public static int PeekDecompressedSize(Stream input)
         {
@@ -14,6 +14,15 @@ namespace plugin_level5.Compression
             input.Position -= 4;
 
             return (int)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) >> 3);
+        }
+
+        public static Level5CompressionMethod PeekCompressionMethod(Stream input)
+        {
+            var sizeMethodBuffer = new byte[4];
+            input.Read(sizeMethodBuffer, 0, 4);
+            input.Position -= 4;
+
+            return (Level5CompressionMethod)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) & 0x7);
         }
 
         public static void Decompress(Stream input, Stream output)

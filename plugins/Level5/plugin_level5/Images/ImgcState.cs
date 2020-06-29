@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -12,7 +12,7 @@ using Kontract.Models.IO;
 
 namespace plugin_level5.Images
 {
-    class ImgcState : IImageState, ILoadFiles, ISaveFiles
+    public class ImgcState : IImageState, ILoadFiles, ISaveFiles
     {
         private Imgc limg;
 
@@ -25,7 +25,7 @@ namespace plugin_level5.Images
 
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public ImgcState()
         {
@@ -45,6 +45,11 @@ namespace plugin_level5.Images
             limg.Save(fileStream, Images[0]);
 
             return Task.CompletedTask;
+        }
+
+        private bool IsChanged()
+        {
+            return Images.Any(x => x.ContentChanged);
         }
     }
 }

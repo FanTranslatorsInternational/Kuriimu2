@@ -1,314 +1,329 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Drawing;
-//using System.Drawing.Imaging;
-//using System.IO;
-//using System.Linq;
-//using Komponent.Font;
-//using Komponent.IO;
-//using Kontract.Interfaces.Font;
-//using Level5.Fonts.Compression;
-//using Level5.Fonts.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using Komponent.Font;
+using Komponent.IO;
+using Kontract.Models.Font;
+using plugin_level5.Compression;
 
-//namespace Level5.Fonts
-//{
-//    public class XF
-//    {
-//        private XPCK.XPCK _xpck;
-//        private IMGC.IMGC _xi;
+namespace plugin_level5.Fonts
+{
+    public class Xf
+    {
+        private Level5CompressionMethod _t0Comp;
+        private Level5CompressionMethod _t1Comp;
+        private Level5CompressionMethod _t2Comp;
 
-//        private CompressionMethod _t0Comp;
-//        private CompressionMethod _t1Comp;
-//        private CompressionMethod _t2Comp;
+        private readonly ColorMatrix[] _colorMatrices =
+        {
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 1f, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 0, 0, 0f, 0 },
+                new[] { 1f, 1f, 1f, 0, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 1f, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 0, 0, 0f, 0 },
+                new[] { 1f, 1f, 1f, 0, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 1f, 0 },
+                new[] { 0, 0, 0, 0f, 0 },
+                new[] { 1f, 1f, 1f, 0, 1f }
+            })
+        };
 
-//        private readonly ColorMatrix[] _colorMatrices =
-//        {
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 1f, 0 },
-//                new[] { 0, 0f, 0, 0, 0 },
-//                new[] { 0, 0, 0f, 0, 0 },
-//                new[] { 0, 0, 0, 0f, 0 },
-//                new[] { 1f, 1f, 1f, 0, 1f }
-//            }),
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 0, 0 },
-//                new[] { 0, 0f, 0, 1f, 0 },
-//                new[] { 0, 0, 0f, 0, 0 },
-//                new[] { 0, 0, 0, 0f, 0 },
-//                new[] { 1f, 1f, 1f, 0, 1f }
-//            }),
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 0, 0 },
-//                new[] { 0, 0f, 0, 0, 0 },
-//                new[] { 0, 0, 0f, 1f, 0 },
-//                new[] { 0, 0, 0, 0f, 0 },
-//                new[] { 1f, 1f, 1f, 0, 1f }
-//            })
-//        };
+        private readonly ColorMatrix[] _inverseColorMatrices =
+        {
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 1f, 0, 0, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 1f, 0, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            }),
+            new ColorMatrix(new[]
+            {
+                new[] { 0f, 0, 0, 0, 0 },
+                new[] { 0, 0f, 0, 0, 0 },
+                new[] { 0, 0, 0f, 0, 0 },
+                new[] { 0, 0, 1f, 0f, 0 },
+                new[] { 0, 0, 0, 1f, 1f }
+            })
+        };
 
-//        private readonly ColorMatrix[] _inverseColorMatrices =
-//        {
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 0, 0 },
-//                new[] { 0, 0f, 0, 0, 0 },
-//                new[] { 0, 0, 0f, 0, 0 },
-//                new[] { 1f, 0, 0, 0f, 0 },
-//                new[] { 0, 0, 0, 1f, 1f }
-//            }),
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 0, 0 },
-//                new[] { 0, 0f, 0, 0, 0 },
-//                new[] { 0, 0, 0f, 0, 0 },
-//                new[] { 0, 1f, 0, 0f, 0 },
-//                new[] { 0, 0, 0, 1f, 1f }
-//            }),
-//            new ColorMatrix(new[]
-//            {
-//                new[] { 0f, 0, 0, 0, 0 },
-//                new[] { 0, 0f, 0, 0, 0 },
-//                new[] { 0, 0, 0f, 0, 0 },
-//                new[] { 0, 0, 1f, 0f, 0 },
-//                new[] { 0, 0, 0, 1f, 1f }
-//            })
-//        };
+        public XfHeader Header { get; private set; }
 
-//        public XfHeader Header;
+        public List<CharacterInfo> Load(Stream fntFile, Image fontImage)
+        {
+            using var br = new BinaryReaderX(fntFile);
 
-//        public List<FontCharacter2> Characters { get; set; }
+            //var f = File.Create(@"D:\Users\Kirito\Desktop\reverse_engineering\time_travelers\font\test.bin");
+            //br.BaseStream.CopyTo(f);
+            //f.Close();
+            //br.BaseStream.Position = 0;
 
-//        public XF(Stream input)
-//        {
-//            using (var br = new BinaryReaderX(input, true))
-//            {
-//                // Load archive
-//                _xpck = new XPCK.XPCK(input);
+            // Read header
+            Header = br.ReadType<XfHeader>();
 
-//                // Get image
-//                _xi = new IMGC.IMGC(_xpck.Files[0].FileData);
+            // Read charSizeInfo
+            br.BaseStream.Position = Header.charSizeOffset << 2;
+            _t0Comp = Level5Compressor.PeekCompressionMethod(br.BaseStream);
+            var charSizeStream = Decompress(br.BaseStream);
+            var charSizeInfos = new BinaryReaderX(charSizeStream).ReadMultiple<XfCharSizeInfo>(Header.charSizeCount).ToArray();
 
-//                // Decompress fnt.bin
-//                XfCharSizeInfo[] tempCharSizeInfo;
-//                XfCharMap[] largeChars;
-//                XfCharMap[] smallChars;
-//                using (var fntR = new BinaryReaderX(_xpck.Files[1].FileData, true))
-//                {
-//                    Header = fntR.ReadType<XfHeader>();
+            // Read large chars
+            br.BaseStream.Position = Header.largeCharOffset << 2;
+            _t1Comp = Level5Compressor.PeekCompressionMethod(br.BaseStream);
+            var largeCharStream = Decompress(br.BaseStream);
+            var largeChars = new BinaryReaderX(largeCharStream).ReadMultiple<XfCharMap>(Header.largeCharCount).ToArray();
 
-//                    fntR.BaseStream.Position = Header.table0Offset << 2;
-//                    _t0Comp = (CompressionMethod)(fntR.ReadInt32() & 0x7);
-//                    fntR.BaseStream.Position -= 4;
-//                    var compBr = new BinaryReaderX(new MemoryStream(Compressor.Decompress(fntR.BaseStream)));
-//                    tempCharSizeInfo = compBr.ReadMultiple<XfCharSizeInfo>(Header.table0EntryCount).ToArray();
+            // Read small chars
+            br.BaseStream.Position = Header.smallCharOffset << 2;
+            _t2Comp = Level5Compressor.PeekCompressionMethod(br.BaseStream);
+            var smallCharStream = Decompress(br.BaseStream);
+            var smallChars = new BinaryReaderX(smallCharStream).ReadMultiple<XfCharMap>(Header.smallCharCount).ToArray();
 
-//                    fntR.BaseStream.Position = Header.table1Offset << 2;
-//                    _t1Comp = (CompressionMethod)(fntR.ReadInt32() & 0x7);
-//                    fntR.BaseStream.Position -= 4;
-//                    compBr = new BinaryReaderX(new MemoryStream(Compressor.Decompress(fntR.BaseStream)));
-//                    largeChars = compBr.ReadMultiple<XfCharMap>(Header.table1EntryCount).ToArray();
+            // Load characters (ignore small chars)
+            var result = new List<CharacterInfo>(largeChars.Length);
+            foreach (var largeChar in largeChars)
+            {
+                var charSizeInfo = charSizeInfos[largeChar.charInformation.charSizeInfoIndex];
+                var glyph = GetGlyphBitmap(fontImage, largeChar, charSizeInfo);
 
-//                    fntR.BaseStream.Position = Header.table2Offset << 2;
-//                    _t2Comp = (CompressionMethod)(fntR.ReadInt32() & 0x7);
-//                    fntR.BaseStream.Position -= 4;
-//                    compBr = new BinaryReaderX(new MemoryStream(Compressor.Decompress(fntR.BaseStream)));
-//                    smallChars = compBr.ReadMultiple<XfCharMap>(Header.table2EntryCount).ToArray();
-//                }
+                var characterInfo = new CharacterInfo(largeChar.codePoint, new Size(largeChar.charInformation.charWidth, 0), glyph);
+                result.Add(characterInfo);
+            }
 
-//                // Set Characters
-//                Characters = new List<FontCharacter2>(largeChars.Length);
-//                foreach (var charMap in largeChars)
-//                {
-//                    var glyph = GetGlyphBitmap(charMap, tempCharSizeInfo[charMap.charInformation.charSizeInfoIndex]);
+            return result;
+        }
 
-//                    var characterInfo = new CharacterInfo(charMap.charInformation.charWidth);
-//                    var character = new FontCharacter2(charMap.codePoint)
-//                    {
-//                        Glyph = glyph,
-//                        CharacterInfo = characterInfo
-//                    };
-//                    Characters.Add(character);
-//                }
-//                /*foreach (var charMap in smallChars)
-//                    Characters.Add(new XfCharacter
-//                    {
-//                        Character = charMap.code_point,
-//                        TextureID = (int)charMap.ColorChannel,
-//                        GlyphX = (int)charMap.ImageOffsetX,
-//                        GlyphY = (int)charMap.ImageOffsetY,
-//                        GlyphWidth = tempCharSizeInfo[(int)charMap.CharSizeInfoIndex].glyph_width,
-//                        GlyphHeight = tempCharSizeInfo[(int)charMap.CharSizeInfoIndex].glyph_height,
-//                        CharacterWidth = (int)charMap.CharWidth,
-//                        OffsetX = tempCharSizeInfo[(int)charMap.CharSizeInfoIndex].offset_x,
-//                        OffsetY = tempCharSizeInfo[(int)charMap.CharSizeInfoIndex].offset_y,
-//                    });*/
-//            }
-//        }
+        public (Stream fontStream, Image fontImage) Save(List<CharacterInfo> characterInfos, Size imageSize)
+        {
+            // Generating font textures
+            var generator = new FontTextureGenerator(imageSize);
 
-//        public void Save(Stream output)
-//        {
-//            // Generating font textures
-//            var generator = new FontTextureGenerator(_xi.Image.Size);
+            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(characterInfos.Select(x => (Bitmap)x.Glyph)).ToList();
+            var textureInfos = generator.GenerateFontTextures(adjustedGlyphs, 3).ToList();
 
-//            var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(Characters.Select(x => x.Glyph)).ToList();
-//            var textureInfos = generator.GenerateFontTextures(adjustedGlyphs, 3).ToList();
+            // Join important lists
+            var joinedCharacters = characterInfos.OrderBy(x => x.CodePoint).Join(adjustedGlyphs, c => c.Glyph, ag => ag.Glyph,
+                (c, ag) => new { character = c, adjustedGlyph = ag })
+                .Select(cag => new
+                {
+                    cag.character,
+                    cag.adjustedGlyph,
+                    textureIndex = textureInfos.FindIndex(x => x.Glyphs.Any(y => y.Item1 == cag.adjustedGlyph.Glyph)),
+                    texturePosition = textureInfos.SelectMany(x => x.Glyphs).FirstOrDefault(x => x.Item1 == cag.adjustedGlyph.Glyph).Item2
+                });
 
-//            // Join important lists
-//            var joinedCharacters = Characters.OrderBy(x => x.Character).Join(adjustedGlyphs, c => c.Glyph, ag => ag.Glyph,
-//                (c, ag) => new { character = c, adjustedGlyph = ag })
-//                .Select(cag => new
-//                {
-//                    cag.character,
-//                    cag.adjustedGlyph,
-//                    textureIndex = textureInfos.FindIndex(x => x.Glyphs.Any(y => y.Item1 == cag.adjustedGlyph.Glyph)),
-//                    texturePosition = textureInfos.SelectMany(x => x.Glyphs).FirstOrDefault(x => x.Item1 == cag.adjustedGlyph.Glyph).Item2
-//                });
+            // Create character information
+            var charMaps = new List<(AdjustedGlyph, XfCharMap)>(adjustedGlyphs.Count);
+            var charSizeInfos = new List<XfCharSizeInfo>();
+            foreach (var joinedCharacter in joinedCharacters)
+            {
+                if (joinedCharacter.textureIndex == -1)
+                    continue;
 
-//            // Create character information
-//            var charMaps = new List<(AdjustedGlyph, XfCharMap)>(adjustedGlyphs.Count);
-//            var charSizeInfos = new List<XfCharSizeInfo>();
-//            foreach (var joinedCharacter in joinedCharacters)
-//            {
-//                if (joinedCharacter.textureIndex == -1)
-//                    continue;
+                var charSizeInfo = new XfCharSizeInfo
+                {
+                    offsetX = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.X,
+                    offsetY = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.Y,
+                    glyphWidth = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width,
+                    glyphHeight = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height
+                };
+                if (!charSizeInfos.Contains(charSizeInfo))
+                    charSizeInfos.Add(charSizeInfo);
 
-//                var charSizeInfo = new XfCharSizeInfo
-//                {
-//                    offsetX = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.X,
-//                    offsetY = (sbyte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphPosition.Y,
-//                    glyphWidth = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Width,
-//                    glyphHeight = (byte)joinedCharacter.adjustedGlyph.WhiteSpaceAdjustment.GlyphSize.Height
-//                };
-//                if (!charSizeInfos.Contains(charSizeInfo))
-//                    charSizeInfos.Add(charSizeInfo);
+                // Only used for Time Travelers
+                var codePoint = ConvertChar(joinedCharacter.character.CodePoint);
+                //var codePoint = joinedCharacter.character.CodePoint;
 
-//                var charInformation = new XfCharInformation
-//                {
-//                    charSizeInfoIndex = charSizeInfos.IndexOf(charSizeInfo),
-//                    charWidth = char.IsWhiteSpace((char)joinedCharacter.character.Character) ?
-//                        joinedCharacter.character.CharacterInfo.CharWidth :
-//                        joinedCharacter.character.CharacterInfo.CharWidth - charSizeInfo.offsetX
-//                };
+                var charInformation = new XfCharInformation
+                {
+                    charSizeInfoIndex = charSizeInfos.IndexOf(charSizeInfo),
+                    charWidth = char.IsWhiteSpace((char)codePoint) ?
+                        joinedCharacter.character.CharacterSize.Width :
+                        joinedCharacter.character.CharacterSize.Width - charSizeInfo.offsetX
+                };
 
-//                charMaps.Add((joinedCharacter.adjustedGlyph, new XfCharMap
-//                {
-//                    codePoint = (ushort)joinedCharacter.character.Character,
-//                    charInformation = charInformation,
-//                    imageInformation = new XfImageInformation
-//                    {
-//                        colorChannel = joinedCharacter.textureIndex,
-//                        imageOffsetX = joinedCharacter.texturePosition.X,
-//                        imageOffsetY = joinedCharacter.texturePosition.Y
-//                    }
-//                }));
-//            }
+                charMaps.Add((joinedCharacter.adjustedGlyph, new XfCharMap
+                {
+                    codePoint = (ushort)codePoint,
+                    charInformation = charInformation,
+                    imageInformation = new XfImageInformation
+                    {
+                        colorChannel = joinedCharacter.textureIndex,
+                        imageOffsetX = joinedCharacter.texturePosition.X,
+                        imageOffsetY = joinedCharacter.texturePosition.Y
+                    }
+                }));
 
-//            // Set escape characters
-//            Header.largeEscapeCharacter = (short)charMaps.FindIndex(x => x.Item2.codePoint == '?');
-//            Header.smallEscapeCharacter = 0;
+                if (codePoint != joinedCharacter.character.CodePoint)
+                {
+                    charInformation = new XfCharInformation
+                    {
+                        charSizeInfoIndex = charSizeInfos.IndexOf(charSizeInfo),
+                        charWidth = char.IsWhiteSpace((char)joinedCharacter.character.CodePoint)
+                            ? joinedCharacter.character.CharacterSize.Width
+                            : joinedCharacter.character.CharacterSize.Width - charSizeInfo.offsetX
+                    };
 
-//            // Minimize top value and line height
-//            Header.largeCharHeight = (short)charSizeInfos.Max(x => x.glyphHeight + x.offsetY);
-//            Header.smallCharHeight = 0;
+                    charMaps.Add((joinedCharacter.adjustedGlyph, new XfCharMap
+                    {
+                        codePoint = (ushort)joinedCharacter.character.CodePoint,
+                        charInformation = charInformation,
+                        imageInformation = new XfImageInformation
+                        {
+                            colorChannel = joinedCharacter.textureIndex,
+                            imageOffsetX = joinedCharacter.texturePosition.X,
+                            imageOffsetY = joinedCharacter.texturePosition.Y
+                        }
+                    }));
+                }
+            }
 
-//            // Draw textures
-//            var img = new Bitmap(_xi.Image.Width, _xi.Image.Height);
-//            var gfx = Graphics.FromImage(img);
-//            for (var i = 0; i < textureInfos.Count; i++)
-//            {
-//                var destPoints = new[]
-//                {
-//                    new PointF(0,0),
-//                    new PointF(textureInfos[i].FontTexture.Width,0),
-//                    new PointF(0,textureInfos[i].FontTexture.Height)
-//                };
-//                var rect = new RectangleF(0, 0, textureInfos[i].FontTexture.Width, textureInfos[i].FontTexture.Height);
-//                var attr = new ImageAttributes();
-//                attr.SetColorMatrix(_inverseColorMatrices[i]);
-//                gfx.DrawImage(textureInfos[i].FontTexture, destPoints, rect, GraphicsUnit.Pixel, attr);
-//            }
+            // Set escape characters
+            var escapeIndex = charMaps.FindIndex(x => x.Item2.codePoint == '?');
+            Header.largeEscapeCharacter = escapeIndex < 0 ? (short)0 : (short)escapeIndex;
+            Header.smallEscapeCharacter = 0;
 
-//            // Save xi image
-//            _xi.Image = img;
-//            var savedXi = new MemoryStream();
-//            _xi.Save(savedXi);
-//            _xpck.Files[0].FileData = savedXi;
+            // Minimize top value and line height
+            Header.largeCharHeight = (short)charSizeInfos.Max(x => x.glyphHeight + x.offsetY);
+            Header.smallCharHeight = 0;
 
-//            // Save fnt.bin
-//            var savedFntBin = new MemoryStream();
-//            using (var bw = new BinaryWriterX(savedFntBin, true))
-//            {
-//                //Table0
-//                Header.table0EntryCount = (short)charSizeInfos.Count;
-//                bw.BaseStream.Position = 0x28;
-//                bw.WriteMultipleCompressed(charSizeInfos, _t0Comp);
-//                bw.WriteAlignment(4);
+            // Draw textures
+            var img = new Bitmap(imageSize.Width, imageSize.Height);
+            var gfx = Graphics.FromImage(img);
+            for (var i = 0; i < textureInfos.Count; i++)
+            {
+                var destPoints = new[]
+                {
+                    new PointF(0,0),
+                    new PointF(textureInfos[i].FontTexture.Width,0),
+                    new PointF(0,textureInfos[i].FontTexture.Height)
+                };
+                var rect = new RectangleF(0, 0, textureInfos[i].FontTexture.Width, textureInfos[i].FontTexture.Height);
+                var attr = new ImageAttributes();
+                attr.SetColorMatrix(_inverseColorMatrices[i]);
+                gfx.DrawImage(textureInfos[i].FontTexture, destPoints, rect, GraphicsUnit.Pixel, attr);
+            }
 
-//                //Table1
-//                Header.table1Offset = (short)(bw.BaseStream.Position >> 2);
-//                Header.table1EntryCount = (short)charMaps.Count;
-//                bw.WriteMultipleCompressed(charMaps.Select(d => d.Item2), _t1Comp);
-//                bw.WriteAlignment(4);
+            // Save fnt.bin
+            var savedFntBin = new MemoryStream();
+            using (var bw = new BinaryWriterX(savedFntBin, true))
+            {
+                //Table0
+                bw.BaseStream.Position = 0x28;
+                Header.charSizeCount = (short)charSizeInfos.Count;
+                WriteMultipleCompressed(bw, charSizeInfos, _t0Comp);
+                bw.WriteAlignment(4);
 
-//                //Table2
-//                Header.table2Offset = (short)(bw.BaseStream.Position >> 2);
-//                Header.table2EntryCount = 0;
-//                bw.WriteMultipleCompressed(Array.Empty<XfCharMap>(), _t2Comp);
-//                bw.WriteAlignment(4);
+                //Table1
+                Header.largeCharOffset = (short)(bw.BaseStream.Position >> 2);
+                Header.largeCharCount = (short)charMaps.Count;
+                WriteMultipleCompressed(bw, charMaps.OrderBy(x => x.Item2.codePoint).Select(x => x.Item2).ToArray(), _t1Comp);
+                bw.WriteAlignment(4);
 
-//                //Header
-//                bw.BaseStream.Position = 0;
-//                bw.WriteType(Header);
-//            }
-//            _xpck.Files[1].FileData = savedFntBin;
+                //Table2
+                Header.smallCharOffset = (short)(bw.BaseStream.Position >> 2);
+                Header.smallCharCount = 0;
+                WriteMultipleCompressed(bw, Array.Empty<XfCharMap>(), _t2Comp);
+                bw.WriteAlignment(4);
 
-//            _xpck.Save(output);
-//        }
+                //Header
+                bw.BaseStream.Position = 0;
+                bw.WriteType(Header);
+            }
 
-//        private Bitmap GetGlyphBitmap(XfCharMap charMap, XfCharSizeInfo charSizeInfo)
-//        {
-//            // Destination points
-//            var destPoints = new[]
-//            {
-//                new PointF(charSizeInfo.offsetX, charSizeInfo.offsetY),
-//                new PointF(charSizeInfo.glyphWidth+charSizeInfo.offsetX, charSizeInfo.offsetY),
-//                new PointF(charSizeInfo.offsetX, charSizeInfo.glyphHeight+charSizeInfo.offsetY)
-//            };
+            return (savedFntBin, img);
+        }
 
-//            // Source rectangle
-//            var srcRect = new RectangleF(
-//                charMap.imageInformation.imageOffsetX,
-//                charMap.imageInformation.imageOffsetY,
-//                charSizeInfo.glyphWidth,
-//                charSizeInfo.glyphHeight);
+        private Bitmap GetGlyphBitmap(Image fontImage, XfCharMap charMap, XfCharSizeInfo charSizeInfo)
+        {
+            // Destination points
+            var destPoints = new[]
+            {
+                new PointF(charSizeInfo.offsetX, charSizeInfo.offsetY),
+                new PointF(charSizeInfo.glyphWidth+charSizeInfo.offsetX, charSizeInfo.offsetY),
+                new PointF(charSizeInfo.offsetX, charSizeInfo.glyphHeight+charSizeInfo.offsetY)
+            };
 
-//            // Color matrix
-//            var imageAttributes = new ImageAttributes();
-//            imageAttributes.SetColorMatrix(_colorMatrices[charMap.imageInformation.colorChannel]);
+            // Source rectangle
+            var srcRect = new RectangleF(
+                charMap.imageInformation.imageOffsetX,
+                charMap.imageInformation.imageOffsetY,
+                charSizeInfo.glyphWidth,
+                charSizeInfo.glyphHeight);
 
-//            // Draw the glyph from the master texture
-//            var glyph = new Bitmap(
-//                Math.Max(1, Math.Max(charMap.charInformation.charWidth, charSizeInfo.glyphWidth + charSizeInfo.offsetX)),
-//                Math.Max(1, charSizeInfo.glyphHeight + charSizeInfo.offsetY));
-//            var gfx = Graphics.FromImage(glyph);
-//            gfx.DrawImage(_xi.Image, destPoints, srcRect, GraphicsUnit.Pixel, imageAttributes);
+            // Color matrix
+            var imageAttributes = new ImageAttributes();
+            imageAttributes.SetColorMatrix(_colorMatrices[charMap.imageInformation.colorChannel]);
 
-//            return glyph;
-//        }
-//    }
+            // Draw the glyph from the master texture
+            var glyph = new Bitmap(
+                Math.Max(1, Math.Max(charMap.charInformation.charWidth, charSizeInfo.glyphWidth + charSizeInfo.offsetX)),
+                Math.Max(1, charSizeInfo.glyphHeight + charSizeInfo.offsetY));
+            var gfx = Graphics.FromImage(glyph);
+            gfx.DrawImage(fontImage, destPoints, srcRect, GraphicsUnit.Pixel, imageAttributes);
 
-//    public static class XFExtensions
-//    {
-//        public static void WriteMultipleCompressed<T>(this BinaryWriterX bw, IEnumerable<T> list, CompressionMethod comp)
-//        {
-//            var ms = new MemoryStream();
-//            using (var bwIntern = new BinaryWriterX(ms, true))
-//                foreach (var t in list)
-//                    bwIntern.WriteType(t);
-//            bw.Write(Compressor.Compress(ms, comp));
-//        }
-//    }
-//}
+            return glyph;
+        }
+
+        private Stream Decompress(Stream input)
+        {
+            var output = new MemoryStream();
+
+            Level5Compressor.Decompress(input, output);
+            output.Position = 0;
+
+            return output;
+        }
+
+        private void WriteMultipleCompressed<T>(BinaryWriterX bw, IList<T> list, Level5CompressionMethod comp)
+        {
+            var ms = new MemoryStream();
+            using (var bwOut = new BinaryWriterX(ms, true))
+                bwOut.WriteMultiple(list);
+
+            var compressedStream = new MemoryStream();
+            ms.Position = 0;
+            Level5Compressor.Compress(ms, compressedStream, comp);
+
+            compressedStream.Position = 0;
+            compressedStream.CopyTo(bw.BaseStream);
+        }
+
+        private uint ConvertChar(uint character)
+        {
+            if (character == 0x20)
+                return 0x3000;
+
+            if (character >= 0x21 && character <= 0x7E)
+                return character + 0xFEE0;
+
+            return character;
+        }
+    }
+}

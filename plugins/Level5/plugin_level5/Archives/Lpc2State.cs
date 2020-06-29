@@ -20,7 +20,7 @@ namespace plugin_level5.Archives
 
         public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public Lpc2State()
         {
@@ -45,6 +45,11 @@ namespace plugin_level5.Archives
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
+        }
+
+        private bool IsChanged()
+        {
+            return Files.Any(x => x.ContentChanged);
         }
     }
 }

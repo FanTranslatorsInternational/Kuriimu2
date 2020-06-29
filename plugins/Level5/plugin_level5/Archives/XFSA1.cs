@@ -167,7 +167,7 @@ namespace plugin_level5.Archives
                     DirectoryCount = (short)groupedFiles.Count(gf => fileGroup.Key != gf.Key && gf.Key.IsInDirectory(fileGroup.Key, false)),
 
                     FileCount = (short)fileGroupEntries.Length,
-                    firstFileIndex = (short)fileIndex,
+                    firstFileIndex = (ushort)fileIndex,
 
                     DirectoryNameOffset = directoryNameOffset,
                     FileNameStartOffset = (int)nameBw.BaseStream.Position
@@ -199,7 +199,7 @@ namespace plugin_level5.Archives
             var directoryIndex = 0;
             directoryEntries = directoryEntries.OrderBy(x => x.crc32).Select(x =>
             {
-                x.firstDirectoryIndex = (short)directoryIndex;
+                x.firstDirectoryIndex = (ushort)directoryIndex;
                 directoryIndex += x.DirectoryCount;
                 return x;
             }).ToList();

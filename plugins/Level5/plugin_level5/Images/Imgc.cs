@@ -14,7 +14,7 @@ using plugin_level5.Compression;
 
 namespace plugin_level5.Images
 {
-    class Imgc
+    public class Imgc
     {
         private ImgcHeader _header;
         private int _headerSize = Tools.MeasureType(typeof(ImgcHeader));

@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <SelfContained>false</SelfContained>
-    <PublishSingleFile>false</PublishSingleFile>
+    <PublishSingleFile>true</PublishSingleFile>
     <PublishReadyToRun>false</PublishReadyToRun>
   </PropertyGroup>
 
@@ -25,6 +25,10 @@
     <Compile Remove="Properties\**" />
     <EmbeddedResource Remove="Properties\**" />
     <None Remove="Properties\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Fonts\Xf.cs~RF95ce141.TMP" />
   </ItemGroup>
 
   <ItemGroup>

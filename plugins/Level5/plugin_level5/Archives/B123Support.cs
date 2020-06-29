@@ -76,9 +76,9 @@ namespace plugin_level5.Archives
             Entry = entry;
         }
 
-        public override long SaveFileData(Stream output, IProgressContext progress)
+        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            var writtenSize = base.SaveFileData(output, progress);
+            var writtenSize = base.SaveFileData(output, compress, progress);
 
             output.Position = output.Length;
             while (output.Position % 4 != 0)

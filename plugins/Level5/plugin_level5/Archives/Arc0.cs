@@ -6,7 +6,6 @@ using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
@@ -187,7 +186,7 @@ namespace plugin_level5.Archives
                     directoryCount = (short)groupedFiles.Count(gf => fileGroup.Key != gf.Key && gf.Key.IsInDirectory(fileGroup.Key, false)),
 
                     fileCount = (short)fileGroupEntries.Length,
-                    firstFileIndex = (short)fileIndex,
+                    firstFileIndex = (ushort)fileIndex,
 
                     directoryNameStartOffset = directoryNameOffset,
                     fileNameStartOffset = (int)nameBw.BaseStream.Position
@@ -219,7 +218,7 @@ namespace plugin_level5.Archives
             var directoryIndex = 0;
             directoryEntries = directoryEntries.OrderBy(x => x.crc32).Select(x =>
             {
-                x.firstDirectoryIndex = (short)directoryIndex;
+                x.firstDirectoryIndex = (ushort)directoryIndex;
                 directoryIndex += x.directoryCount;
                 return x;
             }).ToList();

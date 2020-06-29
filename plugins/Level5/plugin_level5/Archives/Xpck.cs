@@ -14,7 +14,7 @@ namespace plugin_level5.Archives
 {
     // TODO: Recreate name table and enable adding files
     // Game: Yo-kai Watch, Time Travelers, more Level5 games in general on 3DS
-    class Xpck
+    public class Xpck
     {
         private static int _headerSize = Tools.MeasureType(typeof(XpckHeader));
         private static int _entrySize = Tools.MeasureType(typeof(XpckFileInfo));
