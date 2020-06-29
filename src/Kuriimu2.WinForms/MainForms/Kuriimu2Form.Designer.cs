@@ -71,7 +71,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
             this.mnuMain.Padding = new System.Windows.Forms.Padding(2, 2, 0, 2);
-            this.mnuMain.Size = new System.Drawing.Size(957, 24);
+            this.mnuMain.Size = new System.Drawing.Size(1116, 24);
             this.mnuMain.TabIndex = 0;
             this.mnuMain.Text = "mainMenuStrip";
             // 
@@ -104,20 +104,20 @@ namespace Kuriimu2.WinForms.MainForms
             this.textSequenceSearcherToolStripMenuItem,
             this.batchProcessorToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // textSequenceSearcherToolStripMenuItem
             // 
             this.textSequenceSearcherToolStripMenuItem.Name = "textSequenceSearcherToolStripMenuItem";
-            this.textSequenceSearcherToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.textSequenceSearcherToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
             this.textSequenceSearcherToolStripMenuItem.Text = "Text Sequence Searcher";
             this.textSequenceSearcherToolStripMenuItem.Click += new System.EventHandler(this.TextSequenceSearcherToolStripMenuItem_Click);
             // 
             // batchProcessorToolStripMenuItem
             // 
             this.batchProcessorToolStripMenuItem.Name = "batchProcessorToolStripMenuItem";
-            this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
             this.batchProcessorToolStripMenuItem.Text = "Batch Processor";
             this.batchProcessorToolStripMenuItem.Click += new System.EventHandler(this.BatchProcessorToolStripMenuItem_Click);
             // 
@@ -185,7 +185,7 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             this.imageTranscoderToolStripMenuItem.Enabled = false;
             this.imageTranscoderToolStripMenuItem.Name = "imageTranscoderToolStripMenuItem";
-            this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(112, 20);
+            this.imageTranscoderToolStripMenuItem.Size = new System.Drawing.Size(114, 20);
             this.imageTranscoderToolStripMenuItem.Text = "Image Transcoder";
             // 
             // openFiles
@@ -193,12 +193,12 @@ namespace Kuriimu2.WinForms.MainForms
             this.openFiles.Dock = System.Windows.Forms.DockStyle.Fill;
             this.openFiles.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
             this.openFiles.ImageList = this.tabCloseButtons;
-            this.openFiles.Location = new System.Drawing.Point(3, 2);
+            this.openFiles.Location = new System.Drawing.Point(4, 2);
             this.openFiles.Margin = new System.Windows.Forms.Padding(0);
             this.openFiles.Name = "openFiles";
             this.openFiles.Padding = new System.Drawing.Point(8, 3);
             this.openFiles.SelectedIndex = 0;
-            this.openFiles.Size = new System.Drawing.Size(953, 507);
+            this.openFiles.Size = new System.Drawing.Size(1111, 593);
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
@@ -214,18 +214,20 @@ namespace Kuriimu2.WinForms.MainForms
             this.pnlMain.Controls.Add(this.openFiles);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMain.Location = new System.Drawing.Point(0, 24);
+            this.pnlMain.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Padding = new System.Windows.Forms.Padding(3, 2, 1, 2);
-            this.pnlMain.Size = new System.Drawing.Size(957, 511);
+            this.pnlMain.Padding = new System.Windows.Forms.Padding(4, 2, 1, 2);
+            this.pnlMain.Size = new System.Drawing.Size(1116, 597);
             this.pnlMain.TabIndex = 2;
             // 
             // operationStatusBar
             // 
             this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.operationTimer});
-            this.operationStatusBar.Location = new System.Drawing.Point(0, 535);
+            this.operationStatusBar.Location = new System.Drawing.Point(0, 621);
             this.operationStatusBar.Name = "operationStatusBar";
-            this.operationStatusBar.Size = new System.Drawing.Size(957, 22);
+            this.operationStatusBar.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
+            this.operationStatusBar.Size = new System.Drawing.Size(1116, 22);
             this.operationStatusBar.TabIndex = 3;
             // 
             // operationTimer
@@ -236,13 +238,14 @@ namespace Kuriimu2.WinForms.MainForms
             // Kuriimu2Form
             // 
             this.AllowDrop = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(957, 557);
+            this.ClientSize = new System.Drawing.Size(1116, 643);
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.operationStatusBar);
             this.Controls.Add(this.mnuMain);
             this.MainMenuStrip = this.mnuMain;
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "Kuriimu2Form";
             this.Text = "Kuriimu2";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Kuriimu2_FormClosing);
@@ -267,7 +270,6 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
         private System.Windows.Forms.StatusStrip operationStatusBar;
-        private NewProgressBarToolStrip operationProgress;
         private System.Windows.Forms.ToolStripStatusLabel operationTimer;
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
