@@ -27,7 +27,22 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public async Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath)
+        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath)
+        {
+            var destination = stateInfo.ParentStateInfo == null ?
+                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager) :
+                stateInfo.FileSystem;
+
+            return SaveInternal(stateInfo, destination, savePath);
+        }
+
+        /// <inheritdoc />
+        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        {
+            return SaveInternal(stateInfo, fileSystem, savePath);
+        }
+
+        private async Task<SaveResult> SaveInternal(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
         {
             // 1. Check if state is saveable and if the contents are changed
             if (!(stateInfo.State is ISaveFiles saveState) || !stateInfo.StateChanged)
@@ -54,31 +69,24 @@ namespace Kore.Managers.Plugins.FileManagement
 
             if (stateInfo.ParentStateInfo != null)
             {
-                var destinationFileSystem = stateInfo.FileSystem;
-
                 // 5. Put temporary filesystem into final destination
                 temporaryContainer = temporaryContainer.Clone(stateInfo.ParentStateInfo.StreamManager);
-                var subDestinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.GetDirectory());
+                var subDestinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.ToAbsolute().GetDirectory());
                 var replaceResult = await TryReplaceFilesInParentAsync(temporaryContainer, subDestinationFileSystem);
                 if (!replaceResult.IsSuccessful)
                     return replaceResult;
 
                 // 6. Load the initial file from the parent state
                 var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                var reloadResult = await TryLoadStateAsync(stateInfo.State, stateInfo.FileSystem, savePath,
+                var reloadResult = await TryLoadStateAsync(stateInfo.State, subDestinationFileSystem, savePath,
                     temporaryStreamProvider);
                 if (!reloadResult.IsSuccessful)
                     return new SaveResult(reloadResult.Exception);
-
-                // 7. Set ContentChanged in state
-                saveState.ContentChanged = false;
 
                 return SaveResult.SuccessfulResult;
             }
             else
             {
-                var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager);
-
                 // 5. Put temporary filesystem into final destination
                 temporaryContainer = temporaryContainer.Clone(stateInfo.StreamManager);
                 var copyResult = await TryCopyFiles(temporaryContainer, destinationFileSystem);
@@ -94,9 +102,6 @@ namespace Kore.Managers.Plugins.FileManagement
 
                 // 7. Use file path and file system in newly loaded state
                 stateInfo.SetNewFileInput(destinationFileSystem, savePath.GetName());
-
-                // 8. Set ContentChanged in state
-                saveState.ContentChanged = false;
 
                 return SaveResult.SuccessfulResult;
             }
@@ -145,10 +150,10 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<SaveResult> TryReplaceFilesInParentAsync(IFileSystem temporaryContainer,
             IFileSystem destinationFileSystem)
         {
-            // 1. Check that all saved files exist in the parent filesystem already
+            // 1. Check that all saved files exist in the parent filesystem already or can at least be created if missing
             foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
             {
-                if (!destinationFileSystem.FileExists(file))
+                if (!destinationFileSystem.FileExists(file) && !destinationFileSystem.CanCreateFiles)
                     return new SaveResult(false, $"'{file}' did not exist in '{destinationFileSystem.ConvertPathToInternal(UPath.Root)}'.");
             }
 

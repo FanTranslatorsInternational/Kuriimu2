@@ -17,6 +17,7 @@ using Kore.Factories;
 using Kore.Models;
 using Kore.Models.LoadInfo;
 using Kore.Models.UnsupportedPlugin;
+using Kore.Providers;
 
 namespace Kore.Managers.Plugins.FileManagement
 {
@@ -134,18 +135,25 @@ namespace Kore.Managers.Plugins.FileManagement
             }
 
             // 3. Create state from identified plugin
-            var state = plugin.CreatePluginState(pluginManager);
+            var fileSystemProvider = new FileSystemProvider();
+            var subPluginManager = new SubPluginManager(pluginManager, fileSystemProvider);
+            var state = plugin.CreatePluginState(subPluginManager);
 
-            // 4. Load data from state
+            // 4. Create new state info
+            var stateInfo = new StateInfo(state, fileSystem, filePath, streamManager, subPluginManager);
+            fileSystemProvider.RegisterStateInfo(stateInfo);
+            subPluginManager.RegisterStateInfo(stateInfo);
+
+            // 5. Load data from state
             var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, temporaryStreamProvider);
             if (!loadStateResult.IsSuccessful)
             {
                 streamManager.ReleaseAll();
+                stateInfo.Dispose();
+
                 return loadStateResult;
             }
 
-            // 5. Create new state info
-            var stateInfo = new StateInfo(state, fileSystem, filePath, streamManager);
             return new LoadResult(stateInfo);
         }
 

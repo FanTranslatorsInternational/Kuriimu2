@@ -11,6 +11,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
+using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -39,6 +40,8 @@ namespace Kore.Managers.Plugins
 
         /// <inheritdoc />
         public bool AllowManualSelection { get; set; } = true;
+
+        public IFileSystemProvider FileSystemProvider => throw new NotSupportedException();
 
         /// <inheritdoc />
         public IReadOnlyList<PluginLoadError> LoadErrors { get; }
@@ -86,7 +89,7 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x => 
+            return _loadedFiles.Any(x =>
                 x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
         }
 
@@ -232,6 +235,11 @@ namespace Kore.Managers.Plugins
         public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
             return SaveFile(stateInfo, stateInfo.FilePath);
+        }
+
+        public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        {
+            return _fileSaver.SaveAsync(stateInfo, fileSystem, savePath);
         }
 
         public Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)

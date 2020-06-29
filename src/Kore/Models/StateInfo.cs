@@ -14,6 +14,9 @@ namespace Kore.Models
     class StateInfo : IStateInfo
     {
         /// <inheritdoc />
+        public IPluginManager PluginManager { get; private set; }
+
+        /// <inheritdoc />
         public IPluginState State { get; private set; }
 
         /// <inheritdoc />
@@ -44,13 +47,15 @@ namespace Kore.Models
         /// <param name="fileSystem">The file system around the initially opened file.</param>
         /// <param name="filePath">The path of the file to be opened.</param>
         /// <param name="streamManager">The stream manager used for this opened state.</param>
+        /// <param name="pluginManager">The plugin manager for this state.</param>
         /// <param name="parentStateInfo">The parent state info from which this file got opened.</param>
         public StateInfo(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
-            IStreamManager streamManager, IStateInfo parentStateInfo = null)
+            IStreamManager streamManager, IPluginManager pluginManager, IStateInfo parentStateInfo = null)
         {
             ContractAssertions.IsNotNull(pluginState, nameof(pluginState));
             ContractAssertions.IsNotNull(fileSystem, nameof(fileSystem));
             ContractAssertions.IsNotNull(streamManager, nameof(streamManager));
+            ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
 
             if (filePath == UPath.Empty || filePath.IsDirectory)
                 throw new InvalidOperationException($"'{filePath}' has to be a path to a file.");
@@ -61,6 +66,7 @@ namespace Kore.Models
             FilePath = filePath;
             FileSystem = fileSystem;
             StreamManager = streamManager;
+            PluginManager = pluginManager;
 
             ParentStateInfo = parentStateInfo;
 
@@ -78,12 +84,14 @@ namespace Kore.Models
         public virtual void Dispose()
         {
             ArchiveChildren?.Clear();
+            PluginManager?.CloseAll();
             StreamManager?.ReleaseAll();
 
             State = null;
             FilePath = UPath.Empty;
             FileSystem = null;
             StreamManager = null;
+            PluginManager = null;
 
             ParentStateInfo = null;
         }
@@ -105,7 +113,6 @@ namespace Kore.Models
             var innerDirectory = ((UPath)FileSystem.ConvertPathToInternal(UPath.Root)).ToRelative();
 
             return parentDirectory / innerDirectory;
-
         }
     }
 }

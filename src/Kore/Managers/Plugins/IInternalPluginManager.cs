@@ -18,6 +18,16 @@ namespace Kore.Managers.Plugins
     public interface IInternalPluginManager : IPluginManager
     {
         /// <summary>
+        /// An event to allow for manual selection by the user.
+        /// </summary>
+        event EventHandler<ManualSelectionEventArgs> OnManualSelection;
+
+        /// <summary>
+        /// Declares if manual plugin selection on Load is allowed.
+        /// </summary>
+        bool AllowManualSelection { get; set; }
+
+        /// <summary>
         /// The errors the plugins produced when loaded.
         /// </summary>
         IReadOnlyList<PluginLoadError> LoadErrors { get; }
@@ -91,16 +101,5 @@ namespace Kore.Managers.Plugins
         /// <param name="saveName">The path at which to save the file.</param>
         /// <returns></returns>
         Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName);
-
-        /// <summary>
-        /// Closes a loaded state.
-        /// </summary>
-        /// <param name="stateInfo">The state to close and release.</param>
-        void Close(IStateInfo stateInfo);
-
-        /// <summary>
-        /// Closes all loaded states.
-        /// </summary>
-        void CloseAll();
     }
 }
