@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Kontract.Models.Font;
 
 namespace Kontract.Interfaces.Plugins.State.Font
 {
@@ -6,7 +7,7 @@ namespace Kontract.Interfaces.Plugins.State.Font
     /// <summary>
     /// This is the font renderer interface for creating font rendering plugins.
     /// </summary>
-    public interface IFontRenderer : IFontAdapter2
+    public interface IFontRenderer : IFontState
     {
         /// <summary>
         /// 

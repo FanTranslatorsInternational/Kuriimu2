@@ -12,6 +12,11 @@ namespace Kontract.Interfaces.Managers
     public interface IStateInfo : IDisposable
     {
         /// <summary>
+        /// The plugin manager for this state.
+        /// </summary>
+        IPluginManager PluginManager { get; }
+
+        /// <summary>
         /// The state of the plugin for this file.
         /// </summary>
         IPluginState State { get; }

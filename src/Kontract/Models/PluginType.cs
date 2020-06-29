@@ -21,6 +21,11 @@
         Text,
 
         /// <summary>
+        /// Defines the type of file as font.
+        /// </summary>
+        Font,
+
+        /// <summary>
         /// Defines the type of file as raw hex data.
         /// May only be used in internal code.
         /// </summary>

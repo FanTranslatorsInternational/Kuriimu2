@@ -58,5 +58,12 @@ namespace Kontract.Models.Image
         /// The <see cref="IImageConfiguration"/> to encode or decode the image data.
         /// </summary>
         public IImageConfiguration Configuration { get; set; }
+
+        // TODO: Make not settable
+        // TODO: Use KanvasImage in Kontract
+        /// <summary>
+        /// Determines of the content of this instance changed.
+        /// </summary>
+        public bool ContentChanged { get; set; }
     }
 }

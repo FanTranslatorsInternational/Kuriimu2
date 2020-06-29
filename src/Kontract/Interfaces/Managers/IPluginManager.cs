@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
+using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.IO;
 
@@ -13,14 +14,9 @@ namespace Kontract.Interfaces.Managers
     public interface IPluginManager
     {
         /// <summary>
-        /// An event to allow for manual selection by the user.
+        /// Provides access to file system creation.
         /// </summary>
-        event EventHandler<ManualSelectionEventArgs> OnManualSelection;
-
-        /// <summary>
-        /// Declares if manual plugin selection on Load is allowed.
-        /// </summary>
-        bool AllowManualSelection { get; set; }
+        IFileSystemProvider FileSystemProvider { get; }
 
         /// <summary>
         /// Loads a file from a given file system.
@@ -41,6 +37,31 @@ namespace Kontract.Interfaces.Managers
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
         Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null);
 
+        /// <summary>
+        /// Save a loaded state in place.
+        /// </summary>
+        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <returns></returns>
         Task<SaveResult> SaveFile(IStateInfo stateInfo);
+
+        /// <summary>
+        /// Save a loaded state to the given filesystem and path.
+        /// </summary>
+        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="fileSystem">The filesystem at which to save the file.</param>
+        /// <param name="savePath">The path into the filesystem to save the file at.</param>
+        /// <returns></returns>
+        Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath);
+
+        /// <summary>
+        /// Closes a loaded state.
+        /// </summary>
+        /// <param name="stateInfo">The state to close and release.</param>
+        void Close(IStateInfo stateInfo);
+
+        /// <summary>
+        /// Closes all loaded states.
+        /// </summary>
+        void CloseAll();
     }
 }
