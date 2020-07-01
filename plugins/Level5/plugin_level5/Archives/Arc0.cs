@@ -105,7 +105,7 @@ namespace plugin_level5.Archives
 
             // Write file entry hashes
             _header.fileCount = fileEntries.Count;
-            _header.fileEntriesCount = (short)fileEntries.Count;
+            _header.fileEntriesCount = fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
 
             WriteCompressedTableEntries(bw.BaseStream, fileEntries.Select(x => x.Entry));

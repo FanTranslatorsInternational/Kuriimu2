@@ -9,9 +9,8 @@ namespace plugin_level5.Images
 {
     class ImgcHeader
     {
-        [FixedLength(4)]
+        [FixedLength(8)]
         public string magic; // IMGC
-        public int const1; // 30 30 00 00
         public short const2; // 30 00
         public byte imageFormat;
         public byte const3; // 01
@@ -63,9 +62,9 @@ namespace plugin_level5.Images
             [0] = new Rgba(8, 8, 8, 8),
             [1] = new Rgba(4, 4, 4, 4),
             [2] = new Rgba(5, 5, 5, 1),
-            [3] = new Rgba(8, 8, 8,"BGR"),
+            [3] = new Rgba(8, 8, 8, "BGR"),
             [4] = new Rgba(5, 6, 5),
-            [11] = new La(8, 8),
+            [11] = new La(4, 4), // was LA(8,8) once, was that an error?
             [12] = new La(4, 4),
             [13] = new La(8, 0),
             [14] = new Rgba(8, 8, 0),

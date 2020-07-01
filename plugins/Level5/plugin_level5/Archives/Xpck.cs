@@ -84,13 +84,13 @@ namespace plugin_level5.Archives
             foreach (var file in castedFiles.OrderBy(x => x.FileEntry.FileOffset))
             {
                 output.Position = fileOffset;
-                file.SaveFileData(output, null);
+                file.SaveFileData(output);
 
                 file.FileEntry.FileOffset = fileOffset - _header.DataOffset;
                 file.FileEntry.FileSize = (int)file.FileSize;
                 file.FileEntry.hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(ascii.GetBytes(file.FilePath.ToRelative().FullName)));
 
-                fileOffset = (ushort)output.Length;
+                fileOffset = (int)output.Length;
             }
 
             _header.DataSize = (uint)output.Length - _header.DataOffset;

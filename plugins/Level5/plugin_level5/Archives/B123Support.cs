@@ -95,6 +95,8 @@ namespace plugin_level5.Archives
             var extension = Path.GetExtension(fileName);
             using var br = new BinaryReaderX(fileStream, true);
 
+            var magic = br.ReadString(4);
+
             switch (extension)
             {
                 case ".xi":
@@ -104,7 +106,10 @@ namespace plugin_level5.Archives
                 case ".xc":
                 case ".xa":
                 case ".xk":
-                    return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
+                    if (magic == "XPCK")
+                        return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
+
+                    return null;
 
                 case ".arc":
                     return new[] { Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896") };
