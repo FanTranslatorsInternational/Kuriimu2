@@ -598,6 +598,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void ReplaceSelectedFiles()
         {
+
             var selectedFiles = CollectSelectedFiles().ToList();
 
             ReplaceFiles(selectedFiles);
