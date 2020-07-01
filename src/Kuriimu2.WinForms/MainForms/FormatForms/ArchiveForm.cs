@@ -628,7 +628,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var destinationFileSystem = FileSystemFactory.CreateAfiFileSystem(ArchiveState, rootPath.ToAbsolute(), _stateInfo.StreamManager);
 
             var replaceCount = 0;
-            foreach (var sourcePath in sourceFileSystem.EnumeratePaths(UPath.Root))
+            foreach (var sourcePath in sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.File))
             {
                 if (!destinationFileSystem.FileExists(sourcePath))
                     continue;
