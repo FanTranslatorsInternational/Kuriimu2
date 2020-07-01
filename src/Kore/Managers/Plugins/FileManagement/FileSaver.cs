@@ -78,7 +78,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
                 // 6. Load the initial file from the parent state
                 var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                var reloadResult = await TryLoadStateAsync(stateInfo.State, subDestinationFileSystem, savePath,
+                var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath,
                     temporaryStreamProvider);
                 if (!reloadResult.IsSuccessful)
                     return new SaveResult(reloadResult.Exception);
