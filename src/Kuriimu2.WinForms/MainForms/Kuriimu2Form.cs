@@ -49,7 +49,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             InitializeComponent();
 
-            _progressContext = new ConcurrentProgress(new ToolStripProgressBarOutput(operationProgress, 50));
+            _progressContext = new ConcurrentProgress(new NullProgressOutput());
 
             _hashForm = new HashTypeExtensionForm();
             _encryptForm = new EncryptTypeExtensionForm();
