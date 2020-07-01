@@ -615,8 +615,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void ReplaceMultipleFiles(IList<ArchiveFileInfo> files, UPath rootPath)
         {
-            ContractAssertions.IsNotNull(files, nameof(files));
-
             var fbd = new FolderBrowserDialog
             {
                 SelectedPath = Settings.Default.LastDirectory,
@@ -627,18 +625,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
 
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(fbd.SelectedPath, _stateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateAfiFileSystem(ArchiveState, rootPath.ToAbsolute(), _stateInfo.StreamManager);
 
             var replaceCount = 0;
-            foreach (var afi in files)
+            foreach (var sourcePath in sourceFileSystem.EnumeratePaths(UPath.Root))
             {
-                var sourcePath = (UPath)afi.FilePath.FullName.Substring(rootPath.FullName.Length);
-                if (!sourceFileSystem.FileExists(sourcePath))
+                if (!destinationFileSystem.FileExists(sourcePath))
                     continue;
 
                 var newFileData = sourceFileSystem.OpenFile(sourcePath);
                 if (!(ArchiveState is IReplaceFiles replaceState))
                     continue;
 
+                var afi = files.First(f => f.FilePath == rootPath.ToAbsolute() / sourcePath.ToRelative());
                 replaceState.ReplaceFile(afi, newFileData);
                 replaceCount++;
             }
