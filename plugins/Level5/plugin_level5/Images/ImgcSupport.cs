@@ -14,7 +14,7 @@ namespace plugin_level5.Images
         public short const2; // 30 00
         public byte imageFormat;
         public byte const3; // 01
-        public byte combineFormat;
+        public byte imageCount;
         public byte bitDepth;
         public short bytesPerTile;
         public short width;
@@ -57,22 +57,24 @@ namespace plugin_level5.Images
 
     class ImgcSupport
     {
+        // This mapping was determined through Inazuma Eleven GO Big Bang
         public static IDictionary<int, IColorEncoding> ImgcFormats = new Dictionary<int, IColorEncoding>
         {
-            [0] = new Rgba(8, 8, 8, 8),
-            [1] = new Rgba(4, 4, 4, 4),
-            [2] = new Rgba(5, 5, 5, 1),
-            [3] = new Rgba(8, 8, 8, "BGR"),
-            [4] = new Rgba(5, 6, 5),
-            [11] = new La(4, 4), // was LA(8,8) once, was that an error?
-            [12] = new La(4, 4),
-            [13] = new La(8, 0),
-            [14] = new Rgba(8, 8, 0),
-            [15] = new La(0, 8),
-            [26] = new La(4, 0),
-            [27] = new Etc1(false, true),
-            [28] = new Etc1(false, true),
-            [29] = new Etc1(true, true)
+            [0x00] = new Rgba(8, 8, 8, 8),
+            [0x01] = new Rgba(4, 4, 4, 4),
+            [0x02] = new Rgba(5, 5, 5, 1),
+            [0x03] = new Rgba(8, 8, 8, "BGR"),
+            [0x04] = new Rgba(5, 6, 5),
+
+            [0x0A] = new La(8, 8),
+            [0x0B] = new La(4, 4),
+            [0x0C] = new La(8, 0),
+            [0x0D] = new La(4, 0),
+            [0x0E] = new La(0, 8),
+            [0x0F] = new La(0, 4),
+
+            [0x1B] = new Etc1(false, true),
+            [0x1C] = new Etc1(true, true)
         };
     }
 }

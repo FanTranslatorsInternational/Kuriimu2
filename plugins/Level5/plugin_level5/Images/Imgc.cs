@@ -5,6 +5,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using Kanvas.Configuration;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -30,8 +31,8 @@ namespace plugin_level5.Images
 
             // Header
             _header = br.ReadType<ImgcHeader>();
-            if (_header.imageFormat == 28 && _header.bitDepth == 8)
-                _header.imageFormat = 29;
+            //if (_header.imageFormat == 28 && _header.bitDepth == 8)
+            //    _header.imageFormat = 29;
 
             // Get tile table
             var tileTableComp = new SubStream(input, _header.tableDataOffset, _header.tileTableSize);
@@ -50,15 +51,27 @@ namespace plugin_level5.Images
             imageDataComp.Position = 0;
             _imageDataCompression = (Level5CompressionMethod)(imageDataComp.ReadByte() & 0x7);
 
-            // Combine tiles to full image
+            // Combine tiles to full image data
             tileTable.Position = imageData.Position = 0;
-            var combinedImage = CombineTiles(tileTable, imageData, _header.bitDepth);
+            var combinedImageStream = CombineTiles(tileTable, imageData, _header.bitDepth);
+
+            // Split image data and mip map data
+            var images = new byte[_header.imageCount][];
+            var (width, height) = ((int)_header.width, (int)_header.height);
+            for (var i = 0; i < _header.imageCount; i++)
+            {
+                images[i] = new byte[width * height * _header.bitDepth];
+                combinedImageStream.Read(images[i], 0, images[i].Length);
+
+                (width, height) = (width / 2, height / 2);
+            }
 
             return new ImageInfo
             {
-                ImageData = combinedImage,
+                ImageData = images.FirstOrDefault(),
                 ImageFormat = _header.imageFormat,
                 ImageSize = new Size(_header.width, _header.height),
+                MipMapData = images.Skip(1).ToArray(),
                 Configuration = new ImageConfiguration()
                     .PadSizeWith(size => new Size((size.Width + 7) & ~7, (size.Height + 7) & ~7))
                     .RemapPixelsWith(size => new ImgcSwizzle(size.Width, size.Height))
@@ -72,12 +85,18 @@ namespace plugin_level5.Images
             // Header
             _header.width = (short)image.ImageSize.Width;
             _header.height = (short)image.ImageSize.Height;
-            _header.imageFormat = (byte)(image.ImageFormat == 29 ? 28 : image.ImageFormat);
-            _header.bitDepth = (byte)(image.ImageFormat == 29 ? 8 :
+            _header.imageFormat = (byte)(/*image.ImageFormat == 29 ? 28 : */image.ImageFormat);
+            _header.bitDepth = (byte)(/*image.ImageFormat == 29 ? 8 :*/
                 ImgcSupport.ImgcFormats[image.ImageFormat].BitDepth / ImgcSupport.ImgcFormats[image.ImageFormat].ColorsPerValue);
 
+            // Write image data to stream
+            var combinedImageStream = new MemoryStream();
+            combinedImageStream.Write(image.ImageData);
+            for (var i = 0; i < image.MipMapCount; i++)
+                combinedImageStream.Write(image.MipMapData[i]);
+
             // Create reduced tiles and indices
-            var (imageData, tileTable) = SplitTiles(new MemoryStream(image.ImageData));
+            var (imageData, tileTable) = SplitTiles(combinedImageStream);
 
             // Write tile table
             output.Position = _headerSize;
@@ -98,7 +117,7 @@ namespace plugin_level5.Images
             bw.WriteType(_header);
         }
 
-        private byte[] CombineTiles(Stream tileTableStream, Stream imageDataStream, int bitDepth)
+        private Stream CombineTiles(Stream tileTableStream, Stream imageDataStream, int bitDepth)
         {
             using var tileTable = new BinaryReaderX(tileTableStream);
 
@@ -115,10 +134,12 @@ namespace plugin_level5.Images
                 entryLength = 4;
             }
 
+            var entries = new List<int>();
             var result = new MemoryStream();
             while (tileTableStream.Position < tileTableStream.Length)
             {
                 var entry = entryLength == 2 ? tileTable.ReadInt16() : tileTable.ReadInt32();
+                entries.Add(entry);
                 if (entry == -1)
                 {
                     var tile = new byte[tileByteDepth];
@@ -133,7 +154,8 @@ namespace plugin_level5.Images
                 }
             }
 
-            return result.ToArray();
+            result.Position = 0;
+            return result;
         }
 
         private (Stream imageData, Stream tileData) SplitTiles(Stream image)
