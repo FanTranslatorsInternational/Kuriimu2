@@ -43,8 +43,9 @@ namespace Kanvas.Configuration
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
-            ContractAssertions.IsNotNull(paletteEncoding, nameof(paletteEncoding));
             ContractAssertions.IsNotNull(quantizer, nameof(quantizer));
+
+            // HINT: paletteEncoding can be null due to EncodeIndexInternal handling it.
 
             _indexEncoding = indexEncoding;
             _paletteEncoding = paletteEncoding;
@@ -147,7 +148,7 @@ namespace Kanvas.Configuration
 
         #endregion
 
-        #region Encode interface methods
+        #region Encode methods
 
         public (byte[] imageData, byte[] paletteData) Encode(Bitmap image, IProgressContext progress = null)
         {
@@ -191,7 +192,9 @@ namespace Kanvas.Configuration
             var (indices, palette) = QuantizeImage(image, paddedSize, progress);
 
             // Save palette indexColors
-            var paletteData = _paletteEncoding().Save(palette, _taskCount);
+            // This step can be skipped if no palette encoding is given.
+            //   That saves time in the scenario when the palette is not needed or already exists as encoded data from somewhere else.
+            var paletteData = _paletteEncoding?.Invoke().Save(palette, _taskCount);
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;

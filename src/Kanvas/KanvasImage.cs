@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Linq;
 using Kanvas.Configuration;
 using Kontract;
@@ -72,7 +74,9 @@ namespace Kanvas
             _decodedImage = _bestImage = image;
             _decodedPalette = null;
 
-            (_imageInfo.ImageData, _imageInfo.PaletteData) = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat, progress);
+            var encodedImage = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat, progress);
+            _imageInfo.ImageData = encodedImage.imageData.FirstOrDefault();
+            _imageInfo.MipMapData = encodedImage.imageData.Skip(1).ToArray();
             _imageInfo.ImageSize = image.Size;
 
             _imageInfo.ContentChanged = true;
@@ -139,7 +143,11 @@ namespace Kanvas
             image.SetPixel(point.X, point.Y, palette[paletteIndex]);
 
             _decodedImage = image;
-            (_imageInfo.ImageData, _imageInfo.PaletteData) = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat);
+            var encodedImage = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat);
+
+            _imageInfo.ImageData = encodedImage.imageData.FirstOrDefault();
+            _imageInfo.MipMapData = encodedImage.imageData.Skip(1).ToArray();
+            _imageInfo.PaletteData = encodedImage.paletteData;
 
             _imageInfo.ContentChanged = true;
         }
@@ -160,7 +168,8 @@ namespace Kanvas
 
             // Set image info properties
             _imageInfo.ImageFormat = imageFormat;
-            _imageInfo.ImageData = imageData;
+            _imageInfo.ImageData = imageData.FirstOrDefault();
+            _imageInfo.MipMapData = imageData.Skip(1).ToArray();
             _imageInfo.ImageSize = decodedImage.Size;
 
             if (IsIndexEncoding(imageFormat))
@@ -210,6 +219,11 @@ namespace Kanvas
             return _decodedImage;
         }
 
+        /// <summary>
+        /// Decode current palette from <see cref="ImageInfo"/>.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns>Either buffered palette or decoded palette.</returns>
         private IList<Color> DecodePalette(IProgressContext context = null)
         {
             if (_decodedPalette != null)
@@ -220,9 +234,23 @@ namespace Kanvas
                 .ToArray();
         }
 
-        private (byte[] imageData, byte[] paletteData) EncodeImage(Bitmap image, int imageFormat, int paletteFormat = -1,
+        /// <summary>
+        /// Decode given palette data without buffering.
+        /// </summary>
+        /// <param name="paletteData">Palette data to decode.</param>
+        /// <param name="context"></param>
+        /// <returns>Decoded palette.</returns>
+        private IList<Color> DecodePalette(byte[] paletteData, IProgressContext context = null)
+        {
+            return _imageState.SupportedPaletteEncodings[_imageInfo.PaletteFormat]
+                .Load(paletteData, Environment.ProcessorCount)
+                .ToArray();
+        }
+
+        private (IList<byte[]> imageData, byte[] paletteData) EncodeImage(Bitmap image, int imageFormat, int paletteFormat = -1,
             IProgressContext progress = null)
         {
+            // Create transcoder
             IImageTranscoder transcoder;
             if (IsColorEncoding(imageFormat))
             {
@@ -240,7 +268,71 @@ namespace Kanvas
                     .Build();
             }
 
-            return transcoder.Encode(image, progress);
+            var (mainImageData, mainPaletteData) = transcoder.Encode(image, progress);
+
+            var imageData = new byte[_imageInfo.MipMapCount + 1][];
+            imageData[0] = mainImageData;
+
+            // Decode palette if present, only when mip maps are needed
+            IList<Color> decodedPalette = null;
+            if (mainPaletteData != null && _imageInfo.MipMapCount > 0)
+                decodedPalette = DecodePalette(mainPaletteData);
+
+            // Encode mip maps
+            var (width, height) = (image.Width / 2, image.Height / 2);
+            for (var i = 0; i < _imageInfo.MipMapCount; i++)
+            {
+                imageData[i + 1] = EncodeMipMap(ResizeImage(image, width, height), imageFormat, decodedPalette);
+
+                width /= 2;
+                height /= 2;
+            }
+
+            return (imageData, mainPaletteData);
+        }
+
+        private byte[] EncodeMipMap(Bitmap mipMap, int imageFormat, IList<Color> palette = null)
+        {
+            IImageTranscoder transcoder;
+            if (IsColorEncoding(imageFormat))
+            {
+                transcoder = ImageConfiguration.Clone()
+                    .TranscodeWith(size => _imageState.SupportedEncodings[imageFormat])
+                    .Build();
+            }
+            else
+            {
+                var indexEncoding = _imageState.SupportedIndexEncodings[imageFormat].Encoding;
+                transcoder = ImageConfiguration.Clone()
+                    .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
+                    .TranscodeWith(size => indexEncoding)
+                    .Build();
+            }
+
+            return transcoder.Encode(mipMap).imageData;
+        }
+
+        private Bitmap ResizeImage(Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using var wrapMode = new ImageAttributes();
+                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+            }
+
+            return destImage;
         }
 
         private byte[] EncodePalette(IList<Color> palette, int paletteFormat)
