@@ -171,6 +171,7 @@ namespace plugin_level5.Archives
             };
         }
 
+        // TODO: Hashes of files to lower?
         private void BuildTables(IEnumerable<B123ArchiveFileInfo> files,
             out IList<B123DirectoryEntry> directoryEntries, out IList<uint> directoryHashes,
             out IList<B123ArchiveFileInfo> fileEntries, out Stream nameStream)

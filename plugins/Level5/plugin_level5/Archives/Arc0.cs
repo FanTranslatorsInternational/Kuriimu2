@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -51,10 +52,21 @@ namespace plugin_level5.Archives
             Level5Compressor.Decompress(nameComp, nameStream);
 
             // Add Files
+            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var sjis = Encoding.GetEncoding("SJIS");
+
             var names = new BinaryReaderX(nameStream);
             var result = new List<ArchiveFileInfo>();
             foreach (var directory in directoryEntries)
             {
+                names.BaseStream.Position = directory.directoryNameStartOffset;
+                var directoryName = names.ReadCStringSJIS();
+
+                // Sanity check hash
+                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName)));
+                if (directory.crc32 != 0xFFFFFFFF && directory.crc32 != hash)
+                    throw new InvalidOperationException($"{directoryName} does not match hash 0x{directory.crc32:X8}");
+
                 var filesInDirectory = entries.Skip(directory.firstFileIndex).Take(directory.fileCount);
                 foreach (var file in filesInDirectory)
                 {
@@ -62,8 +74,11 @@ namespace plugin_level5.Archives
 
                     names.BaseStream.Position = directory.fileNameStartOffset + file.nameOffsetInFolder;
                     var fileName = names.ReadCStringSJIS();
-                    names.BaseStream.Position = directory.directoryNameStartOffset;
-                    var directoryName = names.ReadCStringSJIS();
+
+                    // Sanity check hash
+                    hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileName)));
+                    if (file.crc32 != 0xFFFFFFFF && file.crc32 != hash)
+                        throw new InvalidOperationException($"{fileName} does not match hash 0x{file.crc32:X8}");
 
                     result.Add(new Arc0ArchiveFileInfo(fileStream, directoryName + fileName, file)
                     {
@@ -178,7 +193,7 @@ namespace plugin_level5.Archives
                     directoryName += "/";
                 nameBw.WriteString(directoryName, sjis, false);
 
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName.ToLower())));
+                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName)));
                 var newDirectoryEntry = new Arc0DirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
@@ -199,7 +214,7 @@ namespace plugin_level5.Archives
                 foreach (var fileEntry in fileGroupEntries)
                 {
                     fileEntry.Entry.nameOffsetInFolder = (uint)(nameBw.BaseStream.Position - newDirectoryEntry.fileNameStartOffset);
-                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName().ToLower())));
+                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName())));
                     fileEntry.Entry.fileOffset = fileOffset;
                     fileEntry.Entry.fileSize = (uint)fileEntry.FileSize;
 

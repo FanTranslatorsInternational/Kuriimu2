@@ -36,7 +36,7 @@ namespace plugin_level5.Archives
 
     class Arc0FileEntry
     {
-        public uint crc32;  // only filename.ToLower()
+        public uint crc32;  // only filename
         public uint nameOffsetInFolder;
         public uint fileOffset;
         public uint fileSize;
@@ -44,7 +44,7 @@ namespace plugin_level5.Archives
 
     class Arc0DirectoryEntry
     {
-        public uint crc32;   // directoryName.ToLower()
+        public uint crc32;   // directoryName
         public ushort firstDirectoryIndex;
         public short directoryCount;
         public ushort firstFileIndex;

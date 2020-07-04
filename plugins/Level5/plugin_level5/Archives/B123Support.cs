@@ -41,6 +41,7 @@ namespace plugin_level5.Archives
 
     class B123FileEntry
     {
+        // TODO: Hashes of files to lower?
         public uint crc32;  // only filename.ToLower()
         public uint nameOffsetInFolder;
         public uint fileOffset;
@@ -49,6 +50,7 @@ namespace plugin_level5.Archives
 
     class B123DirectoryEntry
     {
+        // TODO: Hashes of files to lower?
         public uint crc32;  // directoryName.ToLower()
         public short fileCount;
         public short directoryCount;
