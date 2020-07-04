@@ -29,20 +29,18 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <inheritdoc />
         public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath)
         {
-            var destination = stateInfo.ParentStateInfo == null ?
-                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager) :
-                stateInfo.FileSystem;
-
-            return SaveInternal(stateInfo, destination, savePath);
+            var destination = CreateDestinationFileSystem(stateInfo, savePath);
+            return SaveAsync(stateInfo, destination, savePath);
         }
 
         /// <inheritdoc />
         public Task<SaveResult> SaveAsync(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
-            return SaveInternal(stateInfo, fileSystem, savePath);
+            return SaveInternalAsync(stateInfo, fileSystem, savePath);
         }
 
-        private async Task<SaveResult> SaveInternal(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
+        private async Task<SaveResult> SaveInternalAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath,
+            bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
             if (!(stateInfo.State is ISaveFiles saveState) || !stateInfo.StateChanged)
@@ -51,10 +49,55 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Save child states
             foreach (var archiveChild in stateInfo.ArchiveChildren)
             {
-                var saveChildResult = await SaveAsync(archiveChild, archiveChild.FilePath);
+                var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
+                var saveChildResult = await SaveInternalAsync(archiveChild, destination, archiveChild.FilePath, false);
                 if (!saveChildResult.IsSuccessful)
                     return saveChildResult;
             }
+
+            // 3. Save and replace state
+            var saveAndReplaceResult = await SaveAndReplaceStateAsync(stateInfo, destinationFileSystem, savePath);
+            if (!saveAndReplaceResult.IsSuccessful)
+                return saveAndReplaceResult;
+
+            // If this was not the first call into the save action, return a successful result
+            if (!isStart)
+                return SaveResult.SuccessfulResult;
+
+            // 4. Reload the current state and all its children
+            var reloadResult = await ReloadInternalAsync(stateInfo, destinationFileSystem, savePath);
+            return reloadResult;
+        }
+
+        private async Task<SaveResult> ReloadInternalAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
+        {
+            // 1. Reload current state
+            var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
+            savePath = stateInfo.HasParent ? savePath : savePath.GetName();
+
+            var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath, temporaryStreamProvider);
+            if (!reloadResult.IsSuccessful)
+                return new SaveResult(reloadResult.Exception);
+
+            // 2. Set new file input, if state was loaded from a physical medium
+            if (!stateInfo.HasParent)
+                stateInfo.SetNewFileInput(destinationFileSystem, savePath);
+
+            // 3. Reload all child states
+            foreach (var archiveChild in stateInfo.ArchiveChildren)
+            {
+                var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
+                var reloadChildResult = await ReloadInternalAsync(archiveChild, destination, archiveChild.FilePath);
+                if (!reloadChildResult.IsSuccessful)
+                    return reloadChildResult;
+            }
+
+            return SaveResult.SuccessfulResult;
+        }
+
+        private async Task<SaveResult> SaveAndReplaceStateAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
+        {
+            var saveState = stateInfo.State as ISaveFiles;
 
             // 3. Save state to a temporary destination
             var temporaryContainer = CreateTemporaryFileSystem(stateInfo.StreamManager);
@@ -67,44 +110,25 @@ namespace Kore.Managers.Plugins.FileManagement
             // 4. Dispose of all streams in this state
             stateInfo.StreamManager.ReleaseAll();
 
-            if (stateInfo.ParentStateInfo != null)
-            {
-                // 5. Put temporary filesystem into final destination
-                temporaryContainer = temporaryContainer.Clone(stateInfo.ParentStateInfo.StreamManager);
-                var subDestinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.ToAbsolute().GetDirectory());
-                var replaceResult = await TryReplaceFilesInParentAsync(temporaryContainer, subDestinationFileSystem);
-                if (!replaceResult.IsSuccessful)
-                    return replaceResult;
+            // 5. Replace files in destination file system
+            var moveResult = await MoveFiles(stateInfo, temporaryContainer, destinationFileSystem);
+            if (!moveResult.IsSuccessful)
+                return moveResult;
 
-                // 6. Load the initial file from the parent state
-                var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath,
-                    temporaryStreamProvider);
-                if (!reloadResult.IsSuccessful)
-                    return new SaveResult(reloadResult.Exception);
+            return SaveResult.SuccessfulResult;
+        }
 
-                return SaveResult.SuccessfulResult;
-            }
-            else
-            {
-                // 5. Put temporary filesystem into final destination
-                temporaryContainer = temporaryContainer.Clone(stateInfo.StreamManager);
-                var copyResult = await TryCopyFiles(temporaryContainer, destinationFileSystem);
-                if (!copyResult.IsSuccessful)
-                    return copyResult;
-
-                // 6. Load the initial file from the physical destination
-                var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath.GetName(),
-                    temporaryStreamProvider);
-                if (!reloadResult.IsSuccessful)
-                    return new SaveResult(reloadResult.Exception);
-
-                // 7. Use file path and file system in newly loaded state
-                stateInfo.SetNewFileInput(destinationFileSystem, savePath.GetName());
-
-                return SaveResult.SuccessfulResult;
-            }
+        /// <summary>
+        /// Creates an <see cref="IFileSystem"/> to save the files to.
+        /// </summary>
+        /// <param name="stateInfo">The state from which to create the file system.</param>
+        /// <param name="savePath">The path for the root destination.</param>
+        /// <returns></returns>
+        private IFileSystem CreateDestinationFileSystem(IStateInfo stateInfo, UPath savePath)
+        {
+            return stateInfo.ParentStateInfo == null ?
+                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager) :
+                stateInfo.FileSystem;
         }
 
         /// <summary>
@@ -139,6 +163,50 @@ namespace Kore.Managers.Plugins.FileManagement
             }
 
             return SaveResult.SuccessfulResult;
+        }
+
+        /// <summary>
+        /// Replace files in destination file system.
+        /// </summary>
+        /// <param name="stateInfo">The state to save in the destination.</param>
+        /// <param name="sourceFileSystem">The file system to take the files from.</param>
+        /// <param name="destinationFileSystem">The file system to replace the files in.</param>
+        private async Task<SaveResult> MoveFiles(IStateInfo stateInfo, IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
+        {
+            // 1. Get correct stream manager
+            var streamManager = stateInfo.HasParent ? stateInfo.ParentStateInfo.StreamManager : stateInfo.StreamManager;
+
+            // 2. Copy source file system with correct stream manager attached
+            sourceFileSystem = sourceFileSystem.Clone(streamManager);
+
+            if (stateInfo.HasParent)
+            {
+                // 3. Put source filesystem into final destination
+                destinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.ToAbsolute().GetDirectory());
+                var replaceResult = await TryReplaceFilesInParentAsync(sourceFileSystem, destinationFileSystem);
+                return replaceResult;
+
+                // 6. Load the initial file from the parent state
+                //var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
+                //var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath,
+                //    temporaryStreamProvider);
+                //if (!reloadResult.IsSuccessful)
+                //    return new SaveResult(reloadResult.Exception);
+            }
+
+            // 3. Put source filesystem into final destination
+            var copyResult = await TryCopyFiles(sourceFileSystem, destinationFileSystem);
+            return copyResult;
+
+            // 6. Load the initial file from the physical destination
+            //var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
+            //var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath.GetName(),
+            //    temporaryStreamProvider);
+            //if (!reloadResult.IsSuccessful)
+            //    return new SaveResult(reloadResult.Exception);
+
+            // 7. Use file path and file system in newly loaded state
+            //stateInfo.SetNewFileInput(destinationFileSystem, savePath.GetName());
         }
 
         /// <summary>

@@ -57,7 +57,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _pluginManager = pluginManager;
 
             LoadDirectories();
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         #region Events
@@ -260,7 +260,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var treeFiles = CollectFilesFromTreeNode(treDirectories.SelectedNode).ToList();
             ReplaceMultipleFiles(treeFiles, selectedPath);
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -272,7 +272,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -282,7 +282,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -311,12 +311,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             LoadFiles();
 
-            UpdateForm();
-        }
-
-        private void treDirectories_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -344,11 +339,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     MessageBox.Show("File couldn't be opened.",
                         "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void lstFiles_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateForm();
         }
 
         #endregion
@@ -469,6 +459,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public void UpdateForm()
         {
+            LoadDirectories();
+            LoadFiles();
+
+            UpdateFormInternal();
+        }
+
+        private void UpdateFormInternal()
+        {
             // Menu
             tsbSave.Enabled = ArchiveState is ISaveFiles;
             tsbSaveAs.Enabled = ArchiveState is ISaveFiles && _stateInfo.ParentStateInfo == null;
@@ -510,7 +508,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             LoadDirectories();
             LoadFiles();
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -521,8 +519,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var selectedFiles = CollectSelectedFiles().ToList();
             ExtractFiles(selectedFiles, selectedFiles[0].FilePath.GetDirectory());
-
-            UpdateForm();
         }
 
         private async void ExtractFiles(IList<ArchiveFileInfo> files, UPath rootPath)
@@ -603,7 +599,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             ReplaceFiles(selectedFiles);
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         private void ReplaceFiles(IList<ArchiveFileInfo> files)
@@ -752,7 +748,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             RenameFiles(CollectSelectedFiles().ToList());
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         private void RenameFiles(IList<ArchiveFileInfo> files)
@@ -791,16 +787,20 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             DeleteFiles(CollectSelectedFiles().ToList());
 
-            UpdateForm();
+            LoadFiles();
+
+            UpdateFormInternal();
         }
 
         private void DeleteFiles(IList<ArchiveFileInfo> files)
         {
             ContractAssertions.IsNotNull(files, nameof(files));
 
-            if (files.Count > 0)
-                foreach (var afi in files)
-                    (ArchiveState as IRemoveFiles).RemoveFile(afi);
+            if (files.Count <= 0)
+                return;
+
+            foreach (var afi in files)
+                (ArchiveState as IRemoveFiles).RemoveFile(afi);
         }
 
         #endregion

@@ -71,7 +71,8 @@ namespace Kanvas
         /// <inheritdoc />
         public void SetImage(Bitmap image, IProgressContext progress = null)
         {
-            _decodedImage = _bestImage = image;
+            _bestImage = image;
+            _decodedImage = null;
             _decodedPalette = null;
 
             var encodedImage = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat, progress);

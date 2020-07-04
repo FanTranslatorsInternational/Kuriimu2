@@ -31,6 +31,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Configuration\ImageTranscoder.cs~RF3e6be8fe.TMP" />
     <None Remove="lib\astcenc.dll" />
     <None Remove="lib\PVRTexLib.dll" />
     <None Remove="lib\PVRTexLibWrapper.dll" />

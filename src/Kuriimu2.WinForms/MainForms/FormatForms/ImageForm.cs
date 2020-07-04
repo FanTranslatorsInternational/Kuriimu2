@@ -559,6 +559,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
 
             UpdateForm();
+
             UpdateImageList();
             UpdatePreview();
         }

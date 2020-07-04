@@ -38,6 +38,9 @@ namespace Kore.Models
         public IStateInfo ParentStateInfo { get; set; }
 
         /// <inheritdoc />
+        public bool HasParent => ParentStateInfo != null;
+
+        /// <inheritdoc />
         public bool StateChanged => IsStateChanged();
 
         /// <summary>

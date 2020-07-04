@@ -56,6 +56,11 @@ namespace Kontract.Interfaces.Managers
         IStateInfo ParentStateInfo { get; set; }
 
         /// <summary>
+        /// Gets a value determining if the state has a parent.
+        /// </summary>
+        bool HasParent { get; }
+
+        /// <summary>
         /// Gets a value determining if the plugin state changed.
         /// </summary>
         bool StateChanged { get; }

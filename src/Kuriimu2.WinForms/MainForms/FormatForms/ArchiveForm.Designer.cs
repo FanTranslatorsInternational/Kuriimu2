@@ -205,7 +205,6 @@
             this.treDirectories.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.treDirectories_AfterCollapse);
             this.treDirectories.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.treDirectories_AfterExpand);
             this.treDirectories.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treDirectories_AfterSelect);
-            this.treDirectories.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treDirectories_NodeMouseClick);
             // 
             // mnuDirectories
             // 
@@ -295,7 +294,6 @@
             this.lstFiles.TabIndex = 3;
             this.lstFiles.UseCompatibleStateImageBehavior = false;
             this.lstFiles.View = System.Windows.Forms.View.Details;
-            this.lstFiles.SelectedIndexChanged += new System.EventHandler(this.lstFiles_SelectedIndexChanged);
             this.lstFiles.DoubleClick += new System.EventHandler(this.lstFiles_DoubleClick);
             // 
             // clmName
