@@ -12,7 +12,7 @@ namespace Kontract.Kanvas
     public interface IEncodingInfo
     {
         /// <summary>
-        /// The number of bits one pixel or block takes in the format specification.
+        /// The number of bits one pixel takes in the format specification.
         /// </summary>
         int BitDepth { get; }
 

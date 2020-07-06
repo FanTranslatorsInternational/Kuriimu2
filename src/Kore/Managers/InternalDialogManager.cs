@@ -29,11 +29,11 @@ namespace Kore.Managers
         }
 
         /// <inheritdoc />
-        public bool ShowDialog(params DialogField[] fields)
+        public void ShowDialog(params DialogField[] fields)
         {
             // If no dialog Manager is given and not enough predefined options are available.
             if (_dialogManager == null && _options.Count - _optionIndex < fields.Length)
-                return false;
+                throw new InvalidOperationException("Not enough predefined dialog options.");
 
             // Collect predefined options for each field
             var fieldIndex = 0;
@@ -47,18 +47,15 @@ namespace Kore.Managers
 
             // If all fields were already processed by predefined options
             if (fieldIndex >= fields.Length)
-                return true;
+                return;
 
             // Collect results from dialog manager if predefined options are exhausted
             var subFields = fields.Skip(fieldIndex).ToArray();
-            var dialogResult = _dialogManager?.ShowDialog(subFields) ?? false;
+            _dialogManager?.ShowDialog(subFields);
 
             // Add results from the dialog Manager to the results
-            if (dialogResult)
-                foreach (var subField in subFields)
-                    DialogOptions.Add(subField.Result);
-
-            return dialogResult;
+            foreach (var subField in subFields)
+                DialogOptions.Add(subField.Result);
         }
     }
 }

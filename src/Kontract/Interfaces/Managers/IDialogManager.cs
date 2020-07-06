@@ -12,6 +12,6 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         /// <param name="fields">The fields to show on the dialog.</param>
         /// <returns>If the dialog was exited normally.</returns>
-        bool ShowDialog(params DialogField[] fields);
+        void ShowDialog(DialogField[] fields);
     }
 }
