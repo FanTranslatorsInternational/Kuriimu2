@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
@@ -11,7 +10,6 @@ using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Providers;
-using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Streams;
@@ -249,14 +247,16 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override IEnumerable<UPath> EnumeratePathsImpl(UPath path, string searchPattern, SearchOption searchOption, SearchTarget searchTarget)
         {
-            var search = new Regex("^" + UPath.Combine(path, new UPath(searchPattern)));
+            var search = SearchPattern.Parse(ref path, ref searchPattern);
 
             switch (searchTarget)
             {
                 case SearchTarget.File:
                     return EnumerateFiles(search, path.GetDirectory(), searchOption);
+
                 case SearchTarget.Directory:
-                    return Array.Empty<UPath>();
+                    return EnumerateDirectories(search, path.GetDirectory(), searchOption);
+
                 case SearchTarget.Both:
                     return EnumerateDirectories(search, path.GetDirectory(), searchOption)
                         .Concat(EnumerateFiles(search, path.GetDirectory(), searchOption));
@@ -291,37 +291,39 @@ namespace Kore.FileSystem.Implementations
             return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
         }
 
-        private IEnumerable<UPath> EnumerateFiles(Regex regexSearch, UPath topDirectory, SearchOption searchOption)
+        private IEnumerable<UPath> EnumerateFiles(SearchPattern searchPattern, UPath topDirectory, SearchOption searchOption)
         {
             switch (searchOption)
             {
                 case SearchOption.AllDirectories:
                     return _archiveState.Files
-                        .Where(x => regexSearch.IsMatch(x.FilePath.ToString()))
+                        .Where(x =>
+                            searchPattern.Match(x.FilePath))
                         .Select(x => x.FilePath);
 
                 case SearchOption.TopDirectoryOnly:
                     return _archiveState.Files
-                        .Where(x => regexSearch.IsMatch(x.FilePath.ToString()) && x.FilePath.GetDirectory() == topDirectory)
+                        .Where(x => x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath))
                         .Select(x => x.FilePath);
             }
 
             return Array.Empty<UPath>();
         }
 
-        private IEnumerable<UPath> EnumerateDirectories(Regex regexSearch, UPath topDirectory, SearchOption searchOption)
+        private IEnumerable<UPath> EnumerateDirectories(SearchPattern searchPattern, UPath topDirectory, SearchOption searchOption)
         {
             switch (searchOption)
             {
                 case SearchOption.AllDirectories:
                     return _archiveState.Files
-                        .Where(x => regexSearch.IsMatch(x.FilePath.ToString()))
+                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
 
                 case SearchOption.TopDirectoryOnly:
                     return _archiveState.Files
-                        .Where(x => regexSearch.IsMatch(x.FilePath.ToString()) && x.FilePath.GetDirectory() == topDirectory)
+                        .Where(x =>
+                            x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
             }

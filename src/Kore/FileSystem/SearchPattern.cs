@@ -128,7 +128,7 @@ namespace Kore.FileSystem
                     }
 
                     var c = searchPattern[nextIndex];
-                    var regexPatternPart = c == '*' ? "[^/]*" : "[^/]";
+                    var regexPatternPart = c == '*' ? ".*" : ".";
                     builder.Append(regexPatternPart);
 
                     startIndex = nextIndex + 1;

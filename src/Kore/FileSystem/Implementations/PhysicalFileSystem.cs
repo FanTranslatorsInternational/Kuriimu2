@@ -316,17 +316,17 @@ namespace Kore.FileSystem.Implementations
                     // Only sub folder "/drive/" on root folder /
                     if (path == UPath.Root)
                     {
-                        if (searchForDirectory)
-                        {
-                            yield return PathDrivePrefixOnWindows;
+                        if (!searchForDirectory) 
+                            yield break;
 
-                            if (searchOption == SearchOption.AllDirectories)
-                            {
-                                foreach (var subPath in EnumeratePathsImpl(PathDrivePrefixOnWindows, searchPattern, searchOption, searchTarget))
-                                {
-                                    yield return subPath;
-                                }
-                            }
+                        yield return PathDrivePrefixOnWindows;
+
+                        if (searchOption != SearchOption.AllDirectories) 
+                            yield break;
+
+                        foreach (var subPath in EnumeratePathsImpl(PathDrivePrefixOnWindows, searchPattern, searchOption, searchTarget))
+                        {
+                            yield return subPath;
                         }
 
                         yield break;

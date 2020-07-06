@@ -57,7 +57,7 @@ namespace Kore.FileSystem.Implementations
         protected override UPath ConvertPathFromDelegate(UPath path)
         {
             var fullPath = path.FullName;
-            if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath.FullName.Length] != UPath.DirectorySeparator))
+            if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
             {
                 // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
                 // we are throwing an exception here
