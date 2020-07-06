@@ -49,6 +49,8 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public IReadOnlyList<PluginLoadError> LoadErrors { get; }
 
+        #region Constructors
+
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
@@ -106,6 +108,8 @@ namespace Kore.Managers.Plugins
             _loadedFiles = new List<IStateInfo>();
         }
 
+        #endregion
+
         /// <summary>
         /// Internal constructor for testing.
         /// </summary>
@@ -151,13 +155,13 @@ namespace Kore.Managers.Plugins
         #region Load File
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(string file, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(string file, IList<string> options = null, IProgressContext progress = null)
         {
-            return await LoadFile(file, Guid.Empty, progress ?? _progress);
+            return await LoadFile(file, Guid.Empty, options, progress ?? _progress);
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(string file, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(string file, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
         {
             PhysicalLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
@@ -181,13 +185,13 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IList<string> options = null, IProgressContext progress = null)
         {
-            return await LoadFile(stateInfo, afi, Guid.Empty, progress ?? _progress);
+            return await LoadFile(stateInfo, afi, Guid.Empty, options, progress ?? _progress);
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
         {
             if (!(stateInfo.State is IArchiveState archiveState))
                 throw new InvalidOperationException("The state represents no archive.");
@@ -213,13 +217,13 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null)
         {
-            return await LoadFile(fileSystem, path, Guid.Empty, progress ?? _progress);
+            return await LoadFile(fileSystem, path, Guid.Empty, options, progress ?? _progress);
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
         {
             PluginLoadInfo loadInfo;
             if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))

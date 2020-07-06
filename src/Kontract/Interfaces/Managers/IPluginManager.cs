@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
@@ -23,9 +24,10 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a file from a given file system.
@@ -33,9 +35,10 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Save a loaded state in place.

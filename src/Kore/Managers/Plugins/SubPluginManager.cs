@@ -43,11 +43,11 @@ namespace Kore.Managers.Plugins
             _stateInfo = stateInfo;
         }
 
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null)
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
 
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, progress);
+            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, options, progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -56,11 +56,11 @@ namespace Kore.Managers.Plugins
             return loadResult;
         }
 
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
 
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, progress);
+            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, options, progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 

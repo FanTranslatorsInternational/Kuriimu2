@@ -62,27 +62,30 @@ namespace Kore.Managers.Plugins
         /// Loads a physical path into the Kuriimu runtime.
         /// </summary>
         /// <param name="file">The path to the path to load.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(string file, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(string file, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a physical path into the Kuriimu runtime.
         /// </summary>
         /// <param name="file">The path to the path to load.</param>
         /// <param name="pluginId">the plugin with which to load the file.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(string file, Guid pluginId, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(string file, Guid pluginId, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
         /// </summary>
         /// <param name="stateInfo">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -90,9 +93,10 @@ namespace Kore.Managers.Plugins
         /// <param name="stateInfo">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
+        /// <param name="options">The options for this load action.</param>
         /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IList<string> options = null, IProgressContext progress = null);
 
         /// <summary>
         /// Save a loaded state to the given path.
