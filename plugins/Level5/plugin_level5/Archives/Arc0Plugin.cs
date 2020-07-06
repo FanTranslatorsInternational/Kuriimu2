@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace plugin_level5.Archives
@@ -26,7 +23,7 @@ namespace plugin_level5.Archives
             Metadata = new PluginMetadata("ARC0", "onepiecefreak", "Main game archive for 3DS Level-5 games");
         }
 
-        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
+        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);

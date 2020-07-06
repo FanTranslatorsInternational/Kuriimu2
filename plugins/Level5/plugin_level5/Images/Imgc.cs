@@ -9,6 +9,7 @@ using System.Linq;
 using Kanvas.Configuration;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
@@ -24,6 +25,10 @@ namespace plugin_level5.Images
 
         private Level5CompressionMethod _tileTableCompression;
         private Level5CompressionMethod _imageDataCompression;
+
+        public int ImageFormat => _header.imageFormat;
+
+        public int BitDepth => _header.bitDepth;
 
         public ImageInfo Load(Stream input)
         {
@@ -82,12 +87,14 @@ namespace plugin_level5.Images
         {
             using var bw = new BinaryWriterX(output);
 
+            var imageFormats = ImgcSupport.DetermineFormatMapping(ImageFormat, BitDepth);
+
             // Header
             _header.width = (short)image.ImageSize.Width;
             _header.height = (short)image.ImageSize.Height;
             _header.imageFormat = (byte)(/*image.ImageFormat == 29 ? 28 : */image.ImageFormat);
             _header.bitDepth = (byte)(/*image.ImageFormat == 29 ? 8 :*/
-                ImgcSupport.ImgcFormats[image.ImageFormat].BitDepth / ImgcSupport.ImgcFormats[image.ImageFormat].ColorsPerValue);
+                imageFormats[image.ImageFormat].BitDepth / imageFormats[image.ImageFormat].ColorsPerValue);
 
             // Write image data to stream
             var combinedImageStream = new MemoryStream();
@@ -96,7 +103,9 @@ namespace plugin_level5.Images
                 combinedImageStream.Write(image.MipMapData[i]);
 
             // Create reduced tiles and indices
-            var (imageData, tileTable) = SplitTiles(combinedImageStream);
+            var bitDepth = imageFormats[_header.imageFormat].BitDepth /
+                           imageFormats[_header.imageFormat].ColorsPerValue;
+            var (imageData, tileTable) = SplitTiles(combinedImageStream, bitDepth);
 
             // Write tile table
             output.Position = _headerSize;
@@ -158,9 +167,8 @@ namespace plugin_level5.Images
             return result;
         }
 
-        private (Stream imageData, Stream tileData) SplitTiles(Stream image)
+        private (Stream imageData, Stream tileData) SplitTiles(Stream image, int bitDepth)
         {
-            var bitDepth = ImgcSupport.ImgcFormats[_header.imageFormat].BitDepth / ImgcSupport.ImgcFormats[_header.imageFormat].ColorsPerValue;
             var tileByteDepth = 64 * bitDepth / 8;
 
             var tileTable = new MemoryStream();

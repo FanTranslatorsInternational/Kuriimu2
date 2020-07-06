@@ -4,9 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Kanvas;
+using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 
@@ -14,10 +13,10 @@ namespace plugin_level5.Images
 {
     public class ImgcState : IImageState, ILoadFiles, ISaveFiles
     {
-        private Imgc limg;
+        private Imgc imgc;
 
         public IList<ImageInfo> Images { get; private set; }
-        public IDictionary<int, IColorEncoding> SupportedEncodings => ImgcSupport.ImgcFormats;
+        public IDictionary<int, IColorEncoding> SupportedEncodings { get; private set; }
         public IDictionary<int, (IIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings
         {
             get;
@@ -29,20 +28,21 @@ namespace plugin_level5.Images
 
         public ImgcState()
         {
-            limg = new Imgc();
+            imgc = new Imgc();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = new List<ImageInfo> { limg.Load(fileStream) };
+            Images = new List<ImageInfo> { imgc.Load(fileStream) };
+
+            SupportedEncodings = ImgcSupport.DetermineFormatMapping(imgc.ImageFormat, imgc.BitDepth);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            limg.Save(fileStream, Images[0]);
+            imgc.Save(fileStream, Images[0]);
 
             return Task.CompletedTask;
         }

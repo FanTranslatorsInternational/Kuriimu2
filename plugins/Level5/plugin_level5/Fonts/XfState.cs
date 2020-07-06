@@ -8,8 +8,7 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Font;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
+using Kontract.Models.Context;
 using Kontract.Models.Font;
 using Kontract.Models.IO;
 
@@ -39,8 +38,7 @@ namespace plugin_level5.Fonts
             _xf = new Xf();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             // Load Xpck archive
             var loadResult = await _pluginManager.LoadFile(fileSystem, filePath, Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f"));
@@ -62,14 +60,14 @@ namespace plugin_level5.Fonts
 
             // Load KanvasImage
             var kanvasImage = new KanvasImage(imageState, imageState.Images[0]);
-            var fntFile = await archiveState.Files[1].GetFileData(temporaryStreamProvider, progress);
+            var fntFile = await archiveState.Files[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
 
             // Load characters
-            _characters = _xf.Load(fntFile, kanvasImage.GetImage(progress));
+            _characters = _xf.Load(fntFile, kanvasImage.GetImage(loadContext.ProgressContext));
             _isChanged = false;
         }
 
-        public async Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             // Save font information
             var imageState = _imageStateInfo.State as IImageState;

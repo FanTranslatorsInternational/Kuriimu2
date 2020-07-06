@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models.Archive;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace plugin_level5.Archives
@@ -27,14 +24,13 @@ namespace plugin_level5.Archives
             _lpc2 = new Lpc2();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _lpc2.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _lpc2.Save(fileStream, Files);
