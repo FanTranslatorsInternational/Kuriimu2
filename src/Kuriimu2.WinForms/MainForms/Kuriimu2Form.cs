@@ -39,6 +39,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private readonly IInternalPluginManager _pluginManager;
         private readonly IProgressContext _progressContext;
+        private readonly IDialogManager _dialogManager;
 
         private readonly Random _rand = new Random();
 
@@ -50,6 +51,7 @@ namespace Kuriimu2.WinForms.MainForms
             InitializeComponent();
 
             _progressContext = new ConcurrentProgress(new NullProgressOutput());
+            _dialogManager = new DialogManagerForm();
 
             _hashForm = new HashTypeExtensionForm();
             _encryptForm = new EncryptTypeExtensionForm();
@@ -61,7 +63,7 @@ namespace Kuriimu2.WinForms.MainForms
             _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
             _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
 
-            _pluginManager = new PluginManager(_progressContext, "plugins")
+            _pluginManager = new PluginManager(_progressContext, _dialogManager, "plugins")
             {
                 AllowManualSelection = Settings.Default.AllowManualSelection
             };
