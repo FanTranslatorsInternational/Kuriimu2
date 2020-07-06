@@ -36,13 +36,13 @@ namespace plugin_level5.Images
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<ImageInfo> { imgc.Load(fileStream) };
 
-            SupportedEncodings = ImgcSupport.DetermineFormatMapping(imgc.ImageFormat, imgc.BitDepth);
+            SupportedEncodings = ImgcSupport.DetermineFormatMapping(imgc.ImageFormat, imgc.BitDepth, loadContext.DialogManager);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            imgc.Save(fileStream, Images[0]);
+            imgc.Save(fileStream, Images[0], SupportedEncodings);
 
             return Task.CompletedTask;
         }

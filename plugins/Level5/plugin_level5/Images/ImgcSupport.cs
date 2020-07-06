@@ -4,7 +4,9 @@ using System.Linq;
 using Kanvas.Encoding;
 using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
+using Kontract.Interfaces.Managers;
 using Kontract.Kanvas;
+using Kontract.Models.Dialog;
 
 namespace plugin_level5.Images
 {
@@ -58,7 +60,7 @@ namespace plugin_level5.Images
 
     class ImgcSupport
     {
-        public static IDictionary<int, IColorEncoding> DetermineFormatMapping(int imgFormat, int bitDepth)
+        public static IDictionary<int, IColorEncoding> DetermineFormatMapping(int imgFormat, int bitDepth, IDialogManager dialogManager)
         {
             var mappings = new[] { ImgcFormatsV1, ImgcFormatsV2 };
 
@@ -78,8 +80,12 @@ namespace plugin_level5.Images
                 return viableMappings.First(x => x[imgFormat].BitDepth == bitDepth);
 
             // Otherwise the heuristic could not determine a definite mapping
-            // Fallback to ImgcFormatsV2, since this one was encountered more often
-            return ImgcFormatsV2;
+            // Show a dialog to the user, selecting the game
+            var availableGames = GameMapping.Keys.ToArray();
+            var dialogField = new DialogField(DialogFieldType.DropDown, "Select the game:", availableGames.First(), availableGames);
+
+            dialogManager.ShowDialog(dialogField);
+            return GameMapping[dialogField.Result];
         }
 
         // This mapping was determined through Inazuma Eleven GO Big Bang
@@ -121,5 +127,25 @@ namespace plugin_level5.Images
             [0x1B] = new Etc1(false, true),
             [0x1C] = new Etc1(true, true)
         };
+
+        private static readonly IDictionary<string, IDictionary<int, IColorEncoding>> GameMapping =
+            new Dictionary<string, IDictionary<int, IColorEncoding>>
+            {
+                ["Fantasy Life"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Inazuma Eleven GO"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Inazuma Eleven GO: Chrono Stones"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Inazuma Eleven GO: Galaxy"] = ImgcFormatsV1,
+                ["Laytons Mystery Journey"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Professor Layton 5"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Professor Layton 6"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Professor Layton vs Phoenix Wright"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Time Travelers"] = ImgcFormatsV2,
+                ["Yo-Kai Watch"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Yo-Kai Watch 2"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Yo-Kai Watch 3"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Yo-Kai Watch Blasters"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Yo-Kai Watch Blasters 2"] = ImgcFormatsV2, // TODO: Unconfirmed
+                ["Yo-Kai Watch Sangokushi"] = ImgcFormatsV2, // TODO: Unconfirmed
+            };
     }
 }

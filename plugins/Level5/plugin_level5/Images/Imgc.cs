@@ -83,11 +83,9 @@ namespace plugin_level5.Images
             };
         }
 
-        public void Save(Stream output, ImageInfo image)
+        public void Save(Stream output, ImageInfo image, IDictionary<int, IColorEncoding> imageFormats)
         {
             using var bw = new BinaryWriterX(output);
-
-            var imageFormats = ImgcSupport.DetermineFormatMapping(ImageFormat, BitDepth);
 
             // Header
             _header.width = (short)image.ImageSize.Width;
