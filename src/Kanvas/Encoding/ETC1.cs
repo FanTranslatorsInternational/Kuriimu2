@@ -30,7 +30,8 @@ namespace Kanvas.Encoding
             _useAlpha = useAlpha;
             _transcoder = new Etc1Transcoder(useZOrder);
 
-            BitDepth = BitsPerValue = useAlpha ? 128 : 64;
+            BitsPerValue = useAlpha ? 128 : 64;
+            BitDepth = useAlpha ? 8 : 4;
 
             FormatName = "ETC1" + (useAlpha ? "A4" : "");
         }

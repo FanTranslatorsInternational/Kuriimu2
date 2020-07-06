@@ -27,7 +27,8 @@ namespace Kanvas.Encoding
             _transcoder = new BcTranscoder(format);
             _hasSecondBlock = HasSecondBlock(format);
 
-            BitDepth = BitsPerValue = _hasSecondBlock ? 128 : 64;
+            BitsPerValue = _hasSecondBlock ? 128 : 64;
+            BitDepth = _hasSecondBlock ? 8 : 4;
 
             FormatName = format.ToString();
         }
