@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Linq;
 using Kanvas.Encoding;
+using Kanvas.Encoding.BlockCompressions.BCn.Models;
 using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Managers;
@@ -40,6 +41,7 @@ namespace plugin_level5.Images
     class ImgcSwizzle : IImageSwizzle
     {
         private readonly MasterSwizzle _zOrder;
+        private readonly IImageSwizzle _swizzle;
 
         public int Width { get; }
         public int Height { get; }
@@ -50,10 +52,12 @@ namespace plugin_level5.Images
             Height = (height + 0x7) & ~0x7;
 
             _zOrder = new MasterSwizzle(Width, new Point(0, 0), new[] { (0, 1), (1, 0), (0, 2), (2, 0), (0, 4), (4, 0) });
+            _swizzle = new BCSwizzle(width, height);
         }
 
         public Point Transform(Point point)
         {
+            //return _swizzle.Transform(point);
             return _zOrder.Get(point.Y * Width + point.X);
         }
     }
@@ -75,6 +79,11 @@ namespace plugin_level5.Images
             // If format exists in more than one, compare bitDepth
             var viableMappings = mappings.Where(x => x.Keys.Contains(imgFormat)).ToArray();
 
+            // If all mappings are the same encoding
+            var encodingName = viableMappings[0][imgFormat].FormatName;
+            if (viableMappings.All(x => x[imgFormat].FormatName == encodingName))
+                return viableMappings[0];
+
             // If only one mapping matches the given bitDepth
             if (viableMappings.Count(x => x[imgFormat].BitDepth == bitDepth) == 1)
                 return viableMappings.First(x => x[imgFormat].BitDepth == bitDepth);
@@ -84,7 +93,7 @@ namespace plugin_level5.Images
             var availableGames = GameMapping.Keys.ToArray();
             var dialogField = new DialogField(DialogFieldType.DropDown, "Select the game:", availableGames.First(), availableGames);
 
-            dialogManager.ShowDialog(dialogField);
+            dialogManager.ShowDialog(new[] { dialogField });
             return GameMapping[dialogField.Result];
         }
 
@@ -125,7 +134,8 @@ namespace plugin_level5.Images
             [0x10] = new La(0, 4),
 
             [0x1B] = new Etc1(false, true),
-            [0x1C] = new Etc1(true, true)
+            [0x1C] = new Etc1(false, true),
+            [0x1D] = new Etc1(true, true)
         };
 
         private static readonly IDictionary<string, IDictionary<int, IColorEncoding>> GameMapping =
