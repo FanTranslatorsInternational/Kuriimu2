@@ -38,6 +38,9 @@ namespace Kore.Models
         public IStateInfo ParentStateInfo { get; set; }
 
         /// <inheritdoc />
+        public IList<string> DialogOptions { get; private set; }
+
+        /// <inheritdoc />
         public bool HasParent => ParentStateInfo != null;
 
         /// <inheritdoc />
@@ -84,9 +87,17 @@ namespace Kore.Models
         }
 
         /// <inheritdoc />
+        public void SetDialogOptions(IList<string> options)
+        {
+            ContractAssertions.IsNotNull(options,nameof(options));
+            DialogOptions = options;
+        }
+
+        /// <inheritdoc />
         public virtual void Dispose()
         {
             ArchiveChildren?.Clear();
+            DialogOptions?.Clear();
             PluginManager?.CloseAll();
             StreamManager?.ReleaseAll();
 
@@ -95,6 +106,7 @@ namespace Kore.Models
             FileSystem = null;
             StreamManager = null;
             PluginManager = null;
+            DialogOptions = null;
 
             ParentStateInfo = null;
         }

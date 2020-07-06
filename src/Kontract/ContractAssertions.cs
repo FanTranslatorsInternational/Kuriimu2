@@ -23,6 +23,18 @@ namespace Kontract
         }
 
         /// <summary>
+        /// Asserts the list to not be empty.
+        /// </summary>
+        /// <param name="list">The value to check.</param>
+        /// <param name="listName">The value name.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void IsNotEmpty<T>(IList<T> list, string listName)
+        {
+            if (list.Count <= 0)
+                throw new InvalidOperationException($"The list '{listName}' is empty.");
+        }
+
+        /// <summary>
         /// Asserts the element to be contained in <see cref="IList{T}"/>.
         /// </summary>
         /// <typeparam name="T">The type of the element.</typeparam>
@@ -59,7 +71,7 @@ namespace Kontract
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void IsTrue(bool value, string valueName)
         {
-            if(!value)
+            if (!value)
                 throw new ArgumentException($"The value '{valueName}' is not true.");
         }
 

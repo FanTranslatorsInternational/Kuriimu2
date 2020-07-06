@@ -2,8 +2,7 @@
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace Kore.Models.UnsupportedPlugin
@@ -12,8 +11,7 @@ namespace Kore.Models.UnsupportedPlugin
     {
         public Stream FileStream { get; private set; }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             FileStream = await fileSystem.OpenFileAsync(filePath);
         }

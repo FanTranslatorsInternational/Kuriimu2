@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Providers;
-using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Plugins.Identifier
@@ -16,8 +15,8 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// </summary>
         /// <param name="fileSystem">The file system from which the file is requested.</param>
         /// <param name="filePath">The path to the file requested by the user.</param>
-        /// <param name="temporaryStreamProvider">A provider for temporary streams.</param>
+        /// <param name="identifyContext">The context for this identify operation, containing environment instances.</param>
         /// <returns>If the file is supported by this plugin.</returns>
-        Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider);
+        Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext);
     }
 }

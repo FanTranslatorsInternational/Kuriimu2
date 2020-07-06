@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Progress;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Plugins.State
@@ -20,8 +20,8 @@ namespace Kontract.Interfaces.Plugins.State
         /// </summary>
         /// <param name="fileSystem">The file system to save the state into.</param>
         /// <param name="savePath">The new path to the initial file.</param>
-        /// <param name="progress">The progress for this action.</param>
+        /// <param name="saveContext">The context for this save operation, containing environment instances.</param>
         /// <returns>If the save procedure was successful.</returns>
-        Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress);
+        Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext);
     }
 }

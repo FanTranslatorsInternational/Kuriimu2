@@ -6,8 +6,8 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.FileSystem.Implementations;
@@ -19,44 +19,44 @@ namespace Kore.Managers.Plugins.FileManagement
     /// </summary>
     class FileSaver : IFileSaver
     {
-        private readonly IProgressContext _progress;
+        private readonly IDialogManager _dialogManager;
 
-        public FileSaver(IProgressContext progress)
+        public FileSaver(IDialogManager dialogManager)
         {
-            _progress = progress;
+            _dialogManager = dialogManager;
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath)
+        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath, IProgressContext progress)
         {
             var destination = CreateDestinationFileSystem(stateInfo, savePath);
-            return SaveAsync(stateInfo, destination, savePath);
+            return SaveAsync(stateInfo, destination, savePath, progress);
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath, IProgressContext progress)
         {
-            return SaveInternalAsync(stateInfo, fileSystem, savePath);
+            return SaveInternalAsync(stateInfo, fileSystem, savePath, progress);
         }
 
         private async Task<SaveResult> SaveInternalAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath,
-            bool isStart = true)
+            IProgressContext progress, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!(stateInfo.State is ISaveFiles saveState) || !stateInfo.StateChanged)
+            if (!(stateInfo.State is ISaveFiles) || !stateInfo.StateChanged)
                 return new SaveResult(true, "The file had no changes and was not saved.");
 
             // 2. Save child states
             foreach (var archiveChild in stateInfo.ArchiveChildren)
             {
                 var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
-                var saveChildResult = await SaveInternalAsync(archiveChild, destination, archiveChild.FilePath, false);
+                var saveChildResult = await SaveInternalAsync(archiveChild, destination, archiveChild.FilePath, progress, false);
                 if (!saveChildResult.IsSuccessful)
                     return saveChildResult;
             }
 
             // 3. Save and replace state
-            var saveAndReplaceResult = await SaveAndReplaceStateAsync(stateInfo, destinationFileSystem, savePath);
+            var saveAndReplaceResult = await SaveAndReplaceStateAsync(stateInfo, destinationFileSystem, savePath, progress);
             if (!saveAndReplaceResult.IsSuccessful)
                 return saveAndReplaceResult;
 
@@ -65,17 +65,20 @@ namespace Kore.Managers.Plugins.FileManagement
                 return SaveResult.SuccessfulResult;
 
             // 4. Reload the current state and all its children
-            var reloadResult = await ReloadInternalAsync(stateInfo, destinationFileSystem, savePath);
+            var reloadResult = await ReloadInternalAsync(stateInfo, destinationFileSystem, savePath, progress);
             return reloadResult;
         }
 
-        private async Task<SaveResult> ReloadInternalAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
+        private async Task<SaveResult> ReloadInternalAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath,
+            IProgressContext progress)
         {
             // 1. Reload current state
             var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
             savePath = stateInfo.HasParent ? savePath : savePath.GetName();
 
-            var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath, temporaryStreamProvider);
+            var internalDialogManager = new InternalDialogManager(_dialogManager, stateInfo.DialogOptions);
+            var loadContext = new LoadContext(temporaryStreamProvider, progress, internalDialogManager);
+            var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath, loadContext);
             if (!reloadResult.IsSuccessful)
                 return new SaveResult(reloadResult.Exception);
 
@@ -87,7 +90,7 @@ namespace Kore.Managers.Plugins.FileManagement
             foreach (var archiveChild in stateInfo.ArchiveChildren)
             {
                 var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
-                var reloadChildResult = await ReloadInternalAsync(archiveChild, destination, archiveChild.FilePath);
+                var reloadChildResult = await ReloadInternalAsync(archiveChild, destination, archiveChild.FilePath, progress);
                 if (!reloadChildResult.IsSuccessful)
                     return reloadChildResult;
             }
@@ -95,13 +98,14 @@ namespace Kore.Managers.Plugins.FileManagement
             return SaveResult.SuccessfulResult;
         }
 
-        private async Task<SaveResult> SaveAndReplaceStateAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath)
+        private async Task<SaveResult> SaveAndReplaceStateAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath,
+            IProgressContext progress)
         {
             var saveState = stateInfo.State as ISaveFiles;
 
             // 3. Save state to a temporary destination
             var temporaryContainer = CreateTemporaryFileSystem(stateInfo.StreamManager);
-            var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath.GetName());
+            var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath.GetName(), progress);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
@@ -150,12 +154,15 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="saveState">The plugin state to save.</param>
         /// <param name="temporaryContainer">The temporary destination the state will be saved in.</param>
         /// <param name="fileName">The name of the initial file.</param>
+        /// <param name="progress">The context to report progress.</param>
         /// <returns>The result of the save state process.</returns>
-        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, string fileName)
+        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, string fileName,
+            IProgressContext progress)
         {
             try
             {
-                await saveState.Save(temporaryContainer, fileName, _progress);
+                var saveContext = new SaveContext(progress);
+                await saveState.Save(temporaryContainer, fileName, saveContext);
             }
             catch (Exception ex)
             {
@@ -185,28 +192,11 @@ namespace Kore.Managers.Plugins.FileManagement
                 destinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.ToAbsolute().GetDirectory());
                 var replaceResult = await TryReplaceFilesInParentAsync(sourceFileSystem, destinationFileSystem);
                 return replaceResult;
-
-                // 6. Load the initial file from the parent state
-                //var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-                //var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath,
-                //    temporaryStreamProvider);
-                //if (!reloadResult.IsSuccessful)
-                //    return new SaveResult(reloadResult.Exception);
             }
 
             // 3. Put source filesystem into final destination
             var copyResult = await TryCopyFiles(sourceFileSystem, destinationFileSystem);
             return copyResult;
-
-            // 6. Load the initial file from the physical destination
-            //var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-            //var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath.GetName(),
-            //    temporaryStreamProvider);
-            //if (!reloadResult.IsSuccessful)
-            //    return new SaveResult(reloadResult.Exception);
-
-            // 7. Use file path and file system in newly loaded state
-            //stateInfo.SetNewFileInput(destinationFileSystem, savePath.GetName());
         }
 
         /// <summary>
@@ -276,9 +266,10 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="pluginState">The plugin state to load.</param>
         /// <param name="fileSystem">The file system to retrieve further files from.</param>
         /// <param name="savePath">The <see cref="savePath"/> for the initial file.</param>
-        /// <param name="temporaryStreamProvider">The stream provider for temporary files.</param>
+        /// <param name="loadContext">The load context.</param>
         /// <returns>If the loading was successful.</returns>
-        private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath savePath, ITemporaryStreamProvider temporaryStreamProvider)
+        private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath savePath,
+            LoadContext loadContext)
         {
             // 1. Check if state implements ILoadFile
             if (!(pluginState is ILoadFiles loadableState))
@@ -287,7 +278,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                await loadableState.Load(fileSystem, savePath, temporaryStreamProvider, _progress);
+                await loadableState.Load(fileSystem, savePath, loadContext);
             }
             catch (Exception ex)
             {

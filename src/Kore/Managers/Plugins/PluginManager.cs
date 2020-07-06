@@ -18,6 +18,7 @@ using Kontract.Models.IO;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models.LoadInfo;
+using Kore.Progress;
 using MoreLinq;
 
 namespace Kore.Managers.Plugins
@@ -32,6 +33,8 @@ namespace Kore.Managers.Plugins
 
         private readonly IFileLoader _fileLoader;
         private readonly IFileSaver _fileSaver;
+
+        private readonly IProgressContext _progress;
 
         private readonly IList<IStateInfo> _loadedFiles;
 
@@ -49,20 +52,54 @@ namespace Kore.Managers.Plugins
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
+        /// <param name="pluginPaths">The paths to search for plugins.</param>
+        public PluginManager(params string[] pluginPaths) :
+            this(new ConcurrentProgress(new NullProgressOutput()), new DefaultDialogManager(), pluginPaths)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// </summary>
         /// <param name="progress">The progress context for plugin processes.</param>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(IProgressContext progress, params string[] pluginPaths)
+        public PluginManager(IProgressContext progress, params string[] pluginPaths) :
+            this(progress, new DefaultDialogManager(), pluginPaths)
         {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// </summary>
+        /// <param name="dialogManager">The dialog manager for plugin processes.</param>
+        /// <param name="pluginPaths">The paths to search for plugins.</param>
+        public PluginManager(IDialogManager dialogManager, params string[] pluginPaths) :
+            this(new ConcurrentProgress(new NullProgressOutput()), dialogManager, pluginPaths)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// </summary>
+        /// <param name="progress">The progress context for plugin processes.</param>
+        /// <param name="dialogManager">The dialog manager for plugin processes.</param>
+        /// <param name="pluginPaths">The paths to search for plugins.</param>
+        public PluginManager(IProgressContext progress, IDialogManager dialogManager, params string[] pluginPaths)
+        {
+            ContractAssertions.IsNotNull(progress, nameof(progress));
+            ContractAssertions.IsNotNull(dialogManager, nameof(dialogManager));
+
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
             _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
+            _progress = progress;
 
             LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
                 .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
                 .DistinctBy(e => e.AssemblyPath)
                 .ToList();
 
-            _fileLoader = new FileLoader(progress, _filePluginLoaders);
-            _fileSaver = new FileSaver(progress);
+            _fileLoader = new FileLoader(dialogManager, _filePluginLoaders);
+            _fileSaver = new FileSaver(dialogManager);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
@@ -111,24 +148,15 @@ namespace Kore.Managers.Plugins
             return _gameAdapterLoaders;
         }
 
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="file">The path to the path to load.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <returns>The loaded state of the path.</returns>
+        #region Load File
+
+        /// <inheritdoc />
         public async Task<LoadResult> LoadFile(string file, IProgressContext progress = null)
         {
-            return await LoadFile(file, Guid.Empty, progress);
+            return await LoadFile(file, Guid.Empty, progress ?? _progress);
         }
 
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="file">The path to the path to load.</param>
-        /// <param name="pluginId">The Id of the plugin to use for loading.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <returns>The loaded state of the path.</returns>
+        /// <inheritdoc />
         public async Task<LoadResult> LoadFile(string file, Guid pluginId, IProgressContext progress = null)
         {
             PhysicalLoadInfo loadInfo;
@@ -143,7 +171,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PhysicalLoadInfo(file);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
 
             if (!loadResult.IsSuccessful)
                 return loadResult;
@@ -152,16 +180,10 @@ namespace Kore.Managers.Plugins
             return loadResult;
         }
 
-        /// <summary>
-        /// Loads a virtual path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="stateInfo">The loaded path state to load a path from.</param>
-        /// <param name="afi">The path to load from that state.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <returns>The loaded state of the path.</returns>
+        /// <inheritdoc />
         public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IProgressContext progress = null)
         {
-            return await LoadFile(stateInfo, afi, Guid.Empty, progress);
+            return await LoadFile(stateInfo, afi, Guid.Empty, progress ?? _progress);
         }
 
         /// <inheritdoc />
@@ -182,7 +204,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new VirtualLoadInfo(stateInfo, archiveState, afi);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -190,26 +212,13 @@ namespace Kore.Managers.Plugins
             return loadResult;
         }
 
-        /// <summary>
-        /// Loads a path from any file system into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="fileSystem">The file system to load from.</param>
-        /// <param name="path">The path of the file to load.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <returns>The loaded state of the path.</returns>
+        /// <inheritdoc />
         public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IProgressContext progress = null)
         {
-            return await LoadFile(fileSystem, path, Guid.Empty, progress);
+            return await LoadFile(fileSystem, path, Guid.Empty, progress ?? _progress);
         }
 
-        /// <summary>
-        /// Loads a path from any file system into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="fileSystem">The file system to load from.</param>
-        /// <param name="path">The path of the file to load.</param>
-        /// <param name="pluginId">The Id of the plugin to use for loading.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <returns>The loaded state of the path.</returns>
+        /// <inheritdoc />
         public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IProgressContext progress = null)
         {
             PluginLoadInfo loadInfo;
@@ -224,7 +233,7 @@ namespace Kore.Managers.Plugins
                 loadInfo = new PluginLoadInfo(fileSystem, path);
             }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress);
+            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -232,22 +241,31 @@ namespace Kore.Managers.Plugins
             return loadResult;
         }
 
+        #endregion
+
+        #region Save File
+
+        /// <inheritdoc />
         public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
             return SaveFile(stateInfo, stateInfo.FilePath);
         }
 
+        /// <inheritdoc />
         public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
-            return _fileSaver.SaveAsync(stateInfo, fileSystem, savePath);
+            return _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
         }
 
+        /// <inheritdoc />
         public Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
 
-            return _fileSaver.SaveAsync(stateInfo, saveName);
+            return _fileSaver.SaveAsync(stateInfo, saveName, _progress);
         }
+
+        #endregion
 
         public void Close(IStateInfo stateInfo)
         {

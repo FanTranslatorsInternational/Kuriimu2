@@ -56,6 +56,11 @@ namespace Kontract.Interfaces.Managers
         IStateInfo ParentStateInfo { get; set; }
 
         /// <summary>
+        /// The values retrieved by dialogs in the initial load process.
+        /// </summary>
+        IList<string> DialogOptions { get; }
+
+        /// <summary>
         /// Gets a value determining if the state has a parent.
         /// </summary>
         bool HasParent { get; }
@@ -71,5 +76,11 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileSystem">The new file system for this state.</param>
         /// <param name="filePath">The new file path relative to the file system for this state.</param>
         void SetNewFileInput(IFileSystem fileSystem, UPath filePath);
+
+        /// <summary>
+        /// Sets dialog options for this state.
+        /// </summary>
+        /// <param name="options"></param>
+        void SetDialogOptions(IList<string> options);
     }
 }
