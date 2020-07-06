@@ -57,7 +57,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _pluginManager = pluginManager;
 
             LoadDirectories();
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #region Events
@@ -260,7 +260,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var treeFiles = CollectFilesFromTreeNode(treDirectories.SelectedNode).ToList();
             ReplaceMultipleFiles(treeFiles, selectedPath);
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -272,7 +272,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -282,7 +282,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #endregion
@@ -311,7 +311,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             LoadFiles();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #endregion
@@ -459,13 +459,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public void UpdateForm()
         {
-            LoadDirectories();
-            LoadFiles();
-
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
-        private void UpdateFormInternal()
+        private void UpdateProperties()
         {
             // Menu
             tsbSave.Enabled = ArchiveState is ISaveFiles;
@@ -508,7 +505,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             LoadDirectories();
             LoadFiles();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #endregion
@@ -599,7 +596,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             ReplaceFiles(selectedFiles);
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         private void ReplaceFiles(IList<ArchiveFileInfo> files)
@@ -748,7 +745,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             RenameFiles(CollectSelectedFiles().ToList());
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         private void RenameFiles(IList<ArchiveFileInfo> files)
@@ -789,7 +786,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadFiles();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         private void DeleteFiles(IList<ArchiveFileInfo> files)
