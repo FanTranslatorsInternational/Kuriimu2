@@ -249,17 +249,21 @@ namespace Kore.FileSystem.Implementations
         {
             var search = SearchPattern.Parse(ref path, ref searchPattern);
 
+            var topDirectory = path.IsFile ? path.GetDirectory() : path;
             switch (searchTarget)
             {
                 case SearchTarget.File:
-                    return EnumerateFiles(search, path.GetDirectory(), searchOption);
+                    return EnumerateFiles(search, topDirectory, searchOption)
+                        .OrderBy(x=>x.FullName);
 
                 case SearchTarget.Directory:
-                    return EnumerateDirectories(search, path.GetDirectory(), searchOption);
+                    return EnumerateDirectories(search, topDirectory, searchOption)
+                        .OrderBy(x => x.FullName);
 
                 case SearchTarget.Both:
-                    return EnumerateDirectories(search, path.GetDirectory(), searchOption)
-                        .Concat(EnumerateFiles(search, path.GetDirectory(), searchOption));
+                    return EnumerateDirectories(search, topDirectory, searchOption)
+                        .Concat(EnumerateFiles(search, topDirectory, searchOption))
+                        .OrderBy(x => x.FullName);
             }
 
             return Array.Empty<UPath>();
@@ -297,8 +301,7 @@ namespace Kore.FileSystem.Implementations
             {
                 case SearchOption.AllDirectories:
                     return _archiveState.Files
-                        .Where(x =>
-                            searchPattern.Match(x.FilePath))
+                        .Where(x => searchPattern.Match(x.FilePath))
                         .Select(x => x.FilePath);
 
                 case SearchOption.TopDirectoryOnly:

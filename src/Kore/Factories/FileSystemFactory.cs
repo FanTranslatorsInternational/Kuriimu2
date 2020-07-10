@@ -50,12 +50,36 @@ namespace Kore.Factories
         }
 
         /// <summary>
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// </summary>
+        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
+        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo)
+        {
+            return CreateAfiFileSystem(stateInfo, UPath.Root);
+        }
+
+        /// <summary>
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// </summary>
+        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="path">The path of the virtual file system.</param>
+        /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
+        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path)
+        {
+            if (!(stateInfo.State is IArchiveState))
+                throw new InvalidOperationException("This state is not an archive.");
+
+            return CreateAfiFileSystem(stateInfo.State as IArchiveState, path, stateInfo.StreamManager);
+        }
+
+        /// <summary>
         /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IArchiveState"/>.
         /// </summary>
         /// <param name="archiveState"><see cref="IArchiveState"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
-        /// <returns>The created <see cref="IArchiveState"/> for this state.</returns>
+        /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
         public static IFileSystem CreateAfiFileSystem(IArchiveState archiveState, UPath path, IStreamManager streamManager)
         {
             var fileSystem = (IFileSystem)new AfiFileSystem(archiveState, streamManager);
