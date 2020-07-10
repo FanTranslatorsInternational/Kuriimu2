@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kompression.Configuration;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
@@ -47,10 +48,21 @@ namespace plugin_level5.Archives
                 var name = nameList.ReadCStringASCII();
 
                 var fileData = new SubStream(input, _header.DataOffset + entry.FileOffset, entry.FileSize);
-                files.Add(new XpckArchiveFileInfo(fileData, name, entry)
+                if (name == "RES.bin")
                 {
-                    PluginIds = XpckSupport.RetrievePluginMapping(name)
-                });
+                    var method = Level5Compressor.PeekCompressionMethod(fileData);
+                    var decompressedSize = Level5Compressor.PeekDecompressedSize(fileData);
+                    var configuration = Level5Compressor.GetKompressionConfiguration(method);
+
+                    files.Add(new XpckArchiveFileInfo(fileData, name, entry, configuration, decompressedSize));
+                }
+                else
+                {
+                    files.Add(new XpckArchiveFileInfo(fileData, name, entry)
+                    {
+                        PluginIds = XpckSupport.RetrievePluginMapping(name)
+                    });
+                }
             }
 
             return files;

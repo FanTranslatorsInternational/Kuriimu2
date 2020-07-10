@@ -25,39 +25,41 @@ namespace plugin_level5.Compression
             return (Level5CompressionMethod)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) & 0x7);
         }
 
-        public static void Decompress(Stream input, Stream output)
+        public static IKompressionConfiguration GetKompressionConfiguration(Level5CompressionMethod method)
         {
-            var method = (Level5CompressionMethod)(input.ReadByte() & 0x7);
-            input.Position--;
-
-            IKompressionConfiguration configuration;
             switch (method)
             {
                 case Level5CompressionMethod.NoCompression:
-                    input.Position += 4;
-                    input.CopyTo(output);
-                    return;
+                    return null;
 
                 case Level5CompressionMethod.Lz10:
-                    configuration = Kompression.Implementations.Compressions.Level5.Lz10;
-                    break;
+                    return Kompression.Implementations.Compressions.Level5.Lz10;
 
                 case Level5CompressionMethod.Huffman4Bit:
-                    configuration = Kompression.Implementations.Compressions.Level5.Huffman4Bit;
-                    break;
+                    return Kompression.Implementations.Compressions.Level5.Huffman4Bit;
 
                 case Level5CompressionMethod.Huffman8Bit:
-                    configuration = Kompression.Implementations.Compressions.Level5.Huffman8Bit;
-                    break;
+                    return Kompression.Implementations.Compressions.Level5.Huffman8Bit;
 
                 case Level5CompressionMethod.Rle:
-                    configuration = Kompression.Implementations.Compressions.Level5.Rle;
-                    break;
+                    return Kompression.Implementations.Compressions.Level5.Rle;
 
                 default:
                     throw new NotSupportedException($"Unknown compression method {method}");
             }
+        }
 
+        public static void Decompress(Stream input, Stream output)
+        {
+            var method = PeekCompressionMethod(input);
+            if (method == Level5CompressionMethod.NoCompression)
+            {
+                input.Position += 4;
+                input.CopyTo(output);
+                return;
+            }
+
+            var configuration = GetKompressionConfiguration(method);
             configuration.Build().Decompress(input, output);
         }
 

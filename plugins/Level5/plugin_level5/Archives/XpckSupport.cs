@@ -2,6 +2,7 @@
 using System.IO;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
+using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 
 namespace plugin_level5.Archives
@@ -101,10 +102,16 @@ namespace plugin_level5.Archives
 
     class XpckArchiveFileInfo : ArchiveFileInfo
     {
-        public XpckFileInfo FileEntry;
+        public XpckFileInfo FileEntry { get; }
 
         public XpckArchiveFileInfo(Stream fileData, string filePath, XpckFileInfo entry) :
             base(fileData, filePath)
+        {
+            FileEntry = entry;
+        }
+
+        public XpckArchiveFileInfo(Stream fileData, string filePath, XpckFileInfo entry, IKompressionConfiguration config, long decompressedSize) :
+            base(fileData, filePath, config, decompressedSize)
         {
             FileEntry = entry;
         }
