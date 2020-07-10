@@ -22,6 +22,7 @@ namespace Kore.Providers
             _stateInfo = stateInfo;
         }
 
+        /// <inheritdoc />
         public IFileSystem CreatePhysicalFileSystem(string path)
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
@@ -29,6 +30,16 @@ namespace Kore.Providers
             return FileSystemFactory.CreatePhysicalFileSystem(path, _stateInfo.StreamManager);
         }
 
+        /// <inheritdoc />
+        public IFileSystem CreateAfiFileSystem(IArchiveState archiveState)
+        {
+            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
+            ContractAssertions.IsNotNull(archiveState, nameof(archiveState));
+
+            return CreateAfiFileSystem(archiveState, UPath.Root);
+        }
+
+        /// <inheritdoc />
         public IFileSystem CreateAfiFileSystem(IArchiveState archiveState, UPath path)
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");

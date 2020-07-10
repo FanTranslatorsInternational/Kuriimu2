@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Kontract.Models;
 
 namespace Kontract.Interfaces.Loaders
 {
@@ -10,11 +9,6 @@ namespace Kontract.Interfaces.Loaders
     /// <typeparam name="TPlugin">The type of the plugin to retrieve.</typeparam>
     public interface IPluginLoader<out TPlugin> : IPluginLoader
     {
-        /// <summary>
-        /// A read-only list of errors when loading plugins.
-        /// </summary>
-        IReadOnlyList<PluginLoadError> LoadErrors { get; }
-
         /// <summary>
         /// A read-only list of plugins loaded by this instance.
         /// </summary>

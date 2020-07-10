@@ -7,7 +7,7 @@ using Kontract.Models;
 
 namespace Kore.Managers.Plugins.PluginLoader
 {
-    abstract class CsPluginLoader
+    public abstract class CsPluginLoader
     {
         protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors)
         {
@@ -17,15 +17,21 @@ namespace Kore.Managers.Plugins.PluginLoader
                 .Select(Path.GetFullPath);
 
             // 2. Load the assemblies
-            var assemblyFiles = assemblyFilePaths.Select(Assembly.LoadFile);
+            var assemblyFiles = assemblyFilePaths.Select(Assembly.LoadFile).ToArray();
 
+            // 3. Process assemblies
+            return TryLoadPlugins(assemblyFiles, out loadedPlugins, out errors);
+        }
+
+        protected bool TryLoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors)
+        {
             // 3. Get all public types assignable to IPlugin
             var pluginTypes = GetPublicTypes<TPlugin>(assemblyFiles, out var loadErrors);
 
             // 4. Create an instance of each IPlugin
             loadedPlugins = CreatePluginTypes<TPlugin>(pluginTypes, out var createErrors);
 
-            errors = loadErrors.Concat(loadErrors).ToArray();
+            errors = loadErrors.Concat(createErrors).ToArray();
             return !errors.Any();
         }
 
