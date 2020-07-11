@@ -26,18 +26,17 @@
 // - Documentation added
 
 using System.IO;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kore.FileSystem
 {
     /// <summary>
-    /// An exception thrower for file systems.
+    /// An exception creator for file systems.
     /// </summary>
     internal static class FileSystemExceptionHelper
     {
         /// <summary>
-        /// Throws a <see cref="FileNotFoundException"/>.
+        /// Creates a <see cref="FileNotFoundException"/>.
         /// </summary>
         /// <param name="path">The path to the file not found.</param>
         /// <returns>The exception.</returns>
@@ -47,7 +46,7 @@ namespace Kore.FileSystem
         }
 
         /// <summary>
-        /// Throws a <see cref="DirectoryNotFoundException"/>.
+        /// Creates a <see cref="DirectoryNotFoundException"/>.
         /// </summary>
         /// <param name="path">The path to the directory not found.</param>
         /// <returns>The exception.</returns>
@@ -57,13 +56,33 @@ namespace Kore.FileSystem
         }
 
         /// <summary>
-        /// Throws a <see cref="IOException"/>.
+        /// Creates a <see cref="IOException"/>.
         /// </summary>
         /// <param name="path">The path of the directory being not empty.</param>
         /// <returns>The exception.</returns>
         public static IOException NewDirectoryIsNotEmpty(UPath path)
         {
             return new IOException($"The destination path `{path}` is not empty.");
+        }
+
+        /// <summary>
+        /// Creates a <see cref="IOException"/>.
+        /// </summary>
+        /// <param name="path">The path of the directory that already exists.</param>
+        /// <returns>The exception.</returns>
+        public static IOException NewDestinationDirectoryExistException(UPath path)
+        {
+            return new IOException($"The destination path `{path}` is an existing directory.");
+        }
+
+        /// <summary>
+        /// Creates a <see cref="IOException"/>.
+        /// </summary>
+        /// <param name="path">The path of the file that already exists.</param>
+        /// <returns>The exception.</returns>
+        public static IOException NewDestinationFileExistException(UPath path)
+        {
+            return new IOException($"The destination path `{path}` is an existing file.");
         }
     }
 }

@@ -67,7 +67,8 @@ namespace Kore.FileSystem.Implementations
 #endif
 
         /// <inheritdoc />
-        public PhysicalFileSystem(IStreamManager streamManager) : base(streamManager)
+        public PhysicalFileSystem(IStreamManager streamManager) :
+            base(streamManager)
         {
         }
 
@@ -338,12 +339,12 @@ namespace Kore.FileSystem.Implementations
                     // Only sub folder "/drive/" on root folder /
                     if (path == UPath.Root)
                     {
-                        if (!searchForDirectory) 
+                        if (!searchForDirectory)
                             yield break;
 
                         yield return PathDrivePrefixOnWindows;
 
-                        if (searchOption != SearchOption.AllDirectories) 
+                        if (searchOption != SearchOption.AllDirectories)
                             yield break;
 
                         foreach (var subPath in EnumeratePathsImpl(PathDrivePrefixOnWindows, searchPattern, searchOption, searchTarget))
