@@ -108,6 +108,50 @@ namespace Kore.Managers.Plugins
             _loadedFiles = new List<IStateInfo>();
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// </summary>
+        /// <param name="pluginLoaders">The plugin loaders for this manager.</param>
+        public PluginManager(params IPluginLoader[] pluginLoaders):
+            this(new ConcurrentProgress(new NullProgressOutput()), new DefaultDialogManager(), pluginLoaders)
+        {
+            
+        }
+
+        public PluginManager(IProgressContext progress, params IPluginLoader[] pluginLoaders):
+            this(progress, new DefaultDialogManager(), pluginLoaders)
+        {
+            
+        }
+
+        public PluginManager(IDialogManager dialogManager, params IPluginLoader[] pluginLoaders):
+            this(new ConcurrentProgress(new NullProgressOutput()), dialogManager, pluginLoaders)
+        {
+
+        }
+
+        public PluginManager(IProgressContext progress, IDialogManager dialogManager, params IPluginLoader[] pluginLoaders)
+        {
+            ContractAssertions.IsNotNull(progress, nameof(progress));
+            ContractAssertions.IsNotNull(dialogManager, nameof(dialogManager));
+
+            _filePluginLoaders = pluginLoaders.Where(x => x is IPluginLoader<IFilePlugin>).Cast<IPluginLoader<IFilePlugin>>().ToArray();
+            _gameAdapterLoaders = pluginLoaders.Where(x => x is IPluginLoader<IGameAdapter>).Cast<IPluginLoader<IGameAdapter>>().ToArray();
+
+            _progress = progress;
+
+            LoadErrors = pluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
+                .DistinctBy(e => e.AssemblyPath)
+                .ToList();
+
+            _fileLoader = new FileLoader(dialogManager, _filePluginLoaders);
+            _fileSaver = new FileSaver(dialogManager);
+
+            _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
+
+            _loadedFiles = new List<IStateInfo>();
+        }
+
         #endregion
 
         /// <summary>
