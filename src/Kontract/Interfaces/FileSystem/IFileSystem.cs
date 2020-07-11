@@ -1,10 +1,32 @@
-﻿// Copyright (c) 2017-2019, Alexandre Mutel
+﻿// Copyright(c) 2017-2019, Alexandre Mutel
 // All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification
+// , are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 // Modifications made by onepiecefreak are as follows:
 // - Add boolean properties to enable/disable certain file system functions
 // - Add SetFileData method mainly for leveraging into the AfiFileSystem
 // - Add OpenFileAsync method mainly for leveraging into the AfiFileSystem
-// - Add clone method to assign a new stream manager in our runtime
+// - Add Clone method to assign a new stream manager in our runtime
 // - Remove the filesystem watcher API
 // - Remove the metadata attribute API
 
@@ -13,7 +35,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.Managers;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.FileSystem
@@ -28,12 +49,12 @@ namespace Kontract.Interfaces.FileSystem
         // ----------------------------------------------
 
         /// <summary>
-        /// Checks if the file system can create directories.
+        /// Determines if the file system can create directories.
         /// </summary>
         bool CanCreateDirectories { get; }
 
         /// <summary>
-        /// Checks if the file system can delete directories.
+        /// Determines if the file system can delete directories.
         /// </summary>
         bool CanDeleteDirectories { get; }
 
@@ -69,22 +90,22 @@ namespace Kontract.Interfaces.FileSystem
         // ----------------------------------------------
 
         /// <summary>
-        /// Checks if the file system can create files.
+        /// Determines if the file system can create files.
         /// </summary>
         bool CanCreateFiles { get; }
 
         /// <summary>
-        /// Checks if the file system can copy files.
+        /// Determines if the file system can copy files.
         /// </summary>
         bool CanCopyFiles { get; }
 
         /// <summary>
-        /// Checks if the file system can replace files.
+        /// Determines if the file system can replace files.
         /// </summary>
         bool CanReplaceFiles { get; }
 
         /// <summary>
-        /// Checks if the file system can delete files.
+        /// Determines if the file system can delete files.
         /// </summary>
         bool CanDeleteFiles { get; }
 
