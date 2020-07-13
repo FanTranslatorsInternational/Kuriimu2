@@ -28,6 +28,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private readonly IStateInfo _stateInfo;
         private readonly IProgressContext _progressContext;
 
+        private IList<UPath> _expandedPaths;
+
         private bool _isSearchEmpty = true;
         private string _searchTerm;
 
@@ -58,6 +60,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _progressContext = progressContext;
 
             _pluginManager = pluginManager;
+
+            _expandedPaths = new List<UPath>();
 
             LoadDirectories();
             UpdateProperties();
@@ -298,6 +302,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 e.Node.ImageKey = "tree-directory";
                 e.Node.SelectedImageKey = e.Node.ImageKey;
+
+                var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
+                if(_expandedPaths.Contains(nodePath))
+                    _expandedPaths.Remove(nodePath);
             }
         }
 
@@ -307,6 +315,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 e.Node.ImageKey = "tree-directory-open";
                 e.Node.SelectedImageKey = e.Node.ImageKey;
+
+                // Add expanded node
+                var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
+                if (nodePath != UPath.Empty)
+                    _expandedPaths.Add(nodePath);
             }
         }
 
@@ -428,7 +441,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void LoadDirectories()
         {
-            var expandedPaths = CollectExpandedDirectories(treDirectories.Nodes["root"]?.Nodes).ToArray();
             treDirectories.BeginUpdate();
             treDirectories.Nodes.Clear();
 
@@ -458,7 +470,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
 
                 // 2. Expand nodes
-                foreach (var expandedPath in expandedPaths.Select(x => x.Split()))
+                foreach (var expandedPath in _expandedPaths.Select(x => x.Split()))
                 {
                     var node = root;
                     foreach (var pathPart in expandedPath)
@@ -504,6 +516,22 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
 
             lstFiles.EndUpdate();
+        }
+
+        private UPath GetNodePath(TreeNode rootNode, TreeNode node)
+        {
+            if (rootNode == null || node == null)
+                return UPath.Empty;
+
+            var result = (UPath)node.Name;
+
+            while (node.Parent != null && node.Parent != rootNode)
+            {
+                node = node.Parent;
+                result = UPath.Combine(node.Name, result);
+            }
+
+            return result;
         }
 
         private IEnumerable<UPath> CollectExpandedDirectories(TreeNodeCollection nodeCollection)
