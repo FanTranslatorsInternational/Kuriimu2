@@ -373,26 +373,44 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void LoadDirectories()
         {
+            var expandedPaths = CollectExpandedDirectories(treDirectories.Nodes["root"]?.Nodes).ToArray();
             treDirectories.BeginUpdate();
             treDirectories.Nodes.Clear();
 
             if (ArchiveState.Files == null)
+            {
                 LoadFiles();
+            }
             else
             {
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
-                // Build directory tree
+                // 1. Build directory tree
                 var root = treDirectories.Nodes.Add("root", _stateInfo.FilePath.FullName,
                     "tree-archive-file", "tree-archive-file");
                 foreach (var path in lookup.Select(g => g.Key))
                 {
                     path.Split()
-                        .Aggregate<string, TreeNode>(root, (node, part) =>
+                        .Aggregate(root, (node, part) =>
                             node.Nodes[part] ?? node.Nodes.Add(part, part))
                         .Tag = lookup[path];
                 }
 
+                // 2. Expand nodes
+                foreach (var expandedPath in expandedPaths.Select(x=>x.Split()))
+                {
+                    var node = root;
+                    foreach (var pathPart in expandedPath)
+                    {
+                        if (node.Nodes[pathPart] == null) 
+                            break;
+
+                        node.Nodes[pathPart].Expand();
+                        node = node.Nodes[pathPart];
+                    }
+                }
+
+                // Always expand root
                 root.Expand();
                 treDirectories.SelectedNode = root;
             }
@@ -427,31 +445,23 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             lstFiles.EndUpdate();
         }
 
-        //private Color StateToColor(ArchiveFileState state)
-        //{
-        //    Color result = Color.Black;
+        private IEnumerable<UPath> CollectExpandedDirectories(TreeNodeCollection nodeCollection)
+        {
+            if (nodeCollection == null)
+                yield break;
 
-        //    switch (state)
-        //    {
-        //        case ArchiveFileState.Empty:
-        //            result = Color.DarkGray;
-        //            break;
-        //        case ArchiveFileState.Added:
-        //            result = Color.Green;
-        //            break;
-        //        case ArchiveFileState.Replaced:
-        //            result = Color.Orange;
-        //            break;
-        //        case ArchiveFileState.Renamed:
-        //            result = Color.Blue;
-        //            break;
-        //        case ArchiveFileState.Deleted:
-        //            result = Color.Red;
-        //            break;
-        //    }
+            foreach (TreeNode node in nodeCollection)
+            {
+                if (!node.IsExpanded)
+                    continue;
 
-        //    return result;
-        //}
+                var nodeName = node.Name;
+                yield return nodeName;
+
+                foreach (var collectedPath in CollectExpandedDirectories(node.Nodes))
+                    yield return UPath.Combine(nodeName, collectedPath);
+            }
+        }
 
         #endregion
 
