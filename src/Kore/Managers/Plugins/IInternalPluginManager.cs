@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
@@ -38,6 +39,8 @@ namespace Kore.Managers.Plugins
         /// <returns>If the file is already loaded.</returns>
         bool IsLoaded(UPath filePath);
 
+        #region Get Methods
+
         /// <summary>
         /// Gets the <see cref="IStateInfo"/> of the requested file.
         /// </summary>
@@ -57,7 +60,11 @@ namespace Kore.Managers.Plugins
         /// <returns></returns>
         IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
 
+        #endregion
+
         #region Load File
+
+        #region Load Physical
 
         /// <summary>
         /// Loads a physical path into the Kuriimu runtime.
@@ -90,6 +97,48 @@ namespace Kore.Managers.Plugins
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
         Task<LoadResult> LoadFile(string file, Guid pluginId, LoadFileContext loadFileContext);
+
+        #endregion
+
+        #region Load Stream
+
+        /// <summary>
+        /// Loads a physical path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stream">The stream to load.</param>
+        /// <param name="streamName">The name of the stream.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(Stream stream, UPath streamName);
+
+        /// <summary>
+        /// Loads a physical path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stream">The stream to load.</param>
+        /// <param name="streamName">The name of the stream.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext);
+
+        /// <summary>
+        /// Loads a physical path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stream">The stream to load.</param>
+        /// <param name="streamName">The name of the stream.</param>
+        /// <param name="pluginId">the plugin with which to load the file.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId);
+
+        /// <summary>
+        /// Loads a physical path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stream">The stream to load.</param>
+        /// <param name="streamName">The name of the stream.</param>
+        /// <param name="pluginId">the plugin with which to load the file.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId, LoadFileContext loadFileContext);
+
+        #endregion
 
         #endregion
 

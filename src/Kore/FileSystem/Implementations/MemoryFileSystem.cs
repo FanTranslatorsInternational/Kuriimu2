@@ -623,8 +623,10 @@ namespace Kore.FileSystem.Implementations
 
                 // TODO: Add checks between mode and access
 
-                // Create a memory file stream
+                // Create and register a memory file stream
                 var stream = new MemoryFileStream(this, fileNode, isReading, isWriting, isExclusive);
+                StreamManager.Register(stream);
+
                 if (shouldAppend)
                 {
                     stream.Position = stream.Length;
@@ -633,7 +635,7 @@ namespace Kore.FileSystem.Implementations
                 {
                     stream.SetLength(0);
                 }
-                return stream;
+                return StreamManager.WrapUndisposable(stream);
             }
             finally
             {

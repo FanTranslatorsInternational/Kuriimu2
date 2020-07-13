@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
@@ -152,8 +153,6 @@ namespace Kore.Managers.Plugins
             _loadedFiles = new List<IStateInfo>();
         }
 
-        #endregion
-
         /// <summary>
         /// Internal constructor for testing.
         /// </summary>
@@ -170,6 +169,8 @@ namespace Kore.Managers.Plugins
 
             _loadedFiles = new List<IStateInfo>();
         }
+
+        #endregion
 
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
@@ -322,6 +323,40 @@ namespace Kore.Managers.Plugins
             // Only if called by a SubPluginManager the parent state is not null
             // Does not add ArchiveChildren to parent state
             return LoadFile(fileSystemAction, path, parentState, pluginId, loadFileContext);
+        }
+
+        #endregion
+
+        #region Load Stream
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(Stream stream, UPath streamName)
+        {
+            return LoadFile(stream, streamName, Guid.Empty, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext)
+        {
+            return LoadFile(stream, streamName, Guid.Empty, loadFileContext);
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId)
+        {
+            return LoadFile(stream, streamName, pluginId, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            // 1. Create file system action
+            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
+                FileSystemFactory.CreateMemoryFileSystem(stream, streamName, streamManager));
+
+            // 2. Load file
+            // A stream has no parent, since it should never occur to be loaded from somewhere deeper in the system
+            return LoadFile(fileSystemAction, streamName, null, pluginId, loadFileContext);
         }
 
         #endregion

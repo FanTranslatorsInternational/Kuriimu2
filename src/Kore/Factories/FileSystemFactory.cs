@@ -90,6 +90,30 @@ namespace Kore.Factories
         }
 
         /// <summary>
+        /// Creates a <see cref="MemoryFileSystem"/> based on the given <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream">The <see cref="Stream"/> to add to the file system.</param>
+        /// <param name="streamName">The path of the stream in the file system.</param>
+        /// <param name="streamManager">The stream manager for this file system.</param>
+        /// <returns>The created <see cref="IFileSystem"/> for this stream.</returns>
+        public static IFileSystem CreateMemoryFileSystem(Stream stream, UPath streamName, IStreamManager streamManager)
+        {
+            // 1. Create file system
+            var fileSystem = new MemoryFileSystem(streamManager);
+            var createdStream = fileSystem.OpenFile(streamName, FileMode.CreateNew, FileAccess.Write);
+
+            // 2. Copy data
+            var bkPos = stream.Position;
+            stream.Position = 0;
+            stream.CopyTo(createdStream);
+            stream.Position = bkPos;
+            createdStream.Position = 0;
+            createdStream.Close();
+
+            return fileSystem;
+        }
+
+        /// <summary>
         /// Clone a <see cref="IFileSystem"/> with a new sub path.
         /// </summary>
         /// <param name="fileSystem"><see cref="IFileSystem"/> to clone.</param>
