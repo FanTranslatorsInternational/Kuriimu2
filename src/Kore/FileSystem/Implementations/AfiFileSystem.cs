@@ -319,14 +319,14 @@ namespace Kore.FileSystem.Implementations
             {
                 case SearchOption.AllDirectories:
                     return _archiveState.Files
-                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
+                        .Where(x => 
+                            searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
 
                 case SearchOption.TopDirectoryOnly:
                     return _archiveState.Files
-                        .Where(x =>
-                            x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath.GetDirectory()))
+                        .Where(x =>x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
             }

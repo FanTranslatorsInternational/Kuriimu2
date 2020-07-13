@@ -28,6 +28,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private readonly IStateInfo _stateInfo;
         private readonly IProgressContext _progressContext;
 
+        private bool _isSearchEmpty = true;
+        private string _searchTerm;
+
         private ISaveFiles SaveState => _stateInfo.State as ISaveFiles;
         private IArchiveState ArchiveState => _stateInfo.State as IArchiveState;
 
@@ -343,6 +346,58 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
+        #region txtSearch
+
+        private void txtSearch_Enter(object sender, EventArgs e)
+        {
+            txtSearch.TextChanged -= txtSearch_TextChanged;
+
+            if (_isSearchEmpty)
+            {
+                txtSearch.Text = "";
+                txtSearch.ForeColor = SystemColors.WindowText;
+            }
+
+            txtSearch.TextChanged += txtSearch_TextChanged;
+        }
+
+        private void txtSearch_Leave(object sender, EventArgs e)
+        {
+            txtSearch.TextChanged -= txtSearch_TextChanged;
+
+            if (_isSearchEmpty)
+                AddSearchPlaceholder();
+
+            txtSearch.TextChanged += txtSearch_TextChanged;
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e)
+        {
+            _isSearchEmpty = string.IsNullOrEmpty(txtSearch.Text);
+            _searchTerm = $"*{txtSearch.Text}*";
+
+            LoadDirectories();
+            LoadFiles();
+
+            txtSearch.Focus();
+        }
+
+        private void btnSearchDelete_Click(object sender, EventArgs e)
+        {
+            txtSearch.TextChanged -= txtSearch_TextChanged;
+
+            AddSearchPlaceholder();
+            _isSearchEmpty = true;
+            _searchTerm = string.Empty;
+
+            LoadDirectories();
+            LoadFiles();
+
+            txtSearch.TextChanged += txtSearch_TextChanged;
+        }
+
+        #endregion
+
         #endregion
 
         #region Utilities
@@ -383,13 +438,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             else
             {
+                var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(ArchiveState, UPath.Root, _stateInfo.StreamManager);
+                var filePaths = archiveFileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
+                    SearchOption.AllDirectories, SearchTarget.Directory);
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
                 // 1. Build directory tree
                 var root = treDirectories.Nodes.Add("root", _stateInfo.FilePath.FullName,
                     "tree-archive-file", "tree-archive-file");
-                foreach (var path in lookup.Select(g => g.Key))
+                foreach (var path in filePaths)
                 {
+                    if (path == UPath.Root)
+                        continue;
+
                     path.Split()
                         .Aggregate(root, (node, part) =>
                             node.Nodes[part] ?? node.Nodes.Add(part, part))
@@ -397,12 +458,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
 
                 // 2. Expand nodes
-                foreach (var expandedPath in expandedPaths.Select(x=>x.Split()))
+                foreach (var expandedPath in expandedPaths.Select(x => x.Split()))
                 {
                     var node = root;
                     foreach (var pathPart in expandedPath)
                     {
-                        if (node.Nodes[pathPart] == null) 
+                        if (node.Nodes[pathPart] == null)
                             break;
 
                         node.Nodes[pathPart].Expand();
@@ -461,6 +522,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 foreach (var collectedPath in CollectExpandedDirectories(node.Nodes))
                     yield return UPath.Combine(nodeName, collectedPath);
             }
+        }
+
+        private void AddSearchPlaceholder()
+        {
+            txtSearch.Text = "Search archive...";
+            txtSearch.ForeColor = SystemColors.ScrollBar;
         }
 
         #endregion

@@ -46,8 +46,6 @@
             this.addDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imlFiles = new System.Windows.Forms.ImageList(this.components);
-            this.tlsFiles = new System.Windows.Forms.ToolStrip();
-            this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
             this.lstFiles = new System.Windows.Forms.ListView();
             this.clmName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clmSize = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -68,6 +66,8 @@
             this.tsbFileRename = new System.Windows.Forms.ToolStripButton();
             this.tsbFileDelete = new System.Windows.Forms.ToolStripButton();
             this.tsbFileProperties = new System.Windows.Forms.ToolStripButton();
+            this.txtSearch = new System.Windows.Forms.TextBox();
+            this.btnSearchDelete = new System.Windows.Forms.Button();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -75,7 +75,6 @@
             this.splMain.Panel2.SuspendLayout();
             this.splMain.SuspendLayout();
             this.mnuDirectories.SuspendLayout();
-            this.tlsFiles.SuspendLayout();
             this.mnuFiles.SuspendLayout();
             this.tlsFileDetails.SuspendLayout();
             this.tlsPreview.SuspendLayout();
@@ -175,8 +174,9 @@
             // 
             // splMain.Panel1
             // 
+            this.splMain.Panel1.Controls.Add(this.btnSearchDelete);
+            this.splMain.Panel1.Controls.Add(this.txtSearch);
             this.splMain.Panel1.Controls.Add(this.treDirectories);
-            this.splMain.Panel1.Controls.Add(this.tlsFiles);
             // 
             // splMain.Panel2
             // 
@@ -189,8 +189,9 @@
             // 
             // treDirectories
             // 
+            this.treDirectories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.treDirectories.ContextMenuStrip = this.mnuDirectories;
-            this.treDirectories.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treDirectories.FullRowSelect = true;
             this.treDirectories.HideSelection = false;
             this.treDirectories.HotTracking = true;
@@ -254,23 +255,6 @@
             this.imlFiles.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
             this.imlFiles.ImageSize = new System.Drawing.Size(16, 16);
             this.imlFiles.TransparentColor = System.Drawing.Color.Transparent;
-            // 
-            // tlsFiles
-            // 
-            this.tlsFiles.BackColor = System.Drawing.Color.Transparent;
-            this.tlsFiles.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
-            this.tlsFiles.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripLabel2});
-            this.tlsFiles.Location = new System.Drawing.Point(0, 0);
-            this.tlsFiles.Name = "tlsFiles";
-            this.tlsFiles.Size = new System.Drawing.Size(258, 25);
-            this.tlsFiles.TabIndex = 0;
-            // 
-            // toolStripLabel2
-            // 
-            this.toolStripLabel2.Name = "toolStripLabel2";
-            this.toolStripLabel2.Size = new System.Drawing.Size(82, 22);
-            this.toolStripLabel2.Text = "Directory Tree:";
             // 
             // lstFiles
             // 
@@ -462,6 +446,28 @@
             this.tsbFileProperties.Text = "File Properties";
             this.tsbFileProperties.Click += new System.EventHandler(this.tsbFileProperties_Click);
             // 
+            // txtSearch
+            // 
+            this.txtSearch.ForeColor = System.Drawing.SystemColors.ScrollBar;
+            this.txtSearch.Location = new System.Drawing.Point(3, 3);
+            this.txtSearch.Name = "txtSearch";
+            this.txtSearch.Size = new System.Drawing.Size(229, 20);
+            this.txtSearch.TabIndex = 2;
+            this.txtSearch.Text = "Search archive...";
+            this.txtSearch.TextChanged += new System.EventHandler(this.txtSearch_TextChanged);
+            this.txtSearch.Enter += new System.EventHandler(this.txtSearch_Enter);
+            this.txtSearch.Leave += new System.EventHandler(this.txtSearch_Leave);
+            // 
+            // btnSearchDelete
+            // 
+            this.btnSearchDelete.Location = new System.Drawing.Point(238, 3);
+            this.btnSearchDelete.Name = "btnSearchDelete";
+            this.btnSearchDelete.Size = new System.Drawing.Size(17, 20);
+            this.btnSearchDelete.TabIndex = 3;
+            this.btnSearchDelete.Text = "X";
+            this.btnSearchDelete.UseVisualStyleBackColor = true;
+            this.btnSearchDelete.Click += new System.EventHandler(this.btnSearchDelete_Click);
+            // 
             // ArchiveForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -482,8 +488,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).EndInit();
             this.splMain.ResumeLayout(false);
             this.mnuDirectories.ResumeLayout(false);
-            this.tlsFiles.ResumeLayout(false);
-            this.tlsFiles.PerformLayout();
             this.mnuFiles.ResumeLayout(false);
             this.tlsFileDetails.ResumeLayout(false);
             this.tlsFileDetails.PerformLayout();
@@ -499,7 +503,6 @@
         private System.Windows.Forms.ToolStrip tlsMain;
         private System.Windows.Forms.Panel pnlMain;
         private System.Windows.Forms.SplitContainer splMain;
-        private System.Windows.Forms.ToolStrip tlsFiles;
         private System.Windows.Forms.TreeView treDirectories;
         private System.Windows.Forms.ToolStrip tlsPreview;
         private System.Windows.Forms.ContextMenuStrip mnuFiles;
@@ -513,7 +516,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbProperties;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.ToolStripLabel toolStripLabel2;
         private System.Windows.Forms.ColumnHeader clmName;
         private System.Windows.Forms.ColumnHeader clmSize;
         private System.Windows.Forms.ColumnHeader clmState;
@@ -535,5 +537,7 @@
         private System.Windows.Forms.ToolStripMenuItem deleteFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
+        private System.Windows.Forms.Button btnSearchDelete;
+        private System.Windows.Forms.TextBox txtSearch;
     }
 }

@@ -476,6 +476,10 @@ namespace Kore.Managers.Plugins
         {
             hasErrors = false;
 
+            // 1. Check if directory exists
+            if (!Directory.Exists(directory))
+                return;
+
             // 1. Clear all sub directories
             foreach (var subDirectory in Directory.EnumerateDirectories(directory))
             {
