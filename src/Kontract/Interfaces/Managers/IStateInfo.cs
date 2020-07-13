@@ -48,12 +48,11 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         IList<IStateInfo> ArchiveChildren { get; }
 
-        // TODO: Remove setter
         /// <summary>
         /// The parent state from which this file was opened.
         /// <see langword="null" /> if this file wasn't opened from another state.
         /// </summary>
-        IStateInfo ParentStateInfo { get; set; }
+        IStateInfo ParentStateInfo { get; }
 
         /// <summary>
         /// The values retrieved by dialogs in the initial load process.

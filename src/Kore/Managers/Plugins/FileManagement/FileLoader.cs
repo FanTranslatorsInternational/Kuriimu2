@@ -1,24 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
-using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 using Kore.Extensions;
-using Kore.Factories;
 using Kore.Models;
 using Kore.Models.LoadInfo;
 using Kore.Models.UnsupportedPlugin;
-using Kore.Providers;
 
 namespace Kore.Managers.Plugins.FileManagement
 {
@@ -27,7 +22,6 @@ namespace Kore.Managers.Plugins.FileManagement
     /// </summary>
     internal class FileLoader : IFileLoader
     {
-        private readonly IDialogManager _dialogManager;
         private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
 
         public event EventHandler<ManualSelectionEventArgs> OnManualSelection;
@@ -35,134 +29,46 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <summary>
         /// Creates a new instance of <see cref="FileLoader"/>.
         /// </summary>
-        /// <param name="dialogManager">The dialog manager for load processes.</param>
         /// <param name="filePluginLoaders">The plugin loaders to use.</param>
-        public FileLoader(IDialogManager dialogManager, params IPluginLoader<IFilePlugin>[] filePluginLoaders)
+        public FileLoader(params IPluginLoader<IFilePlugin>[] filePluginLoaders)
         {
-            _dialogManager = dialogManager;
             _filePluginLoaders = filePluginLoaders;
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress,IList<string> dialogOptions = null)
-        {
-            // 1. Create stream manager
-            var streamManager = new StreamManager();
-
-            // 2. Create file system
-            var directory = loadInfo.FilePath.GetDirectory();
-            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, streamManager);
-
-            // 3. Load the file
-            var fileName = loadInfo.FilePath.GetName();
-            var internalDialogManager = new InternalDialogManager(_dialogManager, dialogOptions);
-            return await InternalLoadAsync(fileSystem, fileName, streamManager, pluginManager, progress, internalDialogManager, loadInfo.Plugin, loadPluginManually);
-        }
-
-        /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress, IList<string> dialogOptions = null)
-        {
-            // 1. Create stream manager
-            var streamManager = new StreamManager();
-
-            // 2. Create file system
-            var fileSystem = FileSystemFactory.CreateAfiFileSystem(loadInfo.ArchiveState, UPath.Empty, streamManager);
-
-            // 3. Load the file
-            var internalDialogManager = new InternalDialogManager(_dialogManager, dialogOptions);
-            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.Afi.FilePath, streamManager, pluginManager, progress, internalDialogManager, loadInfo.Plugin, loadPluginManually);
-            if (!loadResult.IsSuccessful)
-                return loadResult;
-
-            // 4. Set children and parent accordingly
-            loadInfo.ParentStateInfo.ArchiveChildren.Add(loadResult.LoadedState);
-            loadResult.LoadedState.ParentStateInfo = loadInfo.ParentStateInfo;
-
-            return loadResult;
-        }
-
-        /// <inheritdoc />
-        public async Task<LoadResult> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress, IList<string> dialogOptions = null)
-        {
-            // 1. Create stream manager
-            var streamManager = new StreamManager();
-
-            // 2. Create file system
-            var fileSystem = FileSystemFactory.CloneFileSystem(loadInfo.FileSystem, UPath.Empty, streamManager);
-
-            // 3. Load the file
-            var internalDialogManager = new InternalDialogManager(_dialogManager, dialogOptions);
-            var loadResult = await InternalLoadAsync(fileSystem, loadInfo.FilePath, streamManager, pluginManager, progress, internalDialogManager, loadInfo.Plugin, loadPluginManually);
-            if (!loadResult.IsSuccessful)
-                return loadResult;
-
-            // TODO: 4. Set parent objects accordingly
-            loadResult.LoadedState.ParentStateInfo = loadResult.LoadedState;
-
-            return loadResult;
-        }
-
-        /// <summary>
-        /// Loads a specified file from a specified file system.
-        /// </summary>
-        /// <param name="fileSystem">The file system to retrieve the file from.</param>
-        /// <param name="filePath">The path to the file to load.</param>
-        /// <param name="streamManager">The stream manager for this file.</param>
-        /// <param name="pluginManager">The manager for plugins.</param>
-        /// <param name="plugin">The pre specified plugin.</param>
-        /// <param name="identifyPluginManually">Defines if the plugin should be identified by a manual selection.</param>
-        /// <param name="progress">The progress context for the Kuriimu runtime.</param>
-        /// <param name="dialogManager">The dialog manager for this load action.</param>
-        /// <returns>The loaded file.</returns>
-        private async Task<LoadResult> InternalLoadAsync(
-            IFileSystem fileSystem,
-            UPath filePath,
-            IStreamManager streamManager,
-            IPluginManager pluginManager,
-            IProgressContext progress,
-            InternalDialogManager dialogManager,
-            IFilePlugin plugin = null,
-            bool identifyPluginManually = true)
+        public async Task<LoadResult> LoadAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
             ContractAssertions.IsNotNull(fileSystem, nameof(fileSystem));
             ContractAssertions.IsNotNull(filePath, nameof(filePath));
-            ContractAssertions.IsNotNull(streamManager, nameof(streamManager));
 
             // 1. Create temporary Stream provider
-            var temporaryStreamProvider = streamManager.CreateTemporaryStreamProvider();
+            var temporaryStreamProvider = loadInfo.StreamManager.CreateTemporaryStreamProvider();
 
             // 2. Identify the plugin to use
-            if (plugin == null)
-            {
-                plugin = await IdentifyPluginAsync(fileSystem, filePath, streamManager, identifyPluginManually) ??
+            var plugin = loadInfo.Plugin ??
+                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo.StreamManager, loadInfo.AllowManualSelection) ??
                          new HexPlugin();
-            }
 
             // 3. Create state from identified plugin
-            var fileSystemProvider = new FileSystemProvider();
-            var subPluginManager = new SubPluginManager(pluginManager, fileSystemProvider);
+            var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
             var state = plugin.CreatePluginState(subPluginManager);
 
             // 4. Create new state info
-            var stateInfo = new StateInfo(state, fileSystem, filePath, streamManager, subPluginManager);
-            fileSystemProvider.RegisterStateInfo(stateInfo);
+            var stateInfo = new StateInfo(state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
             subPluginManager.RegisterStateInfo(stateInfo);
 
             // 5. Load data from state
-            var loadContext = new LoadContext(temporaryStreamProvider, progress, dialogManager);
+            var loadContext = new LoadContext(temporaryStreamProvider, loadInfo.Progress, loadInfo.DialogManager);
             var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, loadContext);
             if (!loadStateResult.IsSuccessful)
             {
-                streamManager.ReleaseAll();
+                loadInfo.StreamManager.ReleaseAll();
                 stateInfo.Dispose();
 
                 return loadStateResult;
             }
 
-            stateInfo.SetDialogOptions(dialogManager.DialogOptions);
+            stateInfo.SetDialogOptions(loadInfo.DialogManager.DialogOptions);
             return new LoadResult(stateInfo);
         }
 

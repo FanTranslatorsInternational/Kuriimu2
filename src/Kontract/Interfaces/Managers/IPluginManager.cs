@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Archive;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace Kontract.Interfaces.Managers
@@ -14,20 +15,24 @@ namespace Kontract.Interfaces.Managers
     /// </summary>
     public interface IPluginManager
     {
-        /// <summary>
-        /// Provides access to file system creation.
-        /// </summary>
-        IFileSystemProvider FileSystemProvider { get; }
+        #region Load File
 
         /// <summary>
         /// Loads a file from a given file system.
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <param name="options">The options for this load action.</param>
-        /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path);
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext);
 
         /// <summary>
         /// Loads a file from a given file system.
@@ -35,10 +40,58 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
-        /// <param name="options">The options for this load action.</param>
-        /// <param name="progress">The context to report progress.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null);
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId);
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="pluginId">The Id of the plugin to load the file with.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext);
+
+        /// <summary>
+        /// Loads a virtual path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="afi">The path to load from that state.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi);
+
+        /// <summary>
+        /// Loads a virtual path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="afi">The path to load from that state.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext);
+
+        /// <summary>
+        /// Loads a virtual path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="afi">The path to load from that state.</param>
+        /// <param name="pluginId">The plugin to load this virtual file with.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId);
+
+        /// <summary>
+        /// Loads a virtual path into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="afi">The path to load from that state.</param>
+        /// <param name="pluginId">The plugin to load this virtual file with.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext);
+
+        #endregion
+
+        #region Save File
 
         /// <summary>
         /// Save a loaded state in place.
@@ -56,6 +109,10 @@ namespace Kontract.Interfaces.Managers
         /// <returns></returns>
         Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath);
 
+        #endregion
+
+        #region Close File
+
         /// <summary>
         /// Closes a loaded state.
         /// </summary>
@@ -66,5 +123,7 @@ namespace Kontract.Interfaces.Managers
         /// Closes all loaded states.
         /// </summary>
         void CloseAll();
+
+        #endregion
     }
 }

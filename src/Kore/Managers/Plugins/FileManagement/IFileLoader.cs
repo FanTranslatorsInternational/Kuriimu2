@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Progress;
 using Kontract.Models;
+using Kontract.Models.IO;
 using Kore.Models.LoadInfo;
 
 namespace Kore.Managers.Plugins.FileManagement
@@ -19,39 +19,12 @@ namespace Kore.Managers.Plugins.FileManagement
         event EventHandler<ManualSelectionEventArgs> OnManualSelection;
 
         /// <summary>
-        /// Loads a physical file into a plugin state.
+        /// Loads any file from a given file system.
         /// </summary>
-        /// <param name="loadInfo">The context to hold the information to the physical file.</param>
-        /// <param name="pluginManager">The plugin manager to load files with the Kuriimu runtime.</param>
-        /// <param name="loadPluginManually">Declares if plugins can be selected by the user, if not automatically identified.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <param name="dialogOptions">The predefined options for the dialog manager.</param>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="filePath">The path into the file system.</param>
+        /// <param name="loadInfo">The load context for this load action.</param>
         /// <returns>The loaded state of the file.</returns>
-        Task<LoadResult> LoadAsync(PhysicalLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress, IList<string> dialogOptions = null);
-
-        /// <summary>
-        /// Loads a virtual file (eg an ArchiveFileInfo) into a plugin state.
-        /// </summary>
-        /// <param name="loadInfo">The context to hold the information to the virtual file.</param>
-        /// <param name="pluginManager">The plugin manager to load files with the Kuriimu runtime.</param>
-        /// <param name="loadPluginManually">Declares if plugins can be selected by the user, if not automatically identified.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <param name="dialogOptions">The predefined options for the dialog manager.</param>
-        /// <returns>The loaded state of the file.</returns>
-        Task<LoadResult> LoadAsync(VirtualLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress, IList<string> dialogOptions = null);
-
-        /// <summary>
-        /// Loads any file into a plugin state from within another plugin.
-        /// </summary>
-        /// <param name="loadInfo">The context to hold the information to the file.</param>
-        /// <param name="pluginManager">The plugin manager to load files with the Kuriimu runtime.</param>
-        /// <param name="loadPluginManually">Declares if plugins can be selected by the user, if not automatically identified.</param>
-        /// <param name="progress">The context to report progress.</param>
-        /// <param name="dialogOptions">The predefined options for the dialog manager.</param>
-        /// <returns>The loaded state of the file.</returns>
-        Task<LoadResult> LoadAsync(PluginLoadInfo loadInfo, IPluginManager pluginManager,
-            bool loadPluginManually, IProgressContext progress, IList<string> dialogOptions = null);
+        Task<LoadResult> LoadAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo);
     }
 }

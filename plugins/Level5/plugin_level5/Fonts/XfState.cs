@@ -47,11 +47,10 @@ namespace plugin_level5.Fonts
 
             _archiveStateInfo = loadResult.LoadedState;
             var archiveState = _archiveStateInfo.State as IArchiveState;
-            var archiveFileSystem = _pluginManager.FileSystemProvider.CreateAfiFileSystem(archiveState, UPath.Root);
 
             // Load font image from archive
             var imageFile = archiveState.Files[0];
-            loadResult = await _pluginManager.LoadFile(archiveFileSystem, imageFile.FilePath, Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c"));
+            loadResult = await _pluginManager.LoadFile(_archiveStateInfo, imageFile, Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c"));
             if (!loadResult.IsSuccessful)
                 return;
 

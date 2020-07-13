@@ -35,7 +35,7 @@ namespace Kore.Models
         public IList<IStateInfo> ArchiveChildren { get; private set; }
 
         /// <inheritdoc />
-        public IStateInfo ParentStateInfo { get; set; }
+        public IStateInfo ParentStateInfo { get; private set; }
 
         /// <inheritdoc />
         public IList<string> DialogOptions { get; private set; }
@@ -50,13 +50,14 @@ namespace Kore.Models
         /// Represents an open file in the runtime of Kuriimu.
         /// </summary>
         /// <param name="pluginState">The plugin state of this file.</param>
+        /// <param name="parentState">The parent state for this file.</param>
         /// <param name="fileSystem">The file system around the initially opened file.</param>
         /// <param name="filePath">The path of the file to be opened.</param>
         /// <param name="streamManager">The stream manager used for this opened state.</param>
         /// <param name="pluginManager">The plugin manager for this state.</param>
-        /// <param name="parentStateInfo">The parent state info from which this file got opened.</param>
-        public StateInfo(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
-            IStreamManager streamManager, IPluginManager pluginManager, IStateInfo parentStateInfo = null)
+        public StateInfo(IPluginState pluginState, IStateInfo parentState,
+            IFileSystem fileSystem, UPath filePath,
+            IStreamManager streamManager, IPluginManager pluginManager)
         {
             ContractAssertions.IsNotNull(pluginState, nameof(pluginState));
             ContractAssertions.IsNotNull(fileSystem, nameof(fileSystem));
@@ -74,7 +75,7 @@ namespace Kore.Models
             StreamManager = streamManager;
             PluginManager = pluginManager;
 
-            ParentStateInfo = parentStateInfo;
+            ParentStateInfo = parentState;
 
             ArchiveChildren = new List<IStateInfo>();
         }
@@ -89,7 +90,7 @@ namespace Kore.Models
         /// <inheritdoc />
         public void SetDialogOptions(IList<string> options)
         {
-            ContractAssertions.IsNotNull(options,nameof(options));
+            ContractAssertions.IsNotNull(options, nameof(options));
             DialogOptions = options;
         }
 

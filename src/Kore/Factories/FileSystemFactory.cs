@@ -83,7 +83,7 @@ namespace Kore.Factories
         public static IFileSystem CreateAfiFileSystem(IArchiveState archiveState, UPath path, IStreamManager streamManager)
         {
             var fileSystem = (IFileSystem)new AfiFileSystem(archiveState, streamManager);
-            if (path != UPath.Empty)
+            if (path != UPath.Empty && path != UPath.Root)
                 fileSystem = new SubFileSystem(fileSystem, path);
 
             return fileSystem;

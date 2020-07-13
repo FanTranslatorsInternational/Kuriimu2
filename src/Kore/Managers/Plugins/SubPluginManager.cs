@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Archive;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace Kore.Managers.Plugins
@@ -16,22 +16,16 @@ namespace Kore.Managers.Plugins
     /// </summary>
     class SubPluginManager : IPluginManager
     {
-        private readonly IPluginManager _parentPluginManager;
-        // TODO: Pass on as parent of plugin opened file
+        private readonly PluginManager _parentPluginManager;
         private IStateInfo _stateInfo;
 
         private readonly IList<IStateInfo> _loadedFiles;
 
-        /// <inheritdoc cref="FileSystemProvider"/>
-        public IFileSystemProvider FileSystemProvider { get; }
-
-        public SubPluginManager(IPluginManager parentPluginManager, IFileSystemProvider fileSystemProvider)
+        public SubPluginManager(PluginManager parentPluginManager)
         {
             ContractAssertions.IsNotNull(parentPluginManager, nameof(parentPluginManager));
-            ContractAssertions.IsNotNull(fileSystemProvider, nameof(fileSystemProvider));
 
             _parentPluginManager = parentPluginManager;
-            FileSystemProvider = fileSystemProvider;
 
             _loadedFiles = new List<IStateInfo>();
         }
@@ -43,45 +37,91 @@ namespace Kore.Managers.Plugins
             _stateInfo = stateInfo;
         }
 
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null)
+        #region Load File
+
+        #region Load FileSystem
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path)
+        {
+            return LoadFile(fileSystem, path, Guid.Empty, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
+        {
+            return LoadFile(fileSystem, path, Guid.Empty, loadFileContext);
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId)
+        {
+            return LoadFile(fileSystem, path, pluginId, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext)
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
 
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, options, progress);
+            // 1. Load file
+            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
+            // 2. Add file to loaded files
             _loadedFiles.Add(loadResult.LoadedState);
 
             return loadResult;
         }
 
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
+        #endregion
+
+        #region Load ArchiveFileInfo
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi)
         {
-            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
-
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, options, progress);
-            if (!loadResult.IsSuccessful)
-                return loadResult;
-
-            _loadedFiles.Add(loadResult.LoadedState);
-
-            return loadResult;
+            return _parentPluginManager.LoadFile(stateInfo, afi);
         }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext)
+        {
+            return _parentPluginManager.LoadFile(stateInfo, afi, loadFileContext);
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId)
+        {
+            return _parentPluginManager.LoadFile(stateInfo, afi, pluginId);
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            return _parentPluginManager.LoadFile(stateInfo, afi, pluginId, loadFileContext);
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Save file
 
         public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
-            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
-
             return _parentPluginManager.SaveFile(stateInfo);
         }
 
         public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
-            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
-
             return _parentPluginManager.SaveFile(stateInfo, fileSystem, savePath);
         }
+
+        #endregion
+
+        #region Close file
 
         public void Close(IStateInfo stateInfo)
         {
@@ -98,5 +138,7 @@ namespace Kore.Managers.Plugins
 
             _loadedFiles.Clear();
         }
+
+        #endregion
     }
 }

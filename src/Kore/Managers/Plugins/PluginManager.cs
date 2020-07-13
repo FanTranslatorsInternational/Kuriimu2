@@ -11,10 +11,11 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.Archive;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
+using Kore.Factories;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models.LoadInfo;
@@ -35,6 +36,7 @@ namespace Kore.Managers.Plugins
         private readonly IFileSaver _fileSaver;
 
         private readonly IProgressContext _progress;
+        private readonly IDialogManager _dialogManager;
 
         private readonly IList<IStateInfo> _loadedFiles;
 
@@ -43,8 +45,6 @@ namespace Kore.Managers.Plugins
 
         /// <inheritdoc />
         public bool AllowManualSelection { get; set; } = true;
-
-        public IFileSystemProvider FileSystemProvider => throw new NotSupportedException();
 
         /// <inheritdoc />
         public IReadOnlyList<PluginLoadError> LoadErrors { get; }
@@ -93,14 +93,16 @@ namespace Kore.Managers.Plugins
 
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
             _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
+
             _progress = progress;
+            _dialogManager = dialogManager;
 
             LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
                 .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
                 .DistinctBy(e => e.AssemblyPath)
                 .ToList();
 
-            _fileLoader = new FileLoader(dialogManager, _filePluginLoaders);
+            _fileLoader = new FileLoader(_filePluginLoaders);
             _fileSaver = new FileSaver(dialogManager);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
@@ -112,22 +114,19 @@ namespace Kore.Managers.Plugins
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
         /// <param name="pluginLoaders">The plugin loaders for this manager.</param>
-        public PluginManager(params IPluginLoader[] pluginLoaders):
+        public PluginManager(params IPluginLoader[] pluginLoaders) :
             this(new ConcurrentProgress(new NullProgressOutput()), new DefaultDialogManager(), pluginLoaders)
         {
-            
         }
 
-        public PluginManager(IProgressContext progress, params IPluginLoader[] pluginLoaders):
+        public PluginManager(IProgressContext progress, params IPluginLoader[] pluginLoaders) :
             this(progress, new DefaultDialogManager(), pluginLoaders)
         {
-            
         }
 
-        public PluginManager(IDialogManager dialogManager, params IPluginLoader[] pluginLoaders):
+        public PluginManager(IDialogManager dialogManager, params IPluginLoader[] pluginLoaders) :
             this(new ConcurrentProgress(new NullProgressOutput()), dialogManager, pluginLoaders)
         {
-
         }
 
         public PluginManager(IProgressContext progress, IDialogManager dialogManager, params IPluginLoader[] pluginLoaders)
@@ -139,12 +138,13 @@ namespace Kore.Managers.Plugins
             _gameAdapterLoaders = pluginLoaders.Where(x => x is IPluginLoader<IGameAdapter>).Cast<IPluginLoader<IGameAdapter>>().ToArray();
 
             _progress = progress;
+            _dialogManager = dialogManager;
 
             LoadErrors = pluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
                 .DistinctBy(e => e.AssemblyPath)
                 .ToList();
 
-            _fileLoader = new FileLoader(dialogManager, _filePluginLoaders);
+            _fileLoader = new FileLoader(_filePluginLoaders);
             _fileSaver = new FileSaver(dialogManager);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
@@ -178,6 +178,8 @@ namespace Kore.Managers.Plugins
                 x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
         }
 
+        #region Get Methods
+
         /// <inheritdoc />
         public IStateInfo GetLoadedFile(UPath filePath)
         {
@@ -196,96 +198,164 @@ namespace Kore.Managers.Plugins
             return _gameAdapterLoaders;
         }
 
+        #endregion
+
         #region Load File
 
+        #region Load Physical
+
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(string file, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(string file)
         {
-            return await LoadFile(file, Guid.Empty, options, progress ?? _progress);
+            return LoadFile(file, Guid.Empty, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(string file, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
         {
-            PhysicalLoadInfo loadInfo;
-            if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
-            {
-                var plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
-
-                loadInfo = new PhysicalLoadInfo(file, plugin);
-            }
-            else
-            {
-                loadInfo = new PhysicalLoadInfo(file);
-            }
-
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
-
-            if (!loadResult.IsSuccessful)
-                return loadResult;
-
-            _loadedFiles.Add(loadResult.LoadedState);
-            return loadResult;
+            return LoadFile(file, Guid.Empty, loadFileContext);
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(string file, Guid pluginId)
         {
-            return await LoadFile(stateInfo, afi, Guid.Empty, options, progress ?? _progress);
+            return LoadFile(file, pluginId, new LoadFileContext());
+        }
+
+        public Task<LoadResult> LoadFile(string file, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            // 1. Get UPath
+            var path = new UPath(file);
+
+            // 2. Create file system action
+            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
+                FileSystemFactory.CreatePhysicalFileSystem(path.GetDirectory(), streamManager));
+
+            // 3. Load file
+            // Physical files don't have a parent, if loaded like this
+            return LoadFile(fileSystemAction, path.GetName(), null, pluginId, loadFileContext);
+        }
+
+        #endregion
+
+        #region Load ArchiveFileInfo
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        {
+            return LoadFile(stateInfo, afi, Guid.Empty, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
+            return LoadFile(stateInfo, afi, Guid.Empty, loadFileContext);
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId)
+        {
+            return LoadFile(stateInfo, afi, pluginId, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            // If stateInfo is no archive state
             if (!(stateInfo.State is IArchiveState archiveState))
                 throw new InvalidOperationException("The state represents no archive.");
 
-            VirtualLoadInfo loadInfo;
-            if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
-            {
-                var plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
+            // 1. Create file system action
+            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
+                  FileSystemFactory.CreateAfiFileSystem(archiveState, UPath.Root, streamManager));
 
-                loadInfo = new VirtualLoadInfo(stateInfo, archiveState, afi, plugin);
-            }
-            else
-            {
-                loadInfo = new VirtualLoadInfo(stateInfo, archiveState, afi);
-            }
-
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
+            // 2. Load file
+            // ArchiveFileInfos have stateInfo as their parent, if loaded like this
+            var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, pluginId, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
-            _loadedFiles.Add(loadResult.LoadedState);
+            // 3. Add archive child to parent
+            // ArchiveChildren are only added, if a file is loaded like this
+            stateInfo.ArchiveChildren.Add(loadResult.LoadedState);
+
             return loadResult;
         }
 
+        #endregion
+
+        #region Load FileSystem
+
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path)
         {
-            return await LoadFile(fileSystem, path, Guid.Empty, options, progress ?? _progress);
+            return LoadFile(fileSystem, path, Guid.Empty, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IList<string> options = null, IProgressContext progress = null)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
         {
-            PluginLoadInfo loadInfo;
-            if (pluginId != Guid.Empty && _filePluginLoaders.Any(pl => pl.Exists(pluginId)))
-            {
-                var plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
+            return LoadFile(fileSystem, path, Guid.Empty, loadFileContext);
+        }
 
-                loadInfo = new PluginLoadInfo(fileSystem, path, plugin);
-            }
-            else
-            {
-                loadInfo = new PluginLoadInfo(fileSystem, path);
-            }
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId)
+        {
+            return LoadFile(fileSystem, path, pluginId, new LoadFileContext());
+        }
 
-            var loadResult = await _fileLoader.LoadAsync(loadInfo, this, AllowManualSelection, progress ?? _progress);
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            return LoadFile(fileSystem, path, null, pluginId, loadFileContext);
+        }
+
+        internal Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentState, Guid pluginId,
+            LoadFileContext loadFileContext)
+        {
+            // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
+
+            // 1. Create file system action
+            var fileSystemAction = new Func<IStreamManager, IFileSystem>(fileSystem.Clone);
+
+            // 2. Load file
+            // Only if called by a SubPluginManager the parent state is not null
+            // Does not add ArchiveChildren to parent state
+            return LoadFile(fileSystemAction, path, parentState, pluginId, loadFileContext);
+        }
+
+        #endregion
+
+        private async Task<LoadResult> LoadFile(Func<IStreamManager, IFileSystem> fileSystemAction, UPath path, IStateInfo parentStateInfo, Guid pluginId, LoadFileContext loadFileContext)
+        {
+            // 1. Create stream manager
+            var streamManager = new StreamManager();
+
+            // 2. Create file system
+            var fileSystem = fileSystemAction(streamManager);
+
+            // 3. Find plugin
+            IFilePlugin plugin = null;
+            if (pluginId != Guid.Empty)
+                plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
+
+            // 4. Load file
+            var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
+            {
+                ParentStateInfo = parentStateInfo,
+                StreamManager = streamManager,
+                PluginManager = this,
+                Plugin = plugin,
+                Progress = loadFileContext.Progress ?? _progress,
+                DialogManager = new InternalDialogManager(_dialogManager, loadFileContext.Options),
+                AllowManualSelection = AllowManualSelection
+            });
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
+            // 5. Add file to loaded files
             _loadedFiles.Add(loadResult.LoadedState);
+
             return loadResult;
         }
 

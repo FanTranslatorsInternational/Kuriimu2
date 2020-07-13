@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Managers\Plugins\PluginLoader\AssemblyPluginLoader.cs~RF66f36e8a.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="morelinq" Version="3.3.2" />
   </ItemGroup>
 
