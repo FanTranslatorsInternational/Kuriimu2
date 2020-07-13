@@ -5,6 +5,7 @@ using System.Linq;
 using System.Timers;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Providers;
+using Kontract.Models.IO;
 using Kore.Providers;
 using Kore.Streams;
 
@@ -24,6 +25,8 @@ namespace Kore.Managers
         private readonly IList<Stream> _streams;
         private readonly IDictionary<Stream, Stream> _parentStreams;
 
+        public const string TemporaryDirectory = "tmp";
+
         public StreamManager()
         {
             _streamCollectionTimer = new Timer(1000.0);
@@ -39,8 +42,8 @@ namespace Kore.Managers
         /// <inheritdoc />
         public ITemporaryStreamProvider CreateTemporaryStreamProvider()
         {
-            var tempDirectory = "tmp\\" + _guid.ToString("D");
-            return new TemporaryStreamProvider(Path.GetFullPath(tempDirectory), this);
+            var tempDirectory = UPath.Combine(TemporaryDirectory, _guid.ToString("D"));
+            return new TemporaryStreamProvider(Path.GetFullPath(tempDirectory.FullName), this);
         }
 
         /// <inheritdoc />

@@ -92,6 +92,7 @@ namespace Kore.Managers.Plugins
             ContractAssertions.IsNotNull(progress, nameof(progress));
             ContractAssertions.IsNotNull(dialogManager, nameof(dialogManager));
 
+            // 1. Setup all necessary instances
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
             _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
 
@@ -109,6 +110,9 @@ namespace Kore.Managers.Plugins
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
             _loadedFiles = new List<IStateInfo>();
+
+            // 2. Clear temporary folder
+            ClearTemporaryFolder(out _);
         }
 
         /// <summary>
@@ -420,6 +424,8 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
+        #region Close File
+
         public void Close(IStateInfo stateInfo)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
@@ -436,6 +442,7 @@ namespace Kore.Managers.Plugins
                 state.Dispose();
 
             _loadedFiles.Clear();
+            ClearTemporaryFolder(out _);
         }
 
         private void CloseInternal(IStateInfo stateInfo)
@@ -453,9 +460,42 @@ namespace Kore.Managers.Plugins
             _loadedFiles.Remove(stateInfo);
         }
 
+        #endregion
+
         private void FileLoader_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
             OnManualSelection?.Invoke(sender, e);
+        }
+
+        private void ClearTemporaryFolder(out bool hasErrors)
+        {
+            ClearTemporaryFolder(Path.GetFullPath(StreamManager.TemporaryDirectory), out hasErrors);
+        }
+
+        private void ClearTemporaryFolder(string directory, out bool hasErrors)
+        {
+            hasErrors = false;
+
+            // 1. Clear all sub directories
+            foreach (var subDirectory in Directory.EnumerateDirectories(directory))
+            {
+                ClearTemporaryFolder(subDirectory, out hasErrors);
+                if (!hasErrors)
+                    Directory.Delete(subDirectory);
+            }
+
+            // 2. Delete files from directory
+            foreach (var file in Directory.EnumerateFiles(directory))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                    hasErrors = true;
+                }
+            }
         }
     }
 }
