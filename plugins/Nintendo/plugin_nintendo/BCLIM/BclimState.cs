@@ -6,6 +6,7 @@ using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Kanvas;
+using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 using plugin_nintendo.NW4C;
@@ -28,14 +29,13 @@ namespace plugin_nintendo.BCLIM
             _bclim = new Bclim();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<ImageInfo> { _bclim.Load(fileStream) };
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, IProgressContext progress)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _bclim.Save(saveStream, Images[0]);

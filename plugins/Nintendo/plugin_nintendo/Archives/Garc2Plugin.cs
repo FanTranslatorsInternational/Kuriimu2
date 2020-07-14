@@ -7,6 +7,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
@@ -23,7 +24,7 @@ namespace plugin_nintendo.Archives
             Metadata = new PluginMetadata("GARC v2", "onepiecefreak", "One kind of archive in Pokemon games.");
         }
 
-        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
+        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);
