@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Kanvas;
+using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 
@@ -24,8 +23,7 @@ namespace plugin_yuusha_shisu.BTX
             _btx = new BTX();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider,
-            IProgressContext progress)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<ImageInfo> { _btx.Load(fileStream) };

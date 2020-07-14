@@ -5,8 +5,8 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace plugin_yuusha_shisu.BTX
@@ -23,7 +23,7 @@ namespace plugin_yuusha_shisu.BTX
             Metadata = new PluginMetadata("BTX", "IcySon55", "Death of a Hero");
         }
 
-        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
+        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using (var br = new BinaryReaderX(fileStream))
