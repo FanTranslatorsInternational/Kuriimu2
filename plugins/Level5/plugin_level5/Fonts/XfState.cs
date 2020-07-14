@@ -46,7 +46,7 @@ namespace plugin_level5.Fonts
                 return;
 
             _archiveStateInfo = loadResult.LoadedState;
-            var archiveState = _archiveStateInfo.State as IArchiveState;
+            var archiveState = _archiveStateInfo.PluginState as IArchiveState;
 
             // Load font image from archive
             var imageFile = archiveState.Files[0];
@@ -55,7 +55,7 @@ namespace plugin_level5.Fonts
                 return;
 
             _imageStateInfo = loadResult.LoadedState;
-            var imageState = _imageStateInfo.State as IImageState;
+            var imageState = _imageStateInfo.PluginState as IImageState;
 
             // Load KanvasImage
             var kanvasImage = new KanvasImage(imageState, imageState.Images[0]);
@@ -69,7 +69,7 @@ namespace plugin_level5.Fonts
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             // Save font information
-            var imageState = _imageStateInfo.State as IImageState;
+            var imageState = _imageStateInfo.PluginState as IImageState;
             var (fontStream, fontImage) = _xf.Save(_characters, imageState.Images[0].ImageSize);
 
             // Save image
@@ -81,7 +81,7 @@ namespace plugin_level5.Fonts
                 throw saveResult.Exception;
 
             // Set font file
-            var archiveState = _archiveStateInfo.State as IArchiveState;
+            var archiveState = _archiveStateInfo.PluginState as IArchiveState;
             archiveState.Files[1].SetFileData(fontStream);
 
             // Save archive
