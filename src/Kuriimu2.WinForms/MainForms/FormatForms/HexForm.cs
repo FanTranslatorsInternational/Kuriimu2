@@ -35,7 +35,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             InitializeComponent();
 
-            if (!(stateInfo.State is IHexState hexState))
+            if (!(stateInfo.PluginState is IHexState hexState))
                 throw new InvalidOperationException($"This state is not an {nameof(IHexState)}.");
 
             _stateInfo = stateInfo;

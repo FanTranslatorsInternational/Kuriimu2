@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
@@ -64,8 +65,14 @@ namespace Kore.Managers.Plugins
         {
             ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
 
+            // If the same file is passed to another plugin, take the parent of the current state
+            var parent = _stateInfo;
+            var statePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
+            if (fileSystem.ConvertPathToInternal(path) == statePath)
+                parent = _stateInfo.ParentStateInfo;
+
             // 1. Load file
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, loadFileContext);
+            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, parent, pluginId, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 

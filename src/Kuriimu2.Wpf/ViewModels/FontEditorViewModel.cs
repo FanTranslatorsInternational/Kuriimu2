@@ -68,7 +68,7 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             KoreFile = koreFile;
 
-            _state = KoreFile.State as IFontState;
+            _state = KoreFile.PluginState as IFontState;
 
             if (_state != null)
                 Characters = new ObservableCollection<CharacterInfo>(_state.Characters);

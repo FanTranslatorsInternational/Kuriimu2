@@ -43,7 +43,7 @@ namespace Kore.Managers.Plugins.FileManagement
             IProgressContext progress, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!(stateInfo.State is ISaveFiles) || !stateInfo.StateChanged)
+            if (!(stateInfo.PluginState is ISaveFiles) || !stateInfo.StateChanged)
                 return new SaveResult(true, "The file had no changes and was not saved.");
 
             // 2. Save child states
@@ -78,7 +78,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
             var internalDialogManager = new InternalDialogManager(_dialogManager, stateInfo.DialogOptions);
             var loadContext = new LoadContext(temporaryStreamProvider, progress, internalDialogManager);
-            var reloadResult = await TryLoadStateAsync(stateInfo.State, destinationFileSystem, savePath, loadContext);
+            var reloadResult = await TryLoadStateAsync(stateInfo.PluginState, destinationFileSystem, savePath, loadContext);
             if (!reloadResult.IsSuccessful)
                 return new SaveResult(reloadResult.Exception);
 
@@ -101,7 +101,7 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<SaveResult> SaveAndReplaceStateAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath,
             IProgressContext progress)
         {
-            var saveState = stateInfo.State as ISaveFiles;
+            var saveState = stateInfo.PluginState as ISaveFiles;
 
             // 3. Save state to a temporary destination
             var temporaryContainer = CreateTemporaryFileSystem(stateInfo.StreamManager);

@@ -54,7 +54,7 @@ namespace Kore.Managers.Plugins.FileManagement
             var state = plugin.CreatePluginState(subPluginManager);
 
             // 4. Create new state info
-            var stateInfo = new StateInfo(state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
+            var stateInfo = new StateInfo(plugin, state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
             subPluginManager.RegisterStateInfo(stateInfo);
 
             // 5. Load data from state

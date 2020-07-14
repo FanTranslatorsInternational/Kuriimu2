@@ -67,22 +67,22 @@ namespace Kore.Factories
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
         public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path)
         {
-            if (!(stateInfo.State is IArchiveState))
+            if (!(stateInfo.PluginState is IArchiveState))
                 throw new InvalidOperationException("This state is not an archive.");
 
-            return CreateAfiFileSystem(stateInfo.State as IArchiveState, path, stateInfo.StreamManager);
+            return CreateAfiFileSystem(stateInfo, path, stateInfo.StreamManager);
         }
 
         /// <summary>
         /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IArchiveState"/>.
         /// </summary>
-        /// <param name="archiveState"><see cref="IArchiveState"/> to create the file system from.</param>
+        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IArchiveState archiveState, UPath path, IStreamManager streamManager)
+        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path, IStreamManager streamManager)
         {
-            var fileSystem = (IFileSystem)new AfiFileSystem(archiveState, streamManager);
+            var fileSystem = (IFileSystem)new AfiFileSystem(stateInfo, streamManager);
             if (path != UPath.Empty && path != UPath.Root)
                 fileSystem = new SubFileSystem(fileSystem, path);
 

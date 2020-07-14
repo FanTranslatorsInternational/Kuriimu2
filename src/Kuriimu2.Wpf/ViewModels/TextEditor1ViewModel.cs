@@ -24,7 +24,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
             // TODO: What is display name
             //DisplayName = KoreFile.DisplayName;
-            _state = KoreFile.State as ITextState;
+            _state = KoreFile.PluginState as ITextState;
 
             if (_state != null)
                 Entries = new ObservableCollection<TextEntry>(_state.Texts);

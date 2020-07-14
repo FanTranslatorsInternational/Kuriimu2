@@ -179,8 +179,7 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x =>
-                x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
+            return _loadedFiles.Any(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
         }
 
         #region Get Methods
@@ -188,7 +187,7 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public IStateInfo GetLoadedFile(UPath filePath)
         {
-            return _loadedFiles.FirstOrDefault(x => x.AbsoluteDirectory / x.FilePath.ToRelative() == filePath);
+            return _loadedFiles.FirstOrDefault(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
         }
 
         /// <inheritdoc />
@@ -232,6 +231,10 @@ namespace Kore.Managers.Plugins
             // 1. Get UPath
             var path = new UPath(file);
 
+            // If file is already loaded
+            if (IsLoaded(path))
+                return Task.FromResult(new LoadResult(GetLoadedFile(path)));
+
             // 2. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
                 FileSystemFactory.CreatePhysicalFileSystem(path.GetDirectory(), streamManager));
@@ -267,12 +270,17 @@ namespace Kore.Managers.Plugins
         public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
         {
             // If stateInfo is no archive state
-            if (!(stateInfo.State is IArchiveState archiveState))
+            if (!(stateInfo.PluginState is IArchiveState archiveState))
                 throw new InvalidOperationException("The state represents no archive.");
+
+            // If file is already loaded
+            var absoluteFilePath = UPath.Combine(stateInfo.AbsoluteDirectory, stateInfo.FilePath.ToRelative(), afi.FilePath.ToRelative());
+            if (IsLoaded(absoluteFilePath))
+                return new LoadResult(GetLoadedFile(absoluteFilePath));
 
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
-                  FileSystemFactory.CreateAfiFileSystem(archiveState, UPath.Root, streamManager));
+                  FileSystemFactory.CreateAfiFileSystem(stateInfo, UPath.Root, streamManager));
 
             // 2. Load file
             // ArchiveFileInfos have stateInfo as their parent, if loaded like this
@@ -320,6 +328,11 @@ namespace Kore.Managers.Plugins
         {
             // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
 
+            // If file is loaded
+            var absoluteFilePath = UPath.Combine(fileSystem.ConvertPathToInternal(UPath.Root), path.ToRelative());
+            if (IsLoaded(absoluteFilePath))
+                return Task.FromResult(new LoadResult(GetLoadedFile(absoluteFilePath)));
+
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(fileSystem.Clone);
 
@@ -354,6 +367,8 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId, LoadFileContext loadFileContext)
         {
+            // We don't check for an already loaded file here, since that should never happen
+
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
                 FileSystemFactory.CreateMemoryFileSystem(stream, streamName, streamManager));

@@ -33,8 +33,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private bool _isSearchEmpty = true;
         private string _searchTerm;
 
-        private ISaveFiles SaveState => _stateInfo.State as ISaveFiles;
-        private IArchiveState ArchiveState => _stateInfo.State as IArchiveState;
+        private ISaveFiles SaveState => _stateInfo.PluginState as ISaveFiles;
+        private IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
         public Func<OpenFileEventArgs, Task<bool>> OpenFilesDelegate { get; set; }
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
@@ -450,7 +450,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             else
             {
-                var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(ArchiveState, UPath.Root, _stateInfo.StreamManager);
+                var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
                 var filePaths = archiveFileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
                     SearchOption.AllDirectories, SearchTarget.Directory);
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
@@ -460,9 +460,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     "tree-archive-file", "tree-archive-file");
                 foreach (var path in filePaths)
                 {
-                    if (path == UPath.Root)
-                        continue;
-
                     path.Split()
                         .Aggregate(root, (node, part) =>
                             node.Nodes[part] ?? node.Nodes.Add(part, part))
@@ -724,7 +721,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
 
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(fbd.SelectedPath, _stateInfo.StreamManager);
-            var destinationFileSystem = FileSystemFactory.CreateAfiFileSystem(ArchiveState, rootPath.ToAbsolute(), _stateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, rootPath.ToAbsolute(), _stateInfo.StreamManager);
 
             var replaceCount = 0;
             foreach (var sourcePath in sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.File))

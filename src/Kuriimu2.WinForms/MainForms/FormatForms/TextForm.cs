@@ -39,7 +39,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             InitializeComponent();
 
-            if (!(state.State is ITextState textState))
+            if (!(state.PluginState is ITextState textState))
                 throw new InvalidOperationException($"The state is no '{nameof(ITextState)}'.");
 
             _stateInfo = state;

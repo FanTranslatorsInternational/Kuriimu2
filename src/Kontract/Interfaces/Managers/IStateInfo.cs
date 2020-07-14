@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Kontract.Interfaces.FileSystem;
+using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.IO;
 
@@ -17,9 +18,14 @@ namespace Kontract.Interfaces.Managers
         IPluginManager PluginManager { get; }
 
         /// <summary>
+        /// The entry class of the plugin for this file.
+        /// </summary>
+        IFilePlugin FilePlugin { get; }
+
+        /// <summary>
         /// The state of the plugin for this file.
         /// </summary>
-        IPluginState State { get; }
+        IPluginState PluginState { get; }
 
         /// <summary>
         /// The path of the file initially opened for this state relative to the file system.

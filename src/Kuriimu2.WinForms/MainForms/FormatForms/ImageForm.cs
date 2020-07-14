@@ -77,8 +77,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private int _paletteChosenColorIndex = -1;
 
         // ReSharper disable once SuspiciousTypeConversion.Global
-        private ISaveFiles SaveState => _stateInfo.State as ISaveFiles;
-        private IImageState ImageState => _stateInfo.State as IImageState;
+        private ISaveFiles SaveState => _stateInfo.PluginState as ISaveFiles;
+        private IImageState ImageState => _stateInfo.PluginState as IImageState;
 
         private ImageInfo SelectedImageInfo => ImageState.Images[_selectedImageIndex];
         private IKanvasImage SelectedImage => _kanvasImages[_selectedImageIndex];
@@ -106,7 +106,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             InitializeComponent();
 
-            if (!(stateInfo.State is IImageState imageState))
+            if (!(stateInfo.PluginState is IImageState imageState))
                 throw new InvalidOperationException($"This state is not an {nameof(IImageState)}.");
 
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));

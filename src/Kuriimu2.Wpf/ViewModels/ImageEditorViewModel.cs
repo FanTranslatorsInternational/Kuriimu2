@@ -50,7 +50,7 @@ namespace Kuriimu2.Wpf.ViewModels
             _pluginManager = pluginManager;
             KoreFile = koreFile;
 
-            _state = KoreFile.State as IImageState;
+            _state = KoreFile.PluginState as IImageState;
 
             if (_state?.Images != null)
                 KanvasImages = new ObservableCollection<KanvasImage>(_state.Images.Select(x => new KanvasImage(_state, x)));

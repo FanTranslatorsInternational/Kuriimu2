@@ -51,7 +51,7 @@ namespace Kuriimu2.Wpf.ViewModels
             _pluginManager = pluginManager;
             KoreFile = koreFile;
 
-            _state = KoreFile.State as ITextState;
+            _state = KoreFile.PluginState as ITextState;
             GameAdapters = pluginManager.GetGameAdapters().Select(ga => new GameAdapter(ga)).ToList();
 
             // TODO: Implement game adapter persistence

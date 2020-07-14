@@ -21,26 +21,32 @@ namespace Kore.FileSystem.Implementations
     /// </summary>
     class AfiFileSystem : FileSystem
     {
-        private readonly IArchiveState _archiveState;
+        private readonly IStateInfo _stateInfo;
         private readonly ITemporaryStreamProvider _temporaryStreamProvider;
+
+        protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
+
+        protected UPath SubPath=> _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
 
         /// <summary>
         /// Creates a new instance of <see cref="AfiFileSystem"/>.
         /// </summary>
-        /// <param name="archiveState">The <see cref="IArchiveState"/> to retrieve files from.</param>
+        /// <param name="stateInfo">The <see cref="IStateInfo"/> to retrieve files from.</param>
         /// <param name="streamManager">The stream manager to scope streams in.</param>
-        public AfiFileSystem(IArchiveState archiveState, IStreamManager streamManager) : base(streamManager)
+        public AfiFileSystem(IStateInfo stateInfo, IStreamManager streamManager) : base(streamManager)
         {
-            ContractAssertions.IsNotNull(archiveState, nameof(archiveState));
+            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            if (!(stateInfo.PluginState is IArchiveState))
+                throw new InvalidOperationException("The state is no archive.");
 
-            _archiveState = archiveState;
+            _stateInfo = stateInfo;
             _temporaryStreamProvider = streamManager.CreateTemporaryStreamProvider();
         }
 
         /// <inheritdoc />
         public override IFileSystem Clone(IStreamManager streamManager)
         {
-            return new AfiFileSystem(_archiveState, streamManager);
+            return new AfiFileSystem(_stateInfo, streamManager);
         }
 
         // ----------------------------------------------
@@ -51,7 +57,7 @@ namespace Kore.FileSystem.Implementations
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => _archiveState is IRemoveFiles;
+        public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -62,7 +68,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override bool DirectoryExistsImpl(UPath path)
         {
-            return _archiveState.Files.Any(f => f.FilePath.ToString().StartsWith(path.ToString()));
+            return ArchiveState.Files.Any(f => f.FilePath.ToString().StartsWith(path.ToString()));
         }
 
         /// <inheritdoc />
@@ -73,7 +79,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewDirectoryNotFoundException(srcPath);
             }
 
-            foreach (var afi in _archiveState.Files.Where(f => f.FilePath.ToString().StartsWith(srcPath.ToString())))
+            foreach (var afi in ArchiveState.Files.Where(f => f.FilePath.ToString().StartsWith(srcPath.ToString())))
             {
                 afi.FilePath = ReplaceFirst(afi.FilePath.ToString(), srcPath.ToString(), destPath.ToString());
             }
@@ -92,8 +98,8 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewDirectoryIsNotEmpty(path);
             }
 
-            var removedFiles = _archiveState.Files.Where(afi => afi.FilePath.ToString().StartsWith(path.ToString())).ToArray();
-            var removeArchiveState = _archiveState as IRemoveFiles;
+            var removedFiles = ArchiveState.Files.Where(afi => afi.FilePath.ToString().StartsWith(path.ToString())).ToArray();
+            var removeArchiveState = ArchiveState as IRemoveFiles;
             foreach (var removedFile in removedFiles)
             {
                 removeArchiveState?.RemoveFile(removedFile);
@@ -105,7 +111,7 @@ namespace Kore.FileSystem.Implementations
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => _archiveState is IAddFiles;
+        public override bool CanCreateFiles => ArchiveState is IAddFiles;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -116,12 +122,12 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => _archiveState is IRemoveFiles;
+        public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
         {
-            return _archiveState.Files.Any(f => f.FilePath == path);
+            return ArchiveState.Files.Any(f => f.FilePath == path);
         }
 
         /// <inheritdoc />
@@ -168,7 +174,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            var removingState = _archiveState as IRemoveFiles;
+            var removingState = ArchiveState as IRemoveFiles;
             removingState?.RemoveFile(GetArchiveFileInfo(path));
         }
 
@@ -239,7 +245,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override ulong GetTotalSizeImpl(UPath directoryPath)
         {
-            return (ulong)_archiveState.Files
+            return (ulong)ArchiveState.Files
                 .Where(afi => afi.FilePath.GetDirectory().IsInDirectory(directoryPath, true))
                 .Sum(x => x.FileSize);
         }
@@ -249,20 +255,19 @@ namespace Kore.FileSystem.Implementations
         {
             var search = SearchPattern.Parse(ref path, ref searchPattern);
 
-            var topDirectory = path.IsFile ? path.GetDirectory() : path;
             switch (searchTarget)
             {
                 case SearchTarget.File:
-                    return EnumerateFiles(search, topDirectory, searchOption)
-                        .OrderBy(x=>x.FullName);
+                    return EnumerateFiles(search, path, searchOption)
+                        .OrderBy(x => x.FullName);
 
                 case SearchTarget.Directory:
-                    return EnumerateDirectories(search, topDirectory, searchOption)
+                    return EnumerateDirectories(search, path, searchOption)
                         .OrderBy(x => x.FullName);
 
                 case SearchTarget.Both:
-                    return EnumerateDirectories(search, topDirectory, searchOption)
-                        .Concat(EnumerateFiles(search, topDirectory, searchOption))
+                    return EnumerateDirectories(search, path, searchOption)
+                        .Concat(EnumerateFiles(search, path, searchOption))
                         .OrderBy(x => x.FullName);
             }
 
@@ -271,17 +276,28 @@ namespace Kore.FileSystem.Implementations
 
         protected override string ConvertPathToInternalImpl(UPath path)
         {
-            return path.ToString();
+            var safePath = path.ToRelative();
+            return (SubPath / safePath).FullName;
         }
 
         protected override UPath ConvertPathFromInternalImpl(string innerPath)
         {
-            return new UPath(innerPath);
+            var fullPath = innerPath;
+            if (!fullPath.StartsWith(SubPath.FullName) || (fullPath.Length > SubPath.FullName.Length && fullPath[SubPath == UPath.Root ? 0 : SubPath.FullName.Length] != UPath.DirectorySeparator))
+            {
+                // More a safe guard, as it should never happen, but if a delegate filesystem doesn't respect its root path
+                // we are throwing an exception here
+                throw new InvalidOperationException($"The path `{innerPath}` returned by the delegate filesystem is not rooted to the subpath `{SubPath}`");
+            }
+
+            var subPath = fullPath.Substring(SubPath.FullName.Length);
+            return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
         }
 
         private ArchiveFileInfo GetArchiveFileInfo(UPath path)
         {
-            return _archiveState.Files.First(f => f.FilePath == path);
+            // TODO: Work with lookup
+            return ArchiveState.Files.First(f => f.FilePath == path);
         }
 
         private string ReplaceFirst(string text, string search, string replace)
@@ -300,12 +316,14 @@ namespace Kore.FileSystem.Implementations
             switch (searchOption)
             {
                 case SearchOption.AllDirectories:
-                    return _archiveState.Files
+                    return ArchiveState.Files
+                        .Where(x => x.FilePath.IsInDirectory(topDirectory, true))
                         .Where(x => searchPattern.Match(x.FilePath))
                         .Select(x => x.FilePath);
 
                 case SearchOption.TopDirectoryOnly:
-                    return _archiveState.Files
+                    return ArchiveState.Files
+                        .Where(x => x.FilePath.IsInDirectory(topDirectory, false))
                         .Where(x => x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath))
                         .Select(x => x.FilePath);
             }
@@ -318,15 +336,16 @@ namespace Kore.FileSystem.Implementations
             switch (searchOption)
             {
                 case SearchOption.AllDirectories:
-                    return _archiveState.Files
-                        .Where(x => 
-                            searchPattern.Match(x.FilePath.GetDirectory()))
+                    return ArchiveState.Files
+                        .Where(x => x.FilePath.IsInDirectory(topDirectory, true))
+                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
 
                 case SearchOption.TopDirectoryOnly:
-                    return _archiveState.Files
-                        .Where(x =>x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath.GetDirectory()))
+                    return ArchiveState.Files
+                        .Where(x => x.FilePath.IsInDirectory(topDirectory, false))
+                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
                         .Select(x => x.FilePath.GetDirectory())
                         .Distinct();
             }

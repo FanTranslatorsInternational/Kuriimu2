@@ -345,7 +345,7 @@ namespace Kuriimu2.WinForms.MainForms
             IKuriimuForm kuriimuForm;
             try
             {
-                switch (stateInfo.State)
+                switch (stateInfo.PluginState)
                 {
                     case ITextState textState:
                         kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(),
@@ -367,7 +367,7 @@ namespace Kuriimu2.WinForms.MainForms
 
                     default:
                         throw new InvalidOperationException(
-                            $"Unknown plugin state type {stateInfo.State.GetType().Name}.");
+                            $"Unknown plugin state type {stateInfo.PluginState.GetType().Name}.");
                 }
             }
             catch (Exception e)

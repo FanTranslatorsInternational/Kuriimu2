@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kontract;
-using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.IO;
 using Kore.FileSystem;
@@ -17,16 +17,19 @@ namespace Kore.Models
         public IPluginManager PluginManager { get; private set; }
 
         /// <inheritdoc />
-        public IPluginState State { get; private set; }
+        public IFilePlugin FilePlugin { get; private set; }
 
         /// <inheritdoc />
-        public UPath FilePath { get; private set; }
+        public IPluginState PluginState { get; private set; }
 
         /// <inheritdoc />
         public UPath AbsoluteDirectory => BuildAbsoluteDirectory();
 
         /// <inheritdoc />
         public IFileSystem FileSystem { get; private set; }
+
+        /// <inheritdoc />
+        public UPath FilePath { get; private set; }
 
         /// <inheritdoc />
         public IStreamManager StreamManager { get; private set; }
@@ -49,16 +52,18 @@ namespace Kore.Models
         /// <summary>
         /// Represents an open file in the runtime of Kuriimu.
         /// </summary>
+        /// <param name="filePlugin">The entry class of the plugin for this file.</param>
         /// <param name="pluginState">The plugin state of this file.</param>
         /// <param name="parentState">The parent state for this file.</param>
         /// <param name="fileSystem">The file system around the initially opened file.</param>
-        /// <param name="filePath">The path of the file to be opened.</param>
+        /// <param name="filePath">The path of the file to be opened in the file system.</param>
         /// <param name="streamManager">The stream manager used for this opened state.</param>
         /// <param name="pluginManager">The plugin manager for this state.</param>
-        public StateInfo(IPluginState pluginState, IStateInfo parentState,
+        public StateInfo(IFilePlugin filePlugin, IPluginState pluginState, IStateInfo parentState,
             IFileSystem fileSystem, UPath filePath,
             IStreamManager streamManager, IPluginManager pluginManager)
         {
+            ContractAssertions.IsNotNull(filePlugin, nameof(filePlugin));
             ContractAssertions.IsNotNull(pluginState, nameof(pluginState));
             ContractAssertions.IsNotNull(fileSystem, nameof(fileSystem));
             ContractAssertions.IsNotNull(streamManager, nameof(streamManager));
@@ -69,7 +74,8 @@ namespace Kore.Models
             if (!fileSystem.FileExists(filePath))
                 throw FileSystemExceptionHelper.NewFileNotFoundException(filePath);
 
-            State = pluginState;
+            FilePlugin = filePlugin;
+            PluginState = pluginState;
             FilePath = filePath;
             FileSystem = fileSystem;
             StreamManager = streamManager;
@@ -102,7 +108,8 @@ namespace Kore.Models
             PluginManager?.CloseAll();
             StreamManager?.ReleaseAll();
 
-            State = null;
+            FilePlugin = null;
+            PluginState = null;
             FilePath = UPath.Empty;
             FileSystem = null;
             StreamManager = null;
@@ -114,7 +121,7 @@ namespace Kore.Models
 
         private bool IsStateChanged()
         {
-            if (!(State is ISaveFiles saveState))
+            if (!(PluginState is ISaveFiles saveState))
                 return false;
 
             return saveState.ContentChanged || ArchiveChildren.Any(child => child.StateChanged);
@@ -122,13 +129,8 @@ namespace Kore.Models
 
         private UPath BuildAbsoluteDirectory()
         {
-            if (ParentStateInfo == null)
-                return FileSystem.ConvertPathToInternal(UPath.Root);
-
-            var parentDirectory = ParentStateInfo.AbsoluteDirectory / ParentStateInfo.FilePath;
-            var innerDirectory = ((UPath)FileSystem.ConvertPathToInternal(UPath.Root)).ToRelative();
-
-            return parentDirectory / innerDirectory;
+            // AFiFileSystem will return the absolute path over its parents
+            return FileSystem.ConvertPathToInternal(UPath.Root);
         }
     }
 }

@@ -99,7 +99,7 @@ namespace Kuriimu2.Wpf.ViewModels
                 LoadFile(file);
         }
 
-        public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.State is ISaveFiles;
+        public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.PluginState is ISaveFiles;
 
         public void SaveButton()
         {
@@ -139,7 +139,7 @@ namespace Kuriimu2.Wpf.ViewModels
         public void TextEditorExportFile()
         {
             var editor = (IFileEditor)ActiveItem;
-            if (!(editor.KoreFile.State is ITextState)) return;
+            if (!(editor.KoreFile.PluginState is ITextState)) return;
 
             // TODO: Get text adapters
             //var creators = _pluginLoader.GetAdapters<ITextAdapter>().Where(a => a is ICreateFiles && a is IAddEntries);
@@ -162,7 +162,7 @@ namespace Kuriimu2.Wpf.ViewModels
         public void TextEditorImportFile()
         {
             //var editor = (IFileEditor)ActiveItem;
-            //if (!(editor.KoreFile.State is ITextAdapter adapter)) return;
+            //if (!(editor.KoreFile.PluginState is ITextAdapter adapter)) return;
 
             //var ofd = new OpenFileDialog { Filter = _pluginManager.FileFiltersByType<ITextAdapter>("All Supported Text Files") };
             //if (ofd.ShowDialog() != true) return;
@@ -228,7 +228,7 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             if (kfi == null) return;
 
-            switch (kfi.State)
+            switch (kfi.PluginState)
             {
                 case ITextState txt2:
                     ActivateItemAsync(new TextEditor2ViewModel(_pluginManager, kfi), new System.Threading.CancellationToken());
