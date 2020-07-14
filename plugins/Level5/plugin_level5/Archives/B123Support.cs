@@ -104,6 +104,9 @@ namespace plugin_level5.Archives
                 case ".xi":
                     return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
 
+                case ".xf":
+                    return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };
+
                 case ".xr":
                 case ".xc":
                 case ".xa":

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -171,6 +172,49 @@ namespace plugin_level5.Archives
 
     static class XfsaSupport
     {
+        public static Guid[] RetrievePluginMapping(Stream fileStream, string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+            using var br = new BinaryReaderX(fileStream, true);
+
+            var magic = br.ReadString(4);
+
+            switch (extension)
+            {
+                case ".xi":
+                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
+
+                case ".xf":
+                    return new[] { Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a") };
+
+                case ".xr":
+                case ".xc":
+                case ".xa":
+                case ".xk":
+                    if (magic == "XPCK")
+                        return new[] { Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f") };
+
+                    return null;
+
+                case ".arc":
+                    return new[] { Guid.Parse("db8c2deb-f11d-43c8-bb9e-e271408fd896") };
+
+                // TODO: add t2b cfg.bin
+                //case ".bin":
+                //    if (!fileName.EndsWith(".cfg.bin"))
+                //        return null;
+
+                //    fileStream.Position = fileStream.Length - 0xF;
+                //    if (br.ReadString(3) == "t2b")
+                //        return null;
+
+                //    return null;
+
+                default:
+                    return null;
+            }
+        }
+
         public static IList<TTable> ReadCompressedTableEntries<TTable>(Stream input, int offset, int length, int count)
         {
             var streamComp = new SubStream(input, offset, length);

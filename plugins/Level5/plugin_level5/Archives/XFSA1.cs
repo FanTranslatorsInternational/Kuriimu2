@@ -62,10 +62,9 @@ namespace plugin_level5.Archives
                     names.BaseStream.Position = directory.FileNameStartOffset + file.NameOffset;
                     var fileName = names.ReadCStringSJIS();
 
-                    // TODO: Add plugin ids
                     result.Add(new XfsaArchiveFileInfo<Xfsa1FileEntry>(fileStream, directoryName + fileName, file)
                     {
-                        //PluginIds = XfsaSupport.RetrievePluginMapping(fileStream, fileName)
+                        PluginIds = XfsaSupport.RetrievePluginMapping(fileStream, fileName)
                     });
                 }
             }
