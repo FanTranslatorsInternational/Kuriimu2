@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
@@ -20,7 +21,7 @@ namespace plugin_nintendo.Archives
 
         public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public DarcState()
         {
@@ -44,6 +45,11 @@ namespace plugin_nintendo.Archives
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
+        }
+
+        private bool IsChanged()
+        {
+            return Files.Any(x => x.ContentChanged);
         }
     }
 }

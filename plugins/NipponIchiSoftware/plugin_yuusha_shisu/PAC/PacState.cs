@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -15,7 +16,7 @@ namespace plugin_yuusha_shisu.PAC
 
         public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public PacState()
         {
@@ -34,6 +35,11 @@ namespace plugin_yuusha_shisu.PAC
             _pac.Save(saveStream, Files);
 
             return Task.CompletedTask;
+        }
+
+        private bool IsChanged()
+        {
+            return Files.Any(x => x.ContentChanged);
         }
     }
 }

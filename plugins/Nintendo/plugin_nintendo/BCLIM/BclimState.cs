@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -22,7 +23,7 @@ namespace plugin_nintendo.BCLIM
         public IDictionary<int, (IIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public BclimState()
         {
@@ -41,6 +42,11 @@ namespace plugin_nintendo.BCLIM
             _bclim.Save(saveStream, Images[0]);
 
             return Task.CompletedTask;
+        }
+
+        private bool IsChanged()
+        {
+            return Images.Any(x => x.ContentChanged);
         }
     }
 }

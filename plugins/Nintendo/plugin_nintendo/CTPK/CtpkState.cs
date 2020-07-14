@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -21,7 +22,7 @@ namespace plugin_nintendo.CTPK
         public IDictionary<int, (IIndexEncoding, IList<int>)> SupportedIndexEncodings { get; }
         public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
 
-        public bool ContentChanged { get; set; }
+        public bool ContentChanged => IsChanged();
 
         public CtpkState()
         {
@@ -40,6 +41,11 @@ namespace plugin_nintendo.CTPK
             _ctpk.Save(Images, saveStream);
 
             return Task.CompletedTask;
+        }
+
+        private bool IsChanged()
+        {
+            return Images.Any(x => x.ContentChanged);
         }
     }
 }

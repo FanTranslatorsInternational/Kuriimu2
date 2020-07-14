@@ -1,11 +1,13 @@
 ﻿using System;
+using System.IO;
 using Komponent.IO.Attributes;
 using Komponent.IO.BinarySupport;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
-    [Alignment(0x40)]
     class CiaHeader
     {
         public int headerSize;
@@ -20,7 +22,6 @@ namespace plugin_nintendo.Archives
         public byte[] contentIndex;
     }
 
-    [Alignment(0x40)]
     class CiaCertificateChain
     {
         public CiaCertificate ca;
@@ -53,7 +54,6 @@ namespace plugin_nintendo.Archives
         public byte[] publicKeyPadding;
     }
 
-    [Alignment(0x40)]
     [Endianness(ByteOrder = ByteOrder.BigEndian)]
     class CiaTicket
     {
@@ -101,7 +101,6 @@ namespace plugin_nintendo.Archives
         public byte[] contentIndex;
     }
 
-    [Alignment(0x40)]
     [Endianness(ByteOrder = ByteOrder.BigEndian)]
     class CiaTmd
     {
@@ -114,9 +113,9 @@ namespace plugin_nintendo.Archives
 
         public CiaTmdHeader header;
         [FixedLength(0x40)]
-        public CiaContentInfoRecord[] contentInfoRecord;
+        public CiaContentInfoRecord[] contentInfoRecords;
         [VariableLength("header.contentCount")]
-        public CiaContentChunkRecord[] contentChunkRecord;
+        public CiaContentChunkRecord[] contentChunkRecords;
     }
 
     [Endianness(ByteOrder = ByteOrder.BigEndian)]
@@ -150,7 +149,7 @@ namespace plugin_nintendo.Archives
     [Endianness(ByteOrder = ByteOrder.BigEndian)]
     class CiaContentInfoRecord
     {
-        public short contentChunkOffset;
+        public short contentChunkIndex;
         public short contentChunkCount;
         [FixedLength(0x20)]
         public byte[] sha256;
@@ -167,7 +166,6 @@ namespace plugin_nintendo.Archives
         public byte[] sha256;
     }
 
-    [Alignment(0x40)]
     class CiaMeta
     {
         [FixedLength(0x180)]
@@ -179,6 +177,25 @@ namespace plugin_nintendo.Archives
         public byte[] reserved2;
         [FixedLength(0x36C0)]
         public byte[] iconData;
+    }
+
+    class CiaArchiveFileInfo : ArchiveFileInfo
+    {
+        public CiaContentChunkRecord ContentChunkRecord { get; }
+
+        public CiaArchiveFileInfo(Stream fileData, string filePath, CiaContentChunkRecord contentChunkRecord) : 
+            base(fileData, filePath)
+        {
+            ContentChunkRecord = contentChunkRecord;
+        }
+
+        public CiaArchiveFileInfo(Stream fileData, string filePath, 
+            IKompressionConfiguration configuration, long decompressedSize, 
+            CiaContentChunkRecord contentChunkRecord) : 
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+            ContentChunkRecord = contentChunkRecord;
+        }
     }
 
     static class CiaSupport
