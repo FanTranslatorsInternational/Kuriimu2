@@ -10,6 +10,7 @@ using Kontract.Kanvas;
 using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
+using plugin_nintendo.Images;
 using plugin_nintendo.NW4C;
 
 namespace plugin_nintendo.BCLIM
