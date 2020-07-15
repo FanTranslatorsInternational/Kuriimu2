@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Komponent.Extensions;
 using Komponent.IO.BinarySupport;
 using Kontract.Models.IO;
 
@@ -214,7 +215,7 @@ namespace Komponent.IO
         {
             Reset();
 
-            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : DecimalExtensions.ToDecimal(ReadBytes(16).Reverse().ToArray());
+            return ByteOrder == ByteOrder.LittleEndian ? base.ReadDecimal() : ReadBytes(16).Reverse().ToArray().ToDecimal();
         }
 
         public override int Read(byte[] buffer, int index, int count)
