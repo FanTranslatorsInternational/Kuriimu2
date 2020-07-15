@@ -1,6 +1,7 @@
 ﻿using Kryptography.AES.CTR;
 using System;
 using System.IO;
+using Kryptography.Extensions;
 
 namespace Kryptography.AES
 {
