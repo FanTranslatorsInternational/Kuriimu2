@@ -145,9 +145,11 @@ namespace Kryptography.AES
                 case SeekOrigin.Begin:
                     Position = offset;
                     break;
+
                 case SeekOrigin.Current:
                     Position += offset;
                     break;
+
                 case SeekOrigin.End:
                     Position = Length + offset;
                     break;

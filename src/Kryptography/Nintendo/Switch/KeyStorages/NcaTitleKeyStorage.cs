@@ -10,7 +10,7 @@ namespace Kryptography.Nintendo.Switch.KeyStorages
     /// <summary>
     /// Storage for decrypted title keys paired to their title id
     /// </summary>
-    internal class NcaTitleKeyStorage
+    class NcaTitleKeyStorage
     {
         private Dictionary<string, byte[]> _keyMaterial;
 

@@ -3,9 +3,9 @@ using System.IO;
 
 namespace Kryptography
 {
-    public class SubStream : Stream
+    class SubStream : Stream
     {
-        private Stream _baseStream;
+        private readonly Stream _baseStream;
         private readonly long _baseOffset;
         private readonly long _length;
 
@@ -31,7 +31,8 @@ namespace Kryptography
             Position = Math.Max(input.Position - offset, 0);
         }
 
-        public SubStream(byte[] input, long offset, long length) : this(new MemoryStream(input), offset, length)
+        public SubStream(byte[] input, long offset, long length) : 
+            this(new MemoryStream(input), offset, length)
         {
         }
 
@@ -74,13 +75,19 @@ namespace Kryptography
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            if (!CanSeek) throw new NotSupportedException("Seek is not supported.");
+            if (!CanSeek) 
+                throw new NotSupportedException("Seek is not supported.");
 
             switch (origin)
             {
-                case SeekOrigin.Begin: return Position = offset;
-                case SeekOrigin.Current: return Position += offset;
-                case SeekOrigin.End: return Position = _length + offset;
+                case SeekOrigin.Begin: 
+                    return Position = offset;
+
+                case SeekOrigin.Current: 
+                    return Position += offset;
+
+                case SeekOrigin.End: 
+                    return Position = _length + offset;
             }
             throw new ArgumentException(origin.ToString());
         }
@@ -104,7 +111,8 @@ namespace Kryptography
 
         private void ValidateRead(byte[] buffer, int offset, int count)
         {
-            if (!CanRead) throw new NotSupportedException("Read is not supported.");
+            if (!CanRead) 
+                throw new NotSupportedException("Read is not supported.");
 
             ValidateInput(buffer, offset, count);
         }

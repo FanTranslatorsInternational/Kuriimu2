@@ -8,7 +8,7 @@ using Kryptography.Extensions;
 
 namespace Kryptography.Nintendo.Switch.KeyStorages
 {
-    internal class NcaKeyStorage
+    class NcaKeyStorage
     {
         #region Regex
 
