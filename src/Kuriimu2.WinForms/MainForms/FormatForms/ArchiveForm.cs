@@ -603,9 +603,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public async void Save(UPath savePath)
         {
-            if (savePath == UPath.Empty)
-                savePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath;
-
             await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
 
             LoadDirectories();

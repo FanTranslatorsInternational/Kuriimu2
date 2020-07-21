@@ -62,6 +62,8 @@ namespace Kuriimu2.WinForms.MainForms
         {
             InitializeComponent();
 
+            KeyPreview = true;
+
             _progressContext = new ConcurrentProgress(new NullProgressOutput());
             var dialogManager = new DialogManagerForm();
 
@@ -280,13 +282,38 @@ namespace Kuriimu2.WinForms.MainForms
             return SaveFile(e.StateInfo, e.SavePath);
         }
 
+        private Task<bool> SaveFile(IStateInfo stateInfo)
+        {
+            return SaveFile(stateInfo, UPath.Empty);
+        }
+
+        private Task<bool> SaveFileAs(IStateInfo stateInfo)
+        {
+            var sfd = new SaveFileDialog
+            {
+                FileName = stateInfo.FilePath.GetName(),
+                Filter = "All Files (*.*)|*.*"
+            };
+
+            if (sfd.ShowDialog() != DialogResult.OK)
+            {
+                MessageBox.Show(InvalidFile_, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return Task.FromResult(false);
+            }
+
+            return SaveFile(stateInfo, sfd.FileName);
+        }
+
         private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath)
         {
-            var result = await _pluginManager.SaveFile(stateInfo, savePath);
-            if (!result.IsSuccessful)
+            var saveResult = savePath.IsEmpty ?
+                await _pluginManager.SaveFile(stateInfo) :
+                await _pluginManager.SaveFile(stateInfo, savePath);
+
+            if (!saveResult.IsSuccessful)
             {
 #if DEBUG
-                var message = result.Exception?.ToString() ?? result.Message;
+                var message = saveResult.Exception?.ToString() ?? saveResult.Message;
 #else
                 var message = result.Message;
 #endif
@@ -420,6 +447,31 @@ namespace Kuriimu2.WinForms.MainForms
             var selectedPlugin = ChoosePlugin(e.FilePlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
+        }
+
+        private async void Kuriimu2_KeyDown(object sender, KeyEventArgs e)
+        {
+            var selectedTab = openFiles.SelectedTab;
+            var tabEntry = _tabDictionary[selectedTab];
+
+            // --- Handle save actions
+
+            if (!(tabEntry.StateInfo.PluginState is ISaveFiles))
+                return;
+
+            // Ctrl+Shift+S for Save As only for root files
+            if (e.Control && e.Shift && e.KeyCode == Keys.S && tabEntry.StateInfo.ParentStateInfo == null)
+            {
+                await SaveFileAs(tabEntry.StateInfo);
+                return;
+            }
+
+            // Ctrl+S for Save
+            if (e.Control && e.KeyCode == Keys.S)
+            {
+                await SaveFile(tabEntry.StateInfo);
+                return;
+            }
         }
 
         private void Kuriimu2_DragEnter(object sender, DragEventArgs e)

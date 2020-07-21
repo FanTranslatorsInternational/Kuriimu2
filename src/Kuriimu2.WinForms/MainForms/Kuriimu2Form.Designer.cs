@@ -251,6 +251,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Kuriimu2_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragEnter);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Kuriimu2_KeyDown);
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
             this.pnlMain.ResumeLayout(false);
