@@ -1,4 +1,6 @@
-﻿namespace Kuriimu2.WinForms.MainForms.FormatForms
+﻿using System.Windows.Forms;
+
+namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
     partial class HexForm
     {
@@ -51,6 +53,7 @@
             // 
             // HexForm
             // 
+            this.Dock = DockStyle.Fill;
             this.Controls.Add(this.fileData);
             this.Name = "HexForm";
             this.ResumeLayout(false);

@@ -112,7 +112,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.textSequenceSearcherToolStripMenuItem.Name = "textSequenceSearcherToolStripMenuItem";
             this.textSequenceSearcherToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
             this.textSequenceSearcherToolStripMenuItem.Text = "Text Sequence Searcher";
-            this.textSequenceSearcherToolStripMenuItem.Click += new System.EventHandler(this.TextSequenceSearcherToolStripMenuItem_Click);
+            this.textSequenceSearcherToolStripMenuItem.Click += new System.EventHandler(this.textSequenceSearcherToolStripMenuItem_Click);
             // 
             // batchProcessorToolStripMenuItem
             // 

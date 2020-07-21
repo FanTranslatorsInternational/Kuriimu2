@@ -137,6 +137,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public void UpdateForm()
         {
+            UpdateProperties();
+        }
+
+        private void UpdateProperties()
+        {
             // Menu
             tlsMainSave.Enabled = _textState is ISaveFiles;
             tlsMainSaveAs.Enabled = _textState is ISaveFiles && _stateInfo.ParentStateInfo == null;

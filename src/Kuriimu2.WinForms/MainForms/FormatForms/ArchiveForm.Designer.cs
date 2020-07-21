@@ -1,4 +1,6 @@
-﻿namespace Kuriimu2.WinForms.MainForms.FormatForms
+﻿using System.Windows.Forms;
+
+namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
     partial class ArchiveForm
     {
@@ -470,6 +472,7 @@
             // 
             // ArchiveForm
             // 
+            this.Dock = DockStyle.Fill;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;

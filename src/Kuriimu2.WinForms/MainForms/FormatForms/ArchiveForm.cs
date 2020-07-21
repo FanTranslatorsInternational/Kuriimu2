@@ -64,7 +64,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _expandedPaths = new List<UPath>();
 
             LoadDirectories();
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         #region Events
@@ -267,7 +267,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var treeFiles = CollectFilesFromTreeNode(treDirectories.SelectedNode).ToList();
             ReplaceMultipleFiles(treeFiles, selectedPath);
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -279,7 +279,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -289,7 +289,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadDirectories();
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -327,7 +327,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             LoadFiles();
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -564,6 +564,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateProperties();
         }
 
+        private void UpdateFormInternal()
+        {
+            UpdateProperties();
+            UpdateTabDelegate?.Invoke(_stateInfo);
+        }
+
         private void UpdateProperties()
         {
             // Menu
@@ -577,8 +583,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tsbFileReplace.Enabled = ArchiveState is IReplaceFiles && ArchiveState is ISaveFiles;
             tsbFileRename.Enabled = ArchiveState is IRenameFiles && ArchiveState is ISaveFiles;
             tsbFileDelete.Enabled = ArchiveState is IRemoveFiles && ArchiveState is ISaveFiles;
-
-            UpdateTabDelegate?.Invoke(_stateInfo);
         }
 
         #endregion
@@ -607,7 +611,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             LoadDirectories();
             LoadFiles();
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         #endregion
@@ -698,7 +702,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             ReplaceFiles(selectedFiles);
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         private void ReplaceFiles(IList<ArchiveFileInfo> files)
@@ -847,7 +851,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             RenameFiles(CollectSelectedFiles().ToList());
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         private void RenameFiles(IList<ArchiveFileInfo> files)
@@ -888,7 +892,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             LoadFiles();
 
-            UpdateProperties();
+            UpdateFormInternal();
         }
 
         private void DeleteFiles(IList<ArchiveFileInfo> files)

@@ -1,25 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Be.Windows.Forms;
-using Kontract;
-using Kontract.Extensions;
-using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
-using Kore.Factories;
-using Kore.Managers.Plugins;
 using Kuriimu2.WinForms.MainForms.Interfaces;
-using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms.FormatForms
 {

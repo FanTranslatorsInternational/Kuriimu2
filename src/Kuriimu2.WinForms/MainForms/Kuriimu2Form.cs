@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -17,41 +16,54 @@ using Kontract.Models.IO;
 using Kore.Extensions;
 using Kore.Managers.Plugins;
 using Kore.Progress;
+using Kuriimu2.WinForms.Exceptions;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.MainForms.FormatForms;
 using Kuriimu2.WinForms.MainForms.Interfaces;
-using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms
 {
     public partial class Kuriimu2Form : Form
     {
+        private const string LoadError_ = "Load Error";
+        private const string InvalidFile_ = "The selected file is invalid.";
+        private const string NoPluginSelected_ = "No plugin was selected.";
+
+        private const string SaveError_ = "Save Error";
+        private const string ExceptionCatched_ = "Exception catched";
+        private const string PluginsNotAvailable_ = "Plugins not available";
+
+        private const string UnsavedChanges_ = "Unsaved changes";
+        private const string UnsavedChangesText_ = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
+
+        private const string DependantFiles_ = "Dependant files";
+        private const string DependantFilesText_ = "Every file opened from this one and below will be closed too. Continue?";
+
+        private const string CloseButton_ = "close-button";
+
         private readonly HashTypeExtensionForm _hashForm;
         private readonly CipherTypeExtensionForm _encryptForm;
         private readonly CipherTypeExtensionForm _decryptForm;
         private readonly DecompressTypeExtensionForm _decompressForm;
         private readonly CompressTypeExtensionForm _compressForm;
         private readonly RawImageViewer _rawImageViewer;
+        private readonly SequenceSearcher _sequenceSearcher;
 
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
         private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
 
         private readonly IInternalPluginManager _pluginManager;
         private readonly IProgressContext _progressContext;
-        private readonly IDialogManager _dialogManager;
 
         private readonly Random _rand = new Random();
-
-        private Timer _timer;
-        private Stopwatch _globalOperationWatch;
 
         public Kuriimu2Form()
         {
             InitializeComponent();
 
             _progressContext = new ConcurrentProgress(new NullProgressOutput());
-            _dialogManager = new DialogManagerForm();
+            var dialogManager = new DialogManagerForm();
 
             _hashForm = new HashTypeExtensionForm();
             _encryptForm = new EncryptTypeExtensionForm();
@@ -59,11 +71,12 @@ namespace Kuriimu2.WinForms.MainForms
             _decompressForm = new DecompressTypeExtensionForm();
             _compressForm = new CompressTypeExtensionForm();
             _rawImageViewer = new RawImageViewer();
+            _sequenceSearcher = new SequenceSearcher();
 
             _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
             _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
 
-            _pluginManager = new PluginManager(_progressContext, _dialogManager, "plugins")
+            _pluginManager = new PluginManager(_progressContext, dialogManager, "plugins")
             {
                 AllowManualSelection = Settings.Default.AllowManualSelection
             };
@@ -72,177 +85,95 @@ namespace Kuriimu2.WinForms.MainForms
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
-            _timer = new Timer
-            {
-                Interval = 14
-            };
-            _timer.Tick += Timer_Tick;
-            _globalOperationWatch = new Stopwatch();
-
             Icon = Resources.kuriimu2winforms;
 
             // TODO: Enable batch processing again
             batchProcessorToolStripMenuItem.Enabled = false;
-            //batchProcessorToolStripMenuItem.Enabled = _pluginManager.GetAdapters<ICipherAdapter>().Any() ||
-            //                                          _pluginManager.GetAdapters<ICompressionAdapter>().Any() ||
-            //                                          _pluginManager.GetAdapters<IHashAdapter>().Any();
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
-            tabCloseButtons.Images.SetKeyName(0, "close-button");
+            tabCloseButtons.Images.SetKeyName(0, CloseButton_);
         }
 
-        private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("Following plugins could not be loaded:");
-            foreach (var error in errors)
-                sb.AppendLine(error.AssemblyPath);
-
-            MessageBox.Show(sb.ToString(), "Plugins not available", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        #region Events
-
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            operationTimer.Text = _globalOperationWatch.Elapsed.ToString();
-        }
-
-        private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            while (_stateDictionary.Keys.Count > 0)
-            {
-                var stateInfo = _stateDictionary.Keys.First();
-                if (!CloseFile(stateInfo, true).Result)
-                {
-                    e.Cancel = true;
-                    break;
-                }
-            }
-        }
-
-        private void PluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
-        {
-            // Display form for manual selection
-            var chooseForm = new ChoosePluginForm(e.FilePlugins);
-            var result = chooseForm.ShowDialog();
-
-            if (result == DialogResult.OK)
-            {
-                e.Result = chooseForm.SelectedFilePlugin;
-            }
-        }
-
-        #region Tab Item
-
-        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
-        {
-            if (!_tabDictionary.ContainsKey(openFiles.TabPages[e.Index]))
-                return;
-
-            var tabEntry = _tabDictionary[openFiles.TabPages[e.Index]];
-            var textColor = tabEntry.TabColor.GetBrightness() <= 0.49 ? Color.White : Color.Black;
-
-            // Color the Tab Header
-            e.Graphics.FillRectangle(new SolidBrush(tabEntry.TabColor), e.Bounds);
-
-            // Format String
-            var drawFormat = new StringFormat
-            {
-                Alignment = StringAlignment.Far,
-                LineAlignment = StringAlignment.Center
-            };
-
-            // Draw Header Text
-            e.Graphics.DrawString(openFiles.TabPages[e.Index].Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
-
-            //Draw image
-            var drawPoint = openFiles.SelectedIndex == e.Index ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
-            e.Graphics.DrawImage(tabCloseButtons.Images["close-button"], drawPoint);
-        }
-
-        private async void openFiles_MouseUp(object sender, MouseEventArgs e)
-        {
-            var r = openFiles.GetTabRect(openFiles.SelectedIndex);
-            var closeButton = new Rectangle(r.Left + 9, r.Top + 4, tabCloseButtons.Images["close-button"].Width, tabCloseButtons.Images["close-button"].Height);
-            if (closeButton.Contains(e.Location))
-            {
-                var tabEntry = _tabDictionary[openFiles.SelectedTab];
-
-                // Select parent
-                var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
-                if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
-                    openFiles.SelectedTab = _stateDictionary[parentStateInfo].TabPage;
-
-                await CloseFile(tabEntry.StateInfo);
-            }
-        }
-
-        #endregion
-
-        #region DragDrop
-
-        private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
-        {
-            e.Effect = DragDropEffects.Copy;
-        }
-
-        private void Kuriimu2_DragDrop(object sender, DragEventArgs e)
-        {
-            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
-            foreach (var file in files)
-                OpenFile(file, false);
-        }
-
-        #endregion
-
-        #region mainMenuStrip
+        #region Open File
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog
-            {
-                Filter = CreateFileFilters(_pluginManager.GetFilePluginLoaders())
-            };
-
-            if (ofd.ShowDialog() == DialogResult.OK)
-                OpenFile(ofd.FileName, false);
+            OpenPhysicalFile(false);
         }
 
         private void openWithPluginToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog
-            {
-                Filter = CreateFileFilters(_pluginManager.GetFilePluginLoaders())
-            };
-
-            if (ofd.ShowDialog() == DialogResult.OK)
-                OpenFile(ofd.FileName, true);
+            OpenPhysicalFile(true);
         }
 
-        #endregion
-
-        #region Kuriimu Form
-
-        private async Task<bool> Kuriimu2_OpenTab(OpenFileEventArgs e)
+        private void OpenPhysicalFile(bool manualIdentification)
         {
-            // Check if file is already opened
-            var absoluteFilePath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
-            if (_pluginManager.IsLoaded(absoluteFilePath))
+            var fileToOpen = SelectFile();
+            OpenPhysicalFiles(new[] { fileToOpen }, manualIdentification);
+        }
+
+        private async void OpenPhysicalFiles(IList<string> filesToOpen, bool manualIdentification)
+        {
+            foreach (var fileToOpen in filesToOpen)
             {
-                var stateEntry = _stateDictionary[_pluginManager.GetLoadedFile(absoluteFilePath)];
-                openFiles.SelectedTab = stateEntry.TabPage;
+                var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
+                    plugin == null ?
+                        _pluginManager.LoadFile(fileToOpen) :
+                        _pluginManager.LoadFile(fileToOpen, plugin.PluginId));
+                var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
+
+                await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
+            }
+        }
+
+        private Task<bool> Kuriimu2_OpenTab(OpenFileEventArgs e)
+        {
+            var absoluteFilePath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
+            var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
+                e.PluginId == Guid.Empty ?
+                    _pluginManager.LoadFile(e.StateInfo, e.Afi) :
+                    _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
+            var tabColor = _stateDictionary[e.StateInfo].TabColor;
+
+            return OpenFile(absoluteFilePath, false, loadAction, tabColor);
+        }
+
+        private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)
+        {
+            // Check if path is invalid
+            if (filePath.IsNull || filePath.IsEmpty)
+            {
+                MessageBox.Show(InvalidFile_, LoadError_, MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return false;
+            }
+
+            // Check if file is already opened
+            if (_pluginManager.IsLoaded(filePath))
+            {
+                var selectedTabPage = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage;
+                if (openFiles.InvokeRequired)
+                    openFiles.Invoke(new Action(() => openFiles.SelectedTab = selectedTabPage));
+                else
+                    openFiles.SelectedTab = selectedTabPage;
 
                 return true;
             }
 
-            var loadResult = await (e.PluginId == Guid.Empty ?
-                _pluginManager.LoadFile(e.StateInfo, e.Afi) :
-                _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
+            // Choose plugin
+            IFilePlugin chosenPlugin = null;
+            if (manualIdentification)
+            {
+                chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
+                if (chosenPlugin == null)
+                {
+                    MessageBox.Show(NoPluginSelected_, LoadError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+            }
 
-            var tabColor = _stateDictionary[e.StateInfo].TabColor;
-
-            // Not loaded states are opened by the HexForm
+            // Load file
+            var loadResult = await loadFileFunc(chosenPlugin);
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
@@ -251,137 +182,59 @@ namespace Kuriimu2.WinForms.MainForms
                 var message = loadResult.Message;
 #endif
 
-                MessageBox.Show(message, "File not loaded", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, LoadError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
-            var newTabPage = AddTabPage(loadResult.LoadedState, tabColor);
-            if (newTabPage == null)
+            // Open tab page
+            var wasAdded = AddTabPage(loadResult.LoadedState, tabColor);
+            if (!wasAdded)
+            {
                 _pluginManager.Close(loadResult.LoadedState);
+                return false;
+            }
 
             return true;
         }
 
-        private async Task<bool> TabControl_SaveTab(SaveTabEventArgs e)
-        {
-            // TODO: Add version of file
-            return await SaveFile(e.StateInfo, e.SavePath, 0);
-        }
-
-        private void TabControl_UpdateTab(IStateInfo stateInfo)
-        {
-            var stateEntry = _stateDictionary[stateInfo];
-
-            stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
-
-            UpdateParentTabs(stateInfo);
-        }
-
-        #endregion
-
-        #endregion
-
-        #region Utilities
-
-        #region Open File
-
-        /// <summary>
-        /// Opens a file.
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="manualIdentification"></param>
-        private async void OpenFile(UPath filePath, bool manualIdentification)
-        {
-            // Check if file is already opened
-            if (_pluginManager.IsLoaded(filePath))
-            {
-                if (openFiles.InvokeRequired)
-                    openFiles.Invoke(new Action(() =>
-                        openFiles.SelectedTab = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage));
-                else
-                    openFiles.SelectedTab = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage;
-
-                return;
-            }
-
-            LoadResult loadResult;
-            if (!manualIdentification)
-            {
-                loadResult = await _pluginManager.LoadFile(filePath.FullName);
-            }
-            else
-            {
-                var pluginChooser = new ChoosePluginForm(_pluginManager.GetFilePlugins().ToArray());
-                if (pluginChooser.ShowDialog() != DialogResult.OK)
-                {
-                    MessageBox.Show("No plugin was selected.");
-                    return;
-                }
-
-                var selectedPlugin = pluginChooser.SelectedFilePlugin;
-                loadResult = await _pluginManager.LoadFile(filePath.FullName, selectedPlugin.PluginId);
-            }
-
-            if (!loadResult.IsSuccessful)
-            {
-#if DEBUG
-                var message = loadResult.Exception?.ToString() ?? loadResult.Message;
-#else
-                var message = loadResult.Message;
-#endif
-
-                MessageBox.Show(message, "File not loaded", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
-            var newTabPage = AddTabPage(loadResult.LoadedState, tabColor);
-            if (newTabPage == null)
-                _pluginManager.Close(loadResult.LoadedState);
-        }
-
-        private TabPage AddTabPage(IStateInfo stateInfo, Color tabColor)
+        private bool AddTabPage(IStateInfo stateInfo, Color tabColor)
         {
             IKuriimuForm kuriimuForm;
             try
             {
                 switch (stateInfo.PluginState)
                 {
-                    case ITextState textState:
+                    case ITextState _:
                         kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(),
                             _progressContext);
                         break;
 
-                    case IImageState imageState:
+                    case IImageState _:
                         kuriimuForm = new ImageForm(stateInfo, _progressContext);
                         break;
 
-                    case IArchiveState archiveState:
+                    case IArchiveState _:
                         kuriimuForm = new ArchiveForm(stateInfo, _pluginManager, _progressContext);
                         ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
                         break;
 
-                    case IHexState hexState:
+                    case IHexState _:
                         kuriimuForm = new HexForm(stateInfo);
                         break;
 
                     default:
-                        throw new InvalidOperationException(
-                            $"Unknown plugin state type {stateInfo.PluginState.GetType().Name}.");
+                        throw new UnknownPluginStateException(stateInfo.PluginState);
                 }
             }
             catch (Exception e)
             {
 #if DEBUG
-                MessageBox.Show(e.ToString(), "Exception catched.");
+                MessageBox.Show(e.ToString(), ExceptionCatched_);
 #else
                 MessageBox.Show(e.Message, "Exception catched.");
 #endif
-                return null;
+                return false;
             }
-
-            var userControl = (UserControl)kuriimuForm;
-            userControl.Dock = DockStyle.Fill;
 
             kuriimuForm.SaveFilesDelegate = TabControl_SaveTab;
             kuriimuForm.UpdateTabDelegate = TabControl_UpdateTab;
@@ -390,34 +243,44 @@ namespace Kuriimu2.WinForms.MainForms
             {
                 BackColor = SystemColors.Window,
                 Padding = new Padding(0, 2, 2, 1),
-                Name = stateInfo.FilePath.GetName()
+                Name = stateInfo.FilePath.ToRelative().GetName(),
+                Controls = { kuriimuForm as UserControl }
             };
-
-            tabPage.Controls.Add(kuriimuForm as UserControl);
-
-            _stateDictionary[stateInfo] = (tabPage.Controls[0] as IKuriimuForm, tabPage, tabColor);
-            _tabDictionary[tabPage] = (tabPage.Controls[0] as IKuriimuForm, stateInfo, tabColor);
-
             openFiles.TabPages.Add(tabPage);
-            tabPage.ImageKey = "close-button";  // setting ImageKey before adding, makes the image not working
+
+            _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
+            _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
+
+            tabPage.ImageKey = CloseButton_;  // setting ImageKey before adding, makes the image not working
             openFiles.SelectedTab = tabPage;
 
-            TabControl_UpdateTab(stateInfo);
+            UpdateTab(stateInfo);
 
-            return tabPage;
+            return true;
+        }
+
+        private string SelectFile()
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = CreateFileFilters(_pluginManager.GetFilePluginLoaders())
+            };
+
+            return ofd.ShowDialog() == DialogResult.OK ?
+                ofd.FileName :
+                null;
         }
 
         #endregion
 
         #region Save File
 
-        /// <summary>
-        /// Saves a state.
-        /// </summary>
-        /// <param name="stateInfo"></param>
-        /// <param name="savePath"></param>
-        /// <param name="version"></param>
-        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath, int version = 0)
+        private Task<bool> TabControl_SaveTab(SaveTabEventArgs e)
+        {
+            return SaveFile(e.StateInfo, e.SavePath);
+        }
+
+        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath)
         {
             var result = await _pluginManager.SaveFile(stateInfo, savePath);
             if (!result.IsSuccessful)
@@ -427,8 +290,8 @@ namespace Kuriimu2.WinForms.MainForms
 #else
                 var message = result.Message;
 #endif
-                MessageBox.Show(message, "File not saved.", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+
+                MessageBox.Show(message, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -436,7 +299,7 @@ namespace Kuriimu2.WinForms.MainForms
             UpdateChildrenTabs(stateInfo);
 
             // Update parents
-            UpdateParentTabs(stateInfo);
+            UpdateTab(stateInfo.ParentStateInfo, true);
 
             return true;
         }
@@ -445,19 +308,12 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Close File
 
-        /// <summary>
-        /// Close a Kfi and its corresponding tabs
-        /// </summary>
-        /// <param name="stateInfo">The loaded state of a file.</param>
-        /// <param name="ignoreChildWarning">Ignore showing child close warning.</param>
-        /// <returns>If the closing was successful.</returns>
         private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false)
         {
             // Security question, so the user knows that every sub file will be closed
             if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
             {
-                var result = MessageBox.Show("Every file opened from this one and below will be closed too. Continue?",
-                    "Dependant files", MessageBoxButtons.YesNo);
+                var result = MessageBox.Show(DependantFilesText_, DependantFiles_, MessageBoxButtons.YesNo);
 
                 switch (result)
                 {
@@ -472,12 +328,12 @@ namespace Kuriimu2.WinForms.MainForms
             // Save unchanged files, if wanted
             if (stateInfo.StateChanged)
             {
-                var result = MessageBox.Show($"Changes were made to \"{stateInfo.FilePath}\" or its opened sub files. Do you want to save those changes?",
-                    "Unsaved changes", MessageBoxButtons.YesNoCancel);
+                var text = string.Format(UnsavedChangesText_, stateInfo.FilePath);
+                var result = MessageBox.Show(text, UnsavedChanges_, MessageBoxButtons.YesNoCancel);
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        var saveResult = await _pluginManager.SaveFile(stateInfo);
+                        await _pluginManager.SaveFile(stateInfo);
 
                         // TODO: Somehow propagate save error to user?
 
@@ -492,11 +348,11 @@ namespace Kuriimu2.WinForms.MainForms
                 }
             }
 
-            // Remove all tabs related to states
-            CloseOpenTabs(stateInfo);
+            // Remove all tabs related to the state
+            CloseTab(stateInfo);
 
             // Update parents before state is disposed
-            UpdateParentTabs(stateInfo);
+            UpdateTab(stateInfo.ParentStateInfo, true);
 
             // Close all related states
             _pluginManager.Close(stateInfo);
@@ -504,20 +360,16 @@ namespace Kuriimu2.WinForms.MainForms
             return true;
         }
 
-        private void CloseOpenTabs(IStateInfo stateInfo)
+        private void CloseTab(IStateInfo stateInfo)
         {
             foreach (var child in stateInfo.ArchiveChildren)
-                CloseOpenTabs(child);
+                CloseTab(child);
 
             if (!_stateDictionary.ContainsKey(stateInfo))
                 return;
 
             var stateEntry = _stateDictionary[stateInfo];
             _tabDictionary.Remove(stateEntry.TabPage);
-            //_tabStateDictionary.Remove(tabPage);
-            //_tabColorDictionary.Remove(tabPage);
-            //_formColorDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
-            //_formTabDictionary.Remove(tabPage.Controls[0] as IKuriimuForm);
 
             stateEntry.TabPage.Dispose();
             _stateDictionary.Remove(stateInfo);
@@ -525,50 +377,78 @@ namespace Kuriimu2.WinForms.MainForms
 
         #endregion
 
-        #endregion
+        #region Update Methods
 
-        private void UpdateParentTabs(IStateInfo stateInfo)
+        private void TabControl_UpdateTab(IStateInfo stateInfo)
         {
-            if (stateInfo.ParentStateInfo == null)
-                return;
-
-            var parentForm = _stateDictionary[stateInfo.ParentStateInfo].KuriimuForm;
-            parentForm?.UpdateForm();
-
-            UpdateParentTabs(stateInfo.ParentStateInfo);
+            UpdateTab(stateInfo);
         }
 
         private void UpdateChildrenTabs(IStateInfo stateInfo)
         {
-            if (stateInfo.ArchiveChildren.Any())
+            // Iterate through the children
+            foreach (var child in stateInfo.ArchiveChildren)
+                UpdateChildrenTabs(child);
+
+            UpdateTab(stateInfo, true, false);
+        }
+
+        private void UpdateTab(IStateInfo stateInfo, bool invokeUpdateForm = false, bool iterateParents = true)
+        {
+            if (stateInfo == null || !_stateDictionary.ContainsKey(stateInfo))
+                return;
+
+            // Update this tab pages information
+            var stateEntry = _stateDictionary[stateInfo];
+            stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
+
+            // If the call was not made by the requesting state, propagate an update action to it
+            if (invokeUpdateForm)
+                stateEntry.KuriimuForm.UpdateForm();
+
+            // Update the information of the states parents
+            if (iterateParents)
+                UpdateTab(stateInfo.ParentStateInfo, true);
+        }
+
+        #endregion
+
+        #region Events
+
+        private void PluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        {
+            var selectedPlugin = ChoosePlugin(e.FilePlugins);
+            if (selectedPlugin != null)
+                e.Result = selectedPlugin;
+        }
+
+        private void Kuriimu2_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
+        }
+
+        private void Kuriimu2_DragDrop(object sender, DragEventArgs e)
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            OpenPhysicalFiles(files, false);
+        }
+
+        private void Kuriimu2_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            while (_stateDictionary.Keys.Count > 0)
             {
-                foreach (var child in stateInfo.ArchiveChildren)
-                    UpdateChildrenTabs(child);
+                var stateInfo = _stateDictionary.Keys.First();
+                if (CloseFile(stateInfo, true).Result)
+                    continue;
+
+                e.Cancel = true;
+                break;
             }
-
-            _stateDictionary[stateInfo].KuriimuForm?.UpdateForm();
         }
 
-        private string CreateFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
+        private void textSequenceSearcherToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var filters = new List<string> { "All files|*.*" };
-
-            foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins))
-            {
-                filters.Add($"{plugin.Metadata?.Name ?? plugin.GetType().Name}|{string.Join(";", plugin.FileExtensions)}");
-            }
-
-            return string.Join("|", filters);
-        }
-
-        private void TextSequenceSearcherToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new SequenceSearcher().ShowDialog();
-        }
-
-        private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            //new Batch(_pluginManager).ShowDialog();
+            _sequenceSearcher.ShowDialog();
         }
 
         private void hashesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -599,6 +479,101 @@ namespace Kuriimu2.WinForms.MainForms
         private void rawImageViewerToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _rawImageViewer.ShowDialog();
+        }
+
+        private void openFiles_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            var selectedTabPage = openFiles.TabPages[e.Index];
+            if (!_tabDictionary.ContainsKey(selectedTabPage))
+                return;
+
+            var tabEntry = _tabDictionary[selectedTabPage];
+            var textColor = tabEntry.TabColor.GetBrightness() <= 0.49 ? Color.White : Color.Black;
+
+            // Color the tab header
+            e.Graphics.FillRectangle(new SolidBrush(tabEntry.TabColor), e.Bounds);
+
+            // Format string
+            var drawFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Far,
+                LineAlignment = StringAlignment.Center
+            };
+
+            // Draw header text
+            e.Graphics.DrawString(selectedTabPage.Text, e.Font, new SolidBrush(textColor), new Rectangle(e.Bounds.Left, e.Bounds.Top, e.Bounds.Width - 2, e.Bounds.Height), drawFormat);
+
+            // Draw image
+            var drawPoint = openFiles.SelectedIndex == e.Index ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
+            e.Graphics.DrawImage(tabCloseButtons.Images[CloseButton_], drawPoint);
+        }
+
+        private async void openFiles_MouseUp(object sender, MouseEventArgs e)
+        {
+            var tabImage = tabCloseButtons.Images[CloseButton_];
+            if (tabImage == null)
+                return;
+
+            var selectedRect = openFiles.GetTabRect(openFiles.SelectedIndex);
+            var closeButtonRect = new Rectangle(selectedRect.Left + 9, selectedRect.Top + 4, tabImage.Width, tabImage.Height);
+            if (!closeButtonRect.Contains(e.Location))
+                return;
+
+            var tabEntry = _tabDictionary[openFiles.SelectedTab];
+            var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
+
+            // Close file
+            var wasClosed = await CloseFile(tabEntry.StateInfo);
+            if (!wasClosed)
+                return;
+
+            // Select parent tab
+            if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
+                openFiles.SelectedTab = _stateDictionary[parentStateInfo].TabPage;
+        }
+
+        #endregion
+
+        #region Support
+
+        private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Following plugins could not be loaded:");
+            foreach (var error in errors)
+                sb.AppendLine(error.AssemblyPath);
+
+            MessageBox.Show(sb.ToString(), PluginsNotAvailable_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
+        {
+            var pluginChooser = new ChoosePluginForm(filePlugins);
+            return pluginChooser.ShowDialog() == DialogResult.OK ?
+                pluginChooser.SelectedFilePlugin :
+                null;
+        }
+
+        private string CreateFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
+        {
+            var filters = new List<string> { "All files|*.*" };
+
+            foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins))
+            {
+                var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
+                var extensions = string.Join(";", plugin.FileExtensions);
+
+                filters.Add($"{pluginName}|{extensions}");
+            }
+
+            return string.Join("|", filters);
+        }
+
+        #endregion
+
+        private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //new Batch(_pluginManager).ShowDialog();
         }
     }
 }

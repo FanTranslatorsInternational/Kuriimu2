@@ -131,7 +131,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             PopulateBorderStyleDropdown();
 
             // Update form elements
-            UpdateForm();
+            UpdateFormInternal();
             UpdatePreview();
             UpdateImageList();
         }
@@ -272,7 +272,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             PopulatePaletteDropdown(SelectedImageInfo);
 
-            UpdateForm();
+            UpdateFormInternal();
             UpdateImageList();
             UpdatePreview();
         }
@@ -288,7 +288,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             SelectedImage.TranscodePalette(newPaletteFormat);
 
-            UpdateForm();
+            UpdateFormInternal();
             UpdateImageList();
             UpdatePreview();
         }
@@ -509,7 +509,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var result = await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
 
-            UpdateForm();
+            UpdateFormInternal();
         }
 
         private void ExportPng()
@@ -558,7 +558,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 MessageBox.Show(ex.ToString(), ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            UpdateForm();
+            UpdateFormInternal();
 
             UpdateImageList();
             UpdatePreview();
@@ -570,6 +570,17 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         /// <inheritdoc />
         public void UpdateForm()
+        {
+            UpdateProperties();
+        }
+
+        private void UpdateFormInternal()
+        {
+            UpdateProperties();
+            UpdateTabDelegate?.Invoke(_stateInfo);
+        }
+
+        private void UpdateProperties()
         {
             tsbSave.Enabled = ImageState is ISaveFiles;
             tsbSaveAs.Enabled = ImageState is ISaveFiles && _stateInfo.ParentStateInfo == null;
@@ -586,8 +597,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             tsbFormat.Enabled = ColorEncodings.Any() || IndexEncodings.Any();
 
             imbPreview.Enabled = ImageState.Images.Any();
-
-            UpdateTabDelegate?.Invoke(_stateInfo);
         }
 
         private void UpdatePreview()
@@ -786,13 +795,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var index = indexFunc(controlPoint);
             if (index < 0 || index >= SelectedImage.GetPalette(_progressContext).Count)
             {
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
             if (clrDialog.ShowDialog() != DialogResult.OK)
             {
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
@@ -808,11 +817,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
-            UpdateForm();
+            UpdateFormInternal();
             UpdatePreview();
             UpdateImageList();
         }
@@ -831,7 +840,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var pointInImg = GetPointInImage(controlPoint);
             if (pointInImg == Point.Empty)
             {
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
@@ -847,11 +856,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
-            UpdateForm();
+            UpdateFormInternal();
             UpdatePreview();
             UpdateImageList();
         }
@@ -919,11 +928,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateForm();
+                UpdateFormInternal();
                 return;
             }
 
-            UpdateForm();
+            UpdateFormInternal();
             UpdatePreview();
             UpdateImageList();
         }
