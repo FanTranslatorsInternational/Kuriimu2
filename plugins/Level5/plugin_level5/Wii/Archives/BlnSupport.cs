@@ -1,0 +1,31 @@
+﻿using System.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.Archive;
+
+namespace plugin_level5.Wii.Archives
+{
+    class Mcb0Entry
+    {
+        public short unk1;
+        public short unk2;
+        public uint offset;
+        public uint size;
+    }
+
+    class BlnArchiveFileInfo : ArchiveFileInfo
+    {
+        public Mcb0Entry Entry { get; }
+
+        public BlnArchiveFileInfo(Stream fileData, string filePath, Mcb0Entry entry) :
+            base(fileData, filePath)
+        {
+            Entry = entry;
+        }
+
+        public BlnArchiveFileInfo(Stream fileData, string filePath, Mcb0Entry entry, IKompressionConfiguration configuration, long decompressedSize) :
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+            Entry = entry;
+        }
+    }
+}
