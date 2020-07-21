@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Kanvas.Encoding.BlockCompressions.ETC1.Models;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
@@ -258,7 +259,7 @@ namespace plugin_nintendo.Archives
                     continue;
                 }
 
-                var subStream = new SubStream(input, (long)entry.offset<<2, entry.size);
+                var subStream = new SubStream(input, (long)entry.offset << 2, entry.size);
                 yield return new ArchiveFileInfo(subStream, (path / nodeName).FullName);
             }
         }
