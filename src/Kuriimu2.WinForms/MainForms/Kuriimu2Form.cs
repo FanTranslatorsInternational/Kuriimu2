@@ -388,11 +388,12 @@ namespace Kuriimu2.WinForms.MainForms
             // Remove all tabs related to the state
             CloseTab(stateInfo);
 
-            // Update parents before state is disposed
-            UpdateTab(stateInfo.ParentStateInfo, true);
-
             // Close all related states
+            var parentState = stateInfo.ParentStateInfo;
             _pluginManager.Close(stateInfo);
+
+            // Update parents before state is disposed
+            UpdateTab(parentState, true);
 
             return true;
         }

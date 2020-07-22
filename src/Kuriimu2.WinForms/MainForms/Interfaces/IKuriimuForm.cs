@@ -20,16 +20,11 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
 
         public UPath SavePath { get; }
 
-        public SaveTabEventArgs(IStateInfo stateInfo)
+        public SaveTabEventArgs(IStateInfo stateInfo, UPath savePath)
         {
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
 
             StateInfo = stateInfo;
-        }
-
-        public SaveTabEventArgs(IStateInfo stateInfo, UPath savePath) :
-            this(stateInfo)
-        {
             SavePath = savePath;
         }
     }

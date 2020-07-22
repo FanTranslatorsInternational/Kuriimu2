@@ -58,7 +58,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.renameFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openWithToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imlFilesLarge = new System.Windows.Forms.ImageList(this.components);
             this.tlsFileDetails = new System.Windows.Forms.ToolStrip();
             this.tslFileCount = new System.Windows.Forms.ToolStripLabel();
@@ -191,7 +192,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // 
             // treDirectories
             // 
-            this.treDirectories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.treDirectories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
             | System.Windows.Forms.AnchorStyles.Left)));
             this.treDirectories.ContextMenuStrip = this.mnuDirectories;
             this.treDirectories.FullRowSelect = true;
@@ -300,12 +301,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // mnuFiles
             // 
             this.mnuFiles.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.extractFileToolStripMenuItem,
-            this.replaceFileToolStripMenuItem,
-            this.renameFileToolStripMenuItem,
-            this.deleteFileToolStripMenuItem,
-            this.toolStripSeparator4,
-            this.openWithPluginToolStripMenuItem});
+                this.openToolStripMenuItem,
+                this.openWithToolStripMenuItem,
+                this.toolStripSeparator4,
+                this.extractFileToolStripMenuItem,
+                this.replaceFileToolStripMenuItem,
+                this.renameFileToolStripMenuItem,
+                this.deleteFileToolStripMenuItem});
             this.mnuFiles.Name = "mnuFiles";
             this.mnuFiles.Size = new System.Drawing.Size(167, 120);
             this.mnuFiles.Opening += new System.ComponentModel.CancelEventHandler(this.mnuFiles_Opening);
@@ -347,11 +349,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.toolStripSeparator4.Name = "toolStripSeparator4";
             this.toolStripSeparator4.Size = new System.Drawing.Size(163, 6);
             // 
-            // openWithPluginToolStripMenuItem
+            // openToolStripMenuItem
             // 
-            this.openWithPluginToolStripMenuItem.Name = "openWithPluginToolStripMenuItem";
-            this.openWithPluginToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
-            this.openWithPluginToolStripMenuItem.Text = "Open with plugin";
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Click += openToolStripMenuItem_Click;
+            // 
+            // openWithToolStripMenuItem
+            // 
+            this.openWithToolStripMenuItem.Name = "openWithToolStripMenuItem";
+            this.openWithToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.openWithToolStripMenuItem.Text = "Open with...";
             // 
             // imlFilesLarge
             // 
@@ -539,7 +548,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private System.Windows.Forms.ToolStripMenuItem renameFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
-        private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openWithToolStripMenuItem;
         private System.Windows.Forms.Button btnSearchDelete;
         private System.Windows.Forms.TextBox txtSearch;
     }
