@@ -289,12 +289,12 @@ namespace Kuriimu2.WinForms.MainForms
             return SaveFile(e.StateInfo, e.SavePath);
         }
 
-        private Task<bool> SaveFile(IStateInfo stateInfo)
+        private Task<bool> SaveFile(IStateInfo stateInfo, bool invokeUpdateForm = false)
         {
-            return SaveFile(stateInfo, UPath.Empty);
+            return SaveFile(stateInfo, UPath.Empty, invokeUpdateForm);
         }
 
-        private Task<bool> SaveFileAs(IStateInfo stateInfo)
+        private Task<bool> SaveFileAs(IStateInfo stateInfo, bool invokeUpdateForm = false)
         {
             var sfd = new SaveFileDialog
             {
@@ -308,10 +308,10 @@ namespace Kuriimu2.WinForms.MainForms
                 return Task.FromResult(false);
             }
 
-            return SaveFile(stateInfo, sfd.FileName);
+            return SaveFile(stateInfo, sfd.FileName, invokeUpdateForm);
         }
 
-        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath)
+        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath, bool invokeUpdateForm = false)
         {
             var saveResult = savePath.IsEmpty ?
                 await _pluginManager.SaveFile(stateInfo) :
@@ -322,12 +322,15 @@ namespace Kuriimu2.WinForms.MainForms
 #if DEBUG
                 var message = saveResult.Exception?.ToString() ?? saveResult.Message;
 #else
-                var message = result.Message;
+                var message = saveResult.Message;
 #endif
 
                 MessageBox.Show(message, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
+
+            // Update current state form if enabled
+            UpdateTab(stateInfo, invokeUpdateForm, false);
 
             // Update children
             UpdateChildrenTabs(stateInfo);
@@ -485,14 +488,14 @@ namespace Kuriimu2.WinForms.MainForms
             // Ctrl+Shift+S for Save As only for root files
             if (e.Control && e.Shift && e.KeyCode == Keys.S && tabEntry.StateInfo.ParentStateInfo == null)
             {
-                await SaveFileAs(tabEntry.StateInfo);
+                await SaveFileAs(tabEntry.StateInfo, true);
                 return;
             }
 
             // Ctrl+S for Save
             if (e.Control && e.KeyCode == Keys.S)
             {
-                await SaveFile(tabEntry.StateInfo);
+                await SaveFile(tabEntry.StateInfo, true);
                 return;
             }
         }
