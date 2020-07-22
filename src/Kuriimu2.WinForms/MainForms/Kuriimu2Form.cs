@@ -40,6 +40,9 @@ namespace Kuriimu2.WinForms.MainForms
         private const string DependantFiles_ = "Dependant files";
         private const string DependantFilesText_ = "Every file opened from this one and below will be closed too. Continue?";
 
+        private const string FormTitle_ = "Kuriimu2";
+        private const string FormTitlePlugin_ = "Kuriimu2 - {0} - {1}";
+
         private const string CloseButton_ = "close-button";
 
         private readonly HashTypeExtensionForm _hashForm;
@@ -195,6 +198,10 @@ namespace Kuriimu2.WinForms.MainForms
                 _pluginManager.Close(loadResult.LoadedState);
                 return false;
             }
+
+            // Update title if only one file is open
+            if (openFiles.TabCount == 1)
+                UpdateFormText();
 
             return true;
         }
@@ -438,6 +445,22 @@ namespace Kuriimu2.WinForms.MainForms
                 UpdateTab(stateInfo.ParentStateInfo, true);
         }
 
+        private void UpdateFormText()
+        {
+            if (openFiles.SelectedIndex < 0)
+            {
+                Text = FormTitle_;
+                return;
+            }
+
+            var stateEntry = _tabDictionary[openFiles.SelectedTab];
+
+            var pluginAssemblyName = ((UPath)stateEntry.StateInfo.PluginState.GetType().Assembly.Location).GetName();
+            var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
+
+            Text = string.Format(FormTitlePlugin_, pluginAssemblyName, pluginId.ToString("D"));
+        }
+
         #endregion
 
         #region Events
@@ -496,6 +519,11 @@ namespace Kuriimu2.WinForms.MainForms
                 e.Cancel = true;
                 break;
             }
+        }
+
+        private void openFiles_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UpdateFormText();
         }
 
         private void textSequenceSearcherToolStripMenuItem_Click(object sender, EventArgs e)

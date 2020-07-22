@@ -202,6 +202,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.openFiles.TabIndex = 1;
             this.openFiles.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.openFiles_DrawItem);
             this.openFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.openFiles_MouseUp);
+            this.openFiles.SelectedIndexChanged += openFiles_SelectedIndexChanged;
             // 
             // tabCloseButtons
             // 
