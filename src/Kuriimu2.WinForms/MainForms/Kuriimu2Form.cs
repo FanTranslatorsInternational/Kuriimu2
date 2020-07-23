@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,12 @@ namespace Kuriimu2.WinForms.MainForms
         private const string FormTitlePlugin_ = "Kuriimu2 - {0} - {1}";
 
         private const string CloseButton_ = "close-button";
+
+        private const Keys OpenHotKey_ = Keys.Control | Keys.O;
+        private const Keys OpenWithHotKey_ = Keys.Control | Keys.Shift | Keys.O;
+        private const Keys SaveHotKey_ = Keys.Control | Keys.S;
+        private const Keys SaveAllHotKey_ = Keys.Control | Keys.Shift | Keys.S;
+        private const Keys SaveAsHotKey_ = Keys.F12;
 
         private readonly HashTypeExtensionForm _hashForm;
         private readonly CipherTypeExtensionForm _encryptForm;
@@ -289,6 +296,12 @@ namespace Kuriimu2.WinForms.MainForms
             return SaveFile(e.StateInfo, e.SavePath);
         }
 
+        private async Task SaveAll(bool invokeUpdateForm)
+        {
+            foreach (var entry in _tabDictionary.Values)
+                await SaveFile(entry.StateInfo, invokeUpdateForm);
+        }
+
         private Task<bool> SaveFile(IStateInfo stateInfo, bool invokeUpdateForm = false)
         {
             return SaveFile(stateInfo, UPath.Empty, invokeUpdateForm);
@@ -476,28 +489,35 @@ namespace Kuriimu2.WinForms.MainForms
                 e.Result = selectedPlugin;
         }
 
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private async void Kuriimu2_KeyDown(object sender, KeyEventArgs e)
         {
-            var selectedTab = openFiles.SelectedTab;
-            var tabEntry = _tabDictionary[selectedTab];
+            var tabEntry = GetSelectedTabEntry();
 
-            // --- Handle save actions
-
-            if (!(tabEntry.StateInfo.PluginState is ISaveFiles))
-                return;
-
-            // Ctrl+Shift+S for Save As only for root files
-            if (e.Control && e.Shift && e.KeyCode == Keys.S && tabEntry.StateInfo.ParentStateInfo == null)
+            switch (e.KeyData)
             {
-                await SaveFileAs(tabEntry.StateInfo, true);
-                return;
-            }
+                case OpenHotKey_:
+                    OpenPhysicalFile(false);
+                    break;
 
-            // Ctrl+S for Save
-            if (e.Control && e.KeyCode == Keys.S)
-            {
-                await SaveFile(tabEntry.StateInfo, true);
-                return;
+                case OpenWithHotKey_:
+                    OpenPhysicalFile(true);
+                    break;
+
+                case SaveHotKey_:
+                    if (tabEntry.StateInfo.PluginState is ISaveFiles)
+                        await SaveFile(tabEntry.StateInfo, true);
+                    break;
+
+                case SaveAllHotKey_:
+                    if (tabEntry.StateInfo.PluginState is ISaveFiles)
+                        await SaveAll(true);
+                    break;
+
+                case SaveAsHotKey_:
+                    if (tabEntry.StateInfo.PluginState is ISaveFiles)
+                        await SaveFileAs(tabEntry.StateInfo, true);
+                    break;
             }
         }
 
@@ -628,6 +648,18 @@ namespace Kuriimu2.WinForms.MainForms
                 sb.AppendLine(error.AssemblyPath);
 
             MessageBox.Show(sb.ToString(), PluginsNotAvailable_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor) GetSelectedTabEntry()
+        {
+            var selectedTab = openFiles.SelectedTab;
+            if (selectedTab == null)
+                return default;
+
+            if (_tabDictionary.ContainsKey(selectedTab))
+                return _tabDictionary[selectedTab];
+
+            return default;
         }
 
         private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
