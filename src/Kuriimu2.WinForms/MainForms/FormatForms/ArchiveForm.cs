@@ -542,27 +542,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #region lstFiles
 
-        private async void lstFiles_DoubleClick(object sender, EventArgs e)
+        private void lstFiles_DoubleClick(object sender, EventArgs e)
         {
             var menuItem = lstFiles.SelectedItems[0];
             var afi = menuItem.Tag as ArchiveFileInfo;
 
-            var pluginIds = afi.PluginIds ?? Array.Empty<Guid>();
-            if (_pluginManager.GetFilePluginLoaders().Any(x => pluginIds.Any(x.Exists)))
-            {
-                var pluginId = pluginIds.First(x => _pluginManager.GetFilePluginLoaders().Any(y => y.Exists(x)));
-
-                if (!await OpenAfi(afi, pluginId))
-                    MessageBox.Show($"File couldn't be opened with preset plugin {pluginId}.",
-                        "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            else
-            {
-                // Use automatic identification
-                if (!await OpenAfi(afi))
-                    MessageBox.Show("File couldn't be opened.",
-                        "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            OpenFiles(new[] { afi });
         }
 
         #endregion
@@ -963,24 +948,36 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void OpenSelectedFiles()
         {
-            OpenFiles(CollectSelectedFiles().ToList());
+            OpenFiles(CollectSelectedFiles().ToArray());
         }
 
-        private async void OpenFiles(List<ArchiveFileInfo> files)
+        private async void OpenFiles(IList<ArchiveFileInfo> files)
         {
-            ContractAssertions.IsNotNull(files, nameof(files));
+            if (files == null || !files.Any())
+                return;
 
-            var notOpened = new List<ArchiveFileInfo>();
-            foreach (var afi in files)
+            foreach (var file in files)
             {
-                if (!await OpenAfi(afi))
-                    notOpened.Add(afi);
-            }
+                var pluginIds = file.PluginIds ?? Array.Empty<Guid>();
 
-            var notOpenedFiles = string.Join(Environment.NewLine, notOpened.Select(x => x.FilePath.GetName()));
-            if (notOpened.Count > 0)
-                MessageBox.Show($"Following files were not opened:{notOpenedFiles}",
-                    "Opening error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (!pluginIds.Any())
+                {
+                    // Use automatic identification
+                    if (!await OpenAfi(file))
+                    {
+                        MessageBox.Show("File couldn't be opened.",
+                            "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        continue;
+                    }
+                }
+
+                // Opening by plugin id
+                foreach (var pluginId in pluginIds)
+                    await OpenAfi(file, pluginId);
+
+                MessageBox.Show("File could not be loaded by any preset plugin.", "LoadError", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
         }
 
         private Task<bool> OpenAfi(ArchiveFileInfo afi) => OpenAfi(afi, Guid.Empty);
