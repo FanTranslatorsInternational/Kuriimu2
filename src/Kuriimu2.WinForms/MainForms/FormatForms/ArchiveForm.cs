@@ -341,6 +341,25 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             openWithToolStripMenuItem.Enabled = openWithToolStripMenuItem.DropDownItems.Count > 0;
         }
 
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+        private void UpdateDirectoryContextMenu()
+        {
+            var fileName = ((UPath)treDirectories.SelectedNode.Text).GetName().Replace('.', '_');
+
+            var canReplaceFiles = ArchiveState is IReplaceFiles;
+            var canDeleteFiles = ArchiveState is IRemoveFiles;
+            var canAddFiles = ArchiveState is IAddFiles;
+
+            replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
+            replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? $"&Replace {fileName}..." : "Replace is not supported";
+
+            addDirectoryToolStripMenuItem.Enabled = canAddFiles;
+            addDirectoryToolStripMenuItem.Text = canAddFiles ? $"&Add to {fileName}..." : "Add is not supported";
+
+            deleteDirectoryToolStripMenuItem.Enabled = canDeleteFiles;
+            deleteDirectoryToolStripMenuItem.Text = canDeleteFiles ? $"&Delete {fileName}..." : "Delete is not supported";
+        }
+
         #endregion
 
         #region Events
@@ -396,16 +415,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateFileContextMenu();
         }
 
-        private async void fileMenuContextItem_Click(object sender, EventArgs e)
-        {
-            var tsi = (ToolStripMenuItem)sender;
-            var (pluginId, afi) = ((Guid, ArchiveFileInfo))tsi.Tag;
-
-            if (!await OpenAfi(afi, pluginId))
-                MessageBox.Show($"File could not be opened with plugin '{pluginId}'.",
-                    "File not opened", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
         private void extractFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ExtractSelectedFiles();
@@ -431,45 +440,28 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             OpenSelectedFiles();
         }
 
+        private async void fileMenuContextItem_Click(object sender, EventArgs e)
+        {
+            var tsi = (ToolStripMenuItem)sender;
+            var (pluginId, afi) = ((Guid, ArchiveFileInfo))tsi.Tag;
+
+            if (!await OpenAfi(afi, pluginId))
+                MessageBox.Show($"File could not be opened with plugin '{pluginId}'.",
+                    "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         #endregion
 
         #region mnuDirectories
 
         private void mnuDirectories_Opening(object sender, CancelEventArgs e)
         {
-            var fileName = ((UPath)treDirectories.SelectedNode.Text).GetName().Replace('.', '_');
-
-            var canExtractFiles = true;
-            var canReplaceFiles = ArchiveState is IReplaceFiles;
-            var canDeleteFiles = ArchiveState is IRemoveFiles;
-            var canAddFiles = ArchiveState is IAddFiles;
-
-            extractDirectoryToolStripMenuItem.Enabled = canExtractFiles;
-            extractDirectoryToolStripMenuItem.Text = canExtractFiles ? $"E&xtract {fileName}..." : "Extract is not supported";
-
-            replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
-            replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? $"&Replace {fileName}..." : "Replace is not supported";
-
-            addDirectoryToolStripMenuItem.Enabled = canAddFiles;
-            addDirectoryToolStripMenuItem.Text = canAddFiles ? $"&Add to {fileName}..." : "Add is not supported";
-
-            deleteDirectoryToolStripMenuItem.Enabled = canDeleteFiles;
-            deleteDirectoryToolStripMenuItem.Text = canDeleteFiles ? $"&Delete {fileName}..." : "Delete is not supported";
+            UpdateDirectoryContextMenu();
         }
 
         private void extractDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var node = treDirectories.SelectedNode;
-            var selectedPath = UPath.Empty;
-
-            while (node.Parent != null)
-            {
-                selectedPath = node.Text / selectedPath;
-                node = node.Parent;
-            }
-
-            var treeFiles = CollectFilesFromTreeNode(treDirectories.SelectedNode).ToList();
-            ExtractFiles(treeFiles, selectedPath);
+            ExtractSelectedDirectory();
         }
 
         private void replaceDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -697,79 +689,117 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
-        #region Extract
+        #region Extract Directories
 
-        private void ExtractSelectedFiles()
+        private async void ExtractSelectedDirectory()
         {
-            var selectedFiles = CollectSelectedFiles().ToList();
-            ExtractFiles(selectedFiles, selectedFiles[0].FilePath.GetDirectory());
+            await ExtractDirectory(treDirectories.SelectedNode);
         }
 
-        private async void ExtractFiles(IList<ArchiveFileInfo> files, UPath rootPath)
+        private Task<bool> ExtractDirectory(TreeNode node)
         {
-            ContractAssertions.IsNotNull(files, nameof(files));
+            return ExtractDirectory(node, UPath.Empty);
+        }
 
-            UPath selectedPath0;
-            var selectedFile0 = string.Empty;
+        private async Task<bool> ExtractDirectory(TreeNode node, UPath extractPath)
+        {
+            if (node == null)
+                return true;
 
-            if (files.Count > 1)
+            if (!(node.Tag is IList<ArchiveFileInfo> files))
             {
-                // Extracting more than one file should choose a folder to extract to
+                // Extract sub directories
+                foreach (TreeNode subNode in node.Nodes)
+                    if (!await ExtractDirectory(subNode, extractPath))
+                        return false;
 
+                return true;
+            }
+
+            if (extractPath.IsNull || extractPath.IsEmpty)
+            {
+                // Select folder to extract to
                 var fbd = new FolderBrowserDialog
                 {
                     SelectedPath = Settings.Default.LastDirectory,
-                    Description = $"Select where you want to extract {rootPath} to..."
+                    Description = $"Select where you want to extract '{node.FullPath}' to..."
                 };
 
                 if (fbd.ShowDialog() != DialogResult.OK)
-                    return;
+                    return false;
 
-                selectedPath0 = fbd.SelectedPath;
+                extractPath = fbd.SelectedPath;
             }
-            else
+
+            // Extract files of directory
+            extractPath /= node == treDirectories.Nodes["root"] ? _stateInfo.FilePath.GetName() : node.Name;
+            if (!await ExtractFiles(files, extractPath))
+                return false;
+
+            // Extract sub directories
+            foreach (TreeNode subNode in node.Nodes)
+                if (!await ExtractDirectory(subNode, extractPath))
+                    return false;
+
+            return true;
+        }
+
+        #endregion
+
+        #region Extract Files
+
+        private async void ExtractSelectedFiles()
+        {
+            var selectedFiles = CollectSelectedFiles().ToArray();
+
+            if (selectedFiles.Length <= 0)
+                return;
+
+            await ExtractFiles(selectedFiles);
+        }
+
+        private Task<bool> ExtractFiles(IList<ArchiveFileInfo> files)
+        {
+            return ExtractFiles(files, UPath.Empty);
+        }
+
+        private async Task<bool> ExtractFiles(IList<ArchiveFileInfo> files, UPath extractPath)
+        {
+            if (files == null || !files.Any())
+                return true;
+
+            var directory = files[0].FilePath.GetDirectory();
+            if (files.Any(x => x.FilePath.GetDirectory() != directory))
+                return true;
+
+            // Select folder to extract to
+            if (extractPath.IsNull || extractPath.IsEmpty)
             {
-                // Extracting just one file should choose a folder and filename
-
-                var fileName = files[0].FilePath.GetName();
-                var extension = files[0].FilePath.GetExtensionWithDot();
-
-                var sfd = new SaveFileDialog
+                var fbd = new FolderBrowserDialog
                 {
-                    InitialDirectory = Settings.Default.LastDirectory,
-                    FileName = fileName,
-                    Filter = $@"{extension.ToUpper().TrimStart('.')} File (*{extension})|*{extension}"
+                    SelectedPath = Settings.Default.LastDirectory,
+                    Description = $"Select where you want to extract '{directory.ToRelative()}' to..."
                 };
 
-                if (sfd.ShowDialog() != DialogResult.OK)
-                    return;
+                if (fbd.ShowDialog() != DialogResult.OK)
+                    return false;
 
-                selectedPath0 = ((UPath)sfd.FileName).GetDirectory();
-                selectedFile0 = ((UPath)sfd.FileName).GetName();
+                extractPath = fbd.SelectedPath;
             }
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath0, _stateInfo.StreamManager);
-
-            var temporaryStreamProvider = _stateInfo.StreamManager.CreateTemporaryStreamProvider();
-            var extractionPath = files.Count > 1 ? rootPath.GetDirectory() : rootPath;
-            foreach (var afi in files)
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _stateInfo.StreamManager);
+            foreach (var file in files)
             {
-                var fileData = _stateInfo.StreamManager.WrapUndisposable(await afi.GetFileData(temporaryStreamProvider));
+                var newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.OpenOrCreate, FileAccess.Write);
+                var fileStream = await file.GetFileData();
 
-                var subPath = (UPath)afi.FilePath.ToRelative().FullName.Substring(extractionPath.FullName.Length);
-                destinationFileSystem.CreateDirectory(subPath.GetDirectory());
+                fileStream.CopyTo(newFileStream);
 
-                var filePath = subPath;
-                if (selectedFile0 != string.Empty)
-                    filePath = subPath.GetDirectory() / selectedFile0;
-
-                destinationFileSystem.SetFileData(filePath, fileData);
-
-                fileData.Close();
+                fileStream.Close();
+                newFileStream.Close();
             }
 
-            extractionPath = files.Count > 1 ? rootPath : files[0].FilePath.GetName();
-            MessageBox.Show($"'{extractionPath}' extracted successfully.", "Extraction Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return true;
         }
 
         #endregion
