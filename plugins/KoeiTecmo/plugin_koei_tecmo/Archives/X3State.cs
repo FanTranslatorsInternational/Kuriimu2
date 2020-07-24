@@ -13,7 +13,7 @@ namespace plugin_koei_tecmo.Archives
     {
         private readonly X3 _x3;
 
-        public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
+        public IList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged { get; set; }
 

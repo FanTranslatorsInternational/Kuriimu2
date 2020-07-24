@@ -16,7 +16,7 @@ namespace plugin_koei_tecmo.Archives
 
         private X3Header _header;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -67,7 +67,7 @@ namespace plugin_koei_tecmo.Archives
         }
 
         // TODO: Set firstBlockLength again (need to understand enough ZLib for that)
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
             var castedFiles = files.Cast<X3ArchiveFileInfo>().ToArray();
