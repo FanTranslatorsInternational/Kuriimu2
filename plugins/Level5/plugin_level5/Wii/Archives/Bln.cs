@@ -15,7 +15,7 @@ namespace plugin_level5.Wii.Archives
     {
         private byte[] _unkIndexData;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream indexStream, Stream dataStream)
+        public IList<ArchiveFileInfo> Load(Stream indexStream, Stream dataStream)
         {
             // Read index entries from mcb0
             var indexEntryCount = PeekMcb0EntryCount(indexStream);
@@ -41,7 +41,7 @@ namespace plugin_level5.Wii.Archives
             return result;
         }
 
-        public void Save(Stream indexOutput, Stream dataOutput, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream indexOutput, Stream dataOutput, IList<ArchiveFileInfo> files)
         {
             // Write files
             using var indexBw = new BinaryWriterX(indexOutput);

@@ -21,7 +21,7 @@ namespace plugin_nintendo.Archives
 
         private List<CgrpExtendedInfoEntry> _extendedInfo;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -71,7 +71,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<CgrpArchiveFileInfo>().ToList();
             using var bw = new BinaryWriterX(output);

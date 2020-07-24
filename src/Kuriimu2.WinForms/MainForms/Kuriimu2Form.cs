@@ -232,6 +232,8 @@ namespace Kuriimu2.WinForms.MainForms
                     case IArchiveState _:
                         kuriimuForm = new ArchiveForm(stateInfo, _pluginManager, _progressContext);
                         ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
+                        ((IArchiveForm)kuriimuForm).RenameFilesDelegate = Kuriimu2_RenameTab;
+                        ((IArchiveForm)kuriimuForm).DeleteFilesDelegate = Kuriimu2_DeleteTab;
                         break;
 
                     case IHexState _:
@@ -424,6 +426,47 @@ namespace Kuriimu2.WinForms.MainForms
 
             stateEntry.TabPage.Dispose();
             _stateDictionary.Remove(stateInfo);
+        }
+
+        #endregion
+
+        #region Rename File
+
+        private void Kuriimu2_RenameTab(RenameFileEventArgs e)
+        {
+            var fullPath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
+            var renamedFullPath = e.RenamePath.ToRelative();
+
+            var isLoaded = _pluginManager.IsLoaded(fullPath);
+            if (!isLoaded)
+                return;
+
+            var loadedState = _pluginManager.GetLoadedFile(fullPath);
+            RenameFile(loadedState, renamedFullPath);
+        }
+
+        private void RenameFile(IStateInfo stateInfo, UPath renamedPath)
+        {
+            stateInfo.RenameFilePath(renamedPath);
+
+            UpdateChildrenTabs(stateInfo);
+
+            UpdateTab(stateInfo, true, false);
+        }
+
+        #endregion
+
+        #region Delete File
+
+        private Task<bool> Kuriimu2_DeleteTab(DeleteFileEventArgs e)
+        {
+            var fullPath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
+            if (!_pluginManager.IsLoaded(fullPath))
+                return Task.FromResult(true);
+
+            var loadedState = _pluginManager.GetLoadedFile(fullPath);
+
+            return CloseFile(loadedState);
         }
 
         #endregion

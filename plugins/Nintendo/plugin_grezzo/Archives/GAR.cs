@@ -28,7 +28,7 @@ namespace plugin_grezzo.Archives
         private IList<(Gar5FileTypeEntry, string)> _fileTypeEntries;
         private IList<Gar5FileTypeInfo> _fileTypeInfos;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -51,7 +51,7 @@ namespace plugin_grezzo.Archives
             }
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             switch (_headerVersion)
             {
@@ -68,7 +68,7 @@ namespace plugin_grezzo.Archives
             }
         }
 
-        private IReadOnlyList<ArchiveFileInfo> ParseGar2(BinaryReaderX br, GarHeader header)
+        private IList<ArchiveFileInfo> ParseGar2(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
             var fileTypeEntries = br.ReadMultiple<Gar2FileTypeEntry>(header.fileTypeCount);
@@ -106,7 +106,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        private IReadOnlyList<ArchiveFileInfo> ParseGar5(BinaryReaderX br, GarHeader header)
+        private IList<ArchiveFileInfo> ParseGar5(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
             _fileTypeEntries = new List<(Gar5FileTypeEntry, string)>();
@@ -149,7 +149,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        private void SaveGar2(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        private void SaveGar2(Stream output, IList<ArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -263,7 +263,7 @@ namespace plugin_grezzo.Archives
             });
         }
 
-        private void SaveGar5(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        private void SaveGar5(Stream output, IList<ArchiveFileInfo> files)
         {
             var fileTypeEntryPosition = _headerSize;
             var fileTypeNamePosition = fileTypeEntryPosition + _fileTypeEntries.Count * _gar5FileTypeEntrySize;

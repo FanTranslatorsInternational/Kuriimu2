@@ -19,7 +19,7 @@ namespace plugin_level5._3DS.Archives
         private readonly int _directoryEntrySizev1 = Tools.MeasureType(typeof(Xfsa1DirectoryEntry));
         private readonly int _directoryEntrySizev2 = Tools.MeasureType(typeof(Xfsa2DirectoryEntry));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             // Determine XFSA version and parser
             var buffer = new byte[4];
@@ -48,7 +48,7 @@ namespace plugin_level5._3DS.Archives
             return _xfsaParser.Load(input);
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress)
         {
             if (_xfsaParser == null)
                 throw new InvalidOperationException("No XFSA is loaded.");

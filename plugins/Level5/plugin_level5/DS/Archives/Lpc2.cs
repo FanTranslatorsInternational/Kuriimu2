@@ -14,7 +14,7 @@ namespace plugin_level5.DS.Archives
         private readonly int _headerSize = Tools.MeasureType(typeof(Lpc2Header));
         private readonly int _fileEntrySize = Tools.MeasureType(typeof(Lpc2FileEntry));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -42,7 +42,7 @@ namespace plugin_level5.DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

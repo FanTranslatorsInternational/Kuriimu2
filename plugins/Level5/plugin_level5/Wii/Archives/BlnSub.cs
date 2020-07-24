@@ -13,7 +13,7 @@ namespace plugin_level5.Wii.Archives
     // HINT: Unbelievably ugly archive. Ignore everything that's done here and move on with your life, god dammit
     class BlnSub
     {
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -42,7 +42,7 @@ namespace plugin_level5.Wii.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             // Write files
             using var bw = new BinaryWriterX(output);

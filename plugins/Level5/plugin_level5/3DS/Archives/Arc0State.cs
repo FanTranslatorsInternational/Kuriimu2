@@ -11,11 +11,12 @@ using Kontract.Models.IO;
 
 namespace plugin_level5._3DS.Archives
 {
-    class Arc0State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class Arc0State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IRenameFiles, IRemoveFiles
     {
         private readonly Arc0 _arc0;
+        private bool _hasDeletedFiles;
 
-        public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
+        public IList<ArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public Arc0State()
@@ -34,6 +35,8 @@ namespace plugin_level5._3DS.Archives
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _arc0.Save(output, Files, saveContext.ProgressContext);
 
+            _hasDeletedFiles = false;
+
             return Task.CompletedTask;
         }
 
@@ -44,7 +47,24 @@ namespace plugin_level5._3DS.Archives
 
         private bool IsChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _hasDeletedFiles || Files.Any(x => x.ContentChanged);
+        }
+
+        public void Rename(ArchiveFileInfo afi, UPath path)
+        {
+            afi.FilePath = path;
+        }
+
+        public void RemoveFile(ArchiveFileInfo afi)
+        {
+            Files.Remove(afi);
+            _hasDeletedFiles = true;
+        }
+
+        public void RemoveAll()
+        {
+            Files.Clear();
+            _hasDeletedFiles = true;
         }
     }
 }

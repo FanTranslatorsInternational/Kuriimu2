@@ -13,7 +13,7 @@ namespace plugin_level5._3DS.Archives
     {
         private readonly int _entrySize = Tools.MeasureType(typeof(PckFileInfo));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -79,7 +79,7 @@ namespace plugin_level5._3DS.Archives
             //}
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

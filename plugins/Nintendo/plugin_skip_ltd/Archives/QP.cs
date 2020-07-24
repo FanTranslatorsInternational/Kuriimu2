@@ -14,7 +14,7 @@ namespace plugin_skip_ltd.Archives
         private static int _headerSize = 0x20;
         private static int _entrySize = Tools.MeasureType(typeof(U8Entry));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -26,7 +26,7 @@ namespace plugin_skip_ltd.Archives
             return fileSystemParser.Parse(input, header.entryDataOffset, header.entryDataSize, 0).ToArray();
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var darcTreeBuilder = new U8TreeBuilder(Encoding.ASCII);
             darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());

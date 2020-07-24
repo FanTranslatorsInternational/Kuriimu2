@@ -13,7 +13,7 @@ namespace plugin_nintendo.Archives
     // TODO: Make partition reading its own plugin?
     class WiiDisc
     {
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             var wiiDiscStream = new WiiDiscStream(input);
             using var br = new BinaryReaderX(wiiDiscStream, ByteOrder.BigEndian);
@@ -69,7 +69,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        private IReadOnlyList<ArchiveFileInfo> ParseFileSystem(Stream input, long fileSystemOffset, long fileSystemSize)
+        private IList<ArchiveFileInfo> ParseFileSystem(Stream input, long fileSystemOffset, long fileSystemSize)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 

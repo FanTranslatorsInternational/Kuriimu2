@@ -19,7 +19,7 @@ namespace plugin_nintendo.Archives
         private static int _entrySize = Tools.MeasureType(typeof(XbbFileEntry));
         private static int _hashEntrySize = Tools.MeasureType(typeof(XbbHashEntry));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -47,7 +47,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var entryPosition = _headerSize;
             var hashEntryPosition = entryPosition + files.Count * _entrySize;

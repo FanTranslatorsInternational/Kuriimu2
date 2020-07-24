@@ -15,7 +15,7 @@ namespace plugin_level5._3DS.Archives
     {
         private readonly Arcv _arcv;
 
-        public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
+        public IList<ArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public ArcvState()

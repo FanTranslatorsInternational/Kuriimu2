@@ -13,7 +13,7 @@ namespace plugin_level5._3DS.Archives
         private readonly int _headerSize = Tools.MeasureType(typeof(ArcvHeader));
         private readonly int _entrySize = Tools.MeasureType(typeof(ArcvFileInfo));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -33,7 +33,7 @@ namespace plugin_level5._3DS.Archives
             return files;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<ArcvArchiveFileInfo>().ToArray();
             using var bw = new BinaryWriterX(output);

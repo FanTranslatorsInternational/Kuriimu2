@@ -19,8 +19,8 @@ using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers.Plugins;
 using Kuriimu2.WinForms.MainForms.Interfaces;
+using Kuriimu2.WinForms.MainForms.Models;
 using Kuriimu2.WinForms.Properties;
-using MoreLinq;
 
 namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
@@ -29,14 +29,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private const string AllFilesFilter_ = "All Files (*.*)|*.*";
         private const string FileCount_ = "Files: {0}";
 
-        private static readonly Color _colorDefaultState = Color.Black;
-        private static readonly Color _colorChangedState = Color.Orange;
+        private static readonly Color ColorDefaultState = Color.Black;
+        private static readonly Color ColorChangedState = Color.Orange;
 
         private readonly IInternalPluginManager _pluginManager;
         private readonly IStateInfo _stateInfo;
         private readonly IProgressContext _progressContext;
 
-        private IList<UPath> _expandedPaths;
+        private readonly IList<UPath> _expandedPaths;
 
         private bool _isSearchEmpty = true;
         private string _searchTerm;
@@ -45,6 +45,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
         public Func<OpenFileEventArgs, Task<bool>> OpenFilesDelegate { get; set; }
+        public Action<RenameFileEventArgs> RenameFilesDelegate { get; set; }
+        public Func<DeleteFileEventArgs, Task<bool>> DeleteFilesDelegate { get; set; }
+
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
 
@@ -122,8 +125,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             UpdateProperties();
 
+            var rootNode = treDirectories.Nodes["root"];
+            if (rootNode != null)
+                rootNode.Text = _stateInfo.FilePath.ToRelative().FullName;
+
             UpdateDirectoryColors();
-            UpdateFiles();
+            UpdateFileColors();
         }
 
         private void UpdateFormInternal()
@@ -162,21 +169,44 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             foreach (var file in files)
             {
-                var isChanged = file.ContentChanged || _stateInfo.ArchiveChildren.Any(x => x.FilePath == file.FilePath);
-
-                var foreColor = isChanged ? _colorChangedState : _colorDefaultState;
                 var listViewItem = new ListViewItem(new[] { file.FilePath.GetName(), file.FileSize.ToString() },
-                    "0", foreColor, Color.Transparent, lstFiles.Font)
+                    "0", ColorDefaultState, Color.Transparent, lstFiles.Font)
                 {
                     Tag = file
                 };
 
+                UpdateFileColor(listViewItem);
                 lstFiles.Items.Add(listViewItem);
             }
 
             tslFileCount.Text = string.Format(FileCount_, files.Count);
 
             lstFiles.EndUpdate();
+        }
+
+        private void UpdateFileColors()
+        {
+            if (lstFiles.Items.Count <= 0)
+                return;
+
+            lstFiles.BeginUpdate();
+
+            foreach (ListViewItem item in lstFiles.Items)
+                UpdateFileColor(item);
+
+            lstFiles.EndUpdate();
+        }
+
+        private void UpdateFileColor(ListViewItem item)
+        {
+            if (item == null)
+                return;
+
+            if (!(item.Tag is ArchiveFileInfo afi))
+                return;
+
+            var isChanged = afi.ContentChanged || _stateInfo.ArchiveChildren.Any(x => x.FilePath == afi.FilePath);
+            item.ForeColor = isChanged ? ColorChangedState : ColorDefaultState;
         }
 
         private void UpdateDirectories()
@@ -253,19 +283,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                         if (node == null)
                             break;
 
-                        node.ForeColor = _colorDefaultState;
+                        node.ForeColor = ColorDefaultState;
                         Iterate(node.Nodes);
                     }
                 }
 
-                root.ForeColor = _colorDefaultState;
+                root.ForeColor = ColorDefaultState;
                 Iterate(root.Nodes);
                 return;
             }
 
             treDirectories.BeginUpdate();
 
-            root.ForeColor = _colorChangedState;
+            root.ForeColor = ColorChangedState;
             foreach (var filePath in changedFilePaths.Select(x => x.Split()))
             {
                 filePath.Aggregate(root, (node, part) =>
@@ -274,7 +304,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     if (newNode == null)
                         return null;
 
-                    newNode.ForeColor = _colorChangedState;
+                    newNode.ForeColor = ColorChangedState;
                     return newNode;
                 });
             }
@@ -291,13 +321,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (!(lstFiles.SelectedItems[0]?.Tag is ArchiveFileInfo afi))
                 return;
 
-            var selectedFilePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath / afi.FilePath.ToRelative();
-            var isLocked = _pluginManager.IsLoaded(selectedFilePath);
+            var isLoadLocked = IsFileLocked(afi, true);
+            var isStateLocked = IsFileLocked(afi, false);
 
-            var canExtractFiles = !isLocked;
-            var canReplaceFiles = ArchiveState is IReplaceFiles && !isLocked;
-            var canRenameFiles = ArchiveState is IRenameFiles && !isLocked;
-            var canDeleteFiles = ArchiveState is IRemoveFiles && !isLocked;
+            var canExtractFiles = !isLoadLocked;
+            var canReplaceFiles = ArchiveState is IReplaceFiles && !isStateLocked;
+            var canRenameFiles = ArchiveState is IRenameFiles;
+            var canDeleteFiles = ArchiveState is IRemoveFiles;
 
             // Update action menu items
 
@@ -351,13 +381,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var canAddFiles = ArchiveState is IAddFiles;
 
             replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
-            replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? $"&Replace {fileName}..." : "Replace is not supported";
+            replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? "&Replace..." : "Replace is not supported";
 
             addDirectoryToolStripMenuItem.Enabled = canAddFiles;
-            addDirectoryToolStripMenuItem.Text = canAddFiles ? $"&Add to {fileName}..." : "Add is not supported";
+            addDirectoryToolStripMenuItem.Text = canAddFiles ? "&Add..." : "Add is not supported";
 
             deleteDirectoryToolStripMenuItem.Enabled = canDeleteFiles;
-            deleteDirectoryToolStripMenuItem.Text = canDeleteFiles ? $"&Delete {fileName}..." : "Delete is not supported";
+            deleteDirectoryToolStripMenuItem.Text = canDeleteFiles ? "&Delete..." : "Delete is not supported";
         }
 
         #endregion
@@ -466,19 +496,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void replaceDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var node = treDirectories.SelectedNode;
-            var selectedPath = UPath.Empty;
-
-            while (node.Parent != null)
-            {
-                selectedPath = node.Text / selectedPath;
-                node = node.Parent;
-            }
-
-            var treeFiles = CollectFilesFromTreeNode(treDirectories.SelectedNode).ToList();
-            ReplaceFiles(treeFiles, selectedPath);
-
-            UpdateFormInternal();
+            ReplaceSelectedDirectory();
         }
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -621,17 +639,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 yield return item.Tag as ArchiveFileInfo;
         }
 
-        private IEnumerable<ArchiveFileInfo> CollectFilesFromTreeNode(TreeNode node)
-        {
-            if (node.Tag is IList<ArchiveFileInfo> files)
-                foreach (var file in files)
-                    yield return file;
-
-            foreach (TreeNode childNode in node.Nodes)
-                foreach (var file in CollectFilesFromTreeNode(childNode))
-                    yield return file;
-        }
-
         private UPath GetNodePath(TreeNode rootNode, TreeNode node)
         {
             if (rootNode == null || node == null)
@@ -648,28 +655,51 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return result;
         }
 
-        private IEnumerable<UPath> CollectExpandedDirectories(TreeNodeCollection nodeCollection)
-        {
-            if (nodeCollection == null)
-                yield break;
-
-            foreach (TreeNode node in nodeCollection)
-            {
-                if (!node.IsExpanded)
-                    continue;
-
-                var nodeName = node.Name;
-                yield return nodeName;
-
-                foreach (var collectedPath in CollectExpandedDirectories(node.Nodes))
-                    yield return UPath.Combine(nodeName, collectedPath);
-            }
-        }
-
         private void AddSearchPlaceholder()
         {
             txtSearch.Text = "Search archive...";
             txtSearch.ForeColor = SystemColors.ScrollBar;
+        }
+
+        #endregion
+
+        #region Support
+
+        private UPath SelectFolder()
+        {
+            var fbd = new FolderBrowserDialog
+            {
+                SelectedPath = Settings.Default.LastDirectory
+            };
+
+            return fbd.ShowDialog() != DialogResult.OK ? UPath.Empty : fbd.SelectedPath;
+        }
+
+        private UPath SelectFile(string fileName)
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = AllFilesFilter_,
+                InitialDirectory = Settings.Default.LastDirectory,
+                FileName = fileName
+            };
+
+            return ofd.ShowDialog() != DialogResult.OK ? UPath.Empty : ofd.FileName;
+        }
+
+        private bool IsFileLocked(ArchiveFileInfo afi, bool lockOnLoaded)
+        {
+            var absolutePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath / afi.FilePath.ToRelative();
+
+            var isLoaded = _pluginManager.IsLoaded(absolutePath);
+            if (!isLoaded)
+                return false;
+
+            if (!lockOnLoaded)
+                return true;
+
+            var openedState = _pluginManager.GetLoadedFile(absolutePath);
+            return openedState.StateChanged;
         }
 
         #endregion
@@ -681,52 +711,48 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             await ExtractDirectory(treDirectories.SelectedNode);
         }
 
-        private Task<bool> ExtractDirectory(TreeNode node)
+        private Task ExtractDirectory(TreeNode node)
         {
-            return ExtractDirectory(node, UPath.Empty);
+            return ExtractDirectory(node, new ExtractContext());
         }
 
-        private async Task<bool> ExtractDirectory(TreeNode node, UPath extractPath)
+        private async Task ExtractDirectory(TreeNode node, ExtractContext context)
         {
             if (node == null)
-                return true;
+                return;
 
-            if (!(node.Tag is IList<ArchiveFileInfo> files))
-            {
-                // Extract sub directories
-                foreach (TreeNode subNode in node.Nodes)
-                    if (!await ExtractDirectory(subNode, extractPath))
-                        return false;
-
-                return true;
-            }
-
-            if (extractPath.IsNull || extractPath.IsEmpty)
+            if (context.ExtractPath.IsNull || context.ExtractPath.IsEmpty)
             {
                 // Select folder to extract to
-                var fbd = new FolderBrowserDialog
+                context.ExtractPath = SelectFolder();
+                if (context.ExtractPath.IsNull || context.ExtractPath.IsEmpty)
                 {
-                    SelectedPath = Settings.Default.LastDirectory,
-                    Description = $"Select where you want to extract '{node.FullPath}' to..."
-                };
-
-                if (fbd.ShowDialog() != DialogResult.OK)
-                    return false;
-
-                extractPath = fbd.SelectedPath;
+                    context.IsSuccessful = false;
+                    context.Error = "No folder was selected.";
+                    return;
+                }
             }
 
             // Extract files of directory
+            if (node.Tag is IList<ArchiveFileInfo> files)
+            {
+                await ExtractFiles(files, context);
+                if (!context.IsSuccessful)
+                    return;
+            }
+
+            var extractPath = context.ExtractPath;
             extractPath /= node == treDirectories.Nodes["root"] ? _stateInfo.FilePath.GetName() : node.Name;
-            if (!await ExtractFiles(files, extractPath))
-                return false;
 
             // Extract sub directories
             foreach (TreeNode subNode in node.Nodes)
-                if (!await ExtractDirectory(subNode, extractPath))
-                    return false;
+            {
+                context.ExtractPath = extractPath;
 
-            return true;
+                await ExtractDirectory(subNode, context);
+                if (!context.IsSuccessful)
+                    return;
+            }
         }
 
         #endregion
@@ -736,45 +762,44 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void ExtractSelectedFiles()
         {
             var selectedFiles = CollectSelectedFiles().ToArray();
-
             if (selectedFiles.Length <= 0)
                 return;
 
             await ExtractFiles(selectedFiles);
         }
 
-        private Task<bool> ExtractFiles(IList<ArchiveFileInfo> files)
+        private Task ExtractFiles(IList<ArchiveFileInfo> files)
         {
-            return ExtractFiles(files, UPath.Empty);
+            return ExtractFiles(files, new ExtractContext());
         }
 
-        private async Task<bool> ExtractFiles(IList<ArchiveFileInfo> files, UPath extractPath)
+        private async Task ExtractFiles(IList<ArchiveFileInfo> files, ExtractContext context)
         {
             if (files == null || !files.Any())
-                return true;
+                return;
 
             var directory = files[0].FilePath.GetDirectory();
             if (files.Any(x => x.FilePath.GetDirectory() != directory))
-                return true;
+                return;
 
             // Select folder to extract to
-            if (extractPath.IsNull || extractPath.IsEmpty)
+            if (context.ExtractPath.IsNull || context.ExtractPath.IsEmpty)
             {
-                var fbd = new FolderBrowserDialog
+                context.ExtractPath = SelectFolder();
+                if (context.ExtractPath.IsNull || context.ExtractPath.IsEmpty)
                 {
-                    SelectedPath = Settings.Default.LastDirectory,
-                    Description = $"Select where you want to extract '{directory.ToRelative()}' to..."
-                };
-
-                if (fbd.ShowDialog() != DialogResult.OK)
-                    return false;
-
-                extractPath = fbd.SelectedPath;
+                    context.IsSuccessful = false;
+                    context.Error = "No folder was selected.";
+                    return;
+                }
             }
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _stateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(context.ExtractPath, _stateInfo.StreamManager);
             foreach (var file in files)
             {
+                if (IsFileLocked(file, true))
+                    continue;
+
                 var newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.OpenOrCreate, FileAccess.Write);
                 var fileStream = await file.GetFileData();
 
@@ -783,163 +808,255 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 fileStream.Close();
                 newFileStream.Close();
             }
-
-            return true;
         }
 
         #endregion
 
-        #region Replace
+        #region Replace Directories
+
+        private void ReplaceSelectedDirectory()
+        {
+            ReplaceDirectory(treDirectories.SelectedNode);
+        }
+
+        private void ReplaceDirectory(TreeNode node)
+        {
+            ReplaceDirectory(node, new ReplaceContext());
+        }
+
+        private void ReplaceDirectory(TreeNode node, ReplaceContext context)
+        {
+            if (node == null)
+                return;
+
+            if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+            {
+                // Select folder to extract to
+                context.ReplacePath = SelectFolder();
+                if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+                {
+                    context.IsSuccessful = false;
+                    context.Error = "No folder was selected.";
+                    return;
+                }
+            }
+
+            // Extract files of directory
+            if (node.Tag is IList<ArchiveFileInfo> files)
+            {
+                ReplaceFiles(files, context);
+                if (!context.IsSuccessful)
+                    return;
+            }
+
+            var replacePath = context.ReplacePath;
+
+            // Extract sub directories
+            foreach (TreeNode subNode in node.Nodes)
+            {
+                context.ReplacePath = replacePath / subNode.Name;
+
+                ReplaceDirectory(subNode, context);
+                if (!context.IsSuccessful)
+                    return;
+            }
+        }
+
+        #endregion
+
+        #region Replace Files
 
         private void ReplaceSelectedFiles()
         {
-
-            var selectedFiles = CollectSelectedFiles().ToList();
+            var selectedFiles = CollectSelectedFiles().ToArray();
+            if (selectedFiles.Length <= 0)
+                return;
 
             ReplaceFiles(selectedFiles);
-
-            UpdateFormInternal();
         }
 
         private void ReplaceFiles(IList<ArchiveFileInfo> files)
         {
-            if (files.Count > 1)
-                ReplaceFiles(files, files[0].FilePath.GetDirectory());
-            else
-                ReplaceFile(files[0]);
-        }
-
-        private void ReplaceFiles(IList<ArchiveFileInfo> files, UPath rootPath)
-        {
-            var fbd = new FolderBrowserDialog
-            {
-                SelectedPath = Settings.Default.LastDirectory,
-                Description = $"Select where you want to replace {rootPath} from..."
-            };
-
-            if (fbd.ShowDialog() != DialogResult.OK)
+            if (files == null || !files.Any())
                 return;
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(fbd.SelectedPath, _stateInfo.StreamManager);
-            var destinationFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, rootPath.ToAbsolute(), _stateInfo.StreamManager);
+            if (files.Count > 1)
+                ReplaceFiles(files, new ReplaceContext());
 
-            var replaceCount = 0;
-            foreach (var sourcePath in sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.File))
+            if (files.Count == 1)
+                ReplaceFile(files[0], new ReplaceContext());
+        }
+
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+        private void ReplaceFiles(IList<ArchiveFileInfo> files, ReplaceContext context)
+        {
+            if (!(ArchiveState is IReplaceFiles replaceState))
             {
-                if (!destinationFileSystem.FileExists(sourcePath))
-                    continue;
-
-                var newFileData = sourceFileSystem.OpenFile(sourcePath);
-                if (!(ArchiveState is IReplaceFiles replaceState))
-                    continue;
-
-                var afi = files.First(f => f.FilePath == rootPath.ToAbsolute() / sourcePath.ToRelative());
-                replaceState.ReplaceFile(afi, newFileData);
-                replaceCount++;
+                context.IsSuccessful = false;
+                context.Error = "The state does not support replacing files.";
+                return;
             }
 
-            MessageBox.Show($"Replaced {replaceCount} files in \"{rootPath}\" successfully.", "Replacement Result",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (files == null || !files.Any())
+                return;
+
+            var directory = files[0].FilePath.GetDirectory();
+            if (files.Any(x => x.FilePath.GetDirectory() != directory))
+                return;
+
+            if (context.DirectoryPath.IsNull || context.DirectoryPath.IsEmpty)
+                context.DirectoryPath = files[0].FilePath.GetDirectory();
+            if (!files[0].FilePath.IsInDirectory(context.DirectoryPath, true))
+                return;
+
+            // Select folder to replace with
+            if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+            {
+                context.ReplacePath = SelectFolder();
+                if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+                {
+                    context.IsSuccessful = false;
+                    context.Error = "No folder was selected.";
+                    return;
+                }
+            }
+
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(context.ReplacePath, _stateInfo.StreamManager);
+            foreach (var file in files)
+            {
+                if (IsFileLocked(file, false))
+                    continue;
+
+                var rootedPath = file.FilePath.FullName.Substring(context.DirectoryPath.FullName.Length,
+                    file.FilePath.FullName.Length - context.DirectoryPath.FullName.Length);
+                if (!sourceFileSystem.FileExists(rootedPath))
+                    continue;
+
+                var newFileData = sourceFileSystem.OpenFile(rootedPath);
+
+                replaceState.ReplaceFile(file, newFileData);
+            }
 
             UpdateDirectoryColors();
-            UpdateFiles();
+            UpdateFileColors();
 
             UpdateFormInternal();
         }
 
-        private void ReplaceFile(ArchiveFileInfo file)
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+        private void ReplaceFile(ArchiveFileInfo file, ReplaceContext context)
         {
-            ContractAssertions.IsNotNull(file, nameof(file));
-
-            var fileName = file.FilePath.GetName();
-
-            var sfd = new OpenFileDialog
-            {
-                InitialDirectory = Settings.Default.LastDirectory,
-                FileName = fileName,
-                Filter = AllFilesFilter_
-            };
-
-            if (sfd.ShowDialog() != DialogResult.OK)
-                return;
-
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(((UPath)sfd.FileName).GetDirectory(), _stateInfo.StreamManager);
-            var newFileData = sourceFileSystem.OpenFile(((UPath)sfd.FileName).GetName());
-
             if (!(ArchiveState is IReplaceFiles replaceState))
+            {
+                context.IsSuccessful = false;
+                context.Error = "The state does not support replacing files.";
+                return;
+            }
+
+            if (file == null || IsFileLocked(file, false))
                 return;
 
+            // Select file to replace with
+            if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+            {
+                context.ReplacePath = SelectFile(file.FilePath.GetName());
+                if (context.ReplacePath.IsNull || context.ReplacePath.IsEmpty)
+                {
+                    context.IsSuccessful = false;
+                    context.Error = "No file was selected.";
+                    return;
+                }
+            }
+
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(context.ReplacePath.GetDirectory(), _stateInfo.StreamManager);
+
+            var newFileData = sourceFileSystem.OpenFile(context.ReplacePath.GetName());
             replaceState.ReplaceFile(file, newFileData);
 
-            MessageBox.Show($"Replaced {file.FilePath} with \"{sfd.FileName}\" successfully.", "Replacement Result",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
-
             UpdateDirectoryColors();
-            UpdateFiles();
+            UpdateFileColors();
 
             UpdateFormInternal();
         }
 
         #endregion
 
-        #region Rename
+        #region Rename Files
 
         private void RenameSelectedFiles()
         {
-            RenameFiles(CollectSelectedFiles().ToList());
-
-            UpdateFormInternal();
+            RenameFiles(CollectSelectedFiles().ToArray());
         }
 
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void RenameFiles(IList<ArchiveFileInfo> files)
         {
-            ContractAssertions.IsNotNull(files, nameof(files));
+            if (files == null || !files.Any())
+                return;
 
-            var canceledRenames = new List<ArchiveFileInfo>();
+            if (!(ArchiveState is IRenameFiles renameState))
+                return;
+
             foreach (var afi in files)
             {
                 var inputBox = new InputBox($"Select a new filename for '{afi.FilePath.GetName()}'.",
                     "Rename file",
                     afi.FilePath.GetName());
 
-                if (inputBox.ShowDialog() == DialogResult.OK)
-                    (ArchiveState as IRenameFiles).Rename(afi, ((UPath)inputBox.InputText).GetName());
-                else
-                    canceledRenames.Add(afi);
-            }
+                if (inputBox.ShowDialog() != DialogResult.OK)
+                    continue;
 
-            if (canceledRenames.Count > 0)
-            {
-                var canceledRenameFiles = string.Join(Environment.NewLine, canceledRenames.Select(x => x.FilePath.GetName()));
-                MessageBox.Show($"Following files were not renamed:{canceledRenameFiles}",
-                    "Renaming error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Rename possibly open file in main form
+                var renamedPath = afi.FilePath.GetDirectory() / inputBox.InputText;
+                RenameFilesDelegate?.Invoke(new RenameFileEventArgs(_stateInfo, afi, renamedPath));
+
+                // Rename file in archive
+                renameState.Rename(afi, renamedPath);
             }
 
             UpdateFiles();
+            UpdateDirectoryColors();
+
+            UpdateFormInternal();
         }
 
         #endregion
 
-        #region Delete
+        #region Delete Files
 
-        private void DeleteSelectedFiles()
+        private async void DeleteSelectedFiles()
         {
-            DeleteFiles(CollectSelectedFiles().ToList());
+            var filesToDelete = CollectSelectedFiles().ToArray();
+            await DeleteFiles(filesToDelete);
+
+            if (treDirectories.SelectedNode?.Tag is IList<ArchiveFileInfo> files)
+                treDirectories.SelectedNode.Tag = files.Except(filesToDelete).ToArray();
 
             UpdateFiles();
-            UpdateFormInternal();
         }
 
-        private void DeleteFiles(IList<ArchiveFileInfo> files)
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+        private async Task DeleteFiles(IList<ArchiveFileInfo> files)
         {
-            ContractAssertions.IsNotNull(files, nameof(files));
+            if (files == null || !files.Any())
+                return;
 
-            if (files.Count <= 0)
+            if (!(ArchiveState is IRemoveFiles removeState))
                 return;
 
             foreach (var afi in files)
-                (ArchiveState as IRemoveFiles)?.RemoveFile(afi);
+            {
+                // Close possibly open file in main form
+                var isClosed = await DeleteFilesDelegate(new DeleteFileEventArgs(_stateInfo, afi));
+
+                // If file was successfully closed, remove it from the archive
+                if (isClosed)
+                    removeState.RemoveFile(afi);
+            }
+
+            UpdateDirectoryColors();
+
+            UpdateFormInternal();
         }
 
         #endregion
@@ -969,6 +1086,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                             "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         continue;
                     }
+
+                    continue;
                 }
 
                 // Opening by plugin id

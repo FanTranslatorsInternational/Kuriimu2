@@ -49,7 +49,11 @@ namespace Kontract.Models.Archive
         public UPath FilePath
         {
             get => _filePath;
-            set => _filePath = value.ToAbsolute();
+            set
+            {
+                _filePath = value.ToAbsolute();
+                ContentChanged = true;
+            }
         }
 
         /// <summary>
@@ -69,6 +73,8 @@ namespace Kontract.Models.Archive
 
             FileData = fileData;
             FilePath = filePath;
+
+            ContentChanged = false;
         }
 
         public ArchiveFileInfo(Stream fileData, string filePath,

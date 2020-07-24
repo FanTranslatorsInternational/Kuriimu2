@@ -5,7 +5,7 @@ namespace Kontract.Interfaces.Plugins.State.Archive
     /// <summary>
     /// Marks the archive state able to remove files.
     /// </summary>
-    public interface IRemoveFiles : IArchiveState
+    public interface IRemoveFiles
     {
         /// <summary>
         /// Removes a single file from the archive state.

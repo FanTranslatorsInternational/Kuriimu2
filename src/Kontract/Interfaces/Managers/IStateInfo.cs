@@ -87,5 +87,11 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         /// <param name="options"></param>
         void SetDialogOptions(IList<string> options);
+
+        /// <summary>
+        /// Renames the <see cref="FilePath"/> of the opened file.
+        /// </summary>
+        /// <param name="renamedPath">The renamed path.</param>
+        void RenameFilePath(UPath renamedPath);
     }
 }

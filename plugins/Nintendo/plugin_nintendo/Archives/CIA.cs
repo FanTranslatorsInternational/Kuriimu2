@@ -22,7 +22,7 @@ namespace plugin_nintendo.Archives
         private CiaTmd _tmd;
         private CiaMeta _meta;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -81,7 +81,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var ciaAfis = files.Cast<CiaArchiveFileInfo>().ToArray();
             var sha = new Sha256();

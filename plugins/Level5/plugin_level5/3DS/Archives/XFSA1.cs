@@ -19,7 +19,7 @@ namespace plugin_level5._3DS.Archives
 
         private XfsaHeader _header;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -72,7 +72,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress)
         {
             // Group files by directory
             var castedFiles = files.Cast<XfsaArchiveFileInfo<Xfsa1FileEntry>>();

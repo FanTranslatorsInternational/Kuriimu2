@@ -17,7 +17,7 @@ namespace plugin_yuusha_shisu.PAC
         private FileHeader _header;
         private List<FileEntry> _entries;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
@@ -54,7 +54,7 @@ namespace plugin_yuusha_shisu.PAC
         /// <param name="output">An output stream for a PAC archive.</param>
         /// <param name="files">The files to save.</param>
         /// <returns>True if successful.</returns>
-        public bool Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public bool Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using (var bw = new BinaryWriterX(output, true))
             {

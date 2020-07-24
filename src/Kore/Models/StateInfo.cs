@@ -101,6 +101,12 @@ namespace Kore.Models
         }
 
         /// <inheritdoc />
+        public void RenameFilePath(UPath renamedPath)
+        {
+            FilePath = renamedPath;
+        }
+
+        /// <inheritdoc />
         public virtual void Dispose()
         {
             ArchiveChildren?.Clear();

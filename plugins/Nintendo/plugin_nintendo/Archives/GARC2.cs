@@ -17,7 +17,7 @@ namespace plugin_nintendo.Archives
 
         private ByteOrder _byteOrder;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -62,7 +62,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var fatOffsetPosition = _headerSize;
             var fatbPosition = fatOffsetPosition + _fatoHeaderSize + files.Count * 4;

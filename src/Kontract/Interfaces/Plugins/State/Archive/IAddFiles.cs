@@ -8,7 +8,7 @@ namespace Kontract.Interfaces.Plugins.State.Archive
     /// <summary>
     /// Marks the archive state able to add a new file.
     /// </summary>
-    public interface IAddFiles : IArchiveState
+    public interface IAddFiles
     {
         /// <summary>
         /// Adds a file to the archive state.

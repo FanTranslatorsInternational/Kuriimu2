@@ -23,7 +23,7 @@ namespace plugin_level5.Switch.Archives
         private G4pkHeader _header;
         private IList<short> _unkIds;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -58,7 +58,7 @@ namespace plugin_level5.Switch.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

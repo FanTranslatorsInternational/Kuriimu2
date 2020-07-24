@@ -15,7 +15,7 @@ namespace plugin_level5.Switch.Archives
     {
         private readonly G4pk _g4pk;
 
-        public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
+        public IList<ArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public G4pkState()

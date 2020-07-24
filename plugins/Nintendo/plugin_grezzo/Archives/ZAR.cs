@@ -17,7 +17,7 @@ namespace plugin_grezzo.Archives
 
         private string _headerString;
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -63,7 +63,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
             var fileTypes = files.Select(x => x.FilePath.GetExtensionWithDot()).Distinct().ToArray();
 

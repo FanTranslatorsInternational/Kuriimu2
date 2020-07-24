@@ -19,7 +19,7 @@ namespace plugin_nintendo.Archives
     {
         private readonly GARC2 _garc2;
 
-        public IReadOnlyList<ArchiveFileInfo> Files { get; private set; }
+        public IList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
