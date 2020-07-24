@@ -35,6 +35,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Update="Controls\Kuriimu2ProgressBarToolStrip.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

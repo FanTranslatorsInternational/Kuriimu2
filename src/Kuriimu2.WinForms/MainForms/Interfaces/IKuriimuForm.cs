@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.Tracing;
+using System.Drawing;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Managers;
@@ -10,6 +12,7 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
     {
         Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         Action<IStateInfo> UpdateTabDelegate { get; set; }
+        Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
 
         void UpdateForm();
     }
@@ -26,6 +29,25 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
 
             StateInfo = stateInfo;
             SavePath = savePath;
+        }
+    }
+
+    public class ReportStatusEventArgs : EventArgs
+    {
+        public string Status { get; }
+
+        public Color TextColor { get; }
+
+        public ReportStatusEventArgs(string status) : this(status, Color.Black)
+        {
+        }
+
+        public ReportStatusEventArgs(string status, Color textColor)
+        {
+            ContractAssertions.IsNotNull(status, nameof(status));
+
+            Status = status;
+            TextColor = textColor;
         }
     }
 }

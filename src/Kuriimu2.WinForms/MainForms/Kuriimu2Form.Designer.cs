@@ -52,6 +52,8 @@ namespace Kuriimu2.WinForms.MainForms
             this.tabCloseButtons = new System.Windows.Forms.ImageList(this.components);
             this.pnlMain = new System.Windows.Forms.Panel();
             this.operationStatusBar = new System.Windows.Forms.StatusStrip();
+            this.progressBarToolStrip = new Kuriimu2ProgressBarToolStrip();
+            this.statusLabelToolStrip = new System.Windows.Forms.ToolStripLabel();
             this.operationTimer = new System.Windows.Forms.ToolStripStatusLabel();
             this.mnuMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
@@ -221,6 +223,16 @@ namespace Kuriimu2.WinForms.MainForms
             this.pnlMain.Size = new System.Drawing.Size(1116, 597);
             this.pnlMain.TabIndex = 2;
             // 
+            // progressBarToolStrip
+            // 
+            this.progressBarToolStrip.Name = "progressBarToolStrip";
+            this.progressBarToolStrip.Size = new System.Drawing.Size(425, 18);
+            this.progressBarToolStrip.Padding = new Padding(2);
+            // 
+            // statusLabelToolStrip
+            // 
+            this.statusLabelToolStrip.Name = "statusLabelToolStrip";
+            // 
             // operationStatusBar
             // 
             this.operationStatusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -230,6 +242,8 @@ namespace Kuriimu2.WinForms.MainForms
             this.operationStatusBar.Padding = new System.Windows.Forms.Padding(1, 0, 16, 0);
             this.operationStatusBar.Size = new System.Drawing.Size(1116, 22);
             this.operationStatusBar.TabIndex = 3;
+            this.operationStatusBar.Items.Add(progressBarToolStrip);
+            this.operationStatusBar.Items.Add(statusLabelToolStrip);
             // 
             // operationTimer
             // 
@@ -272,6 +286,8 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ImageList tabCloseButtons;
         private System.Windows.Forms.Panel pnlMain;
         private System.Windows.Forms.StatusStrip operationStatusBar;
+        private Kuriimu2ProgressBarToolStrip progressBarToolStrip;
+        private System.Windows.Forms.ToolStripLabel statusLabelToolStrip;
         private System.Windows.Forms.ToolStripStatusLabel operationTimer;
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;

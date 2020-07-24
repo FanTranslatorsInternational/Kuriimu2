@@ -21,6 +21,7 @@ using Kuriimu2.WinForms.Exceptions;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.MainForms.FormatForms;
 using Kuriimu2.WinForms.MainForms.Interfaces;
+using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms
@@ -74,7 +75,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             KeyPreview = true;
 
-            _progressContext = new ConcurrentProgress(new NullProgressOutput());
+            _progressContext = new ConcurrentProgress(new ToolStripProgressBarOutput(progressBarToolStrip, 14));
             var dialogManager = new DialogManagerForm();
 
             _hashForm = new HashTypeExtensionForm();
@@ -256,6 +257,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             kuriimuForm.SaveFilesDelegate = TabControl_SaveTab;
             kuriimuForm.UpdateTabDelegate = TabControl_UpdateTab;
+            kuriimuForm.ReportStatusDelegate += Kuriimu2_ReportStatus;
 
             var tabPage = new TabPage
             {
@@ -467,6 +469,16 @@ namespace Kuriimu2.WinForms.MainForms
             var loadedState = _pluginManager.GetLoadedFile(fullPath);
 
             return CloseFile(loadedState);
+        }
+
+        #endregion
+
+        #region Report Status
+
+        private void Kuriimu2_ReportStatus(ReportStatusEventArgs e)
+        {
+            statusLabelToolStrip.Text = e.Status;
+            statusLabelToolStrip.ForeColor = e.TextColor;
         }
 
         #endregion

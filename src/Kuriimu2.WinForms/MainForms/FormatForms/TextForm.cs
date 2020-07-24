@@ -34,6 +34,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
+        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
 
         public TextForm(IStateInfo state, IList<IGameAdapter> gameAdapters, IProgressContext progressContext)
         {

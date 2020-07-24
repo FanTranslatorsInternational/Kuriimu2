@@ -7,12 +7,12 @@ namespace Kuriimu2.WinForms.Progress
 {
     class ToolStripProgressBarOutput : IProgressOutput
     {
-        private readonly NewProgressBarToolStrip _progressBar;
+        private readonly Kuriimu2ProgressBarToolStrip _progressBar;
         private readonly Timer _timer;
 
         private ProgressState _progressState;
 
-        public ToolStripProgressBarOutput(NewProgressBarToolStrip progressBar, double updateInterval)
+        public ToolStripProgressBarOutput(Kuriimu2ProgressBarToolStrip progressBar, double updateInterval)
         {
             _progressBar = progressBar;
 

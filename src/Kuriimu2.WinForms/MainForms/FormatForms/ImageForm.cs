@@ -96,6 +96,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         /// <inheritdoc />
         public Action<IStateInfo> UpdateTabDelegate { get; set; }
 
+        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
+
         /// <summary>
         /// Create a new instance of <see cref="ImageForm"/>.
         /// </summary>
