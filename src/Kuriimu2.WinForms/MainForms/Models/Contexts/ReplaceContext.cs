@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.WinForms.MainForms.Models.Contexts
 {
-    class ReplaceContext
+    class ReplaceContext : CountContext
     {
         public bool IsSuccessful { get; set; } = true;
 

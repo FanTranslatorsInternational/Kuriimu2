@@ -2,7 +2,7 @@
 
 namespace Kuriimu2.WinForms.MainForms.Models.Contexts
 {
-    class ExtractContext
+    class ExtractContext : CountContext
     {
         public bool IsSuccessful { get; set; } = true;
 

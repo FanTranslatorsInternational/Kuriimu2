@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Kuriimu2.WinForms.MainForms.Models.Contexts
 {
-    class DeleteContext
+    class CountContext
     {
         public int MaxCount { get; set; }
 

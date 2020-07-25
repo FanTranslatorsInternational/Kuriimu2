@@ -1040,7 +1040,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var renamingFiles = CollectSelectedFiles().ToArray();
 
-            var context = new RenameContext();
+            var context = new CountContext();
             RenameFiles(renamingFiles, context, true);
             RenameFiles(renamingFiles, context);
 
@@ -1048,7 +1048,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
-        private void RenameFiles(IList<ArchiveFileInfo> files, RenameContext context, bool isCount = false)
+        private void RenameFiles(IList<ArchiveFileInfo> files, CountContext context, bool isCount = false)
         {
             if (files == null || !files.Any())
                 return;
@@ -1093,7 +1093,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void DeleteSelectedDirectory()
         {
-            var context = new DeleteContext();
+            var context = new CountContext();
             await DeleteDirectory(treDirectories.SelectedNode, context, true);
             await DeleteDirectory(treDirectories.SelectedNode, context);
 
@@ -1102,7 +1102,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
         }
 
-        private async Task DeleteDirectory(TreeNode node, DeleteContext context, bool isCount = false)
+        private async Task DeleteDirectory(TreeNode node, CountContext context, bool isCount = false)
         {
             if (node == null)
                 return;
@@ -1124,7 +1124,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var filesToDelete = CollectSelectedFiles().ToArray();
 
-            var context = new DeleteContext();
+            var context = new CountContext();
             await DeleteFiles(filesToDelete, context, true);
             await DeleteFiles(filesToDelete, context);
 
@@ -1135,7 +1135,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
-        private async Task DeleteFiles(IList<ArchiveFileInfo> files, DeleteContext context, bool isCount = false)
+        private async Task DeleteFiles(IList<ArchiveFileInfo> files, CountContext context, bool isCount = false)
         {
             if (files == null || !files.Any())
                 return;
