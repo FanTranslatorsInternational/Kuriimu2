@@ -9,5 +9,9 @@ namespace Kuriimu2.WinForms.MainForms.Models.Contexts
         public string Error { get; set; }
 
         public UPath ExtractPath { get; set; }
+
+        public int CurrentCount { get; set; }
+
+        public int MaxCount { get; set; }
     }
 }
