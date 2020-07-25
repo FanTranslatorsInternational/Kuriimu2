@@ -71,36 +71,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateProperties();
         }
 
-        #region Save File
-
-        private void tsbSave_Click(object sender, EventArgs e)
-        {
-            Save();
-        }
-
-        private void tsbSaveAs_Click(object sender, EventArgs e)
-        {
-            Save(true);
-        }
-
-        private async void Save(bool saveAs = false)
-        {
-            var wasSaved = await _formCommunicator.Save(saveAs);
-
-            if (wasSaved)
-                _formCommunicator.ReportStatus(true, "File saved successfully.");
-            else
-                _formCommunicator.ReportStatus(false, "File not saved successfully.");
-
-            UpdateDirectories();
-            UpdateFiles();
-
-            UpdateProperties();
-            _formCommunicator.Update(true, false);
-        }
-
-        #endregion
-
         #region Update Methods
 
         public void UpdateForm()
@@ -214,8 +184,55 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     .Tag = lookup[path];
             }
 
-            // 2. Expand nodes
-            foreach (var expandedPath in _expandedPaths.Select(x => x.Split()).ToArray())
+            // 2. Expand tree
+            ExpandDirectoryTree(_expandedPaths);
+
+            // Always expand root
+            root.Expand();
+            treDirectories.SelectedNode = root;
+
+            treDirectories.EndUpdate();
+            treDirectories.Focus();
+
+            UpdateDirectoryColors();
+        }
+
+        private void UpdateDirectory(TreeNode treeNode)
+        {
+            var root = treDirectories.Nodes["root"];
+            if (root == null)
+                return;
+
+            treDirectories.BeginUpdate();
+            treeNode.Nodes.Clear();
+
+            var nodePath = GetNodePath(root, treeNode);
+
+            var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
+            var filePaths = EnumerateFilteredPaths(archiveFileSystem).Where(x => x.ToRelative().IsInDirectory(nodePath, true));
+            var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
+
+            // 1. Build directory tree
+            foreach (var path in filePaths)
+            {
+                path.Split()
+                    .Aggregate(root, (node, part) => node.Nodes[part] ?? node.Nodes.Add(part, part))
+                    .Tag = lookup[path];
+            }
+
+            treDirectories.EndUpdate();
+            treDirectories.Focus();
+
+            UpdateDirectoryColors();
+        }
+
+        private void ExpandDirectoryTree(IList<UPath> expandedPaths)
+        {
+            var root = treDirectories.Nodes["root"];
+            if (root == null)
+                return;
+
+            foreach (var expandedPath in expandedPaths.Select(x => x.Split()).ToArray())
             {
                 var node = root;
                 foreach (var pathPart in expandedPath)
@@ -227,15 +244,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     node = node.Nodes[pathPart];
                 }
             }
+        }
 
-            // Always expand root
-            root.Expand();
-            treDirectories.SelectedNode = root;
-
-            treDirectories.EndUpdate();
-            treDirectories.Focus();
-
-            UpdateDirectoryColors();
+        private IEnumerable<UPath> EnumerateFilteredPaths(IFileSystem fileSystem)
+        {
+            return fileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
+                SearchOption.AllDirectories, SearchTarget.Directory);
         }
 
         private void UpdateDirectoryColors()
@@ -353,8 +367,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateDirectoryContextMenu()
         {
+            var root = treDirectories.Nodes["root"];
+            if (root == null)
+                return;
+
             var canReplaceFiles = ArchiveState is IReplaceFiles;
-            var canDeleteFiles = ArchiveState is IRemoveFiles;
+            var canDeleteFiles = ArchiveState is IRemoveFiles && treDirectories.SelectedNode != root;
             var canAddFiles = ArchiveState is IAddFiles;
 
             replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
@@ -1031,10 +1049,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void DeleteSelectedDirectory()
         {
             await DeleteDirectory(treDirectories.SelectedNode);
+            treDirectories.SelectedNode.Remove();
 
             _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
-
-            UpdateDirectories();
         }
 
         private async Task DeleteDirectory(TreeNode node)
@@ -1060,9 +1077,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var filesToDelete = CollectSelectedFiles().ToArray();
             await DeleteFiles(filesToDelete);
 
-            if (treDirectories.SelectedNode?.Tag is IList<ArchiveFileInfo> files)
-                treDirectories.SelectedNode.Tag = files.Except(filesToDelete).ToArray();
-
+            UpdateDirectory(treDirectories.SelectedNode);
             UpdateFiles();
 
             _formCommunicator.ReportStatus(true, "Files deleted successfully.");
@@ -1130,6 +1145,36 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 if (!await _formCommunicator.Open(file))
                     _formCommunicator.ReportStatus(false, "File couldn't be opened.");
             }
+        }
+
+        #endregion
+
+        #region Save File
+
+        private void tsbSave_Click(object sender, EventArgs e)
+        {
+            Save();
+        }
+
+        private void tsbSaveAs_Click(object sender, EventArgs e)
+        {
+            Save(true);
+        }
+
+        private async void Save(bool saveAs = false)
+        {
+            var wasSaved = await _formCommunicator.Save(saveAs);
+
+            if (wasSaved)
+                _formCommunicator.ReportStatus(true, "File saved successfully.");
+            else
+                _formCommunicator.ReportStatus(false, "File not saved successfully.");
+
+            UpdateDirectories();
+            UpdateFiles();
+
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         #endregion
