@@ -858,6 +858,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
             else
                 _formCommunicator.ReportStatus(false, context.Error);
+
+            UpdateDirectoryColors();
+            UpdateFileColors();
+
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         private void ReplaceDirectory(TreeNode node, ReplaceContext context, bool isCount = false)
@@ -934,6 +940,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
             else
                 _formCommunicator.ReportStatus(false, context.Error);
+
+            UpdateDirectoryColors();
+            UpdateFileColors();
+
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -988,15 +1000,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 _progressContext.ReportProgress("Replacing files", ++context.CurrentCount, context.MaxCount);
             }
-
-            if (isCount)
-                return;
-
-            UpdateDirectoryColors();
-            UpdateFileColors();
-
-            UpdateProperties();
-            _formCommunicator.Update(true, false);
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -1202,9 +1205,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             await DeleteDirectory(treDirectories.SelectedNode, context, true);
             await DeleteDirectory(treDirectories.SelectedNode, context);
 
+            _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+
             treDirectories.SelectedNode.Remove();
 
-            _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+            UpdateDirectoryColors();
+
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         private async Task DeleteDirectory(TreeNode node, CountContext context, bool isCount = false)
@@ -1233,10 +1241,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             await DeleteFiles(filesToDelete, context, true);
             await DeleteFiles(filesToDelete, context);
 
+            _formCommunicator.ReportStatus(true, "Files deleted successfully.");
+
             UpdateDirectory(treDirectories.SelectedNode);
             UpdateFiles();
 
-            _formCommunicator.ReportStatus(true, "Files deleted successfully.");
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -1265,11 +1276,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 _progressContext.ReportProgress("Deleting files", ++context.CurrentCount, context.MaxCount);
             }
-
-            UpdateDirectoryColors();
-
-            UpdateProperties();
-            _formCommunicator.Update(true, false);
         }
 
         #endregion
