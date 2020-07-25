@@ -439,6 +439,22 @@ namespace Kuriimu2.WinForms.MainForms
 
         #endregion
 
+        #region Rename File
+
+        private void Kuriimu2_RenameFile(IStateInfo stateInfo, ArchiveFileInfo file, UPath renamedPath)
+        {
+            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
+            if (!_pluginManager.IsLoaded(absolutePath))
+                return;
+
+            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            loadedFile.RenameFilePath(renamedPath);
+
+            UpdateTab(loadedFile, true, false);
+        }
+
+        #endregion
+
         #region Report Status
 
         private void Kuriimu2_ReportStatus(string message, Color textColor)
@@ -715,6 +731,7 @@ namespace Kuriimu2.WinForms.MainForms
                 OpenFileDelegate = Kuriimu2_OpenFile,
                 SaveFileDelegate = TabControl_SaveTab,
                 CloseFileDelegate = Kuriimu2_CloseFile,
+                RenameFileDelegate = Kuriimu2_RenameFile,
                 UpdateTabDelegate = TabControl_UpdateTab,
                 ReportStatusDelegate = Kuriimu2_ReportStatus
             };

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Managers;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 using Kuriimu2.WinForms.MainForms.Interfaces;
 
 namespace Kuriimu2.WinForms.MainForms.Models
@@ -15,6 +16,7 @@ namespace Kuriimu2.WinForms.MainForms.Models
         public Func<IStateInfo, ArchiveFileInfo, Guid, Task<bool>> OpenFileDelegate { get; set; }
         public Func<IStateInfo, bool, Task<bool>> SaveFileDelegate { get; set; }
         public Func<IStateInfo, ArchiveFileInfo, Task<bool>> CloseFileDelegate { get; set; }
+        public Action<IStateInfo, ArchiveFileInfo, UPath> RenameFileDelegate { get; set; }
 
         public Action<IStateInfo, bool, bool> UpdateTabDelegate { get; set; }
 
@@ -59,6 +61,11 @@ namespace Kuriimu2.WinForms.MainForms.Models
         public Task<bool> Close(ArchiveFileInfo file)
         {
             return CloseFileDelegate?.Invoke(_stateInfo, file);
+        }
+
+        public void Rename(ArchiveFileInfo file, UPath renamedPath)
+        {
+            RenameFileDelegate?.Invoke(_stateInfo, file, renamedPath);
         }
     }
 }

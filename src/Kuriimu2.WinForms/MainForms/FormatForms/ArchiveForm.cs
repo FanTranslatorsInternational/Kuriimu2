@@ -1058,6 +1058,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             RenameDirectory(node, context);
 
             _formCommunicator.ReportStatus(true, "Directory renamed successfully.");
+
+            UpdateFileColors();
+            UpdateDirectoryColors();
+
+            UpdateProperties();
         }
 
         private void RenameDirectory(TreeNode node, RenameContext context, bool isCount = false)
@@ -1125,6 +1130,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
             else
                 _formCommunicator.ReportStatus(false, context.Error);
+
+            UpdateFiles();
+            UpdateDirectoryColors();
+
+            UpdateProperties();
         }
 
         private void RenameFiles(IList<ArchiveFileInfo> files, RenameContext context, bool isCount = false)
@@ -1147,11 +1157,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 _progressContext.ReportProgress("Renaming files", ++context.CurrentCount, context.MaxCount);
             }
-
-            UpdateFiles();
-            UpdateDirectoryColors();
-
-            UpdateProperties();
         }
 
         private void RenameFile(ArchiveFileInfo file)
@@ -1180,12 +1185,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 renamedPath = file.FilePath.GetDirectory() / inputBox.InputText;
             }
 
+            // Rename possibly open file in main form
+            _formCommunicator.Rename(file, renamedPath);
+
             // Rename file in archive
             renameState.Rename(file, renamedPath);
-
-            // Rename possibly open file in main form
-            // TODO: Missing rename propagation
-            _formCommunicator.Update(true, true);
         }
 
         #endregion
