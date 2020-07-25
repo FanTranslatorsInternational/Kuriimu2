@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
@@ -19,12 +18,12 @@ using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers.Plugins;
 using Kuriimu2.WinForms.MainForms.Interfaces;
-using Kuriimu2.WinForms.MainForms.Models;
+using Kuriimu2.WinForms.MainForms.Models.Contexts;
 using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms.FormatForms
 {
-    public partial class ArchiveForm : UserControl, IArchiveForm
+    public partial class ArchiveForm : UserControl, IKuriimuForm
     {
         private const string AllFilesFilter_ = "All Files (*.*)|*.*";
         private const string FileCount_ = "Files: {0}";
@@ -32,6 +31,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private static readonly Color ColorDefaultState = Color.Black;
         private static readonly Color ColorChangedState = Color.Orange;
 
+        private readonly IArchiveFormCommunicator _formCommunicator;
         private readonly IInternalPluginManager _pluginManager;
         private readonly IStateInfo _stateInfo;
         private readonly IProgressContext _progressContext;
@@ -41,18 +41,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private bool _isSearchEmpty = true;
         private string _searchTerm;
 
-        private ISaveFiles SaveState => _stateInfo.PluginState as ISaveFiles;
         private IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
-        public Func<OpenFileEventArgs, Task<bool>> OpenFilesDelegate { get; set; }
-        public Action<RenameFileEventArgs> RenameFilesDelegate { get; set; }
-        public Func<DeleteFileEventArgs, Task<bool>> DeleteFilesDelegate { get; set; }
-
-        public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
-        public Action<IStateInfo> UpdateTabDelegate { get; set; }
-        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
-
-        public ArchiveForm(IStateInfo loadedState, IInternalPluginManager pluginManager, IProgressContext progressContext)
+        public ArchiveForm(IStateInfo loadedState, IArchiveFormCommunicator formCommunicator, IInternalPluginManager pluginManager, IProgressContext progressContext)
         {
             InitializeComponent();
 
@@ -71,12 +62,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _stateInfo = loadedState;
             _progressContext = progressContext;
 
+            _formCommunicator = formCommunicator;
             _pluginManager = pluginManager;
 
             _expandedPaths = new List<UPath>();
 
             UpdateDirectories();
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #region Save File
@@ -88,34 +80,23 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void tsbSaveAs_Click(object sender, EventArgs e)
         {
-            SaveAs();
+            Save(true);
         }
 
-        private void SaveAs()
+        private async void Save(bool saveAs = false)
         {
-            var sfd = new SaveFileDialog
-            {
-                FileName = _stateInfo.FilePath.GetName(),
-                Filter = AllFilesFilter_
-            };
+            var wasSaved = await _formCommunicator.Save(saveAs);
 
-            if (sfd.ShowDialog() == DialogResult.OK)
-                Save(sfd.FileName);
-        }
-
-        private void Save()
-        {
-            Save(UPath.Empty);
-        }
-
-        private async void Save(UPath savePath)
-        {
-            await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
+            if (wasSaved)
+                _formCommunicator.ReportStatus(true, "File saved successfully.");
+            else
+                _formCommunicator.ReportStatus(false, "File not saved successfully.");
 
             UpdateDirectories();
             UpdateFiles();
 
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         #endregion
@@ -134,14 +115,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateFileColors();
         }
 
-        private void UpdateFormInternal()
-        {
-            UpdateProperties();
-            UpdateTabDelegate?.Invoke(_stateInfo);
-        }
-
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateProperties()
         {
+            // TODO: Remove ToolStripButtons
+
             // Menu
             tsbSave.Enabled = ArchiveState is ISaveFiles;
             tsbSaveAs.Enabled = ArchiveState is ISaveFiles && _stateInfo.ParentStateInfo == null;
@@ -375,8 +353,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateDirectoryContextMenu()
         {
-            var fileName = ((UPath)treDirectories.SelectedNode.Text).GetName().Replace('.', '_');
-
             var canReplaceFiles = ArchiveState is IReplaceFiles;
             var canDeleteFiles = ArchiveState is IRemoveFiles;
             var canAddFiles = ArchiveState is IAddFiles;
@@ -476,8 +452,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var tsi = (ToolStripMenuItem)sender;
             var (pluginId, afi) = ((Guid, ArchiveFileInfo))tsi.Tag;
 
-            if (!await OpenAfi(afi, pluginId))
-                OnReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
+            if (!await _formCommunicator.Open(afi, pluginId))
+                _formCommunicator.ReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
         }
 
         #endregion
@@ -507,7 +483,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             AddFiles();
 
             UpdateDirectories();
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -521,35 +498,35 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void treDirectories_AfterCollapse(object sender, TreeViewEventArgs e)
         {
-            if (e.Node.Parent != null)
-            {
-                e.Node.ImageKey = "tree-directory";
-                e.Node.SelectedImageKey = e.Node.ImageKey;
+            if (e.Node.Parent == null)
+                return;
 
-                var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
-                if (_expandedPaths.Contains(nodePath))
-                    _expandedPaths.Remove(nodePath);
-            }
+            e.Node.ImageKey = "tree-directory";
+            e.Node.SelectedImageKey = e.Node.ImageKey;
+
+            var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
+            if (_expandedPaths.Contains(nodePath))
+                _expandedPaths.Remove(nodePath);
         }
 
         private void treDirectories_AfterExpand(object sender, TreeViewEventArgs e)
         {
-            if (e.Node.Parent != null)
-            {
-                e.Node.ImageKey = "tree-directory-open";
-                e.Node.SelectedImageKey = e.Node.ImageKey;
+            if (e.Node.Parent == null)
+                return;
 
-                // Add expanded node
-                var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
-                if (nodePath != UPath.Empty)
-                    _expandedPaths.Add(nodePath);
-            }
+            e.Node.ImageKey = "tree-directory-open";
+            e.Node.SelectedImageKey = e.Node.ImageKey;
+
+            // Add expanded node
+            var nodePath = GetNodePath(treDirectories.Nodes["root"], e.Node);
+            if (nodePath != UPath.Empty)
+                _expandedPaths.Add(nodePath);
         }
 
         private void treDirectories_AfterSelect(object sender, TreeViewEventArgs e)
         {
             UpdateFiles();
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #endregion
@@ -698,15 +675,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return openedState.StateChanged;
         }
 
-        private void OnReportStatus(bool isSuccessful, string message)
-        {
-            if (string.IsNullOrEmpty(message))
-                return;
-
-            var color = isSuccessful ? Color.Black : Color.DarkRed;
-            ReportStatusDelegate?.Invoke(new ReportStatusEventArgs(message, color));
-        }
-
         #endregion
 
         #region Extract Directories
@@ -722,9 +690,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             await ExtractDirectory(node, context);
 
             if (context.IsSuccessful)
-                OnReportStatus(true, "Files extracted successfully.");
+                _formCommunicator.ReportStatus(true, "Files extracted successfully.");
             else
-                OnReportStatus(false, context.Error);
+                _formCommunicator.ReportStatus(false, context.Error);
         }
 
         private async Task ExtractDirectory(TreeNode node, ExtractContext context)
@@ -787,9 +755,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             await ExtractFiles(files, context);
 
             if (context.IsSuccessful)
-                OnReportStatus(true, "File(s) extracted successfully.");
+                _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
             else
-                OnReportStatus(false, context.Error);
+                _formCommunicator.ReportStatus(false, context.Error);
         }
 
         private async Task ExtractFiles(IList<ArchiveFileInfo> files, ExtractContext context)
@@ -844,9 +812,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             ReplaceDirectory(node, context);
 
             if (context.IsSuccessful)
-                OnReportStatus(true, "File(s) replaced successfully.");
+                _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
             else
-                OnReportStatus(false, context.Error);
+                _formCommunicator.ReportStatus(false, context.Error);
         }
 
         private void ReplaceDirectory(TreeNode node, ReplaceContext context)
@@ -914,9 +882,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 ReplaceFile(files[0], context);
 
             if (context.IsSuccessful)
-                OnReportStatus(true, "File(s) replaced successfully.");
+                _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
             else
-                OnReportStatus(false, context.Error);
+                _formCommunicator.ReportStatus(false, context.Error);
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -972,7 +940,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateDirectoryColors();
             UpdateFileColors();
 
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -1008,7 +977,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateDirectoryColors();
             UpdateFileColors();
 
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         #endregion
@@ -1019,7 +989,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             RenameFiles(CollectSelectedFiles().ToArray());
 
-            OnReportStatus(true, "Files renamed successfully.");
+            _formCommunicator.ReportStatus(true, "Files renamed successfully.");
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -1042,7 +1012,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                 // Rename possibly open file in main form
                 var renamedPath = afi.FilePath.GetDirectory() / inputBox.InputText;
-                RenameFilesDelegate?.Invoke(new RenameFileEventArgs(_stateInfo, afi, renamedPath));
+                _formCommunicator.Update(true, true);
 
                 // Rename file in archive
                 renameState.Rename(afi, renamedPath);
@@ -1051,7 +1021,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateFiles();
             UpdateDirectoryColors();
 
-            UpdateFormInternal();
+            UpdateProperties();
         }
 
         #endregion
@@ -1062,7 +1032,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             await DeleteDirectory(treDirectories.SelectedNode);
 
-            OnReportStatus(true, "File(s) deleted successfully.");
+            _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
 
             UpdateDirectories();
         }
@@ -1095,7 +1065,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             UpdateFiles();
 
-            OnReportStatus(true, "Files deleted successfully.");
+            _formCommunicator.ReportStatus(true, "Files deleted successfully.");
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -1110,7 +1080,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             foreach (var afi in files)
             {
                 // Close possibly open file in main form
-                var isClosed = await DeleteFilesDelegate(new DeleteFileEventArgs(_stateInfo, afi));
+                var isClosed = await _formCommunicator.Close(afi);
 
                 // If file was successfully closed, remove it from the archive
                 if (isClosed)
@@ -1119,12 +1089,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             UpdateDirectoryColors();
 
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         #endregion
 
-        #region Open
+        #region Open Files
 
         private void OpenSelectedFiles()
         {
@@ -1140,42 +1111,30 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 var pluginIds = file.PluginIds ?? Array.Empty<Guid>();
 
-                if (!pluginIds.Any())
+                if (pluginIds.Any())
                 {
-                    // Use automatic identification
-                    if (!await OpenAfi(file))
-                        OnReportStatus(false, "File couldn't be opened.");
+                    // Opening by plugin id
+                    var opened = false;
+                    foreach (var pluginId in pluginIds)
+                        if (await _formCommunicator.Open(file, pluginId))
+                        {
+                            opened = true;
+                            break;
+                        }
 
-                    continue;
+                    if (opened)
+                        continue;
                 }
 
-                // Opening by plugin id
-                var opened = false;
-                foreach (var pluginId in pluginIds)
-                    if (await OpenAfi(file, pluginId))
-                    {
-                        opened = true;
-                        break;
-                    }
-
-                if (opened)
-                    continue;
-
-                OnReportStatus(false, "File could not be loaded by any preset plugin.");
+                // Use automatic identification if no preset plugin could open the file
+                if (!await _formCommunicator.Open(file))
+                    _formCommunicator.ReportStatus(false, "File couldn't be opened.");
             }
-        }
-
-        private Task<bool> OpenAfi(ArchiveFileInfo afi) => OpenAfi(afi, Guid.Empty);
-
-        private Task<bool> OpenAfi(ArchiveFileInfo afi, Guid plugin)
-        {
-            var args = new OpenFileEventArgs(_stateInfo, afi, plugin);
-            return OpenFilesDelegate?.Invoke(args) ?? Task.FromResult(false);
         }
 
         #endregion
 
-        #region Add
+        #region Add Files
 
         private void AddFiles()
         {

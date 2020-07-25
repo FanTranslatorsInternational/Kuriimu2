@@ -23,6 +23,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private readonly IStateInfo _stateInfo;
         private readonly ITextState _textState;
         private readonly IProgressContext _progressContext;
+        private readonly IFormCommunicator _formCommunicator;
 
         private readonly IList<TextEntry> _textEntries;
         private readonly IList<IGameAdapter> _gameAdapters;
@@ -32,11 +33,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private int _selectedPreviewPluginIndex;
         private int _selectedTextEntryIndex;
 
-        public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
-        public Action<IStateInfo> UpdateTabDelegate { get; set; }
-        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
-
-        public TextForm(IStateInfo state, IList<IGameAdapter> gameAdapters, IProgressContext progressContext)
+        public TextForm(IStateInfo state,IFormCommunicator formCommunicator, IList<IGameAdapter> gameAdapters, IProgressContext progressContext)
         {
             InitializeComponent();
 
@@ -46,6 +43,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _stateInfo = state;
             _textState = textState;
             _progressContext = progressContext;
+            _formCommunicator = formCommunicator;
 
             _textEntries = textState.Texts;
             _gameAdapters = gameAdapters;
@@ -106,30 +104,17 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #region Save
 
-        private void SaveAs()
+        private async void Save(bool saveAs)
         {
-            var sfd = new SaveFileDialog
-            {
-                FileName = _stateInfo.FilePath.GetName(),
-                Filter = "All Files (*.*)|*.*"
-            };
+            var wasSaved = await _formCommunicator.Save(saveAs);
 
-            if (sfd.ShowDialog() == DialogResult.OK)
-                Save(sfd.FileName);
+            if (wasSaved)
+                _formCommunicator.ReportStatus(true, "File saved successfully.");
             else
-                MessageBox.Show("No save location was chosen.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
+                _formCommunicator.ReportStatus(false, "File not saved successfully.");
 
-        private async void Save(UPath savePath)
-        {
-            if (savePath == UPath.Empty)
-                savePath = _stateInfo.FilePath;
-
-            var result = await SaveFilesDelegate?.Invoke(new SaveTabEventArgs(_stateInfo, savePath));
-            if (!result)
-                MessageBox.Show("The file could not be saved.", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            UpdateForm();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         #endregion
@@ -178,12 +163,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void tlsMainSave_Click(object sender, EventArgs e)
         {
-            Save(UPath.Empty);
+            Save(false);
         }
 
         private void tlsMainSaveAs_Click(object sender, EventArgs e)
         {
-            SaveAs();
+            Save(true);
         }
 
         private void PreviewItem_Click(object sender, EventArgs e)

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Kontract.Models.IO;
+﻿using Kontract.Models.IO;
 
-namespace Kuriimu2.WinForms.MainForms.Models
+namespace Kuriimu2.WinForms.MainForms.Models.Contexts
 {
     class ExtractContext
     {

@@ -13,6 +13,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Models;
+using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Extensions;
 using Kore.Managers.Plugins;
@@ -21,6 +22,7 @@ using Kuriimu2.WinForms.Exceptions;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.MainForms.FormatForms;
 using Kuriimu2.WinForms.MainForms.Interfaces;
+using Kuriimu2.WinForms.MainForms.Models;
 using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
 
@@ -139,14 +141,14 @@ namespace Kuriimu2.WinForms.MainForms
             }
         }
 
-        private Task<bool> Kuriimu2_OpenTab(OpenFileEventArgs e)
+        private Task<bool> Kuriimu2_OpenFile(IStateInfo stateInfo, ArchiveFileInfo file, Guid pluginId)
         {
-            var absoluteFilePath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
+            var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
-                e.PluginId == Guid.Empty ?
-                    _pluginManager.LoadFile(e.StateInfo, e.Afi) :
-                    _pluginManager.LoadFile(e.StateInfo, e.Afi, e.PluginId));
-            var tabColor = _stateDictionary[e.StateInfo].TabColor;
+                pluginId == Guid.Empty ?
+                    _pluginManager.LoadFile(stateInfo, file) :
+                    _pluginManager.LoadFile(stateInfo, file, pluginId));
+            var tabColor = _stateDictionary[stateInfo].TabColor;
 
             return OpenFile(absoluteFilePath, false, loadAction, tabColor);
         }
@@ -216,29 +218,28 @@ namespace Kuriimu2.WinForms.MainForms
 
         private bool AddTabPage(IStateInfo stateInfo, Color tabColor)
         {
+            var communicator = CreateFormCommunicator(stateInfo);
+
             IKuriimuForm kuriimuForm;
             try
             {
                 switch (stateInfo.PluginState)
                 {
                     case ITextState _:
-                        kuriimuForm = new TextForm(stateInfo, _pluginManager.GetGameAdapters().ToArray(),
+                        kuriimuForm = new TextForm(stateInfo, communicator, _pluginManager.GetGameAdapters().ToArray(),
                             _progressContext);
                         break;
 
                     case IImageState _:
-                        kuriimuForm = new ImageForm(stateInfo, _progressContext);
+                        kuriimuForm = new ImageForm(stateInfo, communicator, _progressContext);
                         break;
 
                     case IArchiveState _:
-                        kuriimuForm = new ArchiveForm(stateInfo, _pluginManager, _progressContext);
-                        ((IArchiveForm)kuriimuForm).OpenFilesDelegate = Kuriimu2_OpenTab;
-                        ((IArchiveForm)kuriimuForm).RenameFilesDelegate = Kuriimu2_RenameTab;
-                        ((IArchiveForm)kuriimuForm).DeleteFilesDelegate = Kuriimu2_DeleteTab;
+                        kuriimuForm = new ArchiveForm(stateInfo, communicator, _pluginManager, _progressContext);
                         break;
 
                     case IHexState _:
-                        kuriimuForm = new HexForm(stateInfo);
+                        kuriimuForm = new HexForm(stateInfo, communicator);
                         break;
 
                     default:
@@ -255,16 +256,12 @@ namespace Kuriimu2.WinForms.MainForms
                 return false;
             }
 
-            kuriimuForm.SaveFilesDelegate = TabControl_SaveTab;
-            kuriimuForm.UpdateTabDelegate = TabControl_UpdateTab;
-            kuriimuForm.ReportStatusDelegate += Kuriimu2_ReportStatus;
-
             var tabPage = new TabPage
             {
                 BackColor = SystemColors.Window,
                 Padding = new Padding(0, 2, 2, 1),
                 Name = stateInfo.FilePath.ToRelative().GetName(),
-                Controls = { kuriimuForm as UserControl }
+                Controls = { (UserControl)kuriimuForm }
             };
             openFiles.TabPages.Add(tabPage);
 
@@ -295,9 +292,9 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Save File
 
-        private Task<bool> TabControl_SaveTab(SaveTabEventArgs e)
+        private Task<bool> TabControl_SaveTab(IStateInfo stateInfo, bool saveAs)
         {
-            return SaveFile(e.StateInfo, e.SavePath);
+            return saveAs ? SaveFileAs(stateInfo) : SaveFile(stateInfo);
         }
 
         private async Task SaveAll(bool invokeUpdateForm)
@@ -361,6 +358,16 @@ namespace Kuriimu2.WinForms.MainForms
         #endregion
 
         #region Close File
+
+        private Task<bool> Kuriimu2_CloseFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        {
+            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / afi.FilePath.ToRelative();
+            if (!_pluginManager.IsLoaded(absolutePath))
+                return Task.FromResult(true);
+
+            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            return CloseFile(loadedFile);
+        }
 
         private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false)
         {
@@ -432,62 +439,23 @@ namespace Kuriimu2.WinForms.MainForms
 
         #endregion
 
-        #region Rename File
-
-        private void Kuriimu2_RenameTab(RenameFileEventArgs e)
-        {
-            var fullPath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
-            var renamedFullPath = e.RenamePath.ToRelative();
-
-            var isLoaded = _pluginManager.IsLoaded(fullPath);
-            if (!isLoaded)
-                return;
-
-            var loadedState = _pluginManager.GetLoadedFile(fullPath);
-            RenameFile(loadedState, renamedFullPath);
-        }
-
-        private void RenameFile(IStateInfo stateInfo, UPath renamedPath)
-        {
-            stateInfo.RenameFilePath(renamedPath);
-
-            UpdateChildrenTabs(stateInfo);
-
-            UpdateTab(stateInfo, true, false);
-        }
-
-        #endregion
-
-        #region Delete File
-
-        private Task<bool> Kuriimu2_DeleteTab(DeleteFileEventArgs e)
-        {
-            var fullPath = e.StateInfo.AbsoluteDirectory / e.StateInfo.FilePath / e.Afi.FilePath.ToRelative();
-            if (!_pluginManager.IsLoaded(fullPath))
-                return Task.FromResult(true);
-
-            var loadedState = _pluginManager.GetLoadedFile(fullPath);
-
-            return CloseFile(loadedState);
-        }
-
-        #endregion
-
         #region Report Status
 
-        private void Kuriimu2_ReportStatus(ReportStatusEventArgs e)
+        private void Kuriimu2_ReportStatus(string message, Color textColor)
         {
-            statusLabelToolStrip.Text = e.Status;
-            statusLabelToolStrip.ForeColor = e.TextColor;
+            statusLabelToolStrip.Text = message;
+            statusLabelToolStrip.ForeColor = textColor;
         }
 
         #endregion
 
         #region Update Methods
 
-        private void TabControl_UpdateTab(IStateInfo stateInfo)
+        private void TabControl_UpdateTab(IStateInfo stateInfo, bool updateParents, bool updateChildren)
         {
-            UpdateTab(stateInfo);
+            UpdateTab(stateInfo, false, updateParents);
+            if (updateChildren)
+                UpdateChildrenTabs(stateInfo);
         }
 
         private void UpdateChildrenTabs(IStateInfo stateInfo)
@@ -738,6 +706,21 @@ namespace Kuriimu2.WinForms.MainForms
             }
 
             return string.Join("|", filters);
+        }
+
+        private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
+        {
+            var communicator = new FormCommunicator(stateInfo)
+            {
+                OpenFileDelegate = Kuriimu2_OpenFile,
+                SaveFileDelegate = TabControl_SaveTab,
+                CloseFileDelegate = Kuriimu2_CloseFile,
+                UpdateTabDelegate = TabControl_UpdateTab,
+                ReportStatusDelegate = Kuriimu2_ReportStatus
+            };
+
+
+            return communicator;
         }
 
         #endregion

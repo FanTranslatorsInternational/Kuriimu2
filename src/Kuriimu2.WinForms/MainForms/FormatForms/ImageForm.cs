@@ -66,6 +66,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private readonly IStateInfo _stateInfo;
         private readonly IProgressContext _progressContext;
+        private readonly IFormCommunicator _formCommunicator;
         private readonly KanvasImage[] _kanvasImages;
 
         private int _selectedImageIndex;
@@ -76,8 +77,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private bool _paletteChooseColor;
         private int _paletteChosenColorIndex = -1;
 
-        // ReSharper disable once SuspiciousTypeConversion.Global
-        private ISaveFiles SaveState => _stateInfo.PluginState as ISaveFiles;
         private IImageState ImageState => _stateInfo.PluginState as IImageState;
 
         private ImageInfo SelectedImageInfo => ImageState.Images[_selectedImageIndex];
@@ -90,21 +89,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private IDictionary<int, IColorEncoding> PaletteEncodings =>
             ImageState.SupportedPaletteEncodings ?? new Dictionary<int, IColorEncoding>();
 
-        /// <inheritdoc />
-        public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
-
-        /// <inheritdoc />
-        public Action<IStateInfo> UpdateTabDelegate { get; set; }
-
-        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
-
         /// <summary>
         /// Create a new instance of <see cref="ImageForm"/>.
         /// </summary>
         /// <param name="stateInfo">The loaded state for an image format.</param>
         /// <param name="progressContext">The progress context.</param>
         /// <exception cref="T:System.InvalidOperationException">If state is not an image state.</exception>
-        public ImageForm(IStateInfo stateInfo, IProgressContext progressContext)
+        public ImageForm(IStateInfo stateInfo, IFormCommunicator formCommunicator, IProgressContext progressContext)
         {
             InitializeComponent();
 
@@ -118,6 +109,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             CheckIntegrity(imageState);
 
             _stateInfo = stateInfo;
+            _formCommunicator = formCommunicator;
             _progressContext = progressContext;
             _kanvasImages = imageState.Images.Select(x => new KanvasImage(imageState, x)).ToArray();
 
@@ -396,12 +388,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void tsbSave_Click(object sender, EventArgs e)
         {
-            Save(UPath.Empty).ConfigureAwait(false);
+            Save();
         }
 
         private void tsbSaveAs_Click(object sender, EventArgs e)
         {
-            SaveAs().ConfigureAwait(false);
+            SaveAs();
         }
 
         private void tsbExport_Click(object sender, EventArgs e)
@@ -492,26 +484,22 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #region Save
 
-        private async Task SaveAs()
+        private void SaveAs()
         {
-            var sfd = new SaveFileDialog
-            {
-                FileName = _stateInfo.FilePath.GetName(),
-                Filter = AllFilesFilter_
-            };
-
-            if (sfd.ShowDialog() == DialogResult.OK)
-                await Save(sfd.FileName);
+            Save(true);
         }
 
-        private async Task Save(UPath savePath)
+        private async void Save(bool saveAs = false)
         {
-            if (savePath == UPath.Empty)
-                savePath = _stateInfo.FileSystem.ConvertPathToInternal(UPath.Root) / _stateInfo.FilePath;
+            var wasSaved = await _formCommunicator.Save(saveAs);
 
-            var result = await SaveFilesDelegate(new SaveTabEventArgs(_stateInfo, savePath));
+            if (wasSaved)
+                _formCommunicator.ReportStatus(true, "File saved successfully.");
+            else
+                _formCommunicator.ReportStatus(false, "File not saved successfully.");
 
-            UpdateFormInternal();
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
         }
 
         private void ExportPng()
@@ -579,7 +567,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private void UpdateFormInternal()
         {
             UpdateProperties();
-            UpdateTabDelegate?.Invoke(_stateInfo);
+            _formCommunicator.Update(true, false);
         }
 
         private void UpdateProperties()

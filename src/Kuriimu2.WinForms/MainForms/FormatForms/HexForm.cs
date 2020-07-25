@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Be.Windows.Forms;
 using Kontract.Interfaces.Managers;
@@ -12,12 +11,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
     {
         private readonly IStateInfo _stateInfo;
         private readonly IHexState _hexState;
+        private readonly IFormCommunicator _formCommunicator;
 
-        public Func<SaveTabEventArgs, Task<bool>> SaveFilesDelegate { get; set; }
-        public Action<IStateInfo> UpdateTabDelegate { get; set; }
-        public Action<ReportStatusEventArgs> ReportStatusDelegate { get; set; }
-
-        public HexForm(IStateInfo stateInfo)
+        public HexForm(IStateInfo stateInfo, IFormCommunicator formCommunicator)
         {
             InitializeComponent();
 
@@ -26,13 +22,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             _stateInfo = stateInfo;
             _hexState = hexState;
+            _formCommunicator = formCommunicator;
 
             fileData.ByteProvider = new DynamicFileByteProvider(hexState.FileStream);
         }
 
         public void UpdateForm()
         {
-            UpdateTabDelegate(_stateInfo);
+            _formCommunicator.Update(true, false);
         }
     }
 }
