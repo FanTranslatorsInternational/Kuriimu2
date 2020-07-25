@@ -32,7 +32,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private const string ToolZoomText_ = "Tool: Zoom";
         private const string ToolPanText_ = "Tool: Pan";
 
-        private const string AllFilesFilter_ = "All Files (*.*)|*.*";
         private const string PngFileFilter_ = "Portable Network Graphics (*.png)|*.png";
         private const string KuriimuPaletteFilter_ = "Kuriimu PaletteData (*.kpal)|*.kpal";
         private const string RiffPaletteFilter_ = "Microsoft RIFF PaletteData (*.pal)|*.pal";
@@ -44,9 +43,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private const string ImportPaletteTitle_ = "Import palette...";
         private const string PaletteCouldNotOpenMessage_ = "Could not open palette file.";
         private const string PaletteCouldNotSaveMessage_ = "Could not save palette file.";
-        private const string InvalidPaletteFileTitle_ = "Invalid palette";
-
-        private const string DefaultCatchTitle_ = "Exception catched";
 
         private readonly Dictionary<string, string> _stylesText = new Dictionary<string, string>
         {
@@ -93,6 +89,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         /// Create a new instance of <see cref="ImageForm"/>.
         /// </summary>
         /// <param name="stateInfo">The loaded state for an image format.</param>
+        /// <param name="formCommunicator"><see cref="IFormCommunicator"/> to allow communication with the main form.</param>
         /// <param name="progressContext">The progress context.</param>
         /// <exception cref="T:System.InvalidOperationException">If state is not an image state.</exception>
         public ImageForm(IStateInfo stateInfo, IFormCommunicator formCommunicator, IProgressContext progressContext)
@@ -545,7 +542,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false, ex.Message);
             }
 
             UpdateFormInternal();
@@ -779,21 +776,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (!SelectedImageInfo.IsIndexed)
                 return;
 
-            DisablePaletteControls();
-            DisableImageControls();
-
             var index = indexFunc(controlPoint);
             if (index < 0 || index >= SelectedImage.GetPalette(_progressContext).Count)
-            {
-                UpdateFormInternal();
                 return;
-            }
 
             if (clrDialog.ShowDialog() != DialogResult.OK)
-            {
-                UpdateFormInternal();
                 return;
-            }
+
+            DisablePaletteControls();
+            DisableImageControls();
 
             try
             {
@@ -806,12 +797,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false, ex.Message);
                 UpdateFormInternal();
                 return;
             }
 
             UpdateFormInternal();
+
             UpdatePreview();
             UpdateImageList();
         }
@@ -824,15 +816,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (newIndex >= SelectedImage.GetPalette(_progressContext).Count)
                 return;
 
-            DisablePaletteControls();
-            DisableImageControls();
-
             var pointInImg = GetPointInImage(controlPoint);
             if (pointInImg == Point.Empty)
-            {
-                UpdateFormInternal();
                 return;
-            }
+
+            DisablePaletteControls();
+            DisableImageControls();
 
             try
             {
@@ -845,12 +834,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false, ex.Message);
                 UpdateFormInternal();
                 return;
             }
 
             UpdateFormInternal();
+
             UpdatePreview();
             UpdateImageList();
         }
@@ -917,7 +907,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false,ex.Message);
                 UpdateFormInternal();
                 return;
             }
@@ -938,8 +928,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             if (ofd.ShowDialog() != DialogResult.OK)
             {
-                MessageBox.Show(PaletteCouldNotOpenMessage_, InvalidPaletteFileTitle_, MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false,PaletteCouldNotOpenMessage_);
                 return null;
             }
 
@@ -953,8 +942,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
+                    _formCommunicator.ReportStatus(false,e.Message);
                 }
             }
             else if (Path.GetExtension(ofd.FileName) == ".pal")
@@ -966,8 +954,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
+                    _formCommunicator.ReportStatus(false, e.Message);
                 }
             }
 
@@ -993,8 +980,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             if (sfd.ShowDialog() != DialogResult.OK)
             {
-                MessageBox.Show(PaletteCouldNotSaveMessage_, InvalidPaletteFileTitle_, MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false, PaletteCouldNotSaveMessage_);
                 return;
             }
 
@@ -1005,8 +991,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString(), DefaultCatchTitle_, MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
+                _formCommunicator.ReportStatus(false, e.Message);
             }
         }
 
