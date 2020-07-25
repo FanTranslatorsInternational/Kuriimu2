@@ -45,6 +45,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.mnuDirectories = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.extractDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.replaceDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.renameDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imlFiles = new System.Windows.Forms.ImageList(this.components);
@@ -215,6 +216,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.mnuDirectories.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.extractDirectoryToolStripMenuItem,
             this.replaceDirectoryToolStripMenuItem,
+            this.renameDirectoryToolStripMenuItem,
             this.addDirectoryToolStripMenuItem,
             this.deleteDirectoryToolStripMenuItem});
             this.mnuDirectories.Name = "mnuDirectories";
@@ -236,6 +238,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.replaceDirectoryToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
             this.replaceDirectoryToolStripMenuItem.Text = "&Replace...";
             this.replaceDirectoryToolStripMenuItem.Click += new System.EventHandler(this.replaceDirectoryToolStripMenuItem_Click);
+            // 
+            // renameDirectoryToolStripMenuItem
+            // 
+            this.renameDirectoryToolStripMenuItem.Image = global::Kuriimu2.WinForms.Properties.Resources.menu_field_properties;
+            this.renameDirectoryToolStripMenuItem.Name = "renameDirectoryToolStripMenuItem";
+            this.renameDirectoryToolStripMenuItem.Size = new System.Drawing.Size(124, 22);
+            this.renameDirectoryToolStripMenuItem.Text = "Rename...";
+            this.renameDirectoryToolStripMenuItem.Click += new System.EventHandler(this.renameDirectoryToolStripMenuItem_Click);
             // 
             // addDirectoryToolStripMenuItem
             // 
@@ -541,6 +551,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private System.Windows.Forms.ImageList imlFilesLarge;
         private System.Windows.Forms.ToolStripMenuItem extractDirectoryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem replaceDirectoryToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem renameDirectoryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addDirectoryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem deleteDirectoryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem extractFileToolStripMenuItem;

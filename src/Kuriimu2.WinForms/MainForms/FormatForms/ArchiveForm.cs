@@ -209,7 +209,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var nodePath = GetNodePath(root, treeNode);
 
             var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
-            var filePaths = EnumerateFilteredPaths(archiveFileSystem).Where(x => x.ToRelative().IsInDirectory(nodePath, true));
+            var filePaths = EnumerateFilteredPaths(archiveFileSystem).Where(x =>
+                x.ToRelative().IsInDirectory(nodePath, true));
             var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
             // 1. Build directory tree
@@ -372,11 +373,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
 
             var canReplaceFiles = ArchiveState is IReplaceFiles;
+            var canRenameFiles = ArchiveState is IRenameFiles && treDirectories.SelectedNode != root;
             var canDeleteFiles = ArchiveState is IRemoveFiles && treDirectories.SelectedNode != root;
             var canAddFiles = ArchiveState is IAddFiles;
 
             replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
             replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? "&Replace..." : "Replace is not supported";
+
+            renameDirectoryToolStripMenuItem.Enabled = canRenameFiles;
+            renameDirectoryToolStripMenuItem.Text = canRenameFiles ? "Rename..." : "Rename is not supported";
 
             addDirectoryToolStripMenuItem.Enabled = canAddFiles;
             addDirectoryToolStripMenuItem.Text = canAddFiles ? "&Add..." : "Add is not supported";
@@ -491,6 +496,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private void replaceDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ReplaceSelectedDirectory();
+        }
+
+        private void renameDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RenameSelectedDirectory();
         }
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1034,26 +1044,92 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
+        #region Rename directories
+
+        private void RenameSelectedDirectory()
+        {
+            RenameDirectory(treDirectories.SelectedNode);
+        }
+
+        private void RenameDirectory(TreeNode node)
+        {
+            var context = new RenameContext();
+            RenameDirectory(node, context, true);
+            RenameDirectory(node, context);
+
+            _formCommunicator.ReportStatus(true, "Directory renamed successfully.");
+        }
+
+        private void RenameDirectory(TreeNode node, RenameContext context, bool isCount = false)
+        {
+            if (node == null)
+                return;
+
+            if (node == treDirectories.Nodes["root"])
+                return;
+
+            var nodePath = GetNodePath(treDirectories.Nodes["root"], node);
+
+            // Select new directory name
+            if (!isCount && (context.RenamedPath.IsNull || context.RenamedPath.IsEmpty))
+            {
+                var inputBox = new InputBox($"Select a new name for '{node.Text}'",
+                    "Rename directory",
+                    node.Text);
+
+                if (inputBox.ShowDialog() != DialogResult.OK)
+                {
+                    context.IsSuccessful = false;
+                    context.Error = "No valid name was entered.";
+                    return;
+                }
+
+                node.Name = node.Text = inputBox.InputText;
+                context.RenamedPath = nodePath.GetDirectory() / inputBox.InputText;
+            }
+
+            // Rename file paths of directory
+            if (node.Tag is IList<ArchiveFileInfo> files)
+            {
+                RenameFiles(files, context, isCount);
+                if (!context.IsSuccessful)
+                    return;
+            }
+
+            var renamedPath = context.RenamedPath;
+
+            // Rename sub directories
+            foreach (TreeNode subNode in node.Nodes)
+            {
+                context.RenamedPath = isCount ? UPath.Empty : renamedPath / subNode.Name;
+
+                RenameDirectory(subNode, context, isCount);
+                if (!context.IsSuccessful)
+                    return;
+            }
+        }
+
+        #endregion
+
         #region Rename Files
 
         private void RenameSelectedFiles()
         {
             var renamingFiles = CollectSelectedFiles().ToArray();
 
-            var context = new CountContext();
+            var context = new RenameContext();
             RenameFiles(renamingFiles, context, true);
             RenameFiles(renamingFiles, context);
 
-            _formCommunicator.ReportStatus(true, "Files renamed successfully.");
+            if (context.IsSuccessful)
+                _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
+            else
+                _formCommunicator.ReportStatus(false, context.Error);
         }
 
-        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
-        private void RenameFiles(IList<ArchiveFileInfo> files, CountContext context, bool isCount = false)
+        private void RenameFiles(IList<ArchiveFileInfo> files, RenameContext context, bool isCount = false)
         {
             if (files == null || !files.Any())
-                return;
-
-            if (!(ArchiveState is IRenameFiles renameState))
                 return;
 
             if (isCount)
@@ -1064,19 +1140,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             foreach (var afi in files)
             {
-                var inputBox = new InputBox($"Select a new filename for '{afi.FilePath.GetName()}'",
-                    "Rename file",
-                    afi.FilePath.GetName());
-
-                if (inputBox.ShowDialog() != DialogResult.OK)
-                    continue;
-
-                // Rename possibly open file in main form
-                var renamedPath = afi.FilePath.GetDirectory() / inputBox.InputText;
-                _formCommunicator.Update(true, true);
-
-                // Rename file in archive
-                renameState.Rename(afi, renamedPath);
+                if (context.RenamedPath.IsNull || context.RenamedPath.IsEmpty)
+                    RenameFile(afi);
+                else
+                    RenameFile(afi, context.RenamedPath / afi.FilePath.GetName());
 
                 _progressContext.ReportProgress("Renaming files", ++context.CurrentCount, context.MaxCount);
             }
@@ -1085,6 +1152,40 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateDirectoryColors();
 
             UpdateProperties();
+        }
+
+        private void RenameFile(ArchiveFileInfo file)
+        {
+            RenameFile(file, UPath.Empty);
+        }
+
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
+        private void RenameFile(ArchiveFileInfo file, UPath renamedPath)
+        {
+            if (file == null)
+                return;
+
+            if (!(ArchiveState is IRenameFiles renameState))
+                return;
+
+            if (renamedPath.IsNull || renamedPath.IsEmpty)
+            {
+                var inputBox = new InputBox($"Select a new filename for '{file.FilePath.GetName()}'",
+                    "Rename file",
+                    file.FilePath.GetName());
+
+                if (inputBox.ShowDialog() != DialogResult.OK)
+                    return;
+
+                renamedPath = file.FilePath.GetDirectory() / inputBox.InputText;
+            }
+
+            // Rename file in archive
+            renameState.Rename(file, renamedPath);
+
+            // Rename possibly open file in main form
+            // TODO: Missing rename propagation
+            _formCommunicator.Update(true, true);
         }
 
         #endregion
