@@ -745,7 +745,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 SelectedPath = Settings.Default.LastDirectory
             };
 
-            return fbd.ShowDialog() != DialogResult.OK ? UPath.Empty : fbd.SelectedPath;
+            return (UPath)Invoke(new Func<UPath>(() => fbd.ShowDialog() != DialogResult.OK ? UPath.Empty : fbd.SelectedPath));
         }
 
         private UPath SelectFile(string fileName)
@@ -757,7 +757,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 FileName = fileName
             };
 
-            return ofd.ShowDialog() != DialogResult.OK ? UPath.Empty : ofd.FileName;
+            return (UPath)Invoke(new Func<UPath>(() => ofd.ShowDialog() != DialogResult.OK ? UPath.Empty : ofd.FileName));
         }
 
         private bool IsFileLocked(ArchiveFileInfo afi, bool lockOnLoaded)
@@ -787,8 +787,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void ExtractDirectory(TreeNode node)
         {
             var context = new ExtractContext();
-            await ExtractDirectory(node, context, true);
-            await ExtractDirectory(node, context);
+            ExtractDirectory(node, context, true);
+            await Task.Run(() => ExtractDirectory(node, context));
 
             if (context.IsSuccessful)
                 _formCommunicator.ReportStatus(true, "Files extracted successfully.");
@@ -796,7 +796,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 _formCommunicator.ReportStatus(false, context.Error);
         }
 
-        private async Task ExtractDirectory(TreeNode node, ExtractContext context, bool isCount = false)
+        private async void ExtractDirectory(TreeNode node, ExtractContext context, bool isCount = false)
         {
             if (node == null)
                 return;
@@ -835,7 +835,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 context.ExtractPath = extractPath;
 
-                await ExtractDirectory(subNode, context, isCount);
+                ExtractDirectory(subNode, context, isCount);
                 if (!context.IsSuccessful)
                     return;
             }
@@ -858,7 +858,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         {
             var context = new ExtractContext();
             await ExtractFiles(files, context, true);
-            await ExtractFiles(files, context);
+            await Task.Run(() => ExtractFiles(files, context));
 
             if (context.IsSuccessful)
                 _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
@@ -920,11 +920,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             ReplaceDirectory(treDirectories.SelectedNode);
         }
 
-        private void ReplaceDirectory(TreeNode node)
+        private async void ReplaceDirectory(TreeNode node)
         {
             var context = new ReplaceContext();
             ReplaceDirectory(node, context, true);
-            ReplaceDirectory(node, context);
+            await Task.Run(() => ReplaceDirectory(node, context));
 
             if (context.IsSuccessful)
                 _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
@@ -989,7 +989,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             ReplaceFiles(selectedFiles);
         }
 
-        private void ReplaceFiles(IList<ArchiveFileInfo> files)
+        private async void ReplaceFiles(IList<ArchiveFileInfo> files)
         {
             if (files == null || !files.Any())
                 return;
@@ -999,13 +999,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (files.Count > 1)
             {
                 ReplaceFiles(files, context, true);
-                ReplaceFiles(files, context);
+                await Task.Run(() => ReplaceFiles(files, context));
             }
 
             if (files.Count == 1)
             {
                 ReplaceFile(files[0], context, true);
-                ReplaceFile(files[0], context);
+                await Task.Run(() => ReplaceFile(files[0], context));
             }
 
             if (context.IsSuccessful)
@@ -1119,18 +1119,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
-        #region Rename directories
+        #region Rename Directories
 
         private void RenameSelectedDirectory()
         {
             RenameDirectory(treDirectories.SelectedNode);
         }
 
-        private void RenameDirectory(TreeNode node)
+        private async void RenameDirectory(TreeNode node)
         {
             var context = new RenameContext();
             RenameDirectory(node, context, true);
-            RenameDirectory(node, context);
+            await Task.Run(() => RenameDirectory(node, context));
 
             _formCommunicator.ReportStatus(true, "Directory renamed successfully.");
 
@@ -1193,13 +1193,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #region Rename Files
 
-        private void RenameSelectedFiles()
+        private async void RenameSelectedFiles()
         {
             var renamingFiles = CollectSelectedFiles().ToArray();
 
             var context = new RenameContext();
             RenameFiles(renamingFiles, context, true);
-            RenameFiles(renamingFiles, context);
+            await Task.Run(() => RenameFiles(renamingFiles, context));
 
             if (context.IsSuccessful)
                 _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
@@ -1274,8 +1274,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void DeleteSelectedDirectory()
         {
             var context = new CountContext();
-            await DeleteDirectory(treDirectories.SelectedNode, context, true);
-            await DeleteDirectory(treDirectories.SelectedNode, context);
+            DeleteDirectory(treDirectories.SelectedNode, context, true);
+            await Task.Run(() => DeleteDirectory(treDirectories.SelectedNode, context));
 
             _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
 
@@ -1287,18 +1287,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _formCommunicator.Update(true, false);
         }
 
-        private async Task DeleteDirectory(TreeNode node, CountContext context, bool isCount = false)
+        private void DeleteDirectory(TreeNode node, CountContext context, bool isCount = false)
         {
             if (node == null)
                 return;
 
             // Delete files of directory
             if (node.Tag is IList<ArchiveFileInfo> files)
-                await DeleteFiles(files, context, isCount);
+                DeleteFiles(files, context, isCount);
 
             // Delete sub directories
             foreach (TreeNode subNode in node.Nodes)
-                await DeleteDirectory(subNode, context, isCount);
+                DeleteDirectory(subNode, context, isCount);
         }
 
         #endregion
@@ -1310,8 +1310,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var filesToDelete = CollectSelectedFiles().ToArray();
 
             var context = new CountContext();
-            await DeleteFiles(filesToDelete, context, true);
-            await DeleteFiles(filesToDelete, context);
+            DeleteFiles(filesToDelete, context, true);
+            await Task.Run(() => DeleteFiles(filesToDelete, context));
 
             _formCommunicator.ReportStatus(true, "Files deleted successfully.");
 
@@ -1323,7 +1323,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
-        private async Task DeleteFiles(IList<ArchiveFileInfo> files, CountContext context, bool isCount = false)
+        private async void DeleteFiles(IList<ArchiveFileInfo> files, CountContext context, bool isCount = false)
         {
             if (files == null || !files.Any())
                 return;
