@@ -106,12 +106,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void Save(bool saveAs)
         {
-            var wasSaved = await _formCommunicator.Save(saveAs);
-
-            if (wasSaved)
-                _formCommunicator.ReportStatus(true, "File saved successfully.");
-            else
-                _formCommunicator.ReportStatus(false, "File not saved successfully.");
+            var wasSuccessful = await _formCommunicator.Save(saveAs);
+            if (!wasSuccessful)
+                return;
 
             UpdateProperties();
             _formCommunicator.Update(true, false);

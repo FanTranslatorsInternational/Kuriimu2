@@ -17,6 +17,8 @@ namespace Kontract.Interfaces.Managers
     {
         #region Load File
 
+        #region Load FileSystem
+
         /// <summary>
         /// Loads a file from a given file system.
         /// </summary>
@@ -53,6 +55,10 @@ namespace Kontract.Interfaces.Managers
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
         Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext);
 
+        #endregion
+
+        #region Load ArchiveFileInfo
+
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
         /// </summary>
@@ -88,6 +94,8 @@ namespace Kontract.Interfaces.Managers
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
         Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext);
+
+        #endregion
 
         #endregion
 

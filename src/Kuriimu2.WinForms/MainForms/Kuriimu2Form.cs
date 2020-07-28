@@ -28,7 +28,7 @@ using Kuriimu2.WinForms.Properties;
 
 namespace Kuriimu2.WinForms.MainForms
 {
-    public partial class Kuriimu2Form : Form
+    public partial class Kuriimu2Form : Form, IMainForm
     {
         private const string LoadError_ = "Load Error";
         private const string InvalidFile_ = "The selected file is invalid.";
@@ -66,6 +66,8 @@ namespace Kuriimu2.WinForms.MainForms
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
         private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
 
+        private readonly IList<IStateInfo> _savingFiles;
+
         private readonly IInternalPluginManager _pluginManager;
         private readonly IProgressContext _progressContext;
 
@@ -90,6 +92,8 @@ namespace Kuriimu2.WinForms.MainForms
 
             _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
             _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
+
+            _savingFiles = new List<IStateInfo>();
 
             _pluginManager = new PluginManager(_progressContext, dialogManager, "plugins")
             {
@@ -141,7 +145,7 @@ namespace Kuriimu2.WinForms.MainForms
             }
         }
 
-        private Task<bool> Kuriimu2_OpenFile(IStateInfo stateInfo, ArchiveFileInfo file, Guid pluginId)
+        public Task<bool> OpenFile(IStateInfo stateInfo, ArchiveFileInfo file, Guid pluginId)
         {
             var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
@@ -150,7 +154,7 @@ namespace Kuriimu2.WinForms.MainForms
                     _pluginManager.LoadFile(stateInfo, file, pluginId));
             var tabColor = _stateDictionary[stateInfo].TabColor;
 
-            return OpenFile(absoluteFilePath, false, loadAction, tabColor);
+            return Task.Run(() => OpenFile(absoluteFilePath, false, loadAction, tabColor));
         }
 
         private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)
@@ -167,10 +171,7 @@ namespace Kuriimu2.WinForms.MainForms
             if (_pluginManager.IsLoaded(filePath))
             {
                 var selectedTabPage = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage;
-                if (openFiles.InvokeRequired)
-                    openFiles.Invoke(new Action(() => openFiles.SelectedTab = selectedTabPage));
-                else
-                    openFiles.SelectedTab = selectedTabPage;
+                InvokeAction(() => openFiles.SelectedTab = selectedTabPage);
 
                 return true;
             }
@@ -256,6 +257,7 @@ namespace Kuriimu2.WinForms.MainForms
                 return false;
             }
 
+            // Create new tab page
             var tabPage = new TabPage
             {
                 BackColor = SystemColors.Window,
@@ -263,17 +265,29 @@ namespace Kuriimu2.WinForms.MainForms
                 Name = stateInfo.FilePath.ToRelative().GetName(),
                 Controls = { (UserControl)kuriimuForm }
             };
-            openFiles.TabPages.Add(tabPage);
+
+            // Add tab page to tab control
+            InvokeAction(() => openFiles.TabPages.Add(tabPage));
 
             _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
             _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
 
-            tabPage.ImageKey = CloseButton_;  // setting ImageKey before adding, makes the image not working
-            openFiles.SelectedTab = tabPage;
+            InvokeAction(() => tabPage.ImageKey = CloseButton_);  // setting ImageKey before adding, makes the image not working
+
+            // Select tab page in tab control
+            InvokeAction(() => openFiles.SelectedTab = tabPage);
 
             UpdateTab(stateInfo);
 
             return true;
+        }
+
+        private void InvokeAction(Action controlAction)
+        {
+            if (InvokeRequired)
+                Invoke(controlAction);
+            else
+                controlAction();
         }
 
         private string SelectFile()
@@ -292,41 +306,42 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Save File
 
-        private Task<bool> TabControl_SaveTab(IStateInfo stateInfo, bool saveAs)
+        public Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs)
         {
-            return saveAs ? SaveFileAs(stateInfo) : SaveFile(stateInfo);
+            return SaveFile(stateInfo, saveAs, false);
         }
 
-        private async Task SaveAll(bool invokeUpdateForm)
+        private async void SaveAll(bool invokeUpdateForm)
         {
             foreach (var entry in _tabDictionary.Values)
-                await SaveFile(entry.StateInfo, invokeUpdateForm);
+                await SaveFile(entry.StateInfo, true, invokeUpdateForm);
         }
 
-        private Task<bool> SaveFile(IStateInfo stateInfo, bool invokeUpdateForm = false)
+        private async Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs, bool invokeUpdateForm)
         {
-            return SaveFile(stateInfo, UPath.Empty, invokeUpdateForm);
-        }
-
-        private Task<bool> SaveFileAs(IStateInfo stateInfo, bool invokeUpdateForm = false)
-        {
-            var sfd = new SaveFileDialog
+            // Check if file is already attempted to be saved
+            if (_savingFiles.Contains(stateInfo))
             {
-                FileName = stateInfo.FilePath.GetName(),
-                Filter = "All Files (*.*)|*.*"
-            };
-
-            if (sfd.ShowDialog() != DialogResult.OK)
-            {
-                MessageBox.Show(InvalidFile_, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return Task.FromResult(false);
+                ReportStatus(false, $"{stateInfo.FilePath.ToRelative()} is already saving.");
+                return false;
             }
 
-            return SaveFile(stateInfo, sfd.FileName, invokeUpdateForm);
-        }
+            _savingFiles.Add(stateInfo);
 
-        private async Task<bool> SaveFile(IStateInfo stateInfo, UPath savePath, bool invokeUpdateForm = false)
-        {
+            // Select save path if necessary
+            var savePath = UPath.Empty;
+            if (saveAs)
+            {
+                savePath = SelectNewFile(stateInfo.FilePath.GetName());
+                if (savePath.IsNull || savePath.IsEmpty)
+                {
+                    MessageBox.Show(InvalidFile_, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    _savingFiles.Remove(stateInfo);
+                    return false;
+                }
+            }
+
             var saveResult = savePath.IsEmpty ?
                 await _pluginManager.SaveFile(stateInfo) :
                 await _pluginManager.SaveFile(stateInfo, savePath);
@@ -339,7 +354,10 @@ namespace Kuriimu2.WinForms.MainForms
                 var message = saveResult.Message;
 #endif
 
+                ReportStatus(false, "File not saved successfully.");
                 MessageBox.Show(message, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                _savingFiles.Remove(stateInfo);
                 return false;
             }
 
@@ -352,14 +370,30 @@ namespace Kuriimu2.WinForms.MainForms
             // Update parents
             UpdateTab(stateInfo.ParentStateInfo, true);
 
+            ReportStatus(true, "File saved successfully.");
+
+            _savingFiles.Remove(stateInfo);
             return true;
+        }
+
+        private string SelectNewFile(string fileName)
+        {
+            var sfd = new SaveFileDialog
+            {
+                FileName = fileName,
+                Filter = "All Files (*.*)|*.*"
+            };
+
+            return sfd.ShowDialog() == DialogResult.OK ?
+                sfd.FileName :
+                null;
         }
 
         #endregion
 
         #region Close File
 
-        private Task<bool> Kuriimu2_CloseFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        public Task<bool> CloseFile(IStateInfo stateInfo, ArchiveFileInfo afi)
         {
             var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / afi.FilePath.ToRelative();
             if (!_pluginManager.IsLoaded(absolutePath))
@@ -441,7 +475,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Rename File
 
-        private void Kuriimu2_RenameFile(IStateInfo stateInfo, ArchiveFileInfo file, UPath renamedPath)
+        public void RenameFile(IStateInfo stateInfo, ArchiveFileInfo file, UPath renamedPath)
         {
             var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
             if (!_pluginManager.IsLoaded(absolutePath))
@@ -457,8 +491,13 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Report Status
 
-        private void Kuriimu2_ReportStatus(string message, Color textColor)
+        public void ReportStatus(bool isSuccessful, string message)
         {
+            if (string.IsNullOrEmpty(message))
+                return;
+
+            var textColor = isSuccessful ? Color.Black : Color.DarkRed;
+
             statusLabelToolStrip.Text = message;
             statusLabelToolStrip.ForeColor = textColor;
         }
@@ -467,7 +506,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Update Methods
 
-        private void TabControl_UpdateTab(IStateInfo stateInfo, bool updateParents, bool updateChildren)
+        public void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren)
         {
             UpdateTab(stateInfo, false, updateParents);
             if (updateChildren)
@@ -490,7 +529,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             // Update this tab pages information
             var stateEntry = _stateDictionary[stateInfo];
-            stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName();
+            InvokeAction(() => stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName());
 
             // If the call was not made by the requesting state, propagate an update action to it
             if (invokeUpdateForm)
@@ -545,17 +584,17 @@ namespace Kuriimu2.WinForms.MainForms
 
                 case SaveHotKey_:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
-                        await SaveFile(tabEntry.StateInfo, true);
+                        await SaveFile(tabEntry.StateInfo, false, true);
                     break;
 
                 case SaveAllHotKey_:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
-                        await SaveAll(true);
+                        SaveAll(true);
                     break;
 
                 case SaveAsHotKey_:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
-                        await SaveFileAs(tabEntry.StateInfo, true);
+                        await SaveFile(tabEntry.StateInfo, true, true);
                     break;
             }
         }
@@ -726,15 +765,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
         {
-            var communicator = new FormCommunicator(stateInfo)
-            {
-                OpenFileDelegate = Kuriimu2_OpenFile,
-                SaveFileDelegate = TabControl_SaveTab,
-                CloseFileDelegate = Kuriimu2_CloseFile,
-                RenameFileDelegate = Kuriimu2_RenameFile,
-                UpdateTabDelegate = TabControl_UpdateTab,
-                ReportStatusDelegate = Kuriimu2_ReportStatus
-            };
+            var communicator = new FormCommunicator(stateInfo, this);
 
 
             return communicator;

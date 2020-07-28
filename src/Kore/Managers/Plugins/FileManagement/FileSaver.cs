@@ -162,7 +162,7 @@ namespace Kore.Managers.Plugins.FileManagement
             try
             {
                 var saveContext = new SaveContext(progress);
-                await saveState.Save(temporaryContainer, fileName, saveContext);
+                await Task.Run(() => saveState.Save(temporaryContainer, fileName, saveContext));
             }
             catch (Exception ex)
             {
@@ -278,7 +278,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                await loadableState.Load(fileSystem, savePath, loadContext);
+                await Task.Run(() => loadableState.Load(fileSystem, savePath, loadContext));
             }
             catch (Exception ex)
             {

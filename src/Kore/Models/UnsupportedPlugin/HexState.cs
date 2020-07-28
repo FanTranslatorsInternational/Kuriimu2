@@ -11,7 +11,7 @@ namespace Kore.Models.UnsupportedPlugin
     {
         public Stream FileStream { get; private set; }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             FileStream = await fileSystem.OpenFileAsync(filePath);
         }

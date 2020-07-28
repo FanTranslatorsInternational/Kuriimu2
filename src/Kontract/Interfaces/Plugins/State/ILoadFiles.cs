@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Kontract.Interfaces.FileSystem;
+﻿using Kontract.Interfaces.FileSystem;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
@@ -17,6 +16,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <param name="filePath">The path to the file requested by the user.</param>
         /// <param name="loadContext">The context for this load operation, containing environment instances.</param>
         /// <returns>If the load procedure was successful.</returns>
-        Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext);
+        void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext);
     }
 }

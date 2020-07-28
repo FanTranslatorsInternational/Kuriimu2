@@ -98,7 +98,7 @@ namespace Kontract.Models.Archive
         public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
         {
             if (UsesCompression)
-                return Task.Factory.StartNew(() => _decompressedStream.Value);
+                return Task.Run(() => _decompressedStream.Value);
 
             return Task.FromResult(GetBaseStream());
         }
@@ -119,11 +119,11 @@ namespace Kontract.Models.Archive
             _hasSetFileData = true;
             ContentChanged = true;
 
-            if (UsesCompression)
-            {
-                _decompressedSize = fileData.Length;
-                _decompressedStream = new Lazy<Stream>(GetBaseStream);
-            }
+            if (!UsesCompression) 
+                return;
+
+            _decompressedSize = fileData.Length;
+            _decompressedStream = new Lazy<Stream>(GetBaseStream);
         }
 
         public long SaveFileData(Stream output, IProgressContext progress = null)
