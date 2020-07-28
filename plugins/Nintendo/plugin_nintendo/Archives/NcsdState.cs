@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -13,31 +11,31 @@ using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_grezzo.Archives
+namespace plugin_nintendo.Archives
 {
-    class GarState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class NcsdState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly GAR _gar;
+        private readonly NCSD _ncsd;
 
         public IList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
-        public GarState()
+        public NcsdState()
         {
-            _gar = new GAR();
+            _ncsd = new NCSD();
         }
 
         public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _gar.Load(fileStream);
+            Files = _ncsd.Load(fileStream);
         }
 
         public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _gar.Save(output, Files);
+            _ncsd.Save(output, Files);
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

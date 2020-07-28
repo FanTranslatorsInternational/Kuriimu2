@@ -23,18 +23,16 @@ namespace plugin_level5.Switch.Archives
             _g4pk = new G4pk();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _g4pk.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _g4pk.Save(output, Files);
-
-            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

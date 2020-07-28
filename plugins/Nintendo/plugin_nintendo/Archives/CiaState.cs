@@ -24,18 +24,16 @@ namespace plugin_nintendo.Archives
             _cia = new CIA();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _cia.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _cia.Save(output, Files);
-
-            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

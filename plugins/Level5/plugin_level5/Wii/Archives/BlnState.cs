@@ -26,7 +26,7 @@ namespace plugin_level5.Wii.Archives
             _bln = new Bln();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream dataStream;
             Stream indexStream;
@@ -50,7 +50,7 @@ namespace plugin_level5.Wii.Archives
             Files = _bln.Load(indexStream, dataStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream dataOutput;
             Stream indexOutput;
@@ -69,8 +69,6 @@ namespace plugin_level5.Wii.Archives
             }
 
             _bln.Save(indexOutput, dataOutput, Files);
-
-            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

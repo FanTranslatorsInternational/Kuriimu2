@@ -23,7 +23,7 @@ namespace plugin_yuusha_shisu.BTX
             _btx = new BTX();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = new List<ImageInfo> { _btx.Load(fileStream) };

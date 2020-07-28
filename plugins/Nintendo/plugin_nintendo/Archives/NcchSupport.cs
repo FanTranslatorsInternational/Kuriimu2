@@ -14,7 +14,6 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
-
     class NcchHeader
     {
         [FixedLength(0x100)]
@@ -255,7 +254,7 @@ namespace plugin_nintendo.Archives
 
                 fileEntries.Add(new NcchExeFsFileEntry
                 {
-                    name = file.FilePath.GetName(),
+                    name = file.FilePath.GetName().PadRight(8, '\0'),
                     offset = fileOffset,
                     size = (int)writtenSize
                 });
@@ -297,7 +296,7 @@ namespace plugin_nintendo.Archives
         {
             public int DirMetaOffset { get; set; }
             public int FileMetaOffset { get; set; }
-            public int FileOffset { get; set; }
+            public long FileOffset { get; set; }
 
             public List<DirEntry> Dirs = new List<DirEntry>();
             public uint[] DirHashTable;
@@ -443,8 +442,8 @@ namespace plugin_nintendo.Archives
         /// <summary>
         /// Parses all given files into a file tree.
         /// </summary>
-        /// <param Name="files">The files to parse.</param>
-        /// <param Name="currentPath">The path to parse.</param>
+        /// <param name="files">The files to parse.</param>
+        /// <param name="currentPath">The path to parse.</param>
         /// <returns>The root directory of the file tree.</returns>
         private static IntDirectory ParseFileTree(IList<ArchiveFileInfo> files, UPath currentPath)
         {
@@ -480,9 +479,9 @@ namespace plugin_nintendo.Archives
         /// <summary>
         /// Populates the meta data tree.
         /// </summary>
-        /// <param Name="metaData">The meta data to populate.</param>
-        /// <param Name="dir">The directory to populate the meta data with.</param>
-        /// <param Name="parentDir">The parent directory meta data.</param>
+        /// <param name="metaData">The meta data to populate.</param>
+        /// <param name="dir">The directory to populate the meta data with.</param>
+        /// <param name="parentDir">The parent directory meta data.</param>
         private static void PopulateMetaData(MetaData metaData, IntDirectory dir, MetaData.DirEntry parentDir)
         {
             // Adding files
@@ -498,10 +497,10 @@ namespace plugin_nintendo.Archives
 
                     ParentDirOffset = parentDir.MetaOffset,
                     DataOffset = metaData.FileOffset,
-                    DataSize = (int)files[i].FileSize,
+                    DataSize = files[i].FileSize,
                     Name = files[i].FilePath.GetName()
                 };
-                metaData.FileOffset += (int)files[i].FileSize;
+                metaData.FileOffset += files[i].FileSize;
 
                 metaData.FileMetaOffset += MetaData.FileEntry.Size + files[i].FilePath.GetName().Length * 2;
                 if (metaData.FileMetaOffset % 4 != 0)
@@ -620,7 +619,7 @@ namespace plugin_nintendo.Archives
 
             header.dirMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
 
-            // Write directory directoryEntries
+            // Write directory entries
             foreach (var dir in metaData.Dirs)
             {
                 bw.Write(dir.ParentOffset);
@@ -642,7 +641,7 @@ namespace plugin_nintendo.Archives
 
             header.fileMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
 
-            // Write file directoryEntries
+            // Write file entries
             foreach (var file in metaData.Files)
             {
                 bw.Write(file.ParentDirOffset);
@@ -729,10 +728,10 @@ namespace plugin_nintendo.Archives
                 // Do not pad master hash level
                 // TODO: Make general padding code that also works with unaligned master hash position
                 var alignSize = 0L;
-                if(level + 1 < levels - 1)
+                if (level + 1 < levels - 1)
                 {
                     alignSize = ((dataSize + BlockSize_ - 1) & ~(BlockSize_ - 1)) - dataSize;
-                    bw.WritePadding((int) alignSize);
+                    bw.WritePadding((int)alignSize);
                 }
 
                 result.Add((dataPosition, dataSize, dataSize + alignSize));

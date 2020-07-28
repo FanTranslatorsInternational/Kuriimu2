@@ -71,7 +71,7 @@ namespace plugin_nintendo.Archives
                         break;
 
                     var exeFsFileStream = new SubStream(input, exeFsFilePosition + file.offset, file.size);
-                    result.Add(new ArchiveFileInfo(exeFsFileStream, ExeFsFolder_ + "/" + file.name));
+                    result.Add(new ArchiveFileInfo(exeFsFileStream, ExeFsFolder_ + "/" + file.name.TrimEnd('\0')));
                     // TODO: Add decompression if file.name == ".code" && (exHeader.sci.flag & 0x1) == 1
                 }
             }

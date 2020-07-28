@@ -29,18 +29,16 @@ namespace plugin_nintendo.CTPK
             _ctpk = new Ctpk();
         }
 
-        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Images = _ctpk.Load(fileStream);
         }
 
-        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _ctpk.Save(Images, saveStream);
-
-            return Task.CompletedTask;
         }
 
         private bool IsChanged()
