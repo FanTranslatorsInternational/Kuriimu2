@@ -302,7 +302,13 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path)
         {
-            return LoadFile(fileSystem, path, Guid.Empty, new LoadFileContext());
+            return LoadFile(fileSystem, path, Guid.Empty, null, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo)
+        {
+            return LoadFile(fileSystem, path, Guid.Empty, parentStateInfo, new LoadFileContext());
         }
 
         /// <inheritdoc />
@@ -312,19 +318,31 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        {
+            return LoadFile(fileSystem, path, Guid.Empty, parentStateInfo, loadFileContext);
+        }
+
+        /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId)
         {
-            return LoadFile(fileSystem, path, pluginId, new LoadFileContext());
+            return LoadFile(fileSystem, path, pluginId, null, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo)
+        {
+            return LoadFile(fileSystem, path, pluginId, parentStateInfo, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext)
         {
-            return LoadFile(fileSystem, path, null, pluginId, loadFileContext);
+            return LoadFile(fileSystem, path, pluginId, null, loadFileContext);
         }
 
-        internal Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentState, Guid pluginId,
-            LoadFileContext loadFileContext)
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
         {
             // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
 
@@ -339,7 +357,7 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             // Only if called by a SubPluginManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            return LoadFile(fileSystemAction, path, parentState, pluginId, loadFileContext);
+            return LoadFile(fileSystemAction, path, parentStateInfo, pluginId, loadFileContext);
         }
 
         #endregion
@@ -467,6 +485,11 @@ namespace Kore.Managers.Plugins
             // Close children of this state first
             foreach (var child in stateInfo.ArchiveChildren)
                 CloseInternal(child);
+
+            // Close indirect children of this state
+            // Indirect children occur when a file is loaded by a FileSystem and got a parent attached manually
+            foreach (var indirectChild in _loadedFiles.Where(x => x.ParentStateInfo == stateInfo).ToArray())
+                CloseInternal(indirectChild);
 
             // Close state itself
             stateInfo.Dispose();

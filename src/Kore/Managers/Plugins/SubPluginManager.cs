@@ -17,12 +17,12 @@ namespace Kore.Managers.Plugins
     /// </summary>
     class SubPluginManager : IPluginManager
     {
-        private readonly PluginManager _parentPluginManager;
+        private readonly IInternalPluginManager _parentPluginManager;
         private IStateInfo _stateInfo;
 
         private readonly IList<IStateInfo> _loadedFiles;
 
-        public SubPluginManager(PluginManager parentPluginManager)
+        public SubPluginManager(IInternalPluginManager parentPluginManager)
         {
             ContractAssertions.IsNotNull(parentPluginManager, nameof(parentPluginManager));
 
@@ -72,7 +72,7 @@ namespace Kore.Managers.Plugins
                 parent = _stateInfo.ParentStateInfo;
 
             // 1. Load file
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, parent, pluginId, loadFileContext);
+            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, pluginId, parent, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 

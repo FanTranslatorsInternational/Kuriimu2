@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Loaders;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
@@ -97,6 +98,50 @@ namespace Kore.Managers.Plugins
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
         Task<LoadResult> LoadFile(string file, Guid pluginId, LoadFileContext loadFileContext);
+
+        #endregion
+
+        #region Load FileSystem
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="parentStateInfo">The state from which the file system originates.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo);
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="parentStateInfo">The state from which the file system originates.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="pluginId">The Id of the plugin to load the file with.</param>
+        /// <param name="parentStateInfo">The state from which the file system originates.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo);
+
+        /// <summary>
+        /// Loads a file from a given file system.
+        /// </summary>
+        /// <param name="fileSystem">The file system to load the file from.</param>
+        /// <param name="path">The file to load from the file system.</param>
+        /// <param name="pluginId">The Id of the plugin to load the file with.</param>
+        /// <param name="parentStateInfo">The state from which the file system originates.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
 
         #endregion
 
