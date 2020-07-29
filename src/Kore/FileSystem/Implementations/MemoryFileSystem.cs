@@ -80,6 +80,9 @@ namespace Kore.FileSystem.Implementations
         public override bool CanDeleteDirectories => true;
 
         /// <inheritdoc />
+        public override bool CanMoveDirectories => true;
+
+        /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
         {
             EnterFileSystemShared();
@@ -200,6 +203,9 @@ namespace Kore.FileSystem.Implementations
 
         /// <inheritdoc />
         public override bool CanCopyFiles => true;
+
+        /// <inheritdoc />
+        public override bool CanMoveFiles => true;
 
         /// <inheritdoc />
         public override bool CanReplaceFiles => true;

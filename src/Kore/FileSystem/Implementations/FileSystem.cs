@@ -102,6 +102,9 @@ namespace Kore.FileSystem.Implementations
         public abstract bool CanDeleteDirectories { get; }
 
         /// <inheritdoc />
+        public abstract bool CanMoveDirectories { get; }
+
+        /// <inheritdoc />
         public void CreateDirectory(UPath path)
         {
             AssertNotDisposed();
@@ -147,6 +150,7 @@ namespace Kore.FileSystem.Implementations
         public void MoveDirectory(UPath srcPath, UPath destPath)
         {
             AssertNotDisposed();
+            AssertTrue(CanMoveDirectories, nameof(MoveDirectory));
             if (srcPath == UPath.Root)
             {
                 throw new UnauthorizedAccessException("Cannot move from the source root directory `/`");
@@ -206,6 +210,9 @@ namespace Kore.FileSystem.Implementations
 
         /// <inheritdoc />
         public abstract bool CanReplaceFiles { get; }
+
+        /// <inheritdoc />
+        public abstract bool CanMoveFiles { get; }
 
         /// <inheritdoc />
         public abstract bool CanDeleteFiles { get; }
@@ -310,6 +317,7 @@ namespace Kore.FileSystem.Implementations
         public void MoveFile(UPath srcPath, UPath destPath)
         {
             AssertNotDisposed();
+            AssertTrue(CanMoveFiles, nameof(CanMoveFiles));
             MoveFileImpl(ValidatePath(srcPath, nameof(srcPath)), ValidatePath(destPath, nameof(destPath)));
         }
 

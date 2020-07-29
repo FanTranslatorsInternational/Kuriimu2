@@ -59,6 +59,11 @@ namespace Kontract.Interfaces.FileSystem
         bool CanDeleteDirectories { get; }
 
         /// <summary>
+        /// Determines if the file system can move directories.
+        /// </summary>
+        bool CanMoveDirectories { get; }
+
+        /// <summary>
         /// Determines whether the given path refers to an existing directory on disk.
         /// </summary>
         /// <param name="path">The path to test.</param>
@@ -103,6 +108,11 @@ namespace Kontract.Interfaces.FileSystem
         /// Determines if the file system can replace files.
         /// </summary>
         bool CanReplaceFiles { get; }
+
+        /// <summary>
+        /// Determines if the file system can move files.
+        /// </summary>
+        bool CanMoveFiles { get; }
 
         /// <summary>
         /// Determines if the file system can delete files.

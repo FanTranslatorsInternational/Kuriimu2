@@ -97,6 +97,9 @@ namespace Kore.FileSystem.Implementations
         public bool CanCreateDirectories => NextFileSystemSafe.CanCreateDirectories;
 
         /// <inheritdoc />
+        public bool CanMoveDirectories => NextFileSystemSafe.CanMoveDirectories;
+
+        /// <inheritdoc />
         public bool CanDeleteDirectories => NextFileSystemSafe.CanDeleteDirectories;
 
         /// <inheritdoc />
@@ -132,6 +135,9 @@ namespace Kore.FileSystem.Implementations
 
         /// <inheritdoc />
         public bool CanCopyFiles => NextFileSystemSafe.CanCopyFiles;
+
+        /// <inheritdoc />
+        public bool CanMoveFiles => NextFileSystemSafe.CanMoveFiles;
 
         /// <inheritdoc />
         public bool CanReplaceFiles => NextFileSystemSafe.CanReplaceFiles;

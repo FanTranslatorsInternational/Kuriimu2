@@ -89,6 +89,9 @@ namespace Kore.FileSystem.Implementations
         public override bool CanDeleteDirectories => true;
 
         /// <inheritdoc />
+        public override bool CanMoveDirectories => true;
+
+        /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
         {
             if (IsWithinSpecialDirectory(path))
@@ -167,6 +170,9 @@ namespace Kore.FileSystem.Implementations
 
         /// <inheritdoc />
         public override bool CanCopyFiles => true;
+
+        /// <inheritdoc />
+        public override bool CanMoveFiles => true;
 
         /// <inheritdoc />
         public override bool CanReplaceFiles => true;
@@ -264,6 +270,12 @@ namespace Kore.FileSystem.Implementations
                 throw new UnauthorizedAccessException($"The access to `{path}` is denied");
             }
 
+            // Create directory if not existing
+            var directory = path.GetDirectory();
+            if (!DirectoryExists(directory))
+                CreateDirectory(directory);
+
+            // Open file
             Stream file;
             if (mode == FileMode.Create || mode == FileMode.CreateNew)
                 file = File.Open(ConvertPathToInternal(path), mode);

@@ -24,9 +24,12 @@ namespace Kore.FileSystem.Implementations
         private readonly IStateInfo _stateInfo;
         private readonly ITemporaryStreamProvider _temporaryStreamProvider;
 
+        private IDictionary<UPath, ArchiveFileInfo> _fileDictionary;
+        private IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> _directoryDictionary;
+
         protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
-        protected UPath SubPath=> _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
+        protected UPath SubPath => _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
 
         /// <summary>
         /// Creates a new instance of <see cref="AfiFileSystem"/>.
@@ -41,6 +44,9 @@ namespace Kore.FileSystem.Implementations
 
             _stateInfo = stateInfo;
             _temporaryStreamProvider = streamManager.CreateTemporaryStreamProvider();
+
+            _fileDictionary = ArchiveState.Files.ToDictionary(x => x.FilePath, y => y);
+            _directoryDictionary = CreateDirectoryLookup();
         }
 
         /// <inheritdoc />
@@ -60,6 +66,9 @@ namespace Kore.FileSystem.Implementations
         public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
+        public override bool CanMoveDirectories => ArchiveState is IRenameFiles;
+
+        /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
         {
             throw new NotSupportedException();
@@ -68,7 +77,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override bool DirectoryExistsImpl(UPath path)
         {
-            return ArchiveState.Files.Any(f => f.FilePath.ToString().StartsWith(path.ToString()));
+            return _directoryDictionary.ContainsKey(path);
         }
 
         /// <inheritdoc />
@@ -79,31 +88,62 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewDirectoryNotFoundException(srcPath);
             }
 
-            foreach (var afi in ArchiveState.Files.Where(f => f.FilePath.ToString().StartsWith(srcPath.ToString())))
+            var element = _directoryDictionary[srcPath];
+
+            // Move sub directories
+            foreach (var subDir in element.Item1.ToArray())
+                MoveDirectoryImpl(subDir, destPath / subDir.GetName());
+
+            // Move directory
+            _directoryDictionary.Remove(srcPath);
+
+            var parent = srcPath.GetDirectory();
+            if (!parent.IsNull && !parent.IsEmpty)
+                _directoryDictionary[parent].Item1.Remove(srcPath);
+
+            CreateDirectoryEntries(destPath);
+
+            // Move files
+            var renameState = ArchiveState as IRenameFiles;
+            foreach (var file in element.Item2)
             {
-                afi.FilePath = ReplaceFirst(afi.FilePath.ToString(), srcPath.ToString(), destPath.ToString());
+                renameState?.Rename(file, destPath / file.FilePath.GetName());
+                _directoryDictionary[destPath].Item2.Add(file);
             }
         }
 
         /// <inheritdoc />
         protected override void DeleteDirectoryImpl(UPath path, bool isRecursive)
         {
-            if (!DirectoryExists(path))
+            if (!DirectoryExistsImpl(path))
             {
                 throw FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
             }
 
-            if (!isRecursive)
+            if (!isRecursive && _directoryDictionary[path].Item1.Any())
             {
                 throw FileSystemExceptionHelper.NewDirectoryIsNotEmpty(path);
             }
 
-            var removedFiles = ArchiveState.Files.Where(afi => afi.FilePath.ToString().StartsWith(path.ToString())).ToArray();
-            var removeArchiveState = ArchiveState as IRemoveFiles;
-            foreach (var removedFile in removedFiles)
-            {
-                removeArchiveState?.RemoveFile(removedFile);
-            }
+            var element = _directoryDictionary[path];
+
+            // Delete sub directories
+            foreach (var subDir in element.Item1.ToArray())
+                DeleteDirectoryImpl(subDir, true);  // Removing sub directories is always recursive
+
+            // Delete directory
+            _directoryDictionary.Remove(path);
+
+            var parent = path.GetDirectory();
+            if (!parent.IsNull && !parent.IsEmpty)
+                _directoryDictionary[parent].Item1.Remove(path);
+
+            // Delete files
+            var removeState = ArchiveState as IRemoveFiles;
+            foreach (var file in element.Item2)
+                removeState?.RemoveFile(file);
+
+            element.Item2.Clear();
         }
 
         // ----------------------------------------------
@@ -122,12 +162,15 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
+        public override bool CanMoveFiles => ArchiveState is IRenameFiles;
+
+        /// <inheritdoc />
         public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
         {
-            return ArchiveState.Files.Any(f => f.FilePath == path);
+            return _fileDictionary.ContainsKey(path);
         }
 
         /// <inheritdoc />
@@ -147,65 +190,68 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override long GetFileLengthImpl(UPath path)
         {
-            if (!FileExists(path))
+            if (!FileExistsImpl(path))
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            return GetArchiveFileInfo(path).FileSize;
+            return _fileDictionary[path].FileSize;
         }
 
         /// <inheritdoc />
         protected override void MoveFileImpl(UPath srcPath, UPath destPath)
         {
-            if (!FileExists(srcPath))
+            if (!FileExistsImpl(srcPath))
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(srcPath);
             }
 
-            GetArchiveFileInfo(srcPath).FilePath = destPath;
+            var file = _fileDictionary[srcPath];
+
+            // Remove file from source directory
+            var srcDir = srcPath.GetDirectory();
+            _directoryDictionary[srcDir].Item2.Remove(file);
+
+            // Rename file
+            var renameState = ArchiveState as IRenameFiles;
+            renameState?.Rename(file, destPath);
+
+            // Create directory of destination
+            CreateDirectoryEntries(destPath.GetDirectory());
+
+            // Add file to destination directory
+            _directoryDictionary[destPath.GetDirectory()].Item2.Add(file);
         }
 
         /// <inheritdoc />
         protected override void DeleteFileImpl(UPath path)
         {
-            if (!FileExists(path))
+            if (!FileExistsImpl(path))
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
+            var file = _fileDictionary[path];
+
+            // Remove file from directory
+            var srcDir = path.GetDirectory();
+            _directoryDictionary[srcDir].Item2.Remove(file);
+
+            // Remove file
             var removingState = ArchiveState as IRemoveFiles;
-            removingState?.RemoveFile(GetArchiveFileInfo(path));
+            removingState?.RemoveFile(_fileDictionary[path]);
         }
 
         /// <inheritdoc />
         protected override Stream OpenFileImpl(UPath path, FileMode mode, FileAccess access, FileShare share)
         {
-            if (!FileExists(path))
-            {
-                throw FileSystemExceptionHelper.NewFileNotFoundException(path);
-            }
-
-            // Ignore file mode, access and share for now
-            // TODO: Find a way to somehow allow for mode and access to have an effect?
-
-            // 1. Get data of ArchiveFileInfo
-            var afi = GetArchiveFileInfo(path);
-            var afiData = afi.GetFileData(_temporaryStreamProvider).Result;
-
-            // 2. Wrap data accordingly to not dispose the original ArchiveFileInfo data
-            if (!(afiData is TemporaryStream))
-                afiData = StreamManager.WrapUndisposable(afiData);
-
-            afiData.Position = 0;
-
-            return afiData;
+            return OpenFileAsyncImpl(path, mode, access, share).Result;
         }
 
         /// <inheritdoc />
         protected override async Task<Stream> OpenFileAsyncImpl(UPath path, FileMode mode, FileAccess access, FileShare share)
         {
-            if (!FileExists(path))
+            if (!FileExistsImpl(path))
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
@@ -213,29 +259,27 @@ namespace Kore.FileSystem.Implementations
             // Ignore file mode, access and share for now
             // TODO: Find a way to somehow allow for mode and access to have an effect?
 
-            // 1. Get data of ArchiveFileInfo
-            var afi = GetArchiveFileInfo(path);
+            // Get data of ArchiveFileInfo
+            var afi = _fileDictionary[path];
             var afiData = await afi.GetFileData(_temporaryStreamProvider);
 
-            // 2. Wrap data accordingly to not dispose the original ArchiveFileInfo data
+            // Wrap data accordingly to not dispose the original ArchiveFileInfo data
             if (!(afiData is TemporaryStream))
                 afiData = StreamManager.WrapUndisposable(afiData);
 
             afiData.Position = 0;
-
             return afiData;
         }
 
         /// <inheritdoc />
         protected override void SetFileDataImpl(UPath savePath, Stream saveData)
         {
-            if (!FileExists(savePath))
+            if (!FileExistsImpl(savePath))
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(savePath);
             }
 
-            var afi = GetArchiveFileInfo(savePath);
-            afi.SetFileData(saveData);
+            _fileDictionary[savePath].SetFileData(saveData);
         }
 
         // ----------------------------------------------
@@ -245,9 +289,16 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override ulong GetTotalSizeImpl(UPath directoryPath)
         {
-            return (ulong)ArchiveState.Files
-                .Where(afi => afi.FilePath.GetDirectory().IsInDirectory(directoryPath, true))
-                .Sum(x => x.FileSize);
+            if (!DirectoryExistsImpl(directoryPath))
+            {
+                FileSystemExceptionHelper.NewDirectoryNotFoundException(directoryPath);
+            }
+
+            var (directories, files) = _directoryDictionary[directoryPath];
+
+            var totalFileSize = files.Sum(x => x.FileSize);
+            var totalDirectorySize = directories.Select(GetTotalSizeImpl).Sum(x => (long)x);
+            return (ulong)(totalFileSize + totalDirectorySize);
         }
 
         /// <inheritdoc />
@@ -255,23 +306,12 @@ namespace Kore.FileSystem.Implementations
         {
             var search = SearchPattern.Parse(ref path, ref searchPattern);
 
-            switch (searchTarget)
-            {
-                case SearchTarget.File:
-                    return EnumerateFiles(search, path, searchOption)
-                        .OrderBy(x => x.FullName);
+            var onlyTopDirectory = searchOption == SearchOption.TopDirectoryOnly;
+            var enumerateDirectories = searchTarget == SearchTarget.Directory;
+            var enumerateFiles = searchTarget == SearchTarget.File;
 
-                case SearchTarget.Directory:
-                    return EnumerateDirectories(search, path, searchOption)
-                        .OrderBy(x => x.FullName);
-
-                case SearchTarget.Both:
-                    return EnumerateDirectories(search, path, searchOption)
-                        .Concat(EnumerateFiles(search, path, searchOption))
-                        .OrderBy(x => x.FullName);
-            }
-
-            return Array.Empty<UPath>();
+            foreach (var enumeratedPath in EnumeratePathsInternal(path, search, enumerateDirectories, enumerateFiles, onlyTopDirectory))
+                yield return enumeratedPath;
         }
 
         protected override string ConvertPathToInternalImpl(UPath path)
@@ -294,63 +334,75 @@ namespace Kore.FileSystem.Implementations
             return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
         }
 
-        private ArchiveFileInfo GetArchiveFileInfo(UPath path)
+        private IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> CreateDirectoryLookup()
         {
-            // TODO: Work with lookup
-            return ArchiveState.Files.First(f => f.FilePath == path);
-        }
-
-        private string ReplaceFirst(string text, string search, string replace)
-        {
-            var pos = text.IndexOf(search, StringComparison.Ordinal);
-            if (pos < 0)
+            var result = new Dictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)>
             {
-                return text;
+                // Add root manually
+                [UPath.Root] = (new List<UPath>(), new List<ArchiveFileInfo>())
+            };
+
+            foreach (var file in ArchiveState.Files)
+            {
+                var path = file.FilePath.GetDirectory();
+                CreateDirectoryEntries(result, path);
+
+                result[path].Item2.Add(file);
             }
 
-            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+            return result;
         }
 
-        private IEnumerable<UPath> EnumerateFiles(SearchPattern searchPattern, UPath topDirectory, SearchOption searchOption)
+        private void CreateDirectoryEntries(UPath newPath)
         {
-            switch (searchOption)
-            {
-                case SearchOption.AllDirectories:
-                    return ArchiveState.Files
-                        .Where(x => x.FilePath.IsInDirectory(topDirectory, true))
-                        .Where(x => searchPattern.Match(x.FilePath))
-                        .Select(x => x.FilePath);
-
-                case SearchOption.TopDirectoryOnly:
-                    return ArchiveState.Files
-                        .Where(x => x.FilePath.IsInDirectory(topDirectory, false))
-                        .Where(x => x.FilePath.GetDirectory() == topDirectory && searchPattern.Match(x.FilePath))
-                        .Select(x => x.FilePath);
-            }
-
-            return Array.Empty<UPath>();
+            CreateDirectoryEntries(_directoryDictionary, newPath);
         }
 
-        private IEnumerable<UPath> EnumerateDirectories(SearchPattern searchPattern, UPath topDirectory, SearchOption searchOption)
+        private void CreateDirectoryEntries(IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> directories, UPath newPath)
         {
-            switch (searchOption)
+            var path = UPath.Root;
+            foreach (var part in newPath.Split())
             {
-                case SearchOption.AllDirectories:
-                    return ArchiveState.Files
-                        .Where(x => x.FilePath.IsInDirectory(topDirectory, true))
-                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
-                        .Select(x => x.FilePath.GetDirectory())
-                        .Distinct();
+                // Initialize parent entry if not existing
+                if (!directories.ContainsKey(path))
+                    directories[path] = (new List<UPath>(), new List<ArchiveFileInfo>());
 
-                case SearchOption.TopDirectoryOnly:
-                    return ArchiveState.Files
-                        .Where(x => x.FilePath.IsInDirectory(topDirectory, false))
-                        .Where(x => searchPattern.Match(x.FilePath.GetDirectory()))
-                        .Select(x => x.FilePath.GetDirectory())
-                        .Distinct();
+                // Add current directory to parent
+                if (!directories[path].Item1.Contains(path / part))
+                    directories[path].Item1.Add(path / part);
+
+                path /= part;
+
+                // Initialize current directory if not existing
+                if (!directories.ContainsKey(path))
+                    directories[path] = (new List<UPath>(), new List<ArchiveFileInfo>());
+            }
+        }
+
+        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory)
+        {
+            if (!DirectoryExistsImpl(path))
+            {
+                FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
             }
 
-            return Array.Empty<UPath>();
+            var (directories, files) = _directoryDictionary[path];
+
+            if (enumerateDirectories)
+            {
+                yield return path;
+
+                if (!onlyTopDirectory)
+                    foreach (var directory in directories.Where(searchPattern.Match))
+                        foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, true, enumerateFiles, false))
+                            yield return enumeratedPath;
+            }
+
+            if (enumerateFiles)
+            {
+                foreach (var file in files.Where(x => searchPattern.Match(x.FilePath)))
+                    yield return file.FilePath;
+            }
         }
     }
 }
