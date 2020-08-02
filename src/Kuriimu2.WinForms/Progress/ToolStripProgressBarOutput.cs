@@ -28,17 +28,20 @@ namespace Kuriimu2.WinForms.Progress
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (_progressState == null) return;
+            if (_progressState == null)
+                return;
 
-            var percentageValue = _progressState.PartialValue / (double)_progressState.MaxValue;
-            var percentageInRange = (_progressState.MaxPercentage - _progressState.MinPercentage) * percentageValue;
+            var localProgress = _progressState;
 
-            var message = string.IsNullOrWhiteSpace(_progressState.PreText) ?
-                _progressState.Message :
-                _progressState.PreText + _progressState.Message;
+            var percentageValue = localProgress.PartialValue / (double)localProgress.MaxValue;
+            var percentageInRange = (localProgress.MaxPercentage - localProgress.MinPercentage) * percentageValue;
+
+            var message = string.IsNullOrWhiteSpace(localProgress.PreText) ?
+                localProgress.Message :
+                localProgress.PreText + localProgress.Message;
             message = string.IsNullOrWhiteSpace(message) ? string.Empty : message + " - ";
 
-            var completion = _progressState.MinPercentage + percentageInRange;
+            var completion = localProgress.MinPercentage + percentageInRange;
 
             _progressBar.Value = Convert.ToInt32(completion);
             _progressBar.Text = message + $@"{completion:0.00}%";
