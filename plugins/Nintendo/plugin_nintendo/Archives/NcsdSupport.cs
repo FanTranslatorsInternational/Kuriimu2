@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using Komponent.IO;
-using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
+﻿using Komponent.IO.Attributes;
 
 namespace plugin_nintendo.Archives
 {
@@ -67,7 +55,7 @@ namespace plugin_nintendo.Archives
         public byte[] reserved1;
         public short titleVersion;
         public short cardRevision;
-        [FixedLength(0xCEE)] 
+        [FixedLength(0xCEC)] 
         public byte[] reserved2;
         [FixedLength(0x10)] 
         public byte[] cardSeedKeyY;

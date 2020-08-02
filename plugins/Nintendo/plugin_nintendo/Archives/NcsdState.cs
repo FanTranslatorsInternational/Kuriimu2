@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
-using Kontract.Interfaces.Progress;
-using Kontract.Interfaces.Providers;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
