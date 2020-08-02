@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
@@ -100,6 +101,10 @@ namespace Kore.Factories
         {
             // 1. Create file system
             var fileSystem = new MemoryFileSystem(streamManager);
+            var directory = streamName.GetDirectory();
+            if (!directory.IsEmpty && !fileSystem.DirectoryExists(streamName.GetDirectory()))
+                fileSystem.CreateDirectory(streamName.GetDirectory());
+
             var createdStream = fileSystem.OpenFile(streamName, FileMode.CreateNew, FileAccess.Write);
 
             // 2. Copy data
