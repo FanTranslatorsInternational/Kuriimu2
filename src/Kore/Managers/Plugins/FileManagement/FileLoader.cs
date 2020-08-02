@@ -89,7 +89,15 @@ namespace Kore.Managers.Plugins.FileManagement
             foreach (var identifiablePlugin in identifiablePlugins)
             {
                 // 2. Identify the file with the next plugin
-                var identifyResult = await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager);
+                bool identifyResult;
+                try
+                {
+                    identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager));
+                }
+                catch
+                {
+                    identifyResult = false;
+                }
 
                 // 3. Return first plugin that could identify
                 if (identifyResult)
