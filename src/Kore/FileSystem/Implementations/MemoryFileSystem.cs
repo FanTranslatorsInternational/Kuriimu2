@@ -641,7 +641,8 @@ namespace Kore.FileSystem.Implementations
                 {
                     stream.SetLength(0);
                 }
-                return StreamManager.WrapUndisposable(stream);
+
+                return stream;
             }
             finally
             {
