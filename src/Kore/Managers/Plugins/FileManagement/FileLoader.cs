@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
@@ -157,7 +158,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                await Task.Run(() => loadableState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
             }
             catch (Exception ex)
             {

@@ -22,6 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
 

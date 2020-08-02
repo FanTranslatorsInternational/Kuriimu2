@@ -11,11 +11,12 @@ namespace Komponent.IO.Streams
         private readonly long _baseOffset;
 
         public override long Length => _length;
-        public override bool CanRead => true;
-        public override bool CanWrite => false;
-        public override bool CanSeek => true;
+        public override bool CanRead => _baseStream.CanRead;
+        public override bool CanWrite => _baseStream.CanWrite;
+        public override bool CanSeek => _baseStream.CanSeek;
         public override long Position { get; set; }
 
+        // Breaking change to Kryptography.SubStream to keeping the position
         public SubStream(Stream baseStream, long offset, long length)
         {
             ContractAssertions.IsNotNull(baseStream,nameof(baseStream));
@@ -75,7 +76,17 @@ namespace Komponent.IO.Streams
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotSupportedException();
+            if (!CanWrite) throw new NotSupportedException("Write is not supported.");
+            if (Position >= _length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
+            if (_length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
+
+            var restore = _baseStream.Position;
+
+            _baseStream.Position = _baseOffset + Position;
+            _baseStream.Write(buffer, offset, count);
+            Position += count;
+
+            _baseStream.Position = restore;
         }
     }
 }

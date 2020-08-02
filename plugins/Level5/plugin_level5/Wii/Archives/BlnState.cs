@@ -26,7 +26,7 @@ namespace plugin_level5.Wii.Archives
             _bln = new Bln();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             Stream dataStream;
             Stream indexStream;
@@ -47,10 +47,10 @@ namespace plugin_level5.Wii.Archives
             if (dataStream == null || indexStream == null)
                 throw new InvalidOperationException("This is no Bln archive.");
 
-            Files = _bln.Load(indexStream, dataStream);
+            Files = await Task.Run(() => _bln.Load(indexStream, dataStream));
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream dataOutput;
             Stream indexOutput;
@@ -69,6 +69,8 @@ namespace plugin_level5.Wii.Archives
             }
 
             _bln.Save(indexOutput, dataOutput, Files);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

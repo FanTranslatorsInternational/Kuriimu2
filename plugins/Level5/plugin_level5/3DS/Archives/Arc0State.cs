@@ -24,18 +24,19 @@ namespace plugin_level5._3DS.Archives
             _arc0 = new Arc0();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _arc0.Load(fileStream);
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _arc0.Save(output, Files, saveContext.ProgressContext);
 
             _hasDeletedFiles = false;
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

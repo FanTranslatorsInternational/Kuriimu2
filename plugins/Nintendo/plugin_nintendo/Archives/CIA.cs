@@ -146,7 +146,7 @@ namespace plugin_nintendo.Archives
             // Write content
             foreach (var ciaAfi in ciaAfis)
                 ciaAfi.SaveFileData(bw.BaseStream);
-            _header.contentSize = (int)(bw.BaseStream.Length - ciaOffset);
+            _header.contentSize = bw.BaseStream.Length - ciaOffset;
             bw.WriteAlignment(0x40);
             ciaOffset = bw.BaseStream.Length;
 

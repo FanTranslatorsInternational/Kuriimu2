@@ -28,6 +28,7 @@ namespace Kryptography
             _baseOffset = offset;
             _length = length;
 
+            // Breaking change to Komponent.IO.Streams.SubStream to not keeping the position
             Position = Math.Max(input.Position - offset, 0);
         }
 

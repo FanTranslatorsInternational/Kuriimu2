@@ -31,18 +31,22 @@ namespace plugin_level5._3DS.Images
             imgc = new Imgc();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = new List<ImageInfo> { imgc.Load(fileStream) };
+            var img = await Task.Run(() => imgc.Load(fileStream));
+
+            Images = new List<ImageInfo> { img };
 
             SupportedEncodings = ImgcSupport.DetermineFormatMapping(imgc.ImageFormat, imgc.BitDepth, loadContext.DialogManager);
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
             imgc.Save(fileStream, Images[0], SupportedEncodings);
+
+            return Task.CompletedTask;
         }
 
         private bool IsChanged()

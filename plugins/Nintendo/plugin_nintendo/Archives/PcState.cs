@@ -28,16 +28,18 @@ namespace plugin_nintendo.Archives
             _pc = new PC();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _pc.Load(fileStream);
+            Files = await Task.Run(() => _pc.Load(fileStream));
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _pc.Save(output, Files);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

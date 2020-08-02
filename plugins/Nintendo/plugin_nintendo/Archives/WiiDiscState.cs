@@ -22,10 +22,10 @@ namespace plugin_nintendo.Archives
             _wiiDisc = new WiiDisc();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _wiiDisc.Load(fileStream);
+            Files = await Task.Run(() => _wiiDisc.Load(fileStream));
         }
 
         private bool IsChanged()

@@ -24,16 +24,18 @@ namespace plugin_skip_ltd.Archives
             _qp = new QP();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _qp.Load(fileStream);
+            Files = await Task.Run(() => _qp.Load(fileStream));
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _qp.Save(output, Files);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

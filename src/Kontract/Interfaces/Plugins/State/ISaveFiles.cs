@@ -1,4 +1,5 @@
-﻿using Kontract.Interfaces.FileSystem;
+﻿using System.Threading.Tasks;
+using Kontract.Interfaces.FileSystem;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
@@ -21,6 +22,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <param name="savePath">The new path to the initial file.</param>
         /// <param name="saveContext">The context for this save operation, containing environment instances.</param>
         /// <returns>If the save procedure was successful.</returns>
-        void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext);
+        Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext);
     }
 }

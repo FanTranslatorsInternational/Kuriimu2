@@ -285,6 +285,72 @@ namespace plugin_nintendo.Archives
         }
     }
 
+    class RomFsDirectoryNode
+    {
+        private RomFsDirectoryNode _parent;
+
+        public string Name { get; private set; }
+
+        public UPath FullPath => _parent == null ? Name : _parent.FullPath / Name;
+
+        public int SizeInBytes => 6 * 4 + ((Encoding.Unicode.GetByteCount(Name) + 3) & ~3) + Directories.Sum(x => x.SizeInBytes);
+
+        public int DirectoryCount => 1 + Directories.Sum(x => x.DirectoryCount);
+
+        public IList<RomFsDirectoryNode> Directories { get; private set; }
+
+        public IList<ArchiveFileInfo> Files { get; private set; }
+
+        public static int CountDirectories(IList<ArchiveFileInfo> files, UPath rootDirectory)
+        {
+            return files.Select(x => x.FilePath.GetSubDirectory(rootDirectory.ToAbsolute()).GetDirectory())
+                .Distinct()
+                .Count();
+        }
+
+        public static RomFsDirectoryNode Parse(IList<ArchiveFileInfo> files, UPath rootDirectory)
+        {
+            var root = new RomFsDirectoryNode
+            {
+                Name = "/",
+                Directories = new List<RomFsDirectoryNode>(),
+                Files = new List<ArchiveFileInfo>()
+            };
+
+            var directories = files.Select(x => x.FilePath.GetSubDirectory(rootDirectory.ToAbsolute()).GetDirectory()).Distinct().OrderBy(x => x).ToArray();
+            foreach (var directory in directories)
+            {
+                var currentNode = root;
+                foreach (var part in directory.Split())
+                {
+                    var newNode = currentNode.Directories.FirstOrDefault(x => x.Name == part);
+                    if (newNode != null)
+                    {
+                        currentNode = newNode;
+                        continue;
+                    }
+
+                    newNode = new RomFsDirectoryNode
+                    {
+                        _parent = currentNode,
+
+                        Name = part,
+                        Directories = new List<RomFsDirectoryNode>(),
+                        Files = new List<ArchiveFileInfo>()
+                    };
+                    currentNode.Directories.Add(newNode);
+
+                    currentNode = newNode;
+                }
+
+                foreach (var file in files.Where(x => x.FilePath.GetDirectory().ToRelative() == rootDirectory / directory.ToRelative()))
+                    currentNode.Files.Add(file);
+            }
+
+            return root;
+        }
+    }
+
     public static class RomFsBuilder
     {
         private const int UnusedEntry_ = -1;
@@ -402,28 +468,61 @@ namespace plugin_nintendo.Archives
             }
         }
 
+        public static long CalculateRomFsSize(IList<ArchiveFileInfo> files, UPath rootDirectory)
+        {
+            var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);
+
+            long totalSize = BlockSize_;
+
+            // Calculate meta size
+            totalSize += GetHashTableEntryCount(rootNode.DirectoryCount) * 4;
+            totalSize += GetHashTableEntryCount(files.Count) * 4;
+            totalSize += rootNode.SizeInBytes;
+            totalSize += files.Sum(x => MetaData.FileEntry.Size + ((Encoding.Unicode.GetByteCount(x.FilePath.GetName()) + 3) & ~3));
+
+            // Calculate file size
+            totalSize = (totalSize + 0xF) & ~0xF;
+            totalSize += files.Sum(x => (x.FileSize + 0xF) & ~0xF);
+            totalSize = (totalSize + BlockSize_ - 1) & ~(BlockSize_ - 1);
+
+            // Calculate hash level sizes
+            var levelSize = totalSize - BlockSize_;
+            for (var i = 0; i < 2; i++)
+            {
+                var currentLevelSize = levelSize / BlockSize_ * 0x20;
+                currentLevelSize = (currentLevelSize + BlockSize_ - 1) & ~(BlockSize_ - 1);
+
+                totalSize += currentLevelSize;
+
+                levelSize = currentLevelSize;
+            }
+
+            return totalSize;
+        }
+
         public static (long, long) Build(Stream input, IList<ArchiveFileInfo> files, UPath rootDirectory)
         {
             // Parse files into file tree
-            var treeRoot = ParseFileTree(files, rootDirectory);
+            var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);
 
             // Create MetaData Tree
             var metaData = new MetaData
             {
-                DirMetaOffset = treeRoot.GetDirectories().Count <= 0 ? UnusedEntry_ : 0x18
+                DirMetaOffset = rootNode.Directories.Count <= 0 ? UnusedEntry_ : 0x18
             };
             metaData.Dirs.Add(new MetaData.DirEntry
             {
                 MetaOffset = 0,
                 ParentOffset = 0,
                 NextSiblingOffset = UnusedEntry_,
-                FirstChildOffset = treeRoot.GetDirectories().Count <= 0 ? UnusedEntry_ : 0x18,
+                FirstChildOffset = rootNode.Directories.Count <= 0 ? UnusedEntry_ : 0x18,
                 FirstFileOffset = 0,
                 NextDirInSameBucket = UnusedEntry_,
+                Hash = CalculatePathHash(0, Encoding.Unicode.GetBytes(string.Empty)),
                 Name = string.Empty
             });
 
-            PopulateMetaData(metaData, treeRoot, metaData.Dirs[0]);
+            PopulateMetaData(metaData, rootNode, metaData.Dirs[0]);
 
             // Creating directory hash buckets
             metaData.DirHashTable = Enumerable.Repeat(0xFFFFFFFF, GetHashTableEntryCount(metaData.Dirs.Count)).ToArray();
@@ -440,52 +539,15 @@ namespace plugin_nintendo.Archives
         }
 
         /// <summary>
-        /// Parses all given files into a file tree.
-        /// </summary>
-        /// <param name="files">The files to parse.</param>
-        /// <param name="currentPath">The path to parse.</param>
-        /// <returns>The root directory of the file tree.</returns>
-        private static IntDirectory ParseFileTree(IList<ArchiveFileInfo> files, UPath currentPath)
-        {
-            var currentAbsolutePath = currentPath.ToAbsolute();
-
-            // Create current directory entry
-            var currentDirectory = new IntDirectory
-            {
-                DirectoryName = currentPath.Split().LastOrDefault(),
-                DirectoryPath = currentPath
-            };
-
-            // Add files of current directory
-            var filesInDirectory = files.Where(x => x.FilePath.IsInDirectory(currentAbsolutePath, false)).ToArray();
-            currentDirectory.AddFiles(filesInDirectory);
-
-            // Add directories of current directories
-            var directoriesInDirectory = files.Where(x => x.FilePath.IsInDirectory(currentAbsolutePath, true))
-                .Except(filesInDirectory)
-                .Select(x => x.FilePath.GetDirectory().GetSubDirectory(currentAbsolutePath).GetFirstDirectory(out _))
-                .Distinct();
-            foreach (var subDirectory in directoriesInDirectory)
-            {
-                var filesInSubDirectory = files.Where(x => x.FilePath.IsInDirectory(currentAbsolutePath / subDirectory, true)).ToArray();
-                var parsedDirectory = ParseFileTree(filesInSubDirectory, currentPath / subDirectory);
-
-                currentDirectory.AddDirectory(parsedDirectory);
-            }
-
-            return currentDirectory;
-        }
-
-        /// <summary>
         /// Populates the meta data tree.
         /// </summary>
         /// <param name="metaData">The meta data to populate.</param>
         /// <param name="dir">The directory to populate the meta data with.</param>
         /// <param name="parentDir">The parent directory meta data.</param>
-        private static void PopulateMetaData(MetaData metaData, IntDirectory dir, MetaData.DirEntry parentDir)
+        private static void PopulateMetaData(MetaData metaData, RomFsDirectoryNode dir, MetaData.DirEntry parentDir)
         {
             // Adding files
-            var files = dir.GetFiles();
+            var files = dir.Files;
             for (var i = 0; i < files.Count; i++)
             {
                 var newFileEntry = new MetaData.FileEntry
@@ -500,7 +562,7 @@ namespace plugin_nintendo.Archives
                     DataSize = files[i].FileSize,
                     Name = files[i].FilePath.GetName()
                 };
-                metaData.FileOffset += files[i].FileSize;
+                metaData.FileOffset = (metaData.FileOffset + files[i].FileSize + 0xF) & ~0xF;
 
                 metaData.FileMetaOffset += MetaData.FileEntry.Size + files[i].FilePath.GetName().Length * 2;
                 if (metaData.FileMetaOffset % 4 != 0)
@@ -512,7 +574,7 @@ namespace plugin_nintendo.Archives
             }
 
             // Adding sub directories
-            var dirs = dir.GetDirectories();
+            var dirs = dir.Directories;
             var metaDirIndices = new List<int>();
             for (var i = 0; i < dirs.Count; i++)
             {
@@ -521,14 +583,14 @@ namespace plugin_nintendo.Archives
                     //Parent = parentDir,
 
                     MetaOffset = metaData.DirMetaOffset,
-                    Hash = CalculatePathHash((uint)parentDir.MetaOffset, Encoding.Unicode.GetBytes(dirs[i].DirectoryName)),
+                    Hash = CalculatePathHash((uint)parentDir.MetaOffset, Encoding.Unicode.GetBytes(dirs[i].Name)),
 
                     ParentOffset = parentDir.MetaOffset,
 
-                    Name = dirs[i].DirectoryName
+                    Name = dirs[i].Name
                 };
 
-                metaData.DirMetaOffset += MetaData.DirEntry.Size + dirs[i].DirectoryName.Length * 2;
+                metaData.DirMetaOffset += MetaData.DirEntry.Size + dirs[i].Name.Length * 2;
                 if (metaData.DirMetaOffset % 4 != 0)
                     metaData.DirMetaOffset += 2;
 
@@ -541,8 +603,8 @@ namespace plugin_nintendo.Archives
             // Adding children of sub directories
             for (var i = 0; i < dirs.Count; i++)
             {
-                metaData.Dirs[metaDirIndices[i]].FirstChildOffset = dirs[i].GetDirectories().Count > 0 ? metaData.DirMetaOffset : UnusedEntry_;
-                metaData.Dirs[metaDirIndices[i]].FirstFileOffset = dirs[i].GetFiles().Count > 0 ? metaData.FileMetaOffset : UnusedEntry_;
+                metaData.Dirs[metaDirIndices[i]].FirstChildOffset = dirs[i].Directories.Count > 0 ? metaData.DirMetaOffset : UnusedEntry_;
+                metaData.Dirs[metaDirIndices[i]].FirstFileOffset = dirs[i].Files.Count > 0 ? metaData.FileMetaOffset : UnusedEntry_;
 
                 PopulateMetaData(metaData, dirs[i], metaData.Dirs[metaDirIndices[i]]);
             }
@@ -556,9 +618,8 @@ namespace plugin_nintendo.Archives
         /// <returns>The size of the RomFs partition and its header size.</returns>
         private static (long, long) WriteRomFs(Stream output, MetaData metaData)
         {
-            var romFsPosition = output.Position;
-            var masterHashPosition = romFsPosition + 0x60;
-            var metaDataPosition = romFsPosition + BlockSize_;
+            var masterHashPosition = 0x60;
+            var metaDataPosition = BlockSize_;
 
             // Write meta data
             output.Position = metaDataPosition;
@@ -570,7 +631,7 @@ namespace plugin_nintendo.Archives
             // Write RomFs header
             using var bw = new BinaryWriterX(output, true);
 
-            bw.BaseStream.Position = romFsPosition;
+            bw.BaseStream.Position = 0;
             bw.WriteType(new NcchRomFsHeader
             {
                 masterHashSize = (int)levelData[2].Item2,
@@ -585,7 +646,7 @@ namespace plugin_nintendo.Archives
                 lv3HashDataSize = metaDataSize
             });
 
-            var romFsSize = levelData[0].Item1 + levelData[0].Item3 - romFsPosition;
+            var romFsSize = levelData[0].Item1 + levelData[0].Item3;
             var romFsHeaderSize = 0x60 + levelData[2].Item2;
 
             return (romFsSize, romFsHeaderSize);
@@ -617,9 +678,8 @@ namespace plugin_nintendo.Archives
             foreach (var hash in metaData.DirHashTable)
                 bw.Write(hash);
 
-            header.dirMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
-
             // Write directory entries
+            header.dirMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
             foreach (var dir in metaData.Dirs)
             {
                 bw.Write(dir.ParentOffset);
@@ -633,15 +693,13 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(4);
             }
 
-            header.fileHashTableOffset = (int)(bw.BaseStream.Position - startPosition);
-
             // Write file hash table
+            header.fileHashTableOffset = (int)(bw.BaseStream.Position - startPosition);
             foreach (var hash in metaData.FileHashTable)
                 bw.Write(hash);
 
-            header.fileMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
-
             // Write file entries
+            header.fileMetaTableOffset = (int)(bw.BaseStream.Position - startPosition);
             foreach (var file in metaData.Files)
             {
                 bw.Write(file.ParentDirOffset);
@@ -655,13 +713,15 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(4);
             }
 
-            header.fileDataOffset = (int)(bw.BaseStream.Position - startPosition);
-
             // Write files
+            header.fileDataOffset = (int)((bw.BaseStream.Position - startPosition + 0xF) & ~0xF);
             foreach (var file in metaData.Files)
+            {
+                bw.WriteAlignment();
                 file.FileData.CopyTo(bw.BaseStream);
+            }
 
-            var level3Size = bw.BaseStream.Position;
+            var level3Size = bw.BaseStream.Position - startPosition;
 
             bw.WriteAlignment(BlockSize_);
 
@@ -683,70 +743,102 @@ namespace plugin_nintendo.Archives
         private static IList<(long, long, long)> WriteIvfcLevels(Stream output, long metaDataPosition, long metaDataSize,
             long masterHashPosition, int levels)
         {
-            var result = new List<(long, long, long)>();
-            using var bw = new BinaryWriterX(output, true);
+            // Pre-calculate hash level sizes
+            var hashLevelSizes = new long[levels];
 
-            // Pre-calculate hash level offsets
-            var hashLevelPositions = new long[levels - 1];
-
-            var levelPosition = metaDataPosition;
-            var levelSize = metaDataSize;
-            for (var i = levels - 2; i >= 0; i--)
+            var alignedMetaDataSize = (metaDataSize + BlockSize_ - 1) & ~(BlockSize_ - 1);
+            for (var level = 0; level < levels - 1; level++)
             {
-                hashLevelPositions[i] = (levelPosition + levelSize + BlockSize_ - 1) & ~(BlockSize_ - 1);
+                var previousSize = level == 0 ? alignedMetaDataSize : hashLevelSizes[level - 1];
+                var levelSize = previousSize / BlockSize_ * 0x20;
+                var alignedLevelSize = (levelSize + BlockSize_ - 1) & ~(BlockSize_ - 1);
 
-                levelPosition = hashLevelPositions[i];
-                levelSize = levelSize / BlockSize_ * 0x20;
+                hashLevelSizes[level] = alignedLevelSize;
             }
+
+            // Pre-calculate hash level position
+            var hashLevelPositions = new long[levels];
+
+            var alignedMetaDataPosition = (metaDataPosition + BlockSize_ - 1) & ~(BlockSize_ - 1);
+            for (var level = 0; level < levels - 1; level++)
+            {
+                var levelPosition = alignedMetaDataPosition + alignedMetaDataSize + hashLevelSizes.Skip(level + 1).Take(levels - level - 2).Sum(x => x);
+
+                hashLevelPositions[level] = levelPosition;
+            }
+
+            // Add master hash position
+            hashLevelSizes[levels - 1] = BlockSize_;
+            hashLevelPositions[levels - 1] = masterHashPosition;
 
             // Write hash levels
-            var dataPosition = metaDataPosition;
-            var writePosition = hashLevelPositions[0];
-            var dataSize = writePosition - dataPosition;
-
+            var result = new List<(long, long, long)>();
             var sha256 = new Kryptography.Hash.Sha256();
+
+            var previousLevelPosition = alignedMetaDataPosition;
+            var previousLevelSize = alignedMetaDataSize;
             for (var level = 0; level < levels; level++)
             {
-                bw.BaseStream.Position = writePosition;
+                var previousLevelStream = new SubStream(output, previousLevelPosition, previousLevelSize);
+                var levelStream = new SubStream(output, hashLevelPositions[level], hashLevelSizes[level]);
 
-                var dataEnd = dataPosition + dataSize;
-                while (dataPosition < dataEnd)
+                var block = new byte[BlockSize_];
+                while (previousLevelStream.Position < previousLevelStream.Length)
                 {
-                    var blockSize = Math.Min(BlockSize_, dataEnd - dataPosition);
-                    var hash = sha256.Compute(new SubStream(output, dataPosition, blockSize));
-                    bw.Write(hash);
-
-                    dataPosition += BlockSize_;
+                    previousLevelStream.Read(block, 0, BlockSize_);
+                    var hash = sha256.Compute(block);
+                    levelStream.Write(hash);
                 }
 
-                dataPosition = writePosition;
-                dataSize = bw.BaseStream.Position - writePosition;
+                result.Add((hashLevelPositions[level], levelStream.Position, hashLevelSizes[level]));
 
-                writePosition = level + 1 >= levels - 1 ? masterHashPosition : hashLevelPositions[level + 1];
-
-                // Pad hash level to next block
-                // Do not pad master hash level
-                // TODO: Make general padding code that also works with unaligned master hash position
-                var alignSize = 0L;
-                if (level + 1 < levels - 1)
-                {
-                    alignSize = ((dataSize + BlockSize_ - 1) & ~(BlockSize_ - 1)) - dataSize;
-                    bw.WritePadding((int)alignSize);
-                }
-
-                result.Add((dataPosition, dataSize, dataSize + alignSize));
+                previousLevelPosition = hashLevelPositions[level];
+                previousLevelSize = hashLevelSizes[level];
             }
+
+            //var dataPosition = metaDataPosition;
+            //var writePosition = hashLevelInformation[0];
+            //var dataSize = writePosition - dataPosition;
+
+            //for (var level = 0; level < levels; level++)
+            //{
+            //    bw.BaseStream.Position = writePosition;
+
+            //    var dataEnd = dataPosition + dataSize;
+            //    while (dataPosition < dataEnd)
+            //    {
+            //        var blockSize = Math.Min(BlockSize_, dataEnd - dataPosition);
+            //        var hash = sha256.Compute(new SubStream(output, dataPosition, blockSize));
+            //        bw.Write(hash);
+
+            //        dataPosition += BlockSize_;
+            //    }
+
+            //    dataPosition = writePosition;
+            //    dataSize = bw.BaseStream.Position - writePosition;
+
+            //    writePosition = level + 1 >= levels - 1 ? masterHashPosition : hashLevelInformation[level + 1];
+
+            //    // Pad hash level to next block
+            //    // Do not pad master hash level
+            //    // TODO: Make general padding code that also works with unaligned master hash position
+            //    var alignSize = 0L;
+            //    if (level + 1 < levels - 1)
+            //    {
+            //        alignSize = ((dataSize + BlockSize_ - 1) & ~(BlockSize_ - 1)) - dataSize;
+            //        bw.WritePadding((int)alignSize);
+            //    }
+
+            //    result.Add((dataPosition, dataSize, dataSize + alignSize));
+            //}
 
             return result;
         }
 
-        private static void PopulateDirHashTable(List<MetaData.DirEntry> directoryEntries, IList<uint> buckets)
+        private static void PopulateDirHashTable(IList<MetaData.DirEntry> directoryEntries, IList<uint> buckets)
         {
             foreach (var directoryEntry in directoryEntries)
             {
-                if (directoryEntry.NextDirInSameBucket != null)
-                    continue;
-
                 // Get all fileEntries with same bucket
                 var bucketId = GetBucketId(directoryEntry.Hash, buckets.Count);
                 var siblings = directoryEntries.Where(e => GetBucketId(e.Hash, buckets.Count) == bucketId).ToArray();

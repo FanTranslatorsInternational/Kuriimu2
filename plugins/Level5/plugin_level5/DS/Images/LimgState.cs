@@ -30,16 +30,20 @@ namespace plugin_level5.DS.Images
             _limg = new Limg();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Images = new List<ImageInfo> { _limg.Load(fileStream) };
+            var img = await Task.Run(() => _limg.Load(fileStream));
+
+            Images = new List<ImageInfo> { img };
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _limg.Save(fileStream, Images[0]);
+
+            return Task.CompletedTask;
         }
 
         private bool IsChanged()

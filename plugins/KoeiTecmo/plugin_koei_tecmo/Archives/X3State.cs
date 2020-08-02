@@ -22,10 +22,10 @@ namespace plugin_koei_tecmo.Archives
             _x3 = new X3();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _x3.Load(fileStream);
+            Files = await Task.Run(() => _x3.Load(fileStream));
         }
 
         public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

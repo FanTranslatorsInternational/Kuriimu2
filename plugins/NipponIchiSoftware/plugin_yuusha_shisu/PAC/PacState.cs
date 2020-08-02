@@ -23,16 +23,18 @@ namespace plugin_yuusha_shisu.PAC
             _pac = new Pac();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _pac.Load(fileStream);
+            Files = await Task.Run(() => _pac.Load(fileStream));
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _pac.Save(saveStream, Files);
+
+            return Task.CompletedTask;
         }
 
         private bool IsChanged()

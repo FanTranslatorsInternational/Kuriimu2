@@ -24,16 +24,18 @@ namespace plugin_level5.Wii.Archives
             _blnSub = new BlnSub();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _blnSub.Load(fileStream);
+            Files = await Task.Run(() => _blnSub.Load(fileStream));
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
             _blnSub.Save(fileStream, Files);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)

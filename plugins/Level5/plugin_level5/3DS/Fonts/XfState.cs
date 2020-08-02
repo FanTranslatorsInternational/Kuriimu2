@@ -38,7 +38,7 @@ namespace plugin_level5._3DS.Fonts
             _xf = new Xf();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             // Load Xpck archive
             var loadResult = await _pluginManager.LoadFile(fileSystem, filePath, Guid.Parse("de276e88-fb2b-48a6-a55f-d6c14ec60d4f"));
@@ -62,11 +62,11 @@ namespace plugin_level5._3DS.Fonts
             var fntFile = await archiveState.Files[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
 
             // Load characters
-            _characters = _xf.Load(fntFile, kanvasImage.GetImage(loadContext.ProgressContext));
+            _characters = await Task.Run(() => _xf.Load(fntFile, kanvasImage.GetImage(loadContext.ProgressContext)));
             _isChanged = false;
         }
 
-        public async void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             // Save font information
             var imageState = _imageStateInfo.PluginState as IImageState;

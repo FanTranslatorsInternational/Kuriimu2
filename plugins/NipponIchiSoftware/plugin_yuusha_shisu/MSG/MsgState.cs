@@ -22,16 +22,20 @@ namespace plugin_yuusha_shisu.MSG
             _msg = new MSG();
         }
 
-        public async void Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Texts = new[] { _msg.Load(fileStream) };
+            var text = await Task.Run(() => _msg.Load(fileStream));
+
+            Texts = new[] { text };
         }
 
-        public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
+        public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
             _msg.Save(output, Texts[0]);
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -110,31 +110,13 @@ namespace plugin_nintendo.Archives
 
                 bw.WriteAlignment(MediaSize_);
 
-                _ncchHeader.exHeaderSize = (int)exHeaderFile.FileSize / 2;
+                _ncchHeader.exHeaderSize = (int)(exHeaderFile.FileSize / 2);
                 _ncchHeader.exHeaderHash = sha256.Compute(new SubStream(output, exHeaderPosition, _ncchHeader.exHeaderSize));
             }
             else
             {
                 Array.Clear(_ncchHeader.exHeaderHash, 0, 0x20);
                 _ncchHeader.exHeaderSize = 0;
-            }
-
-            // Write and update plain region information
-            var plainRegionFile = files.FirstOrDefault(f => f.FilePath.GetName() == PlainRegionFileName_);
-            if (plainRegionFile != null)
-            {
-                var plainRegionPosition = bw.BaseStream.Position;
-                plainRegionFile.SaveFileData(output);
-
-                bw.WriteAlignment(MediaSize_);
-
-                _ncchHeader.plainRegionOffset = (int)plainRegionPosition / MediaSize_;
-                _ncchHeader.plainRegionSize = (int)(bw.BaseStream.Position - plainRegionPosition) / MediaSize_;
-            }
-            else
-            {
-                _ncchHeader.plainRegionOffset = 0;
-                _ncchHeader.plainRegionSize = 0;
             }
 
             // Write and update logo region information
@@ -146,8 +128,8 @@ namespace plugin_nintendo.Archives
 
                 bw.WriteAlignment(MediaSize_);
 
-                _ncchHeader.logoRegionOffset = (int)logoRegionPosition / MediaSize_;
-                _ncchHeader.logoRegionSize = (int)(bw.BaseStream.Position - logoRegionPosition) / MediaSize_;
+                _ncchHeader.logoRegionOffset = (int)(logoRegionPosition / MediaSize_);
+                _ncchHeader.logoRegionSize = (int)((bw.BaseStream.Position - logoRegionPosition) / MediaSize_);
                 _ncchHeader.logoRegionHash = sha256.Compute(new SubStream(output, logoRegionPosition, writtenSize));
             }
             else
@@ -157,6 +139,24 @@ namespace plugin_nintendo.Archives
                 Array.Clear(_ncchHeader.logoRegionHash, 0, 0x20);
             }
 
+            // Write and update plain region information
+            var plainRegionFile = files.FirstOrDefault(f => f.FilePath.GetName() == PlainRegionFileName_);
+            if (plainRegionFile != null)
+            {
+                var plainRegionPosition = bw.BaseStream.Position;
+                plainRegionFile.SaveFileData(output);
+
+                bw.WriteAlignment(MediaSize_);
+
+                _ncchHeader.plainRegionOffset = (int)(plainRegionPosition / MediaSize_);
+                _ncchHeader.plainRegionSize = (int)((bw.BaseStream.Position - plainRegionPosition) / MediaSize_);
+            }
+            else
+            {
+                _ncchHeader.plainRegionOffset = 0;
+                _ncchHeader.plainRegionSize = 0;
+            }
+
             // Write and update ExeFs
             var exeFsFiles = files.Where(x => x.FilePath.ToRelative().IsInDirectory(ExeFsFolder_, true)).ToArray();
             if (exeFsFiles.Any())
@@ -164,10 +164,12 @@ namespace plugin_nintendo.Archives
                 var exeFsPosition = bw.BaseStream.Position;
                 var exeFsSize = ExeFsBuilder.Build(output, exeFsFiles);
 
-                _ncchHeader.exeFsOffset = (int)exeFsPosition / MediaSize_;
-                _ncchHeader.exeFsSize = (int)exeFsSize / MediaSize_;
+                _ncchHeader.exeFsOffset = (int)(exeFsPosition / MediaSize_);
+                _ncchHeader.exeFsSize = (int)(exeFsSize / MediaSize_);
                 _ncchHeader.exeFsHashRegionSize = _exeFsHeaderSize / MediaSize_;
                 _ncchHeader.exeFsSuperBlockHash = sha256.Compute(new SubStream(output, exeFsPosition, _exeFsHeaderSize));
+
+                bw.WriteAlignment(0x1000);
             }
             else
             {
@@ -182,13 +184,25 @@ namespace plugin_nintendo.Archives
             if (romFsFiles.Any())
             {
                 var romFsPosition = bw.BaseStream.Position;
-                var (romFsSize, romFsHeaderSize) = RomFsBuilder.Build(output, romFsFiles, RomFsFolder_);
-                var alignedRomFsHeaderSize = (romFsHeaderSize + MediaSize_ - 1) & ~(MediaSize_ - 1);
+                var romFsSize1 = RomFsBuilder.CalculateRomFsSize(romFsFiles, RomFsFolder_);
 
-                _ncchHeader.romFsOffset = (int)romFsPosition / MediaSize_;
-                _ncchHeader.romFsSize = (int)romFsSize / MediaSize_;
-                _ncchHeader.romFsHashRegionSize = (int)alignedRomFsHeaderSize / MediaSize_;
-                _ncchHeader.romFsSuperBlockHash = sha256.Compute(new SubStream(output, romFsPosition, alignedRomFsHeaderSize));
+                var buffer = new byte[0x4000];
+                var size = romFsSize1;
+                while (size > 0)
+                {
+                    var length = (int)Math.Min(size, 0x4000);
+                    bw.BaseStream.Write(buffer, 0, length);
+
+                    size -= length;
+                }
+                var romFsStream = new SubStream(bw.BaseStream, romFsPosition, romFsSize1);
+
+                var (_, _) = RomFsBuilder.Build(romFsStream, romFsFiles, RomFsFolder_);
+
+                _ncchHeader.romFsOffset = (int)(romFsPosition / MediaSize_);
+                _ncchHeader.romFsSize = (int)(romFsSize1 / MediaSize_);
+                _ncchHeader.romFsHashRegionSize = 1;    // Only the first 0x200 of the RomFs get into the hash region apparently
+                _ncchHeader.romFsSuperBlockHash = sha256.Compute(new SubStream(output, romFsPosition, MediaSize_));
             }
             else
             {
@@ -199,7 +213,9 @@ namespace plugin_nintendo.Archives
             }
 
             // Write header
-            _ncchHeader.ncchSize = (int)output.Length / MediaSize_;
+            // HINT: Set NCCH flags to NoCrypto mode
+            _ncchHeader.ncchFlags[7] = 4;
+            _ncchHeader.ncchSize = (int)(output.Length / MediaSize_);
 
             bw.BaseStream.Position = 0;
             bw.WriteType(_ncchHeader);
