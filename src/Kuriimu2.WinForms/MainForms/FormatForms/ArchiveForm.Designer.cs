@@ -64,6 +64,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.imlFilesLarge = new System.Windows.Forms.ImageList(this.components);
             this.tlsFileDetails = new System.Windows.Forms.ToolStrip();
             this.tslFileCount = new System.Windows.Forms.ToolStripLabel();
+            this.tsbCancelOperation = new System.Windows.Forms.ToolStripButton();
             this.tlsPreview = new System.Windows.Forms.ToolStrip();
             this.tsbFileExtract = new System.Windows.Forms.ToolStripButton();
             this.tsbFileReplace = new System.Windows.Forms.ToolStripButton();
@@ -385,7 +386,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tlsFileDetails.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.tlsFileDetails.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.tlsFileDetails.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tslFileCount});
+            this.tslFileCount, this.tsbCancelOperation});
             this.tlsFileDetails.Location = new System.Drawing.Point(0, 420);
             this.tlsFileDetails.Name = "tlsFileDetails";
             this.tlsFileDetails.Size = new System.Drawing.Size(525, 25);
@@ -396,6 +397,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tslFileCount.Name = "tslFileCount";
             this.tslFileCount.Size = new System.Drawing.Size(58, 22);
             this.tslFileCount.Text = "FileCount";
+            // 
+            // tsbCancelOperation
+            // 
+            this.tsbCancelOperation.Name = "tsbCancelOperation";
+            this.tsbCancelOperation.Alignment = ToolStripItemAlignment.Right;
+            this.tsbCancelOperation.Size = new System.Drawing.Size(60, 20);
+            this.tsbCancelOperation.Text = "Cancel";
+            this.tsbCancelOperation.Enabled = false;
+            this.tsbCancelOperation.Click += TsbCancelOperation_Click;
             // 
             // tlsPreview
             // 
@@ -542,6 +552,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private System.Windows.Forms.ColumnHeader clmSize;
         private System.Windows.Forms.ColumnHeader clmState;
         private System.Windows.Forms.ToolStripLabel tslFileCount;
+        private System.Windows.Forms.ToolStripButton tsbCancelOperation;
         private System.Windows.Forms.ToolStripButton tsbFileExtract;
         private System.Windows.Forms.ToolStripButton tsbFileReplace;
         private System.Windows.Forms.ToolStripButton tsbFileRename;

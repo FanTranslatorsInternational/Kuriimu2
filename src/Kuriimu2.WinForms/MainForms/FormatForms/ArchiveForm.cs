@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract.Extensions;
@@ -40,6 +41,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private bool _isSearchEmpty = true;
         private string _searchTerm;
+
+        private bool _isOperationRunning;
+        private CancellationTokenSource _operationToken;
 
         private IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
@@ -332,10 +336,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var isLoadLocked = IsFileLocked(afi, true);
             var isStateLocked = IsFileLocked(afi, false);
 
-            var canExtractFiles = !isLoadLocked;
-            var canReplaceFiles = ArchiveState is IReplaceFiles && !isStateLocked;
-            var canRenameFiles = ArchiveState is IRenameFiles;
-            var canDeleteFiles = ArchiveState is IRemoveFiles;
+            var canExtractFiles = !isLoadLocked && !_isOperationRunning;
+            var canReplaceFiles = ArchiveState is IReplaceFiles && !isStateLocked && !_isOperationRunning;
+            var canRenameFiles = ArchiveState is IRenameFiles && !_isOperationRunning;
+            var canDeleteFiles = ArchiveState is IRemoveFiles && !_isOperationRunning;
 
             // Update action menu items
 
@@ -380,10 +384,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             InvokeAction(() =>
             {
+                openToolStripMenuItem.Enabled = !_isOperationRunning;
+
                 openWithToolStripMenuItem.DropDownItems.AddRange(items.ToArray());
                 openWithToolStripMenuItem.DropDownItems.Clear();
-
-                openWithToolStripMenuItem.Enabled = openWithToolStripMenuItem.DropDownItems.Count > 0;
+                openWithToolStripMenuItem.Enabled = openWithToolStripMenuItem.DropDownItems.Count > 0 && !_isOperationRunning;
             });
         }
 
@@ -395,13 +400,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
 
             var isRoot = treDirectories.SelectedNode == root;
-            var canReplaceFiles = ArchiveState is IReplaceFiles;
-            var canRenameFiles = ArchiveState is IRenameFiles && !isRoot;
-            var canDeleteFiles = ArchiveState is IRemoveFiles && !isRoot;
-            var canAddFiles = ArchiveState is IAddFiles;
+            var canReplaceFiles = ArchiveState is IReplaceFiles && !_isOperationRunning;
+            var canRenameFiles = ArchiveState is IRenameFiles && !isRoot && !_isOperationRunning;
+            var canDeleteFiles = ArchiveState is IRemoveFiles && !isRoot && !_isOperationRunning;
+            var canAddFiles = ArchiveState is IAddFiles && !_isOperationRunning;
 
             InvokeAction(() =>
             {
+                extractDirectoryToolStripMenuItem.Enabled = !_isOperationRunning;
+                extractDirectoryToolStripMenuItem.Text = !_isOperationRunning ? "&Extract..." : "Extract is not supported";
+
                 replaceDirectoryToolStripMenuItem.Enabled = canReplaceFiles;
                 replaceDirectoryToolStripMenuItem.Text = canReplaceFiles ? "&Replace..." : "Replace is not supported";
 
@@ -454,6 +462,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private void tsbProperties_Click(object sender, EventArgs e)
         {
             Stub();
+        }
+
+        private void TsbCancelOperation_Click(object sender, EventArgs e)
+        {
+            _operationToken.Cancel();
+            tsbCancelOperation.Enabled = false;
         }
 
         #region tlsPreview
@@ -805,6 +819,24 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 yield return item.Tag as ArchiveFileInfo;
         }
 
+        private void EnableOperation()
+        {
+            _isOperationRunning = true;
+            tsbCancelOperation.Enabled = true;
+
+            UpdateDirectoryContextMenu();
+            UpdateFileContextMenu();
+        }
+
+        private void DisableOperation()
+        {
+            _isOperationRunning = false;
+            tsbCancelOperation.Enabled = false;
+
+            UpdateDirectoryContextMenu();
+            UpdateFileContextMenu();
+        }
+
         #endregion
 
         #region Extract Directories
@@ -816,6 +848,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void ExtractDirectory(TreeNode node)
         {
+            EnableOperation();
+
             var elements = EnumerateTreeNode(node).ToArray();
             if (elements.Length <= 0)
             {
@@ -837,11 +871,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _stateInfo.StreamManager);
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(async () =>
             {
                 var count = 0;
                 foreach (var (path, file) in elements)
                 {
+                    if (_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Extract files", ++count, elements.Length);
 
                     if (IsFileLocked(file, false))
@@ -855,9 +893,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     currentFileStream.Close();
                     newFileStream.Close();
                 }
-            });
+            }, _operationToken.Token);
 
-            _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File extraction cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+
+            DisableOperation();
         }
 
         #endregion
@@ -871,6 +914,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void ExtractFiles(bool onlySelected)
         {
+            EnableOperation();
+
             var elements = EnumerateListView(lstFiles, onlySelected).ToArray();
             if (elements.Length <= 0)
             {
@@ -889,11 +934,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // Extract elements
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _stateInfo.StreamManager);
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(async () =>
             {
                 var count = 0;
                 foreach (var file in elements)
                 {
+                    if (_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Extract files", ++count, elements.Length);
 
                     if (IsFileLocked(file, false))
@@ -909,7 +958,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File extraction cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+
+            DisableOperation();
         }
 
         #endregion
@@ -923,6 +977,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void ReplaceDirectory(TreeNode node)
         {
+            EnableOperation();
+
             var elements = EnumerateTreeNode(node).ToArray();
             if (elements.Length <= 0)
             {
@@ -941,12 +997,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // Extract elements
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replacePath, _stateInfo.StreamManager);
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var replaceState = ArchiveState as IReplaceFiles;
                 foreach (var (path, file) in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Replace files", ++count, elements.Length);
 
                     if (IsFileLocked(file, true))
@@ -960,13 +1020,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File replacement cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
 
             UpdateDirectoryColors();
             UpdateFileColors();
 
             UpdateProperties();
             _formCommunicator.Update(true, false);
+
+            DisableOperation();
         }
 
         #endregion
@@ -980,6 +1045,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void ReplaceFiles(bool onlySelected)
         {
+            EnableOperation();
+
             var elements = EnumerateListView(lstFiles, onlySelected).ToArray();
             if (elements.Length <= 0)
             {
@@ -1018,12 +1085,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // Extract elements
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replaceDirectory, _stateInfo.StreamManager);
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var replaceState = ArchiveState as IReplaceFiles;
                 foreach (var file in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Replace files", ++count, elements.Length);
 
                     if (IsFileLocked(file, true))
@@ -1038,13 +1109,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File replacement cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) replaced successfully.");
 
             UpdateDirectoryColors();
             UpdateFileColors();
 
             UpdateProperties();
             _formCommunicator.Update(true, false);
+
+            DisableOperation();
         }
 
         #endregion
@@ -1058,6 +1134,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void RenameDirectory(TreeNode node)
         {
+            EnableOperation();
+
             var elements = EnumerateTreeNode(node).ToArray();
             if (elements.Length <= 0)
             {
@@ -1077,12 +1155,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var newDirectoryPath = GetNodePath(GetRootNode(), node).GetDirectory() / inputBox.InputText;
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var renameState = ArchiveState as IRenameFiles;
                 foreach (var (path, file) in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Rename files", ++count, elements.Length);
 
                     // Rename possibly open file in main form
@@ -1093,13 +1175,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File renaming cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
 
             node.Name = node.Text = inputBox.InputText;
             UpdateDirectory(node);
             UpdateFileColors();
 
             UpdateProperties();
+
+            DisableOperation();
         }
 
         #endregion
@@ -1113,6 +1200,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void RenameFiles(bool onlySelected)
         {
+            EnableOperation();
+
             var elements = EnumerateListView(lstFiles, onlySelected).ToArray();
             if (elements.Length <= 0)
             {
@@ -1120,12 +1209,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
             }
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var renameState = ArchiveState as IRenameFiles;
                 foreach (var file in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Rename files", ++count, elements.Length);
 
                     // Select new name
@@ -1143,12 +1236,17 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File renaming cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) renamed successfully.");
 
             UpdateFiles();
             UpdateDirectoryColors();
 
             UpdateProperties();
+
+            DisableOperation();
         }
 
         #endregion
@@ -1162,6 +1260,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void DeleteDirectory(TreeNode node)
         {
+            EnableOperation();
+
             var elements = EnumerateTreeNode(node).ToArray();
             if (elements.Length <= 0)
             {
@@ -1169,19 +1269,26 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
             }
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var removeState = ArchiveState as IRemoveFiles;
                 foreach (var (_, file) in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Delete files", ++count, elements.Length);
 
                     removeState?.RemoveFile(file);
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File deletion cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
 
             node.Remove();
 
@@ -1189,6 +1296,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             UpdateProperties();
 
             _formCommunicator.Update(true, false);
+
+            DisableOperation();
         }
 
         #endregion
@@ -1202,6 +1311,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void DeleteFiles(bool onlySelected)
         {
+            EnableOperation();
+
             var elements = EnumerateListView(lstFiles, onlySelected).ToArray();
             if (elements.Length <= 0)
             {
@@ -1209,25 +1320,34 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 return;
             }
 
+            _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
                 var removeState = ArchiveState as IRemoveFiles;
                 foreach (var file in elements)
                 {
+                    if(_operationToken.IsCancellationRequested)
+                        break;
+
                     _progressContext.ReportProgress("Delete files", ++count, elements.Length);
 
                     removeState?.RemoveFile(file);
                 }
             });
 
-            _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File deletion cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) deleted successfully.");
 
             UpdateDirectory(treDirectories.SelectedNode);
             UpdateFiles();
 
             UpdateProperties();
             _formCommunicator.Update(true, false);
+
+            DisableOperation();
         }
 
         #endregion
