@@ -24,8 +24,8 @@ namespace Kore.FileSystem.Implementations
         private readonly IStateInfo _stateInfo;
         private readonly ITemporaryStreamProvider _temporaryStreamProvider;
 
-        private IDictionary<UPath, ArchiveFileInfo> _fileDictionary;
-        private IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> _directoryDictionary;
+        private readonly IDictionary<UPath, ArchiveFileInfo> _fileDictionary;
+        private readonly IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> _directoryDictionary;
 
         protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
@@ -310,7 +310,7 @@ namespace Kore.FileSystem.Implementations
             var enumerateDirectories = searchTarget == SearchTarget.Directory;
             var enumerateFiles = searchTarget == SearchTarget.File;
 
-            foreach (var enumeratedPath in EnumeratePathsInternal(path, search, enumerateDirectories, enumerateFiles, onlyTopDirectory))
+            foreach (var enumeratedPath in EnumeratePathsInternal(path, search, enumerateDirectories, enumerateFiles, onlyTopDirectory).OrderBy(x => x))
                 yield return enumeratedPath;
         }
 
@@ -333,6 +333,41 @@ namespace Kore.FileSystem.Implementations
             var subPath = fullPath.Substring(SubPath.FullName.Length);
             return subPath == string.Empty ? UPath.Root : new UPath(subPath, true);
         }
+
+        #region Enumerating Paths
+
+        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory)
+        {
+            if (!DirectoryExistsImpl(path))
+            {
+                FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
+            }
+
+            var (directories, files) = _directoryDictionary[path];
+
+            // Enumerate files
+            if (enumerateFiles)
+            {
+                foreach (var file in files.Where(x => searchPattern.Match(x.FilePath)))
+                    yield return file.FilePath;
+            }
+
+            // Enumerate directory
+            if (enumerateDirectories && searchPattern.Match(path))
+                yield return path;
+
+            // Loop through sub directories
+            if (!onlyTopDirectory)
+            {
+                foreach (var directory in directories.Where(searchPattern.Match))
+                    foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
+                        yield return enumeratedPath;
+            }
+        }
+
+        #endregion
+
+        #region Directory tree
 
         private IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> CreateDirectoryLookup()
         {
@@ -379,30 +414,6 @@ namespace Kore.FileSystem.Implementations
             }
         }
 
-        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory)
-        {
-            if (!DirectoryExistsImpl(path))
-            {
-                FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
-            }
-
-            var (directories, files) = _directoryDictionary[path];
-
-            if (enumerateDirectories)
-            {
-                yield return path;
-
-                if (!onlyTopDirectory)
-                    foreach (var directory in directories.Where(searchPattern.Match))
-                        foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, true, enumerateFiles, false))
-                            yield return enumeratedPath;
-            }
-
-            if (enumerateFiles)
-            {
-                foreach (var file in files.Where(x => searchPattern.Match(x.FilePath)))
-                    yield return file.FilePath;
-            }
-        }
+        #endregion
     }
 }
