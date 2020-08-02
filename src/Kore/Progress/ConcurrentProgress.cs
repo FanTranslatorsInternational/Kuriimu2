@@ -7,7 +7,7 @@ namespace Kore.Progress
     public class ConcurrentProgress : ISetMaxProgressContext
     {
         private readonly IProgressOutput _output;
-        private ProgressState _state;
+        private readonly ProgressState _state;
 
         public string PreText { get; }
         public double MinPercentage { get; }
@@ -19,7 +19,11 @@ namespace Kore.Progress
             ContractAssertions.IsNotNull(output, nameof(output));
 
             _output = output;
-            _state = new ProgressState();
+            _state = new ProgressState
+            {
+                MaxPercentage = 100.0,
+                MaxValue = -1
+            };
         }
 
         public ConcurrentProgress(double min, double max, IProgressOutput output) :
@@ -30,12 +34,17 @@ namespace Kore.Progress
 
             MinPercentage = Math.Max(0, min);
             MaxPercentage = Math.Min(100.0, max);
+
+            _state.MinPercentage = MinPercentage;
+            _state.MaxPercentage = MaxPercentage;
         }
 
         public ConcurrentProgress(string preText, double min, double max, IProgressOutput output) :
             this(min, max, output)
         {
             PreText = preText;
+
+            _state.PreText = preText;
         }
 
         public IProgressContext CreateScope(double min, double max) =>
@@ -57,25 +66,18 @@ namespace Kore.Progress
             return this;
         }
 
-        public void ReportProgress(string message, long partialValue, long maxValue)
+        public void ReportProgress(string message, long partialValue)
         {
-            _state.MinPercentage = MinPercentage;
-            _state.MaxPercentage = MaxPercentage;
             _state.PartialValue = partialValue;
-            _state.MaxValue = maxValue;
-            _state.PreText = PreText;
             _state.Message = message;
 
             _output.SetProgress(_state);
         }
 
-        public void ReportProgress(string message, long partialValue)
+        public void ReportProgress(string message, long partialValue, long maxValue)
         {
-            _state.MinPercentage = MinPercentage;
-            _state.MaxPercentage = MaxPercentage;
             _state.PartialValue = partialValue;
-            _state.MaxValue = MaxValue;
-            _state.PreText = PreText;
+            _state.MaxValue = maxValue;
             _state.Message = message;
 
             _output.SetProgress(_state);
