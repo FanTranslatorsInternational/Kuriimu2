@@ -31,7 +31,7 @@ namespace plugin_nintendo.Archives
                     continue;
 
                 var name = GetPartitionName(i);
-                var fileStream = new SubStream(input, partitionEntry.offset * MediaSize_, partitionEntry.length * MediaSize_);
+                var fileStream = new SubStream(input, (long)partitionEntry.offset * MediaSize_, (long)partitionEntry.length * MediaSize_);
                 result.Add(new ArchiveFileInfo(fileStream, name)
                 {
                     // Add NCCH plugin
