@@ -45,7 +45,7 @@ namespace Kuriimu2.WinForms.MainForms
         private const string DependantFilesText_ = "Every file opened from this one and below will be closed too. Continue?";
 
         private const string FormTitle_ = "Kuriimu2";
-        private const string FormTitlePlugin_ = "Kuriimu2 - {0} - {1}";
+        private const string FormTitlePlugin_ = "Kuriimu2 - {0} - {1} - {2}";
 
         private const string CloseButton_ = "close-button";
 
@@ -551,9 +551,10 @@ namespace Kuriimu2.WinForms.MainForms
             var stateEntry = _tabDictionary[openFiles.SelectedTab];
 
             var pluginAssemblyName = ((UPath)stateEntry.StateInfo.PluginState.GetType().Assembly.Location).GetName();
+            var pluginName = stateEntry.StateInfo.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
 
-            Text = string.Format(FormTitlePlugin_, pluginAssemblyName, pluginId.ToString("D"));
+            Text = string.Format(FormTitlePlugin_, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
         #endregion
