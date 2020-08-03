@@ -1004,7 +1004,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var replaceState = ArchiveState as IReplaceFiles;
                 foreach (var (path, file) in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Replace files", ++count, elements.Length);
@@ -1092,7 +1092,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var replaceState = ArchiveState as IReplaceFiles;
                 foreach (var file in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Replace files", ++count, elements.Length);
@@ -1162,7 +1162,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var renameState = ArchiveState as IRenameFiles;
                 foreach (var (path, file) in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Rename files", ++count, elements.Length);
@@ -1216,7 +1216,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var renameState = ArchiveState as IRenameFiles;
                 foreach (var file in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Rename files", ++count, elements.Length);
@@ -1276,7 +1276,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var removeState = ArchiveState as IRemoveFiles;
                 foreach (var (_, file) in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Delete files", ++count, elements.Length);
@@ -1327,7 +1327,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var removeState = ArchiveState as IRemoveFiles;
                 foreach (var file in elements)
                 {
-                    if(_operationToken.IsCancellationRequested)
+                    if (_operationToken.IsCancellationRequested)
                         break;
 
                     _progressContext.ReportProgress("Delete files", ++count, elements.Length);
