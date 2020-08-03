@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp31</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\dist\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\dist\Release\</OutputPath>
+  </PropertyGroup>
+
+</Project>
