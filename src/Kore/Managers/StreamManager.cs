@@ -27,6 +27,9 @@ namespace Kore.Managers
 
         public const string TemporaryDirectory = "tmp";
 
+        /// <inheritdoc />
+        public int Count => _streams.Count(x => !IsStreamClosed(x));
+
         public StreamManager()
         {
             _streamCollectionTimer = new Timer(1000.0);
@@ -120,15 +123,20 @@ namespace Kore.Managers
         {
             foreach (var stream in _streams.ToList())
             {
-                if (!stream.CanRead && !stream.CanWrite && !stream.CanSeek)
+                if (!IsStreamClosed(stream))
+                    continue;
+
+                lock (_releaseLock)
                 {
-                    lock (_releaseLock)
-                    {
-                        if (ContainsStream(stream))
-                            Release(stream, true);
-                    }
+                    if (ContainsStream(stream))
+                        Release(stream, true);
                 }
             }
+        }
+
+        private bool IsStreamClosed(Stream stream)
+        {
+            return !stream.CanRead && !stream.CanWrite && !stream.CanSeek;
         }
     }
 }

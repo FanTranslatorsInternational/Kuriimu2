@@ -16,7 +16,7 @@ namespace Kore.Managers.Plugins
     /// <summary>
     /// Exposes methods to load physical and virtual files directly.
     /// </summary>
-    public interface IInternalPluginManager : IPluginManager
+    public interface IInternalPluginManager : IPluginManager, IDisposable
     {
         /// <summary>
         /// An event to allow for manual selection by the user.

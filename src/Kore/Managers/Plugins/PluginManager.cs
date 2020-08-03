@@ -39,6 +39,8 @@ namespace Kore.Managers.Plugins
         private readonly IProgressContext _progress;
         private readonly IDialogManager _dialogManager;
 
+        private readonly StreamMonitor _streamMonitor;
+
         private readonly IList<IStateInfo> _loadedFiles;
 
         /// <inheritdoc />
@@ -104,15 +106,14 @@ namespace Kore.Managers.Plugins
                 .DistinctBy(e => e.AssemblyPath)
                 .ToList();
 
+            _streamMonitor = new StreamMonitor();
+
             _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(dialogManager);
+            _fileSaver = new FileSaver(_streamMonitor, dialogManager);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
             _loadedFiles = new List<IStateInfo>();
-
-            // 2. Clear temporary folder
-            ClearTemporaryFolder(out _);
         }
 
         /// <summary>
@@ -149,8 +150,10 @@ namespace Kore.Managers.Plugins
                 .DistinctBy(e => e.AssemblyPath)
                 .ToList();
 
+            _streamMonitor = new StreamMonitor();
+
             _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(dialogManager);
+            _fileSaver = new FileSaver(_streamMonitor, dialogManager);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
@@ -401,7 +404,7 @@ namespace Kore.Managers.Plugins
         private async Task<LoadResult> LoadFile(Func<IStreamManager, IFileSystem> fileSystemAction, UPath path, IStateInfo parentStateInfo, Guid pluginId, LoadFileContext loadFileContext)
         {
             // 1. Create stream manager
-            var streamManager = new StreamManager();
+            var streamManager = _streamMonitor.CreateStreamManager();
 
             // 2. Create file system
             var fileSystem = fileSystemAction(streamManager);
@@ -475,7 +478,6 @@ namespace Kore.Managers.Plugins
                 state.Dispose();
 
             _loadedFiles.Clear();
-            ClearTemporaryFolder(out _);
         }
 
         private void CloseInternal(IStateInfo stateInfo)
@@ -505,39 +507,11 @@ namespace Kore.Managers.Plugins
             OnManualSelection?.Invoke(sender, e);
         }
 
-        private void ClearTemporaryFolder(out bool hasErrors)
+        public void Dispose()
         {
-            ClearTemporaryFolder(Path.GetFullPath(StreamManager.TemporaryDirectory), out hasErrors);
-        }
+            CloseAll();
 
-        private void ClearTemporaryFolder(string directory, out bool hasErrors)
-        {
-            hasErrors = false;
-
-            // 1. Check if directory exists
-            if (!Directory.Exists(directory))
-                return;
-
-            // 1. Clear all sub directories
-            foreach (var subDirectory in Directory.EnumerateDirectories(directory))
-            {
-                ClearTemporaryFolder(subDirectory, out hasErrors);
-                if (!hasErrors)
-                    Directory.Delete(subDirectory);
-            }
-
-            // 2. Delete files from directory
-            foreach (var file in Directory.EnumerateFiles(directory))
-            {
-                try
-                {
-                    File.Delete(file);
-                }
-                catch (IOException)
-                {
-                    hasErrors = true;
-                }
-            }
+            _streamMonitor?.Dispose();
         }
     }
 }

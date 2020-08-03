@@ -9,6 +9,11 @@ namespace Kontract.Interfaces.Managers
     public interface IStreamManager
     {
         /// <summary>
+        /// The amount of stream registered.
+        /// </summary>
+        int Count { get; }
+
+        /// <summary>
         /// Creates an <see cref="ITemporaryStreamProvider"/> in the scope of this instance.
         /// </summary>
         /// <returns>The created <see cref="ITemporaryStreamProvider"/>.</returns>

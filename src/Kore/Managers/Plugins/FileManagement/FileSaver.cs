@@ -19,10 +19,12 @@ namespace Kore.Managers.Plugins.FileManagement
     /// </summary>
     class FileSaver : IFileSaver
     {
+        private readonly StreamMonitor _streamMonitor;
         private readonly IDialogManager _dialogManager;
 
-        public FileSaver(IDialogManager dialogManager)
+        public FileSaver(StreamMonitor streamMonitor, IDialogManager dialogManager)
         {
+            _streamMonitor = streamMonitor;
             _dialogManager = dialogManager;
         }
 
@@ -103,21 +105,24 @@ namespace Kore.Managers.Plugins.FileManagement
         {
             var saveState = stateInfo.PluginState as ISaveFiles;
 
-            // 3. Save state to a temporary destination
-            var temporaryContainer = CreateTemporaryFileSystem(stateInfo.StreamManager);
+            // 1. Save state to a temporary destination
+            var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
             var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath.GetName(), progress);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
             // TODO: If reload fails then the original files get closed already, which makes future save actions impossible due to disposed streams
 
-            // 4. Dispose of all streams in this state
+            // 2. Dispose of all streams in this state
             stateInfo.StreamManager.ReleaseAll();
 
-            // 5. Replace files in destination file system
+            // 3. Replace files in destination file system
             var moveResult = await MoveFiles(stateInfo, temporaryContainer, destinationFileSystem);
             if (!moveResult.IsSuccessful)
                 return moveResult;
+
+            // 4. Release temporary destination
+            _streamMonitor.ReleaseTemporaryFileSystem(temporaryContainer);
 
             return SaveResult.SuccessfulResult;
         }
@@ -130,22 +135,9 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <returns></returns>
         private IFileSystem CreateDestinationFileSystem(IStateInfo stateInfo, UPath savePath)
         {
-            return stateInfo.ParentStateInfo == null ?
-                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager) :
-                stateInfo.FileSystem.Clone(stateInfo.StreamManager);
-        }
-
-        /// <summary>
-        /// Create a temporary file system to save the plugin into.
-        /// </summary>
-        /// <param name="streamManager">The stream manager for that file system.</param>
-        /// <returns>The temporary destination.</returns>
-        private IFileSystem CreateTemporaryFileSystem(IStreamManager streamManager)
-        {
-            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var tempDirectory = Path.Combine(baseDirectory, "tmp/" + Guid.NewGuid().ToString("D"));
-
-            return FileSystemFactory.CreatePhysicalFileSystem(new UPath(tempDirectory), streamManager);
+            return stateInfo.FilePath == savePath ?
+                stateInfo.FileSystem.Clone(stateInfo.StreamManager) :
+                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager);
         }
 
         /// <summary>
@@ -180,21 +172,16 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="destinationFileSystem">The file system to replace the files in.</param>
         private async Task<SaveResult> MoveFiles(IStateInfo stateInfo, IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
         {
-            // 1. Get correct stream manager
-            var streamManager = stateInfo.HasParent ? stateInfo.ParentStateInfo.StreamManager : stateInfo.StreamManager;
-
-            // 2. Copy source file system with correct stream manager attached
-            sourceFileSystem = sourceFileSystem.Clone(streamManager);
-
             if (stateInfo.HasParent)
             {
-                // 3. Put source filesystem into final destination
+                // Put source filesystem into final destination
                 destinationFileSystem = new SubFileSystem(destinationFileSystem, stateInfo.FilePath.ToAbsolute().GetDirectory());
-                var replaceResult = await TryReplaceFilesInParentAsync(sourceFileSystem, destinationFileSystem);
+
+                var replaceResult = await TryReplaceFiles(sourceFileSystem, destinationFileSystem, stateInfo.ParentStateInfo.StreamManager);
                 return replaceResult;
             }
 
-            // 3. Put source filesystem into final destination
+            // Put source filesystem into final destination
             var copyResult = await TryCopyFiles(sourceFileSystem, destinationFileSystem);
             return copyResult;
         }
@@ -204,9 +191,10 @@ namespace Kore.Managers.Plugins.FileManagement
         /// </summary>
         /// <param name="temporaryContainer"></param>
         /// <param name="destinationFileSystem"></param>
+        /// <param name="stateStreamManager"></param>
         /// <returns>If the replacement was successful.</returns>
-        private async Task<SaveResult> TryReplaceFilesInParentAsync(IFileSystem temporaryContainer,
-            IFileSystem destinationFileSystem)
+        private async Task<SaveResult> TryReplaceFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem,
+            IStreamManager stateStreamManager)
         {
             // 1. Check that all saved files exist in the parent filesystem already or can at least be created if missing
             foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
@@ -222,6 +210,8 @@ namespace Kore.Managers.Plugins.FileManagement
                 {
                     var openedFile = await temporaryContainer.OpenFileAsync(file);
                     destinationFileSystem.SetFileData(file, openedFile);
+
+                    stateStreamManager.Register(openedFile);
                 }
                 catch (Exception ex)
                 {
