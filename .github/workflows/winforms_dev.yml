@@ -45,6 +45,8 @@ jobs:
       run: dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
     - name: Publish NipponIchi Software plugin with dotnet
       run: dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+    - name: Publish Capcom plugin with dotnet
+      run: dotnet build ./plugins/Capcom/Capcom.sln --output ./dist/final/plugins --configuration Release
       
     - name: Upload artifact
       uses: actions/upload-artifact@v1
