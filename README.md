@@ -1,6 +1,17 @@
 # Kuriimu2
 Kuriimu is a general purpose game translation project manager and toolkit for authors of fan translations and game mods.
 
+## Requirements
+You need to have Net Core Desktop Runtime 3.1.6 installed on your system.<br>
+You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
+
+## Download
+You can download the newest build of Kuriimu2 in the "Actions" tab. Just select the newest successful build and download its artifact.<br>
+Those builds are considered beta and can contain bugs and unfinished features.
+
+## Usage
+Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" cotnains a ready-to-run GUI that you can run.
+
 ### Architecture
 1. Kontract - The main API host for all interfaces and base classes. Defines interfaces like ITextAdapter, IFontAdapter, ILoadFiles, etc...
 1. Komponent - A series of tools used by plugins, Kore and sometimes the UI, contains BinaryReader/WriterX and a bunch of other utility classes and helpers.
