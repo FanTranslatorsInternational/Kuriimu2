@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Kontract.Interfaces.Progress
+﻿namespace Kontract.Interfaces.Progress
 {
     /// <summary>
     /// Exposes methods to report progress to the Kuriimu runtime.
@@ -48,5 +46,15 @@ namespace Kontract.Interfaces.Progress
         /// <param name="partialValue">The partial value to report in the scope. A completion rate is calculated against the scopes min and max percentage.</param>
         /// <param name="maxValue">The maximum value in the scopes percentage range.</param>
         void ReportProgress(string message, long partialValue, long maxValue);
+
+        /// <summary>
+        /// Signals the output to start a progress flow.
+        /// </summary>
+        void StartProgress();
+
+        /// <summary>
+        /// Signals the output to finish the current progress flow.
+        /// </summary>
+        void FinishProgress();
     }
 }

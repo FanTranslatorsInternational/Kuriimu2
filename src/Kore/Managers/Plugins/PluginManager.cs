@@ -59,7 +59,7 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
         public PluginManager(params string[] pluginPaths) :
-            this(new ConcurrentProgress(new NullProgressOutput()), new DefaultDialogManager(), pluginPaths)
+            this(new ProgressContext(new NullProgressOutput()), new DefaultDialogManager(), pluginPaths)
         {
         }
 
@@ -79,7 +79,7 @@ namespace Kore.Managers.Plugins
         /// <param name="dialogManager">The dialog manager for plugin processes.</param>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
         public PluginManager(IDialogManager dialogManager, params string[] pluginPaths) :
-            this(new ConcurrentProgress(new NullProgressOutput()), dialogManager, pluginPaths)
+            this(new ProgressContext(new NullProgressOutput()), dialogManager, pluginPaths)
         {
         }
 
@@ -121,7 +121,7 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="pluginLoaders">The plugin loaders for this manager.</param>
         public PluginManager(params IPluginLoader[] pluginLoaders) :
-            this(new ConcurrentProgress(new NullProgressOutput()), new DefaultDialogManager(), pluginLoaders)
+            this(new ProgressContext(new NullProgressOutput()), new DefaultDialogManager(), pluginLoaders)
         {
         }
 
@@ -131,7 +131,7 @@ namespace Kore.Managers.Plugins
         }
 
         public PluginManager(IDialogManager dialogManager, params IPluginLoader[] pluginLoaders) :
-            this(new ConcurrentProgress(new NullProgressOutput()), dialogManager, pluginLoaders)
+            this(new ProgressContext(new NullProgressOutput()), dialogManager, pluginLoaders)
         {
         }
 
@@ -414,6 +414,9 @@ namespace Kore.Managers.Plugins
             if (pluginId != Guid.Empty)
                 plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
 
+            var progress = loadFileContext.Progress ?? _progress;
+            progress.StartProgress();
+
             // 4. Load file
             var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
             {
@@ -421,10 +424,13 @@ namespace Kore.Managers.Plugins
                 StreamManager = streamManager,
                 PluginManager = this,
                 Plugin = plugin,
-                Progress = loadFileContext.Progress ?? _progress,
+                Progress = progress,
                 DialogManager = new InternalDialogManager(_dialogManager, loadFileContext.Options),
                 AllowManualSelection = AllowManualSelection
             });
+
+            progress.FinishProgress();
+
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -445,17 +451,25 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
-            return _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
+            _progress.StartProgress();
+            var saveResult=await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
+            _progress.FinishProgress();
+
+            return saveResult;
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
+        public async Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
 
-            return _fileSaver.SaveAsync(stateInfo, saveName, _progress);
+            _progress.StartProgress();
+            var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, _progress);
+            _progress.FinishProgress();
+
+            return saveResult;
         }
 
         #endregion

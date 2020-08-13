@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Kontract.Models;
 using Kore.Managers.Plugins;
+using Kore.Progress;
+using Kuriimu2.Cmd.Progress;
 using Kuriimu2.CommandLine.Contexts;
 using Kuriimu2.CommandLine.Parsers;
 
@@ -10,13 +12,14 @@ namespace Kuriimu2.CommandLine
 {
     class Program
     {
-        // TODO: Add progress bar
         // TODO: Add dialog manager
         static void Main(string[] args)
         {
             PrintWelcomeText();
 
-            var pluginManager = new PluginManager("plugins");
+            var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
+            var pluginManager = new PluginManager(progressContext, "plugins");
+
             PrintUnloadedPlugins(pluginManager.LoadErrors);
 
             IContext context = new MainContext(pluginManager);

@@ -4,17 +4,20 @@ using Kontract.Interfaces.Progress;
 
 namespace Kore.Progress
 {
-    public class ConcurrentProgress : ISetMaxProgressContext
+    public class ProgressContext : ISetMaxProgressContext
     {
         private readonly IProgressOutput _output;
         private readonly ProgressState _state;
+
+        private readonly object _lock = new object();
+        private bool _isRunning;
 
         public string PreText { get; }
         public double MinPercentage { get; }
         public double MaxPercentage { get; } = 100.0;
         public long MaxValue { get; private set; } = -1;
 
-        public ConcurrentProgress(IProgressOutput output)
+        public ProgressContext(IProgressOutput output)
         {
             ContractAssertions.IsNotNull(output, nameof(output));
 
@@ -26,7 +29,7 @@ namespace Kore.Progress
             };
         }
 
-        public ConcurrentProgress(double min, double max, IProgressOutput output) :
+        public ProgressContext(double min, double max, IProgressOutput output) :
             this(output)
         {
             if (min > max)
@@ -39,7 +42,7 @@ namespace Kore.Progress
             _state.MaxPercentage = MaxPercentage;
         }
 
-        public ConcurrentProgress(string preText, double min, double max, IProgressOutput output) :
+        public ProgressContext(string preText, double min, double max, IProgressOutput output) :
             this(min, max, output)
         {
             PreText = preText;
@@ -57,7 +60,7 @@ namespace Kore.Progress
             if (max > MaxPercentage)
                 throw new ArgumentOutOfRangeException(nameof(max));
 
-            return new ConcurrentProgress(preText, min, max, _output);
+            return new ProgressContext(preText, min, max, _output);
         }
 
         public ISetMaxProgressContext SetMaxValue(long maxValue)
@@ -68,6 +71,12 @@ namespace Kore.Progress
 
         public void ReportProgress(string message, long partialValue)
         {
+            lock (_lock)
+            {
+                if (!_isRunning)
+                    return;
+            }
+
             _state.PartialValue = partialValue;
             _state.Message = message;
 
@@ -76,11 +85,43 @@ namespace Kore.Progress
 
         public void ReportProgress(string message, long partialValue, long maxValue)
         {
+            lock (_lock)
+            {
+                if (!_isRunning)
+                    return;
+            }
+
             _state.PartialValue = partialValue;
             _state.MaxValue = maxValue;
             _state.Message = message;
 
             _output.SetProgress(_state);
+        }
+
+        public void StartProgress()
+        {
+            lock (_lock)
+            {
+                if (_isRunning)
+                    return;
+
+                _isRunning = true;
+            }
+
+            _output.StartProgress();
+        }
+
+        public void FinishProgress()
+        {
+            lock (_lock)
+            {
+                if (!_isRunning)
+                    return;
+
+                _isRunning = false;
+            }
+
+            _output.FinishProgress();
         }
     }
 }
