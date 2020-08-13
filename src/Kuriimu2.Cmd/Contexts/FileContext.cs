@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
@@ -12,13 +13,24 @@ namespace Kuriimu2.Cmd.Contexts
     abstract class BaseFileContext : BaseContext
     {
         private readonly IList<IStateInfo> _loadedFiles;
+        private readonly ContextNode _contextNode;
 
         protected IInternalPluginManager PluginManager { get; }
 
         public BaseFileContext(IInternalPluginManager pluginManager)
         {
             PluginManager = pluginManager;
+
             _loadedFiles = new List<IStateInfo>();
+            _contextNode = new ContextNode();
+        }
+
+        public BaseFileContext(IInternalPluginManager pluginManager, ContextNode parentContextNode)
+        {
+            PluginManager = pluginManager;
+
+            _loadedFiles = new List<IStateInfo>();
+            _contextNode = parentContextNode;
         }
 
         protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
@@ -111,11 +123,11 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            _loadedFiles.Add(loadResult.LoadedState);
+            var newNode = _contextNode.Add(loadResult.LoadedState);
 
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
-            return CreateFileContext(loadResult.LoadedState);
+            return CreateFileContext(newNode);
         }
 
         private async Task SaveFile(string fileIndexArgument, string savePathArgument)
@@ -126,13 +138,13 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (fileIndex >= _loadedFiles.Count)
+            if (fileIndex >= _contextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return;
             }
 
-            var selectedState = _loadedFiles[fileIndex];
+            var selectedState = _contextNode.Children[fileIndex].StateInfo;
             if (!(selectedState.PluginState is ISaveFiles))
             {
                 Console.WriteLine($"File '{selectedState.FilePath}' is not savable.");
@@ -158,7 +170,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            Console.WriteLine($"Saved '{selectedState.FilePath}' successfully.");
+            Console.WriteLine($"Saved '{selectedState.FilePath.ToRelative()}' successfully.");
         }
 
         private void CloseFile(string fileIndexArgument)
@@ -169,27 +181,29 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (fileIndex >= _loadedFiles.Count)
+            if (fileIndex >= _contextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return;
             }
 
-            var selectedState = _loadedFiles[fileIndex];
+            var selectedState = _contextNode.Children[fileIndex].StateInfo;
             var selectedFile = selectedState.FilePath;
 
             PluginManager.Close(selectedState);
-            _loadedFiles.Remove(selectedState);
+            _contextNode.Children[fileIndex].Remove();
 
             Console.WriteLine($"Closed '{selectedFile}' successfully.");
         }
 
         private void CloseAll()
         {
-            PluginManager.CloseAll();
-            _loadedFiles.Clear();
+            foreach (var child in _contextNode.Children)
+                PluginManager.Close(child.StateInfo);
 
-            Console.WriteLine($"Closed all files successfully.");
+            _contextNode.Children.Clear();
+
+            Console.WriteLine("Closed all files successfully.");
         }
 
         private IContext SelectFile(string fileIndexArgument)
@@ -200,50 +214,103 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (fileIndex >= _loadedFiles.Count)
+            if (fileIndex >= _contextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return this;
             }
 
-            var selectedState = _loadedFiles[fileIndex];
+            var selectedNode = _contextNode.Children[fileIndex];
 
-            Console.WriteLine($"Selected '{selectedState.FilePath}'.");
+            Console.WriteLine($"Selected '{selectedNode.StateInfo.FilePath.ToRelative()}'.");
 
-            return CreateFileContext(selectedState);
+            return CreateFileContext(selectedNode);
         }
 
         private void ListOpenFiles()
         {
-            if (_loadedFiles.Count <= 0)
+            if (_contextNode.Children.Count <= 0)
             {
                 Console.WriteLine("No files are open.");
                 return;
             }
 
-            for (var i = 0; i < _loadedFiles.Count; i++)
-            {
-                var loadedFile = _loadedFiles[i];
-                Console.WriteLine($"[{i}] {loadedFile.FilePath.GetName()} - {loadedFile.FilePlugin.Metadata.Name} - {loadedFile.FilePlugin.PluginId}");
-            }
+            _contextNode.ListFiles();
         }
 
-        private IContext CreateFileContext(IStateInfo stateInfo)
+        private IContext CreateFileContext(ContextNode childNode)
         {
-            switch (stateInfo.PluginState)
+            switch (childNode.StateInfo.PluginState)
             {
                 case ITextState _:
-                    return new TextContext(stateInfo, this);
+                    return new TextContext(childNode.StateInfo, this);
 
                 case IImageState _:
-                    return new ImageContext(stateInfo, this);
+                    return new ImageContext(childNode.StateInfo, this);
 
                 case IArchiveState _:
-                    return new ArchiveContext(stateInfo, this, PluginManager);
+                    return new ArchiveContext(childNode, this, PluginManager);
 
                 default:
-                    Console.WriteLine($"State '{stateInfo.PluginState.GetType()}' is not supported.");
+                    Console.WriteLine($"State '{childNode.StateInfo.PluginState.GetType()}' is not supported.");
                     return null;
+            }
+        }
+    }
+
+    class ContextNode
+    {
+        private ContextNode _parentNode;
+
+        public IStateInfo StateInfo { get; }
+
+        public IList<ContextNode> Children { get; }
+
+        public ContextNode()
+        {
+            Children = new List<ContextNode>();
+        }
+
+        private ContextNode(ContextNode parentNode, IStateInfo parentState) : this()
+        {
+            ContractAssertions.IsNotNull(parentNode, nameof(parentNode));
+            ContractAssertions.IsNotNull(parentState, nameof(parentState));
+
+            _parentNode = parentNode;
+            StateInfo = parentState;
+        }
+
+        public ContextNode Add(IStateInfo stateInfo)
+        {
+            var newNode = new ContextNode(this, stateInfo);
+            Children.Add(newNode);
+
+            return newNode;
+        }
+
+        public void ListFiles()
+        {
+            ListFilesInternal();
+        }
+
+        public void Remove()
+        {
+            _parentNode?.Children.Remove(this);
+            _parentNode = null;
+        }
+
+        private void ListFilesInternal(int iteration = 0)
+        {
+            var prefix = new string(' ', iteration * 2);
+
+            for (var i = 0; i < Children.Count; i++)
+            {
+                if (iteration == 0)
+                    prefix = $"[{i}] ";
+
+                Console.WriteLine(prefix + Children[i].StateInfo.FilePath.ToRelative());
+
+                Children[i].ListFilesInternal(iteration + 1);
             }
         }
     }

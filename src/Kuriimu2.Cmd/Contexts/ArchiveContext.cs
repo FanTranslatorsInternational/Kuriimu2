@@ -35,14 +35,14 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public ArchiveContext(IStateInfo stateInfo, IContext parentContext, IInternalPluginManager pluginManager) : base(pluginManager)
+        public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalPluginManager pluginManager) : base(pluginManager, contextNode)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            ContractAssertions.IsNotNull(contextNode, nameof(contextNode));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
 
-            _stateInfo = stateInfo;
+            _stateInfo = contextNode.StateInfo;
             _archiveState = _stateInfo.PluginState as IArchiveState;
-            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(stateInfo);
+            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo);
             _parentContext = parentContext;
         }
 
@@ -76,7 +76,7 @@ namespace Kuriimu2.Cmd.Contexts
             return PluginManager.IsLoaded(absolutePath);
         }
 
-        protected override Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId)
+        protected override async Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId)
         {
             var absoluteFilePath = new UPath(filePath).ToAbsolute();
             var selectedAfi = _archiveState.Files.First(x => x.FilePath == absoluteFilePath);
@@ -84,22 +84,24 @@ namespace Kuriimu2.Cmd.Contexts
             // Try every preset plugin first
             foreach (var selectedAfiPluginId in selectedAfi.PluginIds ?? Array.Empty<Guid>())
             {
-
+                var loadResult = await PluginManager.LoadFile(_stateInfo, selectedAfi, selectedAfiPluginId);
+                if (loadResult.IsSuccessful)
+                    return loadResult;
             }
 
             return pluginId == Guid.Empty ?
-                PluginManager.LoadFile(_stateInfo, selectedAfi) :
-                PluginManager.LoadFile(_stateInfo, selectedAfi, pluginId);
+                await PluginManager.LoadFile(_stateInfo, selectedAfi) :
+                await PluginManager.LoadFile(_stateInfo, selectedAfi, pluginId);
         }
 
-        private void ListFiles(IFileSystem fileSystem, UPath listPath, int iteration = 1)
+        private void ListFiles(IFileSystem fileSystem, UPath listPath, int iteration = 0)
         {
             var prefix = new string(' ', iteration * 2);
-            Console.WriteLine(prefix + (iteration == 1 ? _stateInfo.FilePath.ToRelative() : listPath.GetName()));
+            Console.WriteLine(prefix + (iteration == 0 ? _stateInfo.FilePath.ToRelative() : listPath.GetName()));
 
             // Print files
             foreach (var file in fileSystem.EnumeratePaths(listPath, "*", SearchOption.TopDirectoryOnly, SearchTarget.File))
-                Console.WriteLine(prefix + file.GetName());
+                Console.WriteLine(prefix + "  " + file.GetName());
 
             // Print directories
             foreach (var dir in fileSystem.EnumeratePaths(listPath, "*", SearchOption.AllDirectories, SearchTarget.Directory))
