@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
-using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 
 namespace Kuriimu2.Cmd.Contexts
@@ -28,12 +26,10 @@ namespace Kuriimu2.Cmd.Contexts
             switch (command.Name)
             {
                 case "open":
-                    await LoadFile(arguments[0], null);
-                    return this;
+                    return await LoadFile(arguments[0], null);
 
                 case "open-with":
-                    await LoadFile(arguments[0], arguments[1]);
-                    return this;
+                    return await LoadFile(arguments[0], arguments[1]);
 
                 case "save":
                     await SaveFile(arguments[0], null);
@@ -68,18 +64,18 @@ namespace Kuriimu2.Cmd.Contexts
 
         protected abstract Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId);
 
-        private async Task LoadFile(string fileArgument, string pluginIdArgument)
+        private async Task<IContext> LoadFile(string fileArgument, string pluginIdArgument)
         {
             if (!FileExists(fileArgument))
             {
                 Console.WriteLine($"File '{fileArgument}' does not exist.");
-                return;
+                return this;
             }
 
             if (IsLoaded(fileArgument))
             {
                 Console.WriteLine($"File '{fileArgument}' already loaded.");
-                return;
+                return this;
             }
 
             var pluginId = Guid.Empty;
@@ -88,7 +84,7 @@ namespace Kuriimu2.Cmd.Contexts
                 if (!Guid.TryParse(pluginIdArgument, out pluginId))
                 {
                     Console.WriteLine($"'{pluginIdArgument}' is not a valid plugin ID.");
-                    return;
+                    return this;
                 }
             }
 
@@ -100,24 +96,26 @@ namespace Kuriimu2.Cmd.Contexts
             catch (Exception e)
             {
                 Console.WriteLine($"Load Error: {e.Message}");
-                return;
+                return this;
             }
 
             if (!loadResult.IsSuccessful)
             {
                 Console.WriteLine($"Load Error: {loadResult.Message}");
-                return;
+                return this;
             }
 
             if (loadResult.LoadedState.PluginState is IHexState)
             {
                 Console.WriteLine("No plugin supports this file.");
-                return;
+                return this;
             }
 
             _loadedFiles.Add(loadResult.LoadedState);
 
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
+
+            return CreateFileContext(loadResult.LoadedState);
         }
 
         private async Task SaveFile(string fileIndexArgument, string savePathArgument)
@@ -177,17 +175,21 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            var selectState = _loadedFiles[fileIndex];
-            PluginManager.Close(selectState);
+            var selectedState = _loadedFiles[fileIndex];
+            var selectedFile = selectedState.FilePath;
 
-            _loadedFiles.Remove(selectState);
+            PluginManager.Close(selectedState);
+            _loadedFiles.Remove(selectedState);
+
+            Console.WriteLine($"Closed '{selectedFile}' successfully.");
         }
 
         private void CloseAll()
         {
             PluginManager.CloseAll();
-
             _loadedFiles.Clear();
+
+            Console.WriteLine($"Closed all files successfully.");
         }
 
         private IContext SelectFile(string fileIndexArgument)
@@ -205,21 +207,10 @@ namespace Kuriimu2.Cmd.Contexts
             }
 
             var selectedState = _loadedFiles[fileIndex];
-            switch (selectedState.PluginState)
-            {
-                case ITextState _:
-                    return new TextContext(selectedState, this);
 
-                case IImageState _:
-                    return new ImageContext(selectedState, this);
+            Console.WriteLine($"Selected '{selectedState.FilePath}'.");
 
-                case IArchiveState _:
-                    return new ArchiveContext(selectedState, this, PluginManager);
-
-                default:
-                    Console.WriteLine($"State '{selectedState.PluginState.GetType()}' is not supported.");
-                    return null;
-            }
+            return CreateFileContext(selectedState);
         }
 
         private void ListOpenFiles()
@@ -234,6 +225,25 @@ namespace Kuriimu2.Cmd.Contexts
             {
                 var loadedFile = _loadedFiles[i];
                 Console.WriteLine($"[{i}] {loadedFile.FilePath.GetName()} - {loadedFile.FilePlugin.Metadata.Name} - {loadedFile.FilePlugin.PluginId}");
+            }
+        }
+
+        private IContext CreateFileContext(IStateInfo stateInfo)
+        {
+            switch (stateInfo.PluginState)
+            {
+                case ITextState _:
+                    return new TextContext(stateInfo, this);
+
+                case IImageState _:
+                    return new ImageContext(stateInfo, this);
+
+                case IArchiveState _:
+                    return new ArchiveContext(stateInfo, this, PluginManager);
+
+                default:
+                    Console.WriteLine($"State '{stateInfo.PluginState.GetType()}' is not supported.");
+                    return null;
             }
         }
     }
