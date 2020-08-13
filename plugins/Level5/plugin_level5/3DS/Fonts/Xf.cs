@@ -122,9 +122,14 @@ namespace plugin_level5._3DS.Fonts
         public (Stream fontStream, Image fontImage) Save(List<CharacterInfo> characterInfos, Size imageSize)
         {
             // Generating font textures
-            var generator = new FontTextureGenerator(imageSize);
-
             var adjustedGlyphs = FontMeasurement.MeasureWhiteSpace(characterInfos.Select(x => (Bitmap)x.Glyph)).ToList();
+
+            // Adjust image size for at least the biggest letter
+            var height = Math.Max(adjustedGlyphs.Max(x => x.WhiteSpaceAdjustment.GlyphSize.Height), imageSize.Height);
+            var width = Math.Max(adjustedGlyphs.Max(x => x.WhiteSpaceAdjustment.GlyphSize.Width), imageSize.Width);
+            imageSize = new Size(width, height);
+
+            var generator = new FontTextureGenerator(imageSize, 0);
             var textureInfos = generator.GenerateFontTextures(adjustedGlyphs, 3).ToList();
 
             // Join important lists
@@ -317,9 +322,11 @@ namespace plugin_level5._3DS.Fonts
 
         private uint ConvertChar(uint character)
         {
+            // Specially handle space
             if (character == 0x20)
                 return 0x3000;
 
+            // Convert all other letters
             if (character >= 0x21 && character <= 0x7E)
                 return character + 0xFEE0;
 
