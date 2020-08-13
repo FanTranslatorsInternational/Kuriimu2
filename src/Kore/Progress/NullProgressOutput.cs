@@ -10,5 +10,13 @@ namespace Kore.Progress
         public void SetProgress(ProgressState state)
         {
         }
+
+        public void StartProgress()
+        {
+        }
+
+        public void FinishProgress()
+        {
+        }
     }
 }
