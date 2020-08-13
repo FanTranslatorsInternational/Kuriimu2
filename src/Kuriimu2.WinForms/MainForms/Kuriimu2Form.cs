@@ -79,7 +79,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             KeyPreview = true;
 
-            _progressContext = new ConcurrentProgress(new ToolStripProgressBarOutput(progressBarToolStrip, 34));
+            _progressContext = new ProgressContext(new ToolStripProgressBarOutput(progressBarToolStrip, 34));
             var dialogManager = new DialogManagerForm();
 
             _hashForm = new HashTypeExtensionForm();
