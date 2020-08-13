@@ -64,14 +64,14 @@ namespace Kuriimu2.Wpf.ViewModels
             Application.Current.Shutdown();
         }
 
-        public void OpenButton()
+        public async void OpenButton()
         {
             // TODO: Add filters from loaded plugins
             var ofd = new OpenFileDialog { Filter = ""/*_pluginManager.FileFilters*/, Multiselect = true };
             if (ofd.ShowDialog() != true) return;
 
             foreach (var file in ofd.FileNames)
-                LoadFile(file);
+                await LoadFile(file);
         }
 
         //public async void OpenTypeButton()
@@ -89,14 +89,14 @@ namespace Kuriimu2.Wpf.ViewModels
         //    }
         //}
 
-        public void FileDrop(DragEventArgs e)
+        public async void FileDrop(DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files == null) return;
 
             foreach (var file in files)
-                LoadFile(file);
+                await LoadFile(file);
         }
 
         public bool SaveButtonsEnabled => (ActiveItem as IFileEditor)?.KoreFile.PluginState is ISaveFiles;
@@ -206,7 +206,7 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             IStateInfo kfi = null;
 
-            var loadResult = await _pluginManager.LoadFile(filename);
+            var loadResult = await _pluginManager.LoadFile(filename,Guid.Parse("b1b397c4-9a02-4828-b568-39cad733fa3a"));
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
