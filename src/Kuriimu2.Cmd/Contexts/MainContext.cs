@@ -6,6 +6,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
+using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 
 namespace Kuriimu2.CommandLine.Contexts
@@ -20,6 +21,10 @@ namespace Kuriimu2.CommandLine.Contexts
         {
             new Command("open", "file"),
             new Command("open-with", "file", "plugin-id"),
+            new Command("save", "file-index"),
+            new Command("save-as", "file-index", "save-path"),
+            new Command("close","file-index"),
+            new Command("close-all"),
             new Command("list"),
             new Command("select", "list-id"),
             new Command("exit")
@@ -39,18 +44,31 @@ namespace Kuriimu2.CommandLine.Contexts
             {
                 case "open":
                     await LoadFile(arguments[0], Guid.Empty);
-
                     return this;
 
                 case "open-with":
                     var pluginId = Guid.Parse(arguments[1]);
                     await LoadFile(arguments[0], pluginId);
+                    return this;
 
+                case "save":
+                    await SaveFile(arguments[0], UPath.Empty);
+                    return this;
+
+                case "save-as":
+                    await SaveFile(arguments[0], arguments[1]);
+                    return this;
+
+                case "close":
+                    CloseFile(arguments[0]);
+                    return this;
+
+                case "close-all":
+                    _pluginManager.CloseAll();
                     return this;
 
                 case "list":
                     ListLoadedFiles();
-
                     return this;
 
                 case "select":
@@ -100,6 +118,58 @@ namespace Kuriimu2.CommandLine.Contexts
             _loadedFiles.Add(loadResult.LoadedState);
 
             Console.WriteLine($"Loaded '{file}' successfully.");
+        }
+
+        private async Task SaveFile(string fileIndexArgument, UPath savePath)
+        {
+            if (!int.TryParse(fileIndexArgument, out var fileIndex))
+            {
+                Console.WriteLine($"'{fileIndexArgument}' is not a valid index.");
+                return;
+            }
+
+            if (fileIndex >= _loadedFiles.Count)
+            {
+                Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
+                return;
+            }
+
+            var loadedFile = _loadedFiles[fileIndex];
+            if (!(loadedFile.PluginState is ISaveFiles))
+            {
+                Console.WriteLine($"File '{loadedFile.FilePath}' is not savable.");
+                return;
+            }
+
+            var saveResult = savePath == UPath.Empty ?
+                await _pluginManager.SaveFile(_loadedFiles[fileIndex]) :
+                await _pluginManager.SaveFile(_loadedFiles[fileIndex], savePath);
+
+            if (!saveResult.IsSuccessful)
+            {
+                Console.WriteLine($"Save Error: {saveResult.Message}");
+                return;
+            }
+
+            Console.WriteLine($"File '{loadedFile.FilePath}' saved successfully.");
+        }
+
+        private void CloseFile(string fileIndexArgument)
+        {
+            if (!int.TryParse(fileIndexArgument, out var fileIndex))
+            {
+                Console.WriteLine($"'{fileIndexArgument}' is not a valid index.");
+                return;
+            }
+
+            if (fileIndex >= _loadedFiles.Count)
+            {
+                Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
+                return;
+            }
+
+            var loadedFile = _loadedFiles[fileIndex];
+            _pluginManager.Close(loadedFile);
         }
 
         private void ListLoadedFiles()
