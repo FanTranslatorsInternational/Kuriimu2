@@ -1,6 +1,6 @@
 ﻿using Kontract;
 
-namespace Kuriimu2.CommandLine.Contexts
+namespace Kuriimu2.Cmd.Contexts
 {
     class Command
     {

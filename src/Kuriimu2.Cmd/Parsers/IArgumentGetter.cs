@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Kuriimu2.CommandLine.Parsers
+namespace Kuriimu2.Cmd.Parsers
 {
     interface IArgumentGetter
     {

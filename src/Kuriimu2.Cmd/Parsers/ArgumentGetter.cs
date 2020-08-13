@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kuriimu2.CommandLine.Parsers
+namespace Kuriimu2.Cmd.Parsers
 {
     class ArgumentGetter : IArgumentGetter
     {

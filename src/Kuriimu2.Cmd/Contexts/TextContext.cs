@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Managers;
 
-namespace Kuriimu2.CommandLine.Contexts
+namespace Kuriimu2.Cmd.Contexts
 {
     class TextContext : BaseContext
     {

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Kuriimu2.CommandLine.Parsers;
+using Kuriimu2.Cmd.Parsers;
 
-namespace Kuriimu2.CommandLine.Contexts
+namespace Kuriimu2.Cmd.Contexts
 {
     interface IContext
     {

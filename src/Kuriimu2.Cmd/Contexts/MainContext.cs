@@ -9,9 +9,8 @@ using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 
-namespace Kuriimu2.CommandLine.Contexts
+namespace Kuriimu2.Cmd.Contexts
 {
-    // TODO: Implement manual selection request by plugin manager
     class MainContext : BaseContext
     {
         private readonly IInternalPluginManager _pluginManager;
