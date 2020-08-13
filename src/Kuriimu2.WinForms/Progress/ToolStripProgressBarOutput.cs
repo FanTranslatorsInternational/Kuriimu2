@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Timers;
-using Kontract.Interfaces.Progress;
+using Kore.Progress;
 using Kuriimu2.WinForms.Controls;
 
 namespace Kuriimu2.WinForms.Progress
