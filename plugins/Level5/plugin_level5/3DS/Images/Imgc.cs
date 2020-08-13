@@ -92,7 +92,7 @@ namespace plugin_level5._3DS.Images
             _header.height = (short)image.ImageSize.Height;
             _header.imageFormat = (byte)(/*image.ImageFormat == 29 ? 28 : */image.ImageFormat);
             _header.bitDepth = (byte)(/*image.ImageFormat == 29 ? 8 :*/
-                imageFormats[image.ImageFormat].BitDepth / imageFormats[image.ImageFormat].ColorsPerValue);
+                imageFormats[image.ImageFormat].BitDepth);
 
             // Write image data to stream
             var combinedImageStream = new MemoryStream();
@@ -101,8 +101,7 @@ namespace plugin_level5._3DS.Images
                 combinedImageStream.Write(image.MipMapData[i]);
 
             // Create reduced tiles and indices
-            var bitDepth = imageFormats[_header.imageFormat].BitDepth /
-                           imageFormats[_header.imageFormat].ColorsPerValue;
+            var bitDepth = imageFormats[_header.imageFormat].BitDepth;
             var (imageData, tileTable) = SplitTiles(combinedImageStream, bitDepth);
 
             // Write tile table
