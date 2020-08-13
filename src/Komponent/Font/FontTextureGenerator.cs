@@ -20,10 +20,11 @@ namespace Komponent.Font
         /// Creates a new instance of <see cref="FontTextureGenerator"/>.
         /// </summary>
         /// <param name="canvasSize">The size of the canvas to draw on.</param>
-        public FontTextureGenerator(Size canvasSize)
+        /// <param name="margin">The margin to the top and left side of each texture.</param>
+        public FontTextureGenerator(Size canvasSize, int margin = 1)
         {
             CanvasSize = canvasSize;
-            _binPacker = new BinPacker(canvasSize);
+            _binPacker = new BinPacker(canvasSize, margin);
         }
 
         /// <summary>
@@ -48,8 +49,8 @@ namespace Komponent.Font
                 var fontGraphics = Graphics.FromImage(fontTexture);
 
                 // Draw each positioned glyph on the font texture
-                var handledGlyphs = new List<(AdjustedGlyph, Point)>(adjustedGlyphs.Count);
-                foreach (var positionedGlyph in _binPacker.Pack(adjustedGlyphs))
+                var handledGlyphs = new List<(AdjustedGlyph, Point)>(remainingAdjustedGlyphs.Count);
+                foreach (var positionedGlyph in _binPacker.Pack(remainingAdjustedGlyphs))
                 {
                     DrawGlyph(fontGraphics, positionedGlyph);
                     handledGlyphs.Add(positionedGlyph);
