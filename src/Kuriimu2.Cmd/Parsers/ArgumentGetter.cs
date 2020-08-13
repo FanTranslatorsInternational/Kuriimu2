@@ -78,7 +78,7 @@ namespace Kuriimu2.Cmd.Parsers
                 var quoteIndex = input.IndexOf('"', index);
 
                 int endIndex;
-                if (spaceIndex < quoteIndex || quoteIndex != index)
+                if ((spaceIndex >= 0 && spaceIndex < quoteIndex) || quoteIndex != index)
                 {
                     // Split at space
                     endIndex = spaceIndex < 0 ? input.Length : spaceIndex;

@@ -72,6 +72,7 @@ namespace Kuriimu2.Cmd
                 return;
             }
 
+            Console.Clear();
             e.Result = e.FilePlugins.FirstOrDefault(x => x.PluginId == pluginId);
         }
     }
