@@ -488,8 +488,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private async void Save(bool saveAs = false)
         {
-            var wasSuccessful=await _formCommunicator.Save(saveAs);
-            if (!wasSuccessful) 
+            var wasSuccessful = await _formCommunicator.Save(saveAs);
+            if (!wasSuccessful)
                 return;
 
             UpdateProperties();
@@ -534,6 +534,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             {
                 var newImage = new Bitmap(filePath.FullName);
                 SelectedImage.SetImage(newImage, _progressContext);
+                newImage.Dispose();
 
                 treBitmaps.SelectedNode = treBitmaps.Nodes[_selectedImageIndex];
             }
@@ -904,7 +905,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             }
             catch (Exception ex)
             {
-                _formCommunicator.ReportStatus(false,ex.Message);
+                _formCommunicator.ReportStatus(false, ex.Message);
                 UpdateFormInternal();
                 return;
             }
@@ -925,7 +926,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             if (ofd.ShowDialog() != DialogResult.OK)
             {
-                _formCommunicator.ReportStatus(false,PaletteCouldNotOpenMessage_);
+                _formCommunicator.ReportStatus(false, PaletteCouldNotOpenMessage_);
                 return null;
             }
 
@@ -939,7 +940,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 }
                 catch (Exception e)
                 {
-                    _formCommunicator.ReportStatus(false,e.Message);
+                    _formCommunicator.ReportStatus(false, e.Message);
                 }
             }
             else if (Path.GetExtension(ofd.FileName) == ".pal")
@@ -993,6 +994,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         }
 
         #endregion
+
+        private void InvokeAction(Action invokeAction)
+        {
+            if (InvokeRequired)
+                Invoke(invokeAction);
+            else
+                invokeAction();
+        }
 
         private void pbPalette_Paint(object sender, PaintEventArgs e)
         {

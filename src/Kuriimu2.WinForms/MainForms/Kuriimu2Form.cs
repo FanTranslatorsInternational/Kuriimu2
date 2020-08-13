@@ -203,7 +203,7 @@ namespace Kuriimu2.WinForms.MainForms
             }
 
             // Open tab page
-            var wasAdded = AddTabPage(loadResult.LoadedState, tabColor);
+            var wasAdded = InvokeFunc(() => AddTabPage(loadResult.LoadedState, tabColor));
             if (!wasAdded)
             {
                 _pluginManager.Close(loadResult.LoadedState);
@@ -252,8 +252,9 @@ namespace Kuriimu2.WinForms.MainForms
 #if DEBUG
                 MessageBox.Show(e.ToString(), ExceptionCatched_);
 #else
-                MessageBox.Show(e.Message, "Exception catched.");
+                    MessageBox.Show(e.Message, "Exception catched.");
 #endif
+
                 return false;
             }
 
@@ -288,6 +289,14 @@ namespace Kuriimu2.WinForms.MainForms
                 Invoke(controlAction);
             else
                 controlAction();
+        }
+
+        private T InvokeFunc<T>(Func<T> controlFunc)
+        {
+            if (InvokeRequired)
+                return (T)Invoke(controlFunc);
+
+            return controlFunc();
         }
 
         private string SelectFile()
