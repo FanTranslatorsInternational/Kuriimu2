@@ -6,12 +6,13 @@ using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
+using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins;
 
 namespace Kuriimu2.Cmd.Contexts
 {
-    class MainContext : BaseContext
+    class MainContext : BaseContext, IMainContext
     {
         private readonly IInternalPluginManager _pluginManager;
         private readonly IList<IStateInfo> _loadedFiles;
@@ -25,7 +26,7 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("close","file-index"),
             new Command("close-all"),
             new Command("list"),
-            new Command("select", "list-id"),
+            new Command("select", "file-index"),
             new Command("exit")
         };
 
@@ -42,12 +43,11 @@ namespace Kuriimu2.Cmd.Contexts
             switch (command.Name)
             {
                 case "open":
-                    await LoadFile(arguments[0], Guid.Empty);
+                    await LoadFile(arguments[0], null);
                     return this;
 
                 case "open-with":
-                    var pluginId = Guid.Parse(arguments[1]);
-                    await LoadFile(arguments[0], pluginId);
+                    await LoadFile(arguments[0], arguments[1]);
                     return this;
 
                 case "save":
@@ -81,12 +81,63 @@ namespace Kuriimu2.Cmd.Contexts
             return null;
         }
 
-        private async Task LoadFile(string file, Guid pluginId)
+        public async Task<IStateInfo> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId)
+        {
+            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / afi.FilePath;
+            if (_pluginManager.IsLoaded(absolutePath))
+            {
+                Console.WriteLine($"File '{afi.FilePath}' already loaded.");
+                return null;
+            }
+
+            LoadResult loadResult;
+            try
+            {
+                loadResult = pluginId == Guid.Empty ?
+                    await _pluginManager.LoadFile(stateInfo, afi) :
+                    await _pluginManager.LoadFile(stateInfo, afi, pluginId);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Load Error: {e.Message}");
+                return null;
+            }
+
+            if (!loadResult.IsSuccessful)
+            {
+                Console.WriteLine($"Load Error: {loadResult.Message}");
+                return null;
+            }
+
+            if (loadResult.LoadedState.PluginState is IHexState)
+            {
+                Console.WriteLine("No plugin supports this file.");
+                return null;
+            }
+
+            _loadedFiles.Add(loadResult.LoadedState);
+
+            Console.WriteLine($"Loaded '{afi.FilePath}' successfully.");
+
+            return loadResult.LoadedState;
+        }
+
+        private async Task LoadFile(string file, string pluginIdArgument)
         {
             if (_pluginManager.IsLoaded(file))
             {
                 Console.WriteLine($"File '{file}' already loaded.");
                 return;
+            }
+
+            var pluginId = Guid.Empty;
+            if (string.IsNullOrEmpty(pluginIdArgument))
+            {
+                if (!Guid.TryParse(pluginIdArgument, out pluginId))
+                {
+                    Console.WriteLine($"'{pluginIdArgument}' is no valid plugin ID.");
+                    return;
+                }
             }
 
             LoadResult loadResult;
@@ -119,30 +170,40 @@ namespace Kuriimu2.Cmd.Contexts
             Console.WriteLine($"Loaded '{file}' successfully.");
         }
 
-        private async Task SaveFile(string fileIndexArgument, UPath savePath)
+        private Task SaveFile(string fileIndexArgument, UPath savePath)
         {
             if (!int.TryParse(fileIndexArgument, out var fileIndex))
             {
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid index.");
-                return;
+                return Task.CompletedTask;
             }
 
             if (fileIndex >= _loadedFiles.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
-                return;
+                return Task.CompletedTask;
             }
 
             var loadedFile = _loadedFiles[fileIndex];
-            if (!(loadedFile.PluginState is ISaveFiles))
+            return SaveFile(loadedFile, savePath);
+        }
+
+        public Task SaveFile(IStateInfo stateInfo)
+        {
+            return SaveFile(stateInfo, UPath.Empty);
+        }
+
+        private async Task SaveFile(IStateInfo stateInfo, UPath savePath)
+        {
+            if (!(stateInfo.PluginState is ISaveFiles))
             {
-                Console.WriteLine($"File '{loadedFile.FilePath}' is not savable.");
+                Console.WriteLine($"File '{stateInfo.FilePath}' is not savable.");
                 return;
             }
 
             var saveResult = savePath == UPath.Empty ?
-                await _pluginManager.SaveFile(_loadedFiles[fileIndex]) :
-                await _pluginManager.SaveFile(_loadedFiles[fileIndex], savePath);
+                await _pluginManager.SaveFile(stateInfo) :
+                await _pluginManager.SaveFile(stateInfo, savePath);
 
             if (!saveResult.IsSuccessful)
             {
@@ -150,7 +211,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            Console.WriteLine($"File '{loadedFile.FilePath}' saved successfully.");
+            Console.WriteLine($"File '{stateInfo.FilePath}' saved successfully.");
         }
 
         private void CloseFile(string fileIndexArgument)
@@ -168,7 +229,15 @@ namespace Kuriimu2.Cmd.Contexts
             }
 
             var loadedFile = _loadedFiles[fileIndex];
-            _pluginManager.Close(loadedFile);
+            CloseFile(loadedFile);
+        }
+
+        public void CloseFile(IStateInfo stateInfo)
+        {
+            _pluginManager.Close(stateInfo);
+
+            if (_loadedFiles.Contains(stateInfo))
+                _loadedFiles.Remove(stateInfo);
         }
 
         private void ListLoadedFiles()
@@ -194,21 +263,8 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            switch (_loadedFiles[index].PluginState)
-            {
-                case ITextState _:
-                    return new TextContext(_loadedFiles[index], this);
-
-                case IImageState _:
-                    return new ImageContext(_loadedFiles[index], this);
-
-                case IArchiveState _:
-                    return new ArchiveContext(_loadedFiles[index], this);
-
-                default:
-                    Console.WriteLine($"State '{_loadedFiles[index].PluginState.GetType()}' is not supported.");
-                    return this;
-            }
+            var fileContext = ContextFactory.CreateFileContext(_loadedFiles[index], this, this);
+            return fileContext ?? this;
         }
     }
 }
