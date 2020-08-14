@@ -151,6 +151,12 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
+            if (!selectedState.StateChanged)
+            {
+                Console.WriteLine($"File '{selectedState.FilePath.ToRelative()}' has no changes.");
+                return;
+            }
+
             SaveResult saveResult;
             try
             {
@@ -307,6 +313,9 @@ namespace Kuriimu2.Cmd.Contexts
             {
                 if (iteration == 0)
                     prefix = $"[{i}] ";
+
+                if (Children[i].StateInfo.StateChanged)
+                    prefix += "* ";
 
                 Console.WriteLine(prefix + Children[i].StateInfo.FilePath.ToRelative());
 
