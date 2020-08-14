@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
@@ -46,6 +47,10 @@ namespace Kuriimu2.Cmd.Contexts
 
                 case "save-as":
                     await SaveFile(arguments[0], arguments[1]);
+                    return this;
+
+                case "save-all":
+                    await SaveAll();
                     return this;
 
                 case "close":
@@ -127,20 +132,34 @@ namespace Kuriimu2.Cmd.Contexts
             return CreateFileContext(newNode);
         }
 
-        private async Task SaveFile(string fileIndexArgument, string savePathArgument)
+        private Task SaveFile(string fileIndexArgument, string savePathArgument)
         {
             if (!int.TryParse(fileIndexArgument, out var fileIndex))
             {
                 Console.WriteLine($"'{fileIndexArgument}' is not a valid number.");
-                return;
+                return Task.CompletedTask;
             }
 
             if (fileIndex >= _contextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
-                return;
+                return Task.CompletedTask;
             }
 
+            return SaveFileInternal(fileIndex, savePathArgument);
+        }
+
+        private async Task SaveAll()
+        {
+            for (var i = 0; i < _contextNode.Children.Count; i++)
+            {
+                if (_contextNode.Children[i].StateInfo.StateChanged)
+                    await SaveFileInternal(i, null);
+            }
+        }
+
+        private async Task SaveFileInternal(int fileIndex, string savePathArgument)
+        {
             var selectedState = _contextNode.Children[fileIndex].StateInfo;
             if (!(selectedState.PluginState is ISaveFiles))
             {
