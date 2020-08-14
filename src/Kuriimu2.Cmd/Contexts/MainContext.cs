@@ -18,11 +18,28 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("close","file-index"),
             new Command("close-all"),
             new Command("select","file-index"),
-            new Command("list-open")
+            new Command("list-open"),
+            new Command("exit")
         };
 
         public MainContext(IInternalPluginManager pluginManager) : base(pluginManager)
         {
+        }
+
+        protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
+        {
+            var executeContext = await base.ExecuteNextInternal(command, arguments);
+            if (executeContext != null)
+                return executeContext;
+
+            switch (command.Name)
+            {
+                case "exit":
+                    CloseAll();
+                    return null;
+            }
+
+            return null;
         }
 
         protected override bool IsLoaded(string filePath)

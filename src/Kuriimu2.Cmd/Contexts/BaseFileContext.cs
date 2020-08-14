@@ -12,7 +12,6 @@ namespace Kuriimu2.Cmd.Contexts
 {
     abstract class BaseFileContext : BaseContext
     {
-        private readonly IList<IStateInfo> _loadedFiles;
         private readonly ContextNode _contextNode;
 
         protected IInternalPluginManager PluginManager { get; }
@@ -21,7 +20,6 @@ namespace Kuriimu2.Cmd.Contexts
         {
             PluginManager = pluginManager;
 
-            _loadedFiles = new List<IStateInfo>();
             _contextNode = new ContextNode();
         }
 
@@ -29,7 +27,6 @@ namespace Kuriimu2.Cmd.Contexts
         {
             PluginManager = pluginManager;
 
-            _loadedFiles = new List<IStateInfo>();
             _contextNode = parentContextNode;
         }
 
@@ -202,7 +199,7 @@ namespace Kuriimu2.Cmd.Contexts
             Console.WriteLine($"Closed '{selectedFile}' successfully.");
         }
 
-        private void CloseAll()
+        protected void CloseAll()
         {
             foreach (var child in _contextNode.Children)
                 PluginManager.Close(child.StateInfo);
