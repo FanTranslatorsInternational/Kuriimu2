@@ -81,7 +81,15 @@ namespace Kuriimu2.Cmd.Contexts
             var absoluteFilePath = new UPath(filePath).ToAbsolute();
             var selectedAfi = _archiveState.Files.First(x => x.FilePath == absoluteFilePath);
 
-            // Try every preset plugin first
+            // If plugin Id is set, try that one first
+            if (pluginId != Guid.Empty)
+            {
+                var loadResult = await PluginManager.LoadFile(_stateInfo, selectedAfi, pluginId);
+                if (loadResult.IsSuccessful)
+                    return loadResult;
+            }
+
+            // Try every preset plugin afterwards
             foreach (var selectedAfiPluginId in selectedAfi.PluginIds ?? Array.Empty<Guid>())
             {
                 var loadResult = await PluginManager.LoadFile(_stateInfo, selectedAfi, selectedAfiPluginId);
@@ -89,9 +97,8 @@ namespace Kuriimu2.Cmd.Contexts
                     return loadResult;
             }
 
-            return pluginId == Guid.Empty ?
-                await PluginManager.LoadFile(_stateInfo, selectedAfi) :
-                await PluginManager.LoadFile(_stateInfo, selectedAfi, pluginId);
+            // Otherwise open it with automatic identification
+            return await PluginManager.LoadFile(_stateInfo, selectedAfi);
         }
 
         private void ListFiles(IFileSystem fileSystem, UPath listPath, int iteration = 0)

@@ -256,7 +256,7 @@ namespace Kuriimu2.Cmd.Contexts
 
                 default:
                     Console.WriteLine($"State '{childNode.StateInfo.PluginState.GetType()}' is not supported.");
-                    return null;
+                    return this;
             }
         }
     }
