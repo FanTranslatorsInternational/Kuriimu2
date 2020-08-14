@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
@@ -51,6 +50,10 @@ namespace Kuriimu2.Cmd.Contexts
 
                 case "save-all":
                     await SaveAll();
+                    return this;
+
+                case "save-this":
+                    await SaveThis();
                     return this;
 
                 case "close":
@@ -158,9 +161,20 @@ namespace Kuriimu2.Cmd.Contexts
             }
         }
 
-        private async Task SaveFileInternal(int fileIndex, string savePathArgument)
+        private Task SaveThis()
+        {
+            var selectedState = _contextNode.StateInfo;
+            return SaveFileInternal(selectedState, null);
+        }
+
+        private Task SaveFileInternal(int fileIndex, string savePathArgument)
         {
             var selectedState = _contextNode.Children[fileIndex].StateInfo;
+            return SaveFileInternal(selectedState, savePathArgument);
+        }
+
+        private async Task SaveFileInternal(IStateInfo selectedState, string savePathArgument)
+        {
             if (!(selectedState.PluginState is ISaveFiles))
             {
                 Console.WriteLine($"File '{selectedState.FilePath}' is not savable.");

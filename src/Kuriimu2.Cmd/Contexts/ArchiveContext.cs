@@ -28,6 +28,7 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("open-with", "file", "plugin-id"),
             new Command("save", "file-index"),
             new Command("save-all"),
+            new Command("save-this"),
             new Command("close","file-index"),
             new Command("close-all"),
             new Command("select","file-index"),
