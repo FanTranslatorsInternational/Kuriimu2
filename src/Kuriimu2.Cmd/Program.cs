@@ -19,6 +19,8 @@ namespace Kuriimu2.Cmd
         // TODO: Add dialog manager
         static void Main(string[] args)
         {
+            _argumentGetter = new ArgumentGetter(args);
+
             PrintWelcomeText();
 
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
@@ -29,7 +31,6 @@ namespace Kuriimu2.Cmd
             PrintUnloadedPlugins(pluginManager.LoadErrors);
 
             IContext context = new MainContext(pluginManager);
-            _argumentGetter = new ArgumentGetter(args);
 
             while (context != null)
             {

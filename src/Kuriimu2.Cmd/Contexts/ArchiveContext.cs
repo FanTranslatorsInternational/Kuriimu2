@@ -34,7 +34,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("select","file-index"),
             new Command("list"),
             new Command("list-open"),
-            new Command("back")
+            new Command("back"),
+            new Command("back-to-main")
         };
 
         public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalPluginManager pluginManager) : base(pluginManager, contextNode)
@@ -62,6 +63,9 @@ namespace Kuriimu2.Cmd.Contexts
 
                 case "back":
                     return _parentContext;
+
+                case "back-to-main":
+                    return ContextNode.RootContext;
             }
 
             return null;

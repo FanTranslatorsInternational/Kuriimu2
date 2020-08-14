@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Extensions;
@@ -12,22 +13,22 @@ namespace Kuriimu2.Cmd.Contexts
 {
     abstract class BaseFileContext : BaseContext
     {
-        private readonly ContextNode _contextNode;
-
         protected IInternalPluginManager PluginManager { get; }
+
+        protected ContextNode ContextNode { get; }
 
         public BaseFileContext(IInternalPluginManager pluginManager)
         {
             PluginManager = pluginManager;
 
-            _contextNode = new ContextNode();
+            ContextNode = new ContextNode();
         }
 
         public BaseFileContext(IInternalPluginManager pluginManager, ContextNode parentContextNode)
         {
             PluginManager = pluginManager;
 
-            _contextNode = parentContextNode;
+            ContextNode = parentContextNode;
         }
 
         protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
@@ -128,7 +129,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            var newNode = _contextNode.Add(loadResult.LoadedState);
+            var newNode = ContextNode.Add(this, loadResult.LoadedState);
 
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
@@ -143,7 +144,7 @@ namespace Kuriimu2.Cmd.Contexts
                 return Task.CompletedTask;
             }
 
-            if (fileIndex >= _contextNode.Children.Count)
+            if (fileIndex >= ContextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return Task.CompletedTask;
@@ -154,22 +155,22 @@ namespace Kuriimu2.Cmd.Contexts
 
         private async Task SaveAll()
         {
-            for (var i = 0; i < _contextNode.Children.Count; i++)
+            for (var i = 0; i < ContextNode.Children.Count; i++)
             {
-                if (_contextNode.Children[i].StateInfo.StateChanged)
+                if (ContextNode.Children[i].StateInfo.StateChanged)
                     await SaveFileInternal(i, null);
             }
         }
 
         private Task SaveThis()
         {
-            var selectedState = _contextNode.StateInfo;
+            var selectedState = ContextNode.StateInfo;
             return SaveFileInternal(selectedState, null);
         }
 
         private Task SaveFileInternal(int fileIndex, string savePathArgument)
         {
-            var selectedState = _contextNode.Children[fileIndex].StateInfo;
+            var selectedState = ContextNode.Children[fileIndex].StateInfo;
             return SaveFileInternal(selectedState, savePathArgument);
         }
 
@@ -217,27 +218,27 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            if (fileIndex >= _contextNode.Children.Count)
+            if (fileIndex >= ContextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return;
             }
 
-            var selectedState = _contextNode.Children[fileIndex].StateInfo;
+            var selectedState = ContextNode.Children[fileIndex].StateInfo;
             var selectedFile = selectedState.FilePath;
 
             PluginManager.Close(selectedState);
-            _contextNode.Children[fileIndex].Remove();
+            ContextNode.Children[fileIndex].Remove();
 
             Console.WriteLine($"Closed '{selectedFile}' successfully.");
         }
 
         protected void CloseAll()
         {
-            foreach (var child in _contextNode.Children)
+            foreach (var child in ContextNode.Children)
                 PluginManager.Close(child.StateInfo);
 
-            _contextNode.Children.Clear();
+            ContextNode.Children.Clear();
 
             Console.WriteLine("Closed all files successfully.");
         }
@@ -250,13 +251,13 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (fileIndex >= _contextNode.Children.Count)
+            if (fileIndex >= ContextNode.Children.Count)
             {
                 Console.WriteLine($"Index '{fileIndexArgument}' was out of bounds.");
                 return this;
             }
 
-            var selectedNode = _contextNode.Children[fileIndex];
+            var selectedNode = ContextNode.Children[fileIndex];
 
             Console.WriteLine($"Selected '{selectedNode.StateInfo.FilePath.ToRelative()}'.");
 
@@ -265,13 +266,13 @@ namespace Kuriimu2.Cmd.Contexts
 
         private void ListOpenFiles()
         {
-            if (_contextNode.Children.Count <= 0)
+            if (ContextNode.Children.Count <= 0)
             {
                 Console.WriteLine("No files are open.");
                 return;
             }
 
-            _contextNode.ListFiles();
+            ContextNode.ListFiles();
         }
 
         private IContext CreateFileContext(ContextNode childNode)
@@ -294,11 +295,15 @@ namespace Kuriimu2.Cmd.Contexts
         }
     }
 
+    [DebuggerDisplay("{StateInfo.FilePath}")]
     class ContextNode
     {
         private ContextNode _parentNode;
+        private IContext _parentContext;
 
         public IStateInfo StateInfo { get; }
+
+        public IContext RootContext => GetRootContext();
 
         public IList<ContextNode> Children { get; }
 
@@ -307,18 +312,20 @@ namespace Kuriimu2.Cmd.Contexts
             Children = new List<ContextNode>();
         }
 
-        private ContextNode(ContextNode parentNode, IStateInfo parentState) : this()
+        private ContextNode(IContext parentContext, ContextNode parentNode, IStateInfo parentState) : this()
         {
+            ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
             ContractAssertions.IsNotNull(parentNode, nameof(parentNode));
             ContractAssertions.IsNotNull(parentState, nameof(parentState));
 
             _parentNode = parentNode;
+            _parentContext = parentContext;
             StateInfo = parentState;
         }
 
-        public ContextNode Add(IStateInfo stateInfo)
+        public ContextNode Add(IContext parentContext, IStateInfo stateInfo)
         {
-            var newNode = new ContextNode(this, stateInfo);
+            var newNode = new ContextNode(parentContext, this, stateInfo);
             Children.Add(newNode);
 
             return newNode;
@@ -351,6 +358,22 @@ namespace Kuriimu2.Cmd.Contexts
 
                 Children[i].ListFilesInternal(iteration + 1);
             }
+        }
+
+        private IContext GetRootContext()
+        {
+            if (_parentNode == null)
+                throw new InvalidOperationException("Can't get root context of the root.");
+
+            var currentNode = _parentNode;
+            var currentContext = _parentContext;
+            while (currentNode._parentContext != null && currentNode._parentNode != null)
+            {
+                currentContext = currentNode._parentContext;
+                currentNode = currentNode._parentNode;
+            }
+
+            return currentContext;
         }
     }
 }
