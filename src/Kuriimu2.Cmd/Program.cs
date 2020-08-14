@@ -6,6 +6,7 @@ using Kontract.Models;
 using Kore.Managers.Plugins;
 using Kore.Progress;
 using Kuriimu2.Cmd.Contexts;
+using Kuriimu2.Cmd.Manager;
 using Kuriimu2.Cmd.Parsers;
 using Kuriimu2.Cmd.Progress;
 
@@ -21,7 +22,8 @@ namespace Kuriimu2.Cmd
             PrintWelcomeText();
 
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
-            var pluginManager = new PluginManager(progressContext, "plugins");
+            var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
+            var pluginManager = new PluginManager(progressContext, dialogManager, "plugins");
             pluginManager.OnManualSelection += PluginManager_OnManualSelection;
 
             PrintUnloadedPlugins(pluginManager.LoadErrors);
