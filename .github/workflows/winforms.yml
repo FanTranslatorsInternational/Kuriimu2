@@ -8,7 +8,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - uses: nuget/setup-nuget@v1
         
     - name: Setup .NET Core
@@ -36,14 +36,30 @@ jobs:
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
-    - name: Publish Level5 plugin with dotnet
-      run: dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-    - name: Publish Nintendo plugin with dotnet
-      run: dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-    - name: Publish Koei Tecmo plugin with dotnet
-      run: dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-    - name: Publish NipponIchi Software plugin with dotnet
-      run: dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+    - name: Publish plugins
+      run: |
+        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+      
+    - name: Zip release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final
+        dest: ./update/latest.zip
+      
+    - name: Install openSSL
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install openssl
+      
+    - name: Sign release
+      run: |
+        echo "$PRIVATE_KEY" > ./privatekey.pem
+        openssl dgst -sha512 -sign ./privatekey.pem -out ./update/latest.sig ./update/latest.zip
+      env:
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       
     - name: Upload artifact
       uses: actions/upload-artifact@v1
