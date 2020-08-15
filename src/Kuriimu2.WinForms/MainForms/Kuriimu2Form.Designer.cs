@@ -263,6 +263,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "Kuriimu2Form";
             this.Text = "Kuriimu2";
+            this.Load += Kuriimu2Form_Load;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Kuriimu2_FormClosing);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Kuriimu2_DragEnter);

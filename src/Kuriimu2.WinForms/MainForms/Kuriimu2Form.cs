@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,7 +20,9 @@ using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Extensions;
 using Kore.Managers.Plugins;
+using Kore.Models.Update;
 using Kore.Progress;
+using Kore.Update;
 using Kuriimu2.WinForms.Exceptions;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.MainForms.FormatForms;
@@ -25,11 +30,15 @@ using Kuriimu2.WinForms.MainForms.Interfaces;
 using Kuriimu2.WinForms.MainForms.Models;
 using Kuriimu2.WinForms.Progress;
 using Kuriimu2.WinForms.Properties;
+using Newtonsoft.Json;
 
 namespace Kuriimu2.WinForms.MainForms
 {
     public partial class Kuriimu2Form : Form, IMainForm
     {
+        private const string ManifestUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Update/master/Kuriimu2.WinForms/manifest.json";
+        private const string ApplicationType_ = "WinForms";
+
         private const string LoadError_ = "Load Error";
         private const string InvalidFile_ = "The selected file is invalid.";
         private const string NoPluginSelected_ = "No plugin was selected.";
@@ -575,6 +584,39 @@ namespace Kuriimu2.WinForms.MainForms
             var selectedPlugin = ChoosePlugin(e.FilePlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
+        }
+
+        private void Kuriimu2Form_Load(object sender, EventArgs e)
+        {
+            CheckForUpdate();
+        }
+
+        private void CheckForUpdate()
+        {
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Kuriimu2.WinForms.Resources.version.json");
+            if (resourceStream == null)
+                return;
+
+            var localManifest = JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl_);
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest))
+                return;
+
+            var result =
+                MessageBox.Show(
+                    $"Do you want to update from '{localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
+                    "Update available", MessageBoxButtons.YesNo);
+            if (result == DialogResult.No)
+                return;
+
+            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo(executablePath,$"{ApplicationType_} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+            };
+            process.Start();
+
+            Close();
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
