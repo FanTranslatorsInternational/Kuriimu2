@@ -47,7 +47,7 @@ jobs:
       uses: papeloto/action-zip@v1
       with:
         files: ./dist/final
-        dest: ./dist/final/release.zip
+        dest: ./update/latest.zip
       
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
@@ -55,7 +55,11 @@ jobs:
         args: install openssl
       
     - name: Sign release
-      run: openssl -help
+      run: |
+        echo "$PRIVATE_KEY" > ./privatekey.pem
+        openssl dgst -sha-512 -sign ./privatekey.pem -out ./update/latest.sig ./update/latest.zip
+      env:
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       
     - name: Upload artifact
       uses: actions/upload-artifact@v1
