@@ -336,8 +336,8 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             var isLoadLocked = IsFileLocked(afi, true);
             var isStateLocked = IsFileLocked(afi, false);
 
-            var canExtractFiles = !isLoadLocked && !_isOperationRunning;
-            var canReplaceFiles = ArchiveState is IReplaceFiles && !isStateLocked && !_isOperationRunning;
+            var canExtractFiles = !isStateLocked && !_isOperationRunning;
+            var canReplaceFiles = ArchiveState is IReplaceFiles && !isLoadLocked && !_isOperationRunning;
             var canRenameFiles = ArchiveState is IRenameFiles && !_isOperationRunning;
             var canDeleteFiles = ArchiveState is IRemoveFiles && !_isOperationRunning;
 
@@ -854,6 +854,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to extract.");
+                DisableOperation();
                 return;
             }
 
@@ -862,6 +863,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (extractPath.IsNull || extractPath.IsEmpty)
             {
                 _formCommunicator.ReportStatus(false, "No folder selected.");
+                DisableOperation();
                 return;
             }
 
@@ -871,6 +873,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _stateInfo.StreamManager);
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(async () =>
             {
@@ -894,6 +897,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     newFileStream.Close();
                 }
             }, _operationToken.Token);
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File extraction cancelled.");
@@ -920,6 +924,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to extract.");
+                DisableOperation();
                 return;
             }
 
@@ -928,12 +933,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (extractPath.IsNull || extractPath.IsEmpty)
             {
                 _formCommunicator.ReportStatus(false, "No folder selected.");
+                DisableOperation();
                 return;
             }
 
             // Extract elements
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _stateInfo.StreamManager);
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(async () =>
             {
@@ -957,6 +964,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     newFileStream.Close();
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File extraction cancelled.");
@@ -983,6 +991,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to replace.");
+                DisableOperation();
                 return;
             }
 
@@ -991,12 +1000,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (replacePath.IsNull || replacePath.IsEmpty)
             {
                 _formCommunicator.ReportStatus(false, "No folder selected.");
+                DisableOperation();
                 return;
             }
 
             // Extract elements
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replacePath, _stateInfo.StreamManager);
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
@@ -1019,6 +1030,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     replaceState?.ReplaceFile(file, currentFileStream);
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File replacement cancelled.");
@@ -1051,6 +1063,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to replace.");
+                DisableOperation();
                 return;
             }
 
@@ -1063,6 +1076,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
                     _formCommunicator.ReportStatus(false, "No file selected.");
+                    DisableOperation();
                     return;
                 }
 
@@ -1075,6 +1089,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
                     _formCommunicator.ReportStatus(false, "No folder selected.");
+                    DisableOperation();
                     return;
                 }
 
@@ -1085,6 +1100,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // Extract elements
             var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replaceDirectory, _stateInfo.StreamManager);
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
@@ -1108,6 +1124,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     replaceState?.ReplaceFile(file, currentFileStream);
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File replacement cancelled.");
@@ -1140,6 +1157,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to rename.");
+                DisableOperation();
                 return;
             }
 
@@ -1150,11 +1168,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (inputBox.ShowDialog() != DialogResult.OK)
             {
                 _formCommunicator.ReportStatus(false, "No new name given.");
+                DisableOperation();
                 return;
             }
 
             var newDirectoryPath = GetNodePath(GetRootNode(), node).GetDirectory() / inputBox.InputText;
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
@@ -1174,6 +1194,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     renameState?.Rename(file, newDirectoryPath / path.ToRelative());
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File renaming cancelled.");
@@ -1206,9 +1227,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to rename.");
+                DisableOperation();
                 return;
             }
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
@@ -1235,6 +1258,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     renameState?.Rename(file, file.FilePath.GetDirectory() / inputBox.InputText);
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File renaming cancelled.");
@@ -1266,9 +1290,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to delete.");
+                DisableOperation();
                 return;
             }
 
+            _progressContext.StartProgress();
             _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
@@ -1284,6 +1310,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     removeState?.RemoveFile(file);
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File deletion cancelled.");
@@ -1317,10 +1344,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (elements.Length <= 0)
             {
                 _formCommunicator.ReportStatus(true, "No files to delete.");
+                DisableOperation();
                 return;
             }
 
-            _operationToken = new CancellationTokenSource();
+            _progressContext.StartProgress();
+                _operationToken = new CancellationTokenSource();
             await Task.Run(() =>
             {
                 var count = 0;
@@ -1335,6 +1364,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     removeState?.RemoveFile(file);
                 }
             });
+            _progressContext.FinishProgress();
 
             if (_operationToken.IsCancellationRequested)
                 _formCommunicator.ReportStatus(false, "File deletion cancelled.");

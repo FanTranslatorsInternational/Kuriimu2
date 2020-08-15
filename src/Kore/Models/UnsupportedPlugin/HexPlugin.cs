@@ -13,6 +13,11 @@ namespace Kore.Models.UnsupportedPlugin
         public string[] FileExtensions => Array.Empty<string>();
         public PluginMetadata Metadata { get; }
 
+        public HexPlugin()
+        {
+            Metadata = new PluginMetadata("Default", "onepiecefreak", "No description");
+        }
+
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
             return new HexState();

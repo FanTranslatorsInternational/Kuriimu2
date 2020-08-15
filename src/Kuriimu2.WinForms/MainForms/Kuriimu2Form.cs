@@ -818,8 +818,6 @@ namespace Kuriimu2.WinForms.MainForms
         private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
         {
             var communicator = new FormCommunicator(stateInfo, this);
-
-
             return communicator;
         }
 
