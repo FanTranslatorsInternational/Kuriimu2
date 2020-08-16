@@ -15,7 +15,7 @@ jobs:
       run: |
         echo $PRIVATE_KEY
       env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        PRIVATE_KEY: "Hello World"
         
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
