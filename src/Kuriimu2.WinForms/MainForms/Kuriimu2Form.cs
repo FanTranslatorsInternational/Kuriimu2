@@ -124,6 +124,7 @@ namespace Kuriimu2.WinForms.MainForms
             tabCloseButtons.Images.SetKeyName(0, CloseButton_);
 
             _localManifest = LoadLocalManifest();
+            UpdateFormText();
         }
 
         #region Open File
@@ -564,7 +565,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void UpdateFormText()
         {
-            if (openFiles.SelectedIndex < 0)
+            if (openFiles.TabCount <= 0 || openFiles.SelectedIndex < 0)
             {
                 Text = string.Format(FormTitle_, _localManifest.BuildNumber);
                 return;
