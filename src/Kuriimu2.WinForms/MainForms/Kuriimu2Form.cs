@@ -53,8 +53,8 @@ namespace Kuriimu2.WinForms.MainForms
         private const string DependantFiles_ = "Dependant files";
         private const string DependantFilesText_ = "Every file opened from this one and below will be closed too. Continue?";
 
-        private const string FormTitle_ = "Kuriimu2";
-        private const string FormTitlePlugin_ = "Kuriimu2 - {0} - {1} - {2}";
+        private const string FormTitle_ = "Kuriimu2 {0}";
+        private const string FormTitlePlugin_ = "Kuriimu2 {0} - {1} - {2} - {3}";
 
         private const string CloseButton_ = "close-button";
 
@@ -79,6 +79,8 @@ namespace Kuriimu2.WinForms.MainForms
 
         private readonly IInternalPluginManager _pluginManager;
         private readonly IProgressContext _progressContext;
+
+        private readonly Manifest _localManifest;
 
         private readonly Random _rand = new Random();
 
@@ -120,6 +122,8 @@ namespace Kuriimu2.WinForms.MainForms
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, CloseButton_);
+
+            _localManifest = LoadLocalManifest();
         }
 
         #region Open File
@@ -562,7 +566,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             if (openFiles.SelectedIndex < 0)
             {
-                Text = FormTitle_;
+                Text = string.Format(FormTitle_, _localManifest.BuildNumber);
                 return;
             }
 
@@ -572,7 +576,7 @@ namespace Kuriimu2.WinForms.MainForms
             var pluginName = stateEntry.StateInfo.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
 
-            Text = string.Format(FormTitlePlugin_, pluginAssemblyName, pluginName, pluginId.ToString("D"));
+            Text = string.Format(FormTitlePlugin_, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
         #endregion
@@ -589,34 +593,6 @@ namespace Kuriimu2.WinForms.MainForms
         private void Kuriimu2Form_Load(object sender, EventArgs e)
         {
             CheckForUpdate();
-        }
-
-        private void CheckForUpdate()
-        {
-            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Kuriimu2.WinForms.Resources.version.json");
-            if (resourceStream == null)
-                return;
-
-            var localManifest = JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
-            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl_);
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest))
-                return;
-
-            var result =
-                MessageBox.Show(
-                    $"Do you want to update from '{localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
-                    "Update available", MessageBoxButtons.YesNo);
-            if (result == DialogResult.No)
-                return;
-
-            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo(executablePath,$"{ApplicationType_} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
-            };
-            process.Start();
-
-            Close();
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -778,6 +754,41 @@ namespace Kuriimu2.WinForms.MainForms
                 sb.AppendLine(error.AssemblyPath);
 
             MessageBox.Show(sb.ToString(), PluginsNotAvailable_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private Manifest LoadLocalManifest()
+        {
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Kuriimu2.WinForms.Resources.version.json");
+            if (resourceStream == null)
+                return null;
+
+            return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
+        }
+
+        private void CheckForUpdate()
+        {
+            if (_localManifest == null)
+                return;
+
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl_);
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
+                return;
+
+            var result =
+                MessageBox.Show(
+                    $"Do you want to update from '{_localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
+                    "Update available", MessageBoxButtons.YesNo);
+            if (result == DialogResult.No)
+                return;
+
+            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType_} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+            };
+            process.Start();
+
+            Close();
         }
 
         private (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor) GetSelectedTabEntry()
