@@ -13,8 +13,7 @@ jobs:
         
     - name: Sign release
       run: |
-        echo $PRIVATE_KEY > ./privatekey.pem
-        cat ./privatekey.pem
+        echo $PRIVATE_KEY
       env:
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         
