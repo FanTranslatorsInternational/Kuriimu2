@@ -55,7 +55,7 @@ jobs:
       with:
         files: ./dist/final
         dest: ./update/Kuriimu2.WinForms/latest.zip
-      
+    
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
       with:
@@ -72,6 +72,8 @@ jobs:
     - name: Commit changes to update repo
       run: |
         cd update
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git add *
         git commit -m "Update Kuriimu2.WinForms" -a
         
