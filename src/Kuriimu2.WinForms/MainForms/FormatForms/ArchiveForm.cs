@@ -26,6 +26,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
     public partial class ArchiveForm : UserControl, IKuriimuForm
     {
         private const string AllFilesFilter_ = "All Files (*.*)|*.*";
+
         private const string FileCount_ = "Files: {0}";
 
         private static readonly Color ColorDefaultState = Color.Black;
