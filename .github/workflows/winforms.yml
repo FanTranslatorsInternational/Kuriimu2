@@ -21,8 +21,8 @@ jobs:
       
     - name: Create manifests
       run: |
-        echo '{"source_type": "Github Action", "build_number": ${{ env.GITHUB_RUN_NUMBER }}, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
-        echo '{"source_type": "Github Action", "build_number": ${{ env.GITHUB_RUN_NUMBER }}}' > ./src/Kuriimu2.WinForms/Resources/version.json
+        echo '{"source_type": "Github Action", "build_number": ${ env.GITHUB_RUN_ID }, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${ env.GITHUB_RUN_ID }}' > ./src/Kuriimu2.WinForms/Resources/version.json
       
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
