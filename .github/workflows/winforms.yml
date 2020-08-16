@@ -18,13 +18,6 @@ jobs:
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
       
-    - name: Build libraries
-      run: |
-        dotnet build ./src/Kontract/Kontract.csproj --configuration Release
-        dotnet build ./src/Komponent/Komponent.csproj --configuration Release
-        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
-        dotnet build ./src/Kompression/Kompression.csproj --configuration Release
-        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
     - name: Pack libraries
       run: |
         dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
@@ -38,10 +31,10 @@ jobs:
       
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
       
     - name: Zip release
       uses: papeloto/action-zip@v1
