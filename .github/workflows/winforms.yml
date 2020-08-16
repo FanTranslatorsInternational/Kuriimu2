@@ -71,7 +71,7 @@ jobs:
     
     - name: Commit changes to update repo
       run: |
-        cd update
+        cd ./update
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add *
@@ -80,6 +80,7 @@ jobs:
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
       with:
+        directory: ./update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
