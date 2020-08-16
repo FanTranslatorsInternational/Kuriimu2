@@ -23,6 +23,7 @@ jobs:
       run: |
         echo '{"source_type": "Github Action", "build_number": $GITHUB_RUN_ID, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
         echo '{"source_type": "Github Action", "build_number": $GITHUB_RUN_ID}' > ./src/Kuriimu2.WinForms/Resources/version.json
+      shell: bash
       
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
@@ -88,4 +89,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: Kuriimu2.WinForms
-        path: ../dist/final
+        path: ./dist/final
