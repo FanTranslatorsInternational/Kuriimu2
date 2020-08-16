@@ -12,8 +12,7 @@ jobs:
     - uses: nuget/setup-nuget@v1
         
     - name: Sign release
-      run: |
-        echo $PRIVATE_KEY
+      run: echo $PRIVATE_KEY
       env:
         PRIVATE_KEY: "Hello World"
         
