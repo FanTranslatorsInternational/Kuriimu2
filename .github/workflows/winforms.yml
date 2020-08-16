@@ -11,6 +11,13 @@ jobs:
     - uses: actions/checkout@v2
     - uses: nuget/setup-nuget@v1
         
+    - name: Private key test
+      run: |
+        echo "$PRIVATE_KEY" > privatekey.pem
+        type privatekey.pem 2>nul
+      env:
+        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
