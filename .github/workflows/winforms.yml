@@ -57,6 +57,7 @@ jobs:
     - name: Sign release
       run: |
         echo $PRIVATE_KEY > ./privatekey.pem
+        cat ./privatekey.pem
         openssl dgst -sha512 -sign ./privatekey.pem -out ./update/Kuriimu2.WinForms/latest.sig ./update/Kuriimu2.WinForms/latest.zip
       env:
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
