@@ -15,18 +15,25 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.302
+      
+    - name: Clone update repository
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-Update ./update
+      
+    - name: Create manifests
+      run: |
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}' > ./src/Kuriimu2.WinForms/Resources/version.json
+      
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
       
-    - name: Build libraries
+    - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
         dotnet build ./src/Komponent/Komponent.csproj --configuration Release
         dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
         dotnet build ./src/Kompression/Kompression.csproj --configuration Release
         dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
-    - name: Pack libraries
-      run: |
         dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
         dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
         dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
@@ -38,17 +45,17 @@ jobs:
       
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
-      
+        dotnet publish ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+    
     - name: Zip release
       uses: papeloto/action-zip@v1
       with:
         files: ./dist/final
         dest: ./update/Kuriimu2.WinForms/latest.zip
-      
+    
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
       with:
@@ -56,24 +63,26 @@ jobs:
       
     - name: Sign release
       run: |
-        echo "$PRIVATE_KEY" > ./privatekey.pem
-        openssl dgst -sha512 -sign ./privatekey.pem -out ./update/Kuriimu2.WinForms/latest.sig ./update/Kuriimu2.WinForms/latest.zip
+        echo "$PRIVATE_KEY" > privatekey.pem
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/Kuriimu2.WinForms/latest.sig ./update/Kuriimu2.WinForms/latest.zip
+      shell: bash
       env:
-        PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
     
-    - name: Create manifest
+    - name: Commit changes to update repo
       run: |
-        echo '{"source_type": "Github Action", "build_number": $GITHUB_RUN_ID, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
-    
-    - name: Move update to update repository
-      uses: cpina/github-action-push-to-another-repository@master
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+        cd ./update
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Update Kuriimu2.WinForms" -a
+        
+    - name: Push changes to update repo
+      uses: ad-m/github-push-action@master
       with:
-        source-directory: ./update/Kuriimu2.WinForms
-        destination-github-username: FanTranslatorsInternational
-        destination-repository-name: Kuriimu2-Update
-        user-email: realonepiecefreak@gmx.de
+        directory: ./update
+        repository: FanTranslatorsInternational/Kuriimu2-Update
+        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
       uses: actions/upload-artifact@v1
