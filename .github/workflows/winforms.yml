@@ -11,11 +11,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: nuget/setup-nuget@v1
         
-    - name: Sign release
-      run: echo $PRIVATE_KEY
-      env:
-        PRIVATE_KEY: "Hello World"
-        
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -61,9 +56,8 @@ jobs:
       
     - name: Sign release
       run: |
-        echo $PRIVATE_KEY > ./privatekey.pem
-        cat ./privatekey.pem
-        openssl dgst -sha512 -sign ./privatekey.pem -out ./update/Kuriimu2.WinForms/latest.sig ./update/Kuriimu2.WinForms/latest.zip
+        echo $PRIVATE_KEY > privatekey.pem
+        openssl dgst -sha512 -sign privatekey.pem -out update/Kuriimu2.WinForms/latest.sig update/Kuriimu2.WinForms/latest.zip
       env:
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
     
