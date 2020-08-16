@@ -54,13 +54,15 @@ jobs:
       with:
         args: install openssl
       
-    - name: Sign release
-      run: |
-        echo '%PRIVATE_KEY%' > privatekey.pem
-        openssl dgst -sha512 -sign privatekey.pem -out update/Kuriimu2.WinForms/latest.sig update/Kuriimu2.WinForms/latest.zip
+    - name: Write private key to file
+      run: echo "%PRIVATE_KEY%" > privatekey.pem
       shell: cmd
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+      
+    - name: Sign release
+      run: openssl dgst -sha512 -sign privatekey.pem -out update/Kuriimu2.WinForms/latest.sig update/Kuriimu2.WinForms/latest.zip
+      shell: cmd
     
     - name: Create manifest
       run: |
