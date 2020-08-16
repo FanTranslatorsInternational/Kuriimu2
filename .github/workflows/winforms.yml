@@ -21,8 +21,8 @@ jobs:
       
     - name: Create manifests
       run: |
-        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe"}' > ./update/Kuriimu2.WinForms/manifest.json
-        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}' > ./src/Kuriimu2.WinForms/Resources/version.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe" }' > ./update/Kuriimu2.WinForms/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.WinForms/Resources/version.json
       
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
@@ -45,10 +45,10 @@ jobs:
       
     - name: Publish plugins
       run: |
-        dotnet publish ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
-        dotnet publish ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet publish ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
-        dotnet publish ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
     
     - name: Zip release
       uses: papeloto/action-zip@v1
