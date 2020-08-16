@@ -81,7 +81,7 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         directory: ./update
-        repository: Kuriimu2-Update
+        repository: FanTranslatorsInternational/Kuriimu2-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
