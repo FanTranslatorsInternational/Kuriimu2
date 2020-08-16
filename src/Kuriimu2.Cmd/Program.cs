@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,14 +19,16 @@ namespace Kuriimu2.Cmd
 {
     class Program
     {
-        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Update/master/Kuriimu2.Cmd/manifest.json";
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/master/manifest.json";
         public const string ApplicationType = "CommandLine";
 
+        private static Manifest _localManifest;
         private static IArgumentGetter _argumentGetter;
 
         static void Main(string[] args)
         {
             _argumentGetter = new ArgumentGetter(args);
+            _localManifest = LoadLocalManifest();
 
             PrintWelcomeText();
             CheckForUpdate();
@@ -52,28 +53,19 @@ namespace Kuriimu2.Cmd
         private static void PrintWelcomeText()
         {
             Console.WriteLine("Welcome to Kuriimu2");
+            Console.WriteLine($"Author: {_localManifest.BuildNumber}");
             Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
             Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
 
         private static void CheckForUpdate()
         {
-            var localManifest = LoadLocalManifest();
             var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl);
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest))
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
                 return;
 
             Console.WriteLine();
-            Console.WriteLine($"A new version is available: {localManifest.BuildNumber}");
-
-            //var executablePath = UpdateUtilities.DownloadUpdateExecutable();
-            //var process = new Process
-            //{
-            //    StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
-            //};
-            //process.Start();
-
-            //Close();
+            Console.WriteLine($"A new version is available: {_localManifest.BuildNumber}");
         }
 
         private static Manifest LoadLocalManifest()

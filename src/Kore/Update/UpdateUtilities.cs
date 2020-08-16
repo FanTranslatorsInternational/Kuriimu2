@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using Kore.Models.Update;
 using Newtonsoft.Json;
 
@@ -10,7 +9,7 @@ namespace Kore.Update
 {
     public static class UpdateUtilities
     {
-        private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Update/master/update.exe";
+        private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin/update.exe";
         private const string ExecutableName_ = "update.exe";
 
         public static Manifest GetRemoteManifest(string manifestUrl)

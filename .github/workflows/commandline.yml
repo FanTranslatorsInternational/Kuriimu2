@@ -17,11 +17,11 @@ jobs:
         dotnet-version: 3.1.302
       
     - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-Update ./update
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
       
     - name: Create manifests
       run: |
-        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/Kuriimu2.Cmd/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/manifest.json
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.Cmd/Resources/version.json
       
     - name: Publish command line with dotnet
@@ -54,7 +54,7 @@ jobs:
       uses: papeloto/action-zip@v1
       with:
         files: ./dist/final
-        dest: ./update/Kuriimu2.Cmd/latest.zip
+        dest: ./update/latest.zip
     
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
@@ -64,7 +64,7 @@ jobs:
     - name: Sign release
       run: |
         echo "$PRIVATE_KEY" > privatekey.pem
-        openssl dgst -sha512 -sign privatekey.pem -out ./update/Kuriimu2.Cmd/latest.sig ./update/Kuriimu2.Cmd/latest.zip
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
       shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY_2}}
@@ -75,13 +75,13 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add *
-        git commit -m "Update Kuriimu2.Cmd" -a
+        git commit -m "Update binaries" -a
         
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
       with:
         directory: ./update
-        repository: FanTranslatorsInternational/Kuriimu2-Update
+        repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
