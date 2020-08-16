@@ -55,8 +55,8 @@ jobs:
         args: install openssl
       
     - name: Write private key to file
-      run: echo "%PRIVATE_KEY%" > privatekey.pem
-      shell: cmd
+      run: echo "$PRIVATE_KEY" > privatekey.pem
+      shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
       
