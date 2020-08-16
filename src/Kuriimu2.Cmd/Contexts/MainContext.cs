@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Kontract.Models;
 using Kore.Managers.Plugins;
+using Kore.Update;
 
 namespace Kuriimu2.Cmd.Contexts
 {
@@ -11,6 +14,7 @@ namespace Kuriimu2.Cmd.Contexts
     {
         protected override IList<Command> Commands { get; } = new List<Command>
         {
+            new Command("update"),
             new Command("open", "file"),
             new Command("open-with", "file", "plugin-id"),
             new Command("save", "file-index"),
@@ -35,6 +39,10 @@ namespace Kuriimu2.Cmd.Contexts
 
             switch (command.Name)
             {
+                case "update":
+                    Update();
+                    return null;
+
                 case "exit":
                     CloseAll();
                     return null;
@@ -58,6 +66,16 @@ namespace Kuriimu2.Cmd.Contexts
             return pluginId == Guid.Empty ?
                 PluginManager.LoadFile(filePath) :
                 PluginManager.LoadFile(filePath, pluginId);
+        }
+
+        private void Update()
+        {
+            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo(executablePath, $"{Program.ApplicationType} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+            };
+            process.Start();
         }
     }
 }

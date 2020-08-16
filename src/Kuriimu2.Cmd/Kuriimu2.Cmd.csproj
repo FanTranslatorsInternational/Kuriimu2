@@ -22,6 +22,10 @@
     <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\dist\Debug\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

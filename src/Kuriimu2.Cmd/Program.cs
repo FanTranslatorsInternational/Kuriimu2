@@ -1,27 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
 using Kore.Managers.Plugins;
+using Kore.Models.Update;
 using Kore.Progress;
+using Kore.Update;
 using Kuriimu2.Cmd.Contexts;
 using Kuriimu2.Cmd.Manager;
 using Kuriimu2.Cmd.Parsers;
 using Kuriimu2.Cmd.Progress;
+using Newtonsoft.Json;
 
 namespace Kuriimu2.Cmd
 {
     class Program
     {
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Update/master/Kuriimu2.Cmd/manifest.json";
+        public const string ApplicationType = "CommandLine";
+
         private static IArgumentGetter _argumentGetter;
 
-        // TODO: Add dialog manager
         static void Main(string[] args)
         {
             _argumentGetter = new ArgumentGetter(args);
 
             PrintWelcomeText();
+            CheckForUpdate();
 
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
             var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
@@ -45,6 +54,35 @@ namespace Kuriimu2.Cmd
             Console.WriteLine("Welcome to Kuriimu2");
             Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
             Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
+        }
+
+        private static void CheckForUpdate()
+        {
+            var localManifest = LoadLocalManifest();
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl);
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, localManifest))
+                return;
+
+            Console.WriteLine();
+            Console.WriteLine($"A new version is available: {localManifest.BuildNumber}");
+
+            //var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            //var process = new Process
+            //{
+            //    StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+            //};
+            //process.Start();
+
+            //Close();
+        }
+
+        private static Manifest LoadLocalManifest()
+        {
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Kuriimu2.Cmd.Resources.version.json");
+            if (resourceStream == null)
+                return null;
+
+            return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
         private static void PrintUnloadedPlugins(IReadOnlyList<PluginLoadError> loadErrors)
