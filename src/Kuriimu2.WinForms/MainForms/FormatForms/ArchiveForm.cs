@@ -888,7 +888,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     if (IsFileLocked(file, false))
                         continue;
 
-                    var newFileStream = destinationFileSystem.OpenFile(path, FileMode.Create, FileAccess.Write);
+                    Stream newFileStream;
+                    try
+                    {
+                        newFileStream = destinationFileSystem.OpenFile(path, FileMode.Create, FileAccess.Write);
+                    }
+                    catch (IOException)
+                    {
+                        continue;
+                    }
                     var currentFileStream = await file.GetFileData();
 
                     currentFileStream.CopyTo(newFileStream);
@@ -955,7 +963,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     if (IsFileLocked(file, false))
                         continue;
 
-                    var newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.Create, FileAccess.Write);
+                    Stream newFileStream;
+                    try
+                    {
+                        newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.Create, FileAccess.Write);
+                    }
+                    catch (IOException)
+                    {
+                        continue;
+                    }
                     var currentFileStream = await file.GetFileData();
 
                     currentFileStream.CopyTo(newFileStream);
