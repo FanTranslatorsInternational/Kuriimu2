@@ -46,7 +46,16 @@ namespace Kore.Update
         {
             var request = WebRequest.CreateHttp(resourceUrl);
 
-            var responseStream = request.GetResponse().GetResponseStream();
+            Stream responseStream;
+            try
+            {
+                responseStream = request.GetResponse().GetResponseStream();
+            }
+            catch
+            {
+                return null;
+            }
+
             return responseStream != null ? ToMemoryStream(responseStream) : null;
         }
 
