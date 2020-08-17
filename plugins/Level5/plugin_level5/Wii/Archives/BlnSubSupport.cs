@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Kontract.Interfaces.Progress;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
@@ -12,10 +14,73 @@ namespace plugin_level5.Wii.Archives
         public int size;
     }
 
+    static class BlnSubSupport
+    {
+        public static string GuessExtension(Stream input)
+        {
+            var magicSamples = CollectMagicSamples(input);
+
+            if (magicSamples.Contains(0x55AA382D))
+                return "arc";
+
+            if (magicSamples.Contains(0x52415344))
+                return "rasd";
+
+            if (magicSamples.Contains(0x53485458))
+                return "shtx";
+
+            if (magicSamples.Contains(0x53534144))
+                return "ssad";
+
+            if (magicSamples.Contains(0x434d504b))
+                return "cpmk";
+
+            if (magicSamples.Contains(StringToUInt32("bres")))
+                return "bres";
+
+            return "bin";
+        }
+
+        private static uint StringToUInt32(string text)
+        {
+            return BufferToUInt32(Encoding.UTF8.GetBytes(text));
+        }
+
+        private static IList<uint> CollectMagicSamples(Stream input)
+        {
+            var bkPos = input.Position;
+
+            // Get 3 samples to check magic with compression
+            input.Position = bkPos;
+            var magic1 = PeekUInt32(input);
+            input.Position = bkPos + 1;
+            var magic2 = PeekUInt32(input);
+            input.Position = bkPos + 2;
+            var magic3 = PeekUInt32(input);
+
+            return new[] { magic1, magic2, magic3 };
+        }
+
+        private static uint PeekUInt32(Stream input)
+        {
+            var bkPos = input.Position;
+
+            var buffer = new byte[4];
+            input.Read(buffer, 0, 4);
+
+            input.Position = bkPos;
+
+            return BufferToUInt32(buffer);
+        }
+
+        private static uint BufferToUInt32(byte[] buffer)
+        {
+            return (uint)((buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3]);
+        }
+    }
+
     class BlnSubArchiveFileInfo : ArchiveFileInfo
     {
-        private const int BlockSize_ = 0x4000;
-
         public BlnSubEntry Entry { get; }
 
         public long OriginalSize { get; }
@@ -47,15 +112,6 @@ namespace plugin_level5.Wii.Archives
 
                 writtenSize += paddedSize;
             }
-
-            //// Pad to block
-            //if (writtenSize % BlockSize_ != 0)
-            //{
-            //    var paddedSize = (int)(BlockSize_ - writtenSize % BlockSize_);
-            //    output.Write(new byte[paddedSize], 0, paddedSize);
-
-            //    writtenSize += paddedSize;
-            //}
 
             // Return padded size as written
             return writtenSize;

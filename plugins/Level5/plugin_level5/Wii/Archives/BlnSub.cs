@@ -67,14 +67,21 @@ namespace plugin_level5.Wii.Archives
 
         private ArchiveFileInfo CreateAfi(Stream stream, int index, BlnSubEntry entry)
         {
-            var afiName = $"{index:00000000}.bin";
-
-            if (ReadInt32LittleEndian(stream) != 0xa755aafc)
-                return new BlnSubArchiveFileInfo(stream, afiName, entry);
+            var compressionMagic = ReadInt32LittleEndian(stream);
+            if (compressionMagic != 0xa755aafc)
+                return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, false), entry);
 
             stream.Position = 0;
-            return new BlnSubArchiveFileInfo(stream, afiName, entry, Kompression.Implementations.Compressions.SpikeChunsoft, PeekDecompressedSize(stream));
+            return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.SpikeChunsoft, PeekDecompressedSize(stream));
 
+        }
+
+        private string CreateFileName(int index, Stream input, bool isCompressed)
+        {
+            input.Position = isCompressed ? 0xC : 0;
+            var extension = BlnSubSupport.GuessExtension(input);
+
+            return $"{index:00000000}.{extension}";
         }
 
         private long PeekDecompressedSize(Stream stream)
