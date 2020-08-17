@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -24,6 +23,7 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("close-all"),
             new Command("select","file-index"),
             new Command("list-open"),
+            new Command("extensions"),
             new Command("exit")
         };
 
@@ -42,6 +42,9 @@ namespace Kuriimu2.Cmd.Contexts
                 case "update":
                     Update();
                     return null;
+
+                case "extensions":
+                    return new ExtensionContext(PluginManager, this);
 
                 case "exit":
                     CloseAll();

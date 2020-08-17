@@ -14,16 +14,22 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\version.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kompression\Kompression.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
     <ProjectReference Include="..\Kore\Kore.csproj" />
     <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

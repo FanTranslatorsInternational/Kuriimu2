@@ -53,7 +53,7 @@ namespace Kuriimu2.Cmd
         private static void PrintWelcomeText()
         {
             Console.WriteLine("Welcome to Kuriimu2");
-            Console.WriteLine($"Author: {_localManifest.BuildNumber}");
+            Console.WriteLine($"Build: {_localManifest.BuildNumber}");
             Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
             Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
@@ -65,7 +65,7 @@ namespace Kuriimu2.Cmd
                 return;
 
             Console.WriteLine();
-            Console.WriteLine($"A new version is available: {_localManifest.BuildNumber}");
+            Console.WriteLine($"A new version is available: {remoteManifest.BuildNumber}");
         }
 
         private static Manifest LoadLocalManifest()
