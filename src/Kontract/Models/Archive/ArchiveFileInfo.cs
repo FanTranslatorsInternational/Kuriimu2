@@ -85,7 +85,7 @@ namespace Kontract.Models.Archive
 
             _configuration = configuration;
             _decompressedSize = decompressedSize;
-            _decompressedStream = new Lazy<Stream>(() => GetDecompressedStream(fileData, configuration));
+            _decompressedStream = new Lazy<Stream>(() => DecompressStream(fileData, configuration));
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Kontract.Models.Archive
         public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
         {
             if (UsesCompression)
-                return Task.Run(() => _decompressedStream.Value);
+                return Task.Run(GetDecompressedStream);
 
             return Task.FromResult(GetBaseStream());
         }
@@ -119,7 +119,7 @@ namespace Kontract.Models.Archive
             _hasSetFileData = true;
             ContentChanged = true;
 
-            if (!UsesCompression) 
+            if (!UsesCompression)
                 return;
 
             _decompressedSize = fileData.Length;
@@ -153,7 +153,7 @@ namespace Kontract.Models.Archive
                 {
                     // Otherwise compress data or use the original compressed data, if never set
                     dataToCopy = _hasSetFileData ?
-                        GetCompressedStream(FileData, _configuration) :
+                        CompressStream(FileData, _configuration) :
                         GetBaseStream();
                 }
             }
@@ -191,24 +191,15 @@ namespace Kontract.Models.Archive
         }
 
         /// <summary>
-        /// Decompresses the given stream.
+        /// Gets the decompressed stream from the <see cref="Lazy{T}"/> instance.
         /// </summary>
-        /// <param name="fileData">The stream to decompress.</param>
-        /// <param name="configuration">The compression configuration to use.</param>
-        /// <returns>The decompressed stream.</returns>
-        protected static Stream GetDecompressedStream(Stream fileData, IKompressionConfiguration configuration)
+        /// <returns>The decompressed stream of this instance.</returns>
+        protected Stream GetDecompressedStream()
         {
-            var ms = new MemoryStream();
+            var decompressedStream = _decompressedStream.Value;
 
-            ms.Position = 0;
-            fileData.Position = 0;
-
-            configuration.Build().Decompress(fileData, ms);
-
-            fileData.Position = 0;
-            ms.Position = 0;
-
-            return ms;
+            decompressedStream.Position = 0;
+            return decompressedStream;
         }
 
         /// <summary>
@@ -217,7 +208,7 @@ namespace Kontract.Models.Archive
         /// <param name="fileData">The stream to compress.</param>
         /// <param name="configuration">The compression configuration to use.</param>
         /// <returns>The compressed stream.</returns>
-        protected static Stream GetCompressedStream(Stream fileData, IKompressionConfiguration configuration)
+        protected static Stream CompressStream(Stream fileData, IKompressionConfiguration configuration)
         {
             var ms = new MemoryStream();
 
@@ -225,6 +216,27 @@ namespace Kontract.Models.Archive
             fileData.Position = 0;
 
             configuration.Build().Compress(fileData, ms);
+
+            fileData.Position = 0;
+            ms.Position = 0;
+
+            return ms;
+        }
+
+        /// <summary>
+        /// Decompresses the given stream.
+        /// </summary>
+        /// <param name="fileData">The stream to decompress.</param>
+        /// <param name="configuration">The compression configuration to use.</param>
+        /// <returns>The decompressed stream.</returns>
+        protected static Stream DecompressStream(Stream fileData, IKompressionConfiguration configuration)
+        {
+            var ms = new MemoryStream();
+
+            ms.Position = 0;
+            fileData.Position = 0;
+
+            configuration.Build().Decompress(fileData, ms);
 
             fileData.Position = 0;
             ms.Position = 0;
