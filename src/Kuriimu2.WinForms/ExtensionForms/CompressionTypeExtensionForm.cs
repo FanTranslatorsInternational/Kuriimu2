@@ -100,6 +100,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     new ExtensionTypeParameter("Version",typeof(TalesOfVersion))),
                 new ExtensionType("LzEnc",true),
                 new ExtensionType("Spike Chunsoft Lz",true),
+                new ExtensionType("Spike Chunsoft Headerless Lz",true),
                 new ExtensionType("PsLz",true)
             };
         }
@@ -209,8 +210,11 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 case "LzEnc":
                     return Compressions.LzEnc.Build();
 
-                case "Soike Chunsoft Lz":
+                case "Spike Chunsoft Lz":
                     return Compressions.SpikeChunsoft.Build();
+
+                case "Spike Chunsoft Headerless Lz":
+                    return Compressions.SpikeChunsoftHeaderless.Build();
 
                 case "PsLz":
                     return Compressions.PsLz.Build();
