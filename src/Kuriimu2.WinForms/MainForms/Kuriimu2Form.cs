@@ -75,6 +75,7 @@ namespace Kuriimu2.WinForms.MainForms
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
         private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
 
+        private readonly IList<string> _openingFiles;
         private readonly IList<IStateInfo> _savingFiles;
 
         private readonly IInternalPluginManager _pluginManager;
@@ -104,6 +105,7 @@ namespace Kuriimu2.WinForms.MainForms
             _stateDictionary = new Dictionary<IStateInfo, (IKuriimuForm, TabPage, Color)>();
             _tabDictionary = new Dictionary<TabPage, (IKuriimuForm, IStateInfo, Color)>();
 
+            _openingFiles = new List<string>();
             _savingFiles = new List<IStateInfo>();
 
             _pluginManager = new PluginManager(_progressContext, dialogManager, "plugins")
@@ -149,6 +151,13 @@ namespace Kuriimu2.WinForms.MainForms
         {
             foreach (var fileToOpen in filesToOpen)
             {
+                if (_openingFiles.Contains(fileToOpen))
+                {
+                    ReportStatus(false, $"{fileToOpen} is already opening.");
+                    continue;
+                }
+                _openingFiles.Add(fileToOpen);
+
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                     plugin == null ?
                         _pluginManager.LoadFile(fileToOpen) :
@@ -156,6 +165,8 @@ namespace Kuriimu2.WinForms.MainForms
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
                 await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
+
+                _openingFiles.Remove(fileToOpen);
             }
         }
 
