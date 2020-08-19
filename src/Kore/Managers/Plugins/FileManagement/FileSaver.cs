@@ -114,6 +114,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // TODO: If reload fails then the original files get closed already, which makes future save actions impossible due to disposed streams
 
             // 2. Dispose of all streams in this state
+            _streamMonitor.GetStreamManager(temporaryContainer).ReleaseAll();
             stateInfo.StreamManager.ReleaseAll();
 
             // 3. Replace files in destination file system

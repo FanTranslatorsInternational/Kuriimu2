@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Timers;
@@ -7,7 +9,6 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Models.IO;
 using Kore.Factories;
-using MoreLinq;
 
 namespace Kore.Managers
 {
@@ -15,13 +16,13 @@ namespace Kore.Managers
     {
         private const string TempFolder_ = "tmp";
 
-        private static readonly object _releaseLock = new object();
-        private bool _isCollecting = false;
+        private bool _isCollecting;
 
         private readonly Timer _temporaryContainerCollectionTimer;
 
         private readonly IList<IStreamManager> _streamManagers;
-        private readonly IList<(IStreamManager, IFileSystem, UPath)> _temporaryContainers;
+        private readonly ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)> _temporaryFileSystemMapping;
+        private readonly ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)> _streamManagerMapping;
 
         public StreamMonitor()
         {
@@ -30,7 +31,9 @@ namespace Kore.Managers
             _temporaryContainerCollectionTimer.Start();
 
             _streamManagers = new List<IStreamManager>();
-            _temporaryContainers = new List<(IStreamManager, IFileSystem, UPath)>();
+
+            _temporaryFileSystemMapping = new ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)>();
+            _streamManagerMapping = new ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)>();
         }
 
         public IStreamManager CreateStreamManager()
@@ -45,22 +48,29 @@ namespace Kore.Managers
         {
             var streamManager = CreateStreamManager();
 
-            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var tempDirectory = UPath.Combine(baseDirectory, TempFolder_, Guid.NewGuid().ToString("D"));
+            var tempDirectory = CreateTemporaryDirectory();
             var temporaryFileSystem = FileSystemFactory.CreatePhysicalFileSystem(tempDirectory, streamManager);
 
-            _temporaryContainers.Add((streamManager, temporaryFileSystem, tempDirectory));
+            _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, x => (streamManager, tempDirectory));
+            _streamManagerMapping.GetOrAdd(streamManager, x => (temporaryFileSystem, tempDirectory));
 
             return temporaryFileSystem;
         }
 
+        public IStreamManager GetStreamManager(IFileSystem fileSystem)
+        {
+            if (_temporaryFileSystemMapping.TryGetValue(fileSystem, out var element))
+                return element.Item1;
+
+            throw new InvalidOperationException("The file system was not created by this instance.");
+        }
+
         public void ReleaseTemporaryFileSystem(IFileSystem temporaryFileSystem)
         {
-            if (_temporaryContainers.All(x => x.Item2 != temporaryFileSystem))
+            if (!_temporaryFileSystemMapping.TryRemove(temporaryFileSystem, out var element))
                 return;
 
-            var element = _temporaryContainers.Index().First(x => x.Value.Item2 == temporaryFileSystem);
-            _temporaryContainers[element.Key] = (element.Value.Item1, null, element.Value.Item3);
+            _streamManagerMapping.AddOrUpdate(element.Item1, x => (null, element.Item2), (y, z) => (null, element.Item2));
         }
 
         public void Dispose()
@@ -71,12 +81,13 @@ namespace Kore.Managers
                 foreach (var streamManager in _streamManagers)
                     streamManager.ReleaseAll();
 
-            if (_temporaryContainers != null)
-                foreach (var temporaryContainer in _temporaryContainers)
-                    ReleaseTemporaryContainer(temporaryContainer);
+            if (_streamManagerMapping != null)
+                foreach (var mapping in _streamManagerMapping)
+                    RemoveDirectory(mapping.Value.Item2.FullName);
 
             _streamManagers?.Clear();
-            _temporaryContainers?.Clear();
+            _streamManagerMapping?.Clear();
+            _temporaryFileSystemMapping?.Clear();
         }
 
         /// <summary>
@@ -86,37 +97,41 @@ namespace Kore.Managers
         /// <param name="e"></param>
         private void TemporaryContainerCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if(_isCollecting)
+            if (_isCollecting)
                 return;
 
             _isCollecting = true;
 
-            foreach (var temporaryContainer in _temporaryContainers.ToArray())
+            foreach (var streamManager in _streamManagerMapping.ToArray().Where(x => x.Value.Item1 != null).Select(x => x.Key))
             {
-                if (temporaryContainer.Item2 != null)
+                if (streamManager.Count > 0)
                     continue;
 
-                if (temporaryContainer.Item1.Count > 0)
+                if (!_streamManagerMapping.TryRemove(streamManager, out var element))
                     continue;
 
-                ReleaseTemporaryContainer(temporaryContainer);
+                RemoveDirectory(element.Item2.FullName);
             }
 
             _isCollecting = false;
         }
 
-        private void ReleaseTemporaryContainer((IStreamManager, IFileSystem, UPath) element)
+        private void RemoveDirectory(string path)
         {
-            lock (_releaseLock)
-            {
-                // Remove temporary container
-                if (_temporaryContainers.Contains(element))
-                    _temporaryContainers.Remove(element);
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
+        }
 
-                // Remove temporary directory
-                if (Directory.Exists(element.Item3.FullName))
-                    Directory.Delete(element.Item3.FullName, true);
-            }
+        private string CreateTemporaryDirectory()
+        {
+            var currentDirectory = GetCurrentDirectory();
+            return Path.Combine(currentDirectory, TempFolder_, Guid.NewGuid().ToString("D"));
+        }
+
+        private string GetCurrentDirectory()
+        {
+            var process = Process.GetCurrentProcess().MainModule;
+            return process == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
         }
     }
 }
