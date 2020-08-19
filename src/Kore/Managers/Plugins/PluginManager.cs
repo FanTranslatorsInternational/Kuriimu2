@@ -42,6 +42,7 @@ namespace Kore.Managers.Plugins
         private readonly StreamMonitor _streamMonitor;
 
         private readonly IList<IStateInfo> _loadedFiles;
+        private readonly object _loadedFilesLock = new object();
 
         /// <inheritdoc />
         public event EventHandler<ManualSelectionEventArgs> OnManualSelection;
@@ -182,7 +183,10 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
         {
-            return _loadedFiles.Any(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
+            lock (_loadedFilesLock)
+            {
+                return _loadedFiles.Any(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
+            }
         }
 
         #region Get Methods
@@ -190,7 +194,10 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public IStateInfo GetLoadedFile(UPath filePath)
         {
-            return _loadedFiles.FirstOrDefault(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
+            lock (_loadedFilesLock)
+            {
+                return _loadedFiles.FirstOrDefault(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
+            }
         }
 
         /// <inheritdoc />
@@ -435,7 +442,10 @@ namespace Kore.Managers.Plugins
                 return loadResult;
 
             // 5. Add file to loaded files
-            _loadedFiles.Add(loadResult.LoadedState);
+            lock (_loadedFilesLock)
+            {
+                _loadedFiles.Add(loadResult.LoadedState);
+            }
 
             return loadResult;
         }
@@ -454,7 +464,7 @@ namespace Kore.Managers.Plugins
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
             _progress.StartProgress();
-            var saveResult=await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
+            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
             _progress.FinishProgress();
 
             return saveResult;
@@ -463,7 +473,10 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
-            ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            lock (_loadedFilesLock)
+            {
+                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            }
 
             _progress.StartProgress();
             var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, _progress);
@@ -478,7 +491,10 @@ namespace Kore.Managers.Plugins
 
         public void Close(IStateInfo stateInfo)
         {
-            ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            lock (_loadedFilesLock)
+            {
+                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            }
 
             // Remove state from its parent
             stateInfo.ParentStateInfo?.ArchiveChildren.Remove(stateInfo);
@@ -488,10 +504,13 @@ namespace Kore.Managers.Plugins
 
         public void CloseAll()
         {
-            foreach (var state in _loadedFiles)
-                state.Dispose();
+            lock (_loadedFilesLock)
+            {
+                foreach (var state in _loadedFiles)
+                    state.Dispose();
 
-            _loadedFiles.Clear();
+                _loadedFiles.Clear();
+            }
         }
 
         private void CloseInternal(IStateInfo stateInfo)
@@ -504,14 +523,22 @@ namespace Kore.Managers.Plugins
 
             // Close indirect children of this state
             // Indirect children occur when a file is loaded by a FileSystem and got a parent attached manually
-            foreach (var indirectChild in _loadedFiles.Where(x => x.ParentStateInfo == stateInfo).ToArray())
+            IList<IStateInfo> indirectChildren;
+            lock (_loadedFilesLock)
+            {
+                indirectChildren = _loadedFiles.Where(x => x.ParentStateInfo == stateInfo).ToArray();
+            }
+            foreach (var indirectChild in indirectChildren)
                 CloseInternal(indirectChild);
 
             // Close state itself
             stateInfo.Dispose();
 
             // Remove from the file tracking of this instance
-            _loadedFiles.Remove(stateInfo);
+            lock (_loadedFilesLock)
+            {
+                _loadedFiles.Remove(stateInfo);
+            }
         }
 
         #endregion
