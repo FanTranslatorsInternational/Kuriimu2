@@ -18,6 +18,7 @@ jobs:
       
     - name: Create manifests
       run: |
+        mkdir ./update
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe" }' > ./update/manifest.json
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.WinForms/Resources/version.json
       
