@@ -59,7 +59,7 @@ jobs:
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
       with:
-        args: install openssl
+        args: install openssl.light
       
     - name: Sign release
       run: |
