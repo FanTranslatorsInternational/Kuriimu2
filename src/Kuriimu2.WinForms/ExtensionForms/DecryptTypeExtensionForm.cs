@@ -4,9 +4,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
 {
     class DecryptTypeExtensionForm : CipherTypeExtensionForm
     {
-        protected override void ProcessCipher(Stream input, Stream cipherStream)
+        protected override void ProcessCipher(CipherStreamFactory cipherStreamFactory, Stream input, Stream output)
         {
-            cipherStream.CopyTo(input);
+            var cipherStream = cipherStreamFactory.CreateCipherStream(input);
+            cipherStream.CopyTo(output);
         }
     }
 }

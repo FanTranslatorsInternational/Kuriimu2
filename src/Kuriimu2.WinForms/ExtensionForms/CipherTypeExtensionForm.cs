@@ -28,21 +28,21 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
     abstract class CipherTypeExtensionForm : TypeExtensionForm<CipherStreamFactory, bool>
     {
-        protected abstract void ProcessCipher(Stream input, Stream cipherStream);
+        protected abstract void ProcessCipher(CipherStreamFactory cipherStreamFactory, Stream input, Stream output);
 
         protected override string TypeExtensionName => "Cipher";
 
         protected override bool ProcessFile(CipherStreamFactory extensionType, string filePath)
         {
             Stream fileStream = null;
-            Stream cipherStream = null;
+            Stream newFileStream = null;
 
             try
             {
                 fileStream = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite);
-                cipherStream = extensionType.CreateCipherStream(fileStream);
+                newFileStream = File.Create(filePath + ".out");
 
-                ProcessCipher(fileStream, cipherStream);
+                ProcessCipher(extensionType, fileStream, newFileStream);
             }
             catch
             {
@@ -51,7 +51,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
             finally
             {
                 fileStream?.Close();
-                cipherStream?.Close();
+                newFileStream?.Close();
             }
 
             return true;
