@@ -744,14 +744,12 @@ namespace Kuriimu2.WinForms.MainForms
             var tabEntry = _tabDictionary[openFiles.SelectedTab];
             var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
 
-            // Close file
-            var wasClosed = await CloseFile(tabEntry.StateInfo);
-            if (!wasClosed)
-                return;
-
             // Select parent tab
             if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
                 openFiles.SelectedTab = _stateDictionary[parentStateInfo].TabPage;
+
+            // Close file
+            await CloseFile(tabEntry.StateInfo);
         }
 
         #endregion
