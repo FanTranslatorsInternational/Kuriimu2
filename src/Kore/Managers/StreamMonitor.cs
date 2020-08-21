@@ -16,6 +16,7 @@ namespace Kore.Managers
     {
         private const string TempFolder_ = "tmp";
 
+        private readonly object _elapsedLocked = new object();
         private bool _isCollecting;
 
         private readonly Timer _temporaryContainerCollectionTimer;
@@ -97,12 +98,15 @@ namespace Kore.Managers
         /// <param name="e"></param>
         private void TemporaryContainerCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            if (_isCollecting)
-                return;
+            lock (_elapsedLocked)
+            {
+                if (_isCollecting)
+                    return;
 
-            _isCollecting = true;
+                _isCollecting = true;
+            }
 
-            foreach (var streamManager in _streamManagerMapping.ToArray().Where(x => x.Value.Item1 != null).Select(x => x.Key))
+            foreach (var streamManager in _streamManagerMapping.ToArray().Where(x => x.Value.Item1 == null).Select(x => x.Key))
             {
                 if (streamManager.Count > 0)
                     continue;
@@ -113,7 +117,8 @@ namespace Kore.Managers
                 RemoveDirectory(element.Item2.FullName);
             }
 
-            _isCollecting = false;
+            lock (_elapsedLocked)
+                _isCollecting = false;
         }
 
         private void RemoveDirectory(string path)
