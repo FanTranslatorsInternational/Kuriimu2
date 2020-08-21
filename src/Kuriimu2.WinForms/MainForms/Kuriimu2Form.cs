@@ -184,6 +184,8 @@ namespace Kuriimu2.WinForms.MainForms
 
         private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)
         {
+            ReportStatus(true, string.Empty);
+
             // Check if path is invalid
             if (filePath.IsNull || filePath.IsEmpty)
             {
@@ -353,6 +355,8 @@ namespace Kuriimu2.WinForms.MainForms
 
         private async Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs, bool invokeUpdateForm)
         {
+            ReportStatus(true, string.Empty);
+
             // Check if file is already attempted to be saved
             if (_savingFiles.Contains(stateInfo))
             {
@@ -439,6 +443,8 @@ namespace Kuriimu2.WinForms.MainForms
 
         private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false)
         {
+            ReportStatus(true, string.Empty);
+
             // Security question, so the user knows that every sub file will be closed
             if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
             {
@@ -527,7 +533,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         public void ReportStatus(bool isSuccessful, string message)
         {
-            if (string.IsNullOrEmpty(message))
+            if (message == null)
                 return;
 
             var textColor = isSuccessful ? Color.Black : Color.DarkRed;
