@@ -66,14 +66,6 @@ jobs:
       shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
-    
-    - name: Commit changes to update repo
-      run: |
-        cd ./update
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add *
-        git commit -m "Update binaries" -a
         
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update ./update_repo
@@ -81,6 +73,14 @@ jobs:
     - name: Move update files to update repo
       run: mv ./update/* ./update_repo
       shell: cmd
+        
+    - name: Commit changes to update repo
+      run: |
+        cd ./update_repo
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Update binaries" -a
         
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
