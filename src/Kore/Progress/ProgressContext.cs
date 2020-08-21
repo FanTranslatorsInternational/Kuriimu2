@@ -111,6 +111,12 @@ namespace Kore.Progress
             _output.StartProgress();
         }
 
+        public bool IsRunning()
+        {
+            lock (_lock)
+                return _isRunning;
+        }
+
         public void FinishProgress()
         {
             lock (_lock)

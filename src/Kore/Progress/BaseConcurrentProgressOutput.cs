@@ -30,6 +30,8 @@ namespace Kore.Progress
         public void FinishProgress()
         {
             _timer.Stop();
+
+            OutputProgress();
         }
 
         protected abstract void OutputProgressInternal(double completion, string message);

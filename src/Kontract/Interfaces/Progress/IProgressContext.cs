@@ -53,6 +53,12 @@
         void StartProgress();
 
         /// <summary>
+        /// Determines if the progress report is already running.
+        /// </summary>
+        /// <returns>If the progress report is already running.</returns>
+        bool IsRunning();
+
+        /// <summary>
         /// Signals the output to finish the current progress flow.
         /// </summary>
         void FinishProgress();

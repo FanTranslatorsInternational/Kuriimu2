@@ -422,7 +422,9 @@ namespace Kore.Managers.Plugins
                 plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
 
             var progress = loadFileContext.Progress ?? _progress;
-            progress.StartProgress();
+            var isRunning = progress.IsRunning();
+            if (!isRunning)
+                progress.StartProgress();
 
             // 4. Load file
             var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
@@ -436,7 +438,8 @@ namespace Kore.Managers.Plugins
                 AllowManualSelection = AllowManualSelection
             });
 
-            progress.FinishProgress();
+            if (!isRunning)
+                progress.FinishProgress();
 
             if (!loadResult.IsSuccessful)
                 return loadResult;
@@ -463,9 +466,19 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
-            _progress.StartProgress();
+            lock (_loadedFilesLock)
+            {
+                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            }
+
+            var isRunning = _progress.IsRunning();
+            if (!isRunning)
+                _progress.StartProgress();
+
             var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
-            _progress.FinishProgress();
+
+            if (!isRunning)
+                _progress.FinishProgress();
 
             return saveResult;
         }
@@ -478,9 +491,14 @@ namespace Kore.Managers.Plugins
                 ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
             }
 
-            _progress.StartProgress();
+            var isRunning = _progress.IsRunning();
+            if (!isRunning)
+                _progress.StartProgress();
+
             var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, _progress);
-            _progress.FinishProgress();
+
+            if (!isRunning)
+                _progress.FinishProgress();
 
             return saveResult;
         }
