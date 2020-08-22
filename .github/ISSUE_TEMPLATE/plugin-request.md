@@ -1,3 +1,12 @@
+---
+name: Plugin Request
+about: Provide details about a file from a particular game.
+title: ''
+labels: ''
+assignees: ''
+
+---
+
 Game Name:  
 Console:  
 Format extension(s):  
