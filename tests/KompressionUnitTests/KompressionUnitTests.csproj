@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\..\src\Kontract\Kontract.csproj" />
   </ItemGroup>
 
   <ItemGroup>

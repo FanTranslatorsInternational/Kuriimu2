@@ -1,5 +1,4 @@
-﻿using Kore;
-using Kore.Files.Models;
+﻿using Kontract.Interfaces.Managers;
 
 namespace Kuriimu2.Wpf.Interfaces
 {
@@ -11,6 +10,6 @@ namespace Kuriimu2.Wpf.Interfaces
         /// <summary>
         /// Provides access to the KoreFile instance associated with the editor.
         /// </summary>
-        KoreFileInfo KoreFile { get; set;  }
+        IStateInfo KoreFile { get; set;  }
     }
 }

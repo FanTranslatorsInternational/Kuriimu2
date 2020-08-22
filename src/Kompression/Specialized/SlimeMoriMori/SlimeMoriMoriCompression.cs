@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.Extensions;
 using Kompression.Huffman;
-using Kompression.Huffman.Support;
-using Kompression.Interfaces;
-using Kompression.IO;
-using Kompression.Models;
 using Kompression.PatternMatch.MatchFinders;
 using Kompression.PatternMatch.MatchParser;
 using Kompression.Specialized.SlimeMoriMori.Decoders;
@@ -17,6 +13,11 @@ using Kompression.Specialized.SlimeMoriMori.Encoders;
 using Kompression.Specialized.SlimeMoriMori.Obfuscators;
 using Kompression.Specialized.SlimeMoriMori.ValueReaders;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
+using Kontract.Kompression;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.Huffman;
+using Kontract.Kompression.Model.PatternMatch;
+using Kontract.Models.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -92,7 +93,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             var tree = CreateHuffmanTree(huffmanInput, _huffmanMode);
             var valueWriter = CreateValueWriter(_huffmanMode, tree);
 
-            using (var bw = new BitWriter(output, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
+            using (var bw = new BitWriter(output, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian))
             {
                 // Write header data
                 bw.WriteBits((int)input.Length, 0x18);
@@ -123,45 +124,49 @@ namespace Kompression.Specialized.SlimeMoriMori
                 case 1:
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(3, 18, 1, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                            new FindOptions(false, 0, 0, UnitSize.Byte, 8)), 
                     };
                     break;
+
                 case 2:
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(3, -1, 1, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8))
                     };
                     break;
+
                 case 3:
-                    //var newLength = input.Length >> 1 << 1;
                     matchFinders = new[]
                     {
-                        new HybridSuffixTreeMatchFinder(
+                        new HistoryMatchFinder(
                             new FindLimitations(4, -1, 2, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Short, 8))
                     };
                     break;
+
                 case 4:
                     return Array.Empty<Match>();
+
                 case 5:
                     matchFinders = new IMatchFinder[]
                     {
-                        new HybridSuffixTreeMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
+                        new HistoryMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8)),
                         new RleMatchFinder(new FindLimitations(1, 0x40),
                             new FindOptions(false, 0, 0, UnitSize.Byte, 8))
                     };
                     break;
+
                 default:
                     throw new InvalidOperationException($"Unknown compression mode {compressionMode}.");
             }
 
             // Optimal parse all LZ matches
-            var parser = new ForwardBackwardOptimalParser(
+            var parser = new OptimalParser(
                 new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
                 new SlimePriceCalculator(compressionMode, huffmanMode),
                 matchFinders);
@@ -227,8 +232,10 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new HuffmanReader(4);
+
                 case 2:
                     return new HuffmanReader(8);
+
                 default:
                     return new DefaultValueReader();
             }
@@ -240,12 +247,16 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new SlimeMode1Decoder(huffmanReader);
+
                 case 2:
                     return new SlimeMode2Decoder(huffmanReader);
+
                 case 3:
                     return new SlimeMode3Decoder(huffmanReader);
+
                 case 4:
                     return new SlimeMode4Decoder(huffmanReader);
+
                 default:
                     return new SlimeMode5Decoder(huffmanReader);
             }
@@ -257,10 +268,13 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return new SlimeMode1Deobfuscator();
+
                 case 2:
                     return new SlimeMode2Deobfuscator();
+
                 case 3:
                     return new SlimeMode3Deobfuscator();
+
                 case 4:
                     return new SlimeMode4Deobfuscator();
             }
@@ -274,14 +288,16 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     var tree = new HuffmanTreeBuilder();
-                    var rootNode = tree.Build(input, 4, ByteOrder.LittleEndian);
+                    var rootNode = tree.Build(input, 4, NibbleOrder.LowNibbleFirst);
                     SortHuffmanTree(rootNode);
                     return rootNode;
+
                 case 2:
                     tree = new HuffmanTreeBuilder();
-                    rootNode = tree.Build(input, 8, ByteOrder.LittleEndian);
+                    rootNode = tree.Build(input, 8, NibbleOrder.LowNibbleFirst);
                     SortHuffmanTree(rootNode);
                     return rootNode;
+
                 default:
                     return null;
             }

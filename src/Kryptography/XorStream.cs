@@ -122,15 +122,20 @@ namespace Kryptography
             if (!CanRead)
                 throw new NotSupportedException("Can't read from stream.");
 
+            if (Position >= Length)
+                return 0;
+
             var bkPos = _baseStream.Position;
             _baseStream.Position = Position;
-            _baseStream.Read(buffer, offset, count);
+
+            var length = (int)Math.Min(count,Length-Position);
+            _baseStream.Read(buffer, offset, length);
             _baseStream.Position = bkPos;
 
-            XorData(buffer, offset, count, _key);
+            XorData(buffer, offset, length, _key);
 
-            Position += count;
-            return count;
+            Position += length;
+            return length;
         }
 
         public override void Write(byte[] buffer, int offset, int count)

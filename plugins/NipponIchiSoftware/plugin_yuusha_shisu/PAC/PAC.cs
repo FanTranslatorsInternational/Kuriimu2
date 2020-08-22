@@ -1,38 +1,23 @@
 ﻿using Komponent.IO;
-using Kontract.Interfaces.Archive;
 using System.Collections.Generic;
 using System.IO;
+using Komponent.IO.Streams;
+using Kontract.Models.Archive;
 
 namespace plugin_yuusha_shisu.PAC
 {
     /// <summary>
     /// 
     /// </summary>
-    public class PAC
+    public class Pac
     {
-        private const int _entryAlignment = 0x20;
-        private const int _fileAlignment = 0x80;
+        private const int EntryAlignment = 0x20;
+        private const int FileAlignment = 0x80;
 
-        /// <summary>
-        /// 
-        /// </summary>
         private FileHeader _header;
-
-        /// <summary>
-        /// 
-        /// </summary>
         private List<FileEntry> _entries;
 
-        /// <summary>
-        /// The files contained within this PAC archive.
-        /// </summary>
-        public List<ArchiveFileInfo> Files { get; } = new List<ArchiveFileInfo>();
-
-        /// <summary>
-        /// Loads the metadata and files from a PAC archive.
-        /// </summary>
-        /// <param name="input">An input stream for a PAC archive.</param>
-        public PAC(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
@@ -41,25 +26,25 @@ namespace plugin_yuusha_shisu.PAC
 
                 // Offsets
                 var offsets = br.ReadMultiple<int>(_header.FileCount);
-                br.SeekAlignment(_entryAlignment);
+                br.SeekAlignment(EntryAlignment);
 
                 // Entries
                 _entries = br.ReadMultiple<FileEntry>(_header.FileCount);
 
                 // Files
-                for (int i = 0; i < offsets.Count; i++)
+                var result = new List<ArchiveFileInfo>();
+                for (var i = 0; i < offsets.Count; i++)
                 {
                     br.BaseStream.Position = offsets[i];
                     var length = br.ReadInt32();
-                    var off = br.BaseStream.Position + _fileAlignment - sizeof(int);
+                    var off = br.BaseStream.Position + FileAlignment - sizeof(int);
 
-                    Files.Add(new ArchiveFileInfo
-                    {
-                        FileName = _entries[i].FileName.Trim('\0'),
-                        FileData = new SubStream(br.BaseStream, off, length),
-                        State = ArchiveFileState.Archived
-                    });
+                    // TODO: Add plugin Id to each *.msg file
+                    result.Add(new ArchiveFileInfo(new SubStream(br.BaseStream, off, length),
+                        _entries[i].FileName.Trim('\0')));
                 }
+
+                return result;
             }
         }
 
@@ -67,8 +52,9 @@ namespace plugin_yuusha_shisu.PAC
         /// Saves the metadata and files into a PAC archive.
         /// </summary>
         /// <param name="output">An output stream for a PAC archive.</param>
+        /// <param name="files">The files to save.</param>
         /// <returns>True if successful.</returns>
-        public bool Save(Stream output)
+        public bool Save(Stream output, IList<ArchiveFileInfo> files)
         {
             using (var bw = new BinaryWriterX(output, true))
             {
@@ -78,28 +64,29 @@ namespace plugin_yuusha_shisu.PAC
 
                 // Skip Offsets
                 bw.BaseStream.Position += _header.FileCount * sizeof(int);
-                bw.WriteAlignment(_entryAlignment);
+                bw.WriteAlignment(EntryAlignment);
 
                 // Entries
                 bw.WriteMultiple(_entries);
-                bw.WriteAlignment(_fileAlignment);
+                bw.WriteAlignment(FileAlignment);
 
                 // Files
                 var offsets = new List<int>();
-                foreach (var afi in Files)
+                foreach (var afi in files)
                 {
                     offsets.Add((int)bw.BaseStream.Position);
                     bw.Write((int)afi.FileSize);
-                    bw.Write(_fileAlignment);
-                    bw.WriteAlignment(_fileAlignment);
-                    afi.FileData.CopyTo(bw.BaseStream);
-                    bw.WriteAlignment(_fileAlignment);
+                    bw.Write(FileAlignment);
+                    bw.WriteAlignment(FileAlignment);
+                    afi.SaveFileData(bw.BaseStream, null);
+                    bw.WriteAlignment(FileAlignment);
                 }
 
                 // Offsets
                 bw.BaseStream.Position = offsetPosition;
                 bw.WriteMultiple(offsets);
             }
+
             return true;
         }
     }

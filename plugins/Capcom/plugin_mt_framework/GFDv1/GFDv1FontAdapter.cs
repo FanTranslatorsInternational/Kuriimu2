@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace plugin_mt_framework.GFDv1
     //[Export(typeof(IPlugin))]
     [PluginInfo("3C8827B8-D124-45D7-BD4C-2A98E049A20A", "MT Framework Font v1", "GFDv1", "IcySon55", "", "This is the GFDv1 font adapter for Kuriimu.")]
     [PluginExtensionInfo("*.gfd")]
-    public sealed class GFDv1FontAdapter : IFontAdapter2, IFontRenderer, IIdentifyFiles, ILoadFiles, ISaveFiles
+    public sealed class GFDv1FontAdapter : /*IFontAdapter2, IFontRenderer,*/ IIdentifyFiles, ILoadFiles, ISaveFiles
     {
         private GFDv1 _gfd;
 

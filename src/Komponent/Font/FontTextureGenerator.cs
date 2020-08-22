@@ -20,10 +20,11 @@ namespace Komponent.Font
         /// Creates a new instance of <see cref="FontTextureGenerator"/>.
         /// </summary>
         /// <param name="canvasSize">The size of the canvas to draw on.</param>
-        public FontTextureGenerator(Size canvasSize)
+        /// <param name="margin">The margin to the top and left side of each texture.</param>
+        public FontTextureGenerator(Size canvasSize, int margin = 1)
         {
             CanvasSize = canvasSize;
-            _binPacker = new BinPacker(canvasSize);
+            _binPacker = new BinPacker(canvasSize, margin);
         }
 
         /// <summary>
@@ -32,36 +33,36 @@ namespace Komponent.Font
         /// <param name="adjustedGlyphs">The enumeration of adjusted glyphs.</param>
         /// <param name="textureCount">The maximum texture count.</param>
         /// <returns>The generated textures.</returns>
-        public Bitmap[] GenerateFontTextures(List<AdjustedGlyph> adjustedGlyphs, int textureCount = -1)
+        public IList<FontTextureInfo> GenerateFontTextures(IList<AdjustedGlyph> adjustedGlyphs, int textureCount = -1)
         {
-            var fontTextures = new List<Bitmap>(textureCount >= 0 ? textureCount : 0);
+            var fontTextures = new List<FontTextureInfo>(textureCount >= 0 ? textureCount : 0);
 
             var remainingAdjustedGlyphs = adjustedGlyphs;
             while (remainingAdjustedGlyphs.Count > 0)
             {
                 // Stop if the texture limit is reached
-                if (textureCount >= 0 && fontTextures.Count >= textureCount)
+                if (textureCount > 0 && fontTextures.Count >= textureCount)
                     break;
 
                 // Create new font texture to draw on.
                 var fontTexture = new Bitmap(CanvasSize.Width, CanvasSize.Height);
                 var fontGraphics = Graphics.FromImage(fontTexture);
 
-                fontTextures.Add(fontTexture);
-
                 // Draw each positioned glyph on the font texture
-                var handledGlyphs = new List<AdjustedGlyph>(adjustedGlyphs.Count);
-                foreach (var positionedGlyph in _binPacker.Pack(adjustedGlyphs))
+                var handledGlyphs = new List<(AdjustedGlyph, Point)>(remainingAdjustedGlyphs.Count);
+                foreach (var positionedGlyph in _binPacker.Pack(remainingAdjustedGlyphs))
                 {
                     DrawGlyph(fontGraphics, positionedGlyph);
-                    handledGlyphs.Add(positionedGlyph.adjustedGlyph);
+                    handledGlyphs.Add(positionedGlyph);
                 }
 
+                fontTextures.Add(new FontTextureInfo(fontTexture, handledGlyphs.Select(x => (x.Item1.Glyph, x.Item2)).ToList()));
+
                 // Remove every handled glyph
-                remainingAdjustedGlyphs = remainingAdjustedGlyphs.Except(handledGlyphs).ToList();
+                remainingAdjustedGlyphs = remainingAdjustedGlyphs.Except(handledGlyphs.Select(x => x.Item1)).ToList();
             }
 
-            return fontTextures.ToArray();
+            return fontTextures;
         }
 
         /// <summary>

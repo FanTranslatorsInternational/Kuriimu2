@@ -5,20 +5,23 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Caliburn.Micro;
-using Kontract.Interfaces.Font;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Font;
 using Kore.Generators;
 using Kuriimu2.Wpf.Tools;
-using Microsoft.Win32;
 using Action = System.Action;
+using Brush = System.Drawing.Brush;
 using Color = System.Drawing.Color;
 using FontFamily = System.Drawing.FontFamily;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using Pen = System.Drawing.Pen;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using Screen = Caliburn.Micro.Screen;
 using ValidationResult = Kuriimu2.Wpf.Dialogs.Common.ValidationResult;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
@@ -28,10 +31,6 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         private const string _profileFilter = "Bitmap Font Generator Profile (*.bfgp)|*.bfgp";
 
         private ImageSource _previewCharacterImage;
-        private int _marginLeft;
-        private int _marginTop;
-        private int _marginRight;
-        private int _marginBottom;
         private int _paddingLeft;
         private int _paddingRight;
         private char _previewCharacter = 'A';
@@ -44,16 +43,28 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         private int _glyphHeight = 36;
         private bool _bold;
         private bool _italic;
-        private string _renderTextRenderingHint = "AntiAlias";
+        private string textRenderingHint = "AntiAlias";
         private string _characters;
         private int _caretIndex;
-        private int _canvasWidth = 1024;
-        private int _canvasHeight = 512;
-        private bool _showDebugBoxes;
+        private float _spaceWidth = 7f;
+        private bool _showDebugBoxes = true;
+
+        private string _error;
 
         public BitmapImage Icon { get; }
-        public string Error { get; set; } = string.Empty;
-        public IFontAdapter2 Adapter { get; set; } = null;
+        public IFontState State { get; set; } = null;
+
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                _error = value;
+                NotifyOfPropertyChange(() => Error);
+            }
+        }
+
+        #region Preview
 
         public ImageSource PreviewCharacterImage
         {
@@ -65,53 +76,14 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        #region Preview
-
-        public int MarginLeft
+        public char PreviewCharacter
         {
-            get => _marginLeft;
+            get => _previewCharacter;
             set
             {
-                if (value == _marginLeft) return;
-                _marginLeft = value;
+                _previewCharacter = value;
                 UpdatePreview();
-                NotifyOfPropertyChange(() => MarginLeft);
-            }
-        }
-
-        public int MarginTop
-        {
-            get => _marginTop;
-            set
-            {
-                if (value == _marginTop) return;
-                _marginTop = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => MarginTop);
-            }
-        }
-
-        public int MarginRight
-        {
-            get => _marginRight;
-            set
-            {
-                if (value == _marginRight) return;
-                _marginRight = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => MarginRight);
-            }
-        }
-
-        public int MarginBottom
-        {
-            get => _marginBottom;
-            set
-            {
-                if (value == _marginBottom) return;
-                _marginBottom = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => MarginBottom);
+                NotifyOfPropertyChange(() => PreviewCharacter);
             }
         }
 
@@ -136,17 +108,6 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
                 _paddingRight = value;
                 UpdatePreview();
                 NotifyOfPropertyChange(() => PaddingRight);
-            }
-        }
-
-        public char PreviewCharacter
-        {
-            get => _previewCharacter;
-            set
-            {
-                _previewCharacter = value;
-                UpdatePreview();
-                NotifyOfPropertyChange(() => PreviewCharacter);
             }
         }
 
@@ -206,7 +167,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public string Generator { get; set; } = "GDI+";
 
-        public List<string> FontFamilies => new InstalledFontCollection().Families.Select(ff => ff.Name).ToList();
+        public List<string> FontFamilies =>
+            new InstalledFontCollection().Families.Select(ff => ff.Name).ToList();
 
         public string FontFamily
         {
@@ -237,7 +199,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             get => _baseline;
             set
             {
-                if (value == _baseline) return;
+                if (Math.Abs(value - _baseline) < 0.1) return;
+
                 _baseline = value;
                 UpdatePreview();
                 NotifyOfPropertyChange(() => Baseline);
@@ -306,39 +269,30 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public int CanvasWidth
+        public float SpaceWidth
         {
-            get => _canvasWidth;
+            get => _spaceWidth;
             set
             {
-                if (value == _canvasWidth) return;
-                _canvasWidth = value;
-                NotifyOfPropertyChange(() => CanvasWidth);
+                if (Math.Abs(value - _spaceWidth) < 0.1) return;
+
+                _spaceWidth = value;
+                NotifyOfPropertyChange(() => SpaceWidth);
             }
         }
 
-        public int CanvasHeight
+        public List<string> TextRenderingHints =>
+            Enum.GetNames(typeof(TextRenderingHint)).ToList();
+
+        public string TextRenderingHint
         {
-            get => _canvasHeight;
+            get => textRenderingHint;
             set
             {
-                if (value == _canvasHeight) return;
-                _canvasHeight = value;
-                NotifyOfPropertyChange(() => CanvasHeight);
-            }
-        }
-
-        public List<string> RenderTextRenderingHints => Enum.GetNames(typeof(TextRenderingHint)).ToList();
-
-        public string RenderTextRenderingHint
-        {
-            get => _renderTextRenderingHint;
-            set
-            {
-                if (value == _renderTextRenderingHint) return;
-                _renderTextRenderingHint = value;
+                if (value == textRenderingHint) return;
+                textRenderingHint = value;
                 UpdatePreview();
-                NotifyOfPropertyChange(() => RenderTextRenderingHint);
+                NotifyOfPropertyChange(() => TextRenderingHint);
             }
         }
 
@@ -349,6 +303,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             {
                 if (value == _showDebugBoxes) return;
                 _showDebugBoxes = value;
+                UpdatePreview();
                 NotifyOfPropertyChange(() => ShowDebugBoxes);
             }
         }
@@ -358,7 +313,9 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         public Func<ValidationResult> ValidationCallback;
         public Action GenerationCompleteCallback;
 
-        // Constructor
+        /// <summary>
+        /// Creates a new instance of <see cref="BitmapFontGeneratorViewModel"/>.
+        /// </summary>
         public BitmapFontGeneratorViewModel()
         {
             Icon = new BitmapImage(new Uri("pack://application:,,,/Images/icon-text-page.png"));
@@ -371,74 +328,219 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             return base.OnActivateAsync(cancellationToken);
         }
 
-        //protected override Task OnActivateAsync()
-        //{
-        //    base.OnActivate();
-        //}
+        #region Zoom button events
 
+        /// <summary>
+        /// Zooms out the preview character.
+        /// </summary>
         public void ZoomOut() => ZoomLevel = Math.Max(ZoomLevel - 1, 1);
 
+        /// <summary>
+        /// Zooms in the preview character.
+        /// </summary>
         public void ZoomIn() => ZoomLevel = Math.Min(ZoomLevel + 1, 10);
+
+        #endregion
+
+        #region Adjusted character button events
+
+        /// <summary>
+        /// Adds a new padding adjustment for characters.
+        /// </summary>
+        public void AddAdjustedCharacter()
+        {
+            if (AdjustedCharacters.Any(ac => ac.Character == PreviewCharacter))
+                return;
+
+            AdjustedCharacters.Add(new AdjustedCharacter
+            {
+                Character = PreviewCharacter,
+                Padding = new Padding
+                {
+                    Left = PaddingLeft,
+                    Right = PaddingRight
+                }
+            });
+
+            NotifyOfPropertyChange(() => AdjustedCharacters);
+        }
+
+        /// <summary>
+        /// Deletes a padding adjustment for characters.
+        /// </summary>
+        public void DeleteAdjustedCharacter()
+        {
+            if (SelectedAdjustedCharacter == null)
+                return;
+
+            AdjustedCharacters.Remove(SelectedAdjustedCharacter);
+            SelectedAdjustedCharacter = AdjustedCharacters.FirstOrDefault();
+
+            NotifyOfPropertyChange(() => AdjustedCharacters);
+        }
+
+        #endregion
+
+        #region Main button events
+
+        /// <summary>
+        /// Loads the profile for a font.
+        /// </summary>
+        public void LoadProfileButton()
+        {
+            var ofd = new OpenFileDialog { FileName = "", Filter = _profileFilter };
+            if (ofd.ShowDialog() == false)
+                return;
+
+            var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
+
+            PaddingLeft = profile.GlyphPadding.Left;
+            PaddingRight = profile.GlyphPadding.Right;
+            AdjustedCharacters = new ObservableCollection<AdjustedCharacter>(profile.AdjustedCharacters);
+
+            FontFamily = profile.FontFamily;
+            FontSize = profile.FontSize;
+
+            Baseline = profile.Baseline;
+            GlyphHeight = profile.GlyphHeight;
+
+            Bold = profile.Bold;
+            Italic = profile.Italic;
+
+            SpaceWidth = profile.SpaceWidth;
+
+            TextRenderingHint = profile.TextRenderingHint;
+            Characters = profile.Characters;
+
+            ShowDebugBoxes = profile.ShowDebugBoxes;
+        }
+
+        /// <summary>
+        /// Saves a profile for a font.
+        /// </summary>
+        public void SaveProfileButton()
+        {
+            var sfd = new SaveFileDialog { FileName = "", Filter = _profileFilter };
+            if (sfd.ShowDialog() == false)
+                return;
+
+            var profile = new BitmapFontGeneratorGdiProfile
+            {
+                GlyphPadding = new Padding
+                {
+                    Left = PaddingLeft,
+                    Right = PaddingRight
+                },
+                AdjustedCharacters = AdjustedCharacters.ToList(),
+
+                FontFamily = FontFamily,
+                FontSize = FontSize,
+
+                Baseline = Baseline,
+                GlyphHeight = GlyphHeight,
+
+                Bold = Bold,
+                Italic = Italic,
+
+                SpaceWidth = SpaceWidth,
+
+                TextRenderingHint = TextRenderingHint,
+                Characters = Characters,
+
+                ShowDebugBoxes = ShowDebugBoxes
+            };
+
+            profile.Save(sfd.FileName);
+        }
 
         /// <summary>
         /// Generates a new set of glyphs
         /// </summary>
         public void GenerateButton()
         {
-            var stop = false;
+            Error = string.Empty;
 
             if (Characters.Length == 0)
             {
-                stop = true;
                 Error = "Please provide some characters to generate.";
-                NotifyOfPropertyChange(() => Error);
-            }
-            else
-            {
-                Error = string.Empty;
-                NotifyOfPropertyChange(() => Error);
+                return;
             }
 
-            if (!stop && ValidationCallback != null)
+            if (ValidationCallback != null)
             {
                 var results = ValidationCallback?.Invoke();
 
                 if (!results.CanClose)
                 {
-                    stop = true;
                     Error = results.ErrorMessage;
-                    NotifyOfPropertyChange(() => Error);
-                }
-                else
-                {
-                    Error = string.Empty;
-                    NotifyOfPropertyChange(() => Error);
+                    return;
                 }
             }
-
-            if (stop) return;
 
             // Generate glyphs
             var chars = Characters.Distinct().Select(c => c.ToString()).ToArray();
             var glyphs = GenerateGlyphs(chars).ToArray();
 
             // Set and update new characters
-            Adapter.Baseline = Baseline;
-            Adapter.Characters.Clear();
+            State.Baseline = Baseline;
+            (State as IRemoveCharacters).RemoveAll();
 
             for (var i = 0; i < chars.Length; i++)
             {
-                var newFontCharacter = (Adapter as IAddCharacters).NewCharacter(Characters[i]);
-                newFontCharacter.Glyph = glyphs[i];
-                newFontCharacter.CharacterInfo.CharWidth = glyphs[i].Width;
+                var newFontCharacter = (State as IAddCharacters).CreateCharacterInfo(Characters[i]);
+                newFontCharacter.SetGlyph(glyphs[i]);
+                newFontCharacter.SetCharacterSize(new Size(glyphs[i].Width, 0));
 
-                Adapter.Characters.Add(newFontCharacter);
+                (State as IAddCharacters).AddCharacter(newFontCharacter);
             }
 
             GenerationCompleteCallback?.Invoke();
         }
 
+        public void CloseButton()
+        {
+            TryCloseAsync();
+        }
+
+        #endregion
+
+        #region Helper methods
+
+        /// <summary>
+        /// Update preview character.
+        /// </summary>
+        private void UpdatePreview()
+        {
+            var font = SetupFont();
+            var brush = new SolidBrush(Color.White);
+
+            var padding = new Padding { Left = PaddingLeft, Right = PaddingRight };
+            var glyph = GenerateGlyph(_previewCharacter.ToString(), font, brush, padding, ShowDebugBoxes);
+            PreviewCharacterImage = glyph.ToBitmapImage();
+        }
+
+        /// <summary>
+        /// Generates a new set of glyphs.
+        /// </summary>
+        /// <param name="characters">The characters to generate glyphs from.</param>
+        /// <returns>The generated glyphs.</returns>
         private IEnumerable<Bitmap> GenerateGlyphs(string[] characters)
+        {
+            var font = SetupFont();
+            var brush = new SolidBrush(Color.White);
+
+            foreach (var character in characters)
+            {
+                var padding = _adjustedCharacters.FirstOrDefault(x => x.Character.ToString() == character)?.Padding;
+                yield return GenerateGlyph(character, font, brush, padding);
+            }
+        }
+
+        /// <summary>
+        /// Sets up the <see cref="Font"/> to draw a glyph.
+        /// </summary>
+        /// <returns>The created <see cref="Font"/>.</returns>
+        private Font SetupFont()
         {
             var fontFamily = new FontFamily(FontFamily);
             var fontStyle = fontFamily.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular :
@@ -451,168 +553,74 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             if (Italic && fontFamily.IsStyleAvailable(FontStyle.Italic))
                 fontStyle ^= FontStyle.Italic;
 
-            var font = new Font(fontFamily, FontSize, fontStyle);
-            var brush = new SolidBrush(Color.White);
-
-            foreach (var character in characters)
-            {
-                var measuredWidth = MeasureCharacter(character, font).Width;
-
-                var glyph = new Bitmap((int)Math.Ceiling(measuredWidth) + PaddingLeft + PaddingRight, GlyphHeight);
-                var gfx = Graphics.FromImage(glyph);
-
-                gfx.SmoothingMode = SmoothingMode.HighQuality;
-                gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                gfx.PixelOffsetMode = PixelOffsetMode.None;
-                gfx.TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint);
-
-                var baselineOffsetPixels = Baseline - gfx.DpiY / 72f *
-                                           (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
-                                            font.FontFamily.GetCellAscent(font.Style));
-                var point = new PointF(0, baselineOffsetPixels + 0.475f);
-                gfx.DrawString(character, font, brush, point);
-
-                yield return glyph;
-            }
+            return new Font(fontFamily, FontSize, fontStyle);
         }
 
+        /// <summary>
+        /// Generates a glyph.
+        /// </summary>
+        /// <param name="character">The character to draw.</param>
+        /// <param name="font">The font to draw the character with.</param>
+        /// <param name="brush">The brush to draw the character with.</param>
+        /// <param name="padding">The adjusted padding for this character.</param>
+        /// <param name="drawDebugBoxes">Should debug boxes be drawn into the glyph.</param>
+        /// <returns>The generated glyph.</returns>
+        private Bitmap GenerateGlyph(string character, Font font, Brush brush, Padding padding = null, bool drawDebugBoxes = false)
+        {
+            var measuredWidth = SpaceWidth;
+            if (!string.IsNullOrWhiteSpace(character))
+                measuredWidth = MeasureCharacter(character, font).Width;
+
+            var glyphWidth = (int)Math.Round(measuredWidth);
+            if (padding != null)
+                glyphWidth = glyphWidth + padding.Left + padding.Right;
+
+            var glyph = new Bitmap(glyphWidth, GlyphHeight);
+            var gfx = Graphics.FromImage(glyph);
+
+            gfx.SmoothingMode = SmoothingMode.HighQuality;
+            gfx.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            gfx.PixelOffsetMode = PixelOffsetMode.None;
+            gfx.TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), TextRenderingHint);
+
+            var baselineOffsetPixels = Baseline - gfx.DpiY / 72f *
+                                       (font.SizeInPoints / font.FontFamily.GetEmHeight(font.Style) *
+                                        font.FontFamily.GetCellAscent(font.Style));
+            var point = new PointF(padding?.Left ?? 0, baselineOffsetPixels + 0.475f);
+
+            if (drawDebugBoxes)
+            {
+                // Baseline
+                gfx.DrawLine(new Pen(Color.FromArgb(100, 255, 255, 255)),
+                    new PointF(0, Baseline),
+                    new PointF(glyphWidth - 1, Baseline));
+
+                // Padded glyph Box
+                gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 255, 0), 1),
+                    new Rectangle(0, 0, glyphWidth - 1, GlyphHeight - 1));
+
+                // GlyphInfo Box
+                gfx.DrawRectangle(new Pen(Color.FromArgb(127, 255, 0, 0), 1),
+                    new Rectangle(padding?.Left ?? 0, 0, (int)Math.Round(measuredWidth) - 1, GlyphHeight - 1));
+            }
+
+            gfx.DrawString(character, font, brush, point, StringFormat.GenericTypographic);
+
+            return glyph;
+        }
+
+        /// <summary>
+        /// Measures the width of a character in the given font.
+        /// </summary>
+        /// <param name="character">The character to measure.</param>
+        /// <param name="font">The font to measure with.</param>
+        /// <returns>The size of the character.</returns>
         private SizeF MeasureCharacter(string character, Font font)
         {
             var gfx = Graphics.FromHwnd(IntPtr.Zero);
-            return gfx.MeasureString(character, font);
+            return gfx.MeasureString(character, font, PointF.Empty, StringFormat.GenericTypographic);
         }
 
-        public void UpdatePreview()
-        {
-            // Generate
-            var ff = new FontFamily(FontFamily);
-            var fs = ff.IsStyleAvailable(FontStyle.Regular) ? FontStyle.Regular :
-                ff.IsStyleAvailable(FontStyle.Bold) ? FontStyle.Bold :
-                ff.IsStyleAvailable(FontStyle.Italic) ? FontStyle.Italic :
-                ff.IsStyleAvailable(FontStyle.Strikeout) ? FontStyle.Strikeout :
-                FontStyle.Regular;
-
-            if (Bold && ff.IsStyleAvailable(FontStyle.Bold))
-                fs ^= FontStyle.Bold;
-            if (Italic && ff.IsStyleAvailable(FontStyle.Italic))
-                fs ^= FontStyle.Italic;
-
-            var bfg = new BitmapFontGeneratorGdi
-            {
-                //Adapter = Adapter,
-                // TODO: Font generator not ported to API v2 yet
-                GlyphMargin = new Padding
-                {
-                    Left = MarginLeft,
-                    Top = MarginTop,
-                    Right = MarginRight,
-                    Bottom = MarginBottom
-                },
-                GlyphPadding = new Padding
-                {
-                    Left = PaddingLeft,
-                    Right = PaddingRight
-                },
-                AdjustedCharacters = AdjustedCharacters.ToList(),
-                Font = new Font(ff, FontSize, fs),
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
-                TextRenderingHint = (TextRenderingHint)Enum.Parse(typeof(TextRenderingHint), RenderTextRenderingHint),
-                CanvasWidth = CanvasWidth,
-                CanvasHeight = CanvasHeight,
-                ShowDebugBoxes = ShowDebugBoxes
-            };
-
-            PreviewCharacterImage = bfg.Preview(_previewCharacter).ToBitmapImage();
-        }
-
-        public void AddAdjustedCharacter()
-        {
-            if (AdjustedCharacters.Any(ac => ac.Character == PreviewCharacter)) return;
-            AdjustedCharacters.Add(new AdjustedCharacter
-            {
-                Character = PreviewCharacter,
-                Padding = new Padding()
-            });
-            NotifyOfPropertyChange(() => AdjustedCharacters);
-        }
-
-        public void DeleteAdjustedCharacter()
-        {
-            if (SelectedAdjustedCharacter == null) return;
-            AdjustedCharacters.Remove(SelectedAdjustedCharacter);
-            SelectedAdjustedCharacter = AdjustedCharacters.FirstOrDefault();
-            NotifyOfPropertyChange(() => AdjustedCharacters);
-        }
-
-        public void LoadProfileButton()
-        {
-            var ofd = new OpenFileDialog { FileName = "", Filter = _profileFilter };
-            if (ofd.ShowDialog() != true) return;
-
-            var profile = BitmapFontGeneratorGdiProfile.Load(ofd.FileName);
-
-            MarginLeft = profile.GlyphMargin.Left;
-            MarginTop = profile.GlyphMargin.Top;
-            MarginRight = profile.GlyphMargin.Right;
-            MarginBottom = profile.GlyphMargin.Bottom;
-
-            PaddingLeft = profile.GlyphPadding.Left;
-            PaddingRight = profile.GlyphPadding.Right;
-            AdjustedCharacters = new ObservableCollection<AdjustedCharacter>(profile.AdjustedCharacters);
-
-            FontFamily = profile.FontFamily;
-            FontSize = profile.FontSize;
-            Baseline = profile.Baseline;
-            GlyphHeight = profile.GlyphHeight;
-            Bold = profile.Bold;
-            Italic = profile.Italic;
-            RenderTextRenderingHint = profile.TextRenderingHint;
-            Characters = profile.Characters;
-            CanvasWidth = profile.CanvasWidth;
-            CanvasHeight = profile.CanvasHeight;
-            ShowDebugBoxes = profile.ShowDebugBoxes;
-        }
-
-        public void SaveProfileButton()
-        {
-            var sfd = new SaveFileDialog { FileName = "", Filter = _profileFilter };
-            if (sfd.ShowDialog() != true) return;
-
-            var profile = new BitmapFontGeneratorGdiProfile
-            {
-                GlyphMargin = new Padding
-                {
-                    Left = MarginLeft,
-                    Top = MarginTop,
-                    Right = MarginRight,
-                    Bottom = MarginBottom
-                },
-                GlyphPadding = new Padding
-                {
-                    Left = PaddingLeft,
-                    Right = PaddingRight
-                },
-                AdjustedCharacters = AdjustedCharacters.ToList(),
-                FontFamily = FontFamily,
-                FontSize = FontSize,
-                Baseline = Baseline,
-                GlyphHeight = GlyphHeight,
-                Bold = Bold,
-                Italic = Italic,
-                TextRenderingHint = RenderTextRenderingHint,
-                Characters = Characters,
-                CanvasWidth = CanvasWidth,
-                CanvasHeight = CanvasHeight,
-                ShowDebugBoxes = ShowDebugBoxes
-            };
-
-            profile.Save(sfd.FileName);
-        }
-
-        public void CloseButton()
-        {
-            TryCloseAsync();
-        }
+        #endregion
     }
 }

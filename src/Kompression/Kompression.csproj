@@ -1,14 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>8</LangVersion>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Kuriimu2.Kompression</PackageId>
-    <PackageVersion>2.0.7</PackageVersion>
+    <PackageId>Kompression</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
+    <PackageId>Kompression</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
     <Authors>onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
-    <Product>Kore</Product>
+    <Product>Kompression</Product>
     <Description>A library containing all compressions usable by the Kuriimu2 eco-system.</Description>
     <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
@@ -16,8 +24,12 @@
     <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>Compression, Kuriimu2</PackageTags>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,12 +50,18 @@
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <DefineConstants>NET_CORE_30</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <DefineConstants>NET_CORE_31</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="C5" Version="2.5.3" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
 
 </Project>

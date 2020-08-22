@@ -1,14 +1,15 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Kompression.Configuration;
-using Kompression.Interfaces;
-using Kompression.Models;
+using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     public class LzssVlcEncoder : IEncoder
     {
-        private IMatchParser _matchParser;
+        private readonly IMatchParser _matchParser;
 
         public LzssVlcEncoder(IMatchParser matchParser)
         {
@@ -31,150 +32,114 @@ namespace Kompression.Implementations.Encoders
 
         private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
-            var lzIndex = 0;
+            var matchIndex = 0;
             while (input.Position < input.Length)
             {
-                if (lzIndex >= matches.Length)
+                var nextMatchPosition = matchIndex >= matches.Length ? input.Length : matches[matchIndex].Position;
+                var rawSize = (int)(nextMatchPosition - input.Position);
+                var compressedBlocks = 0;
+                if (matchIndex < matches.Length)
+                    compressedBlocks = GetContinuousMatches(matches, matchIndex);
+
+                // Write size of literals and matches
+                var lengthBlock = MakeLiteralCopies(rawSize, compressedBlocks);
+                output.Write(lengthBlock, 0, lengthBlock.Length);
+
+                // Write literals
+                var literals = new byte[rawSize];
+                input.Read(literals, 0, literals.Length);
+                output.Write(literals, 0, literals.Length);
+
+                // Write matches
+                foreach (var match in matches.Skip(matchIndex).Take(compressedBlocks))
                 {
-                    // If we have still uncompressed data, but no compressed blocks follow
-                    CompressLastRawBlock(input, output);
-                }
-                else
-                {
-                    // If we have uncompressed data followed by n compressed blocks
+                    var matchBlock = MakeLengthOffset(match.Length, match.Displacement);
+                    output.Write(matchBlock, 0, matchBlock.Length);
 
-                    // Variable length encode compressed block count and raw data size
-                    var rawSize = (int)(matches[lzIndex].Position - input.Position);
-
-                    var compressedBlocks = 0;
-                    var positionOffset = 0;
-                    while (lzIndex + compressedBlocks < matches.Length &&
-                           matches[lzIndex + compressedBlocks].Position == input.Position + rawSize + positionOffset)
-                    {
-                        positionOffset += matches[lzIndex + compressedBlocks].Length;
-                        compressedBlocks++;
-                    }
-
-                    WriteBlockSizes(output, rawSize, compressedBlocks);
-                    WriteBlocks(input, output, rawSize, matches.Skip(lzIndex).Take(compressedBlocks).ToArray());
-
-                    lzIndex += compressedBlocks;
-                }
-            }
-        }
-
-        private void CompressLastRawBlock(Stream input, Stream output)
-        {
-            var rawSize = (int)(input.Length - input.Position);
-            if (rawSize > 0 && rawSize < 0x10)
-            {
-                output.Write(new[] { (byte)rawSize, (byte)0x01 }, 0, 2);
-            }
-            else
-            {
-                var rawSizeVlc = CreateVlc(rawSize);
-                output.WriteByte(0);    // write Vlc base byte
-                output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
-                output.WriteByte(0x01); // write Vlc for 0 compressedBlocks
-            }
-
-            var rawData = new byte[rawSize];
-            input.Read(rawData, 0, rawSize);
-            output.Write(rawData, 0, rawSize);
-        }
-
-        private void WriteBlockSizes(Stream output, int rawSize, int compressedBlocks)
-        {
-            byte descriptionByte = 0;
-
-            if (rawSize > 0 && rawSize < 0x10)
-                descriptionByte |= (byte)rawSize;
-
-            if (compressedBlocks > 0 && compressedBlocks < 0x10)
-                descriptionByte |= (byte)(compressedBlocks << 4);
-
-            output.WriteByte(descriptionByte);
-
-            if (rawSize == 0 || rawSize >= 0x10)
-            {
-                var rawSizeVlc = CreateVlc(rawSize);
-                output.Write(rawSizeVlc, 0, rawSizeVlc.Length);
-            }
-
-            if (compressedBlocks == 0 || compressedBlocks >= 0x10)
-            {
-                var compressedBlocksVlc = CreateVlc(compressedBlocks);
-                output.Write(compressedBlocksVlc, 0, compressedBlocksVlc.Length);
-            }
-        }
-
-        private void WriteBlocks(Stream input, Stream output, int rawSize, Match[] matches)
-        {
-            // Writing raw data
-            var rawData = new byte[rawSize];
-            input.Read(rawData, 0, rawSize);
-            output.Write(rawData, 0, rawData.Length);
-
-            // Writing compressed data
-            foreach (var match in matches)
-            {
-                var length = match.Length - 1;  // Length is always >0; therefore this specification stores the _length reduced by 1
-                var displacementVlc = CreateVlc(match.Displacement - 1, 3);
-
-                // Variable _length encode _length and displacement
-
-                // Write description byte
-                byte descriptionByte = 0;
-
-                descriptionByte |= displacementVlc[0];  // the displacement is the only value vlc encoded differently
-                                                        // the 3 MSB are always encoded in this description block
-
-                if (length > 0 && length < 0x10)
-                    descriptionByte |= (byte)(length << 4);
-
-                output.WriteByte(descriptionByte);
-
-                // Write left over displacement value
-                output.Write(displacementVlc, 1, displacementVlc.Length - 1);
-
-                if (length == 0 || length >= 0x10)
-                {
-                    var lengthVlc = CreateVlc(length);
-                    output.Write(lengthVlc, 0, lengthVlc.Length);
+                    input.Position += match.Length;
                 }
 
-                input.Position += match.Length;
+                matchIndex += compressedBlocks;
             }
         }
 
         #region Helper
 
-        private byte[] CreateVlc(int value, int maxBitsInMsb = 7)
+        private int GetContinuousMatches(Match[] matches, int startIndex)
         {
-            var bitCount = GetBitCount(value);
-            var valueLength = bitCount / 7 + (bitCount % 7 <= maxBitsInMsb ? 1 : 2);
-            var returnValue = new byte[valueLength];
-
-            for (var i = 0; i < valueLength; i++)
+            var compressedBlocks = 0;
+            var matchPosition = matches[startIndex].Position;
+            while (compressedBlocks + startIndex < matches.Length &&
+                   matches[compressedBlocks + startIndex].Position == matchPosition)
             {
-                var partialShift = i == valueLength - 1 ? maxBitsInMsb : 7;
-                byte partialValue = (byte)((value & ((1 << partialShift) - 1)) << 1);
-                returnValue[valueLength - 1 - i] = partialValue;
-                value >>= 7;
+                matchPosition += matches[compressedBlocks + startIndex].Length;
+                compressedBlocks++;
             }
 
-            returnValue[valueLength - 1] |= 0x1;
-            return returnValue;
+            return compressedBlocks;
+        }
+
+        byte[] MakeLiteralCopies(int literal, int copies)
+        {
+            int litNibble = 0, copNibble = 0;
+            byte[] litExtra = new byte[0], copExtra = new byte[0];
+
+            if (literal > 0 && literal < 16) litNibble = literal;
+            else litExtra = CreateVlc(literal);
+
+            if (copies > 0 && copies < 16) copNibble = copies;
+            else copExtra = CreateVlc(copies);
+
+            //if (copies == 0) copExtra = CreateVlc(copies); // special case where last byte is literal
+
+            return new[] { (byte)(litNibble | (copNibble << 4)) }.Concat(litExtra).Concat(copExtra).ToArray();
+        }
+
+        byte[] MakeLengthOffset(int length, int offset)
+        {
+            (length, offset) = (length - 1, offset - 1);
+
+            int lenNibble = 0, offNibble = 0;
+            byte[] lenExtra = new byte[0], offExtra = new byte[0];
+
+            if (length > 0 && length < 16) lenNibble = length;
+            else lenExtra = CreateVlc(length);
+
+            if (offset < 8) offNibble = offset << 1 | 1;
+            else
+            {
+                var totalBits = GetBitCount(offset);
+                var extraSize = (totalBits + 3) / 7;
+                var bitsToShift = 7 * extraSize;
+
+                var high = offset >> bitsToShift;
+                var low = offset & ((1 << bitsToShift) - 1);
+
+                offNibble = high << 1;
+                offExtra = CreateVlc(low | 127 << bitsToShift).Skip(1).ToArray();
+            }
+
+            return new[] { (byte)(offNibble | (lenNibble << 4)) }.Concat(offExtra).Concat(lenExtra).ToArray();
+        }
+
+        byte[] CreateVlc(int n)
+        {
+            var tmp = new Stack<byte>();
+            tmp.Push((byte)(n << 1 | 1));
+            n >>= 7;
+            while (n != 0)
+            {
+                tmp.Push((byte)(n << 1));
+                n >>= 7;
+            }
+            return tmp.ToArray();
         }
 
         private static int GetBitCount(long value)
         {
-            var bitCount = 0;
-            while (value > 0)
-            {
+            var bitCount = 1;
+            while ((value >>= 1) != 0)
                 bitCount++;
-                value >>= 1;
-            }
 
             return bitCount;
         }

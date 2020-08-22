@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <LangVersion>8</LangVersion>
+    <Version>2.0.8</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Kuriimu2.Komponent</PackageId>
-    <PackageVersion>2.0.7</PackageVersion>
+    <PackageId>Komponent</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
     <Authors>IcySon55;onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
     <Product>Komponent</Product>
@@ -16,8 +22,12 @@
     <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>IO, Tools, Kuriimu2</PackageTags>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,8 +40,16 @@
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="4.6.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0-preview.1.20120.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -42,8 +60,8 @@
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <DefineConstants>NET_CORE_30</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <DefineConstants>NET_CORE_31</DefineConstants>
   </PropertyGroup>
 
 </Project>

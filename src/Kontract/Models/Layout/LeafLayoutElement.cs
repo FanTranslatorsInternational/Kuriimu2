@@ -30,24 +30,33 @@ namespace Kontract.Models.Layout
             {
                 case LocationAnchor.Top:
                     return new Size(layoutItem.Size.Width / 2, 0);
+
                 case LocationAnchor.Bottom:
                     return new Size(layoutItem.Size.Width / 2, layoutItem.Size.Height);
+
                 case LocationAnchor.Left:
                     return new Size(0, layoutItem.Size.Height / 2);
+
                 case LocationAnchor.Right:
                     return new Size(layoutItem.Size.Width, layoutItem.Size.Height / 2);
+
                 case LocationAnchor.Center:
                     return new Size(layoutItem.Size.Width / 2, layoutItem.Size.Height / 2);
+
                 case LocationAnchor.TopLeft:
                     return new Size(0, 0);
+
                 case LocationAnchor.TopRight:
                     return new Size(layoutItem.Size.Width, 0);
+
                 case LocationAnchor.BottomLeft:
                     return new Size(0, layoutItem.Size.Height);
+
                 case LocationAnchor.BottomRight:
                     return new Size(layoutItem.Size.Width, layoutItem.Size.Height);
+
                 default:
-                    throw new NotSupportedException($"LocationAnchor {anchor} is not supported.");
+                    throw new NotSupportedException($"{nameof(LocationAnchor)} {anchor} is not supported.");
             }
         }
     }

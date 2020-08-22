@@ -5,87 +5,12 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Komponent.IO.Attributes;
+using Komponent.IO.BinarySupport;
 
 namespace Komponent.IO
 {
     public static class Tools
     {
-        // Endian Swapping Support
-        //public static void AdjustByteOrder(Type type, byte[] buffer, ByteOrder byteOrder, int startOffset = 0)
-        //{
-        //    if (BitConverter.IsLittleEndian == (byteOrder == ByteOrder.LittleEndian)) return;
-
-        //    if (type.IsPrimitive)
-        //    {
-        //        if (type == typeof(short) || type == typeof(ushort) ||
-        //            type == typeof(int) || type == typeof(uint) ||
-        //            type == typeof(long) || type == typeof(ulong))
-        //        {
-        //            Array.Reverse(buffer);
-        //            return;
-        //        }
-        //    }
-
-        //    foreach (var field in type.GetFields())
-        //    {
-        //        var fieldType = field.FieldType;
-
-        //        // Ignore static fields
-        //        if (field.IsStatic) continue;
-
-        //        // Ignore the ByteOrder enum type or else we break byte order detection
-        //        if (fieldType.BaseType == typeof(Enum) && fieldType != typeof(ByteOrder))
-        //            fieldType = fieldType.GetFields()[0].FieldType;
-
-        //        // Swap bytes only for the following types
-        //        // TODO: Add missing types to this list
-        //        if (fieldType == typeof(short) || fieldType == typeof(ushort) ||
-        //            fieldType == typeof(int) || fieldType == typeof(uint) ||
-        //            fieldType == typeof(long) || fieldType == typeof(ulong))
-        //        {
-        //            var offset = Marshal.OffsetOf(type, field.Name).ToInt32();
-
-        //            // Enums
-        //            if (fieldType.IsEnum)
-        //                fieldType = Enum.GetUnderlyingType(fieldType);
-
-        //            // Check for sub-fields to recurse if necessary
-        //            var subFields = fieldType.GetFields().Where(subField => subField.IsStatic == false).ToArray();
-        //            var effectiveOffset = startOffset + offset;
-
-        //            if (subFields.Length == 0)
-        //                Array.Reverse(buffer, effectiveOffset, Marshal.SizeOf(fieldType));
-        //            else
-        //                AdjustByteOrder(fieldType, buffer, byteOrder, effectiveOffset);
-        //        }
-        //    }
-        //}
-
-        internal static bool IsList(Type type)
-        {
-            return typeof(IList).IsAssignableFrom(type);
-        }
-
-        internal static bool IsStruct(Type type)
-        {
-            return type.IsValueType && !type.IsEnum;
-        }
-
-        internal static Encoding RetrieveEncoding(StringEncoding strEnc)
-        {
-            switch (strEnc)
-            {
-                default:
-                case StringEncoding.ASCII: return Encoding.ASCII;
-                case StringEncoding.SJIS: return Encoding.GetEncoding("SJIS");
-                case StringEncoding.Unicode: return Encoding.Unicode;
-                case StringEncoding.UTF16: return Encoding.Unicode;
-                case StringEncoding.UTF32: return Encoding.UTF32;
-                case StringEncoding.UTF7: return Encoding.UTF7;
-                case StringEncoding.UTF8: return Encoding.UTF8;
-            }
-        }
-
         public static int MeasureType(Type type)
         {
             return MeasureType(type, null, null);
@@ -98,7 +23,6 @@ namespace Komponent.IO
 
         private static int MeasureType(Type type, MemberInfo field, string limit)
         {
-            //var typeAttributes = new MemberAttributeInfo(type);
             var fieldAttributes = field != null ? new MemberAttributeInfo(field) : null;
 
             if (fieldAttributes?.TypeChoiceAttributes.Any() ?? false)
@@ -152,17 +76,23 @@ namespace Komponent.IO
             if (attributes?.FixedLengthAttribute == null)
                 throw new InvalidOperationException("Strings without set length are not supported for static measurement");
 
-            var strEnc = attributes?.FixedLengthAttribute.StringEncoding;
-            var charSize = 0;
+            var strEnc = attributes.FixedLengthAttribute.StringEncoding;
+            int charSize;
             switch (strEnc)
             {
-                case StringEncoding.ASCII: charSize = 1; break;
-                case StringEncoding.UTF32: charSize = 4; break;
+                case StringEncoding.ASCII: 
+                    charSize = 1; 
+                    break;
+
+                case StringEncoding.UTF32: 
+                    charSize = 4; 
+                    break;
+
                 default:
                     throw new InvalidOperationException("Variable width encodings are not supported for static measurement");
             }
 
-            var length = attributes?.FixedLengthAttribute.Length ?? 0;
+            var length = attributes.FixedLengthAttribute.Length;
             return length * charSize;
         }
 
@@ -170,12 +100,14 @@ namespace Komponent.IO
         {
             if (attributes?.VariableLengthAttribute != null)
                 throw new InvalidOperationException("Variable size attributes are not supported for static measurement");
+            if(attributes?.CalculatedLengthAttribute!=null)
+                throw new InvalidOperationException("Calculated size attributes are not supported for static measurement");
             if (attributes?.FixedLengthAttribute == null)
-                throw new InvalidOperationException("Strings without set length are not supported for static measurement");
+                throw new InvalidOperationException("Lists without set length are not supported for static measurement");
 
-            Type ElementType = type.IsArray ? type.GetElementType() : type.GetGenericArguments()[0];
+            var elementType = type.IsArray ? type.GetElementType() : type.GetGenericArguments()[0];
 
-            return attributes?.FixedLengthAttribute.Length ?? 0 * MeasureType(ElementType);
+            return attributes.FixedLengthAttribute.Length * MeasureType(elementType);
         }
 
         private static int MeasureObject(Type type, string limit)
@@ -183,17 +115,42 @@ namespace Komponent.IO
             var objectName = limit != null ? Regex.Match(limit, "^[^.]*").Value : null;
             var newLimit = limit?.Contains(".") ?? false ? Regex.Replace(limit, "^[^.]*\\.", "") : null;
 
-            int totalLength = 0;
+            var totalLength = 0;
             foreach (var field in type.GetFields().OrderBy(fi => fi.MetadataToken))
             {
                 if (field.Name == objectName && string.IsNullOrEmpty(newLimit))
                     break;
+
                 totalLength += MeasureType(field.FieldType, field.CustomAttributes.Any() ? field : null, newLimit);
                 if (field.Name == objectName)
                     break;
             }
 
             return totalLength;
+        }
+
+        internal static bool IsList(Type type)
+        {
+            return typeof(IList).IsAssignableFrom(type);
+        }
+
+        internal static bool IsStruct(Type type)
+        {
+            return type.IsValueType && !type.IsEnum;
+        }
+
+        internal static Encoding RetrieveEncoding(StringEncoding strEnc)
+        {
+            switch (strEnc)
+            {
+                default: return Encoding.ASCII;
+                case StringEncoding.SJIS: return Encoding.GetEncoding("SJIS");
+                case StringEncoding.Unicode: return Encoding.Unicode;
+                case StringEncoding.UTF16: return Encoding.Unicode;
+                case StringEncoding.UTF32: return Encoding.UTF32;
+                case StringEncoding.UTF7: return Encoding.UTF7;
+                case StringEncoding.UTF8: return Encoding.UTF8;
+            }
         }
     }
 }

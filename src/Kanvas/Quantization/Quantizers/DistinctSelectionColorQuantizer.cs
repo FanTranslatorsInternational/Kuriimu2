@@ -1,117 +1,77 @@
-﻿using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Kanvas.Quantization.Models.ColorCache;
-using Kanvas.Quantization.Models.Parallel;
-using Kanvas.Quantization.Models.Quantizer;
+using Kanvas.MoreEnumerable;
 using Kanvas.Quantization.Models.Quantizer.DistinctSelection;
-using Kanvas.Support;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.Quantizers
 {
     /// <inheritdoc cref="IColorQuantizer"/>
     public class DistinctSelectionColorQuantizer : IColorQuantizer
     {
-        private int _colorCount;
-        private IColorCache _colorCache;
-        private ConcurrentDictionary<uint, DistinctColorInfo> _distinctColors;
+        private readonly int _colorCount;
+        private readonly int _taskCount;
 
-        #region IColorQuantizer
+        /// <inheritdoc />
+        public bool IsColorCacheFixed => false;
 
-        /// <inheritdoc cref="IColorQuantizer.UsesColorCache"/>
-        public bool UsesColorCache => true;
-
-        /// <inheritdoc cref="IColorQuantizer.UsesVariableColorCount"/>
+        /// <inheritdoc />
         public bool UsesVariableColorCount => true;
 
-        /// <inheritdoc cref="IColorQuantizer.SupportsAlpha"/>
+        /// <inheritdoc />
         public bool SupportsAlpha => false;
 
-        /// <inheritdoc cref="IColorQuantizer.AllowParallel"/>
-        public bool AllowParallel => true;
-
-        public int TaskCount { get; private set; } = 8;
-
-        /// <inheritdoc cref="IColorQuantizer.SetColorCache(IColorCache)"/>
-        public void SetColorCache(IColorCache colorCache)
-        {
-            _colorCache = colorCache;
-        }
-
-        /// <inheritdoc cref="IColorQuantizer.SetColorCount(int)"/>
-        public void SetColorCount(int colorCount)
+        public DistinctSelectionColorQuantizer(int colorCount, int taskCount)
         {
             _colorCount = colorCount;
+            _taskCount = taskCount;
         }
 
-        /// <inheritdoc cref="IColorQuantizer.SetParallelTasks(int)"/>
-        public void SetParallelTasks(int taskCount)
-        {
-            TaskCount = taskCount;
-        }
-
-        public IEnumerable<int> Process(IEnumerable<Color> colors)
-        {
-            var colorArray = colors.ToArray();
-
-            // Step 1: Create and cache palette
-            CreatePalette(colorArray);
-
-            // Step 2: Loop through original colors and get nearest match from cache
-            var indices = GetIndeces(colorArray);
-
-            return indices;
-        }
-
-        public int GetPaletteIndex(Color color)
-        {
-            return _colorCache.GetPaletteIndex(color);
-        }
-
-        public IList<Color> GetPalette()
-        {
-            return _colorCache.Palette;
-        }
-
-        #endregion
-
-        private void FillDistinctColors(Color[] colors)
-        {
-            _distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
-
-            void ProcessingAction(LineTask<Color[], ConcurrentDictionary<uint, DistinctColorInfo>> taskModel)
-            {
-                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-                {
-                    var color = Color.FromArgb(0xFF, taskModel.Input[i].R, taskModel.Input[i].G, taskModel.Input[i].B);
-                    taskModel.Output.AddOrUpdate((uint)color.ToArgb(), key => new DistinctColorInfo(color),
-                        (key, info) => info.IncreaseCount());
-                }
-            }
-
-            ParallelProcessing.ProcessList(colors, _distinctColors, ProcessingAction, TaskCount);
-        }
-
-        public void CreatePalette(IEnumerable<Color> colors)
+        /// <inheritdoc />
+        public IList<Color> CreatePalette(IEnumerable<Color> colors)
         {
             // Step 1: Filter out distinct colors
-            FillDistinctColors(colors.ToArray());
+            var distinctColors = FillDistinctColors(colors.ToArray());
 
             // Step 2: Filter colors by hue, saturation and brightness
             // Step 2.1: If color count not reached, take top(n) colors
-            var palette = FilterColorInfos();
+            var palette = FilterColorInfos(distinctColors);
 
-            // Step 3: Cache palette
-            _colorCache.CachePalette(palette);
+            // Step 3: Return palette
+            return palette;
         }
 
-        private List<Color> FilterColorInfos()
+        /// <inheritdoc />
+        public IColorCache GetFixedColorCache(IList<Color> palette)
         {
-            var colorInfoList = _distinctColors.Values.ToList();
+            throw new NotSupportedException();
+        }
+
+        private IDictionary<uint, DistinctColorInfo> FillDistinctColors(IList<Color> colors)
+        {
+            var distinctColors = new ConcurrentDictionary<uint, DistinctColorInfo>();
+
+            colors.AsParallel()
+                .WithDegreeOfParallelism(_taskCount)
+                .ForAll(c => AddOrUpdateDistinctColors(distinctColors, c));
+
+            return distinctColors;
+        }
+
+        private void AddOrUpdateDistinctColors(ConcurrentDictionary<uint, DistinctColorInfo> distinctColors, Color color)
+        {
+            distinctColors.AddOrUpdate((uint)color.ToArgb(),
+                key => new DistinctColorInfo(color),
+                (key, info) => info.IncreaseCount());
+        }
+
+        // TODO: Review method
+        private List<Color> FilterColorInfos(IDictionary<uint, DistinctColorInfo> distinctColors)
+        {
+            var colorInfoList = distinctColors.Values.ToList();
             var foundColorCount = colorInfoList.Count;
             var maxColorCount = _colorCount;
 
@@ -123,12 +83,18 @@ namespace Kanvas.Quantization.Quantizers
                 OrderBy(info => random.Next(foundColorCount)).
                 ToList();
 
-            DistinctColorInfo background = colorInfoList.MaxBy(info => info.Count);
+            var background = colorInfoList.MaxBy(info => info.Count);
             colorInfoList.Remove(background);
             maxColorCount--;
 
             // Filter by hue, saturation and brightness
-            var comparers = new List<IEqualityComparer<DistinctColorInfo>> { new ColorHueComparer(), new ColorSaturationComparer(), new ColorBrightnessComparer() };
+            var comparers = new List<IEqualityComparer<DistinctColorInfo>>
+            {
+                new ColorHueComparer(),
+                new ColorSaturationComparer(),
+                new ColorBrightnessComparer()
+            };
+
             while (ProcessList(maxColorCount, colorInfoList, comparers,
                 out colorInfoList))
             {
@@ -177,22 +143,6 @@ namespace Kanvas.Quantization.Quantizers
 
             comparers.Remove(bestComparer);
             return comparers.Count > 0 && maximalCount > colorCount;
-        }
-
-        private IEnumerable<int> GetIndeces(IEnumerable<Color> colors)
-        {
-            var colorList = colors.ToArray();
-            var indices = new int[colorList.Length];
-
-            void ProcessingAction(LineTask<Color[], int[]> taskModel)
-            {
-                for (int i = taskModel.Start; i < taskModel.Start + taskModel.Length; i++)
-                    taskModel.Output[i] = _colorCache.GetPaletteIndex(taskModel.Input[i]);
-            }
-
-            ParallelProcessing.ProcessList(colorList, indices, ProcessingAction, TaskCount);
-
-            return indices;
         }
 
         #region Equality Comparers

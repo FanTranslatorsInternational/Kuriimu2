@@ -1,34 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Font;
-using Kontract.Interfaces.Image;
-using Kontract.Interfaces.Intermediate;
-using Kontract.Interfaces.Text;
-using Kontract.Models;
+using Kanvas;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Kanvas;
 using Kontract.Models.Image;
-using Kore.Files;
+using Kore.Managers.Plugins;
+using Kore.Progress;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Kuriimu2.Wpf.Tools;
-using Microsoft.Win32;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
+    // TODO: Revise encoding selection and process
     public sealed class EncodeImageViewModel : Screen
     {
-        private readonly FileManager _fileManager;
-        private readonly IImageAdapter _adapter;
-        private readonly BitmapInfo _bitmapInfo;
+        private readonly PluginManager _pluginManager;
+        private readonly IImageState _state;
+        private readonly KanvasImage _kanvasImage;
 
-        private EncodingInfo _selectedEncoding;
+        private IEncodingInfo _selectedEncoding;
         private bool _controlsEnabled = true;
 
         private ImageSource _sourceImage;
@@ -45,14 +42,14 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public EncodeImageViewModel(FileManager fileManager, IImageAdapter adapter, BitmapInfo bitmapInfo)
+        public EncodeImageViewModel(PluginManager pluginManager, IImageState state, ImageInfo imageInfo)
         {
-            _fileManager = fileManager;
-            _adapter = adapter;
-            _bitmapInfo = bitmapInfo;
+            _pluginManager = pluginManager;
+            _state = state;
+            _kanvasImage = new KanvasImage(state, imageInfo);
 
-            SelectedEncoding = _bitmapInfo.ImageEncoding;
-            SourceImage = _bitmapInfo.Image.ToBitmapImage(true);
+            SelectedEncoding = state.SupportedEncodings[_kanvasImage.ImageFormat];
+            SourceImage = _kanvasImage.GetImage().ToBitmapImage();
             OutputImage = SourceImage;
         }
 
@@ -78,9 +75,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
-        public List<EncodingInfo> EncodingInfos => _adapter.ImageEncodingInfos.ToList();
-
-        public EncodingInfo SelectedEncoding
+        public IEncodingInfo SelectedEncoding
         {
             get => _selectedEncoding;
             set
@@ -108,28 +103,30 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public async void EncodeImage()
         {
-            var report = new Progress<ProgressReport>();
+            //var report = new ConcurrentProgress();
             //report.ProgressChanged += Report_ProgressChanged;
             ControlsEnabled = false;
 
             try
             {
-                ImageTranscodeResult result;
+                //_kanvasImage.TranscodeImage();
 
-                if (_adapter is IIndexedImageAdapter indexed && _selectedEncoding.IsIndexed)
-                {
-                    var ibi = _bitmapInfo as IndexedBitmapInfo;
-                    result = await indexed.TranscodeImage(_bitmapInfo, _selectedEncoding, ibi.PaletteEncoding, report);
-                }
-                else
-                {
-                    result = await _adapter.TranscodeImage(_bitmapInfo, _selectedEncoding, report);
-                }
+                //ImageTranscodeResult result;
 
-                if (result.Exception != null)
-                    throw result.Exception;
+                //if (_state is IIndexedImageAdapter indexed && _selectedEncoding.IsIndexed)
+                //{
+                //    var ibi = _kanvasImage as IndexedImageInfo;
+                //    result = await indexed.TranscodeImage(_kanvasImage, _selectedEncoding, ibi.PaletteEncoding, report);
+                //}
+                //else
+                //{
+                //    result = await _state.TranscodeImage(_kanvasImage, _selectedEncoding, report);
+                //}
 
-                OutputImage = result.Image.ToBitmapImage(true);
+                //if (result.Exception != null)
+                //    throw result.Exception;
+
+                //OutputImage = result.Image.ToBitmapImage(true);
             }
             catch (Exception ex)
             {

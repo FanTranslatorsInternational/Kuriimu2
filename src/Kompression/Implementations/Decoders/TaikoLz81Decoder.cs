@@ -1,13 +1,13 @@
 ﻿using System.IO;
-using Kompression.Configuration;
+using Komponent.IO;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Decoders
 {
     public class TaikoLz81Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
-
         private static int[] _counters =
         {
             1, 2, 3, 4,
@@ -58,9 +58,9 @@ namespace Kompression.Implementations.Decoders
 
         public void Decode(Stream input, Stream output)
         {
-            _circularBuffer=new CircularBuffer(0x8000);
+            var circularBuffer = new CircularBuffer(0x8000);
 
-            using (var br = new BitReader(input, BitOrder.LsbFirst, 1, ByteOrder.LittleEndian))
+            using (var br = new BitReader(input, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian))
             {
                 var initialByte = br.ReadBits<int>(8);
 
@@ -80,23 +80,23 @@ namespace Kompression.Implementations.Decoders
                     {
                         if (index == 0)
                         {
-                            DeobfuscateData(output,initialByte);
+                            DeobfuscateData(output, initialByte);
                             break;
                         }
 
                         // Match reading
-                        ReadCompressedData(br, output, dispIndexMapping, index);
+                        ReadCompressedData(br, output, circularBuffer, dispIndexMapping, index);
                     }
                     else
                     {
                         // Raw data reading
-                        ReadUncompressedData(br, output, rawValueMapping, index - 0x20);
+                        ReadUncompressedData(br, output, circularBuffer, rawValueMapping, index - 0x20);
                     }
                 }
             }
         }
 
-        private void ReadUncompressedData(BitReader br, Stream output, TaikoLz81Tree rawValueMapping, int index)
+        private void ReadUncompressedData(BitReader br, Stream output, CircularBuffer circularBuffer, TaikoLz81Tree rawValueMapping, int index)
         {
             var counter = _counters[index];
             if (_counterBitReads[index] != 0)
@@ -110,11 +110,11 @@ namespace Kompression.Implementations.Decoders
                 var rawValue = (byte)rawValueMapping.ReadValue(br);
 
                 output.WriteByte(rawValue);
-                _circularBuffer.WriteByte(rawValue);
+                circularBuffer.WriteByte(rawValue);
             }
         }
 
-        private void ReadCompressedData(BitReader br, Stream output, TaikoLz81Tree dispIndexMapping, int index)
+        private void ReadCompressedData(BitReader br, Stream output, CircularBuffer circularBuffer, TaikoLz81Tree dispIndexMapping, int index)
         {
             // Max displacement 0x8000; Min displacement 2
             // Max length 0x102; Min length 1
@@ -131,7 +131,7 @@ namespace Kompression.Implementations.Decoders
             if (length == 0)
                 return;
 
-            _circularBuffer.Copy(output,displacement,length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
         private void DeobfuscateData(Stream output, int initialByte)
@@ -164,8 +164,6 @@ namespace Kompression.Implementations.Decoders
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
-            _circularBuffer = null;
         }
     }
 

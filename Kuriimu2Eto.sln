@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28729.10
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2Eto", "src\Kuriimu2.Eto\Kuriimu2.Eto\Kuriimu2.Eto.csproj", "{3EC88CAB-FC79-4CE0-A400-BBCFB66B90FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2Eto.Gtk", "src\Kuriimu2.Eto\Kuriimu2.Eto.Gtk\Kuriimu2.Eto.Gtk.csproj", "{BF58CD22-D181-4DE1-92DE-268838FFCEDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2Eto.Mac", "src\Kuriimu2.Eto\Kuriimu2.Eto.Mac\Kuriimu2.Eto.Mac.csproj", "{C00BE385-A275-4EC3-84FC-91552BC5DD95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2Eto.Wpf", "src\Kuriimu2.Eto\Kuriimu2.Eto.Wpf\Kuriimu2.Eto.Wpf.csproj", "{B17A9A5F-AEBD-42E8-8295-B6D5F9C44484}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2Eto.WinForms", "src\Kuriimu2.Eto\Kuriimu2.Eto.WinForms\Kuriimu2.Eto.WinForms.csproj", "{088537C5-2ADE-4B69-9DD7-679B00C3EB25}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3EC88CAB-FC79-4CE0-A400-BBCFB66B90FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EC88CAB-FC79-4CE0-A400-BBCFB66B90FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EC88CAB-FC79-4CE0-A400-BBCFB66B90FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EC88CAB-FC79-4CE0-A400-BBCFB66B90FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF58CD22-D181-4DE1-92DE-268838FFCEDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF58CD22-D181-4DE1-92DE-268838FFCEDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF58CD22-D181-4DE1-92DE-268838FFCEDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF58CD22-D181-4DE1-92DE-268838FFCEDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C00BE385-A275-4EC3-84FC-91552BC5DD95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C00BE385-A275-4EC3-84FC-91552BC5DD95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C00BE385-A275-4EC3-84FC-91552BC5DD95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C00BE385-A275-4EC3-84FC-91552BC5DD95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B17A9A5F-AEBD-42E8-8295-B6D5F9C44484}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B17A9A5F-AEBD-42E8-8295-B6D5F9C44484}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B17A9A5F-AEBD-42E8-8295-B6D5F9C44484}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B17A9A5F-AEBD-42E8-8295-B6D5F9C44484}.Release|Any CPU.Build.0 = Release|Any CPU
+		{088537C5-2ADE-4B69-9DD7-679B00C3EB25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{088537C5-2ADE-4B69-9DD7-679B00C3EB25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{088537C5-2ADE-4B69-9DD7-679B00C3EB25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{088537C5-2ADE-4B69-9DD7-679B00C3EB25}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {47857121-F23B-4FD1-B3FD-23A0B03BB92D}
+	EndGlobalSection
+EndGlobal

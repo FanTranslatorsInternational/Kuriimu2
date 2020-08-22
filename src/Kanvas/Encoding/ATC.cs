@@ -1,77 +1,73 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using Kanvas.Encoding.Support.ATC;
-using Kanvas.Encoding.Support.ATC.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
-using Kanvas.Support;
+using System.Linq;
+using Kanvas.Encoding.Base;
+using Kanvas.Encoding.BlockCompressions.ATC;
+using Kanvas.Encoding.BlockCompressions.ATC.Models;
+using Kanvas.Encoding.BlockCompressions.BCn.Models;
+using Komponent.IO;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
     /// <summary>
-    /// Defines the ATC encoding.
+    /// Defines the Atc encoding.
     /// </summary>
-    public class ATC : IColorEncoding
+    public class Atc : BlockCompressionEncoding<AtcBlockData>
     {
-        private readonly AlphaMode _alphaMode;
+        private readonly AtcTranscoder _transcoder;
+        private readonly bool _hasSecondBlock;
 
-        /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
-        public bool IsBlockCompression => true;
+        public override int BitDepth { get; }
 
-        /// <inheritdoc cref="IColorEncoding.BitDepth"/>
-        public int BitDepth { get; }
+        public override int BitsPerValue { get; protected set; }
 
-        /// <summary>
-        /// The number of bits one block contains of.
-        /// </summary>
-        public int BlockBitDepth { get; }
+        public override int ColorsPerValue => 16;
 
-        /// <inheritdoc cref="IColorEncoding.FormatName"/>
-        public string FormatName { get; }
+        public override string FormatName { get; }
 
-        /// <summary>
-        /// Byte order to use to read the values.
-        /// </summary>
-        public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
-
-        public ATC(AlphaMode alphaMode)
+        public Atc(AtcFormat format, ByteOrder byteOrder) : base(byteOrder)
         {
-            BitDepth = (alphaMode != AlphaMode.None) ? 8 : 4;
-            BlockBitDepth = (alphaMode != AlphaMode.None) ? 128 : 64;
+            _transcoder = new AtcTranscoder(format);
+            _hasSecondBlock = HasSecondBlock(format);
 
-            _alphaMode = alphaMode;
+            BitDepth = BitsPerValue = _hasSecondBlock ? 128 : 64;
 
-            FormatName = "ATC_RGB" + ((alphaMode != AlphaMode.None) ? (alphaMode == AlphaMode.Interpolated) ? "A Interpolated" : "A Explicit" : "");
+            FormatName = format.ToString();
         }
 
-        public IEnumerable<Color> Load(byte[] tex)
+        protected override AtcBlockData ReadNextBlock(BinaryReaderX br)
         {
-            var atcDecoder = new Decoder(_alphaMode);
+            var block1 = br.ReadUInt64();
+            var block2 = _hasSecondBlock ? br.ReadUInt64() : ulong.MaxValue;
 
-            using (var br = new BinaryReader(new MemoryStream(tex)))
-                while (true)
-                    yield return atcDecoder.Get(() =>
-                    {
-                        var alpha = _alphaMode != AlphaMode.None ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : 0;
-                        return (alpha, Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder));
-                    });
+            return new AtcBlockData
+            {
+                Block1 = block1,
+                Block2 = block2
+            };
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        protected override void WriteNextBlock(BinaryWriterX bw, AtcBlockData block)
         {
-            var atcEncoder = new Encoder(_alphaMode);
+            bw.Write(block.Block1);
+            if (_hasSecondBlock) bw.Write(block.Block2);
+        }
 
-            var ms = new MemoryStream();
-            using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))
-                foreach (var color in colors)
-                    atcEncoder.Set(color, data =>
-                    {
-                        if (_alphaMode != AlphaMode.None) bw.Write(Convert.ToByteArray(data.alpha, 8, ByteOrder));
-                        bw.Write(Convert.ToByteArray(data.block, 8, ByteOrder));
-                    });
+        protected override IList<Color> DecodeNextBlock(AtcBlockData block)
+        {
+            return _transcoder.DecodeBlocks(block).ToList();
+        }
 
-            return ms.ToArray();
+        protected override AtcBlockData EncodeNextBlock(IList<Color> colors)
+        {
+            return _transcoder.EncodeColors(colors);
+        }
+
+        private bool HasSecondBlock(AtcFormat format)
+        {
+            return format == AtcFormat.ATCA_Exp ||
+                   format == AtcFormat.ATCA_Int;
         }
     }
 }

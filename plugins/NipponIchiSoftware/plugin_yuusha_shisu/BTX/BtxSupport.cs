@@ -1,7 +1,33 @@
-﻿using Komponent.IO.Attributes;
+﻿using System.Collections.Generic;
+using Kanvas.Encoding;
+using Komponent.IO.Attributes;
+using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace plugin_yuusha_shisu.BTX
 {
+    public static class BtxSupport
+    {
+        public static IDictionary<int, IColorEncoding> Encodings = new Dictionary<int, IColorEncoding>
+        {
+            [0] = new Rgba(8, 8, 8, 8, ByteOrder.BigEndian)
+        };
+
+        public static IDictionary<int, (IIndexEncoding, IList<int>)> IndexEncodings = new Dictionary<int, (IIndexEncoding, IList<int>)>
+        {
+            [5] = (new Index(8), new[] { 5 })
+        };
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static Dictionary<int, IColorEncoding> PaletteEncodings = new Dictionary<int, IColorEncoding>
+        {
+            [5] = new Rgba(8, 8, 8, 8, ByteOrder.BigEndian),
+            [6] = new La(6, 2)
+        };
+    }
+
     /// <summary>
     /// 
     /// </summary>

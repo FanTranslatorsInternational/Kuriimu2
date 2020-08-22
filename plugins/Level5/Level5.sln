@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Level5", "Level5\Level5.csproj", "{7E893A1C-09BE-4325-A2B8-26A32D5FF3D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Level5", "plugin_level5\plugin_level5.csproj", "{7E893A1C-09BE-4325-A2B8-26A32D5FF3D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

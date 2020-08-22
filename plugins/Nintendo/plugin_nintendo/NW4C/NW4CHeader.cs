@@ -1,5 +1,5 @@
-﻿using Komponent.IO;
-using Komponent.IO.Attributes;
+﻿using Komponent.IO.Attributes;
+using Kontract.Models.IO;
 
 namespace plugin_nintendo.NW4C
 {

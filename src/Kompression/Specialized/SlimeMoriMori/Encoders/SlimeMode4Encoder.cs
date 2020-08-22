@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using Kompression.IO;
-using Kompression.Models;
+using Komponent.IO;
 using Kompression.Specialized.SlimeMoriMori.ValueWriters;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Specialized.SlimeMoriMori.Encoders
 {

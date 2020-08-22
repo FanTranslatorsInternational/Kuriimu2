@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
+using Kontract.Interfaces.Plugins.State;
 using Kuriimu2.Wpf.Dialogs.Common;
 
 namespace Kuriimu2.Wpf.Dialogs.ViewModels

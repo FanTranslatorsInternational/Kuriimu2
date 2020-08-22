@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\..\src\Kontract\Kontract.csproj" />
   </ItemGroup>
 
   <ItemGroup>

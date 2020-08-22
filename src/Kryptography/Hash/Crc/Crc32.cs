@@ -1,10 +1,14 @@
 ﻿using System;
 using System.IO;
 
+#if NET_CORE_31
+using System.Buffers.Binary;
+#endif
+
 // https://github.com/Michaelangel007/crc32
 namespace Kryptography.Hash.Crc
 {
-    public class Crc32
+    public class Crc32 : IHash
     {
         #region Statics and Constants
 
@@ -133,7 +137,7 @@ namespace Kryptography.Hash.Crc
             _formula = formula;
         }
 
-        public uint Compute(Stream input)
+        public byte[] Compute(Stream input)
         {
             var returnCrc = 0xFFFFFFFF;
 
@@ -146,16 +150,19 @@ namespace Kryptography.Hash.Crc
             } while (readSize > 0);
 
             if (_formula == Crc32Formula.Reflected)
-                return ~returnCrc;
-            return ~ReverseBits(returnCrc);
+                return MakeResult(~returnCrc);
+
+            return MakeResult(~ReverseBits(returnCrc));
         }
 
-        public uint Compute(byte[] input)
+        public byte[] Compute(byte[] input)
         {
-            var result= ComputeInternal(input, 0, input.Length, 0xFFFFFFFF);
+            var result = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF);
+
             if (_formula == Crc32Formula.Reflected)
-                return ~result;
-            return ~ReverseBits(result);
+                return MakeResult(~result);
+
+            return MakeResult(~ReverseBits(result));
         }
 
         private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc)
@@ -193,6 +200,22 @@ namespace Kryptography.Hash.Crc
             }
 
             return result;
+        }
+
+        private byte[] MakeResult(uint result)
+        {
+            var returnBuffer = new byte[4];
+
+#if NET_CORE_31
+            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
+#else
+            returnBuffer[0] = (byte)(result >> 24);
+            returnBuffer[1] = (byte)(result >> 16);
+            returnBuffer[2] = (byte)(result >> 8);
+            returnBuffer[3] = (byte)result;
+#endif
+
+            return returnBuffer;
         }
     }
 }

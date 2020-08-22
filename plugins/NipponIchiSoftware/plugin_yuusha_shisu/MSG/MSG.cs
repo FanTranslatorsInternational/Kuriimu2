@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
-using Kontract.Interfaces.Text;
+using Kontract.Models.Text;
 
 namespace plugin_yuusha_shisu.MSG
 {
@@ -18,29 +16,17 @@ namespace plugin_yuusha_shisu.MSG
         /// </summary>
         private MSGContent _content;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<TextEntry> Entries;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="input"></param>
-        public MSG(Stream input)
+        public TextEntry Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
                 // Read
                 _content = br.ReadType<MSGContent>();
-                Entries = new List<TextEntry>
+                return new TextEntry
                 {
-                    new TextEntry
-                    {
-                        Name = "content",
-                        EditedText = _content.Content,
-                        OriginalText = _content.Content
-                    }
+                    Name = "content",
+                    EditedText = _content.Content,
+                    OriginalText = _content.Content
                 };
             }
         }
@@ -49,12 +35,12 @@ namespace plugin_yuusha_shisu.MSG
         /// 
         /// </summary>
         /// <param name="output"></param>
-        public void Save(Stream output)
+        public void Save(Stream output, TextEntry entry)
         {
             using (var bw = new BinaryWriterX(output, true))
             {
-                _content.CharacterCount = (short) Entries.First().EditedText.Trim().Length;
-                _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(Entries.First().EditedText);
+                _content.CharacterCount = (short)entry.EditedText.Trim().Length;
+                _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(entry.EditedText);
                 bw.WriteType(_content);
                 bw.Write((byte)0x0);
             }

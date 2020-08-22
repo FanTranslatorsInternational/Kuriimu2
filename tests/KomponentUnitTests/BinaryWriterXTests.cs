@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kontract.Models.IO;
 
 namespace KomponentUnitTests
 {
@@ -107,7 +108,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream();
 
-            using (var bw = new BinaryWriterX(ms, true, ByteOrder.LittleEndian, BitOrder.MSBFirst, 2))
+            using (var bw = new BinaryWriterX(ms, true, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
             {
                 bw.WriteBit(true);
                 bw.Flush();
@@ -123,7 +124,7 @@ namespace KomponentUnitTests
                 0x00, 0x80, 0x00, 0x01
             };
             var ms2 = new MemoryStream();
-            using (var bw = new BinaryWriterX(ms2, ByteOrder.LittleEndian, BitOrder.LowestAddressFirst, 2))
+            using (var bw = new BinaryWriterX(ms2, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.LowestAddressFirst, 2))
             {
                 bw.WriteBit(false);
                 bw.WriteBits(0, 14);
@@ -155,7 +156,7 @@ namespace KomponentUnitTests
             [BitField(6)]
             public byte exp7;
 
-            [BitFieldInfo(BitOrder = BitOrder.LSBFirst, BlockSize = 2)]
+            [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 2)]
             public class TestClass2
             {
                 [BitField(5)]
@@ -253,7 +254,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream();
 
-            using (var bw = new BinaryWriterX(ms, ByteOrder.LittleEndian, BitOrder.MSBFirst, 2))
+            using (var bw = new BinaryWriterX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
             {
                 bw.WriteNibble(0x4);
                 bw.WriteBits(0x1F, 5);

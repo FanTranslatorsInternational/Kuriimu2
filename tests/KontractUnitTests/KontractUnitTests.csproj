@@ -50,18 +50,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="filesystem\Class6.cs" />
-    <Compile Include="filesystem\folder1\Class1.cs" />
-    <Compile Include="filesystem\folder2\Class2.cs" />
-    <Compile Include="filesystem\folder2\Class3.cs" />
-    <Compile Include="filesystem\folder2\subfolder1_2\Class4.cs" />
-    <Compile Include="filesystem\folder3\subfolder1_3\Class5.cs" />
-    <Compile Include="FsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="filesystem\folder1\subfolder1_1\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="packages.config">
       <SubType>Designer</SubType>

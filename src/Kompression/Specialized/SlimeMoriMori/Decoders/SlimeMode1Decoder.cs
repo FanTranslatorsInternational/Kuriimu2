@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using Komponent.IO;
 using Kompression.IO;
 using Kompression.Specialized.SlimeMoriMori.ValueReaders;
+using Kontract.Models.IO;
 
 namespace Kompression.Specialized.SlimeMoriMori.Decoders
 {
@@ -12,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori.Decoders
 
         public override void Decode(Stream input, Stream output)
         {
-            using (var br = new BitReader(input, BitOrder.MsbFirst, 4, ByteOrder.LittleEndian))
+            using (var br = new BitReader(input, BitOrder.MostSignificantBitFirst, 4, ByteOrder.LittleEndian))
             {
                 var uncompressedSize = br.ReadInt32() >> 8;
                 br.ReadByte();

@@ -1,6 +1,5 @@
 ﻿using System;
-using Kompression.Interfaces;
-using Kompression.Models;
+using Kontract.Kompression;
 
 namespace Kompression.Specialized.SlimeMoriMori
 {
@@ -15,7 +14,7 @@ namespace Kompression.Specialized.SlimeMoriMori
             _huffmanMode = huffmanMode;
         }
 
-        public int CalculateLiteralPrice(IMatchState state, int position, int value)
+        public int CalculateLiteralPrice(int value, int literalRunLength, bool firstLiteralRun)
         {
             // 1 flag bit
             // n bit value (huffman approximation)
@@ -23,14 +22,16 @@ namespace Kompression.Specialized.SlimeMoriMori
             {
                 case 1:
                     return 4;
+
                 case 2:
                     return 7;
+
                 default:
                     return 9;
             }
         }
 
-        public int CalculateMatchPrice(IMatchState state, int position, int displacement, int length)
+        public int CalculateMatchPrice(int displacement, int length, int matchRunLength, int firstValue)
         {
             switch (_compressionMode)
             {
@@ -40,6 +41,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     // 3 bit displacement approximation
                     // 4 bits match length
                     return 10;
+
                 case 2:
                     if (length > 18)
                     {
@@ -72,6 +74,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // approximate displacement with 3 bits
                         return 1 + 3 + 4 + 3;
                     }
+
                 case 3:
                     if (length > 18)
                     {
@@ -104,6 +107,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // approximate displacement with 3 bits
                         return 1 + 2 + 3 + 3;
                     }
+
                 case 5:
                     if (displacement == 0)
                         // 2 flag bits
@@ -115,6 +119,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                         // approximate displacement with 3 bits
                         // 6 bits match length
                         return 2 + 3 + 6;
+
                 default:
                     throw new InvalidOperationException("Compression mode not supported for price calculation.");
             }

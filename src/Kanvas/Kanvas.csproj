@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <LangVersion>8</LangVersion>
+    <Version>2.0.8</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>Kuriimu2.Kanvas</PackageId>
-    <PackageVersion>2.0.7</PackageVersion>
+    <PackageId>Kanvas</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
     <Authors>IcySon55;onepiecefreak</Authors>
     <Company>Fan Translators International</Company>
     <Product>Kanvas</Product>
@@ -16,11 +22,16 @@
     <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>Image, Transcoding, Quantization, Kuriimu2</PackageTags>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Configuration\ImageTranscoder.cs~RF3e6be8fe.TMP" />
     <None Remove="lib\astcenc.dll" />
     <None Remove="lib\PVRTexLib.dll" />
     <None Remove="lib\PVRTexLibWrapper.dll" />
@@ -44,12 +55,12 @@
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <DefineConstants>NET_CORE_30</DefineConstants>
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <DefineConstants>NET_CORE_31</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,6 +73,11 @@
     <Content Include="lib\PVRTexLibWrapper.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using Kanvas.Encoding.Support.ASTC;
-using Kanvas.Encoding.Support.ASTC.KTX;
-using Kanvas.Encoding.Support.ASTC.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
-using Convert = Kanvas.Support.Convert;
+using Kanvas.Encoding.BlockCompressions.ASTC;
+using Kanvas.Encoding.BlockCompressions.ASTC.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS;
+using Komponent.IO;
+using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
@@ -18,6 +17,8 @@ namespace Kanvas.Encoding
     /// </summary>
     public class ASTC : IColorEncodingKnownDimensions
     {
+        private readonly AstcBlockDecoder _decoder;
+
         private readonly int _xDim;
         private readonly int _yDim;
         private readonly int _zDim;
@@ -25,6 +26,10 @@ namespace Kanvas.Encoding
 
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
+
+        public int BitsPerValue { get; }
+
+        public int ColorsPerValue { get; }
 
         /// <summary>
         /// The number of bits one block contains of.
@@ -43,75 +48,76 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncodingKnownDimensions.Height"/>
         public int Height { private get; set; } = -1;
 
-        /// <summary>
-        /// Byte order to use to read the values.
-        /// </summary>
-        public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
-
         public ASTC(int xdim, int ydim) : this(xdim, ydim, 1)
         {
         }
 
         public ASTC(int xdim, int ydim, int zdim)
         {
-            BitDepth = -1;
-            BlockBitDepth = 128;
-
-            var modeName = CreateName(xdim, ydim, zdim);
-            if (!Enum.TryParse(modeName, out _blockMode))
-                throw new InvalidDataException($"Block mode {modeName} is not supported.");
-
             _xDim = xdim;
             _yDim = ydim;
             _zDim = zdim;
+            _decoder = new AstcBlockDecoder(xdim, ydim, zdim);
 
-            FormatName = modeName;
+            BitDepth = -1;
+            BlockBitDepth = BitsPerValue = 128;
+            ColorsPerValue = xdim * ydim * zdim;
+
+            FormatName = $"ASTC{xdim}x{ydim}" + (zdim > 1 ? $"x{zdim}" : "");
+            if (!Enum.TryParse(FormatName, out _blockMode))
+                throw new InvalidDataException($"Block mode {FormatName} is not supported.");
         }
 
-        private string CreateName(int xdim, int ydim, int zdim)
+        public IEnumerable<Color> Load(byte[] tex, int taskCount)
         {
-            return $"ASTC{xdim}x{ydim}" + ((zdim > 1) ? $"x{zdim}" : "");
-        }
+            // TODO: Use block compression base class
 
-        public IEnumerable<Color> Load(byte[] tex)
-        {
-            if (Width <= 0 || Height <= 0)
-                throw new InvalidDataException("Height and Width has to be set for ASTC.");
+            using (var br = new BinaryReaderX(new MemoryStream(tex)))
+            {
+                while (br.BaseStream.Position < br.BaseStream.Length)
+                    foreach (var color in _decoder.DecodeBlocks(br.ReadBytes(16)))
+                        yield return color;
+            }
 
-            CreateTempASTCFile("tmp.astc", tex);
+            //if (Width <= 0 || Height <= 0)
+            //    throw new InvalidDataException("Height and Width has to be set for ASTC.");
 
-            var wrapper = new ASTCContext();
-            wrapper.Decode("tmp.astc", "tmp.ktx", _blockMode);
-            File.Delete("tmp.astc");
+            //CreateTempASTCFile("tmp.astc", tex);
 
-            var ktx = new KTXWrapper("tmp.ktx");
-            var colors = ktx.GetImageColors().Reverse().ToList();
-            ktx.Dispose();
+            //var wrapper = new ASTCContext();
+            //wrapper.Decode("tmp.astc", "tmp.ktx", _blockMode);
+            //File.Delete("tmp.astc");
 
-            //File.Delete("tmp.ktx");
+            //var ktx = new KTXWrapper("tmp.ktx");
+            //var colors = ktx.GetImageColors().Reverse().ToList();
+            //ktx.Dispose();
 
-            return colors;
+            ////File.Delete("tmp.ktx");
+
+            //return colors;
         }
 
         private void CreateTempASTCFile(string astcFile, byte[] texData)
         {
             var astc = File.Create(astcFile);
+
             using (var bw = new BinaryWriter(astc, System.Text.Encoding.ASCII, true))
             {
                 bw.Write(0x5CA1AB13);   // magic val
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
-                bw.Write(Convert.ToByteArray(Width, 3, ByteOrder));
-                bw.Write(Convert.ToByteArray(Height, 3, ByteOrder));
-                bw.Write(Convert.ToByteArray(1, 3, ByteOrder));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Width, 3, ByteOrder.LittleEndian));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(Height, 3, ByteOrder.LittleEndian));
+                bw.Write(Kanvas.Support.Conversion.ToByteArray(1, 3, ByteOrder.LittleEndian));
                 bw.Write(texData);
             }
+
             astc.Dispose();
             astc.Close();
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             if (Width <= 0 || Height <= 0)
                 throw new InvalidDataException("Height and Width has to be set for ASTC.");

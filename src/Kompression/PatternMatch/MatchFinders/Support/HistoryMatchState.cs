@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Kompression.Configuration;
-using Kompression.Models;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchFinders.Support
 {
@@ -11,29 +11,55 @@ namespace Kompression.PatternMatch.MatchFinders.Support
     /// </summary>
     public class HistoryMatchState : IDisposable
     {
-        private int _previousPosition = -1;
+        private readonly Func<byte[], int, int> _readValue;
+        private readonly Func<byte[], int, int, int, int, int> _calculateMatchSize;
+        private readonly int _unitSize;
 
-        private int _windowPos;
-        private int _windowLen;
-
+        private readonly int _valueLength;
         private int[] _offsetTable;
-        private int[] _reversedOffsetTable;
-
-        private int[] _byteTable = Enumerable.Repeat(-1, 256).ToArray();
-        private int[] _endTable = Enumerable.Repeat(-1, 256).ToArray();
 
         private FindLimitations _limits;
-        private FindOptions _options;
 
         /// <summary>
         /// Creates a new instance of <see cref="HistoryMatchState"/>.
         /// </summary>
+        /// <param name="input">The input this match represents.</param>
+        /// <param name="startPosition">The position at which to start pre process.</param>
         /// <param name="limits">The limits to search sequences in.</param>
-        /// <param name="options">The options to search sequences with.</param>
-        public HistoryMatchState(FindLimitations limits, FindOptions options)
+        /// <param name="unitSize">The size of a unit to be matched.</param>
+        public HistoryMatchState(byte[] input, int startPosition, FindLimitations limits, UnitSize unitSize)
         {
             _limits = limits;
-            _options = options;
+
+            _valueLength = Math.Min(3, limits.MinLength);
+            switch (_valueLength)
+            {
+                case 3:
+                    _readValue = ReadValue3;
+                    break;
+
+                case 2:
+                    _readValue = ReadValue2;
+                    break;
+
+                default:
+                    _readValue = ReadValue1;
+                    break;
+            }
+
+            _unitSize = (int)unitSize;
+            switch (unitSize)
+            {
+                case UnitSize.Byte:
+                    _calculateMatchSize = CalculateMatchSizeByte;
+                    break;
+
+                case UnitSize.Short:
+                    _calculateMatchSize = CalculateMatchSizeShort;
+                    break;
+            }
+
+            PrepareOffsetTable(input, startPosition);
         }
 
         /// <summary>
@@ -42,162 +68,125 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// <param name="input">The input data.</param>
         /// <param name="position">The position to search from.</param>
         /// <returns>All matches found at this position.</returns>
-        public IEnumerable<Match> FindMatchesAtPosition(byte[] input, int position)
+        public AggregateMatch FindMatchesAtPosition(byte[] input, int position)
         {
+            if (input.Length - position < _unitSize)
+                return null;
+
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
             var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
 
-            _offsetTable = new int[maxDisplacement];
-            _reversedOffsetTable = new int[maxDisplacement];
-
-            if (_previousPosition == -1)
-            {
-                for (var i = 0; i < position; i += (int)_options.UnitSize)
-                    SlideByte(input, i);
-            }
-            else
-            {
-                for (var i = 0; i < position - _previousPosition; i += (int)_options.UnitSize)
-                    SlideByte(input, _previousPosition + i);
-            }
-            _previousPosition = position;
+            var minValueLength = Math.Min(3, _limits.MinLength);
 
             var cappedLength = Math.Min(input.Length - position, maxLength);
 
             if (cappedLength < _limits.MinLength)
-                yield break;
+                return null;
 
-            var size = _limits.MinLength - 1;
-            for (var nOffset = _endTable[input[position]]; nOffset != -1; nOffset = _reversedOffsetTable[nOffset])
+            var result = new List<(int, int)>();
+            var longestMatchSize = _limits.MinLength - 1;
+            for (var matchOffset = _offsetTable[position];
+                matchOffset != -1 && position - matchOffset <= maxDisplacement;
+                matchOffset = _offsetTable[matchOffset])
             {
-                var search = position + nOffset - _windowPos;
-                if (nOffset >= _windowPos)
-                {
-                    search -= _windowLen;
-                }
+                // If longest match already goes to end of file
+                if(position + longestMatchSize >= input.Length)
+                    break;
 
-                if (position - search < Math.Min(_limits.MinLength, _limits.MinDisplacement))
+                // Check if match and current position have min distance to each other
+                if (position - matchOffset < _limits.MinDisplacement)
                     continue;
 
-                var isMatch = true;
-                for (var i = 1; i < _limits.MinLength; i++)
-                    if (input[search + i] != input[position + i])
-                    {
-                        isMatch = false;
-                        break;
-                    }
-                if (!isMatch)
+                // Check last value of longest match position
+                if (longestMatchSize >= _limits.MinLength &&
+                    input[position + longestMatchSize] != input[matchOffset + longestMatchSize])
                     continue;
 
+                // Calculate the length of a match
                 var nMaxSize = cappedLength;
-                var nCurrentSize = _limits.MinLength;
-                switch (_options.UnitSize)
-                {
-                    case UnitSize.Byte:
-                        while (nCurrentSize < nMaxSize)
-                        {
-                            if (input[search + nCurrentSize] != input[position + nCurrentSize])
-                                break;
-                            nCurrentSize++;
-                        }
-                        break;
-                    case UnitSize.Short:
-                        while (nCurrentSize < nMaxSize)
-                        {
-                            if (input[search + nCurrentSize] != input[position + nCurrentSize] ||
-                                input[search + nCurrentSize + 1] != input[position + nCurrentSize + 1])
-                                break;
-                            nCurrentSize += 2;
-                        }
-                        break;
-                    default:
-                        throw new InvalidOperationException($"UnitSize '{_options.UnitSize}' is not supported.");
-                }
+                var matchSize = _calculateMatchSize(input, position, matchOffset, minValueLength, nMaxSize);
 
-                if (nCurrentSize > size)
+                if (matchSize > longestMatchSize)
                 {
                     // Return all matches up to the longest
-                    yield return new Match(position,position-search,nCurrentSize);
+                    result.Add((position - matchOffset, matchSize));
 
-                    size = nCurrentSize;
-                    if (size == cappedLength)
-                        yield break;
+                    longestMatchSize = matchSize;
+                    if (longestMatchSize == cappedLength)
+                        break;
                 }
             }
 
-            //if (size < _limits.MinLength || foundDisplacement < _limits.MinDisplacement)
-            //    yield break;
-
-            //yield return new Match(position, foundDisplacement, size);
+            return new AggregateMatch(result);
         }
 
-        private void SlideByte(byte[] input, int position)
+        private void PrepareOffsetTable(byte[] input, int startPosition)
         {
-            var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
+            _offsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
+            var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength)).ToArray();
 
-            byte uInData = input[position];
-            int uInsertOffset;
-
-            if (_windowLen == maxDisplacement)
+            for (var i = startPosition; i < input.Length - _valueLength; i+=_unitSize)
             {
-                var uOutData = input[position - maxDisplacement];
+                var value = _readValue(input, i);
 
-                if ((_byteTable[uOutData] = _offsetTable[_byteTable[uOutData]]) == -1)
-                {
-                    _endTable[uOutData] = -1;
-                }
-                else
-                {
-                    _reversedOffsetTable[_byteTable[uOutData]] = -1;
-                }
+                if (valueTable[value] != -1)
+                    _offsetTable[i] = valueTable[value];
 
-                uInsertOffset = _windowPos;
-            }
-            else
-            {
-                uInsertOffset = _windowLen;
-            }
-
-            var nOffset = _endTable[uInData];
-            if (nOffset == -1)
-            {
-                _byteTable[uInData] = uInsertOffset;
-            }
-            else
-            {
-                _offsetTable[nOffset] = uInsertOffset;
-            }
-
-            _endTable[uInData] = uInsertOffset;
-            _offsetTable[uInsertOffset] = -1;
-            _reversedOffsetTable[uInsertOffset] = nOffset;
-
-            if (_windowLen == maxDisplacement)
-            {
-                _windowPos += (int)_options.UnitSize;
-                _windowPos %= maxDisplacement;
-            }
-            else
-            {
-                _windowLen += (int)_options.UnitSize;
+                valueTable[value] = i;
             }
         }
 
-        #region Dispose
+        private static int ReadValue1(byte[] input, int position)
+        {
+            return input[position];
+        }
 
-        /// <inheritdoc cref="Dispose()"/>
+        private static int ReadValue2(byte[] input, int position)
+        {
+            return (input[position] << 8) | input[position + 1];
+        }
+
+        private static int ReadValue3(byte[] input, int position)
+        {
+            return (input[position] << 16) | (input[position + 1] << 8) | input[position + 2];
+        }
+
+        private int CalculateMatchSizeByte(byte[] input, int inputPosition, int searchPosition, int minSize, int maxSize)
+        {
+            while (minSize < maxSize)
+            {
+                if (input[searchPosition + minSize] != input[inputPosition + minSize])
+                    break;
+
+                minSize++;
+            }
+
+            return minSize;
+        }
+
+        private int CalculateMatchSizeShort(byte[] input, int inputPosition, int searchPosition, int minSize, int maxSize)
+        {
+            while (minSize < maxSize)
+            {
+                if (input.Length - (inputPosition + minSize) < 2)
+                    break;
+
+                if (input[searchPosition + minSize] != input[inputPosition + minSize] ||
+                    input[searchPosition + minSize + 1] != input[inputPosition + minSize + 1])
+                    break;
+
+                minSize += 2;
+            }
+
+            return minSize;
+        }
+
+        /// <inheritdoc />
         public void Dispose()
         {
             _offsetTable = null;
-            _reversedOffsetTable = null;
 
-            _byteTable = null;
-            _endTable = null;
-
-            _options = null;
             _limits = null;
         }
-
-        #endregion
     }
 }

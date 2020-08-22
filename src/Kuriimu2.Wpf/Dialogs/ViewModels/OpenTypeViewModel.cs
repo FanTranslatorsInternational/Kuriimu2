@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Media.Imaging;
 using Caliburn.Micro;
-using Kontract;
-using Kontract.Interfaces;
-using Kontract.Interfaces.Common;
-using Kontract.Interfaces.Font;
-using Kontract.Interfaces.Image;
-using Kontract.Interfaces.Text;
-using Kore.Files;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Text;
+using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Dialogs.Common;
 using Microsoft.Win32;
 
@@ -17,8 +12,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 {
     public sealed class OpenTypeViewModel : Screen
     {
-        private readonly FileManager _fileManager;
-        private readonly PluginLoader _pluginLoader;
+        private readonly PluginManager _pluginManager;
 
         private string _selectedPluginType;
         private ILoadFiles _selectedFormatType;
@@ -32,15 +26,15 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public OpenTypeViewModel(FileManager fileManager, PluginLoader pluginLoader)
+        public OpenTypeViewModel(PluginManager pluginManager)
         {
-            _fileManager = fileManager;
-            _pluginLoader = pluginLoader;
+            _pluginManager = pluginManager;
 
-            SelectedPluginType = nameof(ITextAdapter);
+            SelectedPluginType = nameof(ITextState);
         }
 
-        public List<string> PluginTypes => _fileManager.GetFileLoadingAdapterNames();
+        // TODO: Get file loading adapter names
+        public List<string> PluginTypes => new List<string>(); //_pluginManager.GetFileLoadingAdapterNames();
 
         public string SelectedPluginType
         {
@@ -53,23 +47,27 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
             }
         }
 
+        // TODO: Return format types
         public List<ILoadFiles> FormatTypes
         {
             get
             {
-                if (SelectedPluginType == null) return null;
+                if (SelectedPluginType == null) 
+                    return null;
 
-                switch (SelectedPluginType)
-                {
-                    case nameof(ITextAdapter):
-                        return _pluginLoader.GetAdapters<ITextAdapter>().Cast<ILoadFiles>().ToList();
-                    case nameof(IImageAdapter):
-                        return _pluginLoader.GetAdapters<IImageAdapter>().Cast<ILoadFiles>().ToList();
-                    case nameof(IFontAdapter):
-                        return _pluginLoader.GetAdapters<IFontAdapter>().Cast<ILoadFiles>().ToList();
-                    default:
-                        return null;
-                }
+                return null;
+
+                //switch (SelectedPluginType)
+                //{
+                //    case nameof(ITextAdapter):
+                //        return _pluginLoader.GetAdapters<ITextAdapter>().Cast<ILoadFiles>().ToList();
+                //    case nameof(IImageAdapter):
+                //        return _pluginLoader.GetAdapters<IImageAdapter>().Cast<ILoadFiles>().ToList();
+                //    case nameof(IFontAdapter):
+                //        return _pluginLoader.GetAdapters<IFontAdapter>().Cast<ILoadFiles>().ToList();
+                //    default:
+                //        return null;
+                //}
             }
         }
 
@@ -98,7 +96,8 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         {
             if (SelectedFormatType == null) return;
 
-            var ofd = new OpenFileDialog { Filter = Kore.Utilities.Common.GetAdapterFilter(SelectedFormatType) };
+            // TODO: Add filter
+            var ofd = new OpenFileDialog { /*Filter = Kore.Utilities.Common.GetAdapterFilter(SelectedFormatType)*/ };
             if (ofd.ShowDialog() != true) return;
 
             SelectedFilePath = ofd.FileName;

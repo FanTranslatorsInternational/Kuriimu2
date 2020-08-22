@@ -1,20 +1,21 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using Kompression.Configuration;
+using Kompression.Extensions;
+using Kompression.Implementations.Decoders.Headerless;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
-    // TODO: Write TalesOf01Encoder
     public class TalesOf01Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
         private int _preBufferSize;
+        private Lzss01HeaderlessDecoder _decoder;
 
         public TalesOf01Decoder(int preBufferSize)
         {
             _preBufferSize = preBufferSize;
+            _decoder = new Lzss01HeaderlessDecoder(preBufferSize);
         }
 
         public void Decode(Stream input, Stream output)
@@ -24,59 +25,11 @@ namespace Kompression.Implementations.Decoders
 
             var buffer = new byte[4];
             input.Read(buffer, 0, 4);
-            var compressedDataSize = GetLittleEndian(buffer);
+            var compressedDataSize = buffer.GetInt32LittleEndian(0);
             input.Read(buffer, 0, 4);
-            var decompressedSize = GetLittleEndian(buffer);
+            var decompressedSize = buffer.GetInt32LittleEndian(0);
 
-            _circularBuffer = new CircularBuffer(0x1000)
-            {
-                Position = _preBufferSize
-            };
-
-            var flags = 0;
-            var flagPosition = 8;
-            while (output.Length < decompressedSize)
-            {
-                if (flagPosition == 8)
-                {
-                    flagPosition = 0;
-                    flags = input.ReadByte();
-                }
-
-                if (((flags >> flagPosition++) & 0x1) == 1)
-                {
-                    // raw data
-                    var value = (byte)input.ReadByte();
-
-                    output.WriteByte(value);
-                    _circularBuffer.WriteByte(value);
-                }
-                else
-                {
-                    // compressed data
-                    var byte1 = input.ReadByte();
-                    var byte2 = input.ReadByte();
-
-                    var length = (byte2 & 0xF) + 3;
-                    var bufferPosition = byte1 | ((byte2 & 0xF0) << 4);
-
-                    if (input.Position > 0x5f40)
-                        Debugger.Break();
-
-                    // Convert buffer position to displacement
-                    var displacement = (_circularBuffer.Position - bufferPosition) % _circularBuffer.Length;
-                    displacement = (displacement + _circularBuffer.Length) % _circularBuffer.Length;
-                    if (displacement == 0)
-                        displacement = 0x1000;
-
-                    _circularBuffer.Copy(output, displacement, length);
-                }
-            }
-        }
-
-        private int GetLittleEndian(byte[] data)
-        {
-            return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
+            _decoder.Decode(input, output, decompressedSize);
         }
 
         public void Dispose()

@@ -1,34 +1,32 @@
 ﻿using System.IO;
-using Kompression.Configuration;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
     public class TaikoLz80Decoder : IDecoder
     {
-        private CircularBuffer _circularBuffer;
-
         public void Decode(Stream input, Stream output)
         {
-            _circularBuffer = new CircularBuffer(0x8000);
+            var circularBuffer = new CircularBuffer(0x8000);
 
-            bool isFinished = false;
+            var isFinished = false;
             while (input.Position < input.Length)
             {
                 var code = input.ReadByte();
                 switch (code >> 6)
                 {
                     case 0:
-                        isFinished = ReadUncompressedData(input, output, code);
+                        isFinished = ReadUncompressedData(input, output, circularBuffer, code);
                         break;
                     case 1:
-                        ReadOneCompressedData(output, code);
+                        ReadOneCompressedData(output, circularBuffer, code);
                         break;
                     case 2:
-                        ReadTwoCompressedData(input, output, code);
+                        ReadTwoCompressedData(input, output, circularBuffer, code);
                         break;
                     case 3:
-                        ReadThreeCompressedData(input, output, code);
+                        ReadThreeCompressedData(input, output, circularBuffer, code);
                         break;
                 }
 
@@ -37,7 +35,7 @@ namespace Kompression.Implementations.Decoders
             }
         }
 
-        private bool ReadUncompressedData(Stream input, Stream output, int code)
+        private bool ReadUncompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             var length = code & 0x3F;
             if (code == 0)
@@ -67,13 +65,13 @@ namespace Kompression.Implementations.Decoders
                 var next = (byte)input.ReadByte();
 
                 output.WriteByte(next);
-                _circularBuffer.WriteByte(next);
+                circularBuffer.WriteByte(next);
             }
 
             return false;
         }
 
-        private void ReadOneCompressedData(Stream output, int code)
+        private void ReadOneCompressedData(Stream output, CircularBuffer circularBuffer, int code)
         {
             // 8 bits
             // 11 11 1111
@@ -81,10 +79,10 @@ namespace Kompression.Implementations.Decoders
             var length = ((code >> 4) & 0x3) + 2;
             var displacement = (code & 0xF) + 1;
 
-            ReadDisplacedData(output, displacement, length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
-        private void ReadTwoCompressedData(Stream input, Stream output, int code)
+        private void ReadTwoCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             // 16 bits
             // 11 1111 1111111111
@@ -94,10 +92,10 @@ namespace Kompression.Implementations.Decoders
             var length = ((code >> 2) & 0xF) + 3;
             var displacement = (((code & 0x3) << 8) | byte1) + 1;
 
-            ReadDisplacedData(output, displacement, length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
-        private void ReadThreeCompressedData(Stream input, Stream output, int code)
+        private void ReadThreeCompressedData(Stream input, Stream output, CircularBuffer circularBuffer, int code)
         {
             // 24 bits
             // 11 1111111 111111111111111
@@ -108,18 +106,11 @@ namespace Kompression.Implementations.Decoders
             var length = (((code & 0x3F) << 1) | (byte1 >> 7)) + 4;
             var displacement = (((byte1 & 0x7F) << 8) | byte2) + 1;
 
-            ReadDisplacedData(output, displacement, length);
-        }
-
-        private void ReadDisplacedData(Stream output, int displacement, int length)
-        {
-            _circularBuffer.Copy(output, displacement, length);
+            circularBuffer.Copy(output, displacement, length);
         }
 
         public void Dispose()
         {
-            _circularBuffer?.Dispose();
-            _circularBuffer = null;
         }
     }
 }

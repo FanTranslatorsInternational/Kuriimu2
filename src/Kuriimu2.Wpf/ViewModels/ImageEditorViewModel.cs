@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.IO;
@@ -9,16 +8,12 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using Caliburn.Micro;
-using Kontract.Interfaces.Image;
-using Kontract.Models;
-using Kontract.Models.Image;
-using Kore;
-using Kore.Files;
-using Kore.Files.Models;
-using Kuriimu2.Wpf.Dialogs.ViewModels;
+using Kanvas;
+using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.State;
+using Kore.Managers.Plugins;
 using Kuriimu2.Wpf.Interfaces;
 using Kuriimu2.Wpf.Tools;
-using Kuriimu2.Wpf.ViewModels.ImageEditor;
 using Microsoft.Win32;
 
 namespace Kuriimu2.Wpf.ViewModels
@@ -27,40 +22,40 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly FileManager _fileManager;
-        private readonly IImageAdapter _adapter;
+        private readonly PluginManager _pluginManager;
+        private readonly IImageState _state;
 
         // Image View
         private int _zoomIndex = ZoomLevels.IndexOf(100);
         private double _selectedZoomLevel;
 
         // Bitmap List
-        private BitmapEntry _selectedBitmapEntry;
+        private KanvasImage _selectedKanvasImage;
         private ImageSource _selectedImage;
         private ImageSource _selectedPaletteImage;
 
         // Batch Export
         private string _statusText;
-        private bool _progressActive = false;
+        private bool _progressActive;
         private string _progressActionName;
         private int _progressValue;
 
         // Data
-        public KoreFileInfo KoreFile { get; set; }
-        public ObservableCollection<BitmapEntry> Bitmaps { get; }
+        public IStateInfo KoreFile { get; set; }
+        public ObservableCollection<KanvasImage> KanvasImages { get; }
 
         // Constructor
-        public ImageEditorViewModel(FileManager fileManager, KoreFileInfo koreFile)
+        public ImageEditorViewModel(PluginManager pluginManager, IStateInfo koreFile)
         {
-            _fileManager = fileManager;
+            _pluginManager = pluginManager;
             KoreFile = koreFile;
 
-            _adapter = KoreFile.Adapter as IImageAdapter;
+            _state = KoreFile.PluginState as IImageState;
 
-            if (_adapter?.BitmapInfos != null)
-                Bitmaps = new ObservableCollection<BitmapEntry>(_adapter.BitmapInfos.Select(bi => new BitmapEntry(bi)));
+            if (_state?.Images != null)
+                KanvasImages = new ObservableCollection<KanvasImage>(_state.Images.Select(x => new KanvasImage(_state, x)));
 
-            SelectedBitmap = Bitmaps?.FirstOrDefault();
+            SelectedKanvasImage = KanvasImages?.FirstOrDefault();
             SelectedZoomLevel = 1;
         }
 
@@ -68,7 +63,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public int ImageBorderThickness => 1;
 
-        public string ImageCount => (Bitmaps?.Count ?? 0) + ((Bitmaps?.Count ?? 0) != 1 ? " Images" : " Image");
+        public string ImageCount => (KanvasImages?.Count ?? 0) + ((KanvasImages?.Count ?? 0) != 1 ? " Images" : " Image");
 
         public static List<int> ZoomLevels { get; } = new List<int> { 7, 10, 15, 20, 25, 30, 50, 70, 100, 150, 200, 300, 400, 500, 600, 700, 800, 1000, 1200, 1600 };
 
@@ -110,20 +105,24 @@ namespace Kuriimu2.Wpf.ViewModels
         #region Bitmap List
 
         // Image
-        public BitmapEntry SelectedBitmap
+        public KanvasImage SelectedKanvasImage
         {
-            get => _selectedBitmapEntry;
+            get => _selectedKanvasImage;
             set
             {
-                if (value == _selectedBitmapEntry) return;
-                _selectedBitmapEntry = value;
-                SelectedImage = _selectedBitmapEntry?.BitmapInfo.Image.ToBitmapImage(true);
-                if (_adapter is IIndexedImageAdapter indexed && _selectedBitmapEntry.BitmapInfo is IndexedBitmapInfo indexedInfo)
-                {
-                    var dimensions = (int)Math.Sqrt(indexedInfo.ColorCount);
-                    SelectedPaletteImage = Kore.Utilities.Image.ComposeImage(indexedInfo.Palette, dimensions, dimensions).ToBitmapImage(true);
-                }
-                NotifyOfPropertyChange(() => SelectedBitmap);
+                if (value == _selectedKanvasImage) 
+                    return;
+
+                _selectedKanvasImage = value;
+
+                SelectedImage = _selectedKanvasImage.GetImage().ToBitmapImage();
+                // TODO: Draw palette
+                //if (_state is IIndexedImageAdapter indexed && _selectedKanvasImage.ImageInfo is IndexedImageInfo indexedInfo)
+                //{
+                //    var dimensions = (int)Math.Sqrt(indexedInfo.ColorCount);
+                //    SelectedPaletteImage = Kore.Utilities.Image.ComposeImage(indexedInfo.Palette, dimensions, dimensions).ToBitmapImage(true);
+                //}
+                NotifyOfPropertyChange(() => SelectedKanvasImage);
                 NotifyOfPropertyChange(() => PaletteImageVisibility);
             }
         }
@@ -140,7 +139,7 @@ namespace Kuriimu2.Wpf.ViewModels
         }
 
         // Palette
-        public Visibility PaletteImageVisibility => (_adapter is IIndexedImageAdapter && _selectedBitmapEntry.BitmapInfo is IndexedBitmapInfo) ? Visibility.Visible : Visibility.Hidden;
+        public Visibility PaletteImageVisibility => _selectedKanvasImage.IsIndexed ? Visibility.Visible : Visibility.Hidden;
 
         public ImageSource SelectedPaletteImage
         {
@@ -153,36 +152,38 @@ namespace Kuriimu2.Wpf.ViewModels
                 NotifyOfPropertyChange(() => PaletteImageVisibility);
             }
         }
-        
+
         // Actions
 
-        //public bool AddEnabled => _adapter is IAddBitmaps;
+        //public bool AddEnabled => _state is IAddBitmaps;
 
         public void AddBitmap()
         {
-            //if (!(_adapter is IAddBitmaps add)) return;
+            //if (!(_state is IAddBitmaps add)) return;
         }
 
-        public bool EditEnabled => SelectedBitmap != null;
+        public bool EditEnabled => SelectedKanvasImage != null;
 
+        // TODO: What does this method have to do?
         public void EditBitmap()
         {
-            if (!(_adapter is IImageAdapter img)) return;
+            //if (!(_state is IImageState)) 
+            //    return;
         }
 
-        //public bool DeleteEnabled => _adapter is IDeleteBitmaps && SelectedBitmap != null;
+        //public bool DeleteEnabled => _state is IDeleteBitmaps && SelectedKanvasImage != null;
 
         public void DeleteBitmap()
         {
-            //if (!(_adapter is IDeleteBitmaps del)) return;
+            //if (!(_state is IDeleteBitmaps del)) return;
 
-            //if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedBitmap.Bitmap}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            //if (MessageBox.Show($"Are you sure you want to delete '{(char)SelectedKanvasImage.Bitmap}'?", "Delete?", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             //{
-            //    if (del.DeleteBitmap(SelectedBitmap))
+            //    if (del.DeleteBitmap(SelectedKanvasImage))
             //    {
-            //        Bitmaps = new ObservableCollection<ImageBitmap>(_adapter.Bitmaps);
-            //        SelectedBitmap = Bitmaps.FirstOrDefault();
-            //        NotifyOfPropertyChange(() => Bitmaps);
+            //        KanvasImages = new ObservableCollection<ImageBitmap>(_state.KanvasImages);
+            //        SelectedKanvasImage = KanvasImages.FirstOrDefault();
+            //        NotifyOfPropertyChange(() => KanvasImages);
             //    }
             //    else
             //    {
@@ -193,65 +194,68 @@ namespace Kuriimu2.Wpf.ViewModels
 
         public void ExportPng()
         {
-            if (!(_adapter is IImageAdapter img)) return;
+            //if (!(_state is IImageState)) 
+            //    return;
 
             var sfd = new SaveFileDialog
             {
                 Title = "Export PNG",
-                FileName = KoreFile.StreamFileInfo.FileName + ".png",
+                FileName = KoreFile.FilePath + ".png",
                 Filter = "Portable Network Graphics (*.png)|*.png"
             };
 
-            if ((bool)sfd.ShowDialog())
+            if (sfd.ShowDialog().Value)
             {
-                SelectedBitmap.BitmapInfo.Image.Save(sfd.FileName, ImageFormat.Png);
+                SelectedKanvasImage.GetImage().Save(sfd.FileName, ImageFormat.Png);
             }
         }
 
+        // TODO: Batch export png
         public async Task BatchExportPng()
         {
-            StatusText = "Starting batch export...";
+            //StatusText = "Starting batch export...";
 
-            var ofd = new OpenFileDialog();
-            if (!(bool)ofd.ShowDialog()) return;
+            //var ofd = new OpenFileDialog();
+            //if (!(bool)ofd.ShowDialog()) return;
 
-            var batchExport = new Kore.Batch.BatchExport<IImageAdapter> { InputDirectory = Path.GetDirectoryName(ofd.FileName) };
-            ProgressActionName = "Batch Export PNG";
+            //var batchExport = new BatchExport<IImageAdapter> { InputDirectory = Path.GetDirectoryName(ofd.FileName) };
+            //ProgressActionName = "Batch Export PNG";
 
-            var progress = new Progress<ProgressReport>(p =>
-            {
-                ProgressValue = (int)Math.Min(p.Percentage * 10, 1000);
-                if (p.HasMessage)
-                {
-                    var lines = StatusText.Split('\n');
-                    if (lines.Length == 10)
-                        StatusText = string.Join("\n", lines.Skip(1).Take(10)) + "\r\n" + p.Message;
-                    else
-                        StatusText += "\r\n" + p.Message;
-                }
+            //var progress = new Progress<ProgressReport>(p =>
+            //{
+            //    ProgressValue = (int)Math.Min(p.Percentage * 10, 1000);
+            //    if (p.HasMessage)
+            //    {
+            //        var lines = StatusText.Split('\n');
+            //        if (lines.Length == 10)
+            //            StatusText = string.Join("\n", lines.Skip(1).Take(10)) + "\r\n" + p.Message;
+            //        else
+            //            StatusText += "\r\n" + p.Message;
+            //    }
 
-                if (p.Data == null) return;
-                var (current, max) = ((int current, int max))p.Data;
-                ProgressActionName = $"Batch Export PNG ({current} / {max})";
-            });
+            //    if (p.Data == null) return;
+            //    var (current, max) = ((int current, int max))p.Data;
+            //    ProgressActionName = $"Batch Export PNG ({current} / {max})";
+            //});
 
-            var result = await batchExport.Export(_fileManager, progress);
+            //var result = await batchExport.Export(_pluginManager, progress);
         }
 
+        // TODO: Change format with KanvasImage
         public void ChangeFormat()
         {
-            if (!(_adapter is IImageAdapter img)) return;
+            //if (!(_state is IImageAdapter img)) return;
 
-            var ei = new EncodeImageViewModel(_fileManager, _adapter, _selectedBitmapEntry.BitmapInfo)
-            {
-                Title = $"Change Format",
-                SelectedZoomLevel = SelectedZoomLevel
-            };
-            _windows.Add(ei);
-            
-            if (_wm.ShowDialogAsync(ei).Result != true) return;
+            //var ei = new EncodeImageViewModel(_pluginManager, _state, _selectedKanvasImage.ImageInfo)
+            //{
+            //    Title = $"Change Format",
+            //    SelectedZoomLevel = SelectedZoomLevel
+            //};
+            //_windows.Add(ei);
 
-            NotifyOfPropertyChange(() => SelectedBitmap);
+            //if (_wm.ShowDialogAsync(ei).Result != true) return;
+
+            //NotifyOfPropertyChange(() => SelectedKanvasImage);
             //if (ei.HasChanges)
             //    KoreFile.HasChanges = true;
         }
@@ -259,13 +263,13 @@ namespace Kuriimu2.Wpf.ViewModels
         // TODO: Make image Properties available again
         //public void ImageProperties()
         //{
-        //    if (!(_adapter is IImageAdapter img)) return;
+        //    if (!(_state is IImageAdapter img)) return;
 
         //    var pe = new PropertyEditorViewModel<IImageAdapter>
         //    {
         //        Title = $"Image Properties",
         //        Message = "Properties:",
-        //        Object = _adapter
+        //        Object = _state
         //    };
         //    _windows.Add(pe);
 
@@ -344,9 +348,9 @@ namespace Kuriimu2.Wpf.ViewModels
         {
             if (path != null && File.Exists(path))
             {
-                SelectedBitmap.BitmapInfo.Image = new System.Drawing.Bitmap(path);
-                SelectedImage = _selectedBitmapEntry?.BitmapInfo.Image.ToBitmapImage(true);
-                NotifyOfPropertyChange(() => SelectedBitmap);
+                SelectedKanvasImage.SetImage(new System.Drawing.Bitmap(path));
+                SelectedImage = _selectedKanvasImage.GetImage().ToBitmapImage();
+                NotifyOfPropertyChange(() => SelectedKanvasImage);
             }
         }
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Kanvas.Interface;
 using System.Drawing;
 using Kanvas.Swizzle.Models;
+using Kontract.Kanvas;
 
 namespace Kanvas.Swizzle
 {
@@ -46,10 +46,10 @@ namespace Kanvas.Swizzle
             [32] = new[] { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0), (0, 8), (0, 16) },
         };
 
-        /// <inheritdoc cref="IImageSwizzle.Width"/>
+        /// <inheritdoc />
         public int Width { get; }
 
-        /// <inheritdoc cref="IImageSwizzle.Height"/>
+        /// <inheritdoc />
         public int Height { get; }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Kanvas.Swizzle
             _swizzle = (bitField == null) ? new LinearSwizzle(Width, Height).Swizzle : new MasterSwizzle(Width, new Point(0, 0), bitField);
         }
 
-        /// <inheritdoc cref="IImageSwizzle.Get(Point)"/>
-        public Point Get(Point point) => _swizzle.Get(point.Y * Width + point.X);
+        /// <inheritdoc />
+        public Point Transform(Point point) => _swizzle.Get(point.Y * Width + point.X);
 
         private static bool IsBlockBased(SwitchFormat format) =>
             format == SwitchFormat.DXT1 || format == SwitchFormat.DXT3 || format == SwitchFormat.DXT5 ||

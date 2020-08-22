@@ -21,10 +21,10 @@ namespace Komponent.Font
                 var bitmapData = glyph.LockBits(new Rectangle(0, 0, glyph.Width, glyph.Height), ImageLockMode.ReadOnly,
                     PixelFormat.Format32bppArgb);
 
-                var top = MeasureWhiteSpaceSide(0, bitmapData, glyph.Width, glyph.Height);
-                var left = MeasureWhiteSpaceSide(1, bitmapData, glyph.Width, glyph.Height);
-                var bottom = MeasureWhiteSpaceSide(2, bitmapData, glyph.Width, glyph.Height);
-                var right = MeasureWhiteSpaceSide(3, bitmapData, glyph.Width, glyph.Height);
+                var top = MeasureWhiteSpaceSide(0, bitmapData);
+                var left = MeasureWhiteSpaceSide(1, bitmapData);
+                var bottom = MeasureWhiteSpaceSide(2, bitmapData);
+                var right = MeasureWhiteSpaceSide(3, bitmapData);
 
                 glyph.UnlockBits(bitmapData);
 
@@ -35,45 +35,47 @@ namespace Komponent.Font
             }
         }
 
-        private static unsafe int MeasureWhiteSpaceSide(int mode, BitmapData data, int width, int height)
+        private static unsafe int MeasureWhiteSpaceSide(int mode, BitmapData data)
         {
             var dataPtr = (byte*)data.Scan0;
             if (dataPtr == null)
                 return -1;
 
+            var widthInBytes = data.Width * 4;
+            var dataLength = data.Height * widthInBytes;
             switch (mode)
             {
                 // Top
                 case 0:
-                    for (var h = 0; h < height; h++)
-                        for (var w = 0; w < width * 4; w += 4)
-                            if (dataPtr[h * height * 4 + w] != 0)
-                                return h;
-                    return height;
+                    for (var h = 0; h < dataLength; h += widthInBytes)
+                        for (var w = 0; w < widthInBytes; w += 4)
+                            if (dataPtr[h + w] != 0)
+                                return h / widthInBytes;
+                    return data.Height;
 
                 // Left
                 case 1:
-                    for (var w = 0; w < width * 4; w += 4)
-                        for (var h = 0; h < height; h++)
-                            if (dataPtr[h * height * 4 + w] != 0)
+                    for (var w = 0; w < widthInBytes; w += 4)
+                        for (var h = 0; h < dataLength; h += widthInBytes)
+                            if (dataPtr[h + w] != 0)
                                 return w >> 2;
-                    return width;
+                    return data.Width;
 
                 // Bottom
                 case 2:
-                    for (var h = height - 1; h >= 0; h--)
-                        for (var w = 0; w < width * 4; w += 4)
-                            if (dataPtr[h * height * 4 + w] != 0)
-                                return height - h - 1;
-                    return height;
+                    for (var h = dataLength - widthInBytes; h >= 0; h -= widthInBytes)
+                        for (var w = 0; w < widthInBytes; w += 4)
+                            if (dataPtr[h + w] != 0)
+                                return data.Height - h / widthInBytes - 1;
+                    return 0;
 
                 // Right
                 case 3:
-                    for (var w = width * 4 - 4; w >= 0; w -= 4)
-                        for (var h = 0; h < height; h++)
-                            if (dataPtr[h * height * 4 + w] != 0)
-                                return width - (w >> 2) - 1;
-                    return width;
+                    for (var w = widthInBytes - 4; w >= 0; w -= 4)
+                        for (var h = 0; h < dataLength; h += widthInBytes)
+                            if (dataPtr[h + w] != 0)
+                                return data.Width - (w >> 2) - 1;
+                    return 0;
 
                 default:
                     return -1;

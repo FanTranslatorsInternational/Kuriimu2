@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Komponent.IO;
-using Kontract.Interfaces.Text;
+using Kontract.Models.Text;
 
 namespace plugin_yuusha_shisu.TALK
 {
@@ -12,15 +11,14 @@ namespace plugin_yuusha_shisu.TALK
         private TALKContent _content;
         private List<DrawingFrame> _drawingFrames;
         private List<ColorStruct> _colorStructs;
-        public List<TextEntry> Entries;
 
-        public TALK(Stream input)
+        public TextEntry Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
                 // Read
                 _content = br.ReadType<TALKContent>();
-                _drawingFrames = br.ReadMultiple<DrawingFrame>(_content.NumberSection);               
+                _drawingFrames = br.ReadMultiple<DrawingFrame>(_content.NumberSection);
                 _colorStructs = br.ReadMultiple<ColorStruct>(_content.NumberSection);
                 var text = br.ReadString(_content.CharacterDataSize, Encoding.UTF8);
                 /*var str = "";
@@ -35,39 +33,39 @@ namespace plugin_yuusha_shisu.TALK
                     str += text[i];
                 }*/
 
-                Entries = new List<TextEntry>
+                return new TextEntry
                 {
-                    new TextEntry
-                    {
-                        Name = "content",
-                        EditedText = text,
-                        OriginalText = text
-                    }
+                    Name = "content",
+                    EditedText = text,
+                    OriginalText = text
                 };
             }
         }
-        public void Save(Stream output)
+        public void Save(Stream output,TextEntry textEntry)
         {
             using (var bw = new BinaryWriterX(output, true))
             {
-                _content.CharacterCount = (short)Entries.First().EditedText.Trim().Length;
-                _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(Entries.First().EditedText);
+                _content.CharacterCount = (short)textEntry.EditedText.Trim().Length;
+                _content.CharacterDataSize = (short)Encoding.UTF8.GetByteCount(textEntry.EditedText);
                 bw.WriteType(_content);
                 bw.WriteType(_drawingFrames[0]);
+
                 short newFrame = _drawingFrames[0].FrameCounter;
-                string TextLength = Entries.First().EditedText.Trim();
-                TextLength = TextLength.Replace("\r","").Replace("\n", "");
+                string TextLength = textEntry.EditedText.Trim();
+                TextLength = TextLength.Replace("\r", "").Replace("\n", "");
                 for (var i = 1; i < TextLength.Length; i++)
                 {
                     bw.WriteType(_drawingFrames[0].Indicator);
                     newFrame += 0x0C;
                     bw.Write(newFrame);
                 }
+
                 for (var i = 0; i < TextLength.Length; i++)
                 {
                     bw.WriteType(_colorStructs[0]);
                 }
-                bw.WriteString(Entries.First().EditedText, Encoding.UTF8, false);
+
+                bw.WriteString(textEntry.EditedText, Encoding.UTF8, false);
             }
         }
     }
@@ -91,7 +89,7 @@ namespace plugin_yuusha_shisu.TALK
     public class ColorStruct
     {
         public int Unk1 = 0x00000000;
-        public uint RGBA= 0xFFFFFFFF;
+        public uint RGBA = 0xFFFFFFFF;
         public int Unk2 = 0x00000001;
         public int Unk3 = 0x0000001A;
     }
