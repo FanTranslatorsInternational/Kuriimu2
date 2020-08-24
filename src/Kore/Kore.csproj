@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Kontract\Kontract.csproj" />
   </ItemGroup>
 
