@@ -259,7 +259,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             DisableImageControls();
             DisablePaletteControls();
 
-            SelectedImage.TranscodeImage(newImageFormat);
+            SelectedImage.TranscodeImage(newImageFormat, _progressContext);
 
             PopulatePaletteDropdown(SelectedImageInfo);
 
@@ -277,7 +277,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             DisableImageControls();
             DisablePaletteControls();
 
-            SelectedImage.TranscodePalette(newPaletteFormat);
+            SelectedImage.TranscodePalette(newPaletteFormat, _progressContext);
 
             UpdateFormInternal();
             UpdateImageList();
@@ -496,6 +496,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _formCommunicator.Update(true, false);
         }
 
+        #endregion
+
+        #region Export
+
         private void ExportPng()
         {
             var sfd = new SaveFileDialog
@@ -507,8 +511,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 AddExtension = true
             };
 
-            if (sfd.ShowDialog() == DialogResult.OK)
-                SelectedImage.GetImage(_progressContext).Save(sfd.FileName, ImageFormat.Png);
+            if (sfd.ShowDialog() != DialogResult.OK)
+                return;
+
+            SelectedImage.GetImage(_progressContext).Save(sfd.FileName, ImageFormat.Png);
         }
 
         #endregion
@@ -524,8 +530,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 Filter = PngFileFilter_
             };
 
-            if (ofd.ShowDialog() == DialogResult.OK)
-                Import(ofd.FileName);
+            if (ofd.ShowDialog() != DialogResult.OK)
+                return;
+
+            Import(ofd.FileName);
         }
 
         private void Import(UPath filePath)
@@ -592,6 +600,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var verticalScroll = imbPreview.VerticalScroll.Value;
 
                 imbPreview.Image = SelectedImage.GetImage(_progressContext);
+
                 imbPreview.Zoom -= 1;
                 imbPreview.Zoom += 1;
 
@@ -994,14 +1003,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         }
 
         #endregion
-
-        private void InvokeAction(Action invokeAction)
-        {
-            if (InvokeRequired)
-                Invoke(invokeAction);
-            else
-                invokeAction();
-        }
 
         private void pbPalette_Paint(object sender, PaintEventArgs e)
         {
