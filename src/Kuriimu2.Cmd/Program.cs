@@ -40,7 +40,7 @@ namespace Kuriimu2.Cmd
 
             PrintUnloadedPlugins(pluginManager.LoadErrors);
 
-            IContext context = new MainContext(pluginManager);
+            IContext context = new MainContext(pluginManager, progressContext);
 
             while (context != null)
             {

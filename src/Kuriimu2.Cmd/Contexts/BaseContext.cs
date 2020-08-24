@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Kontract;
+using Kontract.Interfaces.Progress;
 using Kuriimu2.Cmd.Parsers;
 
 namespace Kuriimu2.Cmd.Contexts
 {
     abstract class BaseContext : IContext
     {
+        protected IProgressContext Progress { get; }
+
         protected abstract IList<Command> Commands { get; }
 
         public void PrintCommands()
@@ -16,6 +20,13 @@ namespace Kuriimu2.Cmd.Contexts
             Console.WriteLine("Available commands:");
             foreach (var command in Commands)
                 Console.WriteLine($"{command.Name} {string.Join(' ', command.Arguments.Select(x => $"[{x}]"))}");
+        }
+
+        public BaseContext(IProgressContext progressContext)
+        {
+            ContractAssertions.IsNotNull(progressContext,nameof(progressContext));
+
+            Progress = progressContext;
         }
 
         public async Task<IContext> ExecuteNext(IArgumentGetter argumentGetter)

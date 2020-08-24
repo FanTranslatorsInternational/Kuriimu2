@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kore.Managers.Plugins;
 using Kore.Update;
@@ -27,7 +28,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("exit")
         };
 
-        public MainContext(IInternalPluginManager pluginManager) : base(pluginManager)
+        public MainContext(IInternalPluginManager pluginManager, IProgressContext progressContext) :
+            base(pluginManager, progressContext)
         {
         }
 
@@ -44,7 +46,7 @@ namespace Kuriimu2.Cmd.Contexts
                     return null;
 
                 case "extensions":
-                    return new ExtensionContext(PluginManager, this);
+                    return new ExtensionContext(PluginManager, this, Progress);
 
                 case "exit":
                     CloseAll();

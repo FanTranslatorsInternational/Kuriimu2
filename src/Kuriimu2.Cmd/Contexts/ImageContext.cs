@@ -12,6 +12,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers;
@@ -34,7 +35,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public ImageContext(IStateInfo stateInfo, IContext parentContext)
+        public ImageContext(IStateInfo stateInfo, IContext parentContext, IProgressContext progressContext):
+            base(progressContext)
         {
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
@@ -112,9 +114,8 @@ namespace Kuriimu2.Cmd.Contexts
         {
             var newFileStream = destinationFileSystem.OpenFile(fileName, FileMode.Create, FileAccess.Write);
 
-            // TODO: Allow progress?
             var imageStream = new MemoryStream();
-            image.GetImage().Save(imageStream, ImageFormat.Png);
+            image.GetImage(Progress).Save(imageStream, ImageFormat.Png);
 
             imageStream.Position = 0;
             imageStream.CopyTo(newFileStream);
@@ -138,7 +139,7 @@ namespace Kuriimu2.Cmd.Contexts
             }
 
             var kanvasImage = new KanvasImage(_imageState, _imageState.Images[imageIndex]);
-            kanvasImage.SetImage((Bitmap)Image.FromFile(injectPath.FullName));
+            kanvasImage.SetImage((Bitmap)Image.FromFile(injectPath.FullName), Progress);
         }
 
         private void ListImages()
@@ -174,7 +175,10 @@ namespace Kuriimu2.Cmd.Contexts
             var image = new KanvasImage(_imageState, _imageState.Images[imageIndex]);
 
             var newSize = new Size(Console.WindowWidth, Console.WindowHeight);
-            var resizedImage = ResizeImage(image.GetImage(), newSize);
+            var decodedImage = image.GetImage(Progress);
+            Console.WriteLine();
+
+            var resizedImage = ResizeImage(decodedImage, newSize);
 
             var asciiImage = ConvertAscii(resizedImage);
             Console.WriteLine(asciiImage);

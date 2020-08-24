@@ -8,6 +8,7 @@ using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Factories;
@@ -28,7 +29,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public ExtensionContext(IInternalPluginManager pluginManager, IContext parentContext)
+        public ExtensionContext(IInternalPluginManager pluginManager, IContext parentContext, IProgressContext progressContext) :
+            base(progressContext)
         {
             ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
