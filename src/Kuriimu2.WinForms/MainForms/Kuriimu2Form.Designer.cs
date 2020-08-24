@@ -38,7 +38,8 @@ namespace Kuriimu2.WinForms.MainForms
             this.openWithPluginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.textSequenceSearcherToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.batchProcessorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.batchExtractorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.batchInjectorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ciphersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.encryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -104,7 +105,9 @@ namespace Kuriimu2.WinForms.MainForms
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.textSequenceSearcherToolStripMenuItem,
-            this.batchProcessorToolStripMenuItem});
+            this.batchExtractorToolStripMenuItem,
+            this.batchInjectorToolStripMenuItem
+            });
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -116,12 +119,19 @@ namespace Kuriimu2.WinForms.MainForms
             this.textSequenceSearcherToolStripMenuItem.Text = "Text Sequence Searcher";
             this.textSequenceSearcherToolStripMenuItem.Click += new System.EventHandler(this.textSequenceSearcherToolStripMenuItem_Click);
             // 
-            // batchProcessorToolStripMenuItem
+            // batchExtractorToolStripMenuItem
             // 
-            this.batchProcessorToolStripMenuItem.Name = "batchProcessorToolStripMenuItem";
-            this.batchProcessorToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
-            this.batchProcessorToolStripMenuItem.Text = "Batch Processor";
-            this.batchProcessorToolStripMenuItem.Click += new System.EventHandler(this.BatchProcessorToolStripMenuItem_Click);
+            this.batchExtractorToolStripMenuItem.Name = "batchExtractorToolStripMenuItem";
+            this.batchExtractorToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
+            this.batchExtractorToolStripMenuItem.Text = "Batch Extract";
+            this.batchExtractorToolStripMenuItem.Click += new System.EventHandler(this.batchExtractorToolStripMenuItem_Click);
+            // 
+            // batchInjectorToolStripMenuItem
+            // 
+            this.batchInjectorToolStripMenuItem.Name = "batchInjectorToolStripMenuItem";
+            this.batchInjectorToolStripMenuItem.Size = new System.Drawing.Size(198, 22);
+            this.batchInjectorToolStripMenuItem.Text = "Batch Inject";
+            this.batchInjectorToolStripMenuItem.Click += new System.EventHandler(this.batchInjectorToolStripMenuItem_Click);
             // 
             // ciphersToolStripMenuItem
             // 
@@ -293,7 +303,8 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.ToolStripMenuItem openWithPluginToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem textSequenceSearcherToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem batchProcessorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem batchExtractorToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem batchInjectorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem ciphersToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem hashesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem compressionsToolStripMenuItem;

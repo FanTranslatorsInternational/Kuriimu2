@@ -23,6 +23,7 @@ using Kore.Managers.Plugins;
 using Kore.Models.Update;
 using Kore.Progress;
 using Kore.Update;
+using Kuriimu2.WinForms.BatchForms;
 using Kuriimu2.WinForms.Exceptions;
 using Kuriimu2.WinForms.ExtensionForms;
 using Kuriimu2.WinForms.MainForms.FormatForms;
@@ -71,6 +72,8 @@ namespace Kuriimu2.WinForms.MainForms
         private readonly CompressTypeExtensionForm _compressForm;
         private readonly RawImageViewer _rawImageViewer;
         private readonly SequenceSearcher _sequenceSearcher;
+        private readonly BatchExtractionForm _batchExtractionForm;
+        private readonly BatchInjectionForm _batchInjectionForm;
 
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary;
         private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary;
@@ -117,10 +120,10 @@ namespace Kuriimu2.WinForms.MainForms
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
-            Icon = Resources.kuriimu2winforms;
+            _batchExtractionForm = new BatchExtractionForm(_pluginManager);
+            _batchInjectionForm = new BatchInjectionForm(_pluginManager);
 
-            // TODO: Enable batch processing again
-            batchProcessorToolStripMenuItem.Enabled = false;
+            Icon = Resources.kuriimu2winforms;
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
             tabCloseButtons.Images.SetKeyName(0, CloseButton_);
@@ -610,7 +613,9 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void Kuriimu2Form_Load(object sender, EventArgs e)
         {
+#if !DEBUG
             CheckForUpdate();
+#endif
         }
 
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
@@ -850,9 +855,14 @@ namespace Kuriimu2.WinForms.MainForms
 
         #endregion
 
-        private void BatchProcessorToolStripMenuItem_Click(object sender, EventArgs e)
+        private void batchExtractorToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //new Batch(_pluginManager).ShowDialog();
+            _batchExtractionForm.ShowDialog();
+        }
+
+        private void batchInjectorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            _batchInjectionForm.ShowDialog();
         }
     }
 }

@@ -11,7 +11,7 @@ using Kore.Managers.Plugins;
 
 namespace Kore.Batch
 {
-    class BatchInjector : BaseBatchProcessor
+    public class BatchInjector : BaseBatchProcessor
     {
         public BatchInjector(IInternalPluginManager pluginManager, IConcurrentLogger logger) :
             base(pluginManager, logger)
@@ -63,7 +63,7 @@ namespace Kore.Batch
                     break;
 
                 default:
-                    Logger.QueueMessage(LogLevel.Error, $"{loadedFile.PluginState.GetType().Name}' is not supported.");
+                    Logger.QueueMessage(LogLevel.Error, $"'{filePath}' is not supported.");
                     return;
             }
 

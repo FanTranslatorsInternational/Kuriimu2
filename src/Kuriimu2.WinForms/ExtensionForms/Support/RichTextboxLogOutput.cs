@@ -9,7 +9,7 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
 {
     class RichTextboxLogOutput : ILogOutput
     {
-        private delegate void SafeCallDelegate(ApplicationLevel applicationLevel, LogLevel level, string message);
+        private delegate void SafeCallDelegate(Color logColor, string message);
 
         private readonly RichTextBox _richTextBox;
 
@@ -22,40 +22,45 @@ namespace Kuriimu2.WinForms.ExtensionForms.Support
 
         public void Log(ApplicationLevel applicationLevel, LogLevel level, string message)
         {
+            var selectedColor = SelectColor(level);
+            var createdLogMessage = CreateLogMessage(applicationLevel, level, message);
+
             if (_richTextBox.InvokeRequired)
-                _richTextBox.Invoke(new SafeCallDelegate(LogInternal), applicationLevel, level, message);
+                _richTextBox.Invoke(new SafeCallDelegate(LogInternal), selectedColor, createdLogMessage);
             else
-                LogInternal(applicationLevel, level, message);
+                LogInternal(selectedColor, createdLogMessage);
         }
 
-        private void LogInternal(ApplicationLevel applicationLevel, LogLevel level, string message)
+        private Color SelectColor(LogLevel logLevel)
         {
-            Color color;
-            switch (level)
+            switch (logLevel)
             {
                 case LogLevel.Information:
-                    color = Color.FromArgb(0x20, 0xC2, 0x0E);
-                    break;
+                    return Color.FromArgb(0x20, 0xC2, 0x0E);
 
                 case LogLevel.Warning:
-                    color = Color.Orange;
-                    break;
+                    return Color.Orange;
 
                 case LogLevel.Error:
-                    color = Color.Red;
-                    break;
+                    return Color.Red;
 
                 case LogLevel.Fatal:
-                    color = Color.DarkRed;
-                    break;
+                    return Color.DarkRed;
 
                 default:
-                    color = Color.Wheat;
-                    break;
+                    return Color.Wheat;
             }
+        }
 
-            _richTextBox.SelectionColor = color;
-            _richTextBox.AppendText($"[{applicationLevel}][{level}] {message}{Environment.NewLine}");
+        private string CreateLogMessage(ApplicationLevel applicationLevel, LogLevel logLevel, string message)
+        {
+            return $"[{applicationLevel}][{logLevel}] {message}{Environment.NewLine}";
+        }
+
+        private void LogInternal(Color logColor, string message)
+        {
+            _richTextBox.SelectionColor = logColor;
+            _richTextBox.AppendText(message);
         }
     }
 }

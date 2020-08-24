@@ -14,7 +14,7 @@ using Kore.Managers.Plugins;
 
 namespace Kore.Batch
 {
-    abstract class BaseBatchProcessor
+    public abstract class BaseBatchProcessor
     {
         protected IInternalPluginManager PluginManager { get; }
         protected IConcurrentLogger Logger { get; }
@@ -36,9 +36,19 @@ namespace Kore.Batch
         {
             var files = EnumerateFiles(sourceFileSystem).ToArray();
 
-            Logger.StartLogging();
+            var isRunning = Logger.IsRunning();
+            if (!isRunning)
+                Logger.StartLogging();
+
+            var isManualSelection = PluginManager.AllowManualSelection;
+            PluginManager.AllowManualSelection = false;
+
             await Task.Run(() => files.AsParallel().ForAll(async x => await ProcessInternal(sourceFileSystem, x, destinationFileSystem)));
-            Logger.StopLogging();
+
+            PluginManager.AllowManualSelection = isManualSelection;
+
+            if (!isRunning)
+                Logger.StopLogging();
         }
 
         protected abstract Task ProcessInternal(IFileSystem sourceFileSystem, UPath filePath, IFileSystem destinationFileSystem);

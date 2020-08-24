@@ -26,6 +26,11 @@ namespace Kore.Logging
             _enqueueMessage = true;
         }
 
+        public bool IsRunning()
+        {
+            return _enqueueMessage;
+        }
+
         public void StopLogging()
         {
             _enqueueMessage = false;
