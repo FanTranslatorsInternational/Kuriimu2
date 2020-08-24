@@ -3,6 +3,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
 using Kanvas;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Logging;
 using Kontract.Interfaces.Plugins.State;
@@ -44,16 +45,15 @@ namespace Kore.Batch
                 return;
             }
 
-            // Create directory
-            if (!destinationFileSystem.DirectoryExists(filePath))
-                destinationFileSystem.CreateDirectory(filePath);
-
             switch (loadResult.LoadedState.PluginState)
             {
                 case IArchiveState archiveState:
+                    if (archiveState.Files.Count > 0)
+                        CreateDirectory(destinationFileSystem, filePath);
+
                     foreach (var afi in archiveState.Files)
                     {
-                        var newFileStream = destinationFileSystem.OpenFile(afi.FilePath, FileMode.Create, FileAccess.Write);
+                        var newFileStream = destinationFileSystem.OpenFile(filePath / afi.FilePath.ToRelative(), FileMode.Create, FileAccess.Write);
                         (await afi.GetFileData()).CopyTo(newFileStream);
 
                         newFileStream.Close();
@@ -61,6 +61,9 @@ namespace Kore.Batch
                     break;
 
                 case IImageState imageState:
+                    if (imageState.Images.Count > 0)
+                        CreateDirectory(destinationFileSystem, filePath);
+
                     var index = 0;
                     foreach (var img in imageState.Images)
                     {
@@ -80,10 +83,19 @@ namespace Kore.Batch
 
                 default:
                     Logger.QueueMessage(LogLevel.Error, $"'{filePath}' is not supported.");
+                    PluginManager.Close(loadResult.LoadedState);
                     return;
             }
 
+            PluginManager.Close(loadResult.LoadedState);
+
             Logger.QueueMessage(LogLevel.Information, $"Extracted '{filePath}'.");
+        }
+
+        private void CreateDirectory(IFileSystem fileSystem, UPath path)
+        {
+            if (!fileSystem.DirectoryExists(path))
+                fileSystem.CreateDirectory(path);
         }
     }
 }
