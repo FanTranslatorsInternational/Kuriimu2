@@ -65,7 +65,7 @@ namespace plugin_level5._3DS.Images
             var (width, height) = ((int)_header.width, (int)_header.height);
             for (var i = 0; i < _header.imageCount; i++)
             {
-                images[i] = new byte[width * height * _header.bitDepth];
+                images[i] = new byte[width * height * _header.bitDepth / 8];
                 combinedImageStream.Read(images[i], 0, images[i].Length);
 
                 (width, height) = (width / 2, height / 2);
