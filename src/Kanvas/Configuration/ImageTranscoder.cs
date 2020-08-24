@@ -98,6 +98,7 @@ namespace Kanvas.Configuration
         private Bitmap DecodeColorInternal(byte[] data, Size imageSize, IProgressContext progress)
         {
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
+            var finalSize = paddedSize.IsEmpty ? imageSize : paddedSize;
 
             var colorEncoding = _colorEncoding(imageSize);
 
@@ -105,7 +106,15 @@ namespace Kanvas.Configuration
             // TODO: Size is currently only used for block compression with native libs,
             // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
             var valueCount = data.Length * 8 / colorEncoding.BitsPerValue;
-            var setMaxProgress = progress?.SetMaxValue(valueCount * colorEncoding.ColorsPerValue);
+            var valueCountBySize = finalSize.Width * finalSize.Height / colorEncoding.ColorsPerValue;
+
+            // HINT: If the data portion does not fit with the actual image size, it will cause progress irregularities.
+            //       If the given data is shorter than what is needed  for the full image, we throw.
+            //       Otherwise enough data is given and the image can be fully decoded, even if excess data is not used.
+            if (valueCount < valueCountBySize)
+                throw new InvalidOperationException("Given data is too short.");
+
+            var setMaxProgress = progress?.SetMaxValue(valueCountBySize * colorEncoding.ColorsPerValue);
             var colors = colorEncoding
                 .Load(data, _taskCount)
                 .AttachProgress(setMaxProgress, "Decode colors");

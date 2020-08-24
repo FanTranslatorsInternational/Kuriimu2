@@ -213,7 +213,10 @@ namespace Kanvas
                 decodeImageAction = () => transcoder.Decode(_imageInfo.ImageData, _imageInfo.ImageSize, progress);
             }
 
+            progress?.StartProgress();
             _decodedImage = decodeImageAction();
+            progress?.FinishProgress();
+
             if (_bestImage == null)
                 _bestImage = _decodedImage;
 
@@ -269,7 +272,9 @@ namespace Kanvas
                     .Build();
             }
 
+            progress?.StartProgress();
             var (mainImageData, mainPaletteData) = transcoder.Encode(image, progress);
+            progress?.FinishProgress();
 
             var imageData = new byte[_imageInfo.MipMapCount + 1][];
             imageData[0] = mainImageData;
