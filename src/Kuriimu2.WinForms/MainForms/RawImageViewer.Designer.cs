@@ -34,6 +34,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeToolStripMenuItem= new System.Windows.Forms.ToolStripMenuItem();
             this.splMain = new System.Windows.Forms.SplitContainer();
             this.pbMain = new Cyotek.Windows.Forms.ImageBox();
             this.tslPbProperties = new System.Windows.Forms.ToolStrip();
@@ -85,7 +86,9 @@ namespace Kuriimu2.WinForms.MainForms
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openToolStripMenuItem});
+            this.openToolStripMenuItem,
+            this.closeToolStripMenuItem
+            });
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -96,6 +99,14 @@ namespace Kuriimu2.WinForms.MainForms
             this.openToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
+            // 
+            // closeToolStripMenuItem
+            // 
+            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
+            this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Enabled = false;
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.CloseToolStripMenuItem_Click);
             // 
             // splMain
             // 
@@ -181,6 +192,10 @@ namespace Kuriimu2.WinForms.MainForms
             this.splConfiguration.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splConfiguration.Location = new System.Drawing.Point(0, 0);
             this.splConfiguration.Name = "splConfiguration";
+            this.splConfiguration.Size = new System.Drawing.Size(604, 167);
+            this.splConfiguration.SplitterDistance = 200;
+            this.splConfiguration.IsSplitterFixed = true;
+            this.splConfiguration.TabIndex = 0;
             // 
             // splConfiguration.Panel1
             // 
@@ -199,9 +214,6 @@ namespace Kuriimu2.WinForms.MainForms
             // splConfiguration.Panel2
             // 
             this.splConfiguration.Panel2.Controls.Add(this.splParameters);
-            this.splConfiguration.Size = new System.Drawing.Size(604, 167);
-            this.splConfiguration.SplitterDistance = 171;
-            this.splConfiguration.TabIndex = 0;
             // 
             // btnProcess
             // 
@@ -378,6 +390,7 @@ namespace Kuriimu2.WinForms.MainForms
         private System.Windows.Forms.MenuStrip mnuMain;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
 
         private System.Windows.Forms.SplitContainer splMain;
         private System.Windows.Forms.SplitContainer splConfiguration;

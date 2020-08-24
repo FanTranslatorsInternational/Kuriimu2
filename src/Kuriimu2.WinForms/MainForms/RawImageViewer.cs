@@ -198,7 +198,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog()
+            var ofd = new OpenFileDialog
             {
                 Title = "Open raw image...",
                 Filter = "All Files (*.*)|*.*"
@@ -209,6 +209,11 @@ namespace Kuriimu2.WinForms.MainForms
 
             OpenFile(ofd.FileName);
             LoadImage();
+        }
+
+        private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CloseFile();
         }
 
         private void PbMain_ZoomChanged(object sender, EventArgs e)
@@ -558,7 +563,15 @@ namespace Kuriimu2.WinForms.MainForms
                 return;
 
             _openedFile = File.OpenRead(fileName);
-            _fileLoaded = true;
+            _fileLoaded = closeToolStripMenuItem.Enabled = true;
+        }
+
+        private void CloseFile()
+        {
+            _openedFile?.Close();
+            _fileLoaded = closeToolStripMenuItem.Enabled = false;
+
+            pbMain.Image = null;
         }
 
         private bool TryParseParameters(GroupBox gbControl, ExtensionTypeParameter[] parameters)
