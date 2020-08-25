@@ -48,7 +48,7 @@
             this.lblNote.Name = "lblNote";
             this.lblNote.Size = new System.Drawing.Size(459, 20);
             this.lblNote.TabIndex = 22;
-            this.lblNote.Text = "Files over 8MB will not be searched.";
+            this.lblNote.Text = "Files over 10MB will not be searched.";
             this.lblNote.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label3
@@ -98,6 +98,8 @@
             // 
             this.txtSearchDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtSearchDirectory.ReadOnly = true;
+            this.txtSearchDirectory.Enabled = false;
             this.txtSearchDirectory.BackColor = System.Drawing.SystemColors.Window;
             this.txtSearchDirectory.Location = new System.Drawing.Point(74, 13);
             this.txtSearchDirectory.Margin = new System.Windows.Forms.Padding(4);
@@ -130,13 +132,13 @@
             // btnCancel
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Location = new System.Drawing.Point(396, 70);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(4);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 18;
             this.btnCancel.Text = "Cancel";
+            this.btnCancel.Enabled = false;
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
@@ -190,7 +192,7 @@
             this.Controls.Add(this.txtSearchText);
             this.Controls.Add(this.label1);
             this.Name = "SequenceSearcher";
-            this.Text = "SequenceSearcher";
+            this.Text = "Text Sequence Searcher";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -1,12 +1,12 @@
 ﻿using System;
-using System.IO;
+using Kore.Utilities.Text.TextSearcher;
 
 namespace Kore.Utilities.Text
 {
     /// <summary>
     /// Knuth-Morris-Pratt String pattern searcher.
     /// </summary>
-    class KmpSearcher
+    class KmpSearcher : BaseTextSearcher
     {
         private readonly byte[] _w;
         private readonly int[] _t;
@@ -20,6 +20,35 @@ namespace Kore.Utilities.Text
             _w = new byte[w.Length];
             Array.Copy(w, _w, w.Length);
             _t = BuildTable(w);
+        }
+
+        /// <inheritdoc />
+        protected override int SearchInternal(int length, Func<int, byte> getByteFunc)
+        {
+            var m = 0;
+            var i = 0;
+
+            while (m + i < length)
+            {
+                if (IsCancelled())
+                    break;
+
+                var value = getByteFunc(m + i);
+                if (_w[i] == value)
+                {
+                    if (i == _w.Length - 1)
+                        return m;
+
+                    i++;
+                }
+                else
+                {
+                    m = m + i - _t[i];
+                    i = _t[i] > -1 ? _t[i] : 0;
+                }
+            }
+
+            return -1;
         }
 
         private static int[] BuildTable(byte[] w)
@@ -46,62 +75,6 @@ namespace Kore.Utilities.Text
                 }
             }
             return result;
-        }
-
-        /// <summary>
-        /// Search a pattern in a given byte array.
-        /// </summary>
-        /// <param name="s">The byte array to search in.</param>
-        /// <returns>First occurence of pattern.</returns>
-        public int Search(byte[] s)
-        {
-            var m = 0;
-            var i = 0;
-            while (m + i < s.Length)
-            {
-                if (_w[i] == s[m + i])
-                {
-                    if (i == _w.Length - 1)
-                        return m;
-                    ++i;
-                }
-                else
-                {
-                    m = m + i - _t[i];
-                    if (_t[i] > -1)
-                        i = _t[i];
-                    else
-                        i = 0;
-                }
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Search a pattern in a given binary reader.
-        /// </summary>
-        /// <param name="br">The binary reader to search in.</param>
-        /// <returns>First occurence of pattern.</returns>
-        public int Search(BinaryReader br)
-        {
-            var m = 0;
-            var i = 0;
-            while (m + i < br.BaseStream.Length)
-            {
-                br.BaseStream.Position = m + i;
-                if (_w[i] == br.ReadByte())
-                {
-                    if (i == _w.Length - 1)
-                        return m;
-                    ++i;
-                }
-                else
-                {
-                    m = m + i - _t[i];
-                    i = _t[i] > -1 ? _t[i] : 0;
-                }
-            }
-            return -1;
         }
     }
 }

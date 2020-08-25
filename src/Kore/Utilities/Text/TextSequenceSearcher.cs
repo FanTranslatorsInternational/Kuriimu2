@@ -1,20 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Kontract;
 using Kore.Utilities.Models;
+using Kore.Utilities.Text.TextSearcher;
 
 namespace Kore.Utilities.Text
 {
+    public class FoundMatchEventArgs : EventArgs
+    {
+        public SequenceSearchResult Result { get; }
+
+        public FoundMatchEventArgs(SequenceSearchResult result)
+        {
+            ContractAssertions.IsNotNull(result, nameof(result));
+            Result = result;
+        }
+    }
+
     /// <summary>
     /// The main implementation for text sequence searching.
     /// </summary>
     public class TextSequenceSearcher
     {
+        private CancellationTokenSource _cancellationSource;
+        private ITextSearcher _textSearcher;
+
         /// <summary>
-        /// The Knuth-Morris-Pratt String pattern searcher
+        /// Gets invoked when a match was found.
         /// </summary>
-        private KmpSearcher _kmpSearcher;
+        public event EventHandler<FoundMatchEventArgs> FoundMatch;
 
         /// <summary>
         /// The directory to search in.
@@ -54,36 +71,54 @@ namespace Kore.Utilities.Text
             FileSizeLimitInBytes = fileSizeLimitInBytes;
         }
 
-        public IEnumerable<SequenceSearchResult> Search(string toFind)
+        public Task SearchAsync(string toFind)
         {
-            _kmpSearcher = new KmpSearcher(Encoding.GetBytes(toFind));
-
-            return SearchInDirectory(SearchDirectory);
+            return SearchInit(toFind);
         }
 
-        private IEnumerable<SequenceSearchResult> SearchInDirectory(string directory)
+        public void Cancel()
+        {
+            _textSearcher?.Cancel();
+
+            _cancellationSource?.Cancel();
+            _cancellationSource = null;
+        }
+
+        private Task SearchInit(string toFind)
+        {
+            _cancellationSource = new CancellationTokenSource();
+
+            _textSearcher = new KmpSearcher(Encoding.GetBytes(toFind));
+            return Task.Run(() => SearchInDirectory(_textSearcher, SearchDirectory), _cancellationSource.Token);
+        }
+
+        // TODO: Make async enumerable with c# 8 and netcoreapp31
+        private async Task SearchInDirectory(ITextSearcher textSearcher, string directory)
         {
             foreach (var file in Directory.EnumerateFiles(SearchDirectory))
             {
+                if (_cancellationSource?.IsCancellationRequested ?? true)
+                    return;
+
                 if (new FileInfo(file).Length > FileSizeLimitInBytes)
                     continue;
 
-                // Search string in file
-                var foundOffset = _kmpSearcher.Search(new BinaryReader(File.OpenRead(file)));
+                // SearchAsync string in file
+                var foundOffset = await textSearcher.SearchAsync(new BinaryReader(File.OpenRead(file)));
                 if (foundOffset >= 0)
-                    yield return new SequenceSearchResult(file, foundOffset);
+                    OnFoundMatch(new SequenceSearchResult(file, foundOffset));
             }
 
             if (!IsSearchSubDirectories)
-                yield break;
+                return;
 
             foreach (var dir in Directory.EnumerateDirectories(directory))
-            {
-                foreach (var element in SearchInDirectory(dir))
-                {
-                    yield return element;
-                }
-            }
+                await SearchInDirectory(textSearcher, dir);
+        }
+
+        private void OnFoundMatch(SequenceSearchResult result)
+        {
+            FoundMatch?.Invoke(this, new FoundMatchEventArgs(result));
         }
     }
 }
