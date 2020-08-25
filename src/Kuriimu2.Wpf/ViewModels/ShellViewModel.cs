@@ -30,7 +30,7 @@ namespace Kuriimu2.Wpf.ViewModels
             DisplayName = "Kuriimu2.Wpf";
 
             // Assign plugin loading event handler.
-            _pluginManager = new PluginManager(new ConcurrentProgress(new NullProgressOutput()), "plugins");
+            _pluginManager = new PluginManager(new ProgressContext(new NullProgressOutput()), "plugins");
 
             // TODO: Add event for failed identification
             //_pluginManager.IdentificationFailed += FileIdentificationFailed;
