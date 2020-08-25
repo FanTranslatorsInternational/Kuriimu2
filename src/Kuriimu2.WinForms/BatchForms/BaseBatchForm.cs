@@ -69,6 +69,8 @@ namespace Kuriimu2.WinForms.BatchForms
                 return;
 
             Settings.Default.BatchInputDirectory = selectedFolder;
+            Settings.Default.Save();
+
             txtSourcePath.Text = selectedFolder;
         }
 
@@ -79,6 +81,8 @@ namespace Kuriimu2.WinForms.BatchForms
                 return;
 
             Settings.Default.BatchOutputDirectory = selectedFolder;
+            Settings.Default.Save();
+
             txtDestinationPath.Text = selectedFolder;
         }
 
