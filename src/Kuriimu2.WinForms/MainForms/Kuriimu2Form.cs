@@ -743,17 +743,25 @@ namespace Kuriimu2.WinForms.MainForms
 
         private async void openFiles_MouseUp(object sender, MouseEventArgs e)
         {
-            var tabImage = tabCloseButtons.Images[CloseButton_];
-            if (tabImage == null)
+            var tabPage = GetTabPageMouseOver(e.Location);
+            if (tabPage == null)
                 return;
 
-            var selectedRect = openFiles.GetTabRect(openFiles.SelectedIndex);
-            var closeButtonRect = new Rectangle(selectedRect.Left + 9, selectedRect.Top + 4, tabImage.Width, tabImage.Height);
-            if (!closeButtonRect.Contains(e.Location))
-                return;
-
-            var tabEntry = _tabDictionary[openFiles.SelectedTab];
+            var tabEntry = _tabDictionary[tabPage];
             var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
+
+            if (e.Button != MouseButtons.Middle)
+            {
+                var tabImage = tabCloseButtons.Images[CloseButton_];
+                if (tabImage == null)
+                    return;
+
+                var selectedRect = openFiles.GetTabRect(openFiles.SelectedIndex);
+                var closeButtonRect = new Rectangle(selectedRect.Left + 9, selectedRect.Top + 4, tabImage.Width,
+                    tabImage.Height);
+                if (!closeButtonRect.Contains(e.Location))
+                    return;
+            }
 
             // Select parent tab
             if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
@@ -810,6 +818,17 @@ namespace Kuriimu2.WinForms.MainForms
             process.Start();
 
             Close();
+        }
+
+        private TabPage GetTabPageMouseOver(Point mouseLocation)
+        {
+            for (var i = 0; i < openFiles.TabPages.Count; i++)
+            {
+                if (openFiles.GetTabRect(i).Contains(mouseLocation))
+                    return openFiles.TabPages[i];
+            }
+
+            return null;
         }
 
         private (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor) GetSelectedTabEntry()
