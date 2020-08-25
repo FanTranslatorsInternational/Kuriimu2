@@ -88,7 +88,7 @@ namespace Kore.Utilities.Text
         {
             _cancellationSource = new CancellationTokenSource();
 
-            _textSearcher = new KmpSearcher(Encoding.GetBytes(toFind));
+            _textSearcher = new KmpTextSearcher(Encoding.GetBytes(toFind));
             return Task.Run(() => SearchInDirectory(_textSearcher, SearchDirectory), _cancellationSource.Token);
         }
 

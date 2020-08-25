@@ -1,21 +1,20 @@
 ﻿using System;
-using Kore.Utilities.Text.TextSearcher;
 
-namespace Kore.Utilities.Text
+namespace Kore.Utilities.Text.TextSearcher
 {
     /// <summary>
     /// Knuth-Morris-Pratt String pattern searcher.
     /// </summary>
-    class KmpSearcher : BaseTextSearcher
+    class KmpTextSearcher : BaseTextSearcher
     {
         private readonly byte[] _w;
         private readonly int[] _t;
 
         /// <summary>
-        /// Creates a new instance of <see cref="KmpSearcher"/>.
+        /// Creates a new instance of <see cref="KmpTextSearcher"/>.
         /// </summary>
         /// <param name="w">The pattern to search for.</param>
-        public KmpSearcher(byte[] w)
+        public KmpTextSearcher(byte[] w)
         {
             _w = new byte[w.Length];
             Array.Copy(w, _w, w.Length);
