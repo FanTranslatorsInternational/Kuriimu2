@@ -283,7 +283,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.lstFiles.HideSelection = false;
             this.lstFiles.LargeImageList = this.imlFilesLarge;
             this.lstFiles.Location = new System.Drawing.Point(0, 25);
-            this.lstFiles.MultiSelect = false;
+            this.lstFiles.MultiSelect = true;
             this.lstFiles.Name = "lstFiles";
             this.lstFiles.ShowGroups = false;
             this.lstFiles.ShowItemToolTips = true;

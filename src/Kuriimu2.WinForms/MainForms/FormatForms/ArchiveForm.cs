@@ -571,14 +571,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!treDirectories.Focused)
-                return;
-
-            AddFiles();
-
-            UpdateDirectories();
-            UpdateProperties();
-            _formCommunicator.Update(true, false);
+            AddFilesToSelectedNode();
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1422,6 +1415,73 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
+        #region Add Files
+
+        private void AddFilesToSelectedNode()
+        {
+            AddFiles(treDirectories.SelectedNode);
+        }
+
+        private async void AddFiles(TreeNode node)
+        {
+            EnableOperation();
+
+            // Select folder
+            var selectedPath = SelectFolder();
+            if (selectedPath.IsNull || selectedPath.IsEmpty)
+            {
+                _formCommunicator.ReportStatus(false, "No folder selected.");
+                DisableOperation();
+                return;
+            }
+
+            // Add elements
+            var subFolder = GetNodePath(GetRootNode(), node);
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath, _stateInfo.StreamManager);
+
+            var elements = sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.File).ToArray();
+            if (elements.Length <= 0)
+            {
+                _formCommunicator.ReportStatus(false, "No files to add.");
+                DisableOperation();
+                return;
+            }
+
+            _formCommunicator.ReportStatus(true, string.Empty);
+
+            _progressContext.StartProgress();
+            _operationToken = new CancellationTokenSource();
+            await Task.Run(() =>
+            {
+                var count = 0;
+                var addState = _stateInfo.PluginState as IAddFiles;
+                foreach (var filePath in elements)
+                {
+                    if (_operationToken.IsCancellationRequested)
+                        break;
+
+                    _progressContext.ReportProgress("Add files", count++, elements.Length);
+
+                    addState?.AddFile(sourceFileSystem.OpenFile(filePath), subFolder / filePath.ToRelative());
+                }
+            }, _operationToken.Token);
+            _progressContext.ReportProgress("Add files", 1, 1);
+            _progressContext.FinishProgress();
+
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File adding cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) added successfully.");
+
+            UpdateDirectory(node);
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
+
+            DisableOperation();
+        }
+
+        #endregion
+
         #region Open Files
 
         private void OpenSelectedFiles()
@@ -1515,33 +1575,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 UpdateProperties();
                 _formCommunicator.Update(true, false);
             });
-        }
-
-        #endregion
-
-        #region Add Files
-
-        private void AddFiles()
-        {
-            var dlg = new FolderBrowserDialog
-            {
-                Description = $"Choose where you want to add from to {treDirectories.SelectedNode.FullPath}:"
-            };
-
-            if (dlg.ShowDialog() != DialogResult.OK)
-                return;
-
-            var fs = FileSystemFactory.CreatePhysicalFileSystem(dlg.SelectedPath, _stateInfo.StreamManager);
-            AddRecursive(fs, UPath.Root);
-        }
-
-        private void AddRecursive(IFileSystem fileSystem, UPath currentPath)
-        {
-            foreach (var dir in fileSystem.EnumeratePaths(currentPath, "*", SearchOption.TopDirectoryOnly, SearchTarget.Directory))
-                AddRecursive(fileSystem, dir);
-
-            foreach (var file in fileSystem.EnumeratePaths(currentPath, "*", SearchOption.TopDirectoryOnly, SearchTarget.File))
-                (ArchiveState as IAddFiles).AddFile(fileSystem, file);
         }
 
         #endregion

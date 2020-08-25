@@ -101,7 +101,7 @@ namespace Kore.FileSystem.Implementations
             if (!parent.IsNull && !parent.IsEmpty)
                 _directoryDictionary[parent].Item1.Remove(srcPath);
 
-            CreateDirectoryEntries(destPath);
+            CreateDirectoryInternal(destPath);
 
             // Move files
             var renameState = ArchiveState as IRenameFiles;
@@ -217,7 +217,7 @@ namespace Kore.FileSystem.Implementations
             renameState?.Rename(file, destPath);
 
             // Create directory of destination
-            CreateDirectoryEntries(destPath.GetDirectory());
+            CreateDirectoryInternal(destPath.GetDirectory());
 
             // Add file to destination directory
             _directoryDictionary[destPath.GetDirectory()].Item2.Add(file);
@@ -251,16 +251,50 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override async Task<Stream> OpenFileAsyncImpl(UPath path, FileMode mode, FileAccess access, FileShare share)
         {
-            if (!FileExistsImpl(path))
+            if(mode==FileMode.Append||mode==FileMode.Truncate)
+                throw new InvalidOperationException("FileModes 'Append' and 'Truncate' are not supported.");
+
+            var fileExists = FileExistsImpl(path);
+            if ((mode == FileMode.Open || mode == FileMode.Truncate) && !fileExists)
             {
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
+            }
+
+            ArchiveFileInfo afi;
+            switch (mode)
+            {
+                case FileMode.Open:
+                    afi = _fileDictionary[path];
+                    break;
+
+                case FileMode.Create:
+                    if (fileExists)
+                    {
+                        afi = _fileDictionary[path];
+                        afi.SetFileData(new MemoryStream());
+                    }
+                    else
+                    {
+                        afi = CreateFileInternal(new MemoryStream(), path);
+                    }
+                    break;
+
+                case FileMode.CreateNew:
+                    afi = CreateFileInternal(new MemoryStream(), path);
+                    break;
+
+                case FileMode.OpenOrCreate:
+                    afi = fileExists ? _fileDictionary[path] : CreateFileInternal(new MemoryStream(), path);
+                    break;
+
+                default:
+                    return null;
             }
 
             // Ignore file mode, access and share for now
             // TODO: Find a way to somehow allow for mode and access to have an effect?
 
             // Get data of ArchiveFileInfo
-            var afi = _fileDictionary[path];
             var afiData = await afi.GetFileData(_temporaryStreamProvider);
 
             // Wrap data accordingly to not dispose the original ArchiveFileInfo data
@@ -388,7 +422,22 @@ namespace Kore.FileSystem.Implementations
             return result;
         }
 
-        private void CreateDirectoryEntries(UPath newPath)
+        private ArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
+        {
+            if (!(_stateInfo.PluginState is IAddFiles addState))
+                return null;
+
+            var newAfi = addState.AddFile(fileData, newFilePath);
+            _fileDictionary[newFilePath] = newAfi;
+
+            CreateDirectoryInternal(newFilePath.GetDirectory());
+            var dirEntry = _directoryDictionary[newFilePath.GetDirectory()];
+            dirEntry.Item2.Add(newAfi);
+
+            return newAfi;
+        }
+
+        private void CreateDirectoryInternal(UPath newPath)
         {
             CreateDirectoryEntries(_directoryDictionary, newPath);
         }

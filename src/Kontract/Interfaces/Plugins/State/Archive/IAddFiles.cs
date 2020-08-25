@@ -1,5 +1,4 @@
-﻿using Kontract.Interfaces.FileSystem;
-using Kontract.Models;
+﻿using System.IO;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -13,9 +12,9 @@ namespace Kontract.Interfaces.Plugins.State.Archive
         /// <summary>
         /// Adds a file to the archive state.
         /// </summary>
-        /// <param name="fileSystem">The file system from which to open <paramref name="filePath"/>.</param>
-        /// <param name="filePath">the path of the file to add to this state.</param>
+        /// <param name="fileData">The file stream to set to the <see cref="ArchiveFileInfo"/>.</param>
+        /// <param name="filePath">The path of the file to add to this state.</param>
         /// <returns>The newly created <see cref="ArchiveFileInfo"/>.</returns>
-        ArchiveFileInfo AddFile(IFileSystem fileSystem, UPath filePath);
+        ArchiveFileInfo AddFile(Stream fileData, UPath filePath);
     }
 }
