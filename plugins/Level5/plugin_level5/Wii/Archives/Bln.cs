@@ -8,7 +8,6 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Wii.Archives
 {
-    // TODO: Test plugin
     // Game: Inazuma Eleven GO Strikers 2013
     // HINT: Despite being on Wii, this archive is Little Endian
     class Bln
