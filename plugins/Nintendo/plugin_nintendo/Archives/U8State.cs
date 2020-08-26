@@ -9,31 +9,31 @@ using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
-    class QpState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class U8State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly QP _qp;
+        private readonly U8 _u8;
 
         public IList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
-        public QpState()
+        public U8State()
         {
-            _qp = new QP();
+            _u8 = new U8();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = await Task.Run(() => _qp.Load(fileStream));
+            Files = _u8.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _qp.Save(output, Files);
+            _u8.Save(output, Files);
 
             return Task.CompletedTask;
         }

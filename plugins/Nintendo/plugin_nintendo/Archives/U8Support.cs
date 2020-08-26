@@ -8,7 +8,7 @@ using Komponent.IO.Streams;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
     class U8Header
     {
@@ -37,11 +37,31 @@ namespace plugin_skip_ltd.Archives
         }
     }
 
-    class U8FileSystem
+    class DefaultU8FileSystem : BaseU8FileSystem
+    {
+        public DefaultU8FileSystem(UPath root) : base(root)
+        {
+        }
+
+        protected override long GetFileOffset(int offset)
+        {
+            return FileOffsetStart + offset;
+        }
+    }
+
+    abstract class BaseU8FileSystem
     {
         private BinaryReaderX _nameReader;
         private int _index;
-        private int _fileOffsetStart;
+
+        private readonly UPath _root;
+
+        protected long FileOffsetStart { get; private set; }
+
+        public BaseU8FileSystem(UPath root)
+        {
+            _root = root;
+        }
 
         public IEnumerable<ArchiveFileInfo> Parse(Stream input, long fileSystemOffset, int fileSystemSize, int fileOffsetStart)
         {
@@ -57,7 +77,7 @@ namespace plugin_skip_ltd.Archives
             _nameReader = new BinaryReaderX(nameStream);
 
             // Parse entries
-            _fileOffsetStart = fileOffsetStart;
+            FileOffsetStart = fileOffsetStart;
             br.BaseStream.Position = fileSystemOffset;
             var entries = br.ReadMultiple<U8Entry>(root.size);
             return ParseDirectory(input, entries);
@@ -69,11 +89,10 @@ namespace plugin_skip_ltd.Archives
             var endIndex = rootEntry.size;
             _index = 1;
 
-            return ParseDirectory(input, entries, UPath.Root, endIndex);
+            return ParseDirectory(input, entries, _root, endIndex);
         }
 
-        private IEnumerable<ArchiveFileInfo> ParseDirectory(Stream input, IList<U8Entry> entries,
-            UPath path, int endIndex)
+        private IEnumerable<ArchiveFileInfo> ParseDirectory(Stream input, IList<U8Entry> entries, UPath path, int endIndex)
         {
             while (_index < endIndex)
             {
@@ -89,10 +108,12 @@ namespace plugin_skip_ltd.Archives
                     continue;
                 }
 
-                var subStream = new SubStream(input, _fileOffsetStart + entry.offset, entry.size);
+                var subStream = new SubStream(input, GetFileOffset(entry.offset), entry.size);
                 yield return new ArchiveFileInfo(subStream, (path / nodeName).FullName);
             }
         }
+
+        protected abstract long GetFileOffset(int offset);
     }
 
     class U8TreeBuilder

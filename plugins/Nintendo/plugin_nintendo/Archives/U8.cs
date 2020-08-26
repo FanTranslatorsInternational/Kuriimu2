@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Komponent.IO;
-using Komponent.IO.Streams;
-using Kontract.Models.Archive;
-using Kontract.Models.IO;
 using System.Linq;
 using System.Text;
+using Komponent.IO;
+using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
-    public class QP
+    public class U8
     {
         private static int _headerSize = 0x20;
         private static int _entrySize = Tools.MeasureType(typeof(U8Entry));
@@ -22,7 +21,7 @@ namespace plugin_skip_ltd.Archives
             var header = br.ReadType<U8Header>();
 
             // Parse file system
-            var fileSystemParser = new U8FileSystem();
+            var fileSystemParser = new DefaultU8FileSystem(UPath.Root);
             return fileSystemParser.Parse(input, header.entryDataOffset, header.entryDataSize, 0).ToArray();
         }
 
@@ -46,15 +45,15 @@ namespace plugin_skip_ltd.Archives
             bw.WriteAlignment(0x20);
 
             // Write files
-            foreach (var (qpEntry, afi) in entries.Where(x => x.Item2 != null))
+            foreach (var (u8Entry, afi) in entries.Where(x => x.Item2 != null))
             {
                 bw.WriteAlignment(0x20);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = afi.SaveFileData(bw.BaseStream, null);
+                var writtenSize = afi.SaveFileData(bw.BaseStream);
 
-                qpEntry.offset = fileOffset;
-                qpEntry.size = (int)writtenSize;
+                u8Entry.offset = fileOffset;
+                u8Entry.size = (int)writtenSize;
             }
 
             // Write entries

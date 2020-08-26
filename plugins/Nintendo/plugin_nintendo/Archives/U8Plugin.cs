@@ -9,18 +9,18 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_skip_ltd.Archives
+namespace plugin_nintendo.Archives
 {
-    public class QpPlugin : IFilePlugin, IIdentifyFiles
+    public class U8Plugin : IFilePlugin, IIdentifyFiles
     {
         public Guid PluginId => Guid.Parse("410009a3-49ef-4356-b9be-a7685c4f786c");
         public PluginType PluginType => PluginType.Archive;
         public string[] FileExtensions => new[] { "*.bin" };
         public PluginMetadata Metadata { get; }
 
-        public QpPlugin()
+        public U8Plugin()
         {
-            Metadata = new PluginMetadata("QP", "onepiecefreak", "The main archive in Chibi Robo!");
+            Metadata = new PluginMetadata("U8", "onepiecefreak", "The main archive format for Wii games.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -33,7 +33,7 @@ namespace plugin_skip_ltd.Archives
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
-            return new QpState();
+            return new U8State();
         }
     }
 }

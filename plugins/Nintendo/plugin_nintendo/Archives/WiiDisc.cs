@@ -61,62 +61,9 @@ namespace plugin_nintendo.Archives
                     var fileSystemSize = partitionBr.ReadInt32() << 2;
 
                     // Parse file system
-                    var fileSystem = new U8FileSystem("DATA");
+                    var fileSystem = new WiiDiscU8FileSystem("DATA");
                     result.AddRange(fileSystem.Parse(partitionDataStream, fileSystemOffset, fileSystemSize, fileSystemOffset));
                 }
-            }
-
-            return result;
-        }
-
-        private IList<ArchiveFileInfo> ParseFileSystem(Stream input, long fileSystemOffset, long fileSystemSize)
-        {
-            using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
-
-            // Read entries
-            br.BaseStream.Position = fileSystemOffset;
-            var rootEntry = br.ReadType<U8Entry>();
-
-            br.BaseStream.Position = fileSystemOffset;
-            var entries = br.ReadMultiple<U8Entry>(rootEntry.size);
-
-            // Read names
-            var nameStream = new SubStream(input, br.BaseStream.Position, fileSystemSize + fileSystemOffset - br.BaseStream.Position);
-
-            // Add files
-            using var nameBr = new BinaryReaderX(nameStream);
-
-            var result = new List<ArchiveFileInfo>();
-            var lastDirectoryEntry = entries[0];
-            foreach (var entry in entries.Skip(1))
-            {
-                // A file does not know of its parent directory
-                // The tree is structured so that the last directory entry read must hold the current file
-
-                // Remember the last directory entry
-                if (entry.IsDirectory)
-                {
-                    lastDirectoryEntry = entry;
-                    continue;
-                }
-
-                // Find whole path recursively from lastDirectoryEntry
-                var currentDirectoryEntry = lastDirectoryEntry;
-                var currentPath = UPath.Empty;
-                while (currentDirectoryEntry != entries[0])
-                {
-                    nameBr.BaseStream.Position = currentDirectoryEntry.NameOffset;
-                    currentPath = nameBr.ReadCStringASCII() / currentPath;
-
-                    currentDirectoryEntry = entries[currentDirectoryEntry.offset];
-                }
-
-                // Get file name
-                nameBr.BaseStream.Position = entry.NameOffset;
-                var fileName = currentPath / nameBr.ReadCStringASCII();
-
-                var fileStream = new SubStream(input, fileSystemOffset + entry.offset, entry.size);
-                result.Add(new ArchiveFileInfo(fileStream, fileName.FullName));
             }
 
             return result;
