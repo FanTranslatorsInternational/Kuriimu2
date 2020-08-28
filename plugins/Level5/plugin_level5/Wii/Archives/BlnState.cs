@@ -47,7 +47,7 @@ namespace plugin_level5.Wii.Archives
             if (dataStream == null || indexStream == null)
                 throw new InvalidOperationException("This is no Bln archive.");
 
-            Files = await Task.Run(() => _bln.Load(indexStream, dataStream));
+            Files = _bln.Load(indexStream, dataStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

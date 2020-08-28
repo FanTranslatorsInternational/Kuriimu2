@@ -3,6 +3,7 @@ using System.IO;
 using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Kontract.Kanvas;
 using Kontract.Models.Image;
 using plugin_nintendo.BCLIM;
 using plugin_nintendo.NW4C;
@@ -21,29 +22,25 @@ namespace plugin_nintendo.Images
         {
             var dataLength = (int)input.Length - (Nw4CHeaderSize + BclimHeaderSize);
 
-            using (var br = new BinaryReaderX(input))
+            using var br = new BinaryReaderX(input);
+
+            var textureData = br.ReadBytes(dataLength);
+
+            _header = br.ReadType<NW4CHeader>();
+            br.ByteOrder = _header.ByteOrder;
+
+            _textureHeader = br.ReadType<BclimHeader>();
+
+            var imageInfo = new ImageInfo(textureData, _textureHeader.Format, new Size(_textureHeader.Width, _textureHeader.Height))
             {
-                var textureData = br.ReadBytes(dataLength);
+                Configuration = new ImageConfiguration().
+                    RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, _textureHeader.SwizzleTileMode, true))
+            };
 
-                _header = br.ReadType<NW4CHeader>();
-                br.ByteOrder = _header.ByteOrder;
-
-                _textureHeader = br.ReadType<BclimHeader>();
-
-                var imageInfo = new ImageInfo
-                {
-                    ImageData = textureData,
-                    ImageFormat = _textureHeader.Format,
-                    ImageSize = new Size(_textureHeader.Width, _textureHeader.Height),
-                    Configuration = new ImageConfiguration().
-                        RemapPixelsWith(size => new CTRSwizzle(_textureHeader.Width, _textureHeader.Height, _textureHeader.SwizzleTileMode, true))
-                };
-
-                return imageInfo;
-            }
+            return imageInfo;
         }
 
-        public void Save(Stream output, ImageInfo imageInfo)
+        public void Save(Stream output, IKanvasImage image)
         {
 
         }

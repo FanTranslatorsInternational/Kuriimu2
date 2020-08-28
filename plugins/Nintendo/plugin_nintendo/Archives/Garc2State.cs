@@ -31,7 +31,7 @@ namespace plugin_nintendo.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = await Task.Run(() => _garc2.Load(fileStream));
+            Files = _garc2.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

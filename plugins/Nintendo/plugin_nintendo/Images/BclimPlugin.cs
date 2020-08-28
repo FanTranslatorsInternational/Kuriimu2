@@ -9,6 +9,7 @@ using Kontract.Interfaces.Providers;
 using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using plugin_nintendo.Images;
 
 namespace plugin_nintendo.BCLIM
 {

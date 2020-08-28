@@ -1,10 +1,9 @@
 ﻿using System.Drawing;
 using System.IO;
-using Kanvas.Configuration;
 using Komponent.IO;
 using Kontract.Models.Image;
 
-namespace plugin_yuusha_shisu.BTX
+namespace plugin_yuusha_shisu.Images
 {
     public class BTX
     {
@@ -26,24 +25,19 @@ namespace plugin_yuusha_shisu.BTX
                 var texture = br.ReadBytes(dataLength);
 
                 // Palette
-                var imageInfo= new ImageInfo
+                var imageInfo = new ImageInfo(texture, (int)header.Format, new Size(header.Width, header.Height))
                 {
-                    Name = fileName,
-
-                    ImageData = texture,
-                    ImageFormat = (int)header.Format,
-                    ImageSize = new Size(header.Width, header.Height),
-                    Configuration = new ImageConfiguration()
+                    Name = fileName
                 };
 
-                if (header.Format == ImageFormat.Palette_8)
-                {
-                    br.BaseStream.Position = header.PaletteOffset;
-                    var palette = br.ReadBytes(paletteDataLength);
+                if (header.Format != ImageFormat.Palette_8) 
+                    return imageInfo;
 
-                    imageInfo.PaletteFormat = (int)header.Format;
-                    imageInfo.PaletteData = palette;
-                }
+                br.BaseStream.Position = header.PaletteOffset;
+                var palette = br.ReadBytes(paletteDataLength);
+
+                imageInfo.PaletteFormat = (int)header.Format;
+                imageInfo.PaletteData = palette;
 
                 return imageInfo;
             }

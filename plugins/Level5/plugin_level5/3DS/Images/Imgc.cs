@@ -62,7 +62,7 @@ namespace plugin_level5._3DS.Images
 
             // Split image data and mip map data
             var images = new byte[_header.imageCount][];
-            var (width, height) = ((int)_header.width, (int)_header.height);
+            var (width, height) = ((_header.width + 7) & ~7, (_header.height + 7) & ~7);
             for (var i = 0; i < _header.imageCount; i++)
             {
                 images[i] = new byte[width * height * _header.bitDepth / 8];
@@ -71,38 +71,32 @@ namespace plugin_level5._3DS.Images
                 (width, height) = (width / 2, height / 2);
             }
 
-            return new ImageInfo
+            return new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height))
             {
-                ImageData = images.FirstOrDefault(),
-                ImageFormat = _header.imageFormat,
-                ImageSize = new Size(_header.width, _header.height),
-                MipMapData = images.Skip(1).ToArray(),
                 Configuration = new ImageConfiguration()
                     .PadSizeWith(size => new Size((size.Width + 7) & ~7, (size.Height + 7) & ~7))
                     .RemapPixelsWith(size => new ImgcSwizzle(size.Width, size.Height))
             };
         }
 
-        public void Save(Stream output, ImageInfo image, IDictionary<int, IColorEncoding> imageFormats)
+        public void Save(Stream output, IKanvasImage image)
         {
             using var bw = new BinaryWriterX(output);
 
             // Header
             _header.width = (short)image.ImageSize.Width;
             _header.height = (short)image.ImageSize.Height;
-            _header.imageFormat = (byte)(/*image.ImageFormat == 29 ? 28 : */image.ImageFormat);
-            _header.bitDepth = (byte)(/*image.ImageFormat == 29 ? 8 :*/
-                imageFormats[image.ImageFormat].BitDepth);
+            _header.imageFormat = (byte)image.ImageFormat;
+            _header.bitDepth = (byte)image.BitDepth;
 
             // Write image data to stream
             var combinedImageStream = new MemoryStream();
-            combinedImageStream.Write(image.ImageData);
-            for (var i = 0; i < image.MipMapCount; i++)
-                combinedImageStream.Write(image.MipMapData[i]);
+            combinedImageStream.Write(image.ImageInfo.ImageData);
+            for (var i = 0; i < image.ImageInfo.MipMapCount; i++)
+                combinedImageStream.Write(image.ImageInfo.MipMapData[i]);
 
             // Create reduced tiles and indices
-            var bitDepth = imageFormats[_header.imageFormat].BitDepth;
-            var (imageData, tileTable) = SplitTiles(combinedImageStream, bitDepth);
+            var (imageData, tileTable) = SplitTiles(combinedImageStream, image.BitDepth);
 
             // Write tile table
             output.Position = _headerSize;

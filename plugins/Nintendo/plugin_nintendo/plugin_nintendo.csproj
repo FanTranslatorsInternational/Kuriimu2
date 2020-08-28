@@ -22,11 +22,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
   </ItemGroup>
 
   <ItemGroup>

@@ -27,6 +27,8 @@ namespace plugin_koei_tecmo.Archives
             // Read file entries
             var entries = br.ReadMultiple<X3FileEntry>(_header.fileCount);
 
+            var firstBlocksList = new List<(int, int, string)>();
+
             // Add files
             var result = new List<ArchiveFileInfo>();
             foreach (var entry in entries)
@@ -53,6 +55,17 @@ namespace plugin_koei_tecmo.Archives
 
                 var fileStream = new SubStream(br.BaseStream, fileOffset + (entry.IsCompressed ? 8 : 0), entry.fileSize);
                 var fileName = result.Count.ToString("00000000") + extension;
+
+                if (firstBlockLength >= 0)
+                    firstBlocksList.Add((firstBlockLength, entry.fileSize, fileName));
+
+                //if (fileName == "00000001.3ds.gt1")
+                //{
+                //    var newFs = File.Create(@"D:\Users\Kirito\Desktop\comp_x3.bin");
+                //    fileStream.CopyTo(newFs);
+                //    fileStream.Position = 0;
+                //    newFs.Close();
+                //}
 
                 if (entry.IsCompressed)
                     result.Add(new X3ArchiveFileInfo(fileStream, fileName,
@@ -91,7 +104,7 @@ namespace plugin_koei_tecmo.Archives
                     bw.Write(file.FirstBlockSize);
                 }
 
-                var writtenSize = file.SaveFileData(bw.BaseStream, null);
+                var writtenSize = file.SaveFileData(bw.BaseStream);
                 bw.WriteAlignment(header.offsetMultiplier);
 
                 file.Entry.offset = fileOffset / header.offsetMultiplier;
@@ -102,7 +115,7 @@ namespace plugin_koei_tecmo.Archives
 
             // Write file entries
             bw.BaseStream.Position = _headerSize + 4;
-            foreach(var file in castedFiles)
+            foreach (var file in castedFiles)
                 bw.WriteType(file.Entry);
 
             // Write header

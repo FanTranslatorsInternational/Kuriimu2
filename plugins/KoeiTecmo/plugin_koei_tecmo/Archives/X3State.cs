@@ -25,7 +25,7 @@ namespace plugin_koei_tecmo.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = await Task.Run(() => _x3.Load(fileStream));
+            Files = _x3.Load(fileStream);
         }
 
         public void Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

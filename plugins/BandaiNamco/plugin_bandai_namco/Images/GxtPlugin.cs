@@ -9,30 +9,31 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_yuusha_shisu.BTX
+namespace plugin_bandai_namco.Images
 {
-    public class BtxPlugin : IFilePlugin, IIdentifyFiles
+    public class GxtPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("df2a52a8-9cbe-4959-a593-ad62ae687c17");
+        public Guid PluginId => Guid.Parse("b7453fd6-ca66-4684-b172-8f51db77ea75");
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.btx" };
+        public string[] FileExtensions => new[] { "*.gxt", "*.bin" };
         public PluginMetadata Metadata { get; }
 
-        public BtxPlugin()
+        public GxtPlugin()
         {
-            Metadata = new PluginMetadata("BTX", "IcySon55", "Death of a Hero");
+            Metadata=new PluginMetadata("GXT","onepiecefreak, IcySon55","The image format found in [...]");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            using (var br = new BinaryReaderX(fileStream))
-                return br.ReadString(4) == "btx\0";
+            using var br = new BinaryReaderX(fileStream);
+
+            return br.PeekString() == "GXT\0";
         }
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
-            return new BtxState();
+            return new GxtState();
         }
     }
 }

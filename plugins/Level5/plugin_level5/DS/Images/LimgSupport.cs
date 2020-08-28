@@ -2,6 +2,7 @@
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
+using Kontract.Models.Image;
 
 namespace plugin_level5.DS.Images
 {
@@ -33,11 +34,11 @@ namespace plugin_level5.DS.Images
 
     class LimgSupport
     {
-        public static IDictionary<int, (IIndexEncoding, IList<int>)> LimgFormats = new Dictionary<int, (IIndexEncoding, IList<int>)>
+        public static IDictionary<int, IndexEncodingDefinition> LimgFormats = new Dictionary<int, IndexEncodingDefinition>
         {
-            [0] = (new Index(4), new List<int> { 0 }),
-            [1] = (new Index(8), new List<int> { 0 }),
-            [2] = (new Index(5, 3), new List<int> { 0 })
+            [0] = new IndexEncodingDefinition(new Index(4), new[] { 0 }),
+            [1] = new IndexEncodingDefinition(new Index(8), new[] { 0 }),
+            [2] = new IndexEncodingDefinition(new Index(5, 3), new[] { 0 }),
         };
 
         public static IDictionary<int, IColorEncoding> LimgPaletteFormats = new Dictionary<int, IColorEncoding>

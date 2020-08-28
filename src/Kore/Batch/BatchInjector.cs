@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.Threading.Tasks;
-using Kanvas;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Logging;
@@ -52,11 +51,8 @@ namespace Kore.Batch
                         if (!destinationFileSystem.FileExists(path))
                             continue;
 
-                        // TODO: Can we get the reference to Kanvas out of here?
-                        var kanvasImage = new KanvasImage(imageState, img);
-
                         var openedImage = (Bitmap)Image.FromStream(destinationFileSystem.OpenFile(path));
-                        kanvasImage.SetImage(openedImage);
+                        img.SetImage(openedImage);
 
                         index++;
                     }

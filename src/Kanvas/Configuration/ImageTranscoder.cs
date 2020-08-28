@@ -120,7 +120,7 @@ namespace Kanvas.Configuration
                 .AttachProgress(setMaxProgress, "Decode colors");
 
             // Create image with unpadded dimensions
-            return colors.ToBitmap(imageSize, paddedSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
+            return colors.ToBitmap(imageSize, paddedSize, _swizzle?.Invoke(finalSize));
         }
 
         private Bitmap DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress)

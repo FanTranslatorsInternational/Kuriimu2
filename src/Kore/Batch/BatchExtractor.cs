@@ -67,11 +67,8 @@ namespace Kore.Batch
                     var index = 0;
                     foreach (var img in imageState.Images)
                     {
-                        // TODO: Can we get the reference to Kanvas out of here?
-                        var kanvasImage = new KanvasImage(imageState, img);
-
                         var imgStream = new MemoryStream();
-                        kanvasImage.GetImage().Save(imgStream, ImageFormat.Png);
+                        img.GetImage().Save(imgStream, ImageFormat.Png);
 
                         var fileStream = destinationFileSystem.OpenFile(filePath / (img.Name ?? $"{index:00}") + ".png");
                         imgStream.Position = 0;

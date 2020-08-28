@@ -2,9 +2,10 @@
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
+using Kontract.Models.Image;
 using Kontract.Models.IO;
 
-namespace plugin_yuusha_shisu.BTX
+namespace plugin_yuusha_shisu.Images
 {
     public static class BtxSupport
     {
@@ -13,9 +14,9 @@ namespace plugin_yuusha_shisu.BTX
             [0] = new Rgba(8, 8, 8, 8, ByteOrder.BigEndian)
         };
 
-        public static IDictionary<int, (IIndexEncoding, IList<int>)> IndexEncodings = new Dictionary<int, (IIndexEncoding, IList<int>)>
+        public static IDictionary<int, IndexEncodingDefinition> IndexEncodings = new Dictionary<int, IndexEncodingDefinition>
         {
-            [5] = (new Index(8), new[] { 5 })
+            [5] = new IndexEncodingDefinition(new Index(8), new[] { 5 })
         };
 
         /// <summary>

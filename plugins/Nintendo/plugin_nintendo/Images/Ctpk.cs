@@ -6,77 +6,67 @@ using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Kanvas.Swizzle.Models;
 using Komponent.IO;
+using Kontract.Kanvas;
 using Kontract.Models.Image;
 
-namespace plugin_nintendo.CTPK
+namespace plugin_nintendo.Images
 {
     class Ctpk
     {
         public IList<ImageInfo> Load(Stream input)
         {
-            using (BinaryReaderX br = new BinaryReaderX(input))
+            using var br = new BinaryReaderX(input);
+
+            // Read header
+            var header = br.ReadType<CtpkHeader>();
+
+            // Read tex entries
+            br.BaseStream.Position = 0x20;
+            var texEntries = br.ReadMultiple<TexEntry>(header.texCount);
+
+            // Read data sizes
+            var dataSizes = new int[header.texCount][];
+            for (var i = 0; i < header.texCount; i++)
+                dataSizes[i] = br.ReadMultiple<int>(texEntries[i].mipLvl).ToArray();
+
+            // Read names
+            var names = new string[header.texCount];
+            for (var i = 0; i < header.texCount; i++)
+                names[i] = br.ReadCStringASCII();
+
+            // Read hash entries
+            br.BaseStream.Position = header.crc32SecOffset;
+            var hashEntries = br.ReadMultiple<HashEntry>(header.texCount).OrderBy(x => x.id).ToArray();
+
+            // Read mip map infos
+            br.BaseStream.Position = header.texInfoOffset;
+            var mipMapEntries = br.ReadMultiple<MipmapEntry>(header.texCount);
+
+            // Add images
+            var result = new ImageInfo[header.texCount];
+            for (var i = 0; i < header.texCount; i++)
             {
-                //Header
-                var header = br.ReadType<Header>();
-                var entries = new List<CtpkEntry>();
-                for (var i = 0; i < header.texCount; i++)
-                    entries.Add(new CtpkEntry());
+                // Read image data
+                br.BaseStream.Position = header.texSecOffset + texEntries[i].texOffset;
+                var imageData = br.ReadBytes(texEntries[i].texDataSize);
 
-                //TexEntry List
-                br.BaseStream.Position = 0x20;
-                foreach (var entry in entries)
-                    entry.texEntry = br.ReadType<TexEntry>();
+                // Read mip maps
+                var mipMaps = Enumerable.Range(1, texEntries[i].mipLvl - 1)
+                    .Select(x => br.ReadBytes(dataSizes[i][x]))
+                    .ToArray();
 
-                //DataSize List
-                foreach (var entry in entries)
-                    for (var i = 0; i < entry.texEntry.mipLvl; i++)
-                        entry.dataSizes.Add(br.ReadInt32());
-
-                //Name List
-                foreach (var entry in entries)
-                    entry.name = br.ReadCStringASCII();
-
-                //Hash List
-                br.BaseStream.Position = header.crc32SecOffset;
-                var hashList = br.ReadMultiple<HashEntry>(header.texCount).OrderBy(e => e.id).ToList();
-                var count = 0;
-                foreach (var entry in entries)
-                    entry.hash = hashList[count++];
-
-                //MipMapInfo List
-                br.BaseStream.Position = header.texInfoOffset;
-                foreach (var entry in entries)
-                    entry.mipmapEntry = br.ReadType<MipmapEntry>();
-
-                //Add bmps
-                var result = new List<ImageInfo>();
-                br.BaseStream.Position = header.texSecOffset;
-                for (var i = 0; i < entries.Count; i++)
+                result[i] = new ImageInfo(imageData, mipMaps, texEntries[i].imageFormat, new Size(texEntries[i].width, texEntries[i].height))
                 {
-                    // Main texture
-                    br.BaseStream.Position = entries[i].texEntry.texOffset + header.texSecOffset;
-
-                    var dataSize = entries[i].dataSizes[0] == 0
-                        ? entries[i].texEntry.texDataSize
-                        : entries[i].dataSizes[0];
-                    result.Add(new ImageInfo
-                    {
-                        ImageData = br.ReadBytes(dataSize),
-                        ImageFormat = entries[i].texEntry.imageFormat,
-                        ImageSize = new Size(entries[i].texEntry.width, entries[i].texEntry.height),
-                        MipMapData = Enumerable.Range(1, entries[i].texEntry.mipLvl - 1)
-                            .Select(x => br.ReadBytes(entries[i].dataSizes[x]))
-                            .ToArray(),
-                        Configuration = new ImageConfiguration()
-                            .RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, CtrTransformation.None, true))
-                    });
-                }
-
-                return result;
+                    Name = names[i],
+                    Configuration = new ImageConfiguration()
+                        .RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, CtrTransformation.None, true))
+                };
             }
+
+            return result;
         }
 
-        public void Save(IList<ImageInfo> imageInfos, Stream output)
+        public void Save(Stream output, IList<IKanvasImage> images)
         {
 
         }

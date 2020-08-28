@@ -7,6 +7,7 @@ using Komponent.IO.Attributes;
 using Kontract.Interfaces.Managers;
 using Kontract.Kanvas;
 using Kontract.Models.Dialog;
+using Kontract.Models.Image;
 
 namespace plugin_level5._3DS.Images
 {
@@ -63,29 +64,33 @@ namespace plugin_level5._3DS.Images
 
     class ImgcSupport
     {
-        public static IDictionary<int, IColorEncoding> DetermineFormatMapping(int imgFormat, int bitDepth, IDialogManager dialogManager)
+        public static EncodingDefinition DetermineFormatMapping(int imgFormat, int bitDepth, IDialogManager dialogManager)
         {
-            var mappings = new[] { ImgcFormatsV1, ImgcFormatsV2 };
+            var encodingDefinitions = new[]
+            {
+                ImgcFormatsV1.ToColorDefinition(), 
+                ImgcFormatsV2.ToColorDefinition()
+            };
 
             // If format does not exist in any
-            if (!mappings.Any(x => x.Keys.Contains(imgFormat)))
-                return new Dictionary<int, IColorEncoding>();
+            if (encodingDefinitions.All(x => !x.ContainsColorEncoding(imgFormat)))
+                return EncodingDefinition.Empty;
 
             // If the format exists only in one of the mappings
-            if (mappings.Count(x => x.Keys.Contains(imgFormat)) == 1)
-                return mappings.First(x => x.Keys.Contains(imgFormat));
+            if (encodingDefinitions.Count(x => x.ContainsColorEncoding(imgFormat)) == 1)
+                return encodingDefinitions.First(x => x.ContainsColorEncoding(imgFormat));
 
             // If format exists in more than one, compare bitDepth
-            var viableMappings = mappings.Where(x => x.Keys.Contains(imgFormat)).ToArray();
+            var viableMappings = encodingDefinitions.Where(x => x.ContainsColorEncoding(imgFormat)).ToArray();
 
             // If all mappings are the same encoding
-            var encodingName = viableMappings[0][imgFormat].FormatName;
-            if (viableMappings.All(x => x[imgFormat].FormatName == encodingName))
+            var encodingName = viableMappings[0].GetColorEncoding(imgFormat).FormatName;
+            if (viableMappings.All(x => x.GetColorEncoding(imgFormat).FormatName == encodingName))
                 return viableMappings[0];
 
             // If only one mapping matches the given bitDepth
-            if (viableMappings.Count(x => x[imgFormat].BitDepth == bitDepth) == 1)
-                return viableMappings.First(x => x[imgFormat].BitDepth == bitDepth);
+            if (viableMappings.Count(x => x.GetColorEncoding(imgFormat).BitDepth == bitDepth) == 1)
+                return viableMappings.First(x => x.GetColorEncoding(imgFormat).BitDepth == bitDepth);
 
             // Otherwise the heuristic could not determine a definite mapping
             // Show a dialog to the user, selecting the game
@@ -93,7 +98,7 @@ namespace plugin_level5._3DS.Images
             var dialogField = new DialogField(DialogFieldType.DropDown, "Select the game:", availableGames.First(), availableGames);
 
             dialogManager.ShowDialog(new[] { dialogField });
-            return GameMapping[dialogField.Result];
+            return GameMapping[dialogField.Result].ToColorDefinition();
         }
 
         // This mapping was determined through Inazuma Eleven GO Big Bang

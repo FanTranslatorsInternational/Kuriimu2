@@ -7,25 +7,25 @@ using Kontract.Models.Context;
 using Kontract.Models.IO;
 using Kontract.Models.Text;
 
-namespace plugin_yuusha_shisu.TALK
+namespace plugin_yuusha_shisu.MSG
 {
-    class TalkState : ITextState, ILoadFiles, ISaveFiles
+    public class MsgState : IPluginState, ITextState, ILoadFiles, ISaveFiles
     {
-        private readonly TALK _talk;
+        private readonly MSG _msg;
 
         public IList<TextEntry> Texts { get; private set; }
 
         public bool ContentChanged { get; set; }
 
-        public TalkState()
+        public MsgState()
         {
-            _talk = new TALK();
+            _msg = new MSG();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var text= await Task.Run(() => _talk.Load(fileStream));
+            var text = _msg.Load(fileStream);
 
             Texts = new[] { text };
         }
@@ -33,7 +33,7 @@ namespace plugin_yuusha_shisu.TALK
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _talk.Save(output, Texts[0]);
+            _msg.Save(output, Texts[0]);
 
             return Task.CompletedTask;
         }
