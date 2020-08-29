@@ -1,12 +1,46 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using Kontract.Kompression.Configuration;
-using plugin_nintendo.Compression;
 
-namespace plugin_level5.Compression
+namespace plugin_bandai_namco.Compression
 {
     class NintendoCompressor
     {
+        public static void Decompress(Stream input, Stream output)
+        {
+            var method = (NintendoCompressionMethod)input.ReadByte();
+            input.Position--;
+
+            var configuration = GetConfiguration(method);
+
+            configuration.Build().Decompress(input, output);
+        }
+
+        public static void Compress(Stream input, Stream output, NintendoCompressionMethod method)
+        {
+            var configuration = GetConfiguration(method);
+
+            configuration.Build().Compress(input, output);
+        }
+
+        public static int PeekDecompressedSize(Stream input)
+        {
+            var sizeMethodBuffer = new byte[4];
+            input.Read(sizeMethodBuffer, 0, 4);
+            input.Position -= 4;
+
+            return (int)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) >> 8);
+        }
+
+        public static NintendoCompressionMethod PeekCompressionMethod(Stream input)
+        {
+            var method = input.ReadByte();
+            input.Position--;
+
+            return (NintendoCompressionMethod)method;
+        }
+
         public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)
         {
             switch (method)
