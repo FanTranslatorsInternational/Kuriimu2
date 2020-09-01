@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.106
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_e.x._troopers", "plugin_e.x._troopers\plugin_e.x._troopers.csproj", "{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_mt_framework", "plugin_mt_framework\plugin_mt_framework.csproj", "{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_mt_framework", "plugin_mt_framework\plugin_mt_framework.csproj", "{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_capcom", "plugin_capcom\plugin_capcom.csproj", "{574012D9-72B0-427D-8998-42E8B52AAD6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{574012D9-72B0-427D-8998-42E8B52AAD6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
