@@ -15,17 +15,17 @@ using Kontract.Models.IO;
 
 namespace plugin_capcom.Archives
 {
-    class AATriState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class AAPackState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly AATri _aatri;
+        private readonly AAPack _aatri;
 
         public IList<ArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
 
-        public AATriState()
+        public AAPackState()
         {
-            _aatri = new AATri();
+            _aatri = new AAPack();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
@@ -43,7 +43,7 @@ namespace plugin_capcom.Archives
                 datStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Files = _aatri.Load(incStream, datStream, AATriSupport.GetVersion(loadContext.DialogManager));
+            Files = _aatri.Load(incStream, datStream, AAPackSupport.GetVersion(loadContext.DialogManager));
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)

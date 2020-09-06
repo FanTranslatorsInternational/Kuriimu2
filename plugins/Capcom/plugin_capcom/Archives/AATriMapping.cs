@@ -2,7 +2,7 @@
 
 namespace plugin_capcom.Archives
 {
-    partial class AATriSupport
+    partial class AAPackSupport
     {
         public static IDictionary<uint, string> AaTriMapping = new Dictionary<uint, string>
         {

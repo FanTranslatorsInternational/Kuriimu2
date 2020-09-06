@@ -8,7 +8,7 @@ using Kontract.Models.Dialog;
 
 namespace plugin_capcom.Archives
 {
-    class AATriFileEntry
+    class AAPackFileEntry
     {
         public uint offset;
         public uint flags;
@@ -17,30 +17,25 @@ namespace plugin_capcom.Archives
         public uint hash;
     }
 
-    enum AAVersion
+    partial class AAPackSupport
     {
-        None,
-        AATri,
-        ApolloJustice
-    }
-
-    partial class AATriSupport
-    {
-        public static AAVersion GetVersion(IDialogManager dialogManager)
+        public static string GetVersion(IDialogManager dialogManager)
         {
-            var dialogField = new DialogField(DialogFieldType.DropDown, "Game Version:", AAVersion.AATri.ToString(),
-                Enum.GetNames(typeof(AAVersion)));
+            var dialogField = new DialogField(DialogFieldType.DropDown, "Game Version:", "None", "None", "Ace Attorney Trilogy", "Apollo Justice");
             dialogManager.ShowDialog(new[] { dialogField });
 
-            return Enum.Parse<AAVersion>(dialogField.Result);
+            return dialogField.Result;
         }
 
-        public static IDictionary<uint, string> GetMapping(AAVersion version)
+        public static IDictionary<uint, string> GetMapping(string version)
         {
             switch (version)
             {
-                case AAVersion.AATri:
+                case "Ace Attorney Trilogy":
                     return AaTriMapping;
+
+                case "Apollo Justice":
+                    return AjMapping;
             }
 
             return new Dictionary<uint, string>();
