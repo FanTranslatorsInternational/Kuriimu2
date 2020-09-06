@@ -3,7 +3,6 @@ using System.IO;
 using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
-using plugin_level5.Compression;
 using plugin_nintendo.Compression;
 
 namespace plugin_nintendo.Archives

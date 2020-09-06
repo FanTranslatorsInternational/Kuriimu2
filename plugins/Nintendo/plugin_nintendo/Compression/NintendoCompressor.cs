@@ -3,7 +3,7 @@ using System.Buffers.Binary;
 using System.IO;
 using Kontract.Kompression.Configuration;
 
-namespace plugin_bandai_namco.Compression
+namespace plugin_nintendo.Compression
 {
     class NintendoCompressor
     {
