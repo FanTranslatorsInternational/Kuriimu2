@@ -4,6 +4,9 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Progress;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.Archive;
 using Kontract.Models.Dialog;
 
 namespace plugin_capcom.Archives
@@ -15,6 +18,33 @@ namespace plugin_capcom.Archives
         public uint uncompSize;
         public uint compSize;
         public uint hash;
+    }
+
+    class AAPackArchiveFileInfo:ArchiveFileInfo
+    {
+        public AAPackFileEntry Entry { get; }
+
+        public AAPackArchiveFileInfo(Stream fileData, string filePath, AAPackFileEntry entry) : 
+            base(fileData, filePath)
+        {
+            Entry = entry;
+        }
+
+        public AAPackArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize, AAPackFileEntry entry) : 
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+            Entry = entry;
+        }
+
+        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
+        {
+            var writtenSize= base.SaveFileData(output, compress, progress);
+
+            while(output.Position%4!=0)
+                output.WriteByte(0);
+
+            return writtenSize;
+        }
     }
 
     partial class AAPackSupport
@@ -39,44 +69,6 @@ namespace plugin_capcom.Archives
             }
 
             return new Dictionary<uint, string>();
-        }
-
-        public static string DetermineExtension(Stream input)
-        {
-            input.Position += 4;
-            var magicSamples = CollectMagicSamples(input);
-            input.Position -= 4;
-
-            if (magicSamples.Any(x => x.Contains("BCH")))
-                return ".bch";
-
-            if (magicSamples.Any(x => x.Contains(".ans")))
-                return ".ans";
-
-            if (magicSamples.Any(x => x.Contains("FFNT")))
-                return ".bffnt";
-
-            if (magicSamples.Any(x => x.Contains("mcol")))
-                return ".mcol";
-
-            return ".bin";
-        }
-
-        private static IList<string> CollectMagicSamples(Stream input)
-        {
-            var bkPos = input.Position;
-
-            using var br = new BinaryReaderX(input, true);
-
-            // Get 3 samples to check magic with compression
-            input.Position = bkPos;
-            var magic1 = br.ReadString(4);
-            input.Position = bkPos + 1;
-            var magic2 = br.ReadString(4);
-            input.Position = bkPos + 2;
-            var magic3 = br.ReadString(4);
-
-            return new[] { magic1, magic2, magic3 };
         }
 
         public static uint CreateHash(string input)
