@@ -1,8 +1,9 @@
 # Kuriimu2
-Kuriimu is a general purpose game translation project manager and toolkit for authors of fan translations and game mods.
+Kuriimu2 is a general purpose game translation project manager and toolkit for authors of fan translations and game mods.
 
 ## Requirements
-You need to have Net Core Desktop Runtime 3.1.6 installed on your system.<br>
+You need to have the .Net Core Desktop Runtime 3.1.6 installed on your system.<br>
+We build against the .Net Core SDK version 3.1.302.<br>
 You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 ## Download
