@@ -393,7 +393,7 @@ namespace Kore.FileSystem.Implementations
             // Loop through sub directories
             if (!onlyTopDirectory)
             {
-                foreach (var directory in directories.Where(searchPattern.Match))
+                foreach (var directory in directories)
                     foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
                         yield return enumeratedPath;
             }

@@ -97,7 +97,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void UpdateFiles()
         {
-            if (!(treDirectories.SelectedNode?.Tag is IList<ArchiveFileInfo> files))
+            var files = EnumerateFilteredFiles(treDirectories.SelectedNode).ToArray();
+
+            if (files.Length <= 0)
             {
                 InvokeAction(() => lstFiles.Items.Clear());
                 return;
@@ -122,7 +124,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     listView.Items.Add(listViewItem);
                 }
 
-                tslFileCount.Text = string.Format(FileCount_, files.Count);
+                tslFileCount.Text = string.Format(FileCount_, files.Length);
             });
         }
 
@@ -169,8 +171,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 treeView.Nodes.Clear();
 
                 var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
-                var filePaths = archiveFileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
-                    SearchOption.AllDirectories, SearchTarget.Directory);
+                var filePaths = EnumerateFilteredDirectories(archiveFileSystem);
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
                 // 1. Build directory tree
@@ -209,7 +210,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var nodePath = GetNodePath(root, treeNode).ToAbsolute();
 
                 var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
-                var filePaths = EnumerateFilteredPaths(archiveFileSystem).Where(x =>
+                var filePaths = EnumerateFilteredDirectories(archiveFileSystem).Where(x =>
                     x.IsInDirectory(nodePath, true));
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
@@ -699,6 +700,11 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 yield return item.Tag as ArchiveFileInfo;
         }
 
+        private UPath GetNodePath(TreeNode node)
+        {
+            return GetNodePath(GetRootNode(), node);
+        }
+
         private UPath GetNodePath(TreeNode rootNode, TreeNode node)
         {
             if (rootNode == null || node == null || rootNode == node)
@@ -738,10 +744,27 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return treDirectories.Nodes["root"];
         }
 
-        private IEnumerable<UPath> EnumerateFilteredPaths(IFileSystem fileSystem)
+        private IEnumerable<UPath> EnumerateFilteredDirectories(IFileSystem fileSystem)
         {
-            return fileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
-                SearchOption.AllDirectories, SearchTarget.Directory);
+            var searchTerm = _isSearchEmpty ? "*" : _searchTerm;
+            return fileSystem.EnumeratePaths(UPath.Root, searchTerm, SearchOption.AllDirectories,SearchTarget.Directory).Concat(
+                fileSystem.EnumeratePaths(UPath.Root, searchTerm, SearchOption.AllDirectories, SearchTarget.File).Select(x=>x.GetDirectory()));
+        }
+
+        private IEnumerable<ArchiveFileInfo> EnumerateFilteredFiles(TreeNode treeNode)
+        {
+            if (!(treeNode?.Tag is IList<ArchiveFileInfo> files))
+                yield break;
+
+            var nodePath = GetNodePath(treeNode).ToAbsolute();
+            var searchTerm = _isSearchEmpty ? "*" : _searchTerm;
+
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo);
+
+            // Yield all files
+            var enumeratedFiles = fileSystem.EnumeratePaths(nodePath, searchTerm, SearchOption.TopDirectoryOnly, SearchTarget.File);
+            foreach (var file in enumeratedFiles.Intersect(files.Select(x => x.FilePath)))
+                yield return files.First(x => x.FilePath == file);
         }
 
         private UPath SelectFolder()
