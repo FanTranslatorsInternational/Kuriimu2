@@ -16,7 +16,7 @@ namespace Kore.Factories
     /// </summary>
     public static class FileSystemFactory
     {
-        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]");
+        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]?");
         private static readonly Regex MountRegex = new Regex(@"^/mnt/[a-zA-Z][/]?");
 
         /// <summary>
