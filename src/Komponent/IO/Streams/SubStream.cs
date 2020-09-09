@@ -58,6 +58,9 @@ namespace Komponent.IO.Streams
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (Position >= _length)
+                return 0;
+
             var restore = _baseStream.Position;
 
             _baseStream.Position = _baseOffset + Position;
