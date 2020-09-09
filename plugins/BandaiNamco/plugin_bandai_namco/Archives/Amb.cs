@@ -64,6 +64,8 @@ namespace plugin_bandai_namco.Archives
                 });
             }
 
+            bw.WriteAlignment(0x80);
+
             // Write file entries
             bw.BaseStream.Position = fileEntryOffset;
             foreach (var entry in fileEntries)
