@@ -25,7 +25,7 @@ namespace Kompression.PatternMatch.MatchParser
                 throw new InvalidOperationException("All Match finder have to have the same unit size.");
 
             FindOptions = options;
-            _priceCalculator = priceCalculator;
+            _priceCalculator = priceCalculator ?? throw new ArgumentNullException(nameof(priceCalculator));
             _finders = finders;
         }
 

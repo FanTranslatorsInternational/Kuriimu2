@@ -345,5 +345,14 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new ZLibDecoder())
                 .EncodeWith((parser, builder) => new ZlibEncoder());
+
+        public static IKompressionConfiguration IrLz =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new IrLzHeaderlessDecoder())
+                .EncodeWith((parser, builder) => new IrLzHeaderlessEncoder(parser))
+                .WithMatchOptions(options => options
+                    .FindMatchesWithDefault()
+                    .WithinLimitations(() => new FindLimitations(2, 0x11, 1, 0x1000))
+                    .CalculatePricesWith(() => new IrLzPriceCalculator()));
     }
 }

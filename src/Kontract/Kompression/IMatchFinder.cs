@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
