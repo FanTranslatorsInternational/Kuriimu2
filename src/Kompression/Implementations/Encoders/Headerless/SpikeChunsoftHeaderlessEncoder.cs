@@ -17,8 +17,6 @@ namespace Kompression.Implementations.Encoders.Headerless
 
         public void Encode(Stream input, Stream output)
         {
-            output.Position += 0xC;
-
             var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {

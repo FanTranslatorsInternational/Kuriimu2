@@ -17,6 +17,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
+            input.Position += 0xC;
             _encoder.Encode(input, output);
 
             WriteHeaderData(output, input.Length);
