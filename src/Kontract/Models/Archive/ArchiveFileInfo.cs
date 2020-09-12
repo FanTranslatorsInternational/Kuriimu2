@@ -25,7 +25,7 @@ namespace Kontract.Models.Archive
         /// <summary>
         /// Determines if the FileData is compressed, and has to be handled as such
         /// </summary>
-        protected bool UsesCompression => _configuration != null;
+        public bool UsesCompression => _configuration != null;
 
         /// <summary>
         /// Determines if the content of this file info was modified.
