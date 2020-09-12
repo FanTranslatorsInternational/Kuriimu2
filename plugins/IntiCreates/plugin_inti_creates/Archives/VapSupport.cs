@@ -37,16 +37,6 @@ namespace plugin_inti_creates.Archives
             base(fileData, filePath, configuration, decompressedSize)
         {
         }
-
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize = base.SaveFileData(output, compress, progress);
-
-            while (output.Position % 0x80 > 0)
-                output.WriteByte(0);
-
-            return writtenSize;
-        }
     }
 
     class VapSupport

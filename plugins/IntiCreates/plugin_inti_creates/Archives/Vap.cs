@@ -55,6 +55,9 @@ namespace plugin_inti_creates.Archives
                 fileOffset = (int)bw.BaseStream.Position;
                 var writtenSize = file.SaveFileData(output);
 
+                if (file != files.Last())
+                    bw.WriteAlignment(0x80);
+
                 entries.Add(new VapFileEntry
                 {
                     offset = fileOffset,
