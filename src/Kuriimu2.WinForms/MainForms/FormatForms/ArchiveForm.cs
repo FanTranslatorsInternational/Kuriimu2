@@ -919,7 +919,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                     currentFileStream.CopyTo(newFileStream);
 
-                    currentFileStream.Close();
                     newFileStream.Close();
                 }
             }, _operationToken.Token);
@@ -997,7 +996,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                     currentFileStream.CopyTo(newFileStream);
 
-                    currentFileStream.Close();
                     newFileStream.Close();
                 }
             });

@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace plugin_inti_creates.Archives
                 var entry = entries[i];
 
                 var subStream = new SubStream(arcStream, entry.offset, entry.size);
-                var name = $"{i:00000000}.bin";
+                var name = $"{i:00000000}.vap";
 
                 result.Add(CreateAfi(subStream, name, entry));
             }
@@ -68,10 +69,16 @@ namespace plugin_inti_creates.Archives
 
                 file = new SubStream(file, 0x18, file.Length - 0x18);
 
-                return new IrarcArchiveFileInfo(file, name, entry, Kompression.Implementations.Compressions.IrLz, decompressedSize);
+                return new IrarcArchiveFileInfo(file, name, entry, Kompression.Implementations.Compressions.IrLz, decompressedSize)
+                {
+                    PluginIds = new[] { Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f") }
+                };
             }
 
-            return new IrarcArchiveFileInfo(file, name, entry);
+            return new IrarcArchiveFileInfo(file, name, entry)
+            {
+                PluginIds = new[] { Guid.Parse("e38a0292-5e7d-457f-8795-8e0a1c44900f") }
+            };
         }
 
         private int PeekInt32(Stream input)
