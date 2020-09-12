@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -10,27 +11,29 @@ namespace plugin_tri_ace.Archives
     // Game: Beyond The Labyrinth
     class Pack
     {
-        private static int _headerSize = Tools.MeasureType(typeof(PackHeader));
-        private static int _entrySize = Tools.MeasureType(typeof(PackFileEntry));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(PackHeader));
+        private static readonly int FileEntrySize = Tools.MeasureType(typeof(PackFileEntry));
 
-        public IReadOnlyList<ArchiveFileInfo> Load(Stream input)
+        public IList<ArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
             var header = br.ReadType<PackHeader>();
 
-            // Read file entries
+            // Read entries
             var entries = br.ReadMultiple<PackFileEntry>(header.fileCount + 1);
 
             // Add files
             var result = new List<ArchiveFileInfo>();
             for (var i = 0; i < header.fileCount; i++)
             {
-                var fileStream = new SubStream(input, entries[i].offset, entries[i + 1].offset - entries[i].offset);
-                var extension = DetermineExtension(entries[i].fileType);
+                var entry = entries[i];
 
-                result.Add(new ArchiveFileInfo(fileStream, i.ToString("00000000") + extension)
+                var subStream = new SubStream(input, entry.offset, entries[i + 1].offset - entry.offset);
+                var name = $"{i:00000000}{PackSupport.DetermineExtension(entry.fileType)}";
+
+                result.Add(new PackArchiveFileInfo(subStream, name, entry)
                 {
                     PluginIds = PackSupport.RetrievePluginMapping(entries[i].fileType)
                 });
@@ -39,28 +42,48 @@ namespace plugin_tri_ace.Archives
             return result;
         }
 
-        public void Save(Stream output, IReadOnlyList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<ArchiveFileInfo> files)
         {
-        }
+            using var bw = new BinaryWriterX(output);
 
-        private string DetermineExtension(int fileType)
-        {
-            switch (fileType)
+            // Calculate offsets
+            var entryOffset = HeaderSize;
+            var fileOffset = (entryOffset + (files.Count + 1) * FileEntrySize + 0x7F) & ~0x7F;
+
+            // Write files
+            output.Position = fileOffset;
+
+            var entries = new List<PackFileEntry>();
+            foreach (var file in files.Cast<PackArchiveFileInfo>())
             {
-                case 0x2:
-                    return ".pack";
+                fileOffset = (int)output.Position;
+                file.SaveFileData(output);
 
-                case 0x20:
-                case 0x30:
-                case 0x40:
-                    return ".cgfx";
+                bw.WriteAlignment();
 
-                case 0x400:
-                    return ".mpak8";
-
-                default:
-                    return ".bin";
+                entries.Add(new PackFileEntry
+                {
+                    offset = fileOffset,
+                    fileType = file.Entry.fileType,
+                    unk0 = file.Entry.unk0
+                });
             }
+
+            entries.Add(new PackFileEntry
+            {
+                offset = (int)output.Position
+            });
+
+            // Write entries
+            output.Position = entryOffset;
+            bw.WriteMultiple(entries);
+
+            // Write header
+            output.Position = 0;
+            bw.WriteType(new PackHeader
+            {
+                fileCount = (short)files.Count
+            });
         }
     }
 }

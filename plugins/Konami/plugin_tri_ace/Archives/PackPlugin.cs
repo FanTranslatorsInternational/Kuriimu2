@@ -7,6 +7,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Providers;
 using Kontract.Models;
+using Kontract.Models.Context;
 using Kontract.Models.IO;
 
 namespace plugin_tri_ace.Archives
@@ -23,7 +24,7 @@ namespace plugin_tri_ace.Archives
             Metadata = new PluginMetadata("P@CK", "onepiecefreak", "The P@CK archive for Beyond The Labyrinth.");
         }
 
-        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, ITemporaryStreamProvider temporaryStreamProvider)
+        public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext context)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);
