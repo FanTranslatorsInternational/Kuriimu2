@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -58,6 +59,9 @@ namespace Kompression.Implementations.Decoders.Nintendo
                 else
                     HandleCompressedBlock(input, output, circularBuffer);
             }
+
+            while (input.Position < input.Length)
+                output.WriteByte((byte)input.ReadByte());
         }
 
         private void HandleUncompressedBlock(Stream input, Stream output, CircularBuffer circularBuffer)

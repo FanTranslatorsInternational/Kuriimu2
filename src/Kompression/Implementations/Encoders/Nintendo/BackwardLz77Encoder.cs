@@ -37,19 +37,19 @@ namespace Kompression.Implementations.Encoders.Nintendo
         {
             var matches = _matchParser.ParseMatches(input).ToArray();
 
-            var compressedLength = PreCalculateCompressedLength(input.Length, matches);
+            var compressedLength = PreCalculateCompressedLength(input.Length, matches, out var lastRawLength);
 
             var block = new Block();
 
             using (var inputReverseStream = new ReverseStream(input, input.Length))
-            using (var reverseOutputStream = new ReverseStream(output, compressedLength))
+            using (var outputReverseStream = new ReverseStream(output, compressedLength + lastRawLength))
             {
                 foreach (var match in matches)
                 {
                     while (match.Position > inputReverseStream.Position)
                     {
                         if (block.codeBlockPosition == 0)
-                            WriteAndResetBuffer(reverseOutputStream, block);
+                            WriteAndResetBuffer(outputReverseStream, block);
 
                         block.codeBlockPosition--;
                         block.buffer[block.bufferLength++] = (byte)inputReverseStream.ReadByte();
@@ -59,7 +59,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
                     var byte2 = match.Displacement - 3;
 
                     if (block.codeBlockPosition == 0)
-                        WriteAndResetBuffer(reverseOutputStream, block);
+                        WriteAndResetBuffer(outputReverseStream, block);
 
                     block.codeBlock |= (byte)(1 << --block.codeBlockPosition);
                     block.buffer[block.bufferLength++] = (byte)byte1;
@@ -68,53 +68,51 @@ namespace Kompression.Implementations.Encoders.Nintendo
                     inputReverseStream.Position += match.Length;
                 }
 
-                // Write any data after last match, to the buffer
-                while (inputReverseStream.Position < inputReverseStream.Length)
-                {
-                    if (block.codeBlockPosition == 0)
-                        WriteAndResetBuffer(reverseOutputStream, block);
-
-                    block.codeBlockPosition--;
-                    block.buffer[block.bufferLength++] = (byte)inputReverseStream.ReadByte();
-                }
-
                 // Flush remaining buffer to stream
-                WriteAndResetBuffer(reverseOutputStream, block);
+                WriteAndResetBuffer(outputReverseStream, block);
 
-                output.Position = compressedLength;
-                WriteFooterInformation(input, output);
+                // Write any data after last match as raw unbuffered data
+                while (inputReverseStream.Position < inputReverseStream.Length)
+                    outputReverseStream.WriteByte((byte)inputReverseStream.ReadByte());
+
+                output.Position = compressedLength + lastRawLength;
+                WriteFooterInformation(input, output, lastRawLength);
             }
         }
 
-        private int PreCalculateCompressedLength(long uncompressedLength, Match[] matches)
+        private int PreCalculateCompressedLength(long uncompressedLength, Match[] matches, out int lastRawLength)
         {
-            var length = 0;
-            var writtenCodes = 0;
+            var lengthBytes = 0;
+            var flagBits = 0;
+
+            var preMatchPosition = 0;
+            var preMatchLength = 0;
+
             foreach (var match in matches)
             {
-                var rawLength = uncompressedLength - match.Position - 1;
+                var rawLength = match.Position - preMatchPosition - preMatchLength;
 
                 // Raw data before match
-                length += (int)rawLength;
-                writtenCodes += (int)rawLength;
-                uncompressedLength -= rawLength;
+                lengthBytes += rawLength;
+                flagBits += rawLength;
 
                 // Match data
-                writtenCodes++;
-                length += 2;
-                uncompressedLength -= match.Length;
+                flagBits++;
+                lengthBytes += 2;
+
+                preMatchPosition = match.Position;
+                preMatchLength = match.Length;
             }
 
-            length += (int)uncompressedLength;
-            writtenCodes += (int)uncompressedLength;
+            lengthBytes += flagBits / 8;
+            lengthBytes += flagBits % 8 > 0 ? 1 : 0;
 
-            length += writtenCodes / 8;
-            length += writtenCodes % 8 > 0 ? 1 : 0;
+            lastRawLength = (int)(uncompressedLength - (preMatchPosition + preMatchLength));
 
-            return length;
+            return lengthBytes;
         }
 
-        private void WriteFooterInformation(Stream input, Stream output)
+        private void WriteFooterInformation(Stream input, Stream output, int lastRawLength)
         {
             // Remember count of padding bytes
             var padding = 0;
@@ -126,9 +124,9 @@ namespace Kompression.Implementations.Encoders.Nintendo
                 output.WriteByte(0xFF);
 
             // Write footer
-            var compressedSize = output.Position + 8;
+            var compressedSize = output.Length + 8 - lastRawLength;
             var bufferTopAndBottomInt = ((8 + padding) << 24) | (int)(compressedSize & 0xFFFFFF);
-            var originalBottomInt = (int)(input.Length - compressedSize);
+            var originalBottomInt = (int)(input.Length - (output.Length + 8));
 
             var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian
                 ? bufferTopAndBottomInt.GetArrayLittleEndian()

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp31</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <LangVersion>8</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\..\dist\Debug\netcoreapp31\win-x64\plugins</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\..\dist\Release\netcoreapp31\win-x64\plugins</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Archives\HpiHpbSupport.cs~RF8848273.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Komponent" Version="2.0.8" />
+    <PackageReference Include="Kompression" Version="2.0.8" />
+    <PackageReference Include="Kontract" Version="2.0.8" />
+    <PackageReference Include="Kryptography" Version="2.0.8" />
+  </ItemGroup>
+
+</Project>
