@@ -11,6 +11,6 @@ namespace Kontract.Interfaces.Plugins.State
         /// <summary>
         /// The read-only collection of files the current archive contains.
         /// </summary>
-        IList<ArchiveFileInfo> Files { get; }
+        IList<IArchiveFileInfo> Files { get; }
     }
 }

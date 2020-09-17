@@ -57,7 +57,7 @@ namespace Kontract.Interfaces.Managers
 
         #endregion
 
-        #region Load ArchiveFileInfo
+        #region Load IArchiveFileInfo
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -65,7 +65,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="stateInfo">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -74,7 +74,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -83,7 +83,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -93,7 +93,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext);
 
         #endregion
 

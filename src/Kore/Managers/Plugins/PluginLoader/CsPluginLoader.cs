@@ -86,7 +86,7 @@ namespace Kore.Managers.Plugins.PluginLoader
 
         private void RegisterReferencedAssemblies<TPlugin>(IReadOnlyList<TPlugin> loadedPlugins)
         {
-            AppDomain.CurrentDomain.ResourceResolve += CurrentDomain_ResourceResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
             foreach (var loadedPlugin in loadedPlugins.OfType<IRegisterAssembly>())
             {
@@ -97,7 +97,7 @@ namespace Kore.Managers.Plugins.PluginLoader
             }
         }
 
-        private Assembly CurrentDomain_ResourceResolve(object sender, ResolveEventArgs args)
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var appDomain = (AppDomain)sender;
             return appDomain.GetAssemblies().FirstOrDefault(x => x.FullName == args.Name);

@@ -24,8 +24,8 @@ namespace Kore.FileSystem.Implementations
         private readonly IStateInfo _stateInfo;
         private readonly ITemporaryStreamProvider _temporaryStreamProvider;
 
-        private readonly IDictionary<UPath, ArchiveFileInfo> _fileDictionary;
-        private readonly IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> _directoryDictionary;
+        private readonly IDictionary<UPath, IArchiveFileInfo> _fileDictionary;
+        private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)> _directoryDictionary;
 
         protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
@@ -251,7 +251,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override async Task<Stream> OpenFileAsyncImpl(UPath path, FileMode mode, FileAccess access, FileShare share)
         {
-            if(mode==FileMode.Append||mode==FileMode.Truncate)
+            if (mode == FileMode.Append || mode == FileMode.Truncate)
                 throw new InvalidOperationException("FileModes 'Append' and 'Truncate' are not supported.");
 
             var fileExists = FileExistsImpl(path);
@@ -260,7 +260,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            ArchiveFileInfo afi;
+            IArchiveFileInfo afi;
             switch (mode)
             {
                 case FileMode.Open:
@@ -403,12 +403,12 @@ namespace Kore.FileSystem.Implementations
 
         #region Directory tree
 
-        private IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> CreateDirectoryLookup()
+        private IDictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)> CreateDirectoryLookup()
         {
-            var result = new Dictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)>
+            var result = new Dictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)>
             {
                 // Add root manually
-                [UPath.Root] = (new List<UPath>(), new List<ArchiveFileInfo>())
+                [UPath.Root] = (new List<UPath>(), new List<IArchiveFileInfo>())
             };
 
             foreach (var file in ArchiveState.Files)
@@ -422,7 +422,7 @@ namespace Kore.FileSystem.Implementations
             return result;
         }
 
-        private ArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
+        private IArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
         {
             if (!(_stateInfo.PluginState is IAddFiles addState))
                 return null;
@@ -442,14 +442,14 @@ namespace Kore.FileSystem.Implementations
             CreateDirectoryEntries(_directoryDictionary, newPath);
         }
 
-        private void CreateDirectoryEntries(IDictionary<UPath, (IList<UPath>, IList<ArchiveFileInfo>)> directories, UPath newPath)
+        private void CreateDirectoryEntries(IDictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)> directories, UPath newPath)
         {
             var path = UPath.Root;
             foreach (var part in newPath.Split())
             {
                 // Initialize parent entry if not existing
                 if (!directories.ContainsKey(path))
-                    directories[path] = (new List<UPath>(), new List<ArchiveFileInfo>());
+                    directories[path] = (new List<UPath>(), new List<IArchiveFileInfo>());
 
                 // Add current directory to parent
                 if (!directories[path].Item1.Contains(path / part))
@@ -459,7 +459,7 @@ namespace Kore.FileSystem.Implementations
 
                 // Initialize current directory if not existing
                 if (!directories.ContainsKey(path))
-                    directories[path] = (new List<UPath>(), new List<ArchiveFileInfo>());
+                    directories[path] = (new List<UPath>(), new List<IArchiveFileInfo>());
             }
         }
 

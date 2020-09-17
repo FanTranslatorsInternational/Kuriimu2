@@ -9,10 +9,10 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
 {
     interface IMainForm
     {
-        Task<bool> OpenFile(IStateInfo stateInfo, ArchiveFileInfo file, Guid pluginId);
+        Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId);
         Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs);
-        Task<bool> CloseFile(IStateInfo stateInfo, ArchiveFileInfo file);
-        void RenameFile(IStateInfo stateInfo, ArchiveFileInfo file, UPath newPath);
+        Task<bool> CloseFile(IStateInfo stateInfo, IArchiveFileInfo file);
+        void RenameFile(IStateInfo stateInfo, IArchiveFileInfo file, UPath newPath);
 
         void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren);
 

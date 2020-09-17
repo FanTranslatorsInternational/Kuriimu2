@@ -37,7 +37,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private readonly IProgressContext _progressContext;
 
         private readonly IList<UPath> _expandedPaths;
-        private readonly IList<ArchiveFileInfo> _openingFiles;
+        private readonly IList<IArchiveFileInfo> _openingFiles;
 
         private bool _isSearchEmpty = true;
         private string _searchTerm;
@@ -70,7 +70,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _pluginManager = pluginManager;
 
             _expandedPaths = new List<UPath>();
-            _openingFiles = new List<ArchiveFileInfo>();
+            _openingFiles = new List<IArchiveFileInfo>();
 
             UpdateDirectories();
             UpdateProperties();
@@ -146,7 +146,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (item == null)
                 return;
 
-            if (!(item.Tag is ArchiveFileInfo afi))
+            if (!(item.Tag is IArchiveFileInfo afi))
                 return;
 
             var isChanged = afi.ContentChanged || _stateInfo.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == afi.FilePath);
@@ -331,7 +331,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (lstFiles.SelectedItems.Count <= 0)
                 return;
 
-            if (!(lstFiles.SelectedItems[0]?.Tag is ArchiveFileInfo afi))
+            if (!(lstFiles.SelectedItems[0]?.Tag is IArchiveFileInfo afi))
                 return;
 
             var isLoadLocked = IsFileLocked(afi, true);
@@ -540,7 +540,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void fileMenuContextItem_Click(object sender, EventArgs e)
         {
             var tsi = (ToolStripMenuItem)sender;
-            var (pluginId, afi) = ((Guid, ArchiveFileInfo))tsi.Tag;
+            var (pluginId, afi) = ((Guid, IArchiveFileInfo))tsi.Tag;
 
             if (!await _formCommunicator.Open(afi, pluginId))
                 _formCommunicator.ReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
@@ -624,7 +624,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private void lstFiles_DoubleClick(object sender, EventArgs e)
         {
             var menuItem = lstFiles.SelectedItems[0];
-            var afi = menuItem.Tag as ArchiveFileInfo;
+            var afi = menuItem.Tag as IArchiveFileInfo;
 
             OpenFiles(new[] { afi });
         }
@@ -694,10 +694,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             MessageBox.Show("This method is not implemented yet.", "Not implemented", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private IEnumerable<ArchiveFileInfo> CollectSelectedFiles()
+        private IEnumerable<IArchiveFileInfo> CollectSelectedFiles()
         {
             foreach (ListViewItem item in lstFiles.SelectedItems)
-                yield return item.Tag as ArchiveFileInfo;
+                yield return item.Tag as IArchiveFileInfo;
         }
 
         private UPath GetNodePath(TreeNode node)
@@ -751,9 +751,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 fileSystem.EnumeratePaths(UPath.Root, searchTerm, SearchOption.AllDirectories, SearchTarget.File).Select(x=>x.GetDirectory()));
         }
 
-        private IEnumerable<ArchiveFileInfo> EnumerateFilteredFiles(TreeNode treeNode)
+        private IEnumerable<IArchiveFileInfo> EnumerateFilteredFiles(TreeNode treeNode)
         {
-            if (!(treeNode?.Tag is IList<ArchiveFileInfo> files))
+            if (!(treeNode?.Tag is IList<IArchiveFileInfo> files))
                 yield break;
 
             var nodePath = GetNodePath(treeNode).ToAbsolute();
@@ -789,7 +789,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return (UPath)Invoke(new Func<UPath>(() => ofd.ShowDialog() != DialogResult.OK ? UPath.Empty : ofd.FileName));
         }
 
-        private bool IsFileLocked(ArchiveFileInfo afi, bool lockOnLoaded)
+        private bool IsFileLocked(IArchiveFileInfo afi, bool lockOnLoaded)
         {
             var absolutePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative() / afi.FilePath.ToRelative();
 
@@ -804,12 +804,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return openedState.StateChanged;
         }
 
-        private IEnumerable<(UPath, ArchiveFileInfo)> EnumerateTreeNode(TreeNode treeNode, UPath nodePath = default)
+        private IEnumerable<(UPath, IArchiveFileInfo)> EnumerateTreeNode(TreeNode treeNode, UPath nodePath = default)
         {
             nodePath = nodePath.IsNull || nodePath.IsEmpty ? UPath.Root : nodePath / treeNode.Name;
 
             // Yield all files
-            if (treeNode.Tag is IList<ArchiveFileInfo> files)
+            if (treeNode.Tag is IList<IArchiveFileInfo> files)
             {
                 foreach (var file in files)
                     yield return (nodePath / file.FilePath.GetName(), file);
@@ -821,18 +821,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     yield return file;
         }
 
-        private IEnumerable<ArchiveFileInfo> EnumerateListView(ListView listView, bool onlySelected)
+        private IEnumerable<IArchiveFileInfo> EnumerateListView(ListView listView, bool onlySelected)
         {
             if (onlySelected)
             {
                 foreach (ListViewItem item in listView.SelectedItems)
-                    yield return item.Tag as ArchiveFileInfo;
+                    yield return item.Tag as IArchiveFileInfo;
 
                 yield break;
             }
 
             foreach (ListViewItem item in listView.Items)
-                yield return item.Tag as ArchiveFileInfo;
+                yield return item.Tag as IArchiveFileInfo;
         }
 
         private void EnableOperation()
@@ -1510,7 +1510,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             OpenFiles(CollectSelectedFiles().ToArray());
         }
 
-        private async void OpenFiles(IList<ArchiveFileInfo> files)
+        private async void OpenFiles(IList<IArchiveFileInfo> files)
         {
             if (files == null || !files.Any())
                 return;

@@ -256,28 +256,28 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        #region Load ArchiveFileInfo
+        #region Load IArchiveFileInfo
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
         {
             return LoadFile(stateInfo, afi, Guid.Empty, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
             return LoadFile(stateInfo, afi, Guid.Empty, loadFileContext);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId)
         {
             return LoadFile(stateInfo, afi, pluginId, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
         {
             // If stateInfo is no archive state
             if (!(stateInfo.PluginState is IArchiveState archiveState))
@@ -293,7 +293,7 @@ namespace Kore.Managers.Plugins
                   FileSystemFactory.CreateAfiFileSystem(stateInfo, UPath.Root, streamManager));
 
             // 2. Load file
-            // ArchiveFileInfos have stateInfo as their parent, if loaded like this
+            // IArchiveFileInfos have stateInfo as their parent, if loaded like this
             var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, pluginId, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;

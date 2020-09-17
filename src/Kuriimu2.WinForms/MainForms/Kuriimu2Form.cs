@@ -173,7 +173,7 @@ namespace Kuriimu2.WinForms.MainForms
             }
         }
 
-        public Task<bool> OpenFile(IStateInfo stateInfo, ArchiveFileInfo file, Guid pluginId)
+        public Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId)
         {
             var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
@@ -434,7 +434,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Close File
 
-        public Task<bool> CloseFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        public Task<bool> CloseFile(IStateInfo stateInfo, IArchiveFileInfo afi)
         {
             var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / afi.FilePath.ToRelative();
             if (!_pluginManager.IsLoaded(absolutePath))
@@ -518,7 +518,7 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Rename File
 
-        public void RenameFile(IStateInfo stateInfo, ArchiveFileInfo file, UPath renamedPath)
+        public void RenameFile(IStateInfo stateInfo, IArchiveFileInfo file, UPath renamedPath)
         {
             var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
             if (!_pluginManager.IsLoaded(absolutePath))
