@@ -49,9 +49,9 @@ namespace Kore.Managers.Plugins.PluginLoader
                     var exportedTypes = assembly.GetExportedTypes();
                     result.AddRange(exportedTypes.Where(t => pluginType.IsAssignableFrom(t)));
                 }
-                catch (TypeLoadException tle)
+                catch (Exception e)
                 {
-                    errors.Add(new PluginLoadError(assembly.Location, tle));
+                    errors.Add(new PluginLoadError(assembly.Location, e));
                 }
             }
 
