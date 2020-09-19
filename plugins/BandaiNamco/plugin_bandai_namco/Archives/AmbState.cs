@@ -16,7 +16,7 @@ namespace plugin_bandai_namco.Archives
     {
         private readonly Amb _amb;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
 
@@ -34,12 +34,12 @@ namespace plugin_bandai_namco.Archives
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _amb.Save(fileStream, Files);
+            _amb.Save(fileStream, Files.Cast<ArchiveFileInfo>().ToList());
 
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
