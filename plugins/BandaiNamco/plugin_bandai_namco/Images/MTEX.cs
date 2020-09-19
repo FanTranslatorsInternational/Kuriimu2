@@ -40,18 +40,17 @@ namespace plugin_bandai_namco.Images
 
         public void Save(Stream output, IKanvasImage image)
         {
-            using (var bw = new BinaryWriterX(output))
-            {
-                // Header
-                _header.width = (short)image.ImageSize.Width;
-                _header.height = (short)image.ImageSize.Height;
-                _header.format = (byte)image.ImageFormat;
+            using var bw = new BinaryWriterX(output);
+                        
+            // Header
+            _header.width = (short)image.ImageSize.Width;
+            _header.height = (short)image.ImageSize.Height;
+            _header.format = (byte)image.ImageFormat;
 
-                // Writing
-                bw.WriteType(_header);
-                bw.BaseStream.Position = 0x80;
-                bw.Write(image.ImageInfo.ImageData);
-            };  
+            // Writing
+            bw.WriteType(_header);
+            bw.BaseStream.Position = 0x80;
+            bw.Write(image.ImageInfo.ImageData); 
         }
     }
 }
