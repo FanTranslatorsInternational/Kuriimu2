@@ -1,17 +1,15 @@
-﻿using Kanvas.Quantization.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Kanvas.Quantization.Helper;
 using Kanvas.Quantization.Models;
 
 namespace Kanvas.Quantization.Ditherers.Ordered
 {
-    public class Bayer4Ditherer : BaseOrderDitherer
+    public class Bayer4Ditherer : BaseOrderedDitherer
     {
         protected override byte[,] Matrix => new byte[,]
         {
@@ -20,5 +18,10 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             {4, 12, 2, 10},
             {16, 8, 14, 6}
         };
+
+        public Bayer4Ditherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
+        {
+        }
     }
 }

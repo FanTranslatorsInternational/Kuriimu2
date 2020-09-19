@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,6 +7,7 @@ using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract;
 using Kontract.Attributes;
+using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
 using Kontract.Interfaces.Image;
 using plugin_mt_framework.TEX;
@@ -28,14 +27,7 @@ namespace plugin_mt_framework.GFDv1Old
 
         private string _sourceFile;
 
-        #region MT Texture Adapters
-
-        private CompositionContainer _container;
-
-        [ImportMany(typeof(IMtFrameworkTextureAdapter))]
         private List<IMtFrameworkTextureAdapter> _texAdapters;
-
-        #endregion
 
         public GFDv1()
         {
@@ -46,20 +38,20 @@ namespace plugin_mt_framework.GFDv1Old
             Textures = new List<Bitmap>();
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
         }
 
-        public GFDv1(FileStream input)
+        public GFDv1(StreamInfo input)
         {
-            _sourceFile = input.Name;
+            _sourceFile = input.FileName;
 
             if (_texAdapters == null || _texAdapters.Count == 0)
-                PluginLoader.ComposePlugins(this);
+                _texAdapters = PluginLoader.Instance.GetAdapters<IMtFrameworkTextureAdapter>();
 
-            using (var br = new BinaryReaderX(input))
+            using (var br = new BinaryReaderX(input.FileData, true))
             {
                 // Set endianess
-                if (br.PeekString(4,Encoding.ASCII) == "\0DFG")
+                if (br.PeekString(4, Encoding.ASCII) == "\0DFG")
                 {
                     br.ByteOrder = ByteOrder = ByteOrder.BigEndian;
                     br.BitOrder = BitOrder = BitOrder.LSBFirst;
@@ -95,19 +87,19 @@ namespace plugin_mt_framework.GFDv1Old
                 Textures = new List<Bitmap>();
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    //TODO
-                    IMtFrameworkTextureAdapter texAdapter = null;//_texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    IMtFrameworkTextureAdapter texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).
+                        FirstOrDefault(adapter => ((IIdentifyFiles)adapter).
+                        Identify(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null));
                     if (texAdapter == null) continue;
-                    //TODO
-                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    ((ILoadFiles)texAdapter).Load(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                     Textures.Add(((IImageAdapter)texAdapter).BitmapInfos[0].Image);
                 }
             }
         }
 
-        public void Save(FileStream output)
+        public void Save(StreamInfo output)
         {
-            using (var bw = new BinaryWriterX(output, ByteOrder, BitOrder))
+            using (var bw = new BinaryWriterX(output.FileData, ByteOrder, BitOrder))
             {
                 // Header
                 Header.Magic = ByteOrder == ByteOrder.LittleEndian ? "GFD\0" : "\0DFG";
@@ -152,16 +144,16 @@ namespace plugin_mt_framework.GFDv1Old
                 // Textures
                 for (var i = 0; i < Header.FontTexCount; i++)
                 {
-                    //TODO
-                    IMtFrameworkTextureAdapter texAdapter = null;//_texAdapters.Where(adapter => adapter is IIdentifyFiles).FirstOrDefault(adapter => ((IIdentifyFiles)adapter).Identify(GetTexName(_sourceFile, i)));
+                    IMtFrameworkTextureAdapter texAdapter = _texAdapters.Where(adapter => adapter is IIdentifyFiles).
+                        FirstOrDefault(adapter => ((IIdentifyFiles)adapter).
+                            Identify(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null));
                     if (texAdapter == null) continue;
-                    //TODO
-                    //((ILoadFiles)texAdapter).Load(GetTexName(_sourceFile, i));
+                    ((ILoadFiles)texAdapter).Load(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                     ((IImageAdapter)texAdapter).BitmapInfos[0].Image = Textures[i];
-                    //((ISaveFiles)texAdapter).Save(GetTexName(output.Name, i));
+                    ((ISaveFiles)texAdapter).Save(new StreamInfo(File.OpenRead(GetTexName(_sourceFile, i)), GetTexName(_sourceFile, i)), null);
                 }
 
-                _sourceFile = output.Name;
+                _sourceFile = output.FileName;
             }
         }
 
@@ -230,7 +222,7 @@ namespace plugin_mt_framework.GFDv1Old
             public Block3 Block3;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block1
         {
             [BitField(12)]
@@ -241,7 +233,7 @@ namespace plugin_mt_framework.GFDv1Old
             public long TextureIndex;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block2
         {
             [BitField(12)]
@@ -252,7 +244,7 @@ namespace plugin_mt_framework.GFDv1Old
             public long XAdjust;
         }
 
-        [BitFieldInfo(BlockSize = 32)]
+        [BitFieldInfo(BlockSize = 4)]
         public struct Block3
         {
             [BitField(14)]

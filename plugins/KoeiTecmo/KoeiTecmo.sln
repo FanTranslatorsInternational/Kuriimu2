@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_koei_tecmo", "plugin_koei_tecmo\plugin_koei_tecmo.csproj", "{6053BE89-4673-4012-BF21-9D5C1F260DF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_ruby_party", "plugin_ruby_party\plugin_ruby_party.csproj", "{0BF5374E-0E80-45E4-A608-CDF037793599}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6053BE89-4673-4012-BF21-9D5C1F260DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6053BE89-4673-4012-BF21-9D5C1F260DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6053BE89-4673-4012-BF21-9D5C1F260DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6053BE89-4673-4012-BF21-9D5C1F260DF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BF5374E-0E80-45E4-A608-CDF037793599}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BF5374E-0E80-45E4-A608-CDF037793599}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BF5374E-0E80-45E4-A608-CDF037793599}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BF5374E-0E80-45E4-A608-CDF037793599}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {041EEEDC-1DD7-4415-90D0-1CB21670F00D}
+	EndGlobalSection
+EndGlobal

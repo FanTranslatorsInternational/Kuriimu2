@@ -4,14 +4,19 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kanvas;
+using Kanvas.Models;
 using Kanvas.Swizzle;
+using Kanvas.Swizzle.Models;
 using Komponent.IO;
+using Kontract.FileSystem;
+using Kontract.Models.Image;
+using ByteOrder = Komponent.IO.ByteOrder;
 
 namespace plugin_mt_framework.TEX
 {
     public sealed partial class TEX
     {
-        public List<Bitmap> Bitmaps = new List<Bitmap>();
+        public List<BitmapInfo> Bitmaps = new List<BitmapInfo>();
         private const int MinHeight = 8;
 
         //int Version;
@@ -19,7 +24,7 @@ namespace plugin_mt_framework.TEX
         private FileHeader Header;
         public FileHeaderInfo HeaderInfo { get; set; }
         private int HeaderLength = 0x10;
-        public ImageSettings Settings = new ImageSettings();
+        public ImageSettings Settings;
         private ByteOrder ByteOrder = ByteOrder.LittleEndian;
 
         //There are variants of Switch versions with a strange block of unidentified data between header and mipmap sizes
@@ -57,13 +62,13 @@ namespace plugin_mt_framework.TEX
                 };
 
                 if (HeaderInfo.Version == Version._Switchv1 && !SwitchFormats.ContainsKey(HeaderInfo.Format))
-                    throw new ImageFormatException($"Switch texture format 0x{HeaderInfo.Format.ToString("X2")} is not implemented.");
+                    throw new InvalidOperationException($"Switch texture format 0x{HeaderInfo.Format.ToString("X2")} is not implemented.");
                 else if (!Formats.ContainsKey(HeaderInfo.Format))
-                    throw new ImageFormatException($"Texture format 0x{HeaderInfo.Format.ToString("X2")} is not implemented.");
+                    throw new InvalidOperationException($"Texture format 0x{HeaderInfo.Format.ToString("X2")} is not implemented.");
 
                 // TODO: Consider whether the following settings make more sense if conditioned by the ByteOrder (or Platform)
                 //var format = HeaderInfo.Format.ToString().StartsWith("DXT1") ? Format.DXT1 : HeaderInfo.Format.ToString().StartsWith("DXT5") ? Format.DXT5 : HeaderInfo.Format;
-                Settings.Format = (HeaderInfo.Version == Version._Switchv1) ? SwitchFormats[HeaderInfo.Format] : Formats[HeaderInfo.Format];
+                var encoding = (HeaderInfo.Version == Version._Switchv1) ? SwitchFormats[HeaderInfo.Format] : Formats[HeaderInfo.Format];
 
                 List<int> mipMaps = null;
                 if (HeaderInfo.Version == Version._Switchv1)
@@ -94,16 +99,15 @@ namespace plugin_mt_framework.TEX
                     else
                         texDataSize = Formats[HeaderInfo.Format].BitDepth * (HeaderInfo.Width >> i) * (HeaderInfo.Height >> i) / 8;
 
-                    Settings.Width = Math.Max(HeaderInfo.Width >> i, 2);
-                    Settings.Height = Math.Max(HeaderInfo.Height >> i, 2);
+                    Settings = new ImageSettings(encoding, Math.Max(HeaderInfo.Width >> i, 2), Math.Max(HeaderInfo.Height >> i, 2));
 
                     //Set possible Swizzles
                     if (HeaderInfo.Version == Version._3DSv1 || HeaderInfo.Version == Version._3DSv2 || HeaderInfo.Version == Version._3DSv3)
-                        Settings.Swizzle = new CTRSwizzle(Settings.Width, Settings.Height);
+                        Settings.Swizzle = new CTRSwizzle(Settings.Width, Settings.Height, CtrTransformation.None, true);
                     else if (HeaderInfo.Version == Version._Switchv1)
-                        Settings.Swizzle = new NXSwizzle(Settings.Width, Settings.Height, Settings.Format.BitDepth, GetSwitchSwizzleFormat(Settings.Format.FormatName));
-                    else if (Settings.Format.FormatName.Contains("DXT"))
-                        Settings.Swizzle = new BlockSwizzle(Settings.Width, Settings.Height);
+                        Settings.Swizzle = new SwitchSwizzle(Settings.Width, Settings.Height, Settings.Encoding.BitDepth, GetSwitchSwizzleFormat(Settings.Encoding.FormatName), true);
+                    else if (Settings.Encoding.FormatName.Contains("DXT"))
+                        Settings.Swizzle = new BCSwizzle(Settings.Width, Settings.Height);
 
                     //Set possible pixel shaders
                     if ((Format)HeaderInfo.Format == Format.DXT5_B)
@@ -111,7 +115,17 @@ namespace plugin_mt_framework.TEX
                     else if ((Format)HeaderInfo.Format == Format.DXT5_YCbCr)
                         Settings.PixelShader = ToProperColors;
 
-                    Bitmaps.Add(Common.Load(br.ReadBytes(texDataSize), Settings));
+                    EncodingInfo info = null;
+                    if (HeaderInfo.Version == Version._3DSv1 || HeaderInfo.Version == Version._3DSv2 ||
+                        HeaderInfo.Version == Version._3DSv3)
+                        info = EncodingInfos.First(x => x.EncodingIndex == HeaderInfo.Format);
+                    else if (HeaderInfo.Version == Version._Switchv1)
+                        info = SwitchEncodingInfos.First(x => x.EncodingIndex == HeaderInfo.Format);
+
+                    if (i == 0)
+                        Bitmaps.Add(new BitmapInfo(Kolors.Load(br.ReadBytes(texDataSize), Settings), info));
+                    else
+                        Bitmaps[0].MipMaps.Add(Kolors.Load(br.ReadBytes(texDataSize), Settings));
                 }
 
                 if (SwitchUnknownData != null)
@@ -119,23 +133,23 @@ namespace plugin_mt_framework.TEX
             }
         }
 
-        NXSwizzle.Format GetSwitchSwizzleFormat(string formatName)
+        SwitchFormat GetSwitchSwizzleFormat(string formatName)
         {
             switch (formatName)
             {
                 case "DXT1":
-                    return NXSwizzle.Format.DXT1;
+                    return SwitchFormat.DXT1;
                 case "DXT5":
-                    return NXSwizzle.Format.DXT5;
+                    return SwitchFormat.DXT5;
                 case "ATI1L":
                 case "ATI1A":
-                    return NXSwizzle.Format.ATI1;
+                    return SwitchFormat.ATI1;
                 case "ATI2":
-                    return NXSwizzle.Format.ATI2;
+                    return SwitchFormat.ATI2;
                 case "RGBA8888":
-                    return NXSwizzle.Format.RGBA8888;
+                    return SwitchFormat.RGBA8888;
                 default:
-                    return NXSwizzle.Format.Empty;
+                    return SwitchFormat.Empty;
             }
         }
 
@@ -153,20 +167,15 @@ namespace plugin_mt_framework.TEX
                     bw.Write(SwitchUnknownData);
 
                 //var format = HeaderInfo.Format.ToString().StartsWith("DXT1") ? Format.DXT1 : HeaderInfo.Format.ToString().StartsWith("DXT5") ? Format.DXT5 : HeaderInfo.Format;
-                Settings.Format = (HeaderInfo.Version == Version._Switchv1) ? SwitchFormats[HeaderInfo.Format] : Formats[HeaderInfo.Format];
-
-                if ((Format)HeaderInfo.Format == Format.DXT5_B)
-                    Settings.PixelShader = ToNoAlpha;
-                else if ((Format)HeaderInfo.Format == Format.DXT5_YCbCr)
-                    Settings.PixelShader = ToOptimisedColors;
+                var encoding = (HeaderInfo.Version == Version._Switchv1) ? SwitchFormats[HeaderInfo.Format] : Formats[HeaderInfo.Format];
 
                 // Mipmap Downsampling
                 if (Bitmaps.Count > 1 && HeaderInfo.MipMapCount > 1)
                 {
-                    var firstBitmap = Bitmaps[0];
+                    var firstBitmap = Bitmaps[0].Image;
                     var width = firstBitmap.Width;
                     var height = firstBitmap.Height;
-                    for (var i = 1; i < HeaderInfo.MipMapCount; i++)
+                    for (var i = 0; i < HeaderInfo.MipMapCount - 1; i++)
                     {
                         var bmp = new Bitmap(width / 2, height / 2);
                         var gfx = Graphics.FromImage(bmp);
@@ -174,24 +183,49 @@ namespace plugin_mt_framework.TEX
                         gfx.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                         gfx.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
                         gfx.DrawImage(firstBitmap, new Rectangle(0, 0, bmp.Width, bmp.Height));
-                        Bitmaps[i] = bmp;
+                        Bitmaps[0].MipMaps[i] = bmp;
                         width = bmp.Width;
                         height = bmp.Height;
                     }
                 }
 
                 var bitmaps = new List<byte[]>();
-                foreach (var bmp in Bitmaps)
+
+                Settings = new ImageSettings(encoding, Bitmaps[0].Image.Width, Bitmaps[0].Image.Height);
+
+                //Set possible Swizzles
+                if (HeaderInfo.Version == Version._3DSv1 || HeaderInfo.Version == Version._3DSv2 || HeaderInfo.Version == Version._3DSv3)
+                    Settings.Swizzle = new CTRSwizzle(Bitmaps[0].Image.Width, Bitmaps[0].Image.Height, CtrTransformation.None, true);
+                else if (HeaderInfo.Version == Version._Switchv1)
+                    Settings.Swizzle = new SwitchSwizzle(Bitmaps[0].Image.Width, Bitmaps[0].Image.Height, Settings.Encoding.BitDepth, GetSwitchSwizzleFormat(Settings.Encoding.FormatName), true);    //Switch Swizzle
+                else if (Settings.Encoding.FormatName.Contains("DXT"))
+                    Settings.Swizzle = new BCSwizzle(Bitmaps[0].Image.Width, Bitmaps[0].Image.Height);
+
+                if ((Format)HeaderInfo.Format == Format.DXT5_B)
+                    Settings.PixelShader = ToNoAlpha;
+                else if ((Format)HeaderInfo.Format == Format.DXT5_YCbCr)
+                    Settings.PixelShader = ToOptimisedColors;
+
+                bitmaps.Add(Kolors.Save(Bitmaps[0].Image, Settings));
+
+                foreach (var mipmap in Bitmaps[0].MipMaps)
                 {
+                    Settings = new ImageSettings(encoding, Bitmaps[0].Image.Width, Bitmaps[0].Image.Height);
+
                     //Set possible Swizzles
                     if (HeaderInfo.Version == Version._3DSv1 || HeaderInfo.Version == Version._3DSv2 || HeaderInfo.Version == Version._3DSv3)
-                        Settings.Swizzle = new CTRSwizzle(bmp.Width, bmp.Height);
+                        Settings.Swizzle = new CTRSwizzle(mipmap.Width, mipmap.Height, CtrTransformation.None, true);
                     else if (HeaderInfo.Version == Version._Switchv1)
-                        Settings.Swizzle = new NXSwizzle(bmp.Width, bmp.Height, Settings.Format.BitDepth, GetSwitchSwizzleFormat(Settings.Format.FormatName));    //Switch Swizzle
-                    else if (Settings.Format.FormatName.Contains("DXT"))
-                        Settings.Swizzle = new BlockSwizzle(bmp.Width, bmp.Height);
+                        Settings.Swizzle = new SwitchSwizzle(mipmap.Width, mipmap.Height, Settings.Encoding.BitDepth, GetSwitchSwizzleFormat(Settings.Encoding.FormatName), true);    //Switch Swizzle
+                    else if (Settings.Encoding.FormatName.Contains("DXT"))
+                        Settings.Swizzle = new BCSwizzle(mipmap.Width, mipmap.Height);
 
-                    bitmaps.Add(Common.Save(bmp, Settings));
+                    if ((Format)HeaderInfo.Format == Format.DXT5_B)
+                        Settings.PixelShader = ToNoAlpha;
+                    else if ((Format)HeaderInfo.Format == Format.DXT5_YCbCr)
+                        Settings.PixelShader = ToOptimisedColors;
+
+                    bitmaps.Add(Kolors.Save(mipmap, Settings));
                 }
 
                 if (HeaderInfo.Version == Version._Switchv1)

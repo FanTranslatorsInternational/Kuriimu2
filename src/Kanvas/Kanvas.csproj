@@ -1,188 +1,83 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{810CEFCF-6900-43FF-8939-EF2D52236882}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Kanvas</RootNamespace>
-    <AssemblyName>Kanvas</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <LangVersion>8</LangVersion>
+    <Version>2.0.8</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageId>Kanvas</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
+    <Authors>IcySon55;onepiecefreak</Authors>
+    <Company>Fan Translators International</Company>
+    <Product>Kanvas</Product>
+    <Description>A library containing image transcodings and quantizations usable in the Kuriimu2 eco-system.</Description>
+    <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
+    <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
+    <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
+    <PackageTags>Image, Transcoding, Quantization, Kuriimu2</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Configuration\ImageTranscoder.cs~RF3e6be8fe.TMP" />
+    <None Remove="lib\astcenc.dll" />
+    <None Remove="lib\PVRTexLib.dll" />
+    <None Remove="lib\PVRTexLibWrapper.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\dist\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\dist\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\Kanvas.xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+
+  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <DefineConstants>NET_CORE_31</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="IndexEncoding\AlphaIndex.cs" />
-    <Compile Include="IndexEncoding\Models\AlphaIndexData.cs" />
-    <Compile Include="Kolors.cs" />
-    <Compile Include="Exceptions\ColorEncodingException.cs" />
-    <Compile Include="Models\BitOrder.cs" />
-    <Compile Include="Models\QuantizationSettings.cs" />
-    <Compile Include="Swizzle\Models\CtrTransformation.cs" />
-    <Compile Include="Swizzle\Models\SwitchFormat.cs" />
-    <Compile Include="Encoding\ASTC.cs" />
-    <Compile Include="Encoding\Support\ASTC\KTX\Models\GLDataType.cs" />
-    <Compile Include="Encoding\Support\ASTC\KTX\Models\GLFormat.cs" />
-    <Compile Include="Encoding\Support\ASTC\KTX\Models\Header.cs" />
-    <Compile Include="Encoding\Support\ASTC\Models\BlockModel.cs" />
-    <Compile Include="Encoding\Support\ASTC\Models\ConvertImageResult.cs" />
-    <Compile Include="Encoding\Support\ASTC\Models\DecodeMode.cs" />
-    <Compile Include="Encoding\Support\ASTC\Models\Method.cs" />
-    <Compile Include="Encoding\Support\ASTC\Models\SpeedMode.cs" />
-    <Compile Include="Encoding\Support\ATC\Decoder.cs" />
-    <Compile Include="Encoding\Support\ATC\Encoder.cs" />
-    <Compile Include="Encoding\Support\ATC\Models\AlphaMode.cs" />
-    <Compile Include="Encoding\Support\ATI\Decoder.cs" />
-    <Compile Include="Encoding\Support\ATI\Encoder.cs" />
-    <Compile Include="Encoding\Support\DXT\Decoder.cs" />
-    <Compile Include="Encoding\Support\DXT\Encoder.cs" />
-    <Compile Include="Encoding\ETC1.cs" />
-    <Compile Include="Encoding\Support\ETC1\Constants.cs" />
-    <Compile Include="Encoding\Support\ETC1\Decoder.cs" />
-    <Compile Include="Encoding\Support\ETC1\Encoder.cs" />
-    <Compile Include="Encoding\Support\ETC1\Helper\Optimizer.cs" />
-    <Compile Include="Encoding\Support\ETC1\Helper\SolutionSet.cs" />
-    <Compile Include="Encoding\Support\ETC1\Models\Block.cs" />
-    <Compile Include="Encoding\Support\ETC1\Models\PixelData.cs" />
-    <Compile Include="Encoding\Support\ETC1\Models\RGB.cs" />
-    <Compile Include="Encoding\Support\ETC1\Models\Solution.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\ColorSpace.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\CompressorQuality.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\PixelFormat.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\ResizeMode.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\VariableType.cs" />
-    <Compile Include="Encoding\Support\PVRTC\NativeCalls.cs" />
-    <Compile Include="Encoding\PVRTC.cs" />
-    <Compile Include="Encoding\Support\ASTC\KTX\KTXWrapper.cs" />
-    <Compile Include="Encoding\Support\ASTC\NativeCalls.cs" />
-    <Compile Include="Encoding\Support\ASTC\ASTCContext.cs" />
-    <Compile Include="Encoding\Support\PVRTC\PVRTCTexture.cs" />
-    <Compile Include="Interface\IColorEncodingKnownDimensions.cs" />
-    <Compile Include="Interface\IIndexEncoding.cs" />
-    <Compile Include="Models\ByteOrder.cs" />
-    <Compile Include="Encoding\Support\ATI\Models\AtiFormat.cs" />
-    <Compile Include="Encoding\Support\DXT\Models\DxtFormat.cs" />
-    <Compile Include="Encoding\Support\PVRTC\Models\PvrtcFormat.cs" />
-    <Compile Include="Models\ImageSettings.cs" />
-    <Compile Include="Support\Convert.cs" />
-    <Compile Include="Support\MoreEnumerable.MaxBy.cs" />
-    <Compile Include="Encoding\ATC.cs" />
-    <Compile Include="Encoding\ATI.cs" />
-    <Compile Include="Encoding\DXT.cs" />
-    <Compile Include="Encoding\HILO.cs" />
-    <Compile Include="Encoding\LA.cs" />
-    <Compile Include="Encoding\RGBA.cs" />
-    <Compile Include="Interface\IColorEncoding.cs" />
-    <Compile Include="Interface\IImageSwizzle.cs" />
-    <Compile Include="IndexEncoding\Index.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Support\BCn\BC1BlockEncoder.cs" />
-    <Compile Include="Support\BCn\BC2ABlockEncoder.cs" />
-    <Compile Include="Support\BCn\BC4BlockEncoder.cs" />
-    <Compile Include="Support\BCn\BCnImage.cs" />
-    <Compile Include="Support\BCn\Blocks.cs" />
-    <Compile Include="Support\BCn\FloatImage.cs" />
-    <Compile Include="Support\BCn\Helpers.cs" />
-    <Compile Include="Support\BCn\ImageEncoder.cs" />
-    <Compile Include="Support\BCn\ImageEncodingHelper.cs" />
-    <Compile Include="IndexEncoding\Models\IndexData.cs" />
-    <Compile Include="Models\IndexedImageSettings.cs" />
-    <Compile Include="Quantization\ColorCaches\BaseColorCache.cs" />
-    <Compile Include="Quantization\ColorCaches\EuclideanDistanceColorCache.cs" />
-    <Compile Include="Quantization\ColorCaches\LocalitySensitiveHashColorCache.cs" />
-    <Compile Include="Quantization\ColorCaches\OctreeColorCache.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\AtkinsonDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\BaseErrorDiffusionDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\BurkesDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\ZhigangFanDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\FloydSteinbergDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\JarvisJudiceNinkeDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\ShiauFan2Ditherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\ShiauFanDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\Sierra2RowDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\Sierra3RowDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\SierraLiteDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\ErrorDiffusion\StuckiDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\BaseOrderDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\Bayer2Ditherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\Bayer4Ditherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\Bayer8Ditherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\ClusteredDotDitherer.cs" />
-    <Compile Include="Quantization\Ditherers\Ordered\DotHalfToneDitherer.cs" />
-    <Compile Include="Quantization\Helper\ColorModelHelper.cs" />
-    <Compile Include="Quantization\Helper\FastRandom.cs" />
-    <Compile Include="Quantization\Helper\ParallelProcessing.cs" />
-    <Compile Include="Quantization\Interfaces\IColorCache.cs" />
-    <Compile Include="Quantization\Interfaces\IColorDitherer.cs" />
-    <Compile Include="Quantization\Interfaces\IColorQuantizer.cs" />
-    <Compile Include="Quantization\Models\ColorCache\ColorModel.cs" />
-    <Compile Include="Quantization\Models\ColorCache\ColorModelComponents.cs" />
-    <Compile Include="Quantization\Models\ColorCache\LshBucketInfo.cs" />
-    <Compile Include="Quantization\Models\ColorCache\OctreeCacheNode.cs" />
-    <Compile Include="Quantization\Models\Ditherer\ColorComponentError.cs" />
-    <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionElement.cs" />
-    <Compile Include="Quantization\Models\Ditherer\ErrorDiffusionList.cs" />
-    <Compile Include="Quantization\Models\Quantizer\DistinctColorInfo.cs" />
-    <Compile Include="Quantization\Models\Parallel\DelayedLineTask.cs" />
-    <Compile Include="Quantization\Models\Parallel\LineTask.cs" />
-    <Compile Include="Quantization\Quantizers\DistinctSelectionQuantizer.cs" />
-    <Compile Include="Swizzle\BCSwizzle.cs" />
-    <Compile Include="Swizzle\CTRSwizzle.cs" />
-    <Compile Include="Swizzle\LinearSwizzle.cs" />
-    <Compile Include="Swizzle\MasterSwizzle.cs" />
-    <Compile Include="Swizzle\NitroSwizzle.cs" />
-    <Compile Include="Swizzle\SwitchSwizzle.cs" />
-    <Compile Include="Swizzle\CafeSwizzle.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Kanvas.nuspec" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <ItemGroup>
-    <Content Include="Libraries\astcenc.dll">
+    <Content Include="lib\astcenc.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libraries\PVRTexLib.dll">
+    <Content Include="lib\PVRTexLib.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Libraries\PVRTexLibWrapper.dll">
+    <Content Include="lib\PVRTexLibWrapper.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+  </ItemGroup>
+
 </Project>

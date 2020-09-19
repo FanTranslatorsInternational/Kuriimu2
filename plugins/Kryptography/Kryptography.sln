@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_xor", "plugin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_nintendo", "plugin_krypto_nintendo\plugin_krypto_nintendo.csproj", "{74C23886-A187-4662-A6F8-9A84BEA7874C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_krypto_hash", "plugin_krypto_hash\plugin_krypto_hash.csproj", "{815886F2-D9E4-4EB2-98EF-98ABC7643C7D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74C23886-A187-4662-A6F8-9A84BEA7874C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{815886F2-D9E4-4EB2-98EF-98ABC7643C7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{815886F2-D9E4-4EB2-98EF-98ABC7643C7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{815886F2-D9E4-4EB2-98EF-98ABC7643C7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{815886F2-D9E4-4EB2-98EF-98ABC7643C7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

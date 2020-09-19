@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Kontract.Attributes;
+using Kontract.Interfaces;
 using Kontract.Interfaces.Common;
 using Kontract.Interfaces.Font;
+
+// TODO: Add all features
 
 namespace plugin_mt_framework.GFDv2
 {

@@ -1,126 +1,75 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using Kanvas.Encoding.Support.ETC1;
-using Kanvas.Encoding.Support.ETC1.Models;
-using Kanvas.Interface;
-using Kanvas.Models;
-using Kanvas.Support;
+using System.Linq;
+using Kanvas.Encoding.Base;
+using Kanvas.Encoding.BlockCompressions;
+using Kanvas.Encoding.BlockCompressions.ETC1.Models;
+using Komponent.IO;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
     /// <summary>
-    /// Defines the ETC1 encoding.
+    /// Defines the Etc1 encoding.
     /// </summary>
-    public class ETC1 : IColorEncoding
+    public class Etc1 : BlockCompressionEncoding<Etc1PixelData>
     {
-        private bool _useAlpha;
+        private readonly bool _useAlpha;
+        private readonly Etc1Transcoder _transcoder;
 
-        /// <inheritdoc cref="IColorEncoding.BitDepth"/>
-        public int BitDepth { get; }
+        public override int BitDepth { get; }
 
-        /// <summary>
-        /// The number of bits one block contains of.
-        /// </summary>
-        public int BlockBitDepth { get; }
+        public override int BitsPerValue { get; protected set; }
 
-        /// <inheritdoc cref="IColorEncoding.FormatName"/>
-        public string FormatName { get; set; }
+        public override int ColorsPerValue => 16;
 
-        /// <inheritdoc cref="IColorEncoding.IsBlockCompression"/>
-        public bool IsBlockCompression => true;
+        public override string FormatName { get; }
 
-        /// <summary>
-        /// Byte order to use to read the values.
-        /// </summary>
-        public ByteOrder ByteOrder { get; set; } = ByteOrder.LittleEndian;
-
-        /// <summary>
-        /// Defines if useAlpha should be used.
-        /// </summary>
-        public bool UseAlpha
+        public Etc1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) : base(byteOrder)
         {
-            get => _useAlpha;
-            set
-            {
-                _useAlpha = value;
-                UpdateName();
-            }
-        }
+            _useAlpha = useAlpha;
+            _transcoder = new Etc1Transcoder(useZOrder);
 
-        /// <summary>
-        /// Defines if ZOrder is used.
-        /// </summary>
-        public bool UseZOrder { get; set; }
-
-        public ETC1(bool useAlpha)
-        {
+            BitsPerValue = useAlpha ? 128 : 64;
             BitDepth = useAlpha ? 8 : 4;
-            BlockBitDepth = useAlpha ? 128 : 64;
 
-            UseAlpha = useAlpha;
-
-            UpdateName();
+            FormatName = "ETC1" + (useAlpha ? "A4" : "");
         }
 
-        private void UpdateName()
+        protected override Etc1PixelData ReadNextBlock(BinaryReaderX br)
         {
-            FormatName = (UseAlpha) ? "ETC1A4" : "ETC1";
-        }
+            var alpha = _useAlpha ? br.ReadUInt64() : ulong.MaxValue;
+            var colors = br.ReadUInt64();
 
-        public IEnumerable<Color> Load(byte[] tex)
-        {
-            var etc1Decoder = new Decoder(UseZOrder);
-
-            using (var br = new BinaryReader(new MemoryStream(tex)))
-                while (true)
-                    yield return etc1Decoder.Get(() => GetPixelData(br));
-        }
-
-        private PixelData GetPixelData(BinaryReader br)
-        {
-            var etc1Alpha = UseAlpha ? Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder) : ulong.MaxValue;
-            var colorBlock = Convert.FromByteArray<ulong>(br.ReadBytes(8), ByteOrder);
-            var etc1Block = new Block
+            return new Etc1PixelData
             {
-                LSB = (ushort)(colorBlock & 0xFFFF),
-                MSB = (ushort)((colorBlock >> 16) & 0xFFFF),
-                Flags = (byte)((colorBlock >> 32) & 0xFF),
-                B = (byte)((colorBlock >> 40) & 0xFF),
-                G = (byte)((colorBlock >> 48) & 0xFF),
-                R = (byte)((colorBlock >> 56) & 0xFF)
+                Alpha = alpha,
+                Block = new Block
+                {
+                    LSB = (ushort)(colors & 0xFFFF),
+                    MSB = (ushort)((colors >> 16) & 0xFFFF),
+                    Flags = (byte)((colors >> 32) & 0xFF),
+                    B = (byte)((colors >> 40) & 0xFF),
+                    G = (byte)((colors >> 48) & 0xFF),
+                    R = (byte)((colors >> 56) & 0xFF)
+                }
             };
-            return new PixelData { Alpha = etc1Alpha, Block = etc1Block };
         }
 
-        public byte[] Save(IEnumerable<Color> colors)
+        protected override void WriteNextBlock(BinaryWriterX bw, Etc1PixelData block)
         {
-            var etc1Encoder = new Encoder(UseZOrder);
-
-            var ms = new MemoryStream();
-            using (var bw = new BinaryWriter(ms, System.Text.Encoding.ASCII, true))
-            {
-                foreach (var color in colors)
-                    etc1Encoder.Set(color, data => SetPixelData(bw, data));
-            }
-
-            return ms.ToArray();
+            if (_useAlpha) bw.Write(block.Alpha);
+            bw.Write(block.Block.GetBlockData());
         }
 
-        private void SetPixelData(BinaryWriter bw, PixelData data)
+        protected override IList<Color> DecodeNextBlock(Etc1PixelData block)
         {
-            if (UseAlpha)
-                bw.Write(Convert.ToByteArray(data.Alpha, 8, ByteOrder));
+            return _transcoder.DecodeBlocks(block).ToArray();
+        }
 
-            ulong colorBlock = 0;
-            colorBlock |= data.Block.LSB;
-            colorBlock |= ((ulong)data.Block.MSB << 16);
-            colorBlock |= ((ulong)data.Block.Flags << 32);
-            colorBlock |= ((ulong)data.Block.B << 40);
-            colorBlock |= ((ulong)data.Block.G << 48);
-            colorBlock |= ((ulong)data.Block.R << 56);
-
-            bw.Write(Convert.ToByteArray(colorBlock, 8, ByteOrder));
+        protected override Etc1PixelData EncodeNextBlock(IList<Color> colors)
+        {
+            return _transcoder.EncodeColors(colors);
         }
     }
 }

@@ -1,0 +1,91 @@
+name: Kuriimu2 CommandLine
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: nuget/setup-nuget@v1
+        
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.302
+      
+    - name: Clone update repository
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
+      
+    - name: Create manifests
+      run: |
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.Cmd/Resources/version.json
+      
+    - name: Publish command line with dotnet
+      run: dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
+      
+    - name: Pack libraries
+      run: |
+        dotnet build ./src/Kontract/Kontract.csproj --configuration Release
+        dotnet build ./src/Komponent/Komponent.csproj --configuration Release
+        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
+        dotnet build ./src/Kompression/Kompression.csproj --configuration Release
+        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
+        dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+        
+    - name: Setup NuGet sources
+      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+      
+    - name: Publish plugins
+      run: |
+        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+    
+    - name: Zip release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final
+        dest: ./update/latest.zip
+    
+    - name: Install openSSL
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install openssl
+      
+    - name: Sign release
+      run: |
+        echo "$PRIVATE_KEY" > privatekey.pem
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
+      shell: bash
+      env:
+        PRIVATE_KEY: ${{secrets.PRIVATE_KEY_2}}
+    
+    - name: Commit changes to update repo
+      run: |
+        cd ./update
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Update binaries" -a
+        
+    - name: Push changes to update repo
+      uses: ad-m/github-push-action@master
+      with:
+        directory: ./update
+        repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
+        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2.Cmd
+        path: ./dist/final

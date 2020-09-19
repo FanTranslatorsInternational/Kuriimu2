@@ -1,0 +1,155 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp31</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>Kuriimu2.Wpf</AssemblyName>
+    <RootNamespace>Kuriimu2.Wpf</RootNamespace>
+    <StartupObject>Kuriimu2.Wpf.App</StartupObject>
+    <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
+    <Version>2.0.0</Version>
+    <Copyright>Fan Translators International</Copyright>
+    <ApplicationIcon>Images\kuriimu2.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\dist\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\dist\Release\</OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Images\add-text-entry.png" />
+    <None Remove="Images\batch-export-image.png" />
+    <None Remove="Images\encode-image.png" />
+    <None Remove="Images\export-image.png" />
+    <None Remove="Images\export-text.png" />
+    <None Remove="Images\find.ico" />
+    <None Remove="Images\icon-text-page.png" />
+    <None Remove="Images\image-export.png" />
+    <None Remove="Images\image.png" />
+    <None Remove="Images\import-text.png" />
+    <None Remove="Images\kuriimu2.ico" />
+    <None Remove="Images\menu-about.png" />
+    <None Remove="Images\menu-add.png" />
+    <None Remove="Images\menu-compression.png" />
+    <None Remove="Images\menu-delete.png" />
+    <None Remove="Images\menu-edit.png" />
+    <None Remove="Images\menu-find.png" />
+    <None Remove="Images\menu-font-family.png" />
+    <None Remove="Images\menu-font-size.png" />
+    <None Remove="Images\menu-label-add.png" />
+    <None Remove="Images\menu-label-remove.png" />
+    <None Remove="Images\menu-labels.png" />
+    <None Remove="Images\menu-new.png" />
+    <None Remove="Images\menu-open-type.png" />
+    <None Remove="Images\menu-open.png" />
+    <None Remove="Images\menu-paste.png" />
+    <None Remove="Images\menu-power.png" />
+    <None Remove="Images\menu-preview-copy.png" />
+    <None Remove="Images\menu-preview-invisible.png" />
+    <None Remove="Images\menu-preview-save.png" />
+    <None Remove="Images\menu-preview-visible.png" />
+    <None Remove="Images\menu-preview.png" />
+    <None Remove="Images\menu-properties.png" />
+    <None Remove="Images\menu-rename.png" />
+    <None Remove="Images\menu-save-as.png" />
+    <None Remove="Images\menu-save.png" />
+    <None Remove="Images\menu-search.png" />
+    <None Remove="Images\menu-set.png" />
+    <None Remove="Images\menu-settings.png" />
+    <None Remove="Images\menu-show-text-preview.png" />
+    <None Remove="Images\menu-sorted.png" />
+    <None Remove="Images\menu-unset.png" />
+    <None Remove="Images\menu-unsorted.png" />
+    <None Remove="Images\next-page.png" />
+    <None Remove="Images\preview-background.png" />
+    <None Remove="Images\previous-page.png" />
+    <None Remove="Images\search.ico" />
+    <None Remove="Images\select-plugin.png" />
+    <None Remove="Images\text-editor-1.png" />
+    <None Remove="Images\text-editor-2.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Caliburn.Micro" Version="4.0.102-alpha" />
+    <PackageReference Include="Caliburn.Micro.Core" Version="4.0.102-alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+	<ProjectReference Include="..\Kompression\Kompression.csproj" />
+	<ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\Kore\Kore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\add-text-entry.png" />
+    <Resource Include="Images\batch-export-image.png" />
+    <Resource Include="Images\encode-image.png" />
+    <Resource Include="Images\export-image.png" />
+    <Resource Include="Images\export-text.png" />
+    <Resource Include="Images\find.ico" />
+    <Resource Include="Images\icon-text-page.png" />
+    <Resource Include="Images\image-export.png" />
+    <Resource Include="Images\image.png" />
+    <Resource Include="Images\import-text.png" />
+    <Resource Include="Images\kuriimu2.ico" />
+    <Resource Include="Images\menu-about.png" />
+    <Resource Include="Images\menu-add.png" />
+    <Resource Include="Images\menu-compression.png" />
+    <Resource Include="Images\menu-delete.png" />
+    <Resource Include="Images\menu-edit.png" />
+    <Resource Include="Images\menu-find.png" />
+    <Resource Include="Images\menu-font-family.png" />
+    <Resource Include="Images\menu-font-size.png" />
+    <Resource Include="Images\menu-label-add.png" />
+    <Resource Include="Images\menu-label-remove.png" />
+    <Resource Include="Images\menu-labels.png" />
+    <Resource Include="Images\menu-new.png" />
+    <Resource Include="Images\menu-open-type.png" />
+    <Resource Include="Images\menu-open.png" />
+    <Resource Include="Images\menu-paste.png" />
+    <Resource Include="Images\menu-power.png" />
+    <Resource Include="Images\menu-preview-copy.png" />
+    <Resource Include="Images\menu-preview-invisible.png" />
+    <Resource Include="Images\menu-preview-save.png" />
+    <Resource Include="Images\menu-preview-visible.png" />
+    <Resource Include="Images\menu-preview.png" />
+    <Resource Include="Images\menu-properties.png" />
+    <Resource Include="Images\menu-rename.png" />
+    <Resource Include="Images\menu-save-as.png" />
+    <Resource Include="Images\menu-save.png" />
+    <Resource Include="Images\menu-search.png" />
+    <Resource Include="Images\menu-set.png" />
+    <Resource Include="Images\menu-settings.png" />
+    <Resource Include="Images\menu-show-text-preview.png" />
+    <Resource Include="Images\menu-sorted.png" />
+    <Resource Include="Images\menu-unset.png" />
+    <Resource Include="Images\menu-unsorted.png" />
+    <Resource Include="Images\next-page.png" />
+    <Resource Include="Images\preview-background.png" />
+    <Resource Include="Images\previous-page.png" />
+    <Resource Include="Images\search.ico" />
+    <Resource Include="Images\select-plugin.png" />
+    <Resource Include="Images\text-editor-1.png" />
+    <Resource Include="Images\text-editor-2.png" />
+  </ItemGroup>
+
+</Project>

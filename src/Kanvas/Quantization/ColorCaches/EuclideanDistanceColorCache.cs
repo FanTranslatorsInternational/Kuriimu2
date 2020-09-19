@@ -1,33 +1,25 @@
-﻿using Kanvas.Quantization.Helper;
-using Kanvas.Quantization.Interfaces;
-using Kanvas.Quantization.Models;
-using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Quantization.ColorCaches
 {
-    /// <inheritdoc cref="IColorCache"/>
+    /// <summary>
+    /// The <see cref="IColorCache"/> to search colors with euclidean distance.
+    /// </summary>
     public class EuclideanDistanceColorCache : BaseColorCache
     {
-        private ConcurrentDictionary<int, int> _cache;
+        private readonly ConcurrentDictionary<int, int> _cache;
 
-        protected override void OnPrepare()
-        {
-        }
-
-        protected override void OnCachePalette()
+        public EuclideanDistanceColorCache(IList<Color> palette) :
+            base(palette)
         {
             _cache = new ConcurrentDictionary<int, int>();
         }
 
-        /// <inheritdoc cref="BaseColorCache.CalculatePaletteIndex"/>
-        protected override int CalculatePaletteIndex(Color color)
+        /// <inheritdoc />
+        public override int GetPaletteIndex(Color color)
         {
             return _cache.AddOrUpdate(color.ToArgb(),
                 colorKey =>
@@ -40,7 +32,7 @@ namespace Kanvas.Quantization.ColorCaches
 
         private int CalculatePaletteIndexInternal(Color color)
         {
-            return ColorModelHelper.GetSmallestEuclideanDistanceIndex(_colorModel, color, Palette);
+            return EuclideanHelper.GetSmallestEuclideanDistanceIndex(Palette, color);
         }
     }
 }

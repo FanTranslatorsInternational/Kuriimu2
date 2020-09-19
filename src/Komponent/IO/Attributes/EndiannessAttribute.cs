@@ -1,4 +1,5 @@
 ﻿using System;
+using Kontract.Models.IO;
 
 namespace Komponent.IO.Attributes
 {

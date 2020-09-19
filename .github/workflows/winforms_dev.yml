@@ -1,0 +1,53 @@
+name: Kuriimu2 WinForms (Separated Dlls)
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: nuget/setup-nuget@v1
+        
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.302
+    
+    - name: Publish winforms application with dotnet
+      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release /p:PublishSingleFile=false
+      
+    - name: Build libraries
+      run: |
+        dotnet build ./src/Kontract/Kontract.csproj --configuration Release
+        dotnet build ./src/Komponent/Komponent.csproj --configuration Release
+        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
+        dotnet build ./src/Kompression/Kompression.csproj --configuration Release
+        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
+    - name: Pack libraries
+      run: |
+        dotnet pack ./src/Kontract/Kontract.csproj --configuration Release
+        dotnet pack ./src/Komponent/Komponent.csproj --configuration Release
+        dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release
+        dotnet pack ./src/Kompression/Kompression.csproj --configuration Release
+        dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release
+        
+    - name: Setup NuGet sources
+      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget
+      
+    - name: Publish Level5 plugin with dotnet
+      run: dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+    - name: Publish Nintendo plugin with dotnet
+      run: dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+    - name: Publish Koei Tecmo plugin with dotnet
+      run: dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+    - name: Publish NipponIchi Software plugin with dotnet
+      run: dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+      
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2.WinForms-dev
+        path: ./dist/final

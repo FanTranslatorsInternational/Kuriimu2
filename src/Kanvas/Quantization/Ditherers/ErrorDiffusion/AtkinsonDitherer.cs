@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,5 +21,10 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
         protected override int MatrixSideWidth => 2;
         protected override int MatrixSideHeight => 2;
         protected override int ErrorLimit => 8;
+
+        public AtkinsonDitherer(Size imageSize, int taskCount) :
+            base(imageSize, taskCount)
+        {
+        }
     }
 }

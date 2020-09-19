@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_bandai_namco_images", "plugin_bandai_namco_images\plugin_bandai_namco_images.csproj", "{2B791BDB-AA3B-47A1-BD39-FED868123A1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_bandai_namco", "plugin_bandai_namco\plugin_bandai_namco.csproj", "{2B791BDB-AA3B-47A1-BD39-FED868123A1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

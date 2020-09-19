@@ -1,6 +1,7 @@
 ﻿using Kryptography.AES.CTR;
 using System;
 using System.IO;
+using Kryptography.Extensions;
 
 namespace Kryptography.AES
 {
@@ -173,12 +174,11 @@ namespace Kryptography.AES
             if (!CanRead)
                 throw new NotSupportedException("Can't read from stream.");
 
-            if (Position + count > Length)
-                throw new InvalidOperationException("Can't read beyond stream.");
+            var length = (int)Math.Min(Length - Position, count);
+            if (length > 0)
+                InternalRead(buffer, offset, length);
 
-            InternalRead(buffer, offset, count);
-
-            return count;
+            return length;
         }
 
         private void InternalRead(byte[] buffer, int offset, int count)

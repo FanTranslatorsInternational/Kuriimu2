@@ -1,143 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A43ECC92-DC90-4F79-9871-49E02A11ADAD}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Kontract</RootNamespace>
-    <AssemblyName>Kontract</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <LangVersion>8</LangVersion>
+    <Version>2.0.8</Version>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>..\..\nuget</PackageOutputPath>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageId>Kontract</PackageId>
+    <PackageVersion>2.0.8</PackageVersion>
+
+    <Authors>IcySon55;onepiecefreak</Authors>
+    <Company>Fan Translators International</Company>
+    <Product>Kontract</Product>
+    <Description>A library containing all interfaces and data models.</Description>
+    <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
+    <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
+    <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
+    <PackageTags>API, Contract, Kuriimu2</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+
+  <PropertyGroup>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>True</PublishSingleFile>
+    <PublishReadyToRun>False</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Models\PluginMetadata.cs~RF525ad6e8.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\dist\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\dist\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Kontract.xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Attributes\ExtensionInfoAttribute.cs" />
-    <Compile Include="Attributes\FormFieldAttributes.cs" />
-    <Compile Include="Attributes\FormFieldIgnoreAttribute.cs" />
-    <Compile Include="Attributes\Intermediate\PropertyAttribute.cs" />
-    <Compile Include="Attributes\Intermediate\IgnoreDecryptionAttribute.cs" />
-    <Compile Include="Attributes\Intermediate\IgnoreEncryptionAttribute.cs" />
-    <Compile Include="Attributes\MenuStripExtensionAttribute.cs" />
-    <Compile Include="Attributes\PluginInfoAttribute.cs" />
-    <Compile Include="FileSystem\Exceptions\FileAlreadyOpenException.cs" />
-    <Compile Include="FileSystem\Exceptions\PathMismatchException.cs" />
-    <Compile Include="FileSystem\Exceptions\PathOutOfRangeException.cs" />
-    <Compile Include="Exceptions\Image\EncodingNotSupported.cs" />
-    <Compile Include="Exceptions\Image\IndexedEncodingNotSupported.cs" />
-    <Compile Include="Exceptions\PluginInconsistencyException.cs" />
-    <Compile Include="Exceptions\PluginNotFoundException.cs" />
-    <Compile Include="FileSystem\Common.cs" />
-    <Compile Include="FileSystem\IO\ReportCloseStream.cs" />
-    <Compile Include="FileSystem\IO\UndisposableStream.cs" />
-    <Compile Include="FileSystem\NodeFactory.cs" />
-    <Compile Include="FileSystem\Nodes\Abstract\BaseDirectoryNode.cs" />
-    <Compile Include="FileSystem\Nodes\Abstract\BaseReadOnlyDirectoryNode.cs" />
-    <Compile Include="FileSystem\Nodes\Abstract\BaseFileNode.cs" />
-    <Compile Include="FileSystem\Nodes\Abstract\BaseNode.cs" />
-    <Compile Include="FileSystem\Nodes\Physical\PhysicalDirectoryNode.cs" />
-    <Compile Include="FileSystem\Nodes\Physical\PhysicalFileNode.cs" />
-    <Compile Include="FileSystem\Nodes\Afi\AfiDirectoryNode.cs" />
-    <Compile Include="FileSystem\Nodes\Afi\AfiFileNode.cs" />
-    <Compile Include="Interfaces\Archive\ArchiveFileInfo.cs" />
-    <Compile Include="Interfaces\Archive\IArchiveAdapter.cs" />
-    <Compile Include="Interfaces\Archive\IArchiveAddFile.cs" />
-    <Compile Include="Interfaces\Archive\IArchiveDeleteFile.cs" />
-    <Compile Include="Interfaces\Archive\IArchiveRenameFiles.cs" />
-    <Compile Include="Interfaces\Archive\IArchiveReplaceFiles.cs" />
-    <Compile Include="Interfaces\Common\IMultipleFiles.cs" />
-    <Compile Include="Interfaces\Image\BaseImageAdapter.cs" />
-    <Compile Include="Interfaces\Image\BaseIndexedImageAdapter.cs" />
-    <Compile Include="Interfaces\Intermediate\IColorEncodingAdapter.cs" />
-    <Compile Include="Interfaces\Intermediate\IImageSwizzleAdapter.cs" />
-    <Compile Include="Interfaces\IPlugin.cs" />
-    <Compile Include="Interfaces\Font\FontCharacter.cs" />
-    <Compile Include="Interfaces\Font\FontCharacter2.cs" />
-    <Compile Include="Interfaces\Font\IAddCharacters.cs" />
-    <Compile Include="Interfaces\Font\ICharactersHaveExtendedProperties.cs" />
-    <Compile Include="Interfaces\Font\IDeleteCharacters.cs" />
-    <Compile Include="Interfaces\Font\IFontAdapter2.cs" />
-    <Compile Include="Interfaces\Font\IFontRenderer.cs" />
-    <Compile Include="Interfaces\Game\IGenerateGamePreviews.cs" />
-    <Compile Include="Interfaces\IFormatConverter.cs" />
-    <Compile Include="Interfaces\Common\IIdentifyFiles.cs" />
-    <Compile Include="Interfaces\Common\ICreateFiles.cs" />
-    <Compile Include="MEF\ErrorReports\DefaultErrorReport.cs" />
-    <Compile Include="MEF\Interfaces\IErrorReport.cs" />
-    <Compile Include="Models\Image\ImageTranscodeResult.cs" />
-    <Compile Include="MEF\Catalogs\KuriimuDirectoryCatalog.cs" />
-    <Compile Include="MEF\Providers\KuriimuExportProvider.cs" />
-    <Compile Include="Models\Image\BitmapInfo.cs" />
-    <Compile Include="Models\Image\EncodingInfo.cs" />
-    <Compile Include="Interfaces\Image\IImageAdapter.cs" />
-    <Compile Include="Interfaces\Common\ILoadStreams.cs" />
-    <Compile Include="Interfaces\Common\ILoadFiles.cs" />
-    <Compile Include="Interfaces\Common\ISaveStreams.cs" />
-    <Compile Include="Interfaces\Common\ISaveFiles.cs" />
-    <Compile Include="Interfaces\Common\IFileHasExtendedProperties.cs" />
-    <Compile Include="Interfaces\Font\IFontAdapter.cs" />
-    <Compile Include="Interfaces\Common\IPluginMetadata.cs" />
-    <Compile Include="Interfaces\Image\IIndexedImageAdapter.cs" />
-    <Compile Include="Models\Image\IndexedBitmapInfo.cs" />
-    <Compile Include="Interfaces\Intermediate\ICipherAdapter.cs" />
-    <Compile Include="Interfaces\Intermediate\IIntermediate.cs" />
-    <Compile Include="Models\Intermediate\RequestDataEventArgs.cs" />
-    <Compile Include="Interfaces\Layout\ILayoutAdapter.cs" />
-    <Compile Include="Interfaces\Game\IGameAdapter.cs" />
-    <Compile Include="Interfaces\Layout\LayoutItem.cs" />
-    <Compile Include="Interfaces\Text\ITextEntriesHaveExtendedProperties.cs" />
-    <Compile Include="Interfaces\Text\ITextAdapter.cs" />
-    <Compile Include="Interfaces\FileSystem\IFileSystem.cs" />
-    <Compile Include="Interfaces\Text\ITextAddEntries.cs" />
-    <Compile Include="Interfaces\Text\ITextDeleteEntries.cs" />
-    <Compile Include="Interfaces\Text\ITextRenameEntries.cs" />
-    <Compile Include="Interfaces\Text\TextEntry.cs" />
-    <Compile Include="Models\ProgressReport.cs" />
-    <Compile Include="PluginLoader.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="MEF\ErrorReports\AssemblyTypeErrorReport.cs" />
-    <Compile Include="MEF\ErrorReports\ExportErrorReport.cs" />
-    <Compile Include="MEF\Models\KuriimuExport.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Kontract.nuspec" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>
