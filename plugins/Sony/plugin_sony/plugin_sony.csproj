@@ -22,20 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Libs\DiscUtils.Core.dll" />
-    <None Remove="Libs\DiscUtils.Iso9660.dll" />
-    <None Remove="Libs\DiscUtils.Streams.dll" />
+    <None Remove="Archives\Ps2DiscSupport.cs~RF24ab904f.TMP" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Libs\DiscUtils.Core.dll" />
-    <EmbeddedResource Include="Libs\DiscUtils.Iso9660.dll" />
-    <EmbeddedResource Include="Libs\DiscUtils.Streams.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DiscUtils.Iso9660" Version="0.15.1-ci0002" />
-    <PackageReference Include="DiscUtils.Udf" Version="0.15.1-ci0002" />
     <PackageReference Include="Komponent" Version="2.0.8" />
     <PackageReference Include="Kompression" Version="2.0.8" />
     <PackageReference Include="Kontract" Version="2.0.8" />
