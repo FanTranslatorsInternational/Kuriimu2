@@ -10,24 +10,18 @@ namespace plugin_bandai_namco.Images
     public class MtexHeader
     {
         [FixedLength(4)]        
-        public string Magic = "XETM";
-        public int Unk1;
-        public int Unk2;
-        public short Unk3;
-        public short Width;
-        public short Height;
-        public short Unk4;
-        public short Format;        
+        public string magic = "XETM";
+        public int unk1;
+        public int unk2;
+        public short unk3;
+        public short width;
+        public short height;
+        public short unk4;
+        public short format;        
     }
 
     public static class MtexSupport
     {
-        public enum MtexImageFormat : short
-        {
-            ETC1 = 0x00,
-            ETC1A4 = 0x01
-        }
-
         public static IDictionary<int, IColorEncoding> MtexFormats = new Dictionary<int, IColorEncoding>
         {
             [0x00] = new Etc1(false, true, ByteOrder.LittleEndian),

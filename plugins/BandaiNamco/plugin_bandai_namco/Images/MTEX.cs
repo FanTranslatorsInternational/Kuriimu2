@@ -29,10 +29,10 @@ namespace plugin_bandai_namco.Images
             // Read texture
             var texture = br.ReadBytes((int)input.Length - 0x80);
 
-            var imageInfo = new ImageInfo(texture, _header.Format, new Size(_header.Width, _header.Height))
+            var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height))
             {
                 Configuration = new ImageConfiguration().
-                        RemapPixelsWith(size => new CTRSwizzle(_header.Width, _header.Height, CtrTransformation.YFlip, true)),
+                        RemapPixelsWith(size => new CTRSwizzle(_header.width, _header.height, CtrTransformation.YFlip, true)),
             };
 
             return imageInfo;
@@ -40,16 +40,18 @@ namespace plugin_bandai_namco.Images
 
         public void Save(Stream output, IKanvasImage image)
         {
-            var bw = new BinaryWriterX(output);
-            
-            // Header
-            _header.Width = (short)image.ImageSize.Width;
-            _header.Height = (short)image.ImageSize.Height;
-            _header.Format = (byte)image.ImageFormat;                
-            
-            bw.WriteType(_header);
-            bw.BaseStream.Position = 0x80;
-            bw.Write(image.ImageInfo.ImageData);            
+            using (var bw = new BinaryWriterX(output))
+            {
+                // Header
+                _header.width = (short)image.ImageSize.Width;
+                _header.height = (short)image.ImageSize.Height;
+                _header.format = (byte)image.ImageFormat;
+
+                // Writing
+                bw.WriteType(_header);
+                bw.BaseStream.Position = 0x80;
+                bw.Write(image.ImageInfo.ImageData);
+            };  
         }
     }
 }

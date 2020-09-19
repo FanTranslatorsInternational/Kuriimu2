@@ -39,7 +39,7 @@ namespace plugin_bandai_namco.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 

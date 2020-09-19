@@ -34,7 +34,7 @@ namespace plugin_bandai_namco.Archives
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _amb.Save(fileStream, Files.Cast<ArchiveFileInfo>().ToList());
+            _amb.Save(fileStream, Files);
 
             return Task.CompletedTask;
         }

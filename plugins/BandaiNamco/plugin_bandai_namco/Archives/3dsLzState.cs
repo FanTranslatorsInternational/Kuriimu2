@@ -15,11 +15,11 @@ namespace plugin_bandai_namco.Archives
 {
     class _3dsLzState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly _3dsLz _3dsLz;
-
         public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
+
+        private readonly _3dsLz _3dsLz;
 
         public _3dsLzState()
         {
@@ -40,14 +40,15 @@ namespace plugin_bandai_namco.Archives
             return Task.CompletedTask;
         }
 
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        {
+            afi.SetFileData(fileData);
+        }
+
         private bool IsContentChanged()
         {
             return Files.Any(x => x.ContentChanged);
         }
 
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
-        {
-            afi.SetFileData(fileData);
-        }
     }
 }
