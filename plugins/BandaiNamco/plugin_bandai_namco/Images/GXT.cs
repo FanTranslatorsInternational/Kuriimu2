@@ -23,12 +23,12 @@ namespace plugin_bandai_namco.Images
             _header = br.ReadType<GxtHeader>();
 
             // Read texture
-            var texture = br.ReadBytes(_header.ImageDataSize);
+            var texture = br.ReadBytes(_header.imageDataSize);
 
             // Read palette
             var palette = br.ReadBytes(PaletteDataLength_);
 
-            return new ImageInfo(texture, 5, new Size(_header.Width, _header.Height))
+            return new ImageInfo(texture, 5, new Size(_header.width, _header.height))
             {
                 PaletteData = palette,
                 PaletteFormat = 0,

@@ -10,23 +10,23 @@ namespace plugin_bandai_namco.Images
     public class GxtHeader
     {
         [FixedLength(4)]
-        public string Magic = "GXT\0";
-        public int Unk1;
-        public int Unk2;
-        public int Unk3;
-        public int DataSize;
-        public int Unk4;
-        public int Unk5;
-        public int Unk6;
-        public int Unk7;
-        public int ImageDataSize;
-        public int Unk8;
-        public int Unk9;
-        public int Unk10;
-        public int Unk11;
-        public short Width;
-        public short Height;
-        public int Unk12;
+        public string magic = "GXT\0";
+        public int unk1;
+        public int unk2;
+        public int unk3;
+        public int dataSize;
+        public int unk4;
+        public int unk5;
+        public int unk6;
+        public int unk7;
+        public int imageDataSize;
+        public int unk8;
+        public int unk9;
+        public int unk10;
+        public int unk11;
+        public short width;
+        public short height;
+        public int unk12;
     }
 
     public static class GxtSupport

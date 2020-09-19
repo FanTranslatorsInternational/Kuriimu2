@@ -15,7 +15,7 @@ namespace plugin_bandai_namco.Archives
 
         private AmbHeader _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -27,7 +27,7 @@ namespace plugin_bandai_namco.Archives
             var entries = br.ReadMultiple<AmbFileEntry>(_header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < entries.Count; i++)
             {
                 var subStream = new SubStream(input, entries[i].offset, entries[i].size);
@@ -39,7 +39,7 @@ namespace plugin_bandai_namco.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 

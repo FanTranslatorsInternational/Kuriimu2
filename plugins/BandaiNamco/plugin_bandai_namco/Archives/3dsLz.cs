@@ -13,7 +13,7 @@ namespace plugin_bandai_namco.Archives
     {
         private IList<int> _sizes;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
