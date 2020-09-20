@@ -33,7 +33,6 @@ using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kore.FileSystem.Implementations
@@ -44,6 +43,9 @@ namespace Kore.FileSystem.Implementations
     /// </summary>
     public abstract class FileSystem : IFileSystem
     {
+        private readonly object _dispatcherLock;
+        private FileSystemEventDispatcher<FileSystemWatcher> _dispatcher;
+
         protected IStreamManager StreamManager { get; }
 
         /// <summary>
@@ -59,6 +61,8 @@ namespace Kore.FileSystem.Implementations
         public FileSystem(IStreamManager streamManager)
         {
             ContractAssertions.IsNotNull(streamManager, nameof(streamManager));
+
+            _dispatcherLock = new object();
 
             StreamManager = streamManager;
         }
@@ -440,6 +444,64 @@ namespace Kore.FileSystem.Implementations
         /// <param name="searchTarget">The search target either <see cref="SearchTarget.Both"/> or only <see cref="SearchTarget.Directory"/> or <see cref="SearchTarget.File"/>.</param>
         /// <returns>An enumerable collection of file-system paths in the directory specified by path and that match the specified search pattern, option and target.</returns>
         protected abstract IEnumerable<UPath> EnumeratePathsImpl(UPath path, string searchPattern, SearchOption searchOption, SearchTarget searchTarget);
+
+        // ----------------------------------------------
+        // Watch API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
+        public bool CanWatch(UPath path)
+        {
+            AssertNotDisposed();
+            return CanWatchImpl(ValidatePath(path));
+        }
+
+        /// <summary>
+        /// Implementation for <see cref="CanWatch"/>, <paramref name="path"/> is guaranteed to be absolute and validated through <see cref="ValidatePath"/>.
+        /// Checks if the file system and <paramref name="path"/> can be watched with <see cref="Watch"/>.
+        /// </summary>
+        /// <param name="path">The path to check.</param>
+        /// <returns>True if the the path can be watched on this file system.</returns>
+        protected virtual bool CanWatchImpl(UPath path)
+        {
+            return true;
+        }
+
+        /// <inheritdoc />
+        public IFileSystemWatcher Watch(UPath path)
+        {
+            AssertNotDisposed();
+
+            var validatedPath = ValidatePath(path);
+
+            if (!CanWatchImpl(validatedPath))
+            {
+                throw new NotSupportedException($"The file system or path `{validatedPath}` does not support watching");
+            }
+
+            return WatchImpl(validatedPath);
+        }
+
+        /// <summary>
+        /// Implementation for <see cref="Watch"/>, <paramref name="path"/> is guaranteed to be absolute and valudated through <see cref="ValidatePath"/>.
+        /// Returns an <see cref="IFileSystemWatcher"/> instance that can be used to watch for changes to files and directories in the given path. The instance must be
+        /// configured before events are raised.
+        /// </summary>
+        /// <param name="path">The path to watch for changes.</param>
+        /// <returns>An <see cref="IFileSystemWatcher"/> instance that watches the given path.</returns>
+        protected abstract IFileSystemWatcher WatchImpl(UPath path);
+
+        /// <summary>
+        /// Get or create the <see cref="FileSystemEventDispatcher{T}"/> for this instance.
+        /// </summary>
+        /// <returns>The <see cref="FileSystemEventDispatcher{T}"/> for this instance.</returns>
+        protected FileSystemEventDispatcher<FileSystemWatcher> GetOrCreateDispatcher()
+        {
+            lock (_dispatcherLock)
+            {
+                return _dispatcher ??= new FileSystemEventDispatcher<FileSystemWatcher>(this);
+            }
+        }
 
         // ----------------------------------------------
         // Path API

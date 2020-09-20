@@ -83,6 +83,13 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override void MoveDirectoryImpl(UPath srcPath, UPath destPath)
         {
+            MoveDirectoryImplInternal(srcPath, destPath);
+
+            GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
+        }
+
+        private void MoveDirectoryImplInternal(UPath srcPath, UPath destPath)
+        {
             if (!DirectoryExists(srcPath))
             {
                 throw FileSystemExceptionHelper.NewDirectoryNotFoundException(srcPath);
@@ -92,7 +99,7 @@ namespace Kore.FileSystem.Implementations
 
             // Move sub directories
             foreach (var subDir in element.Item1.ToArray())
-                MoveDirectoryImpl(subDir, destPath / subDir.GetName());
+                MoveDirectoryImplInternal(subDir, destPath / subDir.GetName());
 
             // Move directory
             _directoryDictionary.Remove(srcPath);
@@ -115,6 +122,13 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override void DeleteDirectoryImpl(UPath path, bool isRecursive)
         {
+            DeleteDirectoryImplInternal(path, isRecursive);
+
+            GetOrCreateDispatcher().RaiseDeleted(path);
+        }
+
+        private void DeleteDirectoryImplInternal(UPath path, bool isRecursive)
+        {
             if (!DirectoryExistsImpl(path))
             {
                 throw FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
@@ -129,7 +143,7 @@ namespace Kore.FileSystem.Implementations
 
             // Delete sub directories
             foreach (var subDir in element.Item1.ToArray())
-                DeleteDirectoryImpl(subDir, true);  // Removing sub directories is always recursive
+                DeleteDirectoryImplInternal(subDir, true);  // Removing sub directories is always recursive
 
             // Delete directory
             _directoryDictionary.Remove(path);
@@ -212,15 +226,21 @@ namespace Kore.FileSystem.Implementations
             var srcDir = srcPath.GetDirectory();
             _directoryDictionary[srcDir].Item2.Remove(file);
 
+            GetOrCreateDispatcher().RaiseDeleted(srcPath);
+
             // Rename file
             var renameState = ArchiveState as IRenameFiles;
             renameState?.Rename(file, destPath);
+
+            GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
             // Create directory of destination
             CreateDirectoryInternal(destPath.GetDirectory());
 
             // Add file to destination directory
             _directoryDictionary[destPath.GetDirectory()].Item2.Add(file);
+
+            GetOrCreateDispatcher().RaiseCreated(destPath);
         }
 
         /// <inheritdoc />
@@ -240,6 +260,8 @@ namespace Kore.FileSystem.Implementations
             // Remove file
             var removingState = ArchiveState as IRemoveFiles;
             removingState?.RemoveFile(_fileDictionary[path]);
+
+            GetOrCreateDispatcher().RaiseDeleted(path);
         }
 
         /// <inheritdoc />
@@ -276,15 +298,22 @@ namespace Kore.FileSystem.Implementations
                     else
                     {
                         afi = CreateFileInternal(new MemoryStream(), path);
+                        GetOrCreateDispatcher().RaiseCreated(path);
                     }
                     break;
 
                 case FileMode.CreateNew:
                     afi = CreateFileInternal(new MemoryStream(), path);
+
+                    GetOrCreateDispatcher().RaiseCreated(path);
                     break;
 
                 case FileMode.OpenOrCreate:
                     afi = fileExists ? _fileDictionary[path] : CreateFileInternal(new MemoryStream(), path);
+
+                    if (fileExists)
+                        GetOrCreateDispatcher().RaiseCreated(path);
+
                     break;
 
                 default:
@@ -301,6 +330,8 @@ namespace Kore.FileSystem.Implementations
             if (!(afiData is TemporaryStream))
                 afiData = StreamManager.WrapUndisposable(afiData);
 
+            GetOrCreateDispatcher().RaiseOpened(path);
+
             afiData.Position = 0;
             return afiData;
         }
@@ -314,6 +345,8 @@ namespace Kore.FileSystem.Implementations
             }
 
             _fileDictionary[savePath].SetFileData(saveData);
+
+            GetOrCreateDispatcher().RaiseCreated(savePath);
         }
 
         // ----------------------------------------------
@@ -335,6 +368,10 @@ namespace Kore.FileSystem.Implementations
             return (ulong)(totalFileSize + totalDirectorySize);
         }
 
+        // ----------------------------------------------
+        // Search API
+        // ----------------------------------------------
+
         /// <inheritdoc />
         protected override IEnumerable<UPath> EnumeratePathsImpl(UPath path, string searchPattern, SearchOption searchOption, SearchTarget searchTarget)
         {
@@ -348,12 +385,44 @@ namespace Kore.FileSystem.Implementations
                 yield return enumeratedPath;
         }
 
+        // ----------------------------------------------
+        // Watch API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
+        protected override bool CanWatchImpl(UPath path)
+        {
+            return DirectoryExists(path);
+        }
+
+        /// <inheritdoc />
+        protected override IFileSystemWatcher WatchImpl(UPath path)
+        {
+            var watcher = new FileSystemWatcher(this, path);
+            watcher.Disposed += Watcher_Disposed;
+
+            GetOrCreateDispatcher().Add(watcher);
+
+            return watcher;
+        }
+
+        private void Watcher_Disposed(object sender, EventArgs e)
+        {
+            GetOrCreateDispatcher().Remove((FileSystemWatcher)sender);
+        }
+
+        // ----------------------------------------------
+        // Path API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
         protected override string ConvertPathToInternalImpl(UPath path)
         {
             var safePath = path.ToRelative();
             return (SubPath / safePath).FullName;
         }
 
+        /// <inheritdoc />
         protected override UPath ConvertPathFromInternalImpl(string innerPath)
         {
             var fullPath = innerPath;

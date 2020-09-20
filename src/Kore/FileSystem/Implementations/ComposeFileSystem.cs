@@ -31,7 +31,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kore.FileSystem.Implementations
@@ -221,6 +220,22 @@ namespace Kore.FileSystem.Implementations
             {
                 yield return ConvertPathFromDelegate(subPath);
             }
+        }
+
+        // ----------------------------------------------
+        // -watch API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
+        public bool CanWatch(UPath path)
+        {
+            return NextFileSystemSafe.CanWatch(ConvertPathToDelegate(path));
+        }
+
+        /// <inheritdoc />
+        public IFileSystemWatcher Watch(UPath path)
+        {
+            return NextFileSystemSafe.Watch(ConvertPathToDelegate(path));
         }
 
         // ----------------------------------------------
