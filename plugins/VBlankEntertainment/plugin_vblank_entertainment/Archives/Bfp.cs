@@ -9,7 +9,7 @@ namespace plugin_vblank_entertainment.Archives
 {
     class Bfp
     {
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -24,7 +24,7 @@ namespace plugin_vblank_entertainment.Archives
             var bucketEntries = br.ReadMultiple<BfpBucketFileEntry>(0x100);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < header.entryCount; i++)
             {
                 var entry = entries[i];

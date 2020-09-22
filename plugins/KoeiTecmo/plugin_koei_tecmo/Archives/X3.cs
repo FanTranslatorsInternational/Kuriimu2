@@ -11,12 +11,12 @@ namespace plugin_koei_tecmo.Archives
     // Game: Yo-Kai Watch: Sangoukushi
     class X3
     {
-        private static int _headerSize = Tools.MeasureType(typeof(X3Header));
-        private static int _entrySize = Tools.MeasureType(typeof(X3FileEntry));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(X3Header));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(X3FileEntry));
 
         private X3Header _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -30,7 +30,7 @@ namespace plugin_koei_tecmo.Archives
             var firstBlocksList = new List<(int, int, string)>();
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 var fileOffset = entry.offset * _header.offsetMultiplier;
@@ -80,7 +80,7 @@ namespace plugin_koei_tecmo.Archives
         }
 
         // TODO: Set firstBlockLength again (need to understand enough ZLib for that)
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
             var castedFiles = files.Cast<X3ArchiveFileInfo>().ToArray();
@@ -91,7 +91,7 @@ namespace plugin_koei_tecmo.Archives
             };
 
             // Write files
-            bw.BaseStream.Position = (_headerSize + 4 + files.Count * _entrySize + header.offsetMultiplier - 1) & ~(header.offsetMultiplier - 1);
+            bw.BaseStream.Position = (HeaderSize + 4 + files.Count * EntrySize + header.offsetMultiplier - 1) & ~(header.offsetMultiplier - 1);
 
             foreach (var file in castedFiles)
             {
@@ -114,7 +114,7 @@ namespace plugin_koei_tecmo.Archives
             }
 
             // Write file entries
-            bw.BaseStream.Position = _headerSize + 4;
+            bw.BaseStream.Position = HeaderSize + 4;
             foreach (var file in castedFiles)
                 bw.WriteType(file.Entry);
 

@@ -23,7 +23,7 @@ namespace plugin_level5._3DS.Archives
 
         private B123Header _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -43,7 +43,7 @@ namespace plugin_level5._3DS.Archives
             var entries = br.ReadMultiple<B123FileEntry>(_header.fileEntriesCount);
 
             // Add Files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var directory in directoryEntries)
             {
                 var filesInDirectory = entries.Skip(directory.firstFileIndex).Take(directory.fileCount);
@@ -67,7 +67,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
         {
             // Prepare progressbar
             var splittedProgress = progress.SplitIntoEvenScopes(2);

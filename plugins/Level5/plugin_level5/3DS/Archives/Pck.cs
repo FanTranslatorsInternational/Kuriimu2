@@ -13,7 +13,7 @@ namespace plugin_level5._3DS.Archives
     {
         private readonly int _entrySize = Tools.MeasureType(typeof(PckFileInfo));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -22,7 +22,7 @@ namespace plugin_level5._3DS.Archives
             var entries = br.ReadMultiple<PckFileInfo>(fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 br.BaseStream.Position = entry.fileOffset;
@@ -48,38 +48,9 @@ namespace plugin_level5._3DS.Archives
             }
 
             return result;
-
-            //using (var br = new BinaryReaderX(input, true))
-            //{
-            //    var entries = br.ReadMultiple<Entry>(br.ReadInt32()).ToList();
-
-            //    var dict = (dicts != null) ? dicts.Where(d => d.pckName == Path.GetFileNameWithoutExtension(filename)).ToList() : new List<Dict>();
-            //    Files = entries.Select(entry =>
-            //    {
-            //        br.BaseStream.Position = entry.fileOffset;
-            //        var hashes = (br.ReadInt16() == 0x64) ? br.ReadMultiple<uint>(br.ReadInt16()).ToList() : null;
-            //        int blockOffset = hashes?.Count + 1 ?? 0;
-
-            //        return new PckFileInfo
-            //        {
-            //            FileData = new SubStream(
-            //                input,
-            //                entry.fileOffset + blockOffset * 4,
-            //                entry.fileLength - blockOffset * 4),
-            //            FileName = (dict.Count > 0) ?
-            //                (dict[0].keyValuePairs.Find(kvp => kvp.key == entry.hash) != null ?
-            //                    dict[0].keyValuePairs.Find(kvp => kvp.key == entry.hash).value :
-            //                    $"0x{entry.hash:X8}.bin") :
-            //                $"0x{entry.hash:X8}.bin",
-            //            State = ArchiveFileState.Archived,
-            //            Entry = entry,
-            //            Hashes = hashes
-            //        };
-            //    }).ToList();
-            //}
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

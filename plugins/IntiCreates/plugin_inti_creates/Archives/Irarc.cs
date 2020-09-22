@@ -11,7 +11,7 @@ namespace plugin_inti_creates.Archives
 {
     class Irarc
     {
-        public IList<ArchiveFileInfo> Load(Stream lstStream, Stream arcStream)
+        public IList<IArchiveFileInfo> Load(Stream lstStream, Stream arcStream)
         {
             using var br = new BinaryReaderX(lstStream);
 
@@ -20,7 +20,7 @@ namespace plugin_inti_creates.Archives
             var entries = br.ReadMultiple<IrarcFileEntry>(entryCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < entryCount; i++)
             {
                 var entry = entries[i];
@@ -34,7 +34,7 @@ namespace plugin_inti_creates.Archives
             return result;
         }
 
-        public void Save(Stream lstStream, Stream arcStream, IList<ArchiveFileInfo> files)
+        public void Save(Stream lstStream, Stream arcStream, IList<IArchiveFileInfo> files)
         {
             using var lstBw = new BinaryWriterX(lstStream);
 

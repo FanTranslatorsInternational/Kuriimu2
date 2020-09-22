@@ -14,7 +14,7 @@ namespace plugin_tri_ace.Archives
         private static readonly int HeaderSize = Tools.MeasureType(typeof(PackHeader));
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(PackFileEntry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -25,7 +25,7 @@ namespace plugin_tri_ace.Archives
             var entries = br.ReadMultiple<PackFileEntry>(header.fileCount + 1);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -42,7 +42,7 @@ namespace plugin_tri_ace.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -10,7 +11,7 @@ namespace plugin_nintendo.Archives
     {
         private static int _headerSize = Tools.MeasureType(typeof(SbHeader));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -21,7 +22,7 @@ namespace plugin_nintendo.Archives
             var offsets = br.ReadMultiple<uint>(header.entryCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < offsets.Count; i++)
             {
                 var endOffset = i + 1 < offsets.Count ? offsets[i + 1] : input.Length;
@@ -33,7 +34,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var dataPosition = (_headerSize + (files.Count + 1) * 4 + 0x7F) & ~0x7F;
 
@@ -43,7 +44,7 @@ namespace plugin_nintendo.Archives
             bw.BaseStream.Position = dataPosition;
 
             var offsets = new List<uint>();
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 offsets.Add((uint)bw.BaseStream.Position);
 

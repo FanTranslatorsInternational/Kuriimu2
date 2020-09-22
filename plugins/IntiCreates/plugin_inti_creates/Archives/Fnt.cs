@@ -11,7 +11,7 @@ namespace plugin_inti_creates.Archives
     {
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(FntFileEntry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             var br = new BinaryReaderX(input, true);
 
@@ -20,7 +20,7 @@ namespace plugin_inti_creates.Archives
             var entries = br.ReadMultiple<FntFileEntry>(fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < entries.Count; i++)
             {
                 var subStream = new SubStream(input, entries[i].offset, entries[i].endOffset - entries[i].offset);
@@ -32,7 +32,7 @@ namespace plugin_inti_creates.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

@@ -17,7 +17,7 @@ namespace Atlus.Archives
 
         private const int HashSlotCount_ = 0x1000;
 
-        public IList<ArchiveFileInfo> Load(Stream hpiStream, Stream hpbStream)
+        public IList<IArchiveFileInfo> Load(Stream hpiStream, Stream hpbStream)
         {
             using var hpiBr = new BinaryReaderX(hpiStream);
 
@@ -35,7 +35,7 @@ namespace Atlus.Archives
             using var stringBr = new BinaryReaderX(stringStream);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 var subStream = new SubStream(hpbStream, entry.offset, entry.compSize);
@@ -49,7 +49,7 @@ namespace Atlus.Archives
             return result;
         }
 
-        public void Save(Stream hpiStream, Stream hpbStream, IList<ArchiveFileInfo> files)
+        public void Save(Stream hpiStream, Stream hpbStream, IList<IArchiveFileInfo> files)
         {
             var sjis = Encoding.GetEncoding("SJIS");
             using var hpiBw = new BinaryWriterX(hpiStream);

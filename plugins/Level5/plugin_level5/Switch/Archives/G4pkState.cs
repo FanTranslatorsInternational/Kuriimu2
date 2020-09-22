@@ -15,7 +15,7 @@ namespace plugin_level5.Switch.Archives
     {
         private readonly G4pk _g4pk;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public G4pkState()
@@ -37,7 +37,7 @@ namespace plugin_level5.Switch.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

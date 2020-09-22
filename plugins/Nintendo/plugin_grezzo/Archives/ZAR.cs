@@ -17,7 +17,7 @@ namespace plugin_grezzo.Archives
 
         private string _headerString;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -38,7 +38,7 @@ namespace plugin_grezzo.Archives
             var fileOffsets = br.ReadMultiple<int>(header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var fileTypeEntry in fileTypeEntries)
             {
                 if (fileTypeEntry.fileIndexOffset < 0)
@@ -63,7 +63,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var fileTypes = files.Select(x => x.FilePath.GetExtensionWithDot()).Distinct().ToArray();
 
@@ -76,7 +76,7 @@ namespace plugin_grezzo.Archives
             var fileTypeEntryOffset = fileTypeEntriesPosition;
             var fileTypeNameOffset = fileTypeNamesPosition;
 
-            var fileInfos = new List<ArchiveFileInfo>();
+            var fileInfos = new List<IArchiveFileInfo>();
             var fileIndex = 0;
             foreach (var fileType in fileTypes)
             {
@@ -153,7 +153,7 @@ namespace plugin_grezzo.Archives
             }
 
             // Write file data
-            foreach (var fileInfo in fileInfos)
+            foreach (var fileInfo in fileInfos.Cast<ArchiveFileInfo>())
             {
                 fileInfo.SaveFileData(bw.BaseStream, null);
                 bw.WriteAlignment(4);

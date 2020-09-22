@@ -13,7 +13,7 @@ namespace plugin_nintendo.Archives
         private static int _headerSize = 0x20;
         private static int _entrySize = Tools.MeasureType(typeof(U8Entry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -25,7 +25,7 @@ namespace plugin_nintendo.Archives
             return fileSystemParser.Parse(input, header.entryDataOffset, header.entryDataSize, 0).ToArray();
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var darcTreeBuilder = new U8TreeBuilder(Encoding.ASCII);
             darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
@@ -50,7 +50,7 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(0x20);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = afi.SaveFileData(bw.BaseStream);
+                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream);
 
                 u8Entry.offset = fileOffset;
                 u8Entry.size = (int)writtenSize;

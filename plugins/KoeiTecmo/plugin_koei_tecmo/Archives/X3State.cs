@@ -13,7 +13,7 @@ namespace plugin_koei_tecmo.Archives
     {
         private readonly X3 _x3;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged { get; set; }
 
@@ -34,7 +34,7 @@ namespace plugin_koei_tecmo.Archives
             _x3.Save(fileStream, Files);
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

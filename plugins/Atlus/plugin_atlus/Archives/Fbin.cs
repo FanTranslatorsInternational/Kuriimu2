@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -10,7 +11,7 @@ namespace plugin_atlus.Archives
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(FbinHeader));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -21,7 +22,7 @@ namespace plugin_atlus.Archives
             var sizes = br.ReadMultiple<int>(header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
 
             var fileOffset = header.dataOffset;
             for (var i = 0; i < header.fileCount; i++)
@@ -37,7 +38,7 @@ namespace plugin_atlus.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -49,7 +50,7 @@ namespace plugin_atlus.Archives
             var sizes = new List<int>();
 
             output.Position = fileOffset;
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var writtenSize = file.SaveFileData(output);
                 sizes.Add((int)writtenSize);

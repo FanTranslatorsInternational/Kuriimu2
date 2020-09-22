@@ -22,7 +22,7 @@ namespace plugin_nintendo.Archives
         private CiaTmd _tmd;
         private CiaMeta _meta;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -43,7 +43,7 @@ namespace plugin_nintendo.Archives
             br.SeekAlignment(0x40);
 
             // Declare NCCH partitions
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
 
             var ncchStreams = new List<SubStream>();
             var ncchPartitionOffset = br.BaseStream.Position;
@@ -81,7 +81,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var ciaAfis = files.Cast<CiaArchiveFileInfo>().ToArray();
             var sha = new Sha256();

@@ -17,7 +17,7 @@ namespace plugin_level5.Wii.Archives
     {
         private readonly Bln _bln;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
@@ -73,7 +73,7 @@ namespace plugin_level5.Wii.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

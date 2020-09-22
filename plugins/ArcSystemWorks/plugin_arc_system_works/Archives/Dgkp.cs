@@ -15,7 +15,7 @@ namespace plugin_arc_system_works.Archives
 
         private DgkpHeader _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -27,7 +27,7 @@ namespace plugin_arc_system_works.Archives
             var entries = br.ReadMultiple<DgkpFileEntry>(_header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 // There are 3 files in the game Chase: Cold Case Investigations which are 8 bytes short
@@ -47,7 +47,7 @@ namespace plugin_arc_system_works.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 

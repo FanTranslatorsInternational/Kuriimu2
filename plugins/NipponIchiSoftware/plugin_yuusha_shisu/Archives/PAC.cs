@@ -1,6 +1,7 @@
 ﻿using Komponent.IO;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
 
@@ -17,7 +18,7 @@ namespace plugin_yuusha_shisu.PAC
         private FileHeader _header;
         private List<FileEntry> _entries;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using (var br = new BinaryReaderX(input, true))
             {
@@ -32,7 +33,7 @@ namespace plugin_yuusha_shisu.PAC
                 _entries = br.ReadMultiple<FileEntry>(_header.FileCount);
 
                 // Files
-                var result = new List<ArchiveFileInfo>();
+                var result = new List<IArchiveFileInfo>();
                 for (var i = 0; i < offsets.Count; i++)
                 {
                     br.BaseStream.Position = offsets[i];
@@ -54,7 +55,7 @@ namespace plugin_yuusha_shisu.PAC
         /// <param name="output">An output stream for a PAC archive.</param>
         /// <param name="files">The files to save.</param>
         /// <returns>True if successful.</returns>
-        public bool Save(Stream output, IList<ArchiveFileInfo> files)
+        public bool Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using (var bw = new BinaryWriterX(output, true))
             {
@@ -72,7 +73,7 @@ namespace plugin_yuusha_shisu.PAC
 
                 // Files
                 var offsets = new List<int>();
-                foreach (var afi in files)
+                foreach (var afi in files.Cast<ArchiveFileInfo>())
                 {
                     offsets.Add((int)bw.BaseStream.Position);
                     bw.Write((int)afi.FileSize);

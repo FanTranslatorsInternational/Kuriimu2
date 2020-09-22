@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -17,7 +18,7 @@ namespace plugin_nintendo.Archives
 
         private ByteOrder _byteOrder;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -51,7 +52,7 @@ namespace plugin_nintendo.Archives
             br.ReadType<GarcFimbHeader>();
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < fatbEntries.Length; i++)
             {
                 var fileStream = new SubStream(input, header.dataOffset + fatbEntries[i].offset, fatbEntries[i].nextFileOffset - fatbEntries[i].offset);
@@ -62,7 +63,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var fatOffsetPosition = _headerSize;
             var fatbPosition = fatOffsetPosition + _fatoHeaderSize + files.Count * 4;
@@ -76,7 +77,7 @@ namespace plugin_nintendo.Archives
 
             var fileEntries = new List<Garc2FatbEntry>();
             var fileOffset = 0;
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var writtenSize = file.SaveFileData(output, null);
                 bw.WriteAlignment(4);

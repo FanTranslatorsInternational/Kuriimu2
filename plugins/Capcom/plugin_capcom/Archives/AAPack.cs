@@ -15,7 +15,7 @@ namespace plugin_capcom.Archives
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(AAPackFileEntry));
         private static readonly Regex FileNameRegex = new Regex("\\d{8}\\.bin");
 
-        public IList<ArchiveFileInfo> Load(Stream incStream, Stream datStream, string version)
+        public IList<IArchiveFileInfo> Load(Stream incStream, Stream datStream, string version)
         {
             using var incBr = new BinaryReaderX(incStream);
 
@@ -24,7 +24,7 @@ namespace plugin_capcom.Archives
 
             var nameMapping = AAPackSupport.GetMapping(version);
 
-            var result = new ArchiveFileInfo[entryCount];
+            var result = new IArchiveFileInfo[entryCount];
             for (var i = 0; i < entryCount; i++)
             {
                 var subStream = new SubStream(datStream, entries[i].offset, entries[i].compSize);
@@ -42,7 +42,7 @@ namespace plugin_capcom.Archives
             return result;
         }
 
-        public void Save(Stream incStream, Stream datStream, IList<ArchiveFileInfo> files)
+        public void Save(Stream incStream, Stream datStream, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(incStream);
 

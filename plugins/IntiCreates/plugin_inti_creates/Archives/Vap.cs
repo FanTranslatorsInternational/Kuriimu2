@@ -14,7 +14,7 @@ namespace plugin_inti_creates.Archives
 
         private VapHeader _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -25,7 +25,7 @@ namespace plugin_inti_creates.Archives
             var entries = br.ReadMultiple<VapFileEntry>(_header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -39,7 +39,7 @@ namespace plugin_inti_creates.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
