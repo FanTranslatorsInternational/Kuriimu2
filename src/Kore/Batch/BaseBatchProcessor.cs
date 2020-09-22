@@ -16,8 +16,11 @@ namespace Kore.Batch
 {
     public abstract class BaseBatchProcessor
     {
+        private IList<UPath> _batchedFiles;
+
         protected IInternalPluginManager PluginManager { get; }
         protected IConcurrentLogger Logger { get; }
+        protected IFileSystemWatcher SourceFileSystemWatcher { get; private set; }
 
         public bool ScanSubDirectories { get; set; }
 
@@ -34,6 +37,9 @@ namespace Kore.Batch
 
         public async Task Process(IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
         {
+            _batchedFiles = new List<UPath>();
+            SourceFileSystemWatcher = sourceFileSystem.Watch(UPath.Root);
+
             var files = EnumerateFiles(sourceFileSystem).ToArray();
 
             var isRunning = Logger.IsRunning();
@@ -49,9 +55,21 @@ namespace Kore.Batch
 
             if (!isRunning)
                 Logger.StopLogging();
+
+            SourceFileSystemWatcher.Dispose();
         }
 
         protected abstract Task ProcessInternal(IFileSystem sourceFileSystem, UPath filePath, IFileSystem destinationFileSystem);
+
+        protected bool IsFileBatched(UPath filePath)
+        {
+            return _batchedFiles.Any(x => x == filePath);
+        }
+
+        protected void AddBatchedFile(UPath filePath)
+        {
+            _batchedFiles.Add(filePath);
+        }
 
         protected async Task<IStateInfo> LoadFile(IFileSystem sourceFileSystem, UPath filePath)
         {

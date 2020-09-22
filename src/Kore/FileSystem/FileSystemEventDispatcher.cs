@@ -114,6 +114,18 @@ namespace Kore.FileSystem
         }
 
         /// <summary>
+        /// Returns all watchers in this dispatcher.
+        /// </summary>
+        /// <returns>The watchers of this dispatcher.</returns>
+        public IList<T> Get()
+        {
+            lock (_watchers)
+            {
+                return _watchers.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Removes a <see cref="FileSystemWatcher"/> instance to stop dispatching events.
         /// </summary>
         /// <param name="watcher">Instance to remove.</param>

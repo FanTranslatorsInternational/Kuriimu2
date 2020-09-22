@@ -71,10 +71,17 @@ namespace Kore.FileSystem.Implementations
         {
         }
 
+        private PhysicalFileSystem(IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
+            base(streamManager)
+        {
+            foreach (var watcher in watchers)
+                GetOrCreateDispatcher().Add(watcher);
+        }
+
         /// <inheritdoc />
         public override IFileSystem Clone(IStreamManager streamManager)
         {
-            return new PhysicalFileSystem(streamManager);
+            return new PhysicalFileSystem(streamManager, GetOrCreateDispatcher().Get());
         }
 
         // ----------------------------------------------

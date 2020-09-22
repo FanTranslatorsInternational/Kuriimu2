@@ -49,6 +49,13 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary = CreateDirectoryLookup();
         }
 
+        private AfiFileSystem(IStateInfo stateInfo, IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
+            this(stateInfo, streamManager)
+        {
+            foreach (var watcher in watchers)
+                GetOrCreateDispatcher().Add(watcher);
+        }
+
         /// <inheritdoc />
         public override IFileSystem Clone(IStreamManager streamManager)
         {

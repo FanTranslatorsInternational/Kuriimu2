@@ -61,13 +61,16 @@ namespace Kore.FileSystem.Implementations
         /// </summary>
         /// <param name="copyFrom">The <see cref="MemoryFileSystem"/> to clone from.</param>
         /// <param name="streamManager">The <see cref="IStreamManager"/> for this file system.</param>
-        protected MemoryFileSystem(MemoryFileSystem copyFrom, IStreamManager streamManager) :
+        protected MemoryFileSystem(MemoryFileSystem copyFrom, IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
             base(streamManager)
         {
             if (copyFrom == null) throw new ArgumentNullException(nameof(copyFrom));
             Debug.Assert(copyFrom._globalLock.IsLocked);
             _rootDirectory = (DirectoryNode)copyFrom._rootDirectory.Clone(null, null);
             _globalLock = new FileSystemNodeReadWriteLock();
+
+            foreach (var watcher in watchers)
+                GetOrCreateDispatcher().Add(watcher);
         }
 
         /// <inheritdoc />
@@ -86,7 +89,7 @@ namespace Kore.FileSystem.Implementations
 
         protected virtual MemoryFileSystem CloneImpl(IStreamManager streamManager)
         {
-            return new MemoryFileSystem(this, streamManager);
+            return new MemoryFileSystem(this, streamManager, GetOrCreateDispatcher().Get());
         }
 
         // ----------------------------------------------
