@@ -17,7 +17,7 @@ namespace Kompression.Implementations.Encoders
 
         public void Encode(Stream input, Stream output)
         {
-            input.Position += 0xC;
+            output.Position += 0xC;
             _encoder.Encode(input, output);
 
             WriteHeaderData(output, input.Length);
@@ -25,7 +25,7 @@ namespace Kompression.Implementations.Encoders
 
         private void WriteHeaderData(Stream output, long uncompressedLength)
         {
-            var endPosition = output.Position;
+            var bkPos = output.Position;
             output.Position = 0;
 
             var magic = new byte[] { 0xFC, 0xAA, 0x55, 0xA7 };
@@ -33,7 +33,7 @@ namespace Kompression.Implementations.Encoders
             Write(output, ((int)uncompressedLength).GetArrayLittleEndian());
             Write(output, ((int)output.Length).GetArrayLittleEndian());
 
-            output.Position = endPosition;
+            output.Position = bkPos;
         }
 
         private void Write(Stream output, byte[] data)
