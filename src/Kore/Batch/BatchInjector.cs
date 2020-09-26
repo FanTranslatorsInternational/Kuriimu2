@@ -30,32 +30,11 @@ namespace Kore.Batch
             switch (loadedFile.PluginState)
             {
                 case IArchiveState archiveState:
-                    foreach (var afi in archiveState.Files)
-                    {
-                        var path = filePath / afi.FilePath.ToRelative();
-                        if (!destinationFileSystem.FileExists(path))
-                            continue;
-
-                        var afiFileStream = destinationFileSystem.OpenFile(path);
-                        afi.SetFileData(afiFileStream);
-
-                        afiFileStream.Close();
-                    }
+                    InjectArchive(archiveState, filePath, destinationFileSystem);
                     break;
 
                 case IImageState imageState:
-                    var index = 0;
-                    foreach (var img in imageState.Images)
-                    {
-                        var path = filePath / (img.Name ?? $"{index:00}") + ".png";
-                        if (!destinationFileSystem.FileExists(path))
-                            continue;
-
-                        var openedImage = (Bitmap)Image.FromStream(destinationFileSystem.OpenFile(path));
-                        img.SetImage(openedImage);
-
-                        index++;
-                    }
+                    InjectImages(imageState, filePath, destinationFileSystem);
                     break;
 
                 default:
@@ -68,6 +47,36 @@ namespace Kore.Batch
 
             // Close file
             PluginManager.Close(loadedFile);
+        }
+
+        private void InjectArchive(IArchiveState archiveState, UPath filePath, IFileSystem destinationFileSystem)
+        {
+            foreach (var afi in archiveState.Files)
+            {
+                var path = filePath / afi.FilePath.ToRelative();
+                if (!destinationFileSystem.FileExists(path))
+                    continue;
+
+                var afiFileStream = destinationFileSystem.OpenFile(path);
+                afi.SetFileData(afiFileStream);
+
+                afiFileStream.Close();
+            }
+        }
+
+        private void InjectImages(IImageState imageState, UPath filePath, IFileSystem destinationFileSystem)
+        {
+            for (var i = 0; i < imageState.Images.Count; i++)
+            {
+                var img = imageState.Images[i];
+
+                var path = filePath / (img.Name ?? $"{i:00}") + ".png";
+                if (!destinationFileSystem.FileExists(path))
+                    continue;
+
+                var openedImage = (Bitmap)Image.FromStream(destinationFileSystem.OpenFile(path));
+                img.SetImage(openedImage);
+            }
         }
     }
 }

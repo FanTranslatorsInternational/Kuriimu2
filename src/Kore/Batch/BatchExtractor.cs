@@ -106,7 +106,7 @@ namespace Kore.Batch
                 var imgStream = new MemoryStream();
                 img.GetImage().Save(imgStream, ImageFormat.Png);
 
-                var fileStream = destinationFileSystem.OpenFile(filePath / (img.Name ?? $"{index:00}") + ".png");
+                var fileStream = destinationFileSystem.OpenFile(filePath / (img.Name ?? $"{index:00}") + ".png", FileMode.Create, FileAccess.Write);
                 imgStream.Position = 0;
                 imgStream.CopyTo(fileStream);
 
