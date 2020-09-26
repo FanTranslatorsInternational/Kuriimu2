@@ -110,10 +110,10 @@ namespace plugin_level5.Wii.Archives
 
         public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            if(FileSize>OriginalSize)
-                throw new InvalidOperationException("The replaced file cannot be larger than its original.");
-
             var writtenSize = base.SaveFileData(output, compress, progress);
+
+            if (writtenSize > OriginalSize)
+                throw new InvalidOperationException("The replaced file cannot be larger than its original.");
 
             // Pad to original size
             var paddedSize = OriginalSize - writtenSize;
