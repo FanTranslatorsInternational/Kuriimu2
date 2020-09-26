@@ -30,9 +30,9 @@ namespace plugin_atlus.Archives
             Stream imgStream;
             Stream ddtStream;
 
-            if (filePath.GetExtensionWithDot() == ".img")
+            if (filePath.GetExtensionWithDot() == ".IMG")
             {
-                var ddtPath = filePath.GetDirectory() / (filePath.GetNameWithoutExtension() + ".ddt");
+                var ddtPath = filePath.GetDirectory() / (filePath.GetNameWithoutExtension() + ".DDT");
                 if (!fileSystem.FileExists(ddtPath))
                     throw new FileNotFoundException($"{ddtPath.GetName()} not found.");
 
@@ -41,7 +41,7 @@ namespace plugin_atlus.Archives
             }
             else
             {
-                var imgPath = filePath.GetDirectory() / (filePath.GetNameWithoutExtension() + ".img");
+                var imgPath = filePath.GetDirectory() / (filePath.GetNameWithoutExtension() + ".IMG");
                 if (!fileSystem.FileExists(imgPath))
                     throw new FileNotFoundException($"{imgPath.GetName()} not found.");
 
@@ -54,7 +54,27 @@ namespace plugin_atlus.Archives
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            throw new NotImplementedException();
+            Stream imgStream;
+            Stream ddtStream;
+
+            switch (savePath.GetExtensionWithDot())
+            {
+                case ".IMG":
+                    var ddtPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".DDT");
+                    imgStream = fileSystem.OpenFile(savePath, FileMode.Create);
+                    ddtStream = fileSystem.OpenFile(ddtPath, FileMode.Create);
+                    break;
+
+                default:
+                    var imgPath = savePath.GetDirectory() / (savePath.GetNameWithoutExtension() + ".IMG");
+                    imgStream = fileSystem.OpenFile(imgPath, FileMode.Create);
+                    ddtStream = fileSystem.OpenFile(savePath, FileMode.Create);
+                    break;
+            }
+
+            _ddtImg.Save(ddtStream, imgStream, Files);
+
+            return Task.CompletedTask;
         }
 
         public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
