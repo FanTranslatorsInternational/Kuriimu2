@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kontract.Interfaces.Progress;
@@ -109,6 +110,9 @@ namespace plugin_level5.Wii.Archives
 
         public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
+            if(FileSize>OriginalSize)
+                throw new InvalidOperationException("The replaced file cannot be larger than its original.");
+
             var writtenSize = base.SaveFileData(output, compress, progress);
 
             // Pad to original size
