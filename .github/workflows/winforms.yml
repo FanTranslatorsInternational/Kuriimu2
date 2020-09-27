@@ -47,6 +47,7 @@ jobs:
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
     
     - name: Zip release
       uses: papeloto/action-zip@v1
