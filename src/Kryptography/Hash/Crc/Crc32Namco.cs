@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
+#if NET_CORE_31
+using System.Buffers.Binary;
+#endif
+
+// https://github.com/mariodon/taikotools/blob/master/psvita-l7ctool/psvita-l7ctool/Crc32.cs
 namespace Kryptography.Hash.Crc
 {
-    class Crc32Namco
+    public class Crc32Namco : IHash
     {
         #region Statics and Constants
 
@@ -53,29 +54,6 @@ namespace Kryptography.Hash.Crc
             return new Crc32Namco(_defaultReflectedCrc32Table);
         }
 
-        public static Crc32Namco Create(uint polynomial)
-        {
-            var table = InitializeTable(polynomial);
-            return new Crc32Namco(table);
-        }
-
-        private static uint[] InitializeTable(uint polynomial)
-        {
-            var polynomialTable = new uint[256];
-            for (uint i = 0; i < 256; i++)
-            {
-                uint entry;
-                    entry = i;
-                    for (var j = 0; j < 8; j++)
-                        if ((entry & 1) == 1)
-                            entry = (entry >> 1) ^ polynomial;
-                        else
-                            entry >>= 1;
-                polynomialTable[i] = entry;
-            }
-            return polynomialTable;
-        }
-
         #endregion
 
         private readonly uint[] _polynomialTable;
@@ -85,35 +63,37 @@ namespace Kryptography.Hash.Crc
             _polynomialTable = polynomialTable ?? throw new ArgumentNullException(nameof(polynomialTable));
         }
 
-        public uint Compute(Stream input)
+        public byte[] Compute(Stream input)
         {
             var returnCrc = 0xFFFFFFFF;
-            var hash2 = 0u;
+            var initialHash = 0u;
 
-            byte[] buffer = new byte[0x1000];
+            byte[] buffer = new byte[4096];
             int readSize;
             do
             {
-                readSize = input.Read(buffer, 0, 0x1000);
-                (returnCrc, hash2) = ComputeInternal(buffer, 0, readSize, returnCrc, hash2);
+                readSize = input.Read(buffer, 0, 4096);
+                (returnCrc, initialHash) = ComputeInternal(buffer, 0, readSize, returnCrc, initialHash);
             } while (readSize > 0);
 
-                return ~returnCrc;
+            return MakeResult(~returnCrc);
         }
 
-        public uint Compute(byte[] input)
+        public byte[] Compute(byte[] input)
         {
             var (result, _) = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF, 0);
-                return ~result;
+
+            return MakeResult(~result);
         }
 
-        private (uint, uint) ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc, uint initialHash2)
+        private (uint, uint) ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc, uint initialHash)
         {
             var returnCrc = initialCrc;
-            var hash2 = initialHash2;
+            var hash2 = initialHash;
+
             for (var i = offset; i < length; i++)
             {
-                    returnCrc = (returnCrc >> 8) ^ _polynomialTable[(returnCrc & 0xff) ^ toHash[i]];
+                returnCrc = (returnCrc >> 8) ^ _polynomialTable[(returnCrc & 0xff) ^ toHash[i]];
 
                 hash2 ^= returnCrc;
                 returnCrc = hash2 * toHash[i] + returnCrc;
@@ -122,6 +102,22 @@ namespace Kryptography.Hash.Crc
             }
 
             return (returnCrc, hash2);
+        }
+
+        private byte[] MakeResult(uint result)
+        {
+            var returnBuffer = new byte[4];
+
+#if NET_CORE_31
+            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
+#else
+            returnBuffer[0] = (byte)(result >> 24);
+            returnBuffer[1] = (byte)(result >> 16);
+            returnBuffer[2] = (byte)(result >> 8);
+            returnBuffer[3] = (byte)result;
+#endif
+
+            return returnBuffer;
         }
     }
 }
