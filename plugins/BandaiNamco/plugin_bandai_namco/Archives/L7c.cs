@@ -44,11 +44,15 @@ namespace plugin_bandai_namco.Archives
             var chunks = br.ReadMultiple<L7cChunkEntry>(_header.chunkCount);
 
             // Add files
+            var lowerParts = new List<int>();
+
             var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 var file = fileEntries[i];
                 var info = fileInfos.First(x => x.id == i);
+
+                lowerParts.Add(file.offset & 0x1FFF);
 
                 var chunkEntries = chunks.Skip(file.chunkIndex).Take(file.chunkCount).ToArray();
                 var subStream = new SubStream(input, file.offset, file.compSize);
@@ -112,16 +116,6 @@ namespace plugin_bandai_namco.Archives
 
         private IEnumerable<L7cFileEntry> WriteFiles(DirectoryEntry entry, Stream output, int chunkIndex = 0)
         {
-            // Write directory contents first
-            foreach (var dir in entry.Directories)
-            {
-                foreach (var fileEntry in WriteFiles(dir, output, chunkIndex))
-                {
-                    chunkIndex += fileEntry.chunkCount;
-                    yield return fileEntry;
-                }
-            }
-
             // Write files
             foreach (var file in entry.Files.Cast<L7cArchiveFileInfo>())
             {
@@ -131,28 +125,74 @@ namespace plugin_bandai_namco.Archives
                 chunkIndex += file.Entry.chunkCount;
                 yield return file.Entry;
 
+                if (output.Position % Alignment_ == 0)
+                    output.Position++;
                 while (output.Position % Alignment_ != 0)
                     output.WriteByte(0);
             }
+
+            // Write directory contents first
+            foreach (var dir in entry.Directories)
+            {
+                foreach (var fileEntry in WriteFiles(dir, output, chunkIndex))
+                {
+                    chunkIndex += fileEntry.chunkCount;
+                    yield return fileEntry;
+                }
+            }
         }
 
-        private IEnumerable<L7cFileInfoEntry> EnumerateFileInfos(DirectoryEntry entry, BinaryWriterX stringBw, int entryId = 0)
+        private IEnumerable<L7cFileInfoEntry> EnumerateFileInfos(DirectoryEntry entry, BinaryWriterX stringBw, IDictionary<string, int> stringDict = null, int entryId = 0, int directoryNameOffset = 0)
         {
+            if (stringDict == null)
+                stringDict = new Dictionary<string, int>();
+
+            // Enumerate files
+            foreach (var file in entry.Files)
+            {
+                int fileNameOffset;
+                if (stringDict.ContainsKey(file.FilePath.GetName()))
+                    fileNameOffset = stringDict[file.FilePath.GetName()];
+                else
+                {
+                    fileNameOffset = (int)stringBw.BaseStream.Position;
+                    stringBw.WriteString(file.FilePath.GetName(), Encoding.UTF8, true, false);
+                    stringDict[file.FilePath.GetName()] = fileNameOffset;
+                }
+
+                var info = new L7cFileInfoEntry
+                {
+                    id = entryId++,
+                    folderNameOffset = directoryNameOffset,
+                    fileNameOffset = fileNameOffset,
+                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(file.FilePath.ToRelative().FullName.ToLower()))),
+                    timestamp = DateTime.Now.ToFileTime()
+                };
+
+                yield return info;
+            }
+
             // Enumerate directories
             foreach (var directory in entry.Directories)
             {
-                var directoryNameOffset = stringBw.BaseStream.Position;
-                stringBw.WriteString(directory.AbsolutePath.FullName, Encoding.UTF8, true, false);
+                if (stringDict.ContainsKey(directory.AbsolutePath.FullName))
+                    directoryNameOffset = stringDict[directory.AbsolutePath.FullName];
+                else
+                {
+                    directoryNameOffset = (int)stringBw.BaseStream.Position;
+                    stringBw.WriteString(directory.AbsolutePath.FullName, Encoding.UTF8, true, false);
+                    stringDict[directory.AbsolutePath.FullName] = directoryNameOffset;
+                }
 
                 yield return new L7cFileInfoEntry
                 {
                     id = -1,
-                    folderNameOffset = (int)directoryNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(directory.AbsolutePath.FullName))),
+                    folderNameOffset = directoryNameOffset,
+                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(directory.AbsolutePath.FullName.ToLower()))),
                     timestamp = DateTime.Now.ToFileTime()
                 };
 
-                foreach (var info in EnumerateFileInfos(directory, stringBw, entryId))
+                foreach (var info in EnumerateFileInfos(directory, stringBw, stringDict, entryId, directoryNameOffset))
                 {
                     if (info.IsFile)
                         entryId++;
@@ -160,42 +200,21 @@ namespace plugin_bandai_namco.Archives
                     yield return info;
                 }
             }
-
-            // Enumerate files
-            foreach (var file in entry.Files)
-            {
-                var directoryNameOffset = stringBw.BaseStream.Position;
-                stringBw.WriteString(entry.AbsolutePath.FullName, Encoding.UTF8, true, false);
-
-                var fileNameOffset = stringBw.BaseStream.Position;
-                stringBw.WriteString(file.FilePath.GetName(), Encoding.UTF8, true, false);
-
-                var info = new L7cFileInfoEntry
-                {
-                    id = entryId++,
-                    folderNameOffset = (int)directoryNameOffset,
-                    fileNameOffset = (int)fileNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(file.FilePath.ToRelative().FullName))),
-                    timestamp = DateTime.Now.ToFileTime()
-                };
-
-                yield return info;
-            }
         }
 
         private IEnumerable<L7cChunkEntry> EnumerateChunks(DirectoryEntry entry)
         {
-            // Enumerate through directories
-            foreach (var dir in entry.Directories)
-            {
-                foreach (var chunk in EnumerateChunks(dir))
-                    yield return chunk;
-            }
-
             // Enumerate through files
             foreach (var file in entry.Files.Cast<L7cArchiveFileInfo>())
             {
                 foreach (var chunk in file.Chunks)
+                    yield return chunk;
+            }
+
+            // Enumerate through directories
+            foreach (var dir in entry.Directories)
+            {
+                foreach (var chunk in EnumerateChunks(dir))
                     yield return chunk;
             }
         }

@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
@@ -104,25 +105,30 @@ namespace plugin_bandai_namco.Archives
             FileData.Position = 0;
             Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(Crc32.Compute(FileData));
 
-            var ms = new MemoryStream();
-            FileData.Position = 0;
-            Kompression.Implementations.Compressions.TaikoLz80.Build().Compress(FileData, ms);
+            var finalStream = FileData;
+            if (_chunkStream.UsesCompression)
+            {
+                FileData.Position = 0;
+                finalStream = new MemoryStream();
+                Kompression.Implementations.Compressions.TaikoLz80.Build().Compress(FileData, finalStream);
+            }
 
-            Entry.compSize = (int)ms.Length;
+            Entry.compSize = (int)finalStream.Length;
 
-            ms.Position = 0;
-            ms.CopyTo(output);
+            finalStream.Position = 0;
+            finalStream.CopyTo(output);
 
+            var compFlag = _chunkStream.UsesCompression ? 0x80000000 : 0;
             Chunks = new[]
             {
                 new L7cChunkEntry
                 {
-                    chunkSize = (int) (0x80000000 | ((int) ms.Length & 0xFFFFFF))
+                    chunkSize = (int) (compFlag | ((int) finalStream.Length & 0xFFFFFF))
                 }
             };
 
             ContentChanged = false;
-            return ms.Length;
+            return finalStream.Length;
         }
     }
 
@@ -136,6 +142,8 @@ namespace plugin_bandai_namco.Archives
         private long _length;
         private long _position;
         private int _currentChunk;
+
+        public bool UsesCompression => _chunks.Any(x => x.Compression != null);
 
         public override bool CanRead => true;
         public override bool CanSeek => true;
