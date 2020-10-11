@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Kompression.Configuration.InputManipulation;
 using Kompression.PatternMatch.MatchFinders;
 using Kompression.PatternMatch.MatchParser;
 using Kontract;
@@ -12,19 +13,13 @@ namespace Kompression.Configuration
     /// <summary>
     /// Contains information on configuring match finding and parsing.
     /// </summary>
-    class MatchOptions : IMatchOptions, IMatchLimitations, IMatchAdditionalFinders
+    class MatchOptions : IMatchLimitations, IMatchAdditionalFinders
     {
         private static readonly Func<FindLimitations, FindOptions, IMatchFinder> DefaultMatchFinder =
             (limits, options) => new HistoryMatchFinder(limits, options);
 
         private static readonly Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> DefaultMatchParser =
             (options, priceCalculator, finders) => new OptimalParser(options, priceCalculator, finders);
-
-        private bool _searchBackwards;
-        private int _preBufferSize;
-        private int _skipAfterMatch;
-        private UnitSize _unitSize = UnitSize.Byte;
-        private int _taskCount = Environment.ProcessorCount;
 
         private readonly IList<Func<FindLimitations, FindOptions, IMatchFinder>> _matchFinderFactories =
             new List<Func<FindLimitations, FindOptions, IMatchFinder>>
@@ -35,7 +30,12 @@ namespace Kompression.Configuration
         private readonly IList<Func<FindLimitations>> _limitFactories =
             new List<Func<FindLimitations>>();
 
+        private int _skipAfterMatch;
+        private UnitSize _unitSize = UnitSize.Byte;
+        private int _taskCount = Environment.ProcessorCount;
+
         private Func<IPriceCalculator> _priceCalculatorFactory;
+        private Action<IInputConfiguration> _inputConfigurationFactory;
 
         private Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> _matchParserFactory = DefaultMatchParser;
 
@@ -44,16 +44,6 @@ namespace Kompression.Configuration
 
         /// <inheritdoc cref="AndWithDefault"/>
         public IMatchLimitations AndWithDefault() => AndWith(DefaultMatchFinder);
-
-        /// <inheritdoc cref="CalculatePricesWith"/>
-        public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
-        {
-            ContractAssertions.IsNotNull(priceCalculatorFactory, nameof(priceCalculatorFactory));
-
-            _priceCalculatorFactory = priceCalculatorFactory;
-
-            return this;
-        }
 
         /// <inheritdoc cref="FindMatchesWith"/>
         public IMatchLimitations FindMatchesWith(Func<FindLimitations, FindOptions, IMatchFinder> matchFinderFactory)
@@ -68,6 +58,7 @@ namespace Kompression.Configuration
             return this;
         }
 
+        /// <inheritdoc cref="AndWith"/>
         public IMatchLimitations AndWith(Func<FindLimitations, FindOptions, IMatchFinder> matchFinderFactory)
         {
             ContractAssertions.IsNotNull(matchFinderFactory, nameof(matchFinderFactory));
@@ -87,6 +78,25 @@ namespace Kompression.Configuration
             return this;
         }
 
+        /// <inheritdoc cref="CalculatePricesWith"/>
+        public IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
+        {
+            ContractAssertions.IsNotNull(priceCalculatorFactory, nameof(priceCalculatorFactory));
+
+            _priceCalculatorFactory = priceCalculatorFactory;
+
+            return this;
+        }
+
+        public IMatchOptions AdjustInput(Action<IInputConfiguration> inputConfigurationFactory)
+        {
+            ContractAssertions.IsNotNull(inputConfigurationFactory, nameof(inputConfigurationFactory));
+
+            _inputConfigurationFactory = inputConfigurationFactory;
+
+            return this;
+        }
+
         /// <inheritdoc cref="ParseMatchesWith"/>
         public IMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory)
         {
@@ -94,20 +104,6 @@ namespace Kompression.Configuration
 
             _matchParserFactory = matchParserFactory;
 
-            return this;
-        }
-
-        /// <inheritdoc cref="FindInBackwardOrder"/>
-        public IMatchOptions FindInBackwardOrder()
-        {
-            _searchBackwards = true;
-            return this;
-        }
-
-        /// <inheritdoc cref="WithPreBufferSize"/>
-        public IMatchOptions WithPreBufferSize(int size)
-        {
-            _preBufferSize = size;
             return this;
         }
 
@@ -143,7 +139,8 @@ namespace Kompression.Configuration
 
         private FindOptions BuildOptions()
         {
-            return new FindOptions(_searchBackwards, _preBufferSize, _skipAfterMatch, _unitSize, _taskCount);
+            var inputManipulator = BuildInputManipulator();
+            return new FindOptions(inputManipulator, _skipAfterMatch, _unitSize, _taskCount);
         }
 
         private IMatchFinder[] BuildMatchFinders(FindOptions options)
@@ -162,6 +159,14 @@ namespace Kompression.Configuration
             }
 
             return matchFinders;
+        }
+
+        private IInputManipulator BuildInputManipulator()
+        {
+            var inputConfig = new InputConfiguration();
+            _inputConfigurationFactory?.Invoke(inputConfig);
+
+            return inputConfig.Build();
         }
     }
 }

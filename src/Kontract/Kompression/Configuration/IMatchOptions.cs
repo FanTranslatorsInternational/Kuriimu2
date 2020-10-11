@@ -14,13 +14,6 @@ namespace Kontract.Kompression.Configuration
         IMatchLimitations FindMatchesWithDefault();
 
         /// <summary>
-        /// Sets the factory to create an instance of <see cref="IPriceCalculator"/>.
-        /// </summary>
-        /// <param name="priceCalculatorFactory">The factory to create an instance of <see cref="IPriceCalculator"/>.</param>
-        /// <returns>The option object.</returns>
-        IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory);
-
-        /// <summary>
         /// Sets the factory to add an <see cref="IMatchFinder"/>.
         /// </summary>
         /// <param name="matchFinderFactory">The factory to add an <see cref="IMatchFinder"/>.</param>
@@ -35,17 +28,18 @@ namespace Kontract.Kompression.Configuration
         IMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory);
 
         /// <summary>
-        /// Sets whether to search matches from the end to the beginning of the data.
+        /// Sets the factory to create an instance of <see cref="IPriceCalculator"/>.
         /// </summary>
+        /// <param name="priceCalculatorFactory">The factory to create an instance of <see cref="IPriceCalculator"/>.</param>
         /// <returns>The option object.</returns>
-        IMatchOptions FindInBackwardOrder();
+        IMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory);
 
         /// <summary>
-        /// Sets the size of a buffer located before the first position to search from.
+        /// Sets the factory to create an instance of <see cref="IInputManipulator"/>.
         /// </summary>
-        /// <param name="size">The buffer size.</param>
+        /// <param name="inputConfigurationFactory">The factory to configure the input configuration.</param>
         /// <returns>The option object.</returns>
-        IMatchOptions WithPreBufferSize(int size);
+        IMatchOptions AdjustInput(Action<IInputConfiguration> inputConfigurationFactory);
 
         /// <summary>
         /// Sets the amount of units to skip after a match.

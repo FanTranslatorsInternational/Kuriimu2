@@ -102,7 +102,8 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 new ExtensionType("Spike Chunsoft Lz",true),
                 new ExtensionType("Spike Chunsoft Headerless Lz",true),
                 new ExtensionType("PsLz",true),
-                new ExtensionType("IrLz",true)
+                new ExtensionType("IrLz",true),
+                new ExtensionType("Crilayla",true)
             };
         }
 
@@ -222,6 +223,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 case "IrLz":
                     return Compressions.IrLz.Build();
+
+                case "Crilayla":
+                    return Compressions.Crilayla.Build();
 
                 // TODO: Plugin extensibility?
                 default:

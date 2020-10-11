@@ -1,24 +1,25 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Kompression.Extensions;
 using Kompression.Implementations.Encoders.Headerless;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class SpikeChunsoftEncoder : IEncoder
+    public class SpikeChunsoftEncoder : ILzEncoder
     {
         private readonly SpikeChunsoftHeaderlessEncoder _encoder;
 
-        public SpikeChunsoftEncoder(IMatchParser parser)
+        public SpikeChunsoftEncoder()
         {
-            _encoder = new SpikeChunsoftHeaderlessEncoder(parser);
+            _encoder = new SpikeChunsoftHeaderlessEncoder();
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             output.Position += 0xC;
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, matches);
 
             WriteHeaderData(output, input.Length);
         }

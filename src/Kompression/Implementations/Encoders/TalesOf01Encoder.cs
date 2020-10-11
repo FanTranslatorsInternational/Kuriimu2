@@ -1,25 +1,26 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Kompression.Extensions;
 using Kompression.Implementations.Encoders.Headerless;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class TalesOf01Encoder : IEncoder
+    public class TalesOf01Encoder : ILzEncoder
     {
         private Lzss01HeaderlessEncoder _encoder;
 
-        public TalesOf01Encoder(IMatchParser parser)
+        public TalesOf01Encoder()
         {
-            _encoder = new Lzss01HeaderlessEncoder(parser);
+            _encoder = new Lzss01HeaderlessEncoder();
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             output.Position += 9;
 
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, matches);
 
             WriteHeaderData(output, (int)input.Length);
         }

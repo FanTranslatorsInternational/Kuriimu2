@@ -1,14 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class LzEcdEncoder : IEncoder
+    public class LzEcdEncoder : ILzEncoder
     {
         class Block
         {
@@ -21,21 +22,14 @@ namespace Kompression.Implementations.Encoders
         }
 
         private const int WindowBufferLength = 0x400;
-        private readonly IMatchParser _matchParser;
 
-        public LzEcdEncoder(IMatchParser matchParser)
-        {
-            _matchParser = matchParser;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
 
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
@@ -49,7 +43,8 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the buffer
-                var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
+                // TODO: Add prebuffer size here or return match prebuffered and start stream at prebuffer size
+                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 

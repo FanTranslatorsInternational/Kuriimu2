@@ -7,19 +7,19 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Level5
 {
-    public class HuffmanEncoder : IEncoder
+    public class HuffmanEncoder : IHuffmanEncoder
     {
         private readonly int _bitDepth;
 
         private readonly HuffmanHeaderlessEncoder _encoder;
 
-        public HuffmanEncoder(int bitDepth, IHuffmanTreeBuilder treeBuilder, NibbleOrder nibbleOrder)
+        public HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder)
         {
             _bitDepth = bitDepth;
-            _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder, treeBuilder);
+            _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
         {
             if (input.Length > 0x1FFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -32,7 +32,7 @@ namespace Kompression.Implementations.Encoders.Level5
                 (byte)(input.Length >> 21) };
             output.Write(compressionHeader, 0, 4);
 
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, treeBuilder);
         }
 
         public void Dispose()

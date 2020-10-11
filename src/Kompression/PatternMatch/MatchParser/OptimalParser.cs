@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Komponent.IO.Streams;
 using Kompression.Extensions;
-using Kompression.IO.Streams;
 using Kompression.PatternMatch.MatchParser.Support;
 using Kontract.Kompression;
 using Kontract.Kompression.Model;
@@ -29,15 +27,17 @@ namespace Kompression.PatternMatch.MatchParser
             _finders = finders;
         }
 
+        // TODO: Maybe not rely on input position, and set position by manipulators
         public IEnumerable<Match> ParseMatches(Stream input)
         {
-            if (FindOptions.PreBufferSize > 0)
-                input = new PreBufferStream(input, FindOptions.PreBufferSize);
+            var manipulatedStream = FindOptions.InputManipulator.Manipulate(input);
 
-            if (FindOptions.SearchBackwards)
-                input = new ReverseStream(input, input.Length);
-
-            return InternalParseMatches(input.ToArray(), FindOptions.PreBufferSize);
+            var matches = InternalParseMatches(manipulatedStream.ToArray(), (int)manipulatedStream.Position);
+            foreach (var match in matches)
+            {
+                FindOptions.InputManipulator.AdjustMatch(match);
+                yield return match;
+            }
         }
 
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)

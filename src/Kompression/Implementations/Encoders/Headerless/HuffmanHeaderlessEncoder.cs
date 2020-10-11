@@ -14,18 +14,16 @@ namespace Kompression.Implementations.Encoders.Headerless
         private readonly int _bitDepth;
 
         private readonly NibbleOrder _nibbleOrder;
-        private readonly IHuffmanTreeBuilder _treeBuilder;
 
-        public HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder, IHuffmanTreeBuilder treeBuilder)
+        public HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder)
         {
             _bitDepth = bitDepth;
-            _treeBuilder = treeBuilder;
             _nibbleOrder = nibbleOrder;
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
         {
-            var rootNode = _treeBuilder.Build(input.ToArray(), _bitDepth, _nibbleOrder);
+            var rootNode = treeBuilder.Build(input.ToArray(), _bitDepth, _nibbleOrder);
 
             // For a more even distribution of the children over the branches, we'll label the tree nodes
             var labelList = LabelTreeNodes(rootNode);

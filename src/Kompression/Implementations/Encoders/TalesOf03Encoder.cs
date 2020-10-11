@@ -1,18 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Kompression.Extensions;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class TalesOf03Encoder : IEncoder
+    public class TalesOf03Encoder : ILzEncoder
     {
         private const int WindowBufferLength = 0x1000;
-
-        private IMatchParser _matchParser;
 
         class Block
         {
@@ -21,18 +19,12 @@ namespace Kompression.Implementations.Encoders
             public int flagCount;
         }
 
-        public TalesOf03Encoder(IMatchParser parser)
-        {
-            _matchParser = parser;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var block = new Block();
 
             output.Position += 9;
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
@@ -94,7 +86,7 @@ namespace Kompression.Implementations.Encoders
             else
             {
                 // Encode LZ
-                var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
 
                 var byte1 = (byte)bufferPosition;
                 var byte2 = (byte)((match.Length - 3) & 0xF);
@@ -141,8 +133,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _matchParser?.Dispose();
-            _matchParser = null;
         }
     }
 }

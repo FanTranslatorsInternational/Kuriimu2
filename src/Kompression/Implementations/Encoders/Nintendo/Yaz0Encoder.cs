@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
     // TODO: Refactor block class
-    public class Yaz0Encoder : IEncoder
+    public class Yaz0Encoder : ILzEncoder
     {
         private readonly ByteOrder _byteOrder;
-        private IMatchParser _matchParser;
 
         class Block
         {
@@ -24,20 +24,18 @@ namespace Kompression.Implementations.Encoders.Nintendo
             public int bufferLength;
         }
 
-        public Yaz0Encoder(ByteOrder byteOrder, IMatchParser matchParser)
+        public Yaz0Encoder(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
-            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
 
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the buffer

@@ -1,22 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
     public class RleHeaderlessEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public RleHeaderlessEncoder(IMatchParser matchParser)
-        {
-            _matchParser = matchParser;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var buffer = new byte[0x80];
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)

@@ -8,7 +8,7 @@
         /// <summary>
         /// The position at which the match was found.
         /// </summary>
-        public int Position { get; }
+        public int Position { get; private set; }
 
         /// <summary>
         /// Gets the length the pattern match has.
@@ -31,6 +31,15 @@
             Position = position;
             Displacement = displacement;
             Length = length;
+        }
+
+        /// <summary>
+        /// Resets the position to a bew value.
+        /// </summary>
+        /// <param name="newPosition">The new position value.</param>
+        public void SetPosition(int newPosition)
+        {
+            Position = newPosition;
         }
     }
 }

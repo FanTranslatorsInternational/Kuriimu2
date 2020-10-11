@@ -12,8 +12,9 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders
 {
+    // TODO: Derive from a LzHuffman combination encoder somehow
     // TODO: Refactor block class
-    public class TaikoLz81Encoder : IEncoder
+    public class TaikoLz81Encoder : ILzHuffmanEncoder
     {
         private static int[] _counters =
         {
@@ -72,29 +73,20 @@ namespace Kompression.Implementations.Encoders
             public Dictionary<int, string> dispIndexDictionary;
         }
 
-        private IMatchParser _matchParser;
-        private IHuffmanTreeBuilder _treeBuilder;
-
-        public TaikoLz81Encoder(IMatchParser matchParser, IHuffmanTreeBuilder treeBuilder)
-        {
-            _matchParser = matchParser;
-            _treeBuilder = treeBuilder;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches, IHuffmanTreeBuilder treeBuilder)
         {
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input).ToArray();
-            var rawValueTree = CreateRawValueTree(input, matches);
+            var matchArray = matches.ToArray();
+            var rawValueTree = CreateRawValueTree(input, matchArray, treeBuilder);
             block.rawValueDictionary = rawValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            block.countIndexes = GetCountIndexes(matches, input.Length);
-            var countIndexValueTree = CreateIndexValueTree(block);
+            block.countIndexes = GetCountIndexes(matchArray, input.Length);
+            var countIndexValueTree = CreateIndexValueTree(block, treeBuilder);
             block.countIndexDictionary = countIndexValueTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
-            block.dispIndexes = GetDispIndexes(matches);
-            var dispIndexTree = CreateDisplacementIndexTree(block);
+            block.dispIndexes = GetDispIndexes(matchArray);
+            var dispIndexTree = CreateDisplacementIndexTree(block, treeBuilder);
             block.dispIndexDictionary = dispIndexTree.GetHuffCodes().ToDictionary(node => node.Item1, node => node.Item2);
 
             using var bw = new BitWriter(output, BitOrder.LeastSignificantBitFirst, 1, ByteOrder.LittleEndian);
@@ -108,7 +100,7 @@ namespace Kompression.Implementations.Encoders
 
             var countPosition = 0;
             var displacementPosition = 0;
-            foreach (var match in matches)
+            foreach (var match in matchArray)
             {
                 // Compress raw data
                 if (input.Position < match.Position)
@@ -129,20 +121,20 @@ namespace Kompression.Implementations.Encoders
 
         #region Tree creation
 
-        private HuffmanTreeNode CreateRawValueTree(Stream input, Match[] matches)
+        private HuffmanTreeNode CreateRawValueTree(Stream input, Match[] matches, IHuffmanTreeBuilder treeBuilder)
         {
             var huffmanInput = RemoveMatchesFromInput(input.ToArray(), matches);
-            return _treeBuilder.Build(huffmanInput, 8, NibbleOrder.LowNibbleFirst);
+            return treeBuilder.Build(huffmanInput, 8, NibbleOrder.LowNibbleFirst);
         }
 
-        private HuffmanTreeNode CreateIndexValueTree(Block block)
+        private HuffmanTreeNode CreateIndexValueTree(Block block, IHuffmanTreeBuilder treeBuilder)
         {
-            return _treeBuilder.Build(block.countIndexes, 8, NibbleOrder.LowNibbleFirst);
+            return treeBuilder.Build(block.countIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
-        private HuffmanTreeNode CreateDisplacementIndexTree(Block block)
+        private HuffmanTreeNode CreateDisplacementIndexTree(Block block, IHuffmanTreeBuilder treeBuilder)
         {
-            return _treeBuilder.Build(block.dispIndexes, 8, NibbleOrder.LowNibbleFirst);
+            return treeBuilder.Build(block.dispIndexes, 8, NibbleOrder.LowNibbleFirst);
         }
 
         private byte[] RemoveMatchesFromInput(byte[] input, Match[] matches)
@@ -312,9 +304,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _treeBuilder = null;
-            _matchParser?.Dispose();
-            _matchParser = null;
         }
     }
 }

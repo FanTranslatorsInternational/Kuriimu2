@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
@@ -11,7 +11,7 @@ using Kontract.Models.IO;
 namespace Kompression.Implementations.Encoders.Nintendo
 {
     // TODO: Refactor block class
-    public class BackwardLz77Encoder : IEncoder
+    public class BackwardLz77Encoder : ILzEncoder
     {
         class Block
         {
@@ -24,29 +24,27 @@ namespace Kompression.Implementations.Encoders.Nintendo
             public int bufferLength;
         }
 
-        private readonly IMatchParser _matchParser;
         private readonly ByteOrder _byteOrder;
 
-        public BackwardLz77Encoder(IMatchParser matchParser, ByteOrder byteOrder)
+        public BackwardLz77Encoder(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
-            _matchParser = matchParser;
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            var matches = _matchParser.ParseMatches(input).ToArray();
+            var matchArray = matches.ToArray();
 
-            var compressedLength = PreCalculateCompressedLength(input.Length, matches, out var lastRawLength);
+            var compressedLength = PreCalculateCompressedLength(input.Length, matchArray, out var lastRawLength);
 
             var block = new Block();
 
             using (var inputReverseStream = new ReverseStream(input, input.Length))
             using (var outputReverseStream = new ReverseStream(output, compressedLength + lastRawLength))
             {
-                foreach (var match in matches)
+                foreach (var match in matchArray)
                 {
-                    while (match.Position > inputReverseStream.Position)
+                    while (match.Position < input.Length - inputReverseStream.Position)
                     {
                         if (block.codeBlockPosition == 0)
                             WriteAndResetBuffer(outputReverseStream, block);
@@ -88,7 +86,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
             var preMatchPosition = 0;
             var preMatchLength = 0;
 
-            foreach (var match in matches)
+            foreach (var match in matches.Reverse())
             {
                 var rawLength = match.Position - preMatchPosition - preMatchLength;
 

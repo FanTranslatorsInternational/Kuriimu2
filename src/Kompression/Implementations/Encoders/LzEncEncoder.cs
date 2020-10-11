@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class LzEncEncoder : IEncoder
+    public class LzEncEncoder : ILzEncoder
     {
         class Block
         {
@@ -17,18 +17,10 @@ namespace Kompression.Implementations.Encoders
             public long matchEndPosition;
         }
 
-        private readonly IMatchParser _matchParser;
-
-        public LzEncEncoder(IMatchParser parser)
-        {
-            _matchParser = parser;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
@@ -175,7 +167,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _matchParser?.Dispose();
         }
     }
 }

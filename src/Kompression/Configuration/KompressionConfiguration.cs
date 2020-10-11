@@ -7,33 +7,65 @@ namespace Kompression.Configuration
     /// <summary>
     /// The main configuration to configure an <see cref="ICompression"/>.
     /// </summary>
-    public class KompressionConfiguration : IKompressionConfiguration
+    public class KompressionConfiguration : IKompressionConfiguration, ILzHuffmanKompressionConfiguration
     {
-        private MatchOptions _matchOptions;
-        private HuffmanOptions _huffmanOptions;
+        private MatchOptions _matchOptions = new MatchOptions();
+        private HuffmanOptions _huffmanOptions = new HuffmanOptions();
 
-        private Func<IMatchParser, IHuffmanTreeBuilder, IEncoder> _encoderFactory;
+        private Func<IEncoder> _encoderFactory;
+        private Func<ILzEncoder> _lzEncoderFactory;
+        private Func<IHuffmanEncoder> _huffmanEncoderFactory;
+        private Func<ILzHuffmanEncoder> _lzHuffmanEncoderFactory;
         private Func<IDecoder> _decoderFactory;
 
-        /// <summary>
-        /// Sets the factory to create an <see cref="IEncoder"/>.
-        /// </summary>
-        /// <param name="encoderFactory">The factory to create an <see cref="IEncoder"/>.</param>
-        /// <returns>The configuration object.</returns>
-        public IKompressionConfiguration EncodeWith(Func<IMatchParser, IHuffmanTreeBuilder, IEncoder> encoderFactory)
-        {
-            _encoderFactory = encoderFactory;
-            return this;
-        }
-
-        /// <summary>
-        /// Sets the factory to create an <see cref="IDecoder"/>.
-        /// </summary>
-        /// <param name="decoderFactory">The factory to create an <see cref="IDecoder"/>.</param>
-        /// <returns>The configuration object.</returns>
+        /// <inheritdoc cref="DecodeWith"/>
         public IKompressionConfiguration DecodeWith(Func<IDecoder> decoderFactory)
         {
             _decoderFactory = decoderFactory;
+            return this;
+        }
+
+        /// <inheritdoc cref="EncodeWith(Func{IEncoder})"/>
+        public IKompressionConfiguration EncodeWith(Func<IEncoder> encoderFactory)
+        {
+            _encoderFactory = encoderFactory;
+            _lzEncoderFactory = null;
+            _huffmanEncoderFactory = null;
+            _lzHuffmanEncoderFactory = null;
+
+            return this;
+        }
+
+        /// <inheritdoc cref="EncodeWith(Func{ILzEncoder})"/>
+        public ILzKompressionConfiguration EncodeWith(Func<ILzEncoder> encoderFactory)
+        {
+            _encoderFactory = null;
+            _lzEncoderFactory = encoderFactory;
+            _huffmanEncoderFactory = null;
+            _lzHuffmanEncoderFactory = null;
+
+            return this;
+        }
+
+        /// <inheritdoc cref="EncodeWith(Func{IHuffmanEncoder})"/>
+        public IHuffmanKompressionConfiguration EncodeWith(Func<IHuffmanEncoder> encoderFactory)
+        {
+            _encoderFactory = null;
+            _lzEncoderFactory = null;
+            _huffmanEncoderFactory = encoderFactory;
+            _lzHuffmanEncoderFactory = null;
+
+            return this;
+        }
+
+        /// <inheritdoc cref="EncodeWith(Func{ILzHuffmanEncoder})"/>
+        public ILzHuffmanKompressionConfiguration EncodeWith(Func<ILzHuffmanEncoder> encoderFactory)
+        {
+            _encoderFactory = null;
+            _lzEncoderFactory = null;
+            _huffmanEncoderFactory = null;
+            _lzHuffmanEncoderFactory = encoderFactory;
+
             return this;
         }
 
@@ -42,12 +74,9 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="configure">The action to configure pattern match operations.</param>
         /// <returns>The configuration object.</returns>
-        public IKompressionConfiguration WithMatchOptions(Action<IMatchOptions> configure)
+        public IKompressionConfiguration ConfigureLz(Action<IMatchOptions> configure)
         {
-            if (_matchOptions == null)
-                _matchOptions = new MatchOptions();
             configure(_matchOptions);
-
             return this;
         }
 
@@ -56,12 +85,9 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="configure">The action to configure huffman encoding operations.</param>
         /// <returns>The configuration object.</returns>
-        public IKompressionConfiguration WithHuffmanOptions(Action<IHuffmanOptions> configure)
+        public IKompressionConfiguration ConfigureHuffman(Action<IHuffmanOptions> configure)
         {
-            if (_huffmanOptions == null)
-                _huffmanOptions = new HuffmanOptions();
             configure(_huffmanOptions);
-
             return this;
         }
 
@@ -71,25 +97,22 @@ namespace Kompression.Configuration
         /// <returns>The <see cref="ICompression"/> for this configuration.</returns>
         public ICompression Build()
         {
-            return new Compressor(BuildEncoder, BuildDecoder);
-        }
+            if (_lzEncoderFactory != null)
+                return new Compressor(_decoderFactory, _lzEncoderFactory, _matchOptions.BuildMatchParser);
 
-        /// <summary>
-        /// Creates a new chain of encoding instances
-        /// </summary>
-        /// <returns></returns>
-        private IEncoder BuildEncoder()
-        {
-            var matchParser = _matchOptions?.BuildMatchParser();
-            var huffmanTreeBuilder = _huffmanOptions?.BuildHuffmanTree();
+            if (_huffmanEncoderFactory != null)
+                return new Compressor(_decoderFactory, _huffmanEncoderFactory, _huffmanOptions.BuildHuffmanTree);
 
-            return _encoderFactory?.Invoke(matchParser, huffmanTreeBuilder);
+            if (_lzHuffmanEncoderFactory != null)
+                return new Compressor(_decoderFactory, _lzHuffmanEncoderFactory, _matchOptions.BuildMatchParser, _huffmanOptions.BuildHuffmanTree);
+
+            return new Compressor(_decoderFactory, _encoderFactory);
         }
 
         /// <summary>
         /// Creates a new chain of decoding instances.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The new decoder</returns>
         private IDecoder BuildDecoder()
         {
             return _decoderFactory?.Invoke();

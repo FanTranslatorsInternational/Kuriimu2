@@ -1,4 +1,6 @@
-﻿namespace Kontract.Kompression.Model
+﻿using Kontract.Kompression.Configuration;
+
+namespace Kontract.Kompression.Model
 {
     /// <summary>
     /// Contains information to configure the search of pattern matches.
@@ -6,14 +8,9 @@
     public class FindOptions
     {
         /// <summary>
-        /// Indicates if a match is searched from end to beginning of the data.
+        /// Gets the manipulator for the input.
         /// </summary>
-        public bool SearchBackwards { get; }
-
-        /// <summary>
-        /// Gets the size of a buffer that must come before the first searched position.
-        /// </summary>
-        public int PreBufferSize { get; }
+        public IInputManipulator InputManipulator { get; }
 
         /// <summary>
         /// Gets the amount of units to skipUnits after a match was found.
@@ -33,15 +30,13 @@
         /// <summary>
         /// Creates a new instance of <see cref="FindOptions"/>.
         /// </summary>
-        /// <param name="searchBackwards">Indicates if a match is searched from end to beginning of the data.</param>
-        /// <param name="preBufferSize">Gets the size of a buffer that must come before the first searched position.</param>
+        /// <param name="inputManipulator">The manipulator of the input stream.</param>
         /// <param name="skipUnits">Gets the number of units to skipUnits after a match was found.</param>
         /// <param name="unitSize">Gets the size of a unit.</param>
         /// <param name="taskCount">Gets the number of tasks to use for parallel match finding.</param>
-        public FindOptions(bool searchBackwards, int preBufferSize, int skipUnits, UnitSize unitSize, int taskCount)
+        public FindOptions(IInputManipulator inputManipulator, int skipUnits, UnitSize unitSize, int taskCount)
         {
-            SearchBackwards = searchBackwards;
-            PreBufferSize = preBufferSize;
+            InputManipulator = inputManipulator;
             SkipUnitsAfterMatch = skipUnits;
             UnitSize = unitSize;
             TaskCount = taskCount;

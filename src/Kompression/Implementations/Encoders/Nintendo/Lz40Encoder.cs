@@ -1,22 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
-    public class Lz40Encoder : IEncoder
+    public class Lz40Encoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public Lz40Encoder(IMatchParser matchParser)
-        {
-            _matchParser = matchParser;
-        }
-
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -24,13 +17,11 @@ namespace Kompression.Implementations.Encoders.Nintendo
             var compressionHeader = new byte[] { 0x40, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            WriteCompressedData(input, output);
+            WriteCompressedData(input, output, matches.ToArray());
         }
 
-        internal void WriteCompressedData(Stream input, Stream output)
+        internal void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
-            var matches = _matchParser.ParseMatches(input).ToArray();
-
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];
 

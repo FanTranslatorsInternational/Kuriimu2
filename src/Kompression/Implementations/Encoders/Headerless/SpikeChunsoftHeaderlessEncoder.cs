@@ -1,23 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    class SpikeChunsoftHeaderlessEncoder:IEncoder
+    class SpikeChunsoftHeaderlessEncoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public SpikeChunsoftHeaderlessEncoder(IMatchParser matchParser)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            _matchParser = matchParser;
-        }
-
-        public void Encode(Stream input, Stream output)
-        {
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
