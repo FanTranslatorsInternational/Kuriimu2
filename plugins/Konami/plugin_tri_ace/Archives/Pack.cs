@@ -69,10 +69,12 @@ namespace plugin_tri_ace.Archives
                 });
             }
 
+            // Write end file/blob
             entries.Add(new PackFileEntry
             {
                 offset = (int)output.Position
             });
+            bw.WritePadding(0x80);
 
             // Write entries
             output.Position = entryOffset;
