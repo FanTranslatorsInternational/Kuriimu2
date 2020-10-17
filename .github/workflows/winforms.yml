@@ -50,6 +50,7 @@ jobs:
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
     
     - name: Zip release
       uses: papeloto/action-zip@v1
