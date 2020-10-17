@@ -23,7 +23,7 @@ namespace Kompression.Configuration.InputManipulation.Types
 
         public void AdjustMatch(Match match)
         {
-            match.SetPosition(match.Position - _skip);
+            match.SetPosition(match.Position + _skip);
         }
     }
 }

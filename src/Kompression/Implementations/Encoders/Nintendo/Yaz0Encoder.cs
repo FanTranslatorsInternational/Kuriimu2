@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
@@ -27,6 +30,13 @@ namespace Kompression.Implementations.Encoders.Nintendo
         public Yaz0Encoder(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
+        }
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new Yaz0PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000));
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

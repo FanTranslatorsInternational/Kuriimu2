@@ -5,18 +5,13 @@ namespace Kompression.Implementations.Decoders.Headerless
 {
     public class Lzss01HeaderlessDecoder
     {
-        private int _preBufferSize;
-
-        public Lzss01HeaderlessDecoder(int preBufferSize)
-        {
-            _preBufferSize = preBufferSize;
-        }
+        private const int PreBufferSize_ = 0xFEE;
 
         public void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000)
             {
-                Position = _preBufferSize
+                Position = PreBufferSize_
             };
 
             var flags = 0;

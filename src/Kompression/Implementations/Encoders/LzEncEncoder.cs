@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -15,6 +18,13 @@ namespace Kompression.Implementations.Encoders
             public byte codeByte;
             public long codeBytePosition;
             public long matchEndPosition;
+        }
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new LzEncPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, -1, 1, 0xBFFF));
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

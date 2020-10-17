@@ -2,13 +2,23 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
     public class IrLzHeaderlessEncoder : ILzEncoder
     {
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new IrLzPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(2, 0x11, 1, 0x1000));
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var matchArray = matches.ToArray();

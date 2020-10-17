@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -11,6 +14,8 @@ namespace Kompression.Implementations.Encoders
     // TODO: Refactor block class
     class Wp16Encoder : ILzEncoder
     {
+        private const int PreBufferSize_ = 0xFFE;
+
         class Block
         {
             public long flagBuffer;
@@ -19,6 +24,15 @@ namespace Kompression.Implementations.Encoders
             // at max 32 matches, one match is 2 bytes
             public byte[] buffer = new byte[32 * 2];
             public int bufferLength;
+        }
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new Wp16PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(4, 0x42, 2, 0xFFE))
+                .AdjustInput(input => input.Prepend(PreBufferSize_))
+                .HasUnitSize(UnitSize.Short);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

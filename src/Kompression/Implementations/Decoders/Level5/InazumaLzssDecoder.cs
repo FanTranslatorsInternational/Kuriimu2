@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Kompression.Exceptions;
 using Kompression.Implementations.Decoders.Headerless;
-using Kompression.IO;
 using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders.Level5
@@ -11,9 +10,9 @@ namespace Kompression.Implementations.Decoders.Level5
     {
         private Lzss01HeaderlessDecoder _decoder;
 
-        public InazumaLzssDecoder(int preBufferSize)
+        public InazumaLzssDecoder()
         {
-            _decoder = new Lzss01HeaderlessDecoder(preBufferSize);
+            _decoder = new Lzss01HeaderlessDecoder();
         }
 
         public void Decode(Stream input, Stream output)

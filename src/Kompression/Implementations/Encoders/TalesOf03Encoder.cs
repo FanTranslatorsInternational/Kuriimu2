@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Extensions;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -10,13 +13,24 @@ namespace Kompression.Implementations.Encoders
     // TODO: Refactor block class
     public class TalesOf03Encoder : ILzEncoder
     {
-        private const int WindowBufferLength = 0x1000;
+        private const int WindowBufferLength_ = 0x1000;
+        private const int PreBufferSize_ = 0xFEF;
 
         class Block
         {
             public byte[] buffer = new byte[1 + 8 * 3];
             public int bufferLength = 1;
             public int flagCount;
+        }
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new TalesOf03PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, 0x11, 1, 0x1000))
+                .AndFindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(0x4, 0x112))
+                .AdjustInput(input => input.Prepend(PreBufferSize_));
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
@@ -86,7 +100,7 @@ namespace Kompression.Implementations.Encoders
             else
             {
                 // Encode LZ
-                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength_;
 
                 var byte1 = (byte)bufferPosition;
                 var byte2 = (byte)((match.Length - 3) & 0xF);

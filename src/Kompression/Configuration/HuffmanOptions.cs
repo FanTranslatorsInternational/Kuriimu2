@@ -9,13 +9,12 @@ namespace Kompression.Configuration
     /// <summary>
     /// Contains information to configure huffman encodings.
     /// </summary>
-    class HuffmanOptions : IHuffmanOptions
+    class HuffmanOptions : IInternalHuffmanOptions
     {
         /// <summary>
         /// The factory to create an <see cref="IHuffmanTreeBuilder"/>.
         /// </summary>
-        private Func<IHuffmanTreeBuilder> _treeBuilderFactory =
-            () => new HuffmanTreeBuilder();
+        private Func<IHuffmanTreeBuilder> _treeBuilderFactory = () => new HuffmanTreeBuilder();
 
         /// <inheritdoc cref="BuildTreeWith"/>
         public IHuffmanOptions BuildTreeWith(Func<IHuffmanTreeBuilder> treeBuilderFactory)
@@ -27,7 +26,8 @@ namespace Kompression.Configuration
             return this;
         }
 
-        internal IHuffmanTreeBuilder BuildHuffmanTree()
+        /// <inheritdoc cref="BuildHuffmanTree"/>
+        public IHuffmanTreeBuilder BuildHuffmanTree()
         {
             return _treeBuilderFactory();
         }

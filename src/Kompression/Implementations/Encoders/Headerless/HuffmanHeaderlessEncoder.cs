@@ -4,12 +4,13 @@ using System.Linq;
 using Komponent.IO;
 using Kompression.Extensions;
 using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.Huffman;
 using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    public class HuffmanHeaderlessEncoder
+    public class HuffmanHeaderlessEncoder : IHuffmanEncoder
     {
         private readonly int _bitDepth;
 
@@ -19,6 +20,10 @@ namespace Kompression.Implementations.Encoders.Headerless
         {
             _bitDepth = bitDepth;
             _nibbleOrder = nibbleOrder;
+        }
+
+        public void Configure(IInternalHuffmanOptions huffmanOptions)
+        {
         }
 
         public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)

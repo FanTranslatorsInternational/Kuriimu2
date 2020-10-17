@@ -1,13 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     public class LzssVlcEncoder : ILzEncoder
     {
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new LzssVlcPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(1, -1));
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);

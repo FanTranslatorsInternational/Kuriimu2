@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
@@ -29,6 +32,14 @@ namespace Kompression.Implementations.Encoders.Nintendo
         public BackwardLz77Encoder(ByteOrder byteOrder)
         {
             _byteOrder = byteOrder;
+        }
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new BackwardLz77PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, 0x12, 3, 0x1002))
+                .AdjustInput(input => input.Reverse());
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

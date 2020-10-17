@@ -10,6 +10,12 @@ namespace Kontract.Kompression.Configuration
     public interface ILzEncoder
     {
         /// <summary>
+        /// Configures the match options for this specification.
+        /// </summary>
+        /// <param name="matchOptions">The options to configure.</param>
+        void Configure(IInternalMatchOptions matchOptions);
+
+        /// <summary>
         /// Encodes a stream of data.
         /// </summary>
         /// <param name="input">The input data to encode.</param>

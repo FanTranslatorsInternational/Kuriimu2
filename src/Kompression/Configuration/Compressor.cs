@@ -17,11 +17,8 @@ namespace Kompression.Configuration
         private readonly Func<IHuffmanEncoder> _huffmanEncoderAction;
         private readonly Func<ILzHuffmanEncoder> _lzHuffmanEncoderAction;
 
-        private readonly Func<IMatchParser> _matchParserAction;
-        private readonly Func<IHuffmanTreeBuilder> _treeBuilderAction;
-
-        /// <inheritdoc cref="Names"/>
-        public string[] Names { get; }
+        private readonly IInternalMatchOptions _matchOptions;
+        private readonly IInternalHuffmanOptions _huffmanOptions;
 
         /// <summary>
         /// Creates a new instance of <see cref="Compressor"/>.
@@ -42,16 +39,16 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="decoderAction">The <see cref="IDecoder"/> to use with the decompression action.</param>
         /// <param name="encoderAction">The <see cref="ILzEncoder"/> to use with the compression action.</param>
-        /// <param name="matchParserAction">The <see cref="IMatchParser"/> to parse matches.</param>
-        public Compressor(Func<IDecoder> decoderAction, Func<ILzEncoder> encoderAction, Func<IMatchParser> matchParserAction)
+        /// <param name="matchOptions">The <see cref="IInternalMatchOptions"/> to configure the matching options.</param>
+        public Compressor(Func<IDecoder> decoderAction, Func<ILzEncoder> encoderAction, IInternalMatchOptions matchOptions)
         {
             ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
             ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
-            ContractAssertions.IsNotNull(matchParserAction, nameof(matchParserAction));
+            ContractAssertions.IsNotNull(matchOptions, nameof(matchOptions));
 
             _decoderAction = decoderAction;
             _lzEncoderAction = encoderAction;
-            _matchParserAction = matchParserAction;
+            _matchOptions = matchOptions;
         }
 
         /// <summary>
@@ -59,16 +56,16 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="decoderAction">The <see cref="IDecoder"/> to use with the decompression action.</param>
         /// <param name="encoderAction">The <see cref="IHuffmanEncoder"/> to use with the compression action.</param>
-        /// <param name="treeBuilderAction">The <see cref="IHuffmanTreeBuilder"/> to build the huffman tree.</param>
-        public Compressor(Func<IDecoder> decoderAction, Func<IHuffmanEncoder> encoderAction, Func<IHuffmanTreeBuilder> treeBuilderAction)
+        /// <param name="huffmanOptions">The <see cref="IInternalHuffmanOptions"/> to configure the huffman options.</param>
+        public Compressor(Func<IDecoder> decoderAction, Func<IHuffmanEncoder> encoderAction, IInternalHuffmanOptions huffmanOptions)
         {
             ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
             ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
-            ContractAssertions.IsNotNull(treeBuilderAction, nameof(treeBuilderAction));
+            ContractAssertions.IsNotNull(huffmanOptions, nameof(huffmanOptions));
 
             _decoderAction = decoderAction;
             _huffmanEncoderAction = encoderAction;
-            _treeBuilderAction = treeBuilderAction;
+            _huffmanOptions = huffmanOptions;
         }
 
         /// <summary>
@@ -76,19 +73,19 @@ namespace Kompression.Configuration
         /// </summary>
         /// <param name="decoderAction">The <see cref="IDecoder"/> to use with the decompression action.</param>
         /// <param name="encoderAction">The <see cref="ILzHuffmanEncoder"/> to use with the compression action.</param>
-        /// <param name="matchParserAction">The <see cref="IMatchParser"/> to parse matches.</param>
-        /// <param name="treeBuilderAction">The <see cref="IHuffmanTreeBuilder"/> to build the huffman tree.</param>
-        public Compressor(Func<IDecoder> decoderAction, Func<ILzHuffmanEncoder> encoderAction, Func<IMatchParser> matchParserAction, Func<IHuffmanTreeBuilder> treeBuilderAction)
+        /// <param name="matchOptions">The <see cref="IInternalMatchOptions"/> to configure the matching options.</param>
+        /// <param name="huffmanOptions">The <see cref="IInternalHuffmanOptions"/> to configure the huffman options.</param>
+        public Compressor(Func<IDecoder> decoderAction, Func<ILzHuffmanEncoder> encoderAction, IInternalMatchOptions matchOptions, IInternalHuffmanOptions huffmanOptions)
         {
             ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
             ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
-            ContractAssertions.IsNotNull(matchParserAction, nameof(matchParserAction));
-            ContractAssertions.IsNotNull(treeBuilderAction, nameof(treeBuilderAction));
+            ContractAssertions.IsNotNull(matchOptions, nameof(matchOptions));
+            ContractAssertions.IsNotNull(huffmanOptions, nameof(huffmanOptions));
 
             _decoderAction = decoderAction;
             _lzHuffmanEncoderAction = encoderAction;
-            _matchParserAction = matchParserAction;
-            _treeBuilderAction = treeBuilderAction;
+            _matchOptions = matchOptions;
+            _huffmanOptions = huffmanOptions;
         }
 
         /// <inheritdoc cref="Decompress"/>
@@ -110,16 +107,18 @@ namespace Kompression.Configuration
                 var lzEncoder = _lzEncoderAction();
                 ContractAssertions.IsNotNull(lzEncoder, nameof(lzEncoder));
 
-                var matchParser = _matchParserAction();
+                lzEncoder.Configure(_matchOptions);
+                var matchParser = _matchOptions.BuildMatchParser();
 
-                lzEncoder.Encode(input, output, matchParser.ParseMatches(input));
+                lzEncoder.Encode(input, output, matchParser?.ParseMatches(input));
             }
             else if (_huffmanEncoderAction != null)
             {
                 var huffmanEncoder = _huffmanEncoderAction();
                 ContractAssertions.IsNotNull(huffmanEncoder, nameof(huffmanEncoder));
 
-                var treeBuilder = _treeBuilderAction();
+                huffmanEncoder.Configure(_huffmanOptions);
+                var treeBuilder = _huffmanOptions.BuildHuffmanTree();
 
                 huffmanEncoder.Encode(input, output, treeBuilder);
             }
@@ -128,10 +127,11 @@ namespace Kompression.Configuration
                 var lzHuffmanEncoder = _lzHuffmanEncoderAction();
                 ContractAssertions.IsNotNull(lzHuffmanEncoder, nameof(lzHuffmanEncoder));
 
-                var matchParser = _matchParserAction();
-                var treeBuilder = _treeBuilderAction();
+                lzHuffmanEncoder.Configure(_matchOptions, _huffmanOptions);
+                var matchParser = _matchOptions.BuildMatchParser();
+                var treeBuilder = _huffmanOptions.BuildHuffmanTree();
 
-                lzHuffmanEncoder.Encode(input, output, matchParser.ParseMatches(input), treeBuilder);
+                lzHuffmanEncoder.Encode(input, output, matchParser?.ParseMatches(input), treeBuilder);
             }
             else
             {

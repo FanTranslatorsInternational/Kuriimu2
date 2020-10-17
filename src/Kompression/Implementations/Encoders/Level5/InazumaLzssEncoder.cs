@@ -15,6 +15,11 @@ namespace Kompression.Implementations.Encoders.Level5
             _encoder = new Lzss01HeaderlessEncoder();
         }
 
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            _encoder.Configure(matchOptions);
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             output.Position = 0x10;

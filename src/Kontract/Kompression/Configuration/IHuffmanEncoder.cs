@@ -8,6 +8,12 @@ namespace Kontract.Kompression.Configuration
     public interface IHuffmanEncoder
     {
         /// <summary>
+        /// Configures the huffman options for this specification.
+        /// </summary>
+        /// <param name="huffmanOptions">The huffman options to configure.</param>
+        void Configure(IInternalHuffmanOptions huffmanOptions);
+
+        /// <summary>
         /// Encodes a stream of data.
         /// </summary>
         /// <param name="input">The input data to encode.</param>

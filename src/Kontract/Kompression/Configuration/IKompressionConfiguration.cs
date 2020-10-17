@@ -46,7 +46,7 @@ namespace Kontract.Kompression.Configuration
         ICompression Build();
     }
 
-    public interface ILzKompressionConfiguration
+    public interface ILzKompressionConfiguration : IKompressionConfiguration
     {
         /// <summary>
         /// Sets and modifies the configuration to find and search pattern matches.
@@ -56,7 +56,7 @@ namespace Kontract.Kompression.Configuration
         IKompressionConfiguration ConfigureLz(Action<IMatchOptions> configure);
     }
 
-    public interface IHuffmanKompressionConfiguration
+    public interface IHuffmanKompressionConfiguration : IKompressionConfiguration
     {
         /// <summary>
         /// Sets and modifies the configuration for huffman encodings.

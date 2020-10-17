@@ -7,6 +7,7 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
+    // TODO: Find configuration way for bit depths and nibble order
     public class HuffmanEncoder : IHuffmanEncoder
     {
         private readonly int _bitDepth;
@@ -17,6 +18,11 @@ namespace Kompression.Implementations.Encoders.Nintendo
         {
             _bitDepth = bitDepth;
             _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
+        }
+
+        public void Configure(IInternalHuffmanOptions huffmanOptions)
+        {
+            _encoder.Configure(huffmanOptions);
         }
 
         public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)

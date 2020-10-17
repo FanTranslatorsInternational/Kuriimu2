@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
@@ -10,6 +13,14 @@ namespace Kompression.Implementations.Encoders
     // TODO: Test this compression thoroughly
     public class Lz77Encoder : ILzEncoder
     {
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new Lz77PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(0x1, 0xFF, 1, 0xFF))
+                .SkipUnitsAfterMatch(1);
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             WriteCompressedData(input, output, matches);

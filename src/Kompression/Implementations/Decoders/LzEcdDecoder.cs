@@ -12,12 +12,7 @@ namespace Kompression.Implementations.Decoders
 {
     public class LzEcdDecoder : IDecoder
     {
-        private readonly int _preBufferLength;
-
-        public LzEcdDecoder(int preBufferLength)
-        {
-            _preBufferLength = preBufferLength;
-        }
+        private const int PreBufferSize_ = 0x3BE;
 
         public void Decode(Stream input, Stream output)
         {
@@ -42,7 +37,7 @@ namespace Kompression.Implementations.Decoders
 
             var circularBuffer = new CircularBuffer(0x400)
             {
-                Position = _preBufferLength
+                Position = PreBufferSize_
             };
 
             // Read initial data

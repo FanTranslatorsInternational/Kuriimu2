@@ -9,8 +9,8 @@ namespace Kompression.Configuration
     /// </summary>
     public class KompressionConfiguration : IKompressionConfiguration, ILzHuffmanKompressionConfiguration
     {
-        private MatchOptions _matchOptions = new MatchOptions();
-        private HuffmanOptions _huffmanOptions = new HuffmanOptions();
+        private readonly MatchOptions _matchOptions = new MatchOptions();
+        private readonly HuffmanOptions _huffmanOptions = new HuffmanOptions();
 
         private Func<IEncoder> _encoderFactory;
         private Func<ILzEncoder> _lzEncoderFactory;
@@ -98,24 +98,15 @@ namespace Kompression.Configuration
         public ICompression Build()
         {
             if (_lzEncoderFactory != null)
-                return new Compressor(_decoderFactory, _lzEncoderFactory, _matchOptions.BuildMatchParser);
+                return new Compressor(_decoderFactory, _lzEncoderFactory, _matchOptions);
 
             if (_huffmanEncoderFactory != null)
-                return new Compressor(_decoderFactory, _huffmanEncoderFactory, _huffmanOptions.BuildHuffmanTree);
+                return new Compressor(_decoderFactory, _huffmanEncoderFactory, _huffmanOptions);
 
             if (_lzHuffmanEncoderFactory != null)
-                return new Compressor(_decoderFactory, _lzHuffmanEncoderFactory, _matchOptions.BuildMatchParser, _huffmanOptions.BuildHuffmanTree);
+                return new Compressor(_decoderFactory, _lzHuffmanEncoderFactory, _matchOptions, _huffmanOptions);
 
             return new Compressor(_decoderFactory, _encoderFactory);
-        }
-
-        /// <summary>
-        /// Creates a new chain of decoding instances.
-        /// </summary>
-        /// <returns>The new decoder</returns>
-        private IDecoder BuildDecoder()
-        {
-            return _decoderFactory?.Invoke();
         }
     }
 }

@@ -19,6 +19,11 @@ namespace Kompression.Implementations.Encoders.Level5
             _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
         }
 
+        public void Configure(IInternalHuffmanOptions huffmanOptions)
+        {
+            _encoder.Configure(huffmanOptions);
+        }
+
         public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
         {
             if (input.Length > 0x1FFFFFFF)

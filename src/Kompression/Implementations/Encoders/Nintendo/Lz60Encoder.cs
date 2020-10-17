@@ -16,6 +16,11 @@ namespace Kompression.Implementations.Encoders.Nintendo
             _lz40Encoder = new Lz40Encoder();
         }
 
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            _lz40Encoder.Configure(matchOptions);
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             if (input.Length > 0xFFFFFF)

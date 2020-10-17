@@ -16,6 +16,11 @@ namespace Kompression.Implementations.Encoders
             _encoder = new Lzss01HeaderlessEncoder();
         }
 
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            _encoder.Configure(matchOptions);
+        }
+
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             output.Position += 9;

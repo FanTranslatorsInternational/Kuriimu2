@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -21,7 +24,16 @@ namespace Kompression.Implementations.Encoders
             public int bufferLength;
         }
 
-        private const int WindowBufferLength = 0x400;
+        private const int WindowBufferLength_ = 0x400;
+        private const int PreBufferSize_ = 0x3BE;
+
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new LzEcdPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, 0x42, 1, 0x400))
+                .AdjustInput(input => input.Prepend(PreBufferSize_));
+        }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
@@ -43,8 +55,7 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the buffer
-                // TODO: Add prebuffer size here or return match prebuffered and start stream at prebuffer size
-                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (PreBufferSize_ + match.Position - match.Displacement) % WindowBufferLength_;
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 
