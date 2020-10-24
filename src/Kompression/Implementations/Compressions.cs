@@ -203,5 +203,10 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new CrilaylaDecoder())
                 .EncodeWith(() => new CrilaylaEncoder());
+
+        public static IKompressionConfiguration Iecp =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new IecpDecoder())
+                .EncodeWith(() => new IecpEncoder());
     }
 }

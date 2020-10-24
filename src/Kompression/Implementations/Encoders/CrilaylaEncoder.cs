@@ -36,7 +36,7 @@ namespace Kompression.Implementations.Encoders
             using var inputReverseStream = new ReverseStream(input, input.Length);
             using var outputReverseStream = new ReverseStream(output, outputSize);
 
-            using var bw = new BinaryWriterX(outputReverseStream, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 1);
+            using var bw = new BinaryWriterX(outputReverseStream, true, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 1);
 
             foreach (var match in matchArray)
             {
@@ -71,7 +71,7 @@ namespace Kompression.Implementations.Encoders
             output.Write(rawStart, 0, rawStart.Length);
 
             // Write header
-            using var outputBw = new BinaryWriterX(output);
+            using var outputBw = new BinaryWriterX(output, true);
             output.Position = 0;
             outputBw.WriteType(new CrilaylaHeader
             {
