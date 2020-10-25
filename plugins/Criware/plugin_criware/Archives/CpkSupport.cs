@@ -58,7 +58,7 @@ namespace plugin_criware.Archives
 
     public class CpkSupport
     {
-        public static int Align(int value, int align)
+        public static long Align(long value, int align)
         {
             return (value + (align - 1)) & ~(align - 1);
         }
