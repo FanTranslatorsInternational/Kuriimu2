@@ -11,16 +11,16 @@ using Kontract.Models.IO;
 
 namespace plugin_criware.Archives
 {
-    public class CpkPlugin:IFilePlugin,IIdentifyFiles
+    public class CpkPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId { get; }
-        public PluginType PluginType { get; }
-        public string[] FileExtensions { get; }
+        public Guid PluginId => Guid.Parse("63909918-ac30-41bb-803b-cee5110c573d");
+        public PluginType PluginType => PluginType.Archive;
+        public string[] FileExtensions => new[] { "*.cpk" };
         public PluginMetadata Metadata { get; }
 
         public CpkPlugin()
         {
-            Metadata=new PluginMetadata("CPK","IcySon55","The main archive for the CriWare Middleware.");
+            Metadata = new PluginMetadata("CPK", "IcySon55, onepiecefreak", "The main archive for the CriWare Middleware.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
