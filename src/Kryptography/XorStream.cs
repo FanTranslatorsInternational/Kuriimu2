@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
@@ -7,8 +6,8 @@ namespace Kryptography
 {
     public class XorStream : Stream
     {
-        private Stream _baseStream;
-        private byte[] _key;
+        private readonly Stream _baseStream;
+        private readonly byte[] _key;
 
         public override bool CanRead => _baseStream.CanRead && true;
 
@@ -25,41 +24,6 @@ namespace Kryptography
             _baseStream = input;
             _key = new byte[key.Length];
             Array.Copy(key, _key, key.Length);
-        }
-
-        private void XorData(byte[] buffer, int offset, int count, byte[] key)
-        {
-            var xorBuffer = new byte[count];
-            FillXorBuffer(xorBuffer, _baseStream.Position, key);
-
-            var simdLength = Vector<byte>.Count;
-            var j = 0;
-            for (j = 0; j <= count - simdLength; j += simdLength)
-            {
-                var va = new Vector<byte>(buffer, j + offset);
-                var vb = new Vector<byte>(xorBuffer, j);
-                (va ^ vb).CopyTo(buffer, j + offset);
-            }
-
-            for (; j < count; ++j)
-            {
-                buffer[offset + j] = (byte)(buffer[offset + j] ^ xorBuffer[j]);
-            }
-        }
-
-        private void FillXorBuffer(byte[] fill, long pos, byte[] key)
-        {
-            var written = 0;
-            while (written < fill.Length)
-            {
-                var keyOffset = (int)(pos % key.Length);
-                var size = Math.Min(key.Length - keyOffset, fill.Length - written);
-
-                Array.Copy(key, keyOffset, fill, written, size);
-
-                written += size;
-                pos += size;
-            }
         }
 
         public override void Flush() => _baseStream.Flush();
@@ -128,7 +92,7 @@ namespace Kryptography
             var bkPos = _baseStream.Position;
             _baseStream.Position = Position;
 
-            var length = (int)Math.Min(count,Length-Position);
+            var length = (int)Math.Min(count, Length - Position);
             _baseStream.Read(buffer, offset, length);
             _baseStream.Position = bkPos;
 
@@ -149,10 +113,44 @@ namespace Kryptography
 
             var bkPos = _baseStream.Position;
             _baseStream.Position = Position;
-            _baseStream.Write(buffer, offset, count);
+            _baseStream.Write(internalBuffer, 0, count);
             _baseStream.Position = bkPos;
 
             Position += count;
+        }
+
+        private void XorData(byte[] buffer, int offset, int count, byte[] key)
+        {
+            int j;
+
+            var xorBuffer = new byte[count];
+            FillXorBuffer(xorBuffer, Position, key);
+
+            var simdLength = Vector<byte>.Count;
+            for (j = 0; j <= count - simdLength; j += simdLength)
+            {
+                var va = new Vector<byte>(buffer, j + offset);
+                var vb = new Vector<byte>(xorBuffer, j);
+                (va ^ vb).CopyTo(buffer, j + offset);
+            }
+
+            for (; j < count; ++j)
+                buffer[offset + j] = (byte)(buffer[offset + j] ^ xorBuffer[j]);
+        }
+
+        private void FillXorBuffer(byte[] fill, long pos, byte[] key)
+        {
+            var written = 0;
+            while (written < fill.Length)
+            {
+                var keyOffset = (int)(pos % key.Length);
+                var size = Math.Min(key.Length - keyOffset, fill.Length - written);
+
+                Array.Copy(key, keyOffset, fill, written, size);
+
+                written += size;
+                pos += size;
+            }
         }
     }
 }
