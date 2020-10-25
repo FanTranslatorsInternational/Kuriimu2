@@ -36,6 +36,7 @@ namespace plugin_criware.Archives
             _align = headerRow.Get<int>("Align");
 
             // Retrieve the offsets for the other tables.
+            var contentOffset = headerRow.Get<long>("ContentOffset");
             var tocOffset = headerRow.Get<long>("TocOffset");
             var itocOffset = headerRow.Get<long>("ItocOffset");
             var etocOffset = headerRow.Get<long>("EtocOffset");
@@ -45,7 +46,7 @@ namespace plugin_criware.Archives
                 ReadEtocTable(br, etocOffset);
 
             if (tocOffset > 0)
-                return ReadTocTable(br, tocOffset).ToList();
+                return ReadTocTable(br, tocOffset, contentOffset).ToList();
 
             if (itocOffset > 0)
                 return ReadItocTable(br, itocOffset).ToList();
@@ -83,17 +84,22 @@ namespace plugin_criware.Archives
 
         #region Read tables
 
-        private IEnumerable<IArchiveFileInfo> ReadTocTable(BinaryReaderX br, long tocOffset)
+        private IEnumerable<IArchiveFileInfo> ReadTocTable(BinaryReaderX br, long tocOffset, long contentOffset)
         {
             // Read toc table
             _tocTable = CpkTable.Create(br.BaseStream, tocOffset);
+
+            // Determine file offset
+            var fileOffset = tocOffset;
+            if (contentOffset >= 0)
+                fileOffset = tocOffset < 0 ? contentOffset : Math.Min(contentOffset, tocOffset);
 
             // Populate files
             foreach (var row in _tocTable.Rows)
             {
                 var dir = row.Get<string>("DirName");
                 var name = row.Get<string>("FileName");
-                var offset = tocOffset + row.Get<long>("FileOffset");
+                var offset = fileOffset + row.Get<long>("FileOffset");
                 var compSize = row.Get<int>("FileSize");
                 var decompSize = row.Get<int>("ExtractSize");
 
