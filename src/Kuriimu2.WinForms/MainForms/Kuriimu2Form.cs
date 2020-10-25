@@ -37,33 +37,33 @@ namespace Kuriimu2.WinForms.MainForms
 {
     public partial class Kuriimu2Form : Form, IMainForm
     {
-        private const string ManifestUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update/master/manifest.json";
-        private const string ApplicationType_ = "WinForms";
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update/master/manifest.json";
+        private const string ApplicationType = "WinForms";
 
-        private const string LoadError_ = "Load Error";
-        private const string InvalidFile_ = "The selected file is invalid.";
-        private const string NoPluginSelected_ = "No plugin was selected.";
+        private const string LoadError = "Load Error";
+        private const string InvalidFile = "The selected file is invalid.";
+        private const string NoPluginSelected = "No plugin was selected.";
 
-        private const string SaveError_ = "Save Error";
-        private const string ExceptionCatched_ = "Exception catched";
-        private const string PluginsNotAvailable_ = "Plugins not available";
+        private const string SaveError = "Save Error";
+        private const string ExceptionCatched = "Exception catched";
+        private const string PluginsNotAvailable = "Plugins not available";
 
-        private const string UnsavedChanges_ = "Unsaved changes";
-        private const string UnsavedChangesText_ = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
+        private const string UnsavedChanges = "Unsaved changes";
+        private const string UnsavedChangesText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
 
-        private const string DependantFiles_ = "Dependant files";
-        private const string DependantFilesText_ = "Every file opened from this one and below will be closed too. Continue?";
+        private const string DependantFiles = "Dependant files";
+        private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
 
-        private const string FormTitle_ = "Kuriimu2 {0}";
-        private const string FormTitlePlugin_ = "Kuriimu2 {0} - {1} - {2} - {3}";
+        private const string FormTitle = "Kuriimu2 {0}";
+        private const string FormTitlePlugin = "Kuriimu2 {0} - {1} - {2} - {3}";
 
-        private const string CloseButton_ = "close-button";
+        private const string CloseButton = "close-button";
 
-        private const Keys OpenHotKey_ = Keys.Control | Keys.O;
-        private const Keys OpenWithHotKey_ = Keys.Control | Keys.Shift | Keys.O;
-        private const Keys SaveHotKey_ = Keys.Control | Keys.S;
-        private const Keys SaveAllHotKey_ = Keys.Control | Keys.Shift | Keys.S;
-        private const Keys SaveAsHotKey_ = Keys.F12;
+        private const Keys OpenHotKey = Keys.Control | Keys.O;
+        private const Keys OpenWithHotKey = Keys.Control | Keys.Shift | Keys.O;
+        private const Keys SaveHotKey = Keys.Control | Keys.S;
+        private const Keys SaveAllHotKey = Keys.Control | Keys.Shift | Keys.S;
+        private const Keys SaveAsHotKey = Keys.F12;
 
         private readonly HashTypeExtensionForm _hashForm;
         private readonly CipherTypeExtensionForm _encryptForm;
@@ -126,7 +126,7 @@ namespace Kuriimu2.WinForms.MainForms
             Icon = Resources.kuriimu2winforms;
 
             tabCloseButtons.Images.Add(Resources.menu_delete);
-            tabCloseButtons.Images.SetKeyName(0, CloseButton_);
+            tabCloseButtons.Images.SetKeyName(0, CloseButton);
 
             _localManifest = LoadLocalManifest();
             UpdateFormText();
@@ -192,7 +192,7 @@ namespace Kuriimu2.WinForms.MainForms
             // Check if path is invalid
             if (filePath.IsNull || filePath.IsEmpty)
             {
-                MessageBox.Show(InvalidFile_, LoadError_, MessageBoxButtons.OK,
+                MessageBox.Show(InvalidFile, LoadError, MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return false;
             }
@@ -213,7 +213,7 @@ namespace Kuriimu2.WinForms.MainForms
                 chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
-                    MessageBox.Show(NoPluginSelected_, LoadError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(NoPluginSelected, LoadError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
             }
@@ -228,7 +228,7 @@ namespace Kuriimu2.WinForms.MainForms
                 var message = loadResult.Message;
 #endif
 
-                MessageBox.Show(message, LoadError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, LoadError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
 
@@ -280,7 +280,7 @@ namespace Kuriimu2.WinForms.MainForms
             catch (Exception e)
             {
 #if DEBUG
-                MessageBox.Show(e.ToString(), ExceptionCatched_);
+                MessageBox.Show(e.ToString(), ExceptionCatched);
 #else
                     MessageBox.Show(e.Message, "Exception catched.");
 #endif
@@ -303,7 +303,7 @@ namespace Kuriimu2.WinForms.MainForms
             _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
             _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
 
-            InvokeAction(() => tabPage.ImageKey = CloseButton_);  // setting ImageKey before adding, makes the image not working
+            InvokeAction(() => tabPage.ImageKey = CloseButton);  // setting ImageKey before adding, makes the image not working
 
             // Select tab page in tab control
             InvokeAction(() => openFiles.SelectedTab = tabPage);
@@ -376,7 +376,7 @@ namespace Kuriimu2.WinForms.MainForms
                 savePath = SelectNewFile(stateInfo.FilePath.GetName());
                 if (savePath.IsNull || savePath.IsEmpty)
                 {
-                    MessageBox.Show(InvalidFile_, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(InvalidFile, SaveError, MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                     _savingFiles.Remove(stateInfo);
                     return false;
@@ -396,7 +396,7 @@ namespace Kuriimu2.WinForms.MainForms
 #endif
 
                 ReportStatus(false, "File not saved successfully.");
-                MessageBox.Show(message, SaveError_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, SaveError, MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 _savingFiles.Remove(stateInfo);
                 return false;
@@ -451,7 +451,7 @@ namespace Kuriimu2.WinForms.MainForms
             // Security question, so the user knows that every sub file will be closed
             if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
             {
-                var result = MessageBox.Show(DependantFilesText_, DependantFiles_, MessageBoxButtons.YesNo);
+                var result = MessageBox.Show(DependantFilesText, DependantFiles, MessageBoxButtons.YesNo);
 
                 switch (result)
                 {
@@ -466,8 +466,8 @@ namespace Kuriimu2.WinForms.MainForms
             // Save unchanged files, if wanted
             if (stateInfo.StateChanged)
             {
-                var text = string.Format(UnsavedChangesText_, stateInfo.FilePath);
-                var result = MessageBox.Show(text, UnsavedChanges_, MessageBoxButtons.YesNoCancel);
+                var text = string.Format(UnsavedChangesText, stateInfo.FilePath);
+                var result = MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
                 switch (result)
                 {
                     case DialogResult.Yes:
@@ -587,7 +587,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             if (openFiles.TabCount <= 0 || openFiles.SelectedIndex < 0)
             {
-                Text = string.Format(FormTitle_, _localManifest.BuildNumber);
+                Text = string.Format(FormTitle, _localManifest.BuildNumber);
                 return;
             }
 
@@ -597,7 +597,7 @@ namespace Kuriimu2.WinForms.MainForms
             var pluginName = stateEntry.StateInfo.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
 
-            Text = string.Format(FormTitlePlugin_, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
+            Text = string.Format(FormTitlePlugin, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
         #endregion
@@ -625,25 +625,25 @@ namespace Kuriimu2.WinForms.MainForms
 
             switch (e.KeyData)
             {
-                case OpenHotKey_:
+                case OpenHotKey:
                     OpenPhysicalFile(false);
                     break;
 
-                case OpenWithHotKey_:
+                case OpenWithHotKey:
                     OpenPhysicalFile(true);
                     break;
 
-                case SaveHotKey_:
+                case SaveHotKey:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
                         await SaveFile(tabEntry.StateInfo, false, true);
                     break;
 
-                case SaveAllHotKey_:
+                case SaveAllHotKey:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
                         SaveAll(true);
                     break;
 
-                case SaveAsHotKey_:
+                case SaveAsHotKey:
                     if (tabEntry.StateInfo.PluginState is ISaveFiles)
                         await SaveFile(tabEntry.StateInfo, true, true);
                     break;
@@ -738,7 +738,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             // Draw image
             var drawPoint = openFiles.SelectedIndex == e.Index ? new Point(e.Bounds.Left + 9, e.Bounds.Top + 4) : new Point(e.Bounds.Left + 3, e.Bounds.Top + 2);
-            e.Graphics.DrawImage(tabCloseButtons.Images[CloseButton_], drawPoint);
+            e.Graphics.DrawImage(tabCloseButtons.Images[CloseButton], drawPoint);
         }
 
         private async void openFiles_MouseUp(object sender, MouseEventArgs e)
@@ -752,7 +752,7 @@ namespace Kuriimu2.WinForms.MainForms
 
             if (e.Button != MouseButtons.Middle)
             {
-                var tabImage = tabCloseButtons.Images[CloseButton_];
+                var tabImage = tabCloseButtons.Images[CloseButton];
                 if (tabImage == null)
                     return;
 
@@ -782,7 +782,7 @@ namespace Kuriimu2.WinForms.MainForms
             foreach (var error in errors)
                 sb.AppendLine(error.AssemblyPath);
 
-            MessageBox.Show(sb.ToString(), PluginsNotAvailable_, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(sb.ToString(), PluginsNotAvailable, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private Manifest LoadLocalManifest()
@@ -799,7 +799,7 @@ namespace Kuriimu2.WinForms.MainForms
             if (_localManifest == null)
                 return;
 
-            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl_);
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl);
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
                 return;
 
@@ -813,7 +813,7 @@ namespace Kuriimu2.WinForms.MainForms
             var executablePath = UpdateUtilities.DownloadUpdateExecutable();
             var process = new Process
             {
-                StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType_} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+                StartInfo = new ProcessStartInfo(executablePath, $"{ApplicationType} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
             };
             process.Start();
 
@@ -855,7 +855,7 @@ namespace Kuriimu2.WinForms.MainForms
         {
             var filters = new List<string> { "All files|*.*" };
 
-            foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins))
+            foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins).Where(x => x.FileExtensions != null))
             {
                 var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
                 var extensions = string.Join(";", plugin.FileExtensions);
