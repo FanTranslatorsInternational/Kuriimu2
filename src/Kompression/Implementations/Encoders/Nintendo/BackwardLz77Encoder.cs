@@ -46,7 +46,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
         {
             var matchArray = matches.ToArray();
 
-            var compressedLength = PreCalculateCompressedLength(input.Length, matchArray, out var lastRawLength);
+            var compressedLength = CalculateCompressedLength(input.Length, matchArray, out var lastRawLength);
 
             var block = new Block();
 
@@ -89,36 +89,27 @@ namespace Kompression.Implementations.Encoders.Nintendo
             }
         }
 
-        private int PreCalculateCompressedLength(long uncompressedLength, Match[] matches, out int lastRawLength)
+        private int CalculateCompressedLength(long uncompressedLength, Match[] matches, out int lastRawLength)
         {
-            var lengthBytes = 0;
-            var flagBits = 0;
+            var result = 0;
 
-            var preMatchPosition = 0;
-            var preMatchLength = 0;
+            var lastMatchPosition = uncompressedLength;
 
-            foreach (var match in matches.Reverse())
+            foreach (var match in matches)
             {
-                var rawLength = match.Position - preMatchPosition - preMatchLength;
+                // Add raw bytes
+                if (lastMatchPosition > match.Position)
+                {
+                    var rawLength = (int)(lastMatchPosition - match.Position);
+                    result += rawLength * 9;
+                }
 
-                // Raw data before match
-                lengthBytes += rawLength;
-                flagBits += rawLength;
-
-                // Match data
-                flagBits++;
-                lengthBytes += 2;
-
-                preMatchPosition = match.Position;
-                preMatchLength = match.Length;
+                result += 17;
+                lastMatchPosition = match.Position - match.Length;
             }
 
-            lengthBytes += flagBits / 8;
-            lengthBytes += flagBits % 8 > 0 ? 1 : 0;
-
-            lastRawLength = (int)(uncompressedLength - (preMatchPosition + preMatchLength));
-
-            return lengthBytes;
+            lastRawLength = (int)lastMatchPosition;
+            return result / 8 + (result % 8 > 0 ? 1 : 0);
         }
 
         private void WriteFooterInformation(Stream input, Stream output, int lastRawLength)
