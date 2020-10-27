@@ -107,7 +107,9 @@ namespace plugin_alpha_dream.Archives
             bw.WriteType(new Bg4Header
             {
                 fileEntryCount = (short)files.Count,
-                metaSecSize = fileOffset
+                metaSecSize = fileOffset,
+                fileEntryCountMultiplier = 1,
+                fileEntryCountDerived = (short)files.Count
             });
         }
 
