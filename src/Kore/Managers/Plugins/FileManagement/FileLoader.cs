@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
@@ -86,30 +86,32 @@ namespace Kore.Managers.Plugins.FileManagement
             // 1. Get all plugins that implement IIdentifyFile
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
+            // 2. Identify the file with identifiable plugins
+            var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
-                // 2. Identify the file with the next plugin
-                bool identifyResult;
                 try
                 {
-                    identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager));
+                    var identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager));
+                    if (identifyResult)
+                        matchedPlugins.Add(identifiablePlugin as IFilePlugin);
                 }
                 catch
                 {
-                    identifyResult = false;
+                    // Ignore exceptions and carry on
                 }
-
-                // 3. Return first plugin that could identify
-                if (identifyResult)
-                    return identifiablePlugin as IFilePlugin;
             }
 
-            // 4. Return null, if no plugin could identify and manual selection is disabled
-            if (!identifyPluginManually)
-                return null;
+            // 3. Return only matched plugin or manually select one of the matched plugins
+            if (matchedPlugins.Count == 1)
+                return matchedPlugins.First();
+
+            if (matchedPlugins.Count > 1)
+                return GetManualSelection(matchedPlugins);
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
-            return GetManualSelection();
+            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
+            return identifyPluginManually ? GetManualSelection(nonIdentifiablePlugins) : null;
         }
 
         /// <summary>
@@ -136,13 +138,10 @@ namespace Kore.Managers.Plugins.FileManagement
         /// Select a plugin manually.
         /// </summary>
         /// <returns>The manually selected plugin.</returns>
-        private IFilePlugin GetManualSelection()
+        private IFilePlugin GetManualSelection(IReadOnlyList<IFilePlugin> pluginList)
         {
-            // 1. Get all plugins that don't implement IIdentifyFile
-            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-
-            // 2. Request manual selection by the user
-            var selectionArgs = new ManualSelectionEventArgs(nonIdentifiablePlugins);
+            // 1. Request manual selection by the user
+            var selectionArgs = new ManualSelectionEventArgs(pluginList);
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;
