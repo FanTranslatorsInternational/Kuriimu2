@@ -110,6 +110,8 @@ namespace Kore.Batch
                 imgStream.Position = 0;
                 imgStream.CopyTo(fileStream);
 
+                fileStream.Close();
+
                 index++;
             }
         }
