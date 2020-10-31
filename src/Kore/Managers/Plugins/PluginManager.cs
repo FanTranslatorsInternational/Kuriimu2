@@ -446,9 +446,7 @@ namespace Kore.Managers.Plugins
 
             // 5. Add file to loaded files
             lock (_loadedFilesLock)
-            {
                 _loadedFiles.Add(loadResult.LoadedState);
-            }
 
             return loadResult;
         }
@@ -549,12 +547,14 @@ namespace Kore.Managers.Plugins
             foreach (var indirectChild in indirectChildren)
                 CloseInternal(indirectChild);
 
-            // Close state itself
-            stateInfo.Dispose();
-
-            // Remove from the file tracking of this instance
             lock (_loadedFilesLock)
             {
+                // Close state itself
+                if (_streamMonitor.Manages(stateInfo.StreamManager))
+                    _streamMonitor.RemoveStreamManager(stateInfo.StreamManager);
+                stateInfo.Dispose();
+
+                // Remove from the file tracking of this instance
                 _loadedFiles.Remove(stateInfo);
             }
         }

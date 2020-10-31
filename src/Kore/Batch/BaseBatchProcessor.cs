@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
@@ -16,7 +18,9 @@ namespace Kore.Batch
 {
     public abstract class BaseBatchProcessor
     {
-        private IList<UPath> _batchedFiles;
+        private int _processedFiles;
+        private HashSet<UPath> _batchedFiles;
+        private CancellationTokenSource _processTokenSource;
 
         protected IInternalPluginManager PluginManager { get; }
         protected IConcurrentLogger Logger { get; }
@@ -25,6 +29,8 @@ namespace Kore.Batch
         public bool ScanSubDirectories { get; set; }
 
         public Guid PluginId { get; set; }
+
+        public TimeSpan AverageFileTime { get; private set; }
 
         public BaseBatchProcessor(IInternalPluginManager pluginManager, IConcurrentLogger logger)
         {
@@ -37,7 +43,9 @@ namespace Kore.Batch
 
         public async Task Process(IFileSystem sourceFileSystem, IFileSystem destinationFileSystem)
         {
-            _batchedFiles = new List<UPath>();
+            _processedFiles = 0;
+            _batchedFiles = new HashSet<UPath>();
+
             SourceFileSystemWatcher = sourceFileSystem.Watch(UPath.Root);
 
             var files = EnumerateFiles(sourceFileSystem).ToArray();
@@ -49,7 +57,7 @@ namespace Kore.Batch
             var isManualSelection = PluginManager.AllowManualSelection;
             PluginManager.AllowManualSelection = false;
 
-            await Task.Run(() => files.AsParallel().ForAll(async x => await ProcessInternal(sourceFileSystem, x, destinationFileSystem)));
+            await ProcessMeasurement(files, sourceFileSystem, destinationFileSystem);
 
             PluginManager.AllowManualSelection = isManualSelection;
 
@@ -57,6 +65,11 @@ namespace Kore.Batch
                 Logger.StopLogging();
 
             SourceFileSystemWatcher.Dispose();
+        }
+
+        public void Cancel()
+        {
+            _processTokenSource?.Cancel();
         }
 
         protected abstract Task ProcessInternal(IFileSystem sourceFileSystem, UPath filePath, IFileSystem destinationFileSystem);
@@ -82,7 +95,7 @@ namespace Kore.Batch
             }
             catch (Exception e)
             {
-                Logger.QueueMessage(LogLevel.Error, $"Load error: {e.Message}");
+                Logger.QueueMessage(LogLevel.Error, $"File '{filePath}' has load error: {e.Message}");
                 return null;
             }
 
@@ -108,6 +121,44 @@ namespace Kore.Batch
 
             if (!saveResult.IsSuccessful)
                 Logger.QueueMessage(LogLevel.Error, $"Could not save '{stateInfo.FilePath}'.");
+        }
+
+        private async Task ProcessMeasurement(UPath[] files, IFileSystem sourceFs, IFileSystem destinationFs)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            _processTokenSource=new CancellationTokenSource();
+            try
+            {
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        files.AsParallel().WithCancellation(_processTokenSource.Token)
+                            .ForAll(async x =>
+                            {
+                                if (_processTokenSource.Token.IsCancellationRequested)
+                                    return;
+
+                                await ProcessInternal(sourceFs, x, destinationFs);
+
+                                var processed = _processedFiles + 1;
+                                _processedFiles++;
+
+                                AverageFileTime = TimeSpan.FromTicks(stopwatch.ElapsedTicks / processed);
+                            });
+                    }
+                    catch (OperationCanceledException)
+                    {
+
+                    }
+                }, _processTokenSource.Token);
+            }
+            finally
+            {
+                stopwatch.Stop();
+            }
         }
 
         private IEnumerable<UPath> EnumerateFiles(IFileSystem sourceFileSystem)

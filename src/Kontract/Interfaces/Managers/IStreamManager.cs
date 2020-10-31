@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Kontract.Interfaces.Providers;
 
 namespace Kontract.Interfaces.Managers
@@ -6,7 +7,7 @@ namespace Kontract.Interfaces.Managers
     /// <summary>
     /// Exposes methods to manage streams in a certain scope.
     /// </summary>
-    public interface IStreamManager
+    public interface IStreamManager : IDisposable
     {
         /// <summary>
         /// The amount of stream registered.

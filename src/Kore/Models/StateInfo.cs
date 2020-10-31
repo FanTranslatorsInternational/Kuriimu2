@@ -8,6 +8,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.IO;
 using Kore.FileSystem;
+using MoreLinq;
 
 namespace Kore.Models
 {
@@ -113,6 +114,20 @@ namespace Kore.Models
             DialogOptions?.Clear();
             PluginManager?.CloseAll();
             StreamManager?.ReleaseAll();
+
+            // Dispose content of state
+            switch (PluginState)
+            {
+                case IArchiveState archiveState:
+                    archiveState.Files.ForEach(x => x.Dispose());
+                    archiveState.Files.Clear();
+                    break;
+
+                case IImageState imageState:
+                    imageState.Images.ForEach(x => x.Dispose());
+                    imageState.Images.Clear();
+                    break;
+            }
 
             FilePlugin = null;
             PluginState = null;

@@ -17,6 +17,7 @@ namespace Kore.Managers
         private const string TempFolder_ = "tmp";
 
         private readonly object _elapsedLocked = new object();
+        private readonly object _streamManagersLock = new object();
         private bool _isCollecting;
 
         private readonly Timer _temporaryContainerCollectionTimer;
@@ -40,7 +41,9 @@ namespace Kore.Managers
         public IStreamManager CreateStreamManager()
         {
             var streamManager = new StreamManager();
-            _streamManagers.Add(streamManager);
+
+            lock (_streamManagersLock)
+                _streamManagers.Add(streamManager);
 
             return streamManager;
         }
@@ -64,6 +67,26 @@ namespace Kore.Managers
                 return element.Item1;
 
             throw new InvalidOperationException("The file system was not created by this instance.");
+        }
+
+        public bool Manages(IStreamManager manager)
+        {
+            lock (_streamManagersLock)
+                return _streamManagers.Contains(manager);
+        }
+
+        public void RemoveStreamManager(IStreamManager streamManager)
+        {
+            if (_streamManagerMapping.ContainsKey(streamManager))
+                throw new InvalidOperationException("The given stream manager is used for a temporary file system. Release the temporary file system instead.");
+
+            lock (_streamManagersLock)
+            {
+                if (!_streamManagers.Contains(streamManager))
+                    throw new InvalidOperationException("The given stream manager is not monitored by this instance.");
+
+                _streamManagers.Remove(streamManager);
+            }
         }
 
         public void ReleaseTemporaryFileSystem(IFileSystem temporaryFileSystem)

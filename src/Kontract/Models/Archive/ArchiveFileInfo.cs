@@ -235,5 +235,11 @@ namespace Kontract.Models.Archive
 
             return ms;
         }
+
+        public void Dispose()
+        {
+            FileData?.Dispose();
+            _decompressedStream = null;
+        }
     }
 }

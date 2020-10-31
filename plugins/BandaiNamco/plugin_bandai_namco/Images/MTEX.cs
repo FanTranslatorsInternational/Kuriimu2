@@ -32,7 +32,7 @@ namespace plugin_bandai_namco.Images
             var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height))
             {
                 Configuration = new ImageConfiguration().
-                        RemapPixelsWith(size => new CTRSwizzle(_header.width, _header.height, CtrTransformation.YFlip, true)),
+                        RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, CtrTransformation.YFlip, true)),
             };
 
             return imageInfo;
@@ -41,7 +41,7 @@ namespace plugin_bandai_namco.Images
         public void Save(Stream output, IKanvasImage image)
         {
             using var bw = new BinaryWriterX(output);
-                        
+
             // Header
             _header.width = (short)image.ImageSize.Width;
             _header.height = (short)image.ImageSize.Height;
@@ -50,7 +50,7 @@ namespace plugin_bandai_namco.Images
             // Writing
             bw.WriteType(_header);
             bw.BaseStream.Position = 0x80;
-            bw.Write(image.ImageInfo.ImageData); 
+            bw.Write(image.ImageInfo.ImageData);
         }
     }
 }

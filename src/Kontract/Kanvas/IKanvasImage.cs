@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Image;
@@ -8,7 +9,7 @@ namespace Kontract.Kanvas
     /// <summary>
     /// Exposes properties and methods to retrieve and manipulate an image given by an image plugin;
     /// </summary>
-    public interface IKanvasImage
+    public interface IKanvasImage : IDisposable
     {
         /// <summary>
         /// The bit depth of the current image encoding used.

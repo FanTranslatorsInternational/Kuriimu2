@@ -10,7 +10,7 @@ using Kontract.Models.IO;
 
 namespace Kontract.Models.Archive
 {
-    public interface IArchiveFileInfo
+    public interface IArchiveFileInfo : IDisposable
     {
         /// <summary>
         /// Determines if the FileData is compressed, and has to be handled as such

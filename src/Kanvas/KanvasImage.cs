@@ -396,5 +396,11 @@ namespace Kanvas
             if (isRunning.HasValue && !isRunning.Value)
                 progress.FinishProgress();
         }
+
+        public void Dispose()
+        {
+            _decodedImage?.Dispose();
+            _bestImage?.Dispose();
+        }
     }
 }

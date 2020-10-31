@@ -138,5 +138,11 @@ namespace Kore.Managers
         {
             return !stream.CanRead && !stream.CanWrite && !stream.CanSeek;
         }
+
+        public void Dispose()
+        {
+            _streamCollectionTimer?.Dispose();
+            ReleaseAll();
+        }
     }
 }

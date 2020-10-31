@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Kontract;
 using Kontract.Interfaces.Logging;
@@ -20,6 +21,7 @@ namespace Kuriimu2.WinForms.BatchForms
     public abstract partial class BaseBatchForm : Form
     {
         private readonly BaseBatchProcessor _batchProcessor;
+        private readonly System.Timers.Timer _avgTimer;
 
         protected abstract string SourceEmptyText { get; }
 
@@ -35,6 +37,9 @@ namespace Kuriimu2.WinForms.BatchForms
 
             Logger = InitializeLogger();
             _batchProcessor = InitializeBatchProcessor(pluginManager, Logger);
+
+            _avgTimer = new System.Timers.Timer(300);
+            _avgTimer.Elapsed += avgTimer_Elapsed;
 
             var loadedPlugins = LoadPlugins(pluginManager);
             cmbPlugins.Items.Add(PluginElement.Empty);
@@ -62,6 +67,13 @@ namespace Kuriimu2.WinForms.BatchForms
 
         #region Events
 
+        private void avgTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            var avgTime = _batchProcessor.AverageFileTime;
+            if (lblTime.InvokeRequired)
+                lblTime.Invoke(new Action(() => lblTime.Text = "Avg time per file: " + avgTime.Milliseconds + "ms"));
+        }
+
         private void btnSourceFolder_Click(object sender, EventArgs e)
         {
             var selectedFolder = SelectFolder(Settings.Default.BatchInputDirectory);
@@ -86,9 +98,11 @@ namespace Kuriimu2.WinForms.BatchForms
             txtDestinationPath.Text = selectedFolder;
         }
 
-        private void btnExecute_Click(object sender, EventArgs e)
+        private async void btnExecute_Click(object sender, EventArgs e)
         {
-            Execute();
+            _avgTimer.Start();
+            await Execute();
+            _avgTimer.Stop();
         }
 
         private void BatchForm_DragDrop(object sender, DragEventArgs e)
@@ -105,6 +119,12 @@ namespace Kuriimu2.WinForms.BatchForms
             e.Effect = DragDropEffects.Copy;
         }
 
+        private void BaseBatchForm_Closed(object sender, EventArgs e)
+        {
+            _batchProcessor.Cancel();
+            _avgTimer.Stop();
+        }
+
         #endregion
 
         #region Support
@@ -119,7 +139,7 @@ namespace Kuriimu2.WinForms.BatchForms
             return sfd.ShowDialog() != DialogResult.OK ? string.Empty : sfd.SelectedPath;
         }
 
-        private async void Execute()
+        private async Task Execute()
         {
             txtLog.Clear();
             Logger.StartLogging();

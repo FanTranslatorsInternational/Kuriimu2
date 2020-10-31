@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,6 @@ using Kontract.Interfaces.FileSystem.EventArgs;
 using Kontract.Interfaces.Logging;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Models;
 using Kontract.Models.IO;
 using Kontract.Models.Logging;
 using Kore.Managers.Plugins;
@@ -40,6 +40,10 @@ namespace Kore.Batch
                 SourceFileSystemWatcher.Opened += SourceFileSystemWatcher_Opened;
                 loadedState = LoadFile(sourceFileSystem, filePath).Result;
                 SourceFileSystemWatcher.Opened -= SourceFileSystemWatcher_Opened;
+
+                // If file could not be loaded successfully
+                if (loadedState == null)
+                    return;
 
                 // If one of the opened files was already batched, stop execution
                 if (_openedFiles.Any(IsFileBatched))
@@ -103,12 +107,8 @@ namespace Kore.Batch
             var index = 0;
             foreach (var img in imageState.Images)
             {
-                var imgStream = new MemoryStream();
-                img.GetImage().Save(imgStream, ImageFormat.Png);
-
                 var fileStream = destinationFileSystem.OpenFile(filePath / (img.Name ?? $"{index:00}") + ".png", FileMode.Create, FileAccess.Write);
-                imgStream.Position = 0;
-                imgStream.CopyTo(fileStream);
+                img.GetImage().Save(fileStream, ImageFormat.Png);
 
                 fileStream.Close();
 
