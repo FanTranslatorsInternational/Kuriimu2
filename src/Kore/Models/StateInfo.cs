@@ -119,13 +119,13 @@ namespace Kore.Models
             switch (PluginState)
             {
                 case IArchiveState archiveState:
-                    archiveState.Files.ForEach(x => x.Dispose());
-                    archiveState.Files.Clear();
+                    archiveState.Files?.ForEach(x => x.Dispose());
+                    archiveState.Files?.Clear();
                     break;
 
                 case IImageState imageState:
-                    imageState.Images.ForEach(x => x.Dispose());
-                    imageState.Images.Clear();
+                    imageState.Images?.ForEach(x => x.Dispose());
+                    imageState.Images?.Clear();
                     break;
             }
 
