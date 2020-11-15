@@ -43,6 +43,7 @@ jobs:
       
     - name: Publish plugins
       run: |
+        dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
