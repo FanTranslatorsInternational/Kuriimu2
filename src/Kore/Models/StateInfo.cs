@@ -120,12 +120,10 @@ namespace Kore.Models
             {
                 case IArchiveState archiveState:
                     archiveState.Files?.ForEach(x => x.Dispose());
-                    archiveState.Files?.Clear();
                     break;
 
                 case IImageState imageState:
                     imageState.Images?.ForEach(x => x.Dispose());
-                    imageState.Images?.Clear();
                     break;
             }
 
