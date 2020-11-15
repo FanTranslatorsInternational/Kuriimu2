@@ -10,6 +10,7 @@ using Komponent.IO.Streams;
 using Kontract.Extensions;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
 /* Source: https://problemkaputt.de/gbatek.htm#dscartridgesencryptionfirmware */
 
@@ -352,14 +353,19 @@ namespace plugin_nintendo.Archives
         }
     }
 
-    class NdsArchiveFileInfo : ArchiveFileInfo
+    class FileIdArchiveFileInfo : ArchiveFileInfo, IFileIdArchiveFileInfo
     {
         public int FileId { get; set; }
 
-        public NdsArchiveFileInfo(Stream fileData, string filePath, int fileId) : base(fileData, filePath)
+        public FileIdArchiveFileInfo(Stream fileData, string filePath, int fileId) : base(fileData, filePath)
         {
             FileId = fileId;
         }
+    }
+
+    interface IFileIdArchiveFileInfo : IArchiveFileInfo
+    {
+        int FileId { get; set; }
     }
 
     static class NdsSupport
@@ -416,7 +422,7 @@ namespace plugin_nintendo.Archives
 
             // Write file names
             bw.BaseStream.Position = contentOffset;
-            foreach (var file in entry.Files.Cast<NdsArchiveFileInfo>())
+            foreach (var file in entry.Files.Cast<IFileIdArchiveFileInfo>())
             {
                 bw.WriteString(file.FilePath.GetName(), Encoding.ASCII, true, false);
                 file.FileId = fileId++;
@@ -489,7 +495,7 @@ namespace plugin_nintendo.Archives
 
         public static IArchiveFileInfo CreateAfi(Stream input, int offset, int length, string fileName, int fileId)
         {
-            return new NdsArchiveFileInfo(new SubStream(input, offset, length), fileName, fileId);
+            return new FileIdArchiveFileInfo(new SubStream(input, offset, length), fileName, fileId);
         }
 
         public static IArchiveFileInfo CreateAfi(Stream input, int offset, int length, string fileName, OverlayEntry entry)

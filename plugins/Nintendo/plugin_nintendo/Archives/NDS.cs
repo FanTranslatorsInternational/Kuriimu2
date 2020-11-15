@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
@@ -212,7 +211,7 @@ namespace plugin_nintendo.Archives
 
             // Write rom files
             var filePosition = (iconOffset + iconSize + 0x1FF) & ~0x1FF;
-            foreach (var romFile in romFiles.Cast<NdsArchiveFileInfo>().OrderBy(x => x.FileId))
+            foreach (var romFile in romFiles.Cast<FileIdArchiveFileInfo>().OrderBy(x => x.FileId))
             {
                 output.Position = filePosition;
 
