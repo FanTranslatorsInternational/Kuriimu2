@@ -7,6 +7,7 @@ You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 ## Download
 You can download the newest build of Kuriimu2 in the "Actions" tab. Just select the newest successful build and download its artifact.<br>
+You need to be logged in at github to download artifacts from a successful build.
 Those builds are considered beta and can contain bugs and unfinished features.
 
 ## Usage
