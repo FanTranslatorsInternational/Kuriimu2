@@ -23,16 +23,16 @@ namespace plugin_capcom.Archives
         public bool IsCompressed => (size & 0x80000000) != 0;
     }
 
-    class Gk1Arc1ArchiveFileInfo : ArchiveFileInfo
+    class Gk2Arc1ArchiveFileInfo : ArchiveFileInfo
     {
         public Gk2Arc1Entry Entry { get; }
 
-        public Gk1Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry) : base(fileData, filePath)
+        public Gk2Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry) : base(fileData, filePath)
         {
             Entry = entry;
         }
 
-        public Gk1Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        public Gk2Arc1ArchiveFileInfo(Stream fileData, string filePath, Gk2Arc1Entry entry, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
         {
             Entry = entry;
         }

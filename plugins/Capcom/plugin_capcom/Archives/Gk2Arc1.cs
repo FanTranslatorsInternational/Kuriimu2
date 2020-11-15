@@ -50,7 +50,7 @@ namespace plugin_capcom.Archives
             var fileEntries = new List<Gk2Arc1Entry>();
 
             var filePosition = fileOffset;
-            foreach (var file in files.Cast<Gk1Arc1ArchiveFileInfo>())
+            foreach (var file in files.Cast<Gk2Arc1ArchiveFileInfo>())
             {
                 output.Position = filePosition;
 
@@ -78,12 +78,12 @@ namespace plugin_capcom.Archives
         private IArchiveFileInfo CreateAfi(Stream file, string fileName, Gk2Arc1Entry entry)
         {
             if (!entry.IsCompressed)
-                return new Gk1Arc1ArchiveFileInfo(file, fileName, entry);
+                return new Gk2Arc1ArchiveFileInfo(file, fileName, entry);
 
             file.Position = 0;
             var compression = NintendoCompressor.PeekCompressionMethod(file);
             var decompressedSize = NintendoCompressor.PeekDecompressedSize(file);
-            return new Gk1Arc1ArchiveFileInfo(file, fileName, entry, NintendoCompressor.GetConfiguration(compression), decompressedSize);
+            return new Gk2Arc1ArchiveFileInfo(file, fileName, entry, NintendoCompressor.GetConfiguration(compression), decompressedSize);
         }
     }
 }
