@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
@@ -52,7 +53,9 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 3. Create state from identified plugin
             var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
-            var state = plugin.CreatePluginState(subPluginManager);
+            var createResult = TryCreateState(plugin, subPluginManager, out var state);
+            if (!createResult.IsSuccessful)
+                return createResult;
 
             // 4. Create new state info
             var stateInfo = new StateInfo(plugin, state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
@@ -145,6 +148,29 @@ namespace Kore.Managers.Plugins.FileManagement
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;
+        }
+
+        /// <summary>
+        /// Try to create a new plugin state.
+        /// </summary>
+        /// <param name="plugin">The plugin from which to create a new state.</param>
+        /// <param name="pluginManager">The plugin manager to pass to the state creation.</param>
+        /// <param name="pluginState">The created state.</param>
+        /// <returns>If the creation was successful.</returns>
+        private LoadResult TryCreateState(IFilePlugin plugin, IPluginManager pluginManager, out IPluginState pluginState)
+        {
+            pluginState = null;
+
+            try
+            {
+                pluginState = plugin.CreatePluginState(pluginManager);
+            }
+            catch (Exception e)
+            {
+                return new LoadResult(e);
+            }
+
+            return new LoadResult(true);
         }
 
         /// <summary>
