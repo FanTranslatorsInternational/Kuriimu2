@@ -29,7 +29,7 @@ namespace plugin_level5._3DS.Archives
 
                 // Read hash block before the file data
                 var blockOffset = 0;
-                var entryHashes = (List<uint>)null;
+                var entryHashes = (IList<uint>)null;
                 var hashIdent = br.ReadInt16();
                 if (hashIdent == 0x64)
                 {

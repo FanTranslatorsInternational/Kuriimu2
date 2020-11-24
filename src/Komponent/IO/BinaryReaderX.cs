@@ -365,13 +365,20 @@ namespace Komponent.IO
 
         #region Read generic type
 
-        public T ReadType<T>()
+        public T ReadType<T>() => (T)ReadType(typeof(T));
+
+        public object ReadType(Type type)
         {
             var typeReader = new TypeReader();
-            return (T)typeReader.ReadType(this, typeof(T));
+            return typeReader.ReadType(this, type);
         }
 
-        public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadType<T>()).ToList();
+        public IList<T> ReadMultiple<T>(int count) => ReadMultipleInternal(count, typeof(T)).Cast<T>().ToArray();
+
+        public IList<object> ReadMultiple(int count, Type type) => ReadMultipleInternal(count, type).ToArray();
+
+        private IEnumerable<object> ReadMultipleInternal(int count, Type type) =>
+            Enumerable.Range(0, count).Select(_ => ReadType(type));
 
         #endregion
 
