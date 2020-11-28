@@ -22,7 +22,8 @@ namespace plugin_mt_framework.Archives
             using var br = new BinaryReaderX(input, true);
 
             // Determine byte order
-            br.ByteOrder = _byteOrder = br.ReadString(4) == "ARC\0" ? ByteOrder.LittleEndian : ByteOrder.BigEndian;
+            var magic = br.ReadString(4);
+            br.ByteOrder = _byteOrder = magic == "\0CRA" || magic == "\0SFH" ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
             input.Position -= 4;
 
             // Header
@@ -96,7 +97,7 @@ namespace plugin_mt_framework.Archives
             // Example file game.arc contains of at least one file "om120a" where compressed and uncompressed size are equal but the file is still compressed
             // the decompressed file is really the same size; comparing with other entries no clear differences were found, that would indicate a
             // compression flag
-            if (platform == Platform.NT)
+            if (platform == Platform.SWITCH)
                 return new MtArchiveFileInfo(file, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(platform));
 
             if (entry.CompSize != entry.GetDecompressedSize(platform))

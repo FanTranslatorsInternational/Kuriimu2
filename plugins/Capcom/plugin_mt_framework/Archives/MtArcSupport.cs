@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -53,10 +52,10 @@ namespace plugin_mt_framework.Archives
         {
             switch (platform)
             {
-                case Platform.CTR:
+                case Platform.PC_3DS:
                     return DecompSize & 0x00FFFFFF;
 
-                case Platform.PS3:
+                case Platform.PS_XBOX:
                     return DecompSize >> 3;
 
                 default:
@@ -68,11 +67,11 @@ namespace plugin_mt_framework.Archives
         {
             switch (platform)
             {
-                case Platform.CTR:
+                case Platform.PC_3DS:
                     DecompSize = (DecompSize & ~0x00FFFFFF) | size;
                     break;
 
-                case Platform.PS3:
+                case Platform.PS_XBOX:
                     DecompSize = (DecompSize & 0x00000007) | (size << 3);
                     break;
 
@@ -185,14 +184,9 @@ namespace plugin_mt_framework.Archives
 
     enum Platform
     {
-        // 3DS
-        CTR,
-
-        // Switch
-        NT,
-
-        // Sony PS3
-        PS3
+        PC_3DS,
+        SWITCH,
+        PS_XBOX
     }
 
     class MtArcSupport
@@ -203,14 +197,15 @@ namespace plugin_mt_framework.Archives
         {
             // Version 9 was only encountered in Nintendo Switch games
             if (header.version == 9)
-                return Platform.NT;
+                return Platform.SWITCH;
 
-            // Only the PS3 uses BigEndian
+            // PS and XBox system use BigEndian
             if (byteOrder == ByteOrder.BigEndian)
-                return Platform.PS3;
+                return Platform.PS_XBOX;
 
-            // Otherwise default to CTR
-            return Platform.CTR;
+            // Otherwise default to PC_3DS
+            // PC's also use LittleEndian
+            return Platform.PC_3DS;
         }
 
         public static string DetermineExtension(uint extensionHash)
