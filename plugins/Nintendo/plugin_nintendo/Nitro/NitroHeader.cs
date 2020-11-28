@@ -4,7 +4,7 @@ using System.Text;
 using Komponent.IO.Attributes;
 using Kontract.Models.IO;
 
-namespace plugin_nintendo.NitroModels
+namespace plugin_nintendo.Nitro
 {
     class NitroHeader
     {

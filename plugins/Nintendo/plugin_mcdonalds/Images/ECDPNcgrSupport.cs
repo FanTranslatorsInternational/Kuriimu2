@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Komponent.IO.Attributes;
+﻿using Komponent.IO.Attributes;
+using Kontract.Models.IO;
 
-namespace plugin_nintendo.Images
+namespace plugin_mcdonalds.Images
 {
     class NitroCharHeader
     {
@@ -29,5 +27,17 @@ namespace plugin_nintendo.Images
         public int unk1;
         public int paletteSize;
         public int colorsPerPalette;
+    }
+
+    class NitroHeader
+    {
+        [FixedLength(4)]
+        public string magic;
+
+        public ByteOrder byteOrder;
+        public short unk1;
+        public int sectionSize;
+        public short headerSize;
+        public short sectionCount;
     }
 }

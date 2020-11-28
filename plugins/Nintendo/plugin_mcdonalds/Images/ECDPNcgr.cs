@@ -1,23 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Kontract.Models.Image;
-using plugin_nintendo.Nitro;
 
-namespace plugin_nintendo.Images
+namespace plugin_mcdonalds.Images
 {
-    class Ncgr
+    class ECDPNcgr
     {
-        private static readonly int CharHeaderSize = Tools.MeasureType(typeof(NitroCharHeader));
-        private static readonly int TtlpHeaderSize = Tools.MeasureType(typeof(NitroTtlpHeader));
-
         private NitroHeader _ncgrHeader;
         private NitroHeader _nclrHeader;
         private NitroCharHeader _charHeader;
         private NitroTtlpHeader _ttlpHeader;
+        private byte[] _palette;
 
         public ImageInfo Load(Stream ncgrStream, Stream nclrStream)
         {
@@ -35,7 +34,18 @@ namespace plugin_nintendo.Images
             _ttlpHeader = nclrBr.ReadType<NitroTtlpHeader>();
 
             // Read palette data
-            var paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
+            byte[] paletteData;
+            if (GetBitDepth(_charHeader.imageFormat) == 4)
+            {
+                nclrBr.BaseStream.Position += 0xE * 0x20;
+                paletteData = nclrBr.ReadBytes(0x20);
+
+                // Backup complete palette data
+                nclrBr.BaseStream.Position -= 0xF * 20;
+                _palette = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
+            }
+            else
+                paletteData = nclrBr.ReadBytes(_ttlpHeader.paletteSize);
 
             // Create image
             var dataLength = _charHeader.tileCountX < 0 ? _charHeader.tileDataSize : _charHeader.tileCountX * _charHeader.tileCountY;
