@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_hunex", "plugin_hunex\plugin_hunex.csproj", "{588E8778-8ACC-44B8-ADF8-C88008B49AEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{588E8778-8ACC-44B8-ADF8-C88008B49AEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{588E8778-8ACC-44B8-ADF8-C88008B49AEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{588E8778-8ACC-44B8-ADF8-C88008B49AEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{588E8778-8ACC-44B8-ADF8-C88008B49AEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {377EDBDC-64B1-402C-BFF0-7503C52E5496}
+	EndGlobalSection
+EndGlobal
