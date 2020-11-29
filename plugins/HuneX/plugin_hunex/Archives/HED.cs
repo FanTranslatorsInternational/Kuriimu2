@@ -10,6 +10,7 @@ using Kontract.Models.IO;
 
 namespace plugin_hunex.Archives
 {
+    // Specifications: https://github.com/Hintay/PS-HuneX_Tools/tree/master/Specifications
     class HED
     {
         public IList<IArchiveFileInfo> Load(Stream hedStream, Stream mrgStream, Stream namStream = null)

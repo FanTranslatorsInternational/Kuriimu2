@@ -7,6 +7,7 @@ using Kontract.Models.Archive;
 
 namespace plugin_hunex.Archives
 {
+    // Specifications: https://github.com/Hintay/PS-HuneX_Tools/tree/master/Specifications
     class MRG
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(MRGHeader));
