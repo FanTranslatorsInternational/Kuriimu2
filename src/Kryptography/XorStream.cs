@@ -138,7 +138,7 @@ namespace Kryptography
                 buffer[offset + j] = (byte)(buffer[offset + j] ^ xorBuffer[j]);
         }
 
-        private void FillXorBuffer(byte[] fill, long pos, byte[] key)
+        protected virtual void FillXorBuffer(byte[] fill, long pos, byte[] key)
         {
             var written = 0;
             while (written < fill.Length)
