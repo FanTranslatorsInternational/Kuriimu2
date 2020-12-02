@@ -12,8 +12,8 @@ namespace Kryptography
         {
             base.FillXorBuffer(fill, pos, key);
 
-            for (var i = pos; i < fill.Length + pos; i++)
-                fill[i] ^= (byte)i;
+            for (var i = 0; i < fill.Length; i++)
+                fill[i] ^= (byte)(pos + i);
         }
     }
 }
