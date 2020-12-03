@@ -49,7 +49,7 @@ namespace Komponent.IO.BinarySupport
             }
             else if (Tools.IsList(readType))
             {
-                returnValue = ReadTypeList(br, readType, fieldAttributes, storage);
+                returnValue = ReadTypeList(br, readType, fieldAttributes, storage, fieldInfo?.Name);
             }
             else if (readType.IsClass || Tools.IsStruct(readType))
             {
@@ -100,7 +100,7 @@ namespace Komponent.IO.BinarySupport
             return null;
         }
 
-        private object ReadTypeList(BinaryReaderX br, Type readType, MemberAttributeInfo fieldAttributes, ValueStorage storage)
+        private object ReadTypeList(BinaryReaderX br, Type readType, MemberAttributeInfo fieldAttributes, ValueStorage storage, string listFieldName)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
             if (!attributeValues.HasValue)
@@ -123,7 +123,7 @@ namespace Komponent.IO.BinarySupport
 
             for (var i = 0; i < length; i++)
             {
-                var elementValue = ReadTypeInternal(br, elementType, storage.CreateScope($"[{i}]"));
+                var elementValue = ReadTypeInternal(br, elementType, storage.CreateScope($"{listFieldName}[{i}]"));
                 if (list.IsFixedSize)
                     list[i] = elementValue;
                 else

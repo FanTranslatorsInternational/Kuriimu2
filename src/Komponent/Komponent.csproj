@@ -31,6 +31,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="IO\BinarySupport\ValueStorage.cs~RF1f96c512.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
     </AssemblyAttribute>
