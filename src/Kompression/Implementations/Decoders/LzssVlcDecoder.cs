@@ -5,9 +5,14 @@ namespace Kompression.Implementations.Decoders
 {
     public class LzssVlcDecoder : IDecoder
     {
+        public static int ReadDecopressedSize(Stream input)
+        {
+            return ReadVlc(input);
+        }
+
         public void Decode(Stream input, Stream output)
         {
-            var decompressedSize = ReadVlc(input);
+            var decompressedSize = ReadDecopressedSize(input);
             ReadVlc(input); // filetype maybe???
             ReadVlc(input); // compression type = 1 (LZSS?)
 
@@ -34,7 +39,7 @@ namespace Kompression.Implementations.Decoders
             }
         }
 
-        private int ReadVlc(Stream input, int initialValue = 0)
+        private static int ReadVlc(Stream input, int initialValue = 0)
         {
             var result = initialValue >> 1;
             while (initialValue % 2 == 0)
