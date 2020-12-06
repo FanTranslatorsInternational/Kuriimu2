@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
-using Kontract.Models.IO;
 
 namespace plugin_sony.Archives
 {
@@ -60,6 +58,7 @@ namespace plugin_sony.Archives
             }
         }
 
+        // TODO: Move this functionality into BinaryReaderX
         private byte PeekByte(BinaryReaderX br, long offset)
         {
             var bkPos = br.BaseStream.Position;

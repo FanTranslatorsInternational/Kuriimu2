@@ -214,13 +214,13 @@ namespace plugin_sony.Archives
     {
         public IsoDirEntry Entry { get; }
 
-        public Ps2DiscArchiveFileInfo(Stream fileData, string filePath,IsoDirEntry entry) : 
+        public Ps2DiscArchiveFileInfo(Stream fileData, string filePath, IsoDirEntry entry) :
             base(fileData, GetFileName(filePath))
         {
             Entry = entry;
         }
 
-        public Ps2DiscArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) : 
+        public Ps2DiscArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
             base(fileData, GetFileName(filePath), configuration, decompressedSize)
         {
         }
