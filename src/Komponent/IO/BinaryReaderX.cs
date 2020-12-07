@@ -277,6 +277,11 @@ namespace Komponent.IO
             return encoding.GetString(ReadBytes(length));
         }
 
+        #endregion
+
+        #region Peeks
+
+        // String
         public string PeekString(int length = 4)
         {
             return PeekString(0, length, _encoding);
@@ -302,6 +307,42 @@ namespace Komponent.IO
             BaseStream.Seek(startOffset, SeekOrigin.Begin);
 
             return encoding.GetString(bytes);
+        }
+
+        // Byte
+        public byte PeekByte(long offset)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadByte();
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public byte[] PeekBytes(int length = 1, long offset = 0)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadBytes(length);
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public ushort PeekUInt16()
+        {
+            var startOffset = BaseStream.Position;
+
+            var value = ReadUInt16();
+
+            BaseStream.Position = startOffset;
+
+            return value;
         }
 
         #endregion
@@ -435,6 +476,20 @@ namespace Komponent.IO
 
             var b = ReadByte();
             while (b != stop && BaseStream.Position < BaseStream.Length)
+            {
+                result.Add(b);
+                b = ReadByte();
+            }
+
+            return result.ToArray();
+        }
+
+        public byte[] ReadBytesUntil(params byte[] stop)
+        {
+            var result = new List<byte>();
+
+            byte b = ReadByte();
+            while (stop.All(s => s != b) && BaseStream.Position < BaseStream.Length)
             {
                 result.Add(b);
                 b = ReadByte();
