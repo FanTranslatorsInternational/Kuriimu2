@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
@@ -15,7 +12,7 @@ namespace plugin_sony.Archives.PSARC
     /// <summary>
     /// 
     /// </summary>
-    class PsarcState : IArchiveState, ILoadFiles, ISaveFiles
+    class PsarcState : IArchiveState, ILoadFiles
     {
         /// <summary>
         /// 

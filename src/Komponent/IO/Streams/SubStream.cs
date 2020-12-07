@@ -39,22 +39,13 @@ namespace Komponent.IO.Streams
 
         public override void Flush() => _baseStream.Flush();
 
-        public override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin) => origin switch
         {
-            switch (origin)
-            {
-                case SeekOrigin.Begin: 
-                    return Position = offset;
-
-                case SeekOrigin.Current: 
-                    return Position += offset;
-
-                case SeekOrigin.End: 
-                    return Position = _length + offset;
-            }
-
-            throw new ArgumentException("Origin is invalid.");
-        }
+            SeekOrigin.Begin => Position = offset,
+            SeekOrigin.Current => Position += offset,
+            SeekOrigin.End => Position = _length + offset,
+            _ => throw new ArgumentException("Origin is invalid."),
+        };
 
         public override int Read(byte[] buffer, int offset, int count)
         {

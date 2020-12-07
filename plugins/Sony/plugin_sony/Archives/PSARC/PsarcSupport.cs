@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Komponent.IO.Attributes;
+﻿using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
 
 namespace plugin_sony.Archives.PSARC
@@ -10,63 +8,17 @@ namespace plugin_sony.Archives.PSARC
     /// </summary>
     public class PsarcFileInfo : ArchiveFileInfo
     {
-        public int ID { get; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public override long FileSize => ((PsarcBlockStream)FileData).Entry.UncompressedSize;
 
-        public Entry Entry { get; set; }
-
-        public int BlockSize { get; set; }
-
-        public List<int> BlockSizes { get; set; } = new List<int>();
-
-        //public override Stream FileData
-        //{
-        //    get
-        //    {
-        //        if (State != ArchiveFileState.Archived) return base.FileData;
-
-        //        var ms = new MemoryStream();
-        //        using (var br = new BinaryReaderX(base.FileData, ByteOrder.BigEndian))
-        //        {
-        //            br.BaseStream.Position = Entry.Offset;
-
-        //            for (var i = Entry.FirstBlockIndex; i < Entry.FirstBlockIndex + Math.Ceiling((double)Entry.UncompressedSize / BlockSize); i++)
-        //            {
-        //                if (BlockSizes[i] == 0)
-        //                    ms.Write(br.ReadBytes(BlockSize), 0, BlockSize);
-        //                else
-        //                {
-        //                    var compression = br.ReadUInt16();
-        //                    br.BaseStream.Position -= 2;
-
-        //                    var blockStart = br.BaseStream.Position;
-        //                    if (compression == PSARC.ZLibHeader)
-        //                    {
-        //                        br.BaseStream.Position += 2;
-        //                        using (var ds = new DeflateStream(br.BaseStream, CompressionMode.Decompress, true))
-        //                            ds.CopyTo(ms);
-        //                        br.BaseStream.Position = blockStart + BlockSizes[i];
-        //                    }
-        //                    // TODO: Add LZMA decompression support
-        //                    else
-        //                        ms.Write(br.ReadBytes(BlockSizes[i]), 0, BlockSizes[i]);
-        //                }
-        //            }
-        //        }
-        //        ms.Position = 0;
-
-        //        return ms;
-        //    }
-        //}
-
-        public Stream BaseFileData => base.FileData;
-
-        //public override long FileSize => Entry.UncompressedSize;
-
-        public PsarcFileInfo(int id, Entry entry, Stream fileData, string filePath) : base(fileData, filePath)
-        {
-            ID = id;
-            Entry = entry;
-        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileData"></param>
+        /// <param name="filePath"></param>
+        public PsarcFileInfo(PsarcBlockStream fileData, string filePath) : base(fileData, filePath) { }
     }
 
     /// <summary>
@@ -103,6 +55,9 @@ namespace plugin_sony.Archives.PSARC
         public long Offset; // 40 bit (5 bytes)
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public enum ArchiveFlags
     {
         RelativePaths = 0,

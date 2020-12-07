@@ -32,7 +32,7 @@ namespace plugin_sony.Archives
             var directoryOffset = directory.body.lbaExtent.Value * SectorSize_;
             var internalOffset = 0x60;  // Skip self entry and parent entry directly
 
-            while (PeekByte(br, directoryOffset + internalOffset) != 0)
+            while (br.PeekByte(directoryOffset + internalOffset) != 0)
             {
                 br.BaseStream.Position = directoryOffset + internalOffset;
 
@@ -56,19 +56,6 @@ namespace plugin_sony.Archives
                 var subStream = new SubStream(br.BaseStream, entry.body.lbaExtent.Value * SectorSize_, entry.body.sizeExtent.Value);
                 yield return new Ps2DiscArchiveFileInfo(subStream, Path.Combine(currentPath, entry.body.fileName), entry);
             }
-        }
-
-        // TODO: Move this functionality into BinaryReaderX
-        private byte PeekByte(BinaryReaderX br, long offset)
-        {
-            var bkPos = br.BaseStream.Position;
-
-            br.BaseStream.Position = offset;
-            var value = br.ReadByte();
-
-            br.BaseStream.Position = bkPos;
-
-            return value;
         }
     }
 }
