@@ -132,27 +132,7 @@ namespace Kontract.Models.Archive
         /// <returns>The size of the file written.</returns>
         public virtual long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            Stream dataToCopy;
-            if (UsesCompression)
-            {
-                if (!compress)
-                {
-                    // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
-                    // get decompressed data
-                    dataToCopy = _decompressedStream.Value;
-                }
-                else
-                {
-                    // Otherwise compress data or use the original compressed data, if never set
-                    dataToCopy = _hasSetFileData ?
-                        CompressStream(FileData, _configuration) :
-                        GetBaseStream();
-                }
-            }
-            else
-            {
-                dataToCopy = GetBaseStream();
-            }
+            var dataToCopy = GetFinalStream(compress);
 
             progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
@@ -170,6 +150,30 @@ namespace Kontract.Models.Archive
         public override string ToString()
         {
             return FilePath.FullName;
+        }
+
+        /// <summary>
+        /// Get the final stream of FileData.
+        ///     This is the compressed stream, if a compression is set,
+        ///     or the FileData stream.
+        /// </summary>
+        /// <returns>The final stream.</returns>
+        protected Stream GetFinalStream(bool compress = true)
+        {
+            if (!UsesCompression) 
+                return GetBaseStream();
+
+            if (!compress)
+            {
+                // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
+                // get decompressed data
+                return _decompressedStream.Value;
+            }
+
+            // Otherwise compress data or use the original compressed data, if never set
+            return _hasSetFileData ?
+                CompressStream(FileData, _configuration) :
+                GetBaseStream();
         }
 
         /// <summary>

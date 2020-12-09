@@ -11,6 +11,15 @@ namespace Kryptography.Hash.Fnv
         private const uint Initial = 0x811c9dc5;
         private const uint Prime = 0x1000193;
 
+        public static Fnv1a Create()
+        {
+            return new Fnv1a();
+        }
+
+        private Fnv1a()
+        {
+        }
+
         public byte[] Compute(byte[] input)
         {
             var result = ComputeInternal(input, 0, input.Length, Initial);
@@ -48,7 +57,7 @@ namespace Kryptography.Hash.Fnv
             var returnBuffer = new byte[4];
 
 #if NET_CORE_31
-            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, (ushort)result);
+            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
 #else
             returnBuffer[0] = (byte) (result >> 24);
             returnBuffer[1] = (byte) (result >> 16);

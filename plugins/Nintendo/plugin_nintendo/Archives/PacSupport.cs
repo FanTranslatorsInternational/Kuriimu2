@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System.Buffers.Binary;
+using System.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+using Kryptography.Hash.Crc;
 
 namespace plugin_nintendo.Archives
 {
@@ -40,7 +42,7 @@ namespace plugin_nintendo.Archives
     class PacEntry
     {
         public int stringOffset;
-        public uint fnvhash;
+        public uint fnvHash;
         public int extensionOffset;
         public uint extensionFnvHash;
 
@@ -56,12 +58,22 @@ namespace plugin_nintendo.Archives
 
     class PacArchiveFileInfo : ArchiveFileInfo
     {
+        private static Crc32 Crc = Crc32.Create(Crc32Formula.Normal);
+
         public PacEntry Entry { get; }
 
         public PacArchiveFileInfo(Stream fileData, string filePath, PacEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
             base(fileData, filePath, configuration, decompressedSize)
         {
             Entry = entry;
+        }
+
+        public uint GetHash()
+        {
+            var finalStream = GetFinalStream();
+            finalStream.Position = 0;
+
+            return BinaryPrimitives.ReadUInt32BigEndian(Crc.Compute(finalStream));
         }
     }
 }
