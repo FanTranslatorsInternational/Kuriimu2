@@ -7,7 +7,6 @@ using Kontract.Models.Archive;
 
 namespace plugin_tri_ace.Archives
 {
-    // TODO: Test plugin
     // Game: Beyond The Labyrinth
     class Pack
     {
