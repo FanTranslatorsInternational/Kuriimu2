@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -47,7 +48,10 @@ namespace plugin_konami.Archives
                 var subStream = new SubStream(input, offset, size);
                 var fileName = $"{i:00000000}{NlpSupport.DetermineExtension(meta)}";
 
-                result.Add(new NlpArchiveFileInfo(subStream, fileName, meta, blockOffset.metaId));
+                result.Add(new NlpArchiveFileInfo(subStream, fileName, meta, blockOffset.metaId)
+                {
+                    PluginIds = meta.magic == "PAK " ? new[] { Guid.Parse("a4615fdf-f408-4d22-a3fe-17f082f974e0") } : null
+                });
             }
 
             return result;
