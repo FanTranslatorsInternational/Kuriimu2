@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Kompression.Implementations.PriceCalculators;
 using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
@@ -31,7 +32,7 @@ namespace Kompression.Implementations.Encoders
         {
             var block = new Block();
 
-            foreach (var match in matches)
+            foreach (var match in matches.ToArray())
             {
                 if (input.Position < match.Position)
                     WriteRawData(input, output, block, match.Position - input.Position);

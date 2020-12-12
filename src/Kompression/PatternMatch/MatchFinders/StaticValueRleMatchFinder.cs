@@ -20,7 +20,7 @@ namespace Kompression.PatternMatch.MatchFinders
             FindOptions = options;
         }
 
-        public void PreProcess(byte[] input, int startPosition)
+        public void PreProcess(byte[] input)
         {
         }
 

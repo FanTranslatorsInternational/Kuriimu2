@@ -43,7 +43,7 @@ namespace Kompression.PatternMatch.MatchParser
         private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
         {
             foreach (var finder in _finders)
-                finder.PreProcess(input, startPosition);
+                finder.PreProcess(input);
 
             var history = new PositionElement[input.Length - startPosition + 1];
             for (var i = 0; i < history.Length; i++)

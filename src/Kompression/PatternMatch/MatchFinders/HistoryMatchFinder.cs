@@ -31,9 +31,9 @@ namespace Kompression.PatternMatch.MatchFinders
         }
 
         /// <inheritdoc />
-        public void PreProcess(byte[] input, int startPosition)
+        public void PreProcess(byte[] input)
         {
-            _state = new HistoryMatchState(input, startPosition, FindLimitations, FindOptions.UnitSize);
+            _state = new HistoryMatchState(input, FindLimitations, FindOptions.UnitSize);
         }
 
         /// <inheritdoc />
