@@ -58,7 +58,7 @@ namespace plugin_nintendo.Archives
 
     class PacArchiveFileInfo : ArchiveFileInfo
     {
-        private static Crc32 Crc = Crc32.Create(Crc32Formula.Normal);
+        private static Crc32 Crc = Crc32.Default;
 
         public PacEntry Entry { get; }
 
