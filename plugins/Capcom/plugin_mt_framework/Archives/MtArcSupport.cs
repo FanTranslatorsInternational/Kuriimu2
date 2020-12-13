@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -7,11 +8,14 @@ using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
+using Kryptography.Blowfish;
 using Kryptography.Hash;
 using Kryptography.Hash.Crc;
 
 namespace plugin_mt_framework.Archives
 {
+    #region Structures
+
     class MtHeader
     {
         [FixedLength(4)]
@@ -20,8 +24,6 @@ namespace plugin_mt_framework.Archives
         public short version;
         public short entryCount;
     }
-
-    #region Entry
 
     interface IMtEntry
     {
@@ -165,6 +167,42 @@ namespace plugin_mt_framework.Archives
 
     #endregion
 
+    #region Streams
+
+    class MtBlowfishStream : BlowfishStream
+    {
+        public MtBlowfishStream(Stream baseStream, byte[] key) : base(baseStream, key)
+        {
+        }
+
+        protected override (uint, uint) SplitBlock(byte[] block)
+        {
+            var block1 = new byte[4];
+            var block2 = new byte[4];
+            Buffer.BlockCopy(block, 0, block1, 0, 4);
+            Buffer.BlockCopy(block, 4, block2, 0, 4);
+
+            var left = BinaryPrimitives.ReadUInt32LittleEndian(block1);
+            var right = BinaryPrimitives.ReadUInt32LittleEndian(block2);
+
+            return (left, right);
+        }
+
+        protected override void MergeBlock(uint left, uint right, byte[] block)
+        {
+            var block1 = new byte[4];
+            var block2 = new byte[4];
+            BinaryPrimitives.WriteUInt32LittleEndian(block1, left);
+            BinaryPrimitives.WriteUInt32LittleEndian(block2, right);
+
+            // Join blocks
+            Buffer.BlockCopy(block1, 0, block, 0, 4);
+            Buffer.BlockCopy(block2, 0, block, 4, 4);
+        }
+    }
+
+    #endregion
+
     class MtArchiveFileInfo : ArchiveFileInfo
     {
         public IMtEntry Entry { get; }
@@ -180,6 +218,11 @@ namespace plugin_mt_framework.Archives
         {
             Entry = entry;
         }
+
+        public Stream GetFinalStream()
+        {
+            return base.GetFinalStream();
+        }
     }
 
     enum Platform
@@ -191,7 +234,7 @@ namespace plugin_mt_framework.Archives
 
     class MtArcSupport
     {
-        private static readonly IHash Hash = Crc32.Create(Crc32Formula.Reflected);
+        private static readonly IHash Hash = Crc32.Default;
 
         public static Platform DeterminePlatform(ByteOrder byteOrder, MtHeader header)
         {
