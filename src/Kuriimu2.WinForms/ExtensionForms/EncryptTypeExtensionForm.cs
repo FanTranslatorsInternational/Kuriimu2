@@ -8,6 +8,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
         {
             var cipherStream = cipherStreamFactory.CreateCipherStream(output);
             input.CopyTo(cipherStream);
+            cipherStream.Flush();
         }
     }
 }

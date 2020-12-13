@@ -104,7 +104,8 @@ namespace Kuriimu2.WinForms.ExtensionForms
                 new ExtensionType("PsLz",true),
                 new ExtensionType("IrLz",true),
                 new ExtensionType("Crilayla",true),
-                new ExtensionType("Iecp",true)
+                new ExtensionType("Iecp",true),
+                new ExtensionType("ZLib",true)
             };
         }
 
@@ -230,6 +231,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
 
                 case "Iecp":
                     return Compressions.Iecp.Build();
+
+                case "ZLib":
+                    return Compressions.ZLib.Build();
 
                 // TODO: Plugin extensibility?
                 default:

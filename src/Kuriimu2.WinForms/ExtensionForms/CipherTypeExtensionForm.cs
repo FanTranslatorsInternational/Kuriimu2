@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using Kryptography;
 using Kryptography.AES;
+using Kryptography.Blowfish;
 using Kuriimu2.WinForms.ExtensionForms.Models;
 using Kuriimu2.WinForms.Extensions;
 
@@ -79,6 +80,8 @@ namespace Kuriimu2.WinForms.ExtensionForms
             {
                 new ExtensionType("Xor",true,
                     new ExtensionTypeParameter("Key",typeof(string))),
+                new ExtensionType("Positional Xor",true,
+                    new ExtensionTypeParameter("Key",typeof(string))),
                 new ExtensionType("Rot",true,
                     new ExtensionTypeParameter("Rotation",typeof(byte))),
                 new ExtensionType("AES ECB",true,
@@ -95,7 +98,9 @@ namespace Kuriimu2.WinForms.ExtensionForms
                     new ExtensionTypeParameter("SectorId", typeof(string)),
                     new ExtensionTypeParameter("AdvanceSector", typeof(bool)),
                     new ExtensionTypeParameter("LESectorId", typeof(bool)),
-                    new ExtensionTypeParameter("SectorSize", typeof(int)))
+                    new ExtensionTypeParameter("SectorSize", typeof(int))),
+                new ExtensionType("Blowfish",true,
+                    new ExtensionTypeParameter("Key", typeof(string)))
             };
         }
 
@@ -110,6 +115,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
             {
                 case "Xor":
                     return new XorStream(input,
+                        selectedExtension.GetParameterValue<string>("Key").Hexlify());
+
+                case "Positional Xor":
+                    return new PositionalXorStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
 
                 case "Rot":
@@ -138,6 +147,10 @@ namespace Kuriimu2.WinForms.ExtensionForms
                         selectedExtension.GetParameterValue<bool>("AdvanceSector"),
                         selectedExtension.GetParameterValue<bool>("LESectorId"),
                         selectedExtension.GetParameterValue<int>("SectorSize"));
+
+                case "Blowfish":
+                    return new BlowfishStream(input,
+                        selectedExtension.GetParameterValue<string>("Key").Hexlify());
 
                 // TODO: Plugin extensibility?
                 // TODO: Add nintendo NCA stream stuff
