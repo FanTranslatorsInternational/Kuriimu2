@@ -291,9 +291,9 @@ namespace Kryptography.Blowfish
         /// <param name="block">The 64 bit block to decrypt</param>
         private void BlockDecrypt(byte[] block)
         {
-            SetBlock(block);
+            (_left, _right) = SplitBlock(block);
             Decipher();
-            GetBlock(block);
+            MergeBlock(_left, _right, block);
         }
 
         /// <summary>
@@ -338,9 +338,9 @@ namespace Kryptography.Blowfish
         /// <param name="block">The 64 bit block to decrypt</param>
         private void BlockEncrypt(byte[] block)
         {
-            SetBlock(block);
+            (_left, _right) = SplitBlock(block);
             Encipher();
-            GetBlock(block);
+            MergeBlock(_left, _right, block);
         }
 
         /// <summary>
@@ -578,7 +578,8 @@ namespace Kryptography.Blowfish
         /// Splits the block into the two uint values
         /// </summary>
         /// <param name="block">the 64 bit block to setup</param>
-        private void SetBlock(byte[] block)
+        /// <returns>Left and right part of the given block.</returns>
+        protected virtual (uint, uint) SplitBlock(byte[] block)
         {
             var block1 = new byte[4];
             var block2 = new byte[4];
@@ -601,22 +602,26 @@ namespace Kryptography.Blowfish
 
             // Get big endian uint from blocks
 #if NET_CORE_31
-            _left = BinaryPrimitives.ReadUInt32BigEndian(block1);
-            _right = BinaryPrimitives.ReadUInt32BigEndian(block2);
+            var left = BinaryPrimitives.ReadUInt32BigEndian(block1);
+            var right = BinaryPrimitives.ReadUInt32BigEndian(block2);
 #else
             Array.Reverse(block1);
             Array.Reverse(block2);
-            _left = BitConverter.ToUInt32(block1, 0);
-            _right = BitConverter.ToUInt32(block2, 0);
+            var left = BitConverter.ToUInt32(block1, 0);
+            var right = BitConverter.ToUInt32(block2, 0);
 #endif
             //}
+
+            return (left, right);
         }
 
         /// <summary>
         /// Converts the two uint values into a 64 bit block
         /// </summary>
-        /// <param name="block">64 bit buffer to receive the block</param>
-        private void GetBlock(byte[] block)
+        /// <param name="left">The left value.</param>
+        /// <param name="right">The right value</param>
+        /// <param name="block">64 bit buffer to receive the merged block block</param>
+        protected virtual void MergeBlock(uint left, uint right, byte[] block)
         {
             var block1 = new byte[4];
             var block2 = new byte[4];
@@ -635,11 +640,11 @@ namespace Kryptography.Blowfish
 
             // Write big endian uint to blocks
 #if NET_CORE_31
-            BinaryPrimitives.WriteUInt32BigEndian(block1, _left);
-            BinaryPrimitives.WriteUInt32BigEndian(block2, _right);
+            BinaryPrimitives.WriteUInt32BigEndian(block1, left);
+            BinaryPrimitives.WriteUInt32BigEndian(block2, right);
 #else
-            block1 = BitConverter.GetBytes(_left);
-            block2 = BitConverter.GetBytes(_right);
+            block1 = BitConverter.GetBytes(left);
+            block2 = BitConverter.GetBytes(right);
             Array.Reverse(block1);
             Array.Reverse(block2);
 #endif
