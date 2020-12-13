@@ -77,6 +77,7 @@ namespace Kryptography.AES
             if (_internalLength % BlockSize <= 0)
                 return;
 
+            var thisBkPos = Position;
             Position = Length / BlockSize * BlockSize;
 
             var bkPos = _baseStream.Position;
@@ -85,7 +86,7 @@ namespace Kryptography.AES
             _baseStream.Position = bkPos;
 
             _internalLength = _baseStream.Length;
-            Position += BlockSize;
+            Position = thisBkPos;
 
             Array.Clear(_lastBlockBuffer, 0, BlockSize);
 

@@ -72,7 +72,9 @@ namespace Komponent.IO.Streams
         {
             if (!CanWrite) throw new NotSupportedException("Write is not supported.");
             if (Position >= _length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
-            if (_length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
+
+            // Cap data to write at length, instead of throwing an exception for too much data
+            count = (int)Math.Min(_length - Position, count);
 
             var restore = _baseStream.Position;
 

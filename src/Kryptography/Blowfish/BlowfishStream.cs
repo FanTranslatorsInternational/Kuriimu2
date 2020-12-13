@@ -36,6 +36,7 @@ namespace Kryptography.Blowfish
             if (_internalLength % BlockSize <= 0)
                 return;
 
+            var thisBkPos = Position;
             Position = Length / BlockSize * BlockSize;
 
             var bkPos = _baseStream.Position;
@@ -44,7 +45,7 @@ namespace Kryptography.Blowfish
             _baseStream.Position = bkPos;
 
             _internalLength = _baseStream.Length;
-            Position += BlockSize;
+            Position = thisBkPos;
 
             Array.Clear(_lastBlockBuffer, 0, BlockSize);
 
@@ -123,7 +124,8 @@ namespace Kryptography.Blowfish
 
             // Pad internal buffer
             var padding = BlockSize - (Position - lowPos + count) % BlockSize;
-            for (var i = 0; i < padding; i++) internalBuffer[Position - lowPos + count + i] = (byte)padding;
+            if (padding < BlockSize)
+                for (var i = 0; i < padding; i++) internalBuffer[Position - lowPos + count + i] = (byte)padding;
 
             // Encrypt buffer
             Encrypt(internalBuffer, internalBuffer.Length);
