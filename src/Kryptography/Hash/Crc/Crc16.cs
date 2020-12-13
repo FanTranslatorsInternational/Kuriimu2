@@ -10,17 +10,7 @@ namespace Kryptography.Hash.Crc
 {
     public class Crc16 : IHash
     {
-        public static Crc16 Create(Crc16Formula formula)
-        {
-            switch (formula)
-            {
-                case Crc16Formula.X25:
-                    return new Crc16(0x8408, 0xFFFF, 0xFFFF);
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        public static Crc16 X25 => new Crc16(0x8408, 0xFFFF, 0xFFFF);
 
         private readonly int _polynomial;
         private readonly int _initial;
