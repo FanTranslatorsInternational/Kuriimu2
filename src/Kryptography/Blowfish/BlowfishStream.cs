@@ -586,20 +586,6 @@ namespace Kryptography.Blowfish
             Buffer.BlockCopy(block, 0, block1, 0, 4);
             Buffer.BlockCopy(block, 4, block2, 0, 4);
 
-            //split the block
-            //if (mtMethod)
-            //{
-            //    xl_par = BitConverter.ToUInt32(block1, 0);
-            //    xr_par = BitConverter.ToUInt32(block2, 0);
-            //}
-            //else if (nonStandardMethod)
-            //{
-            //    xr_par = BitConverter.ToUInt32(block1, 0);
-            //    xl_par = BitConverter.ToUInt32(block2, 0);
-            //}
-            //else
-            //{
-
             // Get big endian uint from blocks
 #if NET_CORE_31
             var left = BinaryPrimitives.ReadUInt32BigEndian(block1);
@@ -610,7 +596,6 @@ namespace Kryptography.Blowfish
             var left = BitConverter.ToUInt32(block1, 0);
             var right = BitConverter.ToUInt32(block2, 0);
 #endif
-            //}
 
             return (left, right);
         }
@@ -625,18 +610,6 @@ namespace Kryptography.Blowfish
         {
             var block1 = new byte[4];
             var block2 = new byte[4];
-            //if (mtMethod)
-            //{
-            //    block1 = BitConverter.GetBytes(xl_par);
-            //    block2 = BitConverter.GetBytes(xr_par);
-            //}
-            //else if (nonStandardMethod)
-            //{
-            //    block1 = BitConverter.GetBytes(xr_par);
-            //    block2 = BitConverter.GetBytes(xl_par);
-            //}
-            //else
-            //{
 
             // Write big endian uint to blocks
 #if NET_CORE_31
@@ -648,7 +621,6 @@ namespace Kryptography.Blowfish
             Array.Reverse(block1);
             Array.Reverse(block2);
 #endif
-            //}
 
             // Join blocks
             Buffer.BlockCopy(block1, 0, block, 0, 4);
