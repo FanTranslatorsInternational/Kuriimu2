@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2.EtoForms", "src\Kuriimu2.EtoForms\Kuriimu2.EtoForms\Kuriimu2.EtoForms.csproj", "{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2.EtoForms.Gtk", "src\Kuriimu2.EtoForms\Kuriimu2.EtoForms.Gtk\Kuriimu2.EtoForms.Gtk.csproj", "{01347AC2-B3BC-4C8D-B34B-2CC0F085DBB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2.EtoForms.Mac", "src\Kuriimu2.EtoForms\Kuriimu2.EtoForms.Mac\Kuriimu2.EtoForms.Mac.csproj", "{E297BD13-FDF6-46C0-BE01-C6AF04D42990}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kuriimu2.EtoForms.Wpf", "src\Kuriimu2.EtoForms\Kuriimu2.EtoForms.Wpf\Kuriimu2.EtoForms.Wpf.csproj", "{20046161-F8C6-4048-B6C3-E0F664ED8DDF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D611AC8F-E230-4267-9CAC-E0FDA9C45FFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01347AC2-B3BC-4C8D-B34B-2CC0F085DBB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01347AC2-B3BC-4C8D-B34B-2CC0F085DBB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01347AC2-B3BC-4C8D-B34B-2CC0F085DBB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01347AC2-B3BC-4C8D-B34B-2CC0F085DBB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E297BD13-FDF6-46C0-BE01-C6AF04D42990}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E297BD13-FDF6-46C0-BE01-C6AF04D42990}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E297BD13-FDF6-46C0-BE01-C6AF04D42990}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E297BD13-FDF6-46C0-BE01-C6AF04D42990}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20046161-F8C6-4048-B6C3-E0F664ED8DDF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20046161-F8C6-4048-B6C3-E0F664ED8DDF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20046161-F8C6-4048-B6C3-E0F664ED8DDF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20046161-F8C6-4048-B6C3-E0F664ED8DDF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3FA5CAAD-AE7C-42CD-A73A-DA636E48A403}
+	EndGlobalSection
+EndGlobal
