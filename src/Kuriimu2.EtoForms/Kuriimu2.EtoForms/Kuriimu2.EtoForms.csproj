@@ -3,9 +3,29 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Images\menu-delete.png" />
+    <None Remove="Images\menu-save-as.png" />
+    <None Remove="Images\menu-save.png" />
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Images\menu-delete.png" />
+    <EmbeddedResource Include="Images\menu-save-as.png" />
+    <EmbeddedResource Include="Images\menu-save.png" />
+    <EmbeddedResource Include="Resources\version.json" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\..\Kore\Kore.csproj" />
   </ItemGroup>
   
 </Project>

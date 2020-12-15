@@ -1,5 +1,6 @@
 ﻿using System;
 using Eto.Forms;
+using Kuriimu2.EtoForms.Forms;
 
 namespace Kuriimu2.EtoForms.Gtk
 {
