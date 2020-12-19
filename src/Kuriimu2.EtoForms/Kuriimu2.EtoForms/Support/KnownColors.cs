@@ -6,6 +6,8 @@ namespace Kuriimu2.EtoForms.Support
     {
         public static Color Black => Color.FromArgb(0, 0, 0);
 
+        public static Color White => Color.FromArgb(255, 255, 255);
+
         public static Color DarkRed => Color.FromArgb(0x8B, 0, 0);
 
         public static Color LimeGreen => Color.FromArgb(0x32, 0xCD, 0x32);

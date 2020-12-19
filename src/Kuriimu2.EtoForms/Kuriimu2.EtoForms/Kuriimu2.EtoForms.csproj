@@ -1,18 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
   </PropertyGroup>
 	
   <ItemGroup>
+    <None Remove="Images\kuriimu2winforms.ico" />
     <None Remove="Images\menu-delete.png" />
+    <None Remove="Images\menu-find.png" />
     <None Remove="Images\menu-save-as.png" />
     <None Remove="Images\menu-save.png" />
     <None Remove="Resources\version.json" />
   </ItemGroup>
 	
   <ItemGroup>
+    <EmbeddedResource Include="Images\kuriimu2winforms.ico" />
     <EmbeddedResource Include="Images\menu-delete.png" />
+    <EmbeddedResource Include="Images\menu-find.png" />
     <EmbeddedResource Include="Images\menu-save-as.png" />
     <EmbeddedResource Include="Images\menu-save.png" />
     <EmbeddedResource Include="Resources\version.json" />
