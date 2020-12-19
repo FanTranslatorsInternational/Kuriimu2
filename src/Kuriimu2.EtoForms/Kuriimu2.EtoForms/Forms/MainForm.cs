@@ -84,6 +84,9 @@ namespace Kuriimu2.EtoForms.Forms
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
+            DragEnter += MainForm_DragEnter;
+            DragDrop += MainForm_DragDrop;
+
             #region Set Command delegates
 
             openFileCommand.Executed += OpenFileCommand_Executed;
@@ -224,9 +227,9 @@ namespace Kuriimu2.EtoForms.Forms
                         kuriimuForm = new ArchiveForm(stateInfo, communicator, _pluginManager, _progress);
                         break;
 
-                    //case IHexState _:
-                    //    kuriimuForm = new HexForm(stateInfo, communicator);
-                    //    break;
+                    case IHexState _:
+                        kuriimuForm = new HexForm(stateInfo, communicator);
+                        break;
 
                     default:
                         throw new UnknownPluginStateException(stateInfo.PluginState);
@@ -328,6 +331,20 @@ namespace Kuriimu2.EtoForms.Forms
             // Update the information of the states parents
             if (iterateParents)
                 UpdateTab(stateInfo.ParentStateInfo, true);
+        }
+
+        #endregion
+
+        #region Drag & Drop
+
+        private void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effects = DragEffects.Copy;
+        }
+
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            OpenPhysicalFiles(e.Data.Uris.Select(x => x.AbsolutePath).ToArray(), false);
         }
 
         #endregion
