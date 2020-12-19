@@ -69,6 +69,9 @@ namespace Kuriimu2.EtoForms.Forms
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
             Padding = new Padding(3);
+            Icon = Icon.FromResource("Kuriimu2.EtoForms.Images.kuriimu2winforms.ico");
+
+            AllowDrop = true;
 
             #region Menu
 
@@ -91,17 +94,19 @@ namespace Kuriimu2.EtoForms.Forms
 
             #region Content
 
-            tabControl = new TabControl { Size = new Size(-1, 610) };
-            progressBar = new Kuriimu2ProgressBar { Size = new Size(450, -1) };
+            tabControl = new TabControl();
+            progressBar = new Kuriimu2ProgressBar();
             statusMessage = new Label();
 
-            Content = new Splitter
+            Content = new FixedSplitter(620)
             {
                 Orientation = Orientation.Vertical,
                 FixedPanel = SplitterFixedPanel.Panel2,
 
+                Panel2MinimumSize=20,
+
                 Panel1 = tabControl,
-                Panel2 = new Splitter
+                Panel2 = new FixedSplitter(450)
                 {
                     Orientation = Orientation.Horizontal,
 

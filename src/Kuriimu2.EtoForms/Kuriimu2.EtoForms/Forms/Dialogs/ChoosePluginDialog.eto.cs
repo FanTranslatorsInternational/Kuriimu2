@@ -8,9 +8,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
     partial class ChoosePluginDialog : Dialog
     {
+        private ListBox pluginList;
+
         #region Commands
 
         private Command okButtonCommand;
+        private Command cancelButtonCommand;
 
         #endregion
 
@@ -19,6 +22,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             #region Commands
 
             okButtonCommand = new Command();
+            cancelButtonCommand = new Command();
 
             #endregion
 
@@ -28,16 +32,18 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             #region Content
 
+            pluginList = new ListBox();
+
             Content = new Splitter
             {
                 Orientation = Orientation.Vertical,
                 FixedPanel = SplitterFixedPanel.Panel2,
 
-                Panel1 = new StackLayout(),
+                Panel1 =  pluginList,
                 Panel2 = new TableLayout
                 {
                     Padding = new Padding(3),
-                    Spacing=new Size(3,3),
+                    Spacing = new Size(3, 3),
                     Rows =
                     {
                         new TableRow
@@ -45,7 +51,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                             Cells =
                             {
                                 new TableCell { ScaleWidth = true },
-                                new Button { Text = "Cancel" },
+                                new Button { Text = "Cancel", Command = cancelButtonCommand },
                                 new Button { Text = "Ok", Command = okButtonCommand }
                             }
                         }
