@@ -4,7 +4,7 @@ using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Controls
 {
-    public class Kuriimu2ProgressBar : Drawable
+    public class ProgressBarEx : Drawable
     {
         private string _text = string.Empty;
         private int _value;

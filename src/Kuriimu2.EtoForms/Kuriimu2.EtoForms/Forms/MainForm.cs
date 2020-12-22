@@ -76,7 +76,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             // TODO: Implement dialog manager
             // TODO: Introduce settings like in WinForms
-            _progress = new ProgressContext(new Kuriimu2ProgressBarOutput(progressBar, 300));
+            _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 300));
             _dialogs = new DefaultDialogManager();
             _pluginManager = new PluginManager(_progress, _dialogs, "plugins");
             _pluginManager.AllowManualSelection = true;

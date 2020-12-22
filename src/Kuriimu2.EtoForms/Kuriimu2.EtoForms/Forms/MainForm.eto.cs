@@ -34,7 +34,7 @@ namespace Kuriimu2.EtoForms.Forms
         #region Controls
 
         private TabControl tabControl;
-        private Kuriimu2ProgressBar progressBar;
+        private ProgressBarEx _progressBarEx;
         private Label statusMessage;
 
         #endregion
@@ -95,7 +95,7 @@ namespace Kuriimu2.EtoForms.Forms
             #region Content
 
             tabControl = new TabControl();
-            progressBar = new Kuriimu2ProgressBar();
+            _progressBarEx = new ProgressBarEx();
             statusMessage = new Label();
 
             Content = new FixedSplitter(620)
@@ -110,7 +110,7 @@ namespace Kuriimu2.EtoForms.Forms
                 {
                     Orientation = Orientation.Horizontal,
 
-                    Panel1 = progressBar,
+                    Panel1 = _progressBarEx,
                     Panel2 = statusMessage
                 }
             };
