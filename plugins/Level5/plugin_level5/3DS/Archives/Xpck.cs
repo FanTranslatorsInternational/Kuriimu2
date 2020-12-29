@@ -88,7 +88,7 @@ namespace plugin_level5._3DS.Archives
             // Write files
             _header.DataOffset = (ushort)((_headerSize + files.Count * _entrySize + nameStreamComp.Length + 3) & ~3);
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var ascii = Encoding.ASCII;
 
             var fileOffset = (int)_header.DataOffset;

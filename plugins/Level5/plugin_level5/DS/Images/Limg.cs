@@ -141,7 +141,7 @@ namespace plugin_level5.DS.Images
             var tiles = new short[imageData.Length / tileSize];
 
             var tileDictionary = new Dictionary<uint, int>();
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
 
             var offset = 0;
             var tileIndex = 0;

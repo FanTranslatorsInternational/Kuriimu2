@@ -170,7 +170,7 @@ namespace plugin_level5._3DS.Images
             if (_tileTableLegacyStart != null)
                 tileTable.Write(_tileTableLegacyStart, 0, _tileTableLegacyStart.Length);
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var tileDictionary = new Dictionary<uint, int>();
 
             // Add placeholder tile for all 0's

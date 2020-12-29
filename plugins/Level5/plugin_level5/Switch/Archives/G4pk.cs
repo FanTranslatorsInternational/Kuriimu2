@@ -70,7 +70,7 @@ namespace plugin_level5.Switch.Archives
             var stringPosition = (stringOffsetPosition + _stringOffsetSize + 3) & ~3;
 
             // Write strings
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
 
             bw.BaseStream.Position = stringOffsetPosition;
             var fileHashes = new List<uint>();

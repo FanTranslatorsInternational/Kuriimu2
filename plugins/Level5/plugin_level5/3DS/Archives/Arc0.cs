@@ -157,7 +157,7 @@ namespace plugin_level5._3DS.Archives
                 .GroupBy(x => x.FilePath.GetDirectory())
                 .ToArray();
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var sjis = Encoding.GetEncoding("SJIS");
 
             nameStream = new MemoryStream();
