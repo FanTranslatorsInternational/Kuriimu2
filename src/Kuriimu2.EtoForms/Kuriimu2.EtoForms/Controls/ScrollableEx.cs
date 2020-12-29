@@ -17,6 +17,11 @@ namespace Kuriimu2.EtoForms.Controls
 
         public new IScrollableContent Content { get; set; }
 
+        public ScrollableEx(IScrollableContent content)
+        {
+            Content = content;
+        }
+
         public void ScrollToPosition(PointF position)
         {
             GetScrollBarInformation().ScrollToPosition(position);

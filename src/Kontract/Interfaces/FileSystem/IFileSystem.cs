@@ -44,9 +44,7 @@ namespace Kontract.Interfaces.FileSystem
     /// </summary>
     public interface IFileSystem : IDisposable
     {
-        // ----------------------------------------------
-        // Directory API
-        // ----------------------------------------------
+        #region Directory API
 
         /// <summary>
         /// Determines if the file system can create directories.
@@ -90,9 +88,9 @@ namespace Kontract.Interfaces.FileSystem
         /// <param name="isRecursive"><c>true</c> to remove directories, subdirectories, and files in path; otherwise, <c>false</c>.</param>
         void DeleteDirectory(UPath path, bool isRecursive);
 
-        // ----------------------------------------------
-        // File API
-        // ----------------------------------------------
+        #endregion
+
+        #region File API
 
         /// <summary>
         /// Determines if the file system can create files.
@@ -193,9 +191,41 @@ namespace Kontract.Interfaces.FileSystem
         /// <param name="saveData">The data to overwrite the file with.</param>
         void SetFileData(UPath savePath, Stream saveData);
 
-        // ----------------------------------------------
-        // Search API
-        // ----------------------------------------------
+        #endregion
+
+        #region Search API
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateFiles(UPath path, string searchPattern = "*");
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllFiles(UPath path, string searchPattern = "*");
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateDirectories(UPath path, string searchPattern = "*");
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllDirectories(UPath path, string searchPattern = "*");
 
         /// <summary>
         /// Returns an enumerable collection of file names and/or directory names that match a search pattern in a specified path, and optionally searches subdirectories.
@@ -208,9 +238,9 @@ namespace Kontract.Interfaces.FileSystem
         IEnumerable<UPath> EnumeratePaths(UPath path, string searchPattern = "*",
             SearchOption searchOption = SearchOption.TopDirectoryOnly, SearchTarget searchTarget = SearchTarget.Both);
 
-        // ----------------------------------------------
-        // Watch API
-        // ----------------------------------------------
+        #endregion
+
+        #region Watch API
 
         /// <summary>
         /// Checks if the file system and <paramref name="path"/> can be watched with <see cref="Watch"/>.
@@ -227,9 +257,9 @@ namespace Kontract.Interfaces.FileSystem
         /// <returns>An <see cref="IFileSystemWatcher"/> instance that watches the given path.</returns>
         IFileSystemWatcher Watch(UPath path);
 
-        // ----------------------------------------------
-        // Path API
-        // ----------------------------------------------
+        #endregion
+
+        #region Path API
 
         /// <summary>
         /// Converts the specified path to the underlying path used by this <see cref="IFileSystem"/>. In case of a PhysicalFileSystem, it 
@@ -246,9 +276,9 @@ namespace Kontract.Interfaces.FileSystem
         /// <returns>The converted path according to the system path.</returns>
         UPath ConvertPathFromInternal(string systemPath);
 
-        // ----------------------------------------------
-        // Clone API
-        // ----------------------------------------------
+        #endregion
+
+        #region Clone API
 
         /// <summary>
         /// Clones this instance with a new <see cref="IStreamManager"/>.
@@ -257,14 +287,24 @@ namespace Kontract.Interfaces.FileSystem
         /// <returns>The cloned file system.</returns>
         IFileSystem Clone(IStreamManager streamManager);
 
-        // ----------------------------------------------
-        // Metadata API
-        // ----------------------------------------------
+        #endregion
+
+        #region Metadata API
 
         /// <summary>
         /// Gets the total size of this file system.
         /// </summary>
+        /// <param name="path">The path to the file.</param>
         /// <returns>The total size.</returns>
         ulong GetTotalSize(UPath path);
+
+        /// <summary>
+        /// Gets an object describing the file.
+        /// </summary>
+        /// <param name="path">The path to the file.</param>
+        /// <returns>The <see cref="FileEntry"/> for the file.</returns>
+        FileEntry GetFileEntry(UPath path);
+
+        #endregion
     }
 }

@@ -1,14 +1,17 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
+using Kontract.Interfaces.Plugins.Identifier;
+using Kuriimu2.EtoForms.Controls;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
-    partial class ChoosePluginDialog : Dialog
+    partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
-        private ListBox pluginList;
+        private StackLayout pluginListPanel;
+        private Button okButton;
 
         #region Commands
 
@@ -27,19 +30,27 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             #endregion
 
             Title = "Choose plugin";
-            ClientSize = new Size(400, 700);
+            Size = new Size(450, 700);
             Padding = new Padding(3);
 
             #region Content
 
-            pluginList = new ListBox();
+            pluginListPanel = new StackLayout
+            {
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
+                VerticalContentAlignment = VerticalAlignment.Stretch,
+            };
+            okButton = new Button { Text = "Ok", Command = okButtonCommand };
 
-            Content = new Splitter
+            Content = new FixedSplitter(620)
             {
                 Orientation = Orientation.Vertical,
                 FixedPanel = SplitterFixedPanel.Panel2,
 
-                Panel1 =  pluginList,
+                Panel1 = new Scrollable
+                {
+                    Content = pluginListPanel
+                },
                 Panel2 = new TableLayout
                 {
                     Padding = new Padding(3),
@@ -52,7 +63,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                             {
                                 new TableCell { ScaleWidth = true },
                                 new Button { Text = "Cancel", Command = cancelButtonCommand },
-                                new Button { Text = "Ok", Command = okButtonCommand }
+                                okButton
                             }
                         }
                     }

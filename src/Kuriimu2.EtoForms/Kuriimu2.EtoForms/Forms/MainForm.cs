@@ -61,8 +61,8 @@ namespace Kuriimu2.EtoForms.Forms
         private const string FormTitle = "Kuriimu2 {0}";
         private const string FormTitlePlugin = "Kuriimu2 {0} - {1} - {2} - {3}";
 
-        private const string MenuDeleteResource = "Kuriimu2.EtoForms.Images.menu-delete.png";
-        private const string ManifestResource = "Kuriimu2.EtoForms.Resources.version.json";
+        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
+        private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
 
         #endregion
 
@@ -80,12 +80,18 @@ namespace Kuriimu2.EtoForms.Forms
             _dialogs = new DefaultDialogManager();
             _pluginManager = new PluginManager(_progress, _dialogs, "plugins");
             _pluginManager.AllowManualSelection = true;
+            _pluginManager.OnManualSelection += pluginManager_OnManualSelection;
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
 
-            DragEnter += MainForm_DragEnter;
-            DragDrop += MainForm_DragDrop;
+            // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
+            // HINT: Some kind of form spanning control, which handles the drop action instead
+            // HINT: https://github.com/picoe/Eto/issues/1852
+            Content.DragEnter += mainForm_DragEnter;
+            Content.DragDrop += mainForm_DragDrop;
+
+            MessageBox.Show(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), MessageBoxButtons.OK);
 
             #region Set Command delegates
 
@@ -259,7 +265,7 @@ namespace Kuriimu2.EtoForms.Forms
             _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
             _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
 
-            Application.Instance.Invoke(() => tabPage.Image = new Icon(new IconFrame(1, Bitmap.FromResource(MenuDeleteResource))));
+            Application.Instance.Invoke(() => tabPage.Image = new Icon(new IconFrame(1, Bitmap.FromResource(MenuDeleteResourceName))));
 
             // Select tab page in tab control
             Application.Instance.Invoke(() => tabControl.SelectedPage = tabPage);
@@ -333,18 +339,38 @@ namespace Kuriimu2.EtoForms.Forms
                 UpdateTab(stateInfo.ParentStateInfo, true);
         }
 
+        private void UpdateChildrenTabs(IStateInfo stateInfo)
+        {
+            // Iterate through children
+            foreach (var child in stateInfo.ArchiveChildren)
+                UpdateChildrenTabs(child);
+
+            UpdateTab(stateInfo, true, false);
+        }
+
         #endregion
+
+        #region Events
 
         #region Drag & Drop
 
-        private void MainForm_DragEnter(object sender, DragEventArgs e)
+        private void mainForm_DragEnter(object sender, DragEventArgs e)
         {
             e.Effects = DragEffects.Copy;
         }
 
-        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        private void mainForm_DragDrop(object sender, DragEventArgs e)
         {
             OpenPhysicalFiles(e.Data.Uris.Select(x => x.AbsolutePath).ToArray(), false);
+        }
+
+        #endregion
+
+        private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        {
+            var selectedPlugin = ChoosePlugin(e.FilePlugins);
+            if (selectedPlugin != null)
+                e.Result = selectedPlugin;
         }
 
         #endregion
@@ -363,7 +389,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Manifest LoadLocalManifest()
         {
-            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ManifestResource);
+            var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(ManifestResourceName);
             if (resourceStream == null)
                 return null;
 
@@ -372,15 +398,22 @@ namespace Kuriimu2.EtoForms.Forms
 
         private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
         {
-            var pluginDialog = new ChoosePluginDialog(filePlugins);
-            pluginDialog.ShowModal(this);
-
-            return pluginDialog.SelectedFilePlugin;
+            return Application.Instance.Invoke(() =>
+            {
+                var pluginDialog = new ChoosePluginDialog(filePlugins);
+                return pluginDialog.ShowModal(this);
+            });
         }
 
         #endregion
 
         #region Form Communication
+
+        private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
+        {
+            var communicator = new FormCommunicator(stateInfo, this);
+            return communicator;
+        }
 
         public Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId)
         {
@@ -411,7 +444,9 @@ namespace Kuriimu2.EtoForms.Forms
 
         public void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren)
         {
-            throw new NotImplementedException();
+            UpdateTab(stateInfo, false, updateParents);
+            if (updateChildren)
+                UpdateChildrenTabs(stateInfo);
         }
 
         public void ReportStatus(bool isSuccessful, string message)
@@ -421,14 +456,11 @@ namespace Kuriimu2.EtoForms.Forms
 
             var textColor = isSuccessful ? KnownColors.Black : KnownColors.DarkRed;
 
-            statusMessage.Text = message;
-            statusMessage.TextColor = textColor;
-        }
-
-        private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
-        {
-            var communicator = new FormCommunicator(stateInfo, this);
-            return communicator;
+            Application.Instance.Invoke(() =>
+            {
+                statusMessage.Text = message;
+                statusMessage.TextColor = textColor;
+            });
         }
 
         #endregion

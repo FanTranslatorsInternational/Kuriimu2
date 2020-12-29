@@ -2,7 +2,7 @@
 	
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
     
     <RuntimeIdentifiers>osx-x64</RuntimeIdentifiers>
   </PropertyGroup>
@@ -14,5 +14,13 @@
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Mac64" Version="2.5.8" />
   </ItemGroup>
-	
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath>..\..\..\dist\Debug\</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>..\..\..\dist\Release\</OutputPath>
+  </PropertyGroup>
+
 </Project>

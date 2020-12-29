@@ -448,6 +448,24 @@ namespace Kore.FileSystem.Implementations
         }
 
         /// <inheritdoc />
+        protected override FileEntry GetFileEntryImpl(UPath path)
+        {
+            UPath GetAbsolutePath(FileSystemNode node) =>
+                node == null ? string.Empty : GetAbsolutePath(node.Parent) / node.Name;
+
+            EnterFileSystemShared();
+            try
+            {
+                var node = (FileNode)FindNodeSafe(path, true);
+                return new FileEntry(GetAbsolutePath(node), node.Content.Length);
+            }
+            finally
+            {
+                ExitFileSystemShared();
+            }
+        }
+
+        /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
         {
             EnterFileSystemShared();
@@ -1637,7 +1655,7 @@ namespace Kore.FileSystem.Implementations
 
                 _fileNode = fileNode;
                 var length = copy.Length;
-                _stream = new MemoryStream(length <= Int32.MaxValue ? (int)length : Int32.MaxValue);
+                _stream = new MemoryStream(length <= int.MaxValue ? (int)length : int.MaxValue);
                 CopyFrom(copy);
             }
 

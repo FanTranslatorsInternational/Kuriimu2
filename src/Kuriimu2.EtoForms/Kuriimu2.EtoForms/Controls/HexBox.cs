@@ -6,58 +6,80 @@ using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Controls
 {
-    public class HexBox : ScrollableEx
+    class HexBox : Drawable, IScrollableContent
     {
-        private static HexBoxImpl _hexBoxImpl;
+        private const int LinePadding_ = 5;
+        private const int BytePadding_ = 3;
+        private const int ByteGroupPadding_ = 10;
+        private const int PositionWidthPadding_ = 7;
+
+        private Font _monoFont;
+        private float _monoHeight;
+        private int _lineHeight;
+
+        private Stream _data;
+
+        private Color SideBarBackground => Color.FromArgb(0xcd, 0xf7, 0xfd);
+        private Color ByteBackground1 => Color.FromArgb(0xf0, 0xfd, 0xff);
 
         #region Properties
 
+        #region Backing fields
+
+        private int _fontSize = 10;
+        private int _byteGroup = 4;
+        private int _bytesPerLine = 16;
+        private bool _showLinePositions = true;
+        private bool _showHeader = true;
+
+        #endregion
+
         public int FontSize
         {
-            get => _hexBoxImpl.FontSize;
+            get => _fontSize;
             set
             {
-                _hexBoxImpl.FontSize = value;
+                _fontSize = value;
                 Invalidate();
             }
         }
 
         public int ByteGroup
         {
-            get => _hexBoxImpl.ByteGroup;
+            get => _byteGroup;
             set
             {
-                _hexBoxImpl.ByteGroup = value;
+                _byteGroup = value;
                 Invalidate();
             }
         }
 
         public int BytesPerLine
         {
-            get => _hexBoxImpl.BytesPerLine;
+            get => _bytesPerLine;
             set
             {
-                _hexBoxImpl.BytesPerLine = value;
+                _bytesPerLine = value;
                 Invalidate();
             }
         }
 
         public bool ShowLinePositions
         {
-            get => _hexBoxImpl.ShowLinePositions;
+            get => _showLinePositions;
             set
             {
-                _hexBoxImpl.ShowLinePositions = value;
+                _showLinePositions = value;
                 Invalidate();
             }
         }
 
         public bool ShowHeader
         {
-            get => _hexBoxImpl.ShowHeader;
+            get => _showHeader;
             set
             {
-                _hexBoxImpl.ShowHeader = value;
+                _showHeader = value;
                 Invalidate();
             }
         }
@@ -65,52 +87,6 @@ namespace Kuriimu2.EtoForms.Controls
         #endregion
 
         public HexBox()
-        {
-            Content = _hexBoxImpl = new HexBoxImpl();
-        }
-
-        public void LoadStream(Stream input)
-        {
-            _hexBoxImpl.LoadStream(input);
-        }
-    }
-
-    class HexBoxImpl : IScrollableContent
-    {
-        private const int LinePadding = 5;
-        private const int BytePadding = 3;
-        private const int ByteGroupPadding = 10;
-        private const int PositionWidthPadding = 7;
-
-        private Font _monoFont;
-        private Font _sansFont;
-        private float _monoHeight;
-        private float _sansHeight;
-        private int _lineHeight;
-
-        private Stream _data;
-        private int _fontSize = 10;
-
-        private Color SideBarBackground => Color.FromArgb(0xcd, 0xf7, 0xfd);
-        private Color ByteBackground1 => Color.FromArgb(0xf0, 0xfd, 0xff);
-
-        #region Properties
-
-        public Size Size { get; set; }
-
-        public int FontSize { get; set; } = 12;
-
-        public int ByteGroup { get; set; } = 4;
-
-        public int BytesPerLine { get; set; } = 16;
-
-        public bool ShowLinePositions { get; set; } = true;
-
-        public bool ShowHeader { get; set; } = true;
-
-        #endregion
-
-        public HexBoxImpl()
         {
             UpdateFontInformation(_fontSize);
         }
@@ -120,7 +96,7 @@ namespace Kuriimu2.EtoForms.Controls
             _data = input;
 
             var headerHeight = _monoFont.MeasureString("A").Height;
-            var lineStartY = ShowHeader ? headerHeight : 0;
+            var lineStartY = (ShowHeader ? headerHeight : 0) + LinePadding_;
 
             // TODO: Calculate actual width
             var lines = input.Length / BytesPerLine + (input.Length % BytesPerLine > 0 ? 1 : 0);
@@ -137,10 +113,8 @@ namespace Kuriimu2.EtoForms.Controls
         private void UpdateFontInformation(float size)
         {
             _monoFont = CreateMonoFont(size);
-            _sansFont = CreateSansFont(size);
             _monoHeight = GetFontHeight(_monoFont);
-            _sansHeight = GetFontHeight(_sansFont);
-            _lineHeight = (int)Math.Ceiling(_monoHeight + LinePadding);
+            _lineHeight = (int)Math.Ceiling(_monoHeight + LinePadding_);
         }
 
         private static float GetFontHeight(Font font)
@@ -158,17 +132,24 @@ namespace Kuriimu2.EtoForms.Controls
             return new Font(FontFamilies.Monospace, size);
         }
 
-        private Font CreateSansFont(float size)
-        {
-            return new Font(FontFamilies.Sans, size);
-        }
-
         #endregion
 
-        public void Paint(RelativeGraphics g, RectangleF clipRectangle)
+        #region Painting
+
+        void IScrollableContent.Paint(RelativeGraphics g, RectangleF clipRectangle)
+        {
+            PaintInternal(g, clipRectangle);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            PaintInternal(new RelativeGraphics(e.Graphics, PointF.Empty), e.ClipRectangle);
+        }
+
+        private void PaintInternal(RelativeGraphics g, RectangleF clipRectangle)
         {
             var headerHeight = _monoFont.MeasureString("A").Height;
-            var lineStartY = ShowHeader ? headerHeight + 5 : 0;
+            var lineStartY = (ShowHeader ? headerHeight : 0) + LinePadding_;
 
             // Read buffer
             var startLine = (long)((clipRectangle.Y == 0 ? 0 : clipRectangle.Y + lineStartY) / _lineHeight);
@@ -180,10 +161,10 @@ namespace Kuriimu2.EtoForms.Controls
             _data.Read(dataBuffer, 0, dataBuffer.Length);
 
             // Draw background colors
-            var positionWidth = GetPositionWidth((startLine + (long)totalLines) * BytesPerLine < int.MaxValue) + PositionWidthPadding * 2;
+            var positionWidth = GetPositionWidth((startLine + (long)totalLines) * BytesPerLine < int.MaxValue) + PositionWidthPadding_ * 2;
             var lineStartX = ShowLinePositions ? positionWidth + 5 : 0;
             var monoCenteredY = (int)((_lineHeight - Math.Ceiling(_monoHeight)) / 2);
-            var byteWidth = GetFontWidth(_monoFont, "FF") + BytePadding;
+            var byteWidth = GetFontWidth(_monoFont, "FF") + BytePadding_;
 
             if (ShowLinePositions)
                 g.FillRectangle(SideBarBackground, clipRectangle.X, clipRectangle.Y + lineStartY, positionWidth, clipRectangle.Height - lineStartY);
@@ -196,7 +177,7 @@ namespace Kuriimu2.EtoForms.Controls
             for (var i = 0; i < BytesPerLine; i++)
             {
                 if (i > 0 && i % ByteGroup == 0)
-                    byteX += ByteGroupPadding;
+                    byteX += ByteGroupPadding_;
 
                 if (i % 2 == 1)
                     g.FillRectangle(ByteBackground1, byteX, byteY, byteWidth, clipRectangle.Height);
@@ -217,7 +198,7 @@ namespace Kuriimu2.EtoForms.Controls
                         break;
 
                     if (i > 0 && i % ByteGroup == 0)
-                        byteX += ByteGroupPadding;
+                        byteX += ByteGroupPadding_;
 
                     var bytePosition = new PointF(byteX, byteY + monoCenteredY);
                     g.DrawText(_monoFont, new SolidBrush(KnownColors.Black), bytePosition, $"{dataBuffer[l * BytesPerLine + i]:X2}");
@@ -234,7 +215,7 @@ namespace Kuriimu2.EtoForms.Controls
                 byteY = clipRectangle.Y + lineStartY;
                 for (var l = 0; l < totalLines; l++)
                 {
-                    var linePosition = new PointF(PositionWidthPadding, byteY + monoCenteredY);
+                    var linePosition = new PointF(PositionWidthPadding_, byteY + monoCenteredY);
                     g.DrawText(_monoFont, new SolidBrush(KnownColors.Black), linePosition, $"{(startLine + l) * BytesPerLine:X8}");
 
                     byteY += _lineHeight;
@@ -250,7 +231,7 @@ namespace Kuriimu2.EtoForms.Controls
                 for (var i = 0; i < BytesPerLine; i++)
                 {
                     if (i > 0 && i % ByteGroup == 0)
-                        byteX += ByteGroupPadding;
+                        byteX += ByteGroupPadding_;
 
                     var bytePosition = new PointF(byteX, clipRectangle.Y + monoCenteredY);
                     g.DrawText(_monoFont, new SolidBrush(KnownColors.Black), bytePosition, $"{i:X2}");
@@ -261,5 +242,7 @@ namespace Kuriimu2.EtoForms.Controls
                 g.DrawLine(KnownColors.ControlDark, new PointF(clipRectangle.X, clipRectangle.Y + (int)headerHeight), new PointF(clipRectangle.X + clipRectangle.Width, clipRectangle.Y + (int)headerHeight));
             }
         }
+
+        #endregion
     }
 }

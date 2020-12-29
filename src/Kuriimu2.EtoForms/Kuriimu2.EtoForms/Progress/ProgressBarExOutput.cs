@@ -1,4 +1,5 @@
 ﻿using System;
+using Eto.Forms;
 using Kore.Progress;
 using Kuriimu2.EtoForms.Controls;
 
@@ -15,8 +16,11 @@ namespace Kuriimu2.EtoForms.Progress
 
         protected override void OutputProgressInternal(double completion, string message)
         {
-            _progressBarEx.Value = Convert.ToInt32(completion);
-            _progressBarEx.Text = message + $@" - {completion:0.00}%";
+            Application.Instance.Invoke(() =>
+            {
+                _progressBarEx.Value = Convert.ToInt32(completion);
+                _progressBarEx.Text = message + $@" - {completion:0.00}%";
+            });
         }
     }
 }

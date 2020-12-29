@@ -365,7 +365,7 @@ namespace Kore.FileSystem.Implementations
         {
             if (!DirectoryExistsImpl(directoryPath))
             {
-                FileSystemExceptionHelper.NewDirectoryNotFoundException(directoryPath);
+                throw FileSystemExceptionHelper.NewDirectoryNotFoundException(directoryPath);
             }
 
             var (directories, files) = _directoryDictionary[directoryPath];
@@ -373,6 +373,13 @@ namespace Kore.FileSystem.Implementations
             var totalFileSize = files.Sum(x => x.FileSize);
             var totalDirectorySize = directories.Select(GetTotalSizeImpl).Sum(x => (long)x);
             return (ulong)(totalFileSize + totalDirectorySize);
+        }
+
+        /// <inheritdoc />
+        protected override FileEntry GetFileEntryImpl(UPath path)
+        {
+            var afi = _fileDictionary[path];
+            return new AfiFileEntry(afi);
         }
 
         // ----------------------------------------------
@@ -446,33 +453,34 @@ namespace Kore.FileSystem.Implementations
 
         #region Enumerating Paths
 
-        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory)
+        private IEnumerable<UPath> EnumeratePathsInternal(UPath path, SearchPattern searchPattern, bool enumerateDirectories, bool enumerateFiles, bool onlyTopDirectory, bool firstIteration = true)
         {
             if (!DirectoryExistsImpl(path))
-            {
-                FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
-            }
+                throw FileSystemExceptionHelper.NewDirectoryNotFoundException(path);
 
             var (directories, files) = _directoryDictionary[path];
 
-            // Enumerate files
+            // Enumerate files of current path
             if (enumerateFiles)
             {
                 foreach (var file in files.Where(x => searchPattern.Match(x.FilePath)))
                     yield return file.FilePath;
             }
 
-            // Enumerate directory
-            if (enumerateDirectories && searchPattern.Match(path))
-                yield return path;
-
-            // Loop through sub directories
-            if (!onlyTopDirectory)
+            // Enumerate directories of current path
+            if (enumerateDirectories)
             {
-                foreach (var directory in directories)
-                    foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false))
-                        yield return enumeratedPath;
+                foreach (var directory in directories.Where(searchPattern.Match))
+                    yield return directory;
             }
+
+            if (onlyTopDirectory)
+                yield break;
+
+            // Enumerate sub directories of current path
+            foreach (var directory in directories)
+                foreach (var enumeratedPath in EnumeratePathsInternal(directory, searchPattern, enumerateDirectories, enumerateFiles, false, false))
+                    yield return enumeratedPath;
         }
 
         #endregion
@@ -540,5 +548,15 @@ namespace Kore.FileSystem.Implementations
         }
 
         #endregion
+    }
+
+    public class AfiFileEntry : FileEntry
+    {
+        public IArchiveFileInfo ArchiveFileInfo { get; }
+
+        public AfiFileEntry(IArchiveFileInfo afi) : base(afi.FilePath, afi.FileSize)
+        {
+            ArchiveFileInfo = afi;
+        }
     }
 }

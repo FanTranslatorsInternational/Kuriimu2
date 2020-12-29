@@ -95,9 +95,7 @@ namespace Kore.FileSystem.Implementations
         /// </summary>
         protected bool IsDisposed { get; private set; }
 
-        // ----------------------------------------------
-        // Directory API
-        // ----------------------------------------------
+        #region Directory API
 
         /// <inheritdoc />
         public abstract bool CanCreateDirectories { get; }
@@ -202,9 +200,9 @@ namespace Kore.FileSystem.Implementations
         /// <param name="isRecursive"><c>true</c> to remove directories, subdirectories, and files in path; otherwise, <c>false</c>.</param>
         protected abstract void DeleteDirectoryImpl(UPath path, bool isRecursive);
 
-        // ----------------------------------------------
-        // File API
-        // ----------------------------------------------
+        #endregion
+
+        #region File API
 
         /// <inheritdoc />
         public abstract bool CanCreateFiles { get; }
@@ -404,9 +402,9 @@ namespace Kore.FileSystem.Implementations
         /// <param name="saveData">The data to set to the file.</param>
         protected abstract void SetFileDataImpl(UPath savePath, Stream saveData);
 
-        // ----------------------------------------------
-        // Metadata API
-        // ----------------------------------------------
+        #endregion
+
+        #region Metadata API
 
         /// <inheritdoc />
         public ulong GetTotalSize(UPath path)
@@ -422,9 +420,60 @@ namespace Kore.FileSystem.Implementations
         /// <returns>The total size of this file system.</returns>
         protected abstract ulong GetTotalSizeImpl(UPath directory);
 
-        // ----------------------------------------------
-        // Search API
-        // ----------------------------------------------
+        /// <inheritdoc />
+        public FileEntry GetFileEntry(UPath path)
+        {
+            AssertNotDisposed();
+            ContractAssertions.IsNotNull(path, nameof(path));
+            return GetFileEntryImpl(ValidatePath(path));
+        }
+
+        /// <summary>
+        /// Implementation for <see cref="GetFileEntry"/>.
+        /// </summary>
+        /// <param name="path">Path of the file to describe.</param>
+        /// <returns>The file entry for the given path.</returns>
+        protected abstract FileEntry GetFileEntryImpl(UPath path);
+
+        #endregion
+
+        #region Search API
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateFiles(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.TopDirectoryOnly, SearchTarget.File);
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllFiles(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.AllDirectories, SearchTarget.File);
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateDirectories(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.TopDirectoryOnly, SearchTarget.Directory);
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllDirectories(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.AllDirectories, SearchTarget.Directory);
 
         /// <inheritdoc />
         public IEnumerable<UPath> EnumeratePaths(UPath path, string searchPattern = "*", SearchOption searchOption = SearchOption.TopDirectoryOnly, SearchTarget searchTarget = SearchTarget.Both)
@@ -445,9 +494,9 @@ namespace Kore.FileSystem.Implementations
         /// <returns>An enumerable collection of file-system paths in the directory specified by path and that match the specified search pattern, option and target.</returns>
         protected abstract IEnumerable<UPath> EnumeratePathsImpl(UPath path, string searchPattern, SearchOption searchOption, SearchTarget searchTarget);
 
-        // ----------------------------------------------
-        // Watch API
-        // ----------------------------------------------
+        #endregion
+
+        #region Watch API
 
         /// <inheritdoc />
         public bool CanWatch(UPath path)
@@ -503,9 +552,9 @@ namespace Kore.FileSystem.Implementations
             }
         }
 
-        // ----------------------------------------------
-        // Path API
-        // ----------------------------------------------
+        #endregion
+
+        #region Path API
 
         /// <inheritdoc />
         public string ConvertPathToInternal(UPath path)
@@ -571,6 +620,8 @@ namespace Kore.FileSystem.Implementations
 
             return ValidatePathImpl(path, name);
         }
+
+        #endregion
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.

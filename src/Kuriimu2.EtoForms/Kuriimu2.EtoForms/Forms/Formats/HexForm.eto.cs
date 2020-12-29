@@ -10,7 +10,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void InitializeComponent()
         {
             hexBox = new HexBox();
-            Content = hexBox;
+            Content = new ScrollableEx(hexBox);
         }
     }
 }

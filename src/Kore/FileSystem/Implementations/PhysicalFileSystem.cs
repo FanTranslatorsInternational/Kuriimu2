@@ -342,6 +342,13 @@ namespace Kore.FileSystem.Implementations
             return GetDirectorySize(new DirectoryInfo(ConvertPathToInternalImpl(directory)));
         }
 
+        /// <inheritdoc />
+        protected override FileEntry GetFileEntryImpl(UPath path)
+        {
+            var fileInfo = new FileInfo(ConvertPathToInternalImpl(path));
+            return new FileEntry(fileInfo.FullName, fileInfo.Length);
+        }
+
         // ----------------------------------------------
         // Search API
         // ----------------------------------------------

@@ -5,20 +5,17 @@ namespace Kuriimu2.EtoForms.Controls
 {
     public class FixedSplitter : Splitter
     {
-        private bool _isChanged;
+        private readonly int _position;
 
-        public new int Position { get; }
+        private bool _isChanged;
 
         public FixedSplitter(int position)
         {
-            Position = position;
-            PositionChanged += FixedSplitter_PositionChanged;
-
-            base.Position = position;
+            Position = _position = position;
             _isChanged = false;
         }
 
-        private void FixedSplitter_PositionChanged(object sender, EventArgs e)
+        protected override void OnPositionChanged(EventArgs e)
         {
             if (_isChanged)
             {
@@ -27,8 +24,7 @@ namespace Kuriimu2.EtoForms.Controls
             }
 
             _isChanged = true;
-
-            base.Position = Position;
+            Position = _position;
         }
     }
 }

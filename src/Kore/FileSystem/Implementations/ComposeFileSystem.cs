@@ -209,9 +209,51 @@ namespace Kore.FileSystem.Implementations
             return NextFileSystemSafe.GetTotalSize(ConvertPathToDelegate(path));
         }
 
+        /// <inheritdoc />
+        public FileEntry GetFileEntry(UPath path)
+        {
+            return NextFileSystemSafe.GetFileEntry(ConvertPathToDelegate(path));
+        }
+
         // ----------------------------------------------
         // Search API
         // ----------------------------------------------
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateFiles(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.TopDirectoryOnly, SearchTarget.File);
+
+        /// <summary>
+        /// Enumerates file names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllFiles(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.AllDirectories, SearchTarget.File);
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, without searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateDirectories(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.TopDirectoryOnly, SearchTarget.Directory);
+
+        /// <summary>
+        /// Enumerates directory names that match a search pattern in a specified path, searching subdirectories.
+        /// </summary>
+        /// <param name="path">The path to the directory to search in.</param>
+        /// <param name="searchPattern">The search string to match against file-system entries in path. This parameter can contain a combination of valid literal path and wildcard (* and ?) characters (see Remarks), but doesn't support regular expressions.</param>
+        /// <returns>An enumerable collection of file names in the given restrictions.</returns>
+        public IEnumerable<UPath> EnumerateAllDirectories(UPath path, string searchPattern = "*") =>
+            EnumeratePaths(path, searchPattern, SearchOption.AllDirectories, SearchTarget.Directory);
 
         /// <inheritdoc />
         public IEnumerable<UPath> EnumeratePaths(UPath path, string searchPattern, SearchOption searchOption, SearchTarget searchTarget)

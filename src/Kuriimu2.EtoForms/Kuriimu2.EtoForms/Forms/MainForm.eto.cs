@@ -71,8 +71,6 @@ namespace Kuriimu2.EtoForms.Forms
             Padding = new Padding(3);
             Icon = Icon.FromResource("Kuriimu2.EtoForms.Images.kuriimu2winforms.ico");
 
-            AllowDrop = true;
-
             #region Menu
 
             Menu = new MenuBar
@@ -100,6 +98,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             Content = new FixedSplitter(620)
             {
+                AllowDrop=true,
+
                 Orientation = Orientation.Vertical,
                 FixedPanel = SplitterFixedPanel.Panel2,
 

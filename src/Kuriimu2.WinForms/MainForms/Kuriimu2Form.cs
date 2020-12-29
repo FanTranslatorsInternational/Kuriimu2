@@ -147,6 +147,11 @@ namespace Kuriimu2.WinForms.MainForms
         private void OpenPhysicalFile(bool manualIdentification)
         {
             var fileToOpen = SelectFile();
+            if (fileToOpen == null)
+            {
+                return;
+            }
+
             OpenPhysicalFiles(new[] { fileToOpen }, manualIdentification);
         }
 
