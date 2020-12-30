@@ -13,8 +13,6 @@ namespace Kore.Update
         private const string UpdateUrl_ = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-Updater/master/bin";
         private const string ExecutableName_ = "update.exe";
 
-        public static bool IsLegacy { get; set; }
-
         public static Manifest GetRemoteManifest(string manifestUrl)
         {
             var resourceStream = GetResourceStream(manifestUrl);
@@ -33,7 +31,7 @@ namespace Kore.Update
         {
             var platform = GetCurrentPlatform();
 
-            var updateUrl = UpdateUrl_ + (IsLegacy ? "" : "/" + platform) + "/" + ExecutableName_;
+            var updateUrl = UpdateUrl_ + "/" + platform + "/" + ExecutableName_;
             var resourceStream = GetResourceStream(updateUrl);
             var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 

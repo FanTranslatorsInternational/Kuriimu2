@@ -92,7 +92,6 @@ namespace Kuriimu2.WinForms.MainForms
         {
             InitializeComponent();
 
-			UpdateUtilities.IsLegacy = true;
             KeyPreview = true;
 
             _progressContext = new ProgressContext(new ToolStripProgressBarOutput(progressBarToolStrip, 34));

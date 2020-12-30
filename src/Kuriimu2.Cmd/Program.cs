@@ -26,9 +26,7 @@ namespace Kuriimu2.Cmd
         private static IArgumentGetter _argumentGetter;
 
         static void Main(string[] args)
-        {
-			UpdateUrilities.IsLegacy = true;
-			
+        {			
             _argumentGetter = new ArgumentGetter(args);
             _localManifest = LoadLocalManifest();
 
