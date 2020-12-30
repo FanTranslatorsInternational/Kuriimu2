@@ -96,14 +96,15 @@ namespace Kuriimu2.EtoForms.Forms
             _progressBarEx = new ProgressBarEx();
             statusMessage = new Label();
 
-            Content = new FixedSplitter(620)
+            Content = new Splitter
             {
-                AllowDrop=true,
+                AllowDrop = true,
 
                 Orientation = Orientation.Vertical,
                 FixedPanel = SplitterFixedPanel.Panel2,
 
-                Panel2MinimumSize=20,
+                Position = 616,
+                Panel2MinimumSize = 24,
 
                 Panel1 = tabControl,
                 Panel2 = new FixedSplitter(450)

@@ -28,6 +28,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private ButtonToolStripItem renameButton;
         private ButtonToolStripItem deleteButton;
 
+        private ButtonMenuItem openWithMenuItem;
+
         #region Commands
 
         private Command searchClearCommand;
@@ -118,12 +120,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Files
 
+            openWithMenuItem = new ButtonMenuItem { Command=openWithCommand };
             var fileContext = new ContextMenu
             {
                 Items =
                 {
                     openCommand,
-                    openWithCommand,
+                    openWithMenuItem,
 
                     new SeparatorMenuItem(),
 

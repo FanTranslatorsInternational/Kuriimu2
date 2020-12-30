@@ -121,7 +121,7 @@ namespace Kore.Managers
         /// <param name="e"></param>
         private void StreamCollectionTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            foreach (var stream in _streams.ToList())
+            foreach (var stream in _streams.Where(x => x != null).ToList())
             {
                 if (!IsStreamClosed(stream))
                     continue;

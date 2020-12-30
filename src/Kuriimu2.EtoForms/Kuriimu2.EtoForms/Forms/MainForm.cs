@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,6 +22,7 @@ using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kore.Models.Update;
 using Kore.Progress;
+using Kore.Update;
 using Kuriimu2.EtoForms.Exceptions;
 using Kuriimu2.EtoForms.Forms.Dialogs;
 using Kuriimu2.EtoForms.Forms.Formats;
@@ -40,7 +42,7 @@ namespace Kuriimu2.EtoForms.Forms
         private readonly PluginManager _pluginManager;
 
         private readonly IList<string> _openingFiles = new List<string>();
-        private readonly IList<string> _savingFiles = new List<string>();
+        private readonly IList<IStateInfo> _savingFiles = new List<IStateInfo>();
 
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary =
             new Dictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)>();
@@ -51,15 +53,26 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Constants
 
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update/main/{0}/manifest.json";
+        private const string ApplicationType = "EtoForms.{0}";
+
         private const string LoadError = "Load Error";
         private const string InvalidFile = "The selected file is invalid.";
         private const string NoPluginSelected = "No plugin was selected.";
+
+        private const string SaveError = "Save Error";
 
         private const string ExceptionCatched = "Exception catched";
         private const string PluginsNotAvailable = "Plugins not available";
 
         private const string FormTitle = "Kuriimu2 {0}";
         private const string FormTitlePlugin = "Kuriimu2 {0} - {1} - {2} - {3}";
+
+        private const string UnsavedChanges = "Unsaved changes";
+        private const string UnsavedChangesText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
+
+        private const string DependantFiles = "Dependant files";
+        private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
 
         private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
         private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
@@ -70,6 +83,8 @@ namespace Kuriimu2.EtoForms.Forms
         public MainForm()
         {
             InitializeComponent();
+
+            Load += mainForm_Load;
 
             _localManifest = LoadLocalManifest();
             UpdateFormText();
@@ -93,7 +108,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             MessageBox.Show(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), MessageBoxButtons.OK);
 
-            #region Set Command delegates
+            #region Commands
 
             openFileCommand.Executed += OpenFileCommand_Executed;
             openFileWithCommand.Executed += OpenFileWithCommand_Executed;
@@ -302,6 +317,163 @@ namespace Kuriimu2.EtoForms.Forms
 
         #endregion
 
+        #region Save File
+
+        private async void SaveAll(bool invokeUpdateForm)
+        {
+            foreach (var entry in _tabDictionary.Values)
+                await SaveFile(entry.StateInfo, true, invokeUpdateForm);
+        }
+
+        private async Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs, bool invokeUpdateForm)
+        {
+            ReportStatus(true, string.Empty);
+
+            // Check if file is already attempted to be saved
+            if (_savingFiles.Contains(stateInfo))
+            {
+                ReportStatus(false, $"{stateInfo.FilePath.ToRelative()} is already saving.");
+                return false;
+            }
+
+            _savingFiles.Add(stateInfo);
+
+            // Select save path if necessary
+            var savePath = UPath.Empty;
+            if (saveAs)
+            {
+                savePath = SelectNewFile(stateInfo.FilePath.GetName());
+                if (savePath.IsNull || savePath.IsEmpty)
+                {
+                    ReportStatus(false, "The selected file is invalid.");
+
+                    _savingFiles.Remove(stateInfo);
+                    return false;
+                }
+            }
+
+            var saveResult = savePath.IsEmpty ?
+                await _pluginManager.SaveFile(stateInfo) :
+                await _pluginManager.SaveFile(stateInfo, savePath);
+
+            if (!saveResult.IsSuccessful)
+            {
+#if DEBUG
+                var message = saveResult.Exception?.ToString() ?? saveResult.Message;
+#else
+                var message = saveResult.Message;
+#endif
+
+                ReportStatus(false, "File not saved successfully.");
+                MessageBox.Show(message, SaveError, MessageBoxButtons.OK, MessageBoxType.Error);
+
+                _savingFiles.Remove(stateInfo);
+                return false;
+            }
+
+            // Update current state form if enabled
+            UpdateTab(stateInfo, invokeUpdateForm, false);
+
+            // Update children
+            UpdateChildrenTabs(stateInfo);
+
+            // Update parents
+            UpdateTab(stateInfo.ParentStateInfo, true);
+
+            ReportStatus(true, "File saved successfully.");
+
+            _savingFiles.Remove(stateInfo);
+            return true;
+        }
+
+        private string SelectNewFile(string fileName)
+        {
+            return Application.Instance.Invoke(() =>
+            {
+                var sfd = new SaveFileDialog { FileName = fileName };
+                return sfd.ShowDialog(this) == DialogResult.Ok ?
+                    sfd.FileName :
+                    null;
+            });
+        }
+
+
+        #endregion
+
+        #region Close File
+
+        private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false)
+        {
+            ReportStatus(true, string.Empty);
+
+            // Security question, so the user knows that every sub file will be closed
+            if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
+            {
+                var result = MessageBox.Show(DependantFilesText, DependantFiles, MessageBoxButtons.YesNo);
+
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        break;
+
+                    default:
+                        return false;
+                }
+            }
+
+            // Save unchanged files, if wanted
+            if (stateInfo.StateChanged)
+            {
+                var text = string.Format(UnsavedChangesText, stateInfo.FilePath);
+                var result = MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        await _pluginManager.SaveFile(stateInfo);
+
+                        // TODO: Somehow propagate save error to user?
+
+                        break;
+
+                    case DialogResult.No:
+                        // Close state and tabs without doing anything
+                        break;
+
+                    default:
+                        return false;
+                }
+            }
+
+            // Remove all tabs related to the state
+            CloseTab(stateInfo);
+
+            // Close all related states
+            var parentState = stateInfo.ParentStateInfo;
+            _pluginManager.Close(stateInfo);
+
+            // Update parents before state is disposed
+            UpdateTab(parentState, true);
+
+            return true;
+        }
+
+        private void CloseTab(IStateInfo stateInfo)
+        {
+            foreach (var child in stateInfo.ArchiveChildren)
+                CloseTab(child);
+
+            if (!_stateDictionary.ContainsKey(stateInfo))
+                return;
+
+            var stateEntry = _stateDictionary[stateInfo];
+            _tabDictionary.Remove(stateEntry.TabPage);
+
+            stateEntry.TabPage.Dispose();
+            _stateDictionary.Remove(stateInfo);
+        }
+
+        #endregion
+
         #region Update
 
         private void UpdateFormText()
@@ -352,7 +524,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Events
 
-        #region Drag & Drop
+        #region Main Form
 
         private void mainForm_DragEnter(object sender, DragEventArgs e)
         {
@@ -362,6 +534,13 @@ namespace Kuriimu2.EtoForms.Forms
         private void mainForm_DragDrop(object sender, DragEventArgs e)
         {
             OpenPhysicalFiles(e.Data.Uris.Select(x => x.AbsolutePath).ToArray(), false);
+        }
+
+        private void mainForm_Load(object sender, EventArgs e)
+        {
+#if !DEBUG
+            CheckForUpdate();
+#endif
         }
 
         #endregion
@@ -376,6 +555,48 @@ namespace Kuriimu2.EtoForms.Forms
         #endregion
 
         #region Support
+
+        private void CheckForUpdate()
+        {
+            if (_localManifest == null)
+                return;
+
+            var platform = GetCurrentPlatform();
+
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl, platform));
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
+                return;
+
+            var result =
+                MessageBox.Show(
+                    $"Do you want to update from '{_localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
+                    "Update available", MessageBoxButtons.YesNo);
+            if (result == DialogResult.No)
+                return;
+
+            var executablePath = UpdateUtilities.DownloadUpdateExecutable();
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo(executablePath, $"{string.Format(ApplicationType, platform)} {Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName)}")
+            };
+            process.Start();
+
+            Close();
+        }
+
+        private string GetCurrentPlatform()
+        {
+            if (Application.Instance.Platform.IsGtk)
+                return "Gtk";
+
+            if (Application.Instance.Platform.IsWpf)
+                return "Wpf";
+
+            if (Application.Instance.Platform.IsMac)
+                return "Mac";
+
+            throw new InvalidOperationException($"Platform {Application.Instance.Platform.ID} is not supported.");
+        }
 
         private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
         {
@@ -429,17 +650,29 @@ namespace Kuriimu2.EtoForms.Forms
 
         public Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs)
         {
-            throw new NotImplementedException();
+            return SaveFile(stateInfo, saveAs, false);
         }
 
         public Task<bool> CloseFile(IStateInfo stateInfo, IArchiveFileInfo file)
         {
-            throw new NotImplementedException();
+            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
+            if (!_pluginManager.IsLoaded(absolutePath))
+                return Task.FromResult(true);
+
+            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            return CloseFile(loadedFile);
         }
 
         public void RenameFile(IStateInfo stateInfo, IArchiveFileInfo file, UPath newPath)
         {
-            throw new NotImplementedException();
+            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
+            if (!_pluginManager.IsLoaded(absolutePath))
+                return;
+
+            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            loadedFile.RenameFilePath(newPath);
+
+            UpdateTab(loadedFile, true, false);
         }
 
         public void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren)

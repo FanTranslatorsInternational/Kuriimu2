@@ -24,7 +24,18 @@ namespace Kuriimu2.EtoForms.Controls
             }
 
             _isChanged = true;
-            Position = _position;
+            switch (FixedPanel)
+            {
+                case SplitterFixedPanel.None:
+                case SplitterFixedPanel.Panel1:
+                    Position = _position;
+                    break;
+
+                case SplitterFixedPanel.Panel2:
+                    var newUnit = Orientation == Orientation.Horizontal ? Size.Width : Size.Height;
+                    Position = newUnit - _position;
+                    break;
+            }
         }
     }
 }

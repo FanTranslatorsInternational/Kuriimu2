@@ -228,6 +228,7 @@ namespace Kore.FileSystem.Implementations
             }
 
             var file = _fileDictionary[srcPath];
+            _fileDictionary.Remove(srcPath);
 
             // Remove file from source directory
             var srcDir = srcPath.GetDirectory();
@@ -246,6 +247,7 @@ namespace Kore.FileSystem.Implementations
 
             // Add file to destination directory
             _directoryDictionary[destPath.GetDirectory()].Item2.Add(file);
+            _fileDictionary[destPath] = file;
 
             GetOrCreateDispatcher().RaiseCreated(destPath);
         }

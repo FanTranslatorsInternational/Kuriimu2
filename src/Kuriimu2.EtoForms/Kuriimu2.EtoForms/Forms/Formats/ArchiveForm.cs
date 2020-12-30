@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
@@ -17,8 +18,10 @@ using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.FileSystem.Implementations;
 using Kore.Managers.Plugins;
+using Kuriimu2.EtoForms.Forms.Dialogs;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
@@ -76,8 +79,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _searchTerm = new SearchTerm(searchTextBox);
             _searchTerm.TextChanged += searchTerm_TextChanged;
 
-            _asyncOperation=new AsyncOperation();
-            _asyncOperation.Toggled += asyncOperation_Toggled;
+            _asyncOperation = new AsyncOperation();
+            _asyncOperation.Started += asyncOperation_Started;
+            _asyncOperation.Finished += asyncOperation_Finished;
 
             folderView.Expanded += folderView_Expanded;
             folderView.Collapsed += folderView_Collapsed;
@@ -95,6 +99,17 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveAsCommand.Executed += SaveAsCommand_Executed;
 
             // TODO: Attach file command events
+            openCommand.Executed += openCommand_Executed;
+            extractFileCommand.Executed += extractFileCommand_Executed;
+            replaceFileCommand.Executed += replaceFileCommand_Executed;
+            renameFileCommand.Executed += RenameFileCommand_Executed;
+            deleteFileCommand.Executed += DeleteFileCommand_Executed;
+
+            extractDirectoryCommand.Executed += extractDirectoryCommand_Executed;
+            replaceDirectoryCommand.Executed += replaceDirectoryCommand_Executed;
+            renameDirectoryCommand.Executed += renameDirectoryCommand_Executed;
+            deleteDirectoryCommand.Executed += deleteDirectoryCommand_Executed;
+
             // TODO: Add file and folder actions to form (via context menu as well)
 
             UpdateProperties();
@@ -157,29 +172,63 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateFileContextMenu()
         {
-            var selectedItems = fileView.SelectedItems.ToArray();
-            if (selectedItems.Length <= 0)
+            var selectedItem = fileView.SelectedItems.FirstOrDefault();
+            if (selectedItem == null)
                 return;
 
             // Get current state arguments
-            var isLoadLocked = selectedItems.Any(x=>IsFileLocked(x.ArchiveFileInfo, true));
-            var isStateLocked = selectedItems.Any(x => IsFileLocked(x.ArchiveFileInfo, false));
+            var isLoadLocked = IsFileLocked(selectedItem.ArchiveFileInfo, true);
+            var isStateLocked = IsFileLocked(selectedItem.ArchiveFileInfo, false);
 
             var canExtractFiles = !isStateLocked && !_asyncOperation.IsRunning;
             var canReplaceFiles = _stateInfo.PluginState is IReplaceFiles && !isLoadLocked && !_asyncOperation.IsRunning;
             var canRenameFiles = _stateInfo.PluginState is IRenameFiles && !_asyncOperation.IsRunning;
             var canDeleteFiles = _stateInfo.PluginState is IRemoveFiles && !_asyncOperation.IsRunning;
 
-            // Update context menu
-            extractFileCommand.Enabled = canExtractFiles;
-            replaceFileCommand.Enabled = canReplaceFiles;
-            renameFileCommand.Enabled = canRenameFiles;
-            deleteFileCommand.Enabled = canDeleteFiles;
+            Application.Instance.Invoke(() =>
+            {
+                // Update Open with menu item
+                openWithMenuItem.Items.Clear();
+                foreach (var pluginId in selectedItem.ArchiveFileInfo.PluginIds ?? Array.Empty<Guid>())
+                {
+                    var filePluginLoader = _pluginManager.GetFilePluginLoaders().FirstOrDefault(x => x.Exists(pluginId));
+                    var filePlugin = filePluginLoader?.GetPlugin(pluginId);
+
+                    if (filePlugin == null)
+                        continue;
+
+                    openWithCommand = new Command { MenuText = filePlugin.Metadata.Name, Tag = (selectedItem, pluginId) };
+                    openWithCommand.Executed += openWithCommand_Executed;
+
+                    openWithMenuItem.Items.Add(openWithCommand);
+                }
+
+                // Update context menu
+                openCommand.Enabled = !_asyncOperation.IsRunning;
+                openWithMenuItem.Enabled = openWithMenuItem.Items.Count > 0 && !_asyncOperation.IsRunning;
+
+                extractFileCommand.Enabled = canExtractFiles;
+                replaceFileCommand.Enabled = canReplaceFiles;
+                renameFileCommand.Enabled = canRenameFiles;
+                deleteFileCommand.Enabled = canDeleteFiles;
+            });
         }
 
+        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateDirectoryContextMenu()
         {
-            // TODO: Make logic
+            var canExtractFiles = !_asyncOperation.IsRunning;
+            var canReplaceFiles = _stateInfo.PluginState is IReplaceFiles && !_asyncOperation.IsRunning;
+            var canRenameFiles = _stateInfo.PluginState is IRenameFiles && !_asyncOperation.IsRunning;
+            var canDeleteFiles = _stateInfo.PluginState is IRemoveFiles && !_asyncOperation.IsRunning;
+
+            Application.Instance.Invoke(() =>
+            {
+                extractDirectoryCommand.Enabled = canExtractFiles;
+                replaceDirectoryCommand.Enabled = canReplaceFiles;
+                renameDirectoryCommand.Enabled = canRenameFiles;
+                deleteDirectoryCommand.Enabled = canDeleteFiles;
+            });
         }
 
         #endregion
@@ -310,7 +359,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region asyncOperation
 
-        private void asyncOperation_Toggled(object sender, EventArgs e)
+        private void asyncOperation_Started(object sender, EventArgs e)
+        {
+            UpdateFileContextMenu();
+            UpdateDirectoryContextMenu();
+            UpdateProperties();
+        }
+
+        private void asyncOperation_Finished(object sender, EventArgs e)
         {
             UpdateFileContextMenu();
             UpdateDirectoryContextMenu();
@@ -319,13 +375,68 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void cancelCommand_Executed(object sender, EventArgs e)
         {
-            // TODO: Implement Cancel
-            //_asyncOperation.Cancel();
+            _asyncOperation.Cancel();
         }
 
         #endregion
 
-        #region extractCommand
+        #region fileContextMenu
+
+        private async void openCommand_Executed(object sender, EventArgs e)
+        {
+            await OpenSelectedFiles();
+        }
+
+        private async void openWithCommand_Executed(object sender, EventArgs e)
+        {
+            var (fileElement, pluginId) = ((FileElement, Guid))((Command)sender).Tag;
+            if (!await OpenFile(fileElement.ArchiveFileInfo, pluginId))
+                _communicator.ReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
+        }
+
+        private async void extractFileCommand_Executed(object sender, EventArgs e)
+        {
+            await ExtractSelectedFiles();
+        }
+
+        private async void replaceFileCommand_Executed(object sender, EventArgs e)
+        {
+            await ReplaceSelectedFiles();
+        }
+
+        private async void RenameFileCommand_Executed(object sender, EventArgs e)
+        {
+            await RenameSelectedFiles();
+        }
+
+        private async void DeleteFileCommand_Executed(object sender, EventArgs e)
+        {
+            await DeleteSelectedFiles();
+        }
+
+        #endregion
+
+        #region directoryContextMenu
+
+        private async void extractDirectoryCommand_Executed(object sender, EventArgs e)
+        {
+            await ExtractSelectedDirectory();
+        }
+
+        private async void replaceDirectoryCommand_Executed(object sender, EventArgs e)
+        {
+            await ReplaceSelectedDirectory();
+        }
+
+        private async void renameDirectoryCommand_Executed(object sender, EventArgs e)
+        {
+            await RenameSelectedDirectory();
+        }
+
+        private async void deleteDirectoryCommand_Executed(object sender, EventArgs e)
+        {
+            await DeleteSelectedDirectory();
+        }
 
         #endregion
 
@@ -360,7 +471,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         }
 
                         _openingFiles.Add(file);
-                        if (await _communicator.Open(file, pluginId))
+                        if (await OpenFile(file, pluginId))
                         {
                             _openingFiles.Remove(file);
 
@@ -383,11 +494,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 }
 
                 _openingFiles.Add(file);
-                if (!await _communicator.Open(file))
+                if (!await OpenFile(file))
                     _communicator.ReportStatus(false, "File couldn't be opened.");
 
                 _openingFiles.Remove(file);
             }
+        }
+
+        private Task<bool> OpenFile(IArchiveFileInfo afi, Guid pluginId = default)
+        {
+            return pluginId == default ? _communicator.Open(afi) : _communicator.Open(afi, pluginId);
         }
 
         #endregion
@@ -422,6 +538,627 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
+        #region Extraction
+
+        #region Extract Files
+
+        private Task ExtractSelectedFiles()
+        {
+            return ExtractFiles(fileView.SelectedItems.Select(x => x.ArchiveFileInfo).ToArray());
+        }
+
+        private async Task ExtractFiles(IList<IArchiveFileInfo> files)
+        {
+            if (files.Count <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to extract.");
+                return;
+            }
+
+            // Select folder
+            var extractPath = SelectFolder();
+            if (extractPath.IsNull || extractPath.IsEmpty)
+            {
+                _communicator.ReportStatus(false, "No folder selected.");
+                return;
+            }
+
+            // Extract elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _stateInfo.StreamManager);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(async cts =>
+            {
+                var count = 0;
+                foreach (var file in files)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Extract files", count++, files.Count);
+
+                    if (IsFileLocked(file, false))
+                        continue;
+
+                    Stream newFileStream;
+                    try
+                    {
+                        newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.Create, FileAccess.Write);
+                    }
+                    catch (IOException)
+                    {
+                        continue;
+                    }
+                    var currentFileStream = await file.GetFileData();
+
+                    currentFileStream.CopyTo(newFileStream);
+
+                    newFileStream.Close();
+                }
+            });
+            _progress.ReportProgress("Extract files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File extraction cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) extracted successfully.");
+        }
+
+        #endregion
+
+        #region Extract Directories
+
+        private Task ExtractSelectedDirectory()
+        {
+            return ExtractDirectory((TreeGridItem)folderView.SelectedItem);
+        }
+
+        private async Task ExtractDirectory(TreeGridItem item)
+        {
+            var itemPath = GetAbsolutePath(item);
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+
+            if (filePaths.Length <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to extract.");
+                return;
+            }
+
+            // Select folder
+            var extractPath = SelectFolder();
+            if (extractPath.IsNull || extractPath.IsEmpty)
+            {
+                _communicator.ReportStatus(false, "No folder selected.");
+                return;
+            }
+
+            // Extract elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            var subFolder = item == folders[0] ? GetRootName() : GetAbsolutePath(item).ToRelative();
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _stateInfo.StreamManager);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(async cts =>
+            {
+                var count = 0;
+                foreach (var filePath in filePaths)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Extract files", count++, filePaths.Length);
+
+                    var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
+                    if (IsFileLocked(afi, false))
+                        continue;
+
+                    Stream newFileStream;
+                    try
+                    {
+                        newFileStream = destinationFileSystem.OpenFile(filePath, FileMode.Create, FileAccess.Write);
+                    }
+                    catch (IOException)
+                    {
+                        continue;
+                    }
+
+                    var currentFileStream = await afi.GetFileData();
+
+                    currentFileStream.CopyTo(newFileStream);
+
+                    newFileStream.Close();
+                }
+            });
+            _progress.ReportProgress("Extract files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File extraction cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) extracted successfully.");
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Replacement
+
+        #region Replace Files
+
+        private Task ReplaceSelectedFiles()
+        {
+            return ReplaceFiles(fileView.SelectedItems.Select(x => x.ArchiveFileInfo).ToArray());
+        }
+
+        private async Task ReplaceFiles(IList<IArchiveFileInfo> files)
+        {
+            if (files.Count <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to replace.");
+                return;
+            }
+
+            // Select destination
+            UPath replaceDirectory;
+            UPath replaceFileName;
+            if (files.Count == 1)
+            {
+                var selectedPath = SelectFile(files[0].FilePath.GetName());
+                if (selectedPath.IsNull || selectedPath.IsEmpty)
+                {
+                    _communicator.ReportStatus(false, "No file selected.");
+                    return;
+                }
+
+                replaceDirectory = selectedPath.GetDirectory();
+                replaceFileName = selectedPath.GetName();
+            }
+            else
+            {
+                var selectedPath = SelectFolder();
+                if (selectedPath.IsNull || selectedPath.IsEmpty)
+                {
+                    _communicator.ReportStatus(false, "No folder selected.");
+                    return;
+                }
+
+                replaceDirectory = selectedPath;
+                replaceFileName = UPath.Empty;
+            }
+
+            // Extract elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replaceDirectory, _stateInfo.StreamManager);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                var replaceState = _stateInfo.PluginState as IReplaceFiles;
+                foreach (var file in files)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Replace files", count++, files.Count);
+
+                    if (IsFileLocked(file, true))
+                        continue;
+
+                    var filePath = replaceFileName.IsEmpty ? file.FilePath.GetName() : replaceFileName;
+                    if (!sourceFileSystem.FileExists(filePath))
+                        continue;
+
+                    var currentFileStream = sourceFileSystem.OpenFile(filePath);
+                    replaceState?.ReplaceFile(file, currentFileStream);
+
+                    AddChangedDirectory(file.FilePath.GetDirectory());
+                }
+            });
+            _progress.ReportProgress("Replace files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File replacement cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) replaced successfully.");
+
+            UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
+            UpdateDirectories();
+
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
+        #region Replace Directories
+
+        private Task ReplaceSelectedDirectory()
+        {
+            return ReplaceDirectory((TreeGridItem)folderView.SelectedItem);
+        }
+
+        private async Task ReplaceDirectory(TreeGridItem item)
+        {
+            var itemPath = GetAbsolutePath(item);
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+
+            if (filePaths.Length <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to replace.");
+                return;
+            }
+
+            // Select folder
+            var replacePath = SelectFolder();
+            if (replacePath.IsNull || replacePath.IsEmpty)
+            {
+                _communicator.ReportStatus(false, "No folder selected.");
+                return;
+            }
+
+            // Extract elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replacePath, _stateInfo.StreamManager);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                var replaceState = _stateInfo.PluginState as IReplaceFiles;
+                foreach (var filePath in filePaths)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Replace files", count++, filePaths.Length);
+
+                    var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
+                    if (IsFileLocked(afi, true))
+                        continue;
+
+                    if (!sourceFileSystem.FileExists(filePath))
+                        continue;
+
+                    var currentFileStream = sourceFileSystem.OpenFile(filePath);
+                    replaceState?.ReplaceFile(afi, currentFileStream);
+
+                    AddChangedDirectory(afi.FilePath.GetDirectory());
+                }
+            });
+            _progress.ReportProgress("Replace files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File replacement cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) replaced successfully.");
+
+            UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
+            UpdateDirectories();
+
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Renaming
+
+        #region Rename Files
+
+        private Task RenameSelectedFiles()
+        {
+            return RenameFiles(fileView.SelectedItems.Select(x => x.ArchiveFileInfo).ToArray());
+        }
+
+        private async Task RenameFiles(IList<IArchiveFileInfo> files)
+        {
+            if (files.Count <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to rename.");
+                return;
+            }
+
+            // Rename elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                foreach (var file in files)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Rename files", count++, files.Count);
+
+                    // Select new name
+                    var newName = Application.Instance.Invoke(() =>
+                    {
+                        var inputBox = new InputBox($"Select a new name for '{file.FilePath.GetName()}'",
+                            "Rename file", file.FilePath.GetName());
+                        return inputBox.ShowModal(this);
+                    });
+
+                    if (string.IsNullOrEmpty(newName))
+                        continue;
+
+                    // Rename possibly open file in main form
+                    _communicator.Rename(file, file.FilePath.GetDirectory() / newName);
+
+                    // Rename file in archive
+                    _archiveFileSystem.MoveFile(file.FilePath, file.FilePath.GetDirectory() / newName);
+
+                    AddChangedDirectory(file.FilePath.GetDirectory());
+                }
+            });
+            _progress.ReportProgress("Rename files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File renaming cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) renamed successfully.");
+
+            UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
+            UpdateDirectories();
+        }
+
+        #endregion
+
+        #region Rename Directories
+
+        private Task RenameSelectedDirectory()
+        {
+            return RenameDirectory((TreeGridItem)folderView.SelectedItem);
+        }
+
+        private async Task RenameDirectory(TreeGridItem item)
+        {
+            var itemPath = GetAbsolutePath(item);
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+
+            if (filePaths.Length <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to rename.");
+                return;
+            }
+
+            // Select new directory name
+            var inputBox = new InputBox($"Select a new name for '{GetItemName(item)}'",
+                "Rename directory", GetItemName(item));
+            var newName = inputBox.ShowModal(this);
+
+            if (string.IsNullOrEmpty(newName))
+            {
+                _communicator.ReportStatus(false, "No new name given.");
+                return;
+            }
+
+            // Rename elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            var newDirectoryPath = GetAbsolutePath(item).GetDirectory() / newName;
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                foreach (var filePath in filePaths)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Rename files", count++, filePaths.Length);
+
+                    // Rename possibly open file in main form
+                    var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
+                    _communicator.Rename(afi, newDirectoryPath / filePath.ToRelative());
+
+                    // Rename file in archive
+                    _archiveFileSystem.MoveFile(afi.FilePath, newDirectoryPath / filePath.ToRelative());
+
+                    AddChangedDirectory(afi.FilePath.GetDirectory());
+                }
+            });
+            _progress.ReportProgress("Rename files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File renaming cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) renamed successfully.");
+
+            SetItemName(item, newName);
+
+            UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
+            UpdateDirectories();
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Deletion
+
+        #region Delete Files
+
+        private Task DeleteSelectedFiles()
+        {
+            return DeleteFiles(fileView.SelectedItems.Select(x => x.ArchiveFileInfo).ToArray());
+        }
+
+        private async Task DeleteFiles(IList<IArchiveFileInfo> files)
+        {
+            if (files.Count <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to delete.");
+                return;
+            }
+
+            // Delete elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                foreach (var file in files)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Delete files", count++, files.Count);
+
+                    _archiveFileSystem.DeleteFile(file.FilePath);
+                }
+            });
+            _progress.ReportProgress("Delete files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File deletion cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) deleted successfully.");
+
+            UpdateDirectories();
+            UpdateFiles(UPath.Root);
+
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
+        #region Delete Directories
+
+        private Task DeleteSelectedDirectory()
+        {
+            return DeleteDirectory((TreeGridItem)folderView.SelectedItem);
+        }
+
+        private async Task DeleteDirectory(TreeGridItem item)
+        {
+            var itemPath = GetAbsolutePath(item);
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+
+            if (filePaths.Length <= 0)
+            {
+                _communicator.ReportStatus(true, "No files to delete.");
+                return;
+            }
+
+            // Delete elements
+            _communicator.ReportStatus(true, string.Empty);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                foreach (var filePath in filePaths)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Delete files", count++, filePaths.Length);
+
+                    _archiveFileSystem.DeleteFile(itemPath / filePath);
+                }
+            });
+
+            _archiveFileSystem.DeleteDirectory(itemPath, true);
+
+            _progress.ReportProgress("Delete files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File deletion cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) deleted successfully.");
+
+            LoadDirectories();
+            UpdateFiles(UPath.Root);
+
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Add Files
+
+        private Task AddFilesToSelectedItem()
+        {
+            return AddFiles((TreeGridItem)folderView.SelectedItem);
+        }
+
+        private async Task AddFiles(TreeGridItem item)
+        {
+            // Select folder
+            var selectedPath = SelectFolder();
+            if (selectedPath.IsNull || selectedPath.IsEmpty)
+            {
+                _communicator.ReportStatus(false, "No folder selected.");
+                return;
+            }
+
+            // Add elements
+            var subFolder = GetAbsolutePath(item);
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath, _stateInfo.StreamManager);
+
+            var elements = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
+            if (elements.Length <= 0)
+            {
+                _communicator.ReportStatus(false, "No files to add.");
+                return;
+            }
+
+            _communicator.ReportStatus(true, string.Empty);
+
+            _progress.StartProgress();
+            await _asyncOperation.StartAsync(cts =>
+            {
+                var count = 0;
+                foreach (var filePath in elements)
+                {
+                    if (cts.IsCancellationRequested)
+                        break;
+
+                    _progress.ReportProgress("Add files", count++, elements.Length);
+
+                    // TODO: This will currently copy files to memory, instead of just using a reference to any more memory efficient stream (like FileStream)
+                    var createdFile=_archiveFileSystem.OpenFile(subFolder / filePath.ToRelative(), FileMode.Create, FileAccess.Write);
+                    var sourceFile = sourceFileSystem.OpenFile(filePath);
+                    sourceFile.CopyTo(createdFile);
+
+                    sourceFile.Close();
+                }
+            });
+            _progress.ReportProgress("Add files", 1, 1);
+            _progress.FinishProgress();
+
+            if (_asyncOperation.WasCancelled)
+                _communicator.ReportStatus(false, "File adding cancelled.");
+            else
+                _communicator.ReportStatus(true, "File(s) added successfully.");
+
+            UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
+
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
         #region Support
 
         private UPath GetAbsolutePath(TreeGridItem item)
@@ -445,6 +1182,65 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var openedState = _pluginManager.GetLoadedFile(absolutePath);
             return openedState.StateChanged;
+        }
+
+        private UPath SelectFile(string fileName)
+        {
+            var ofd = new OpenFileDialog
+            {
+                Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
+                FileName = fileName
+            };
+            var result = ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : UPath.Empty;
+
+            if (result != UPath.Empty)
+            {
+                Settings.Default.LastDirectory = result.FullName;
+                Settings.Default.Save();
+            }
+
+            return result;
+        }
+
+        private UPath SelectFolder()
+        {
+            var sfd = new SelectFolderDialog
+            {
+                Directory = Settings.Default.LastDirectory
+            };
+            var result = sfd.ShowDialog(this) == DialogResult.Ok ? sfd.Directory : UPath.Empty;
+
+            if (result != UPath.Empty)
+            {
+                Settings.Default.LastDirectory = result.FullName;
+                Settings.Default.Save();
+            }
+
+            return result;
+        }
+
+        private void AddChangedDirectory(UPath path)
+        {
+            while (path != UPath.Root && !path.IsEmpty)
+            {
+                _changedDirectories.Add(path);
+                path = path.GetDirectory();
+            }
+        }
+
+        private string GetRootName()
+        {
+            return GetItemName(folders.FirstOrDefault() as TreeGridItem);
+        }
+
+        private string GetItemName(TreeGridItem item)
+        {
+            return (string)item?.Values[1];
+        }
+
+        private void SetItemName(TreeGridItem item, string name)
+        {
+            item.Values[1] = name;
         }
 
         #endregion

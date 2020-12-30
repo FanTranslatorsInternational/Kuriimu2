@@ -40,6 +40,7 @@
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -49,6 +50,21 @@
     <ProjectReference Include="..\..\Kontract\Kontract.csproj" />
     <ProjectReference Include="..\..\Kore\Kore.csproj" />
     <ProjectReference Include="..\..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Resources\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   
 </Project>
