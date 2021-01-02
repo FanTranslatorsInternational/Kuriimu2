@@ -123,9 +123,9 @@ jobs:
         
     - name: Move update files to update repo
       run: |
-        mv ./update/Wpf/* ./update_repo/Wpf
-        mv ./update/Gtk/* ./update_repo/Gtk
-        mv ./update/Mac/* ./update_repo/Mac
+        mv -f ./update/Wpf/* ./update_repo/Wpf
+        mv -f ./update/Gtk/* ./update_repo/Gtk
+        mv -f ./update/Mac/* ./update_repo/Mac
         
     - name: Commit changes to update repo
       run: |
