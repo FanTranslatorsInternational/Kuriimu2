@@ -115,7 +115,7 @@ jobs:
         openssl dgst -sha512 -sign privatekey.pem -out ./update/Gtk/latest.sig ./update/Gtk/latest.zip
         openssl dgst -sha512 -sign privatekey.pem -out ./update/Mac/latest.sig ./update/Mac/latest.zip
       env:
-        PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+        PRIVATE_KEY: ${{secrets.PRIVATE_KEY_3}}
         
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_repo
