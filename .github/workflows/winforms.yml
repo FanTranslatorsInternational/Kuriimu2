@@ -22,13 +22,13 @@ jobs:
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe" }' > ./update/manifest.json
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.WinForms/Resources/version.json
       
-    - name: Publish winforms application with dotnet
-      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
-      
     - name: Setup NuGet sources
       run: |
         nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
         nuget sources add -name NugetFeed -source https://api.nuget.org/v3/index.json -verbosity detailed
+      
+    - name: Publish winforms application with dotnet
+      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
       
     - name: Pack libraries
       run: |
