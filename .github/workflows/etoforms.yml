@@ -1,4 +1,4 @@
-name: Kuriimu2 WinForms
+name: Kuriimu2 EtoForms
 
 on:
   push:
@@ -28,11 +28,11 @@ jobs:
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
-    - name: Publish etoforms application with dotnet
+    - name: Publish EtoForms application with dotnet
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final --configuration Release
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final --configuration Release
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --output ./dist/final --configuration Release
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final --configuration Release --framework netcoreapp31
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final --configuration Release --framework netcoreapp31
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --output ./dist/final --configuration Release --framework netcoreapp31
       
     - name: Pack libraries
       run: |
