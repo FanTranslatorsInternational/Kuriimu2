@@ -63,7 +63,7 @@ namespace plugin_bandai_namco.Archives
     class L7cArchiveFileInfo : ArchiveFileInfo
     {
         private readonly ChunkStream _chunkStream;
-        private static readonly Crc32 Crc32 = Crc32.Create(Crc32Formula.Normal);
+        private static readonly Crc32 Crc32 = Crc32.Default;
 
         public IList<L7cChunkEntry> Chunks { get; private set; }
 

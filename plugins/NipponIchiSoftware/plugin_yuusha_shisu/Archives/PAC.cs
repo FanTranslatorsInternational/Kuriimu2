@@ -16,7 +16,7 @@ namespace plugin_yuusha_shisu.PAC
         private const int FileAlignment = 0x80;
 
         private FileHeader _header;
-        private List<FileEntry> _entries;
+        private IList<FileEntry> _entries;
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
