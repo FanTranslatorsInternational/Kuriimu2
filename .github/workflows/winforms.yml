@@ -7,8 +7,9 @@ on:
 
 jobs:
   build:
-
-    runs-on: windows-latest
+    
+    runs-on: ubuntu-latest
+    container: stefanscherer/openssl-windows
 
     steps:
     - uses: actions/checkout@v2
@@ -68,11 +69,6 @@ jobs:
       with:
         files: ./dist/final
         dest: ./update/latest.zip
-    
-    - name: Install openSSL
-      uses: crazy-max/ghaction-chocolatey@v1
-      with:
-        args: install openssl.light
       
     - name: Sign release
       run: |
