@@ -1,6 +1,9 @@
 name: Kuriimu2 WinForms
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
