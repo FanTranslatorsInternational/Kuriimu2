@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Kontract.Interfaces.Plugins.State.Text;
 using Kontract.Models.Text;
 using Kore.Utilities.Models;
 using MoreLinq;

@@ -50,18 +50,15 @@ namespace plugin_level5.DS.Images
             // Inflate imageInfo
             var encoding = LimgSupport.LimgFormats[_header.imgFormat];
             var imageStream = new SubStream(input, _header.imageDataOffset, input.Length - _header.imageDataOffset);
-            var imageData = CombineTiles(imageStream, tileIndices, encoding.Item1.BitsPerValue);
+            var imageData = CombineTiles(imageStream, tileIndices, encoding.IndexEncoding.BitDepth);
 
-            return new ImageInfo
+            return new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
             {
-                ImageFormat = _header.imgFormat,
-                ImageData = imageData,
-                ImageSize = new Size(_header.width, _header.height),
-                Configuration = new ImageConfiguration()
-                    .RemapPixelsWith(size => new NitroSwizzle(size.Width, size.Height)),
-
                 PaletteData = palette,
-                PaletteFormat = 0
+                PaletteFormat = 0,
+
+                Configuration = new ImageConfiguration()
+                    .RemapPixelsWith(size => new NitroSwizzle(size.Width, size.Height))
             };
         }
 
@@ -71,7 +68,7 @@ namespace plugin_level5.DS.Images
             var encoding = LimgSupport.LimgFormats[imageInfo.ImageFormat];
 
             // Split into tiles
-            var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.Item1.BitsPerValue);
+            var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.IndexEncoding.BitDepth);
 
             // Write palette
             bw.BaseStream.Position = _headerSize + _unkHeader.Length;
@@ -144,7 +141,7 @@ namespace plugin_level5.DS.Images
             var tiles = new short[imageData.Length / tileSize];
 
             var tileDictionary = new Dictionary<uint, int>();
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
 
             var offset = 0;
             var tileIndex = 0;

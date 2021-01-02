@@ -34,7 +34,6 @@ using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
-using Kontract.Models;
 using Kontract.Models.IO;
 
 namespace Kore.FileSystem.Implementations
@@ -72,10 +71,17 @@ namespace Kore.FileSystem.Implementations
         {
         }
 
+        private PhysicalFileSystem(IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
+            base(streamManager)
+        {
+            foreach (var watcher in watchers)
+                GetOrCreateDispatcher().Add(watcher);
+        }
+
         /// <inheritdoc />
         public override IFileSystem Clone(IStreamManager streamManager)
         {
-            return new PhysicalFileSystem(streamManager);
+            return new PhysicalFileSystem(streamManager, GetOrCreateDispatcher().Get());
         }
 
         // ----------------------------------------------
@@ -215,7 +221,9 @@ namespace Kore.FileSystem.Implementations
             {
                 CopyFileImpl(destPath, destBackupPath, true);
             }
+
             CopyFileImpl(srcPath, destPath, true);
+
             DeleteFileImpl(srcPath);
 
             // TODO: Add atomic version using File.Replace coming with .NET Standard 2.0
@@ -228,6 +236,7 @@ namespace Kore.FileSystem.Implementations
             {
                 throw new UnauthorizedAccessException($"The access to `{path}` is denied");
             }
+
             return new FileInfo(ConvertPathToInternal(path)).Length;
         }
 
@@ -244,10 +253,12 @@ namespace Kore.FileSystem.Implementations
             {
                 throw new UnauthorizedAccessException($"The access to `{srcPath}` is denied");
             }
+
             if (IsWithinSpecialDirectory(destPath))
             {
                 throw new UnauthorizedAccessException($"The access to `{destPath}` is denied");
             }
+
             File.Move(ConvertPathToInternal(srcPath), ConvertPathToInternal(destPath));
         }
 
@@ -258,6 +269,7 @@ namespace Kore.FileSystem.Implementations
             {
                 throw new UnauthorizedAccessException($"The access to `{path}` is denied");
             }
+
             File.Delete(ConvertPathToInternal(path));
         }
 
@@ -283,6 +295,8 @@ namespace Kore.FileSystem.Implementations
                 file = File.Open(ConvertPathToInternal(path), mode, access, share);
             StreamManager.Register(file);
 
+            GetOrCreateDispatcher().RaiseOpened(path);
+
             return file;
         }
 
@@ -297,6 +311,8 @@ namespace Kore.FileSystem.Implementations
 
             var file = File.Open(ConvertPathToInternal(path), mode, access, share);
             StreamManager.Register(file);
+
+            GetOrCreateDispatcher().RaiseOpened(path);
 
             return Task.FromResult((Stream)file);
         }
@@ -324,6 +340,13 @@ namespace Kore.FileSystem.Implementations
         protected override ulong GetTotalSizeImpl(UPath directory)
         {
             return GetDirectorySize(new DirectoryInfo(ConvertPathToInternalImpl(directory)));
+        }
+
+        /// <inheritdoc />
+        protected override FileEntry GetFileEntryImpl(UPath path)
+        {
+            var fileInfo = new FileInfo(ConvertPathToInternalImpl(path));
+            return new FileEntry(fileInfo.FullName, fileInfo.Length);
         }
 
         // ----------------------------------------------
@@ -436,6 +459,42 @@ namespace Kore.FileSystem.Implementations
                     yield return ConvertPathFromInternal(subPath);
                 }
             }
+        }
+
+        // ----------------------------------------------
+        // Watch API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
+        protected override bool CanWatchImpl(UPath path)
+        {
+            if (IsWithinSpecialDirectory(path))
+            {
+                return SpecialDirectoryExists(path);
+            }
+
+            return DirectoryExists(path);
+        }
+
+        /// <inheritdoc />
+        protected override IFileSystemWatcher WatchImpl(UPath path)
+        {
+            if (IsWithinSpecialDirectory(path))
+            {
+                throw new UnauthorizedAccessException($"The access to `{path}` is denied");
+            }
+
+            var watcher = new PhysicalFileSystemWatcher(this, path);
+            watcher.Disposed += Watcher_Disposed;
+
+            GetOrCreateDispatcher().Add(watcher);
+
+            return watcher;
+        }
+
+        private void Watcher_Disposed(object sender, EventArgs e)
+        {
+            GetOrCreateDispatcher().Remove((FileSystemWatcher)sender);
         }
 
         // ----------------------------------------------

@@ -13,6 +13,6 @@ namespace Kontract.Interfaces.Plugins.State.Archive
         /// </summary>
         /// <param name="afi">The file to replace data in.</param>
         /// <param name="fileData">The new file data to replace the original file with.</param>
-        void ReplaceFile(ArchiveFileInfo afi, Stream fileData);
+        void ReplaceFile(IArchiveFileInfo afi, Stream fileData);
     }
 }

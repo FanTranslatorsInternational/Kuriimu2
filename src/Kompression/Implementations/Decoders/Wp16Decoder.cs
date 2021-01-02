@@ -9,12 +9,7 @@ namespace Kompression.Implementations.Decoders
 {
     public class Wp16Decoder : IDecoder
     {
-        private readonly int _preBufferSize;
-
-        public Wp16Decoder(int preBufferSize)
-        {
-            _preBufferSize = preBufferSize;
-        }
+        private const int PreBufferSize_ = 0xFFE;
 
         public void Decode(Stream input, Stream output)
         {
@@ -28,7 +23,7 @@ namespace Kompression.Implementations.Decoders
 
             var circularBuffer = new CircularBuffer(0xFFE)
             {
-                Position = _preBufferSize
+                Position = PreBufferSize_
             };
 
             long flags = 0;

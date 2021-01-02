@@ -48,7 +48,7 @@ namespace plugin_nintendo.Archives
         private Encoding _nameEncoding;
         private BinaryWriterX _nameBw;
 
-        public IList<(DarcEntry, ArchiveFileInfo)> Entries { get; private set; }
+        public IList<(DarcEntry, IArchiveFileInfo)> Entries { get; private set; }
 
         public Stream NameStream { get; private set; }
 
@@ -57,7 +57,7 @@ namespace plugin_nintendo.Archives
             _nameEncoding = nameEncoding;
         }
 
-        public void Build(IList<(string path, ArchiveFileInfo afi)> files)
+        public void Build(IList<(string path, IArchiveFileInfo afi)> files)
         {
             // Build directory tree
             var directoryTree = BuildDirectoryTree(files);
@@ -67,11 +67,11 @@ namespace plugin_nintendo.Archives
             _nameBw = new BinaryWriterX(NameStream, true);
 
             // Populate entries
-            Entries = new List<(DarcEntry, ArchiveFileInfo)>();
+            Entries = new List<(DarcEntry, IArchiveFileInfo)>();
             PopulateEntryList(files, directoryTree, 0);
         }
 
-        private IList<(string, int)> BuildDirectoryTree(IList<(string, ArchiveFileInfo)> files)
+        private IList<(string, int)> BuildDirectoryTree(IList<(string, IArchiveFileInfo)> files)
         {
             var distinctDirectories = files
                 .OrderBy(x => GetDirectory(x.Item1))
@@ -98,7 +98,7 @@ namespace plugin_nintendo.Archives
             return directories;
         }
 
-        private void PopulateEntryList(IList<(string path, ArchiveFileInfo afi)> files,
+        private void PopulateEntryList(IList<(string path, IArchiveFileInfo afi)> files,
             IList<(string, int)> directories, int parentIndex)
         {
             var directoryIndex = 0;

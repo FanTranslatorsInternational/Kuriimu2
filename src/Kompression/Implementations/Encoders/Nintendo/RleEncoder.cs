@@ -1,21 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.Encoders.Headerless;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
-    public class RleEncoder : IEncoder
+    public class RleEncoder : ILzEncoder
     {
         private readonly RleHeaderlessEncoder _encoder;
 
-        public RleEncoder(IMatchParser matchParser)
+        public RleEncoder()
         {
-            _encoder = new RleHeaderlessEncoder(matchParser);
+            _encoder = new RleHeaderlessEncoder();
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            matchOptions.CalculatePricesWith(() => new NintendoRlePriceCalculator())
+                .FindWith((options, limits) => new RleMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(0x3, 0x82));
+        }
+
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -27,7 +38,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
             };
             output.Write(compressionHeader, 0, 4);
 
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, matches);
         }
 
         public void Dispose()

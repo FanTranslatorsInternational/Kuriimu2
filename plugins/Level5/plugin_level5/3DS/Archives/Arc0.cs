@@ -23,7 +23,7 @@ namespace plugin_level5._3DS.Archives
 
         private Arc0Header _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -52,7 +52,7 @@ namespace plugin_level5._3DS.Archives
 
             // Add Files
             var names = new BinaryReaderX(nameStream);
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var directory in directoryEntries)
             {
                 names.BaseStream.Position = directory.directoryNameStartOffset;
@@ -76,7 +76,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
         {
             // Group files by directory
             var castedFiles = files.Cast<Arc0ArchiveFileInfo>();
@@ -157,7 +157,7 @@ namespace plugin_level5._3DS.Archives
                 .GroupBy(x => x.FilePath.GetDirectory())
                 .ToArray();
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var sjis = Encoding.GetEncoding("SJIS");
 
             nameStream = new MemoryStream();

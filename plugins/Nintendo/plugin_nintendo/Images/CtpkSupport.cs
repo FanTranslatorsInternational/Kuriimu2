@@ -3,9 +3,9 @@ using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 
-namespace plugin_nintendo.CTPK
+namespace plugin_nintendo.Images
 {
-    public class Support
+    public class CtpkSupport
     {
         public static Dictionary<int, IColorEncoding> CtrFormat = new Dictionary<int, IColorEncoding>
         {
@@ -26,7 +26,7 @@ namespace plugin_nintendo.CTPK
         };
     }
 
-    public class Header
+    public class CtpkHeader
     {
         [FixedLength(4)]
         public string magic;

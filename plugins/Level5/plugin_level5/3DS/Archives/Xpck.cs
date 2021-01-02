@@ -21,7 +21,7 @@ namespace plugin_level5._3DS.Archives
 
         private XpckHeader _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -40,7 +40,7 @@ namespace plugin_level5._3DS.Archives
             // Files
             using var nameList = new BinaryReaderX(decNames);
 
-            var files = new List<ArchiveFileInfo>();
+            var files = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 nameList.BaseStream.Position = entry.nameOffset;
@@ -67,7 +67,7 @@ namespace plugin_level5._3DS.Archives
             return files;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<XpckArchiveFileInfo>().ToArray();
             using var bw = new BinaryWriterX(output);
@@ -88,7 +88,7 @@ namespace plugin_level5._3DS.Archives
             // Write files
             _header.DataOffset = (ushort)((_headerSize + files.Count * _entrySize + nameStreamComp.Length + 3) & ~3);
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var ascii = Encoding.ASCII;
 
             var fileOffset = (int)_header.DataOffset;

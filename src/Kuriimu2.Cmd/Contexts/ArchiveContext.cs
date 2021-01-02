@@ -8,6 +8,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Factories;
@@ -38,7 +39,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back-to-main")
         };
 
-        public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalPluginManager pluginManager) : base(pluginManager, contextNode)
+        public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalPluginManager pluginManager, IProgressContext progressContext) :
+            base(pluginManager, contextNode, progressContext)
         {
             ContractAssertions.IsNotNull(contextNode, nameof(contextNode));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));

@@ -17,7 +17,7 @@ namespace plugin_nintendo.Archives
 
         private ByteOrder _byteOrder;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -45,7 +45,7 @@ namespace plugin_nintendo.Archives
             // Add files
             using var nameBr = new BinaryReaderX(nameStream);
 
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             var lastDirectoryEntry = entries[0];
             foreach (var entry in entries.Skip(1))
             {
@@ -81,7 +81,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var darcTreeBuilder = new DarcTreeBuilder(Encoding.Unicode);
             darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
@@ -110,7 +110,7 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(alignment);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = afi.SaveFileData(bw.BaseStream, null);
+                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream, null);
 
                 darcEntry.offset = fileOffset;
                 darcEntry.size = (int)writtenSize;

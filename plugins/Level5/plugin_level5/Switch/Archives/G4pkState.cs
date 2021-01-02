@@ -15,7 +15,7 @@ namespace plugin_level5.Switch.Archives
     {
         private readonly G4pk _g4pk;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public G4pkState()
@@ -26,7 +26,7 @@ namespace plugin_level5.Switch.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = await Task.Run(() => _g4pk.Load(fileStream));
+            Files = _g4pk.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -37,7 +37,7 @@ namespace plugin_level5.Switch.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

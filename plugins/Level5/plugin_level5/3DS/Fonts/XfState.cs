@@ -58,11 +58,11 @@ namespace plugin_level5._3DS.Fonts
             var imageState = _imageStateInfo.PluginState as IImageState;
 
             // Load KanvasImage
-            var kanvasImage = new KanvasImage(imageState, imageState.Images[0]);
-            var fntFile = await archiveState.Files[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
+            var image = imageState.Images[0].GetImage(loadContext.ProgressContext);
 
             // Load characters
-            _characters = await Task.Run(() => _xf.Load(fntFile, kanvasImage.GetImage(loadContext.ProgressContext)));
+            var fntFile = await archiveState.Files[1].GetFileData(loadContext.TemporaryStreamManager, loadContext.ProgressContext);
+            _characters = _xf.Load(fntFile, image);
             _isChanged = false;
         }
 
@@ -73,8 +73,7 @@ namespace plugin_level5._3DS.Fonts
             var (fontStream, fontImage) = _xf.Save(_characters, imageState.Images[0].ImageSize);
 
             // Save image
-            var kanvasImage = new KanvasImage(imageState, imageState.Images[0]);
-            kanvasImage.SetImage((Bitmap)fontImage);
+            imageState.Images[0].SetImage((Bitmap)fontImage);
 
             var saveResult = await _pluginManager.SaveFile(_imageStateInfo);
             if (!saveResult.IsSuccessful)

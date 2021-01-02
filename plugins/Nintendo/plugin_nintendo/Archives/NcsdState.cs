@@ -15,7 +15,7 @@ namespace plugin_nintendo.Archives
     {
         private readonly NCSD _ncsd;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
@@ -27,7 +27,7 @@ namespace plugin_nintendo.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = await Task.Run(() => _ncsd.Load(fileStream));
+            Files = _ncsd.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -38,7 +38,7 @@ namespace plugin_nintendo.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

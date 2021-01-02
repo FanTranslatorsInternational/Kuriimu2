@@ -12,7 +12,7 @@ namespace Kontract.Models.Archive
     /// <summary>
     /// The base model to represent a loaded file in an archive state.
     /// </summary>
-    public class ArchiveFileInfo
+    public class ArchiveFileInfo : IArchiveFileInfo
     {
         private readonly IKompressionConfiguration _configuration;
 
@@ -22,20 +22,13 @@ namespace Kontract.Models.Archive
         private long _decompressedSize;
         private bool _hasSetFileData;
 
-        /// <summary>
-        /// Determines if the FileData is compressed, and has to be handled as such
-        /// </summary>
-        private bool UsesCompression => _configuration != null;
+        /// <inheritdoc />
+        public bool UsesCompression => _configuration != null;
 
-        /// <summary>
-        /// Determines if the content of this file info was modified.
-        /// </summary>
+        /// <inheritdoc />
         public bool ContentChanged { get; set; }
 
-        /// <summary>
-        /// Retrieve a list of plugins, this file can be opened with.
-        /// Any other plugins won't be allowed to pass this file on.
-        /// </summary>
+        /// <inheritdoc />
         public Guid[] PluginIds { get; set; }
 
         /// <summary>
@@ -43,9 +36,7 @@ namespace Kontract.Models.Archive
         /// </summary>
         protected Stream FileData { get; set; }
 
-        /// <summary>
-        /// The path of the file info into the archive.
-        /// </summary>
+        /// <inheritdoc />
         public UPath FilePath
         {
             get => _filePath;
@@ -56,9 +47,7 @@ namespace Kontract.Models.Archive
             }
         }
 
-        /// <summary>
-        /// The size of the file data.
-        /// </summary>
+        /// <inheritdoc />
         public virtual long FileSize => UsesCompression ? _decompressedSize : FileData?.Length ?? 0;
 
         /// <summary>
@@ -77,6 +66,13 @@ namespace Kontract.Models.Archive
             ContentChanged = false;
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ArchiveFileInfo"/>.
+        /// </summary>
+        /// <param name="fileData">The data stream for this file info.</param>
+        /// <param name="filePath">The path of the file into the archive.</param>
+        /// <param name="configuration">The <see cref="IKompressionConfiguration"/> for the compression algorithm to apply to the file.</param>
+        /// <param name="decompressedSize">The decompressed size of the file.</param>
         public ArchiveFileInfo(Stream fileData, string filePath,
             IKompressionConfiguration configuration, long decompressedSize) :
             this(fileData, filePath)
@@ -88,13 +84,7 @@ namespace Kontract.Models.Archive
             _decompressedStream = new Lazy<Stream>(() => DecompressStream(fileData, configuration));
         }
 
-        /// <summary>
-        /// Gets the file data from this file info.
-        /// </summary>
-        /// <param name="temporaryStreamProvider">A provider for temporary streams.</param>
-        /// <param name="progress">The context to report progress to.</param>
-        /// <returns>The file data for this file info.</returns>
-        /// <remarks>The <see cref="ITemporaryStreamProvider"/> is used for decrypting or decompressing files temporarily onto the disk to minimize memory usage.</remarks>
+        /// <inheritdoc />
         public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
         {
             if (UsesCompression)
@@ -103,11 +93,7 @@ namespace Kontract.Models.Archive
             return Task.FromResult(GetBaseStream());
         }
 
-        /// <summary>
-        /// Sets the file data for this file info.
-        /// </summary>
-        /// <param name="fileData">The new file data for this file info.</param>
-        /// <remarks>This method should only set the file data, without compressing or encrypting the data yet.</remarks>
+        /// <inheritdoc />
         public virtual void SetFileData(Stream fileData)
         {
             if (FileData == fileData)
@@ -126,6 +112,12 @@ namespace Kontract.Models.Archive
             _decompressedStream = new Lazy<Stream>(GetBaseStream);
         }
 
+        /// <summary>
+        /// Save the file data to an output stream.
+        /// </summary>
+        /// <param name="output">The output to write the file data to.</param>
+        /// <param name="progress">The context to report progress to.</param>
+        /// <returns>The size of the file written.</returns>
         public long SaveFileData(Stream output, IProgressContext progress = null)
         {
             return SaveFileData(output, true, progress);
@@ -140,27 +132,7 @@ namespace Kontract.Models.Archive
         /// <returns>The size of the file written.</returns>
         public virtual long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            Stream dataToCopy;
-            if (UsesCompression)
-            {
-                if (!compress)
-                {
-                    // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
-                    // get decompressed data
-                    dataToCopy = _decompressedStream.Value;
-                }
-                else
-                {
-                    // Otherwise compress data or use the original compressed data, if never set
-                    dataToCopy = _hasSetFileData ?
-                        CompressStream(FileData, _configuration) :
-                        GetBaseStream();
-                }
-            }
-            else
-            {
-                dataToCopy = GetBaseStream();
-            }
+            var dataToCopy = GetFinalStream(compress);
 
             progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
@@ -178,6 +150,30 @@ namespace Kontract.Models.Archive
         public override string ToString()
         {
             return FilePath.FullName;
+        }
+
+        /// <summary>
+        /// Get the final stream of FileData.
+        ///     This is the compressed stream, if a compression is set,
+        ///     or the FileData stream.
+        /// </summary>
+        /// <returns>The final stream.</returns>
+        protected Stream GetFinalStream(bool compress = true)
+        {
+            if (!UsesCompression) 
+                return GetBaseStream();
+
+            if (!compress)
+            {
+                // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
+                // get decompressed data
+                return _decompressedStream.Value;
+            }
+
+            // Otherwise compress data or use the original compressed data, if never set
+            return _hasSetFileData ?
+                CompressStream(FileData, _configuration) :
+                GetBaseStream();
         }
 
         /// <summary>
@@ -242,6 +238,12 @@ namespace Kontract.Models.Archive
             ms.Position = 0;
 
             return ms;
+        }
+
+        public void Dispose()
+        {
+            FileData?.Dispose();
+            _decompressedStream = null;
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Kuriimu2.WinForms.ExtensionForms
             switch (extensionType.Name)
             {
                 case "Crc32":
-                    return Crc32.Create(Crc32Formula.Normal);
+                    return Crc32.Default;
 
                 case "Crc32 Custom":
                     return Crc32.Create(Crc32Formula.Normal, extensionType.GetParameterValue<uint>("Polynomial"));

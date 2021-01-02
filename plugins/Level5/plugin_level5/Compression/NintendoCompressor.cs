@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using Kontract.Kompression.Configuration;
 
@@ -21,6 +22,23 @@ namespace plugin_level5.Compression
             var configuration = GetConfiguration(method);
 
             configuration.Build().Compress(input, output);
+        }
+
+        public static int PeekDecompressedSize(Stream input)
+        {
+            var sizeMethodBuffer = new byte[4];
+            input.Read(sizeMethodBuffer, 0, 4);
+            input.Position -= 4;
+
+            return (int)(BinaryPrimitives.ReadUInt32LittleEndian(sizeMethodBuffer) >> 8);
+        }
+
+        public static NintendoCompressionMethod PeekCompressionMethod(Stream input)
+        {
+            var method = input.ReadByte();
+            input.Position--;
+
+            return (NintendoCompressionMethod)method;
         }
 
         public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)

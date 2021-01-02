@@ -16,7 +16,7 @@ namespace Kore.Factories
     /// </summary>
     public static class FileSystemFactory
     {
-        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]");
+        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]?");
         private static readonly Regex MountRegex = new Regex(@"^/mnt/[a-zA-Z][/]?");
 
         /// <summary>
@@ -27,6 +27,14 @@ namespace Kore.Factories
         /// <returns>The created <see cref="PhysicalFileSystem"/> for this folder.</returns>
         public static IFileSystem CreatePhysicalFileSystem(UPath path, IStreamManager streamManager)
         {
+            IFileSystem fileSystem;
+
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                fileSystem = new PhysicalFileSystem(streamManager);
+                return new SubFileSystem(fileSystem, path);
+            }
+
             if (!IsRooted(path))
                 throw new InvalidOperationException($"Path {path} is not rooted to a drive.");
 
@@ -36,7 +44,7 @@ namespace Kore.Factories
             if (!Directory.Exists(physicalPath.FullName))
                 Directory.CreateDirectory(physicalPath.FullName);
 
-            var fileSystem = (IFileSystem)new PhysicalFileSystem(streamManager);
+            fileSystem = new PhysicalFileSystem(streamManager);
             if (IsOnlyDrive(internalPath))
             {
                 fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 6));

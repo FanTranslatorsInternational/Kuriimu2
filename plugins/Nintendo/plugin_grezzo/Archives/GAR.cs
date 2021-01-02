@@ -28,7 +28,7 @@ namespace plugin_grezzo.Archives
         private IList<(Gar5FileTypeEntry, string)> _fileTypeEntries;
         private IList<Gar5FileTypeInfo> _fileTypeInfos;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -51,7 +51,7 @@ namespace plugin_grezzo.Archives
             }
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             switch (_headerVersion)
             {
@@ -68,12 +68,12 @@ namespace plugin_grezzo.Archives
             }
         }
 
-        private IList<ArchiveFileInfo> ParseGar2(BinaryReaderX br, GarHeader header)
+        private IList<IArchiveFileInfo> ParseGar2(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
             var fileTypeEntries = br.ReadMultiple<Gar2FileTypeEntry>(header.fileTypeCount);
 
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var fileTypeEntry in fileTypeEntries)
             {
                 if (fileTypeEntry.fileIndexOffset < 0)
@@ -106,7 +106,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        private IList<ArchiveFileInfo> ParseGar5(BinaryReaderX br, GarHeader header)
+        private IList<IArchiveFileInfo> ParseGar5(BinaryReaderX br, GarHeader header)
         {
             // Read file type entries
             _fileTypeEntries = new List<(Gar5FileTypeEntry, string)>();
@@ -118,7 +118,7 @@ namespace plugin_grezzo.Archives
             br.BaseStream.Position = fileTypeInfoPosition;
             _fileTypeInfos = br.ReadMultiple<Gar5FileTypeInfo>(fileTypeInfoLength / _gar5FileTpyeInfoSize);
 
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var fileTypeEntry in fileTypeEntries)
             {
                 // Read file type name
@@ -149,7 +149,7 @@ namespace plugin_grezzo.Archives
             return result;
         }
 
-        private void SaveGar2(Stream output, IList<ArchiveFileInfo> files)
+        private void SaveGar2(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -159,7 +159,7 @@ namespace plugin_grezzo.Archives
             var fileTypeNamePosition = fileTypeEntryPosition + fileTypes.Length * _gar2FileTypeEntrySize;
 
             // Write directory entries
-            var fileInfos = new List<ArchiveFileInfo>();
+            var fileInfos = new List<IArchiveFileInfo>();
 
             var fileIndex = 0;
             var fileTypeEntryOffset = fileTypeEntryPosition;
@@ -239,7 +239,7 @@ namespace plugin_grezzo.Archives
             }
 
             // Write file data
-            foreach (var fileInfo in fileInfos)
+            foreach (var fileInfo in fileInfos.Cast<ArchiveFileInfo>())
             {
                 fileInfo.SaveFileData(output, null);
                 bw.WriteAlignment(4);
@@ -263,7 +263,7 @@ namespace plugin_grezzo.Archives
             });
         }
 
-        private void SaveGar5(Stream output, IList<ArchiveFileInfo> files)
+        private void SaveGar5(Stream output, IList<IArchiveFileInfo> files)
         {
             var fileTypeEntryPosition = _headerSize;
             var fileTypeNamePosition = fileTypeEntryPosition + _fileTypeEntries.Count * _gar5FileTypeEntrySize;
@@ -271,7 +271,7 @@ namespace plugin_grezzo.Archives
             using var bw = new BinaryWriterX(output);
 
             // Write file type entries
-            var fileInfos = new List<ArchiveFileInfo>();
+            var fileInfos = new List<IArchiveFileInfo>();
 
             var fileEntryIndex = 0;
             var fileTypeNameOffset = fileTypeNamePosition;
@@ -337,7 +337,7 @@ namespace plugin_grezzo.Archives
             {
                 fileEntries[i].fileOffset = (int)bw.BaseStream.Position;
 
-                fileInfos[i].SaveFileData(bw.BaseStream, null);
+                (fileInfos[i] as ArchiveFileInfo).SaveFileData(bw.BaseStream, null);
                 bw.WriteAlignment(4);
             }
 

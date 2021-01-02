@@ -6,6 +6,7 @@ using Kontract;
 using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kore.Managers.Plugins;
 
@@ -15,16 +16,23 @@ namespace Kuriimu2.Cmd.Contexts
     {
         protected IInternalPluginManager PluginManager { get; }
 
+        protected IProgressContext Progress { get; }
+
         protected ContextNode ContextNode { get; }
 
-        public BaseFileContext(IInternalPluginManager pluginManager)
+        public BaseFileContext(IInternalPluginManager pluginManager, IProgressContext progressContext) :
+            base(progressContext)
         {
+            ContractAssertions.IsNotNull(progressContext, nameof(progressContext));
+
             PluginManager = pluginManager;
+            Progress = progressContext;
 
             ContextNode = new ContextNode();
         }
 
-        public BaseFileContext(IInternalPluginManager pluginManager, ContextNode parentContextNode)
+        public BaseFileContext(IInternalPluginManager pluginManager, ContextNode parentContextNode, IProgressContext progressContext) :
+            base(progressContext)
         {
             PluginManager = pluginManager;
 
@@ -280,13 +288,13 @@ namespace Kuriimu2.Cmd.Contexts
             switch (childNode.StateInfo.PluginState)
             {
                 case ITextState _:
-                    return new TextContext(childNode.StateInfo, this);
+                    return new TextContext(childNode.StateInfo, this, Progress);
 
                 case IImageState _:
-                    return new ImageContext(childNode.StateInfo, this);
+                    return new ImageContext(childNode.StateInfo, this, Progress);
 
                 case IArchiveState _:
-                    return new ArchiveContext(childNode, this, PluginManager);
+                    return new ArchiveContext(childNode, this, PluginManager, Progress);
 
                 default:
                     Console.WriteLine($"State '{childNode.StateInfo.PluginState.GetType()}' is not supported.");

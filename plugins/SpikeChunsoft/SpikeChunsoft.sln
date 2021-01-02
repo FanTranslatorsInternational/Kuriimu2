@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_spike_chunsoft", "plugin_spike_chunsoft\plugin_spike_chunsoft.csproj", "{CADAEC3C-C800-4671-ADD1-0B881EA7DC57}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CADAEC3C-C800-4671-ADD1-0B881EA7DC57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CADAEC3C-C800-4671-ADD1-0B881EA7DC57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CADAEC3C-C800-4671-ADD1-0B881EA7DC57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CADAEC3C-C800-4671-ADD1-0B881EA7DC57}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8421AF40-547F-4CD2-9026-A42B9C54DCE5}
+	EndGlobalSection
+EndGlobal

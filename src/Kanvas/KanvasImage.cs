@@ -6,7 +6,6 @@ using System.Drawing.Imaging;
 using System.Linq;
 using Kanvas.Configuration;
 using Kontract;
-using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Image;
 using Kontract.Kanvas;
@@ -20,38 +19,54 @@ namespace Kanvas
     /// </summary>
     public sealed class KanvasImage : IKanvasImage
     {
-        private readonly IImageState _imageState;
-        private readonly ImageInfo _imageInfo;
-
+        private readonly EncodingDefinition _encodingDefinition;
         private Bitmap _decodedImage;
         private Bitmap _bestImage;
         private IList<Color> _decodedPalette;
 
+        private int TaskCount => Environment.ProcessorCount;
+
         private IImageConfiguration ImageConfiguration =>
-            _imageInfo.Configuration ?? new ImageConfiguration();
+            ImageInfo.Configuration ?? new ImageConfiguration();
 
         /// <inheritdoc />
-        public bool IsIndexed => IsIndexEncoding(_imageInfo.ImageFormat);
+        public int BitDepth => _encodingDefinition.ContainsColorEncoding(ImageFormat) ? 
+            _encodingDefinition.GetColorEncoding(ImageFormat).BitDepth : 
+            _encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding.BitDepth;
 
         /// <inheritdoc />
-        public int ImageFormat => _imageInfo.ImageFormat;
+        public ImageInfo ImageInfo { get; }
 
         /// <inheritdoc />
-        public int PaletteFormat => _imageInfo.PaletteFormat;
+        public bool IsIndexed => IsIndexEncoding(ImageFormat);
+
+        /// <inheritdoc />
+        public int ImageFormat => ImageInfo.ImageFormat;
+
+        /// <inheritdoc />
+        public int PaletteFormat => ImageInfo.PaletteFormat;
+
+        /// <inheritdoc />
+        public Size ImageSize => ImageInfo.ImageSize;
+
+        /// <inheritdoc />
+        public string Name => ImageInfo.Name;
 
         /// <summary>
         /// Creates a new instance of <see cref="KanvasImage"/>.
         /// </summary>
-        /// <param name="imageState">The image plugin the plugin information come from.</param>
+        /// <param name="encodingDefinition">The encoding definition for the image info.</param>
         /// <param name="imageInfo">The image info to represent.</param>
-        public KanvasImage(IImageState imageState, ImageInfo imageInfo)
+        public KanvasImage(EncodingDefinition encodingDefinition, ImageInfo imageInfo)
         {
-            ContractAssertions.IsNotNull(imageState, nameof(imageState));
+            ContractAssertions.IsNotNull(encodingDefinition, nameof(encodingDefinition));
             ContractAssertions.IsNotNull(imageInfo, nameof(imageInfo));
-            ContractAssertions.IsElementContained(imageState.Images, imageInfo, nameof(imageState.Images), nameof(imageInfo));
 
-            _imageState = imageState;
-            _imageInfo = imageInfo;
+            if (!encodingDefinition.Supports(imageInfo))
+                throw new InvalidOperationException("The encoding definition can not support the image info.");
+
+            _encodingDefinition = encodingDefinition;
+            ImageInfo = imageInfo;
         }
 
         /// <inheritdoc />
@@ -72,15 +87,17 @@ namespace Kanvas
         public void SetImage(Bitmap image, IProgressContext progress = null)
         {
             _bestImage = image;
+
             _decodedImage = null;
             _decodedPalette = null;
 
-            var encodedImage = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat, progress);
-            _imageInfo.ImageData = encodedImage.imageData.FirstOrDefault();
-            _imageInfo.MipMapData = encodedImage.imageData.Skip(1).ToArray();
-            _imageInfo.ImageSize = image.Size;
+            var (imageData, _) = EncodeImage(image, ImageFormat, PaletteFormat, progress);
 
-            _imageInfo.ContentChanged = true;
+            ImageInfo.ImageData = imageData.FirstOrDefault();
+            ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+            ImageInfo.ImageSize = image.Size;
+
+            ImageInfo.ContentChanged = true;
         }
 
         /// <inheritdoc />
@@ -91,18 +108,17 @@ namespace Kanvas
             _decodedImage = _bestImage = null;
             _decodedPalette = palette;
 
-            _imageInfo.PaletteData = EncodePalette(palette, _imageInfo.PaletteFormat);
+            ImageInfo.PaletteData = EncodePalette(palette, PaletteFormat);
 
-            _imageInfo.ContentChanged = true;
+            ImageInfo.ContentChanged = true;
         }
 
         /// <inheritdoc />
         public void TranscodeImage(int imageFormat, IProgressContext progress = null)
         {
-            var paletteFormat = _imageInfo.PaletteFormat;
+            var paletteFormat = PaletteFormat;
             if (!IsIndexed && IsIndexEncoding(imageFormat))
-                paletteFormat = _imageState.SupportedIndexEncodings[imageFormat].PaletteEncodingIndices?.First() ??
-                               _imageState.SupportedPaletteEncodings.First().Key;
+                paletteFormat = _encodingDefinition.GetIndexEncoding(imageFormat).PaletteEncodingIndices.First();
 
             TranscodeInternal(imageFormat, paletteFormat, true, progress);
         }
@@ -112,7 +128,7 @@ namespace Kanvas
         {
             ContractAssertions.IsTrue(IsIndexed, nameof(IsIndexed));
 
-            TranscodeInternal(_imageInfo.ImageFormat, paletteFormat, true, progress);
+            TranscodeInternal(ImageFormat, paletteFormat, true, progress);
         }
 
         /// <inheritdoc />
@@ -122,7 +138,7 @@ namespace Kanvas
 
             var palette = DecodePalette();
             if (paletteIndex >= palette.Count)
-                throw new InvalidOperationException($"Palette index {paletteIndex} is not in range.");
+                throw new InvalidOperationException($"Palette index {paletteIndex} is out of range.");
 
             palette[paletteIndex] = color;
             SetPalette(palette);
@@ -139,18 +155,18 @@ namespace Kanvas
 
             var palette = DecodePalette();
             if (paletteIndex >= palette.Count)
-                throw new InvalidOperationException($"Palette index {paletteIndex} is not in range.");
+                throw new InvalidOperationException($"Palette index {paletteIndex} is out of range.");
 
             image.SetPixel(point.X, point.Y, palette[paletteIndex]);
 
             _decodedImage = image;
-            var encodedImage = EncodeImage(image, _imageInfo.ImageFormat, _imageInfo.PaletteFormat);
+            var (imageData, paletteData) = EncodeImage(image, ImageInfo.ImageFormat, ImageInfo.PaletteFormat);
 
-            _imageInfo.ImageData = encodedImage.imageData.FirstOrDefault();
-            _imageInfo.MipMapData = encodedImage.imageData.Skip(1).ToArray();
-            _imageInfo.PaletteData = encodedImage.paletteData;
+            ImageInfo.ImageData = imageData.FirstOrDefault();
+            ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+            ImageInfo.PaletteData = paletteData;
 
-            _imageInfo.ContentChanged = true;
+            ImageInfo.ContentChanged = true;
         }
 
         private void TranscodeInternal(int imageFormat, int paletteFormat, bool checkFormatEquality, IProgressContext progress = null)
@@ -160,33 +176,34 @@ namespace Kanvas
                 AssertPaletteFormatExists(paletteFormat);
 
             if (checkFormatEquality)
-                if (_imageInfo.ImageFormat == imageFormat &&
-                    IsIndexEncoding(imageFormat) && _imageInfo.PaletteFormat == paletteFormat)
+                if (ImageFormat == imageFormat &&
+                    IsIndexEncoding(imageFormat) && PaletteFormat == paletteFormat)
                     return;
 
             var decodedImage = _bestImage ?? DecodeImage(progress);
             var (imageData, paletteData) = EncodeImage(decodedImage, imageFormat, paletteFormat, progress);
 
             // Set image info properties
-            _imageInfo.ImageFormat = imageFormat;
-            _imageInfo.ImageData = imageData.FirstOrDefault();
-            _imageInfo.MipMapData = imageData.Skip(1).ToArray();
-            _imageInfo.ImageSize = decodedImage.Size;
+            ImageInfo.ImageData = imageData.FirstOrDefault();
+            ImageInfo.MipMapData = imageData.Skip(1).ToArray();
+            ImageInfo.ImageFormat = imageFormat;
+            ImageInfo.ImageSize = decodedImage.Size;
 
             if (IsIndexEncoding(imageFormat))
             {
-                _imageInfo.PaletteFormat = paletteFormat;
-                _imageInfo.PaletteData = paletteData;
+                ImageInfo.PaletteFormat = paletteFormat;
+                ImageInfo.PaletteData = paletteData;
             }
             else
             {
-                _imageInfo.PaletteFormat = -1;
-                _imageInfo.PaletteData = null;
+                ImageInfo.PaletteFormat = -1;
+                ImageInfo.PaletteData = null;
             }
 
             _decodedImage = null;
             _decodedPalette = null;
-            _imageInfo.ContentChanged = true;
+
+            ImageInfo.ContentChanged = true;
         }
 
         private Bitmap DecodeImage(IProgressContext progress = null)
@@ -198,22 +215,23 @@ namespace Kanvas
             if (IsIndexed)
             {
                 var transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(size => _imageState.SupportedIndexEncodings[_imageInfo.ImageFormat].Encoding)
-                    .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[_imageInfo.PaletteFormat])
+                    .TranscodeWith(size => _encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
+                    .TranscodePaletteWith(() => _encodingDefinition.GetPaletteEncoding(PaletteFormat))
                     .Build();
 
-                decodeImageAction = () => transcoder.Decode(_imageInfo.ImageData, _imageInfo.PaletteData, _imageInfo.ImageSize, progress);
+                decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.PaletteData, ImageInfo.ImageSize, progress);
             }
             else
             {
                 var transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(size => _imageState.SupportedEncodings[_imageInfo.ImageFormat])
+                    .TranscodeWith(size => _encodingDefinition.GetColorEncoding(ImageFormat))
                     .Build();
 
-                decodeImageAction = () => transcoder.Decode(_imageInfo.ImageData, _imageInfo.ImageSize, progress);
+                decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.ImageSize, progress);
             }
 
-            _decodedImage = decodeImageAction();
+            ExecuteActionWithProgress(() => _decodedImage = decodeImageAction(), progress);
+
             if (_bestImage == null)
                 _bestImage = _decodedImage;
 
@@ -230,9 +248,7 @@ namespace Kanvas
             if (_decodedPalette != null)
                 return _decodedPalette;
 
-            return _decodedPalette = _imageState.SupportedPaletteEncodings[_imageInfo.PaletteFormat]
-                .Load(_imageInfo.PaletteData, Environment.ProcessorCount)
-                .ToArray();
+            return _decodedPalette = DecodePalette(ImageInfo.PaletteData, context);
         }
 
         /// <summary>
@@ -243,8 +259,8 @@ namespace Kanvas
         /// <returns>Decoded palette.</returns>
         private IList<Color> DecodePalette(byte[] paletteData, IProgressContext context = null)
         {
-            return _imageState.SupportedPaletteEncodings[_imageInfo.PaletteFormat]
-                .Load(paletteData, Environment.ProcessorCount)
+            return _encodingDefinition.GetPaletteEncoding(PaletteFormat)
+                .Load(paletteData, TaskCount)
                 .ToArray();
         }
 
@@ -253,35 +269,37 @@ namespace Kanvas
         {
             // Create transcoder
             IImageTranscoder transcoder;
-            if (IsColorEncoding(imageFormat))
+            if (IsIndexEncoding(imageFormat))
             {
+                var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(size => _imageState.SupportedEncodings[imageFormat])
+                    .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
+                    .TranscodeWith(size => indexEncoding)
+                    .TranscodePaletteWith(() => _encodingDefinition.GetPaletteEncoding(paletteFormat))
                     .Build();
             }
             else
             {
-                var indexEncoding = _imageState.SupportedIndexEncodings[imageFormat].Encoding;
                 transcoder = ImageConfiguration.Clone()
-                    .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
-                    .TranscodeWith(size => indexEncoding)
-                    .TranscodePaletteWith(() => _imageState.SupportedPaletteEncodings[paletteFormat])
+                    .TranscodeWith(size => _encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 
-            var (mainImageData, mainPaletteData) = transcoder.Encode(image, progress);
+            byte[] mainImageData = null;
+            byte[] mainPaletteData = null;
+            ExecuteActionWithProgress(() => (mainImageData, mainPaletteData) = transcoder.Encode(image, progress), progress);
 
-            var imageData = new byte[_imageInfo.MipMapCount + 1][];
+            var imageData = new byte[ImageInfo.MipMapCount + 1][];
             imageData[0] = mainImageData;
 
             // Decode palette if present, only when mip maps are needed
             IList<Color> decodedPalette = null;
-            if (mainPaletteData != null && _imageInfo.MipMapCount > 0)
+            if (mainPaletteData != null && ImageInfo.MipMapCount > 0)
                 decodedPalette = DecodePalette(mainPaletteData);
 
             // Encode mip maps
             var (width, height) = (image.Width / 2, image.Height / 2);
-            for (var i = 0; i < _imageInfo.MipMapCount; i++)
+            for (var i = 0; i < ImageInfo.MipMapCount; i++)
             {
                 imageData[i + 1] = EncodeMipMap(ResizeImage(image, width, height), imageFormat, decodedPalette);
 
@@ -292,21 +310,22 @@ namespace Kanvas
             return (imageData, mainPaletteData);
         }
 
+        // TODO: Use progress
         private byte[] EncodeMipMap(Bitmap mipMap, int imageFormat, IList<Color> palette = null)
         {
             IImageTranscoder transcoder;
-            if (IsColorEncoding(imageFormat))
+            if (IsIndexEncoding(imageFormat))
             {
+                var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(size => _imageState.SupportedEncodings[imageFormat])
+                    .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
+                    .TranscodeWith(size => indexEncoding)
                     .Build();
             }
             else
             {
-                var indexEncoding = _imageState.SupportedIndexEncodings[imageFormat].Encoding;
                 transcoder = ImageConfiguration.Clone()
-                    .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
-                    .TranscodeWith(size => indexEncoding)
+                    .TranscodeWith(size => _encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 
@@ -338,46 +357,50 @@ namespace Kanvas
 
         private byte[] EncodePalette(IList<Color> palette, int paletteFormat)
         {
-            return _imageState.SupportedPaletteEncodings[paletteFormat]
-                .Save(palette, Environment.ProcessorCount);
+            return _encodingDefinition.GetPaletteEncoding(paletteFormat)
+                .Save(palette, TaskCount);
         }
 
         private void AssertImageFormatExists(int imageFormat)
         {
-            var supportedFormats = new List<int>();
-            if (_imageState.SupportedEncodings != null)
-                supportedFormats.AddRange(_imageState.SupportedEncodings.Keys);
-            if (_imageState.SupportedIndexEncodings != null)
-                supportedFormats.AddRange(_imageState.SupportedIndexEncodings.Keys);
-
-            if (!supportedFormats.Contains(imageFormat))
+            if (_encodingDefinition.GetColorEncoding(imageFormat) == null &&
+               _encodingDefinition.GetIndexEncoding(imageFormat) == null)
                 throw new InvalidOperationException($"The image format '{imageFormat}' is not supported by the plugin.");
         }
 
         private void AssertPaletteFormatExists(int paletteFormat)
         {
-            var supportedPaletteFormats = new List<int>();
-            if (_imageState.SupportedPaletteEncodings != null)
-                supportedPaletteFormats.AddRange(_imageState.SupportedPaletteEncodings.Keys);
-
-            if (!supportedPaletteFormats.Contains(paletteFormat))
+            if (_encodingDefinition.GetPaletteEncoding(paletteFormat) == null)
                 throw new InvalidOperationException($"The palette format '{paletteFormat}' is not supported by the plugin.");
-        }
-
-        private bool IsColorEncoding(int imageFormat)
-        {
-            return _imageState.SupportedEncodings?.ContainsKey(imageFormat) ?? false;
         }
 
         private bool IsIndexEncoding(int imageFormat)
         {
-            return _imageState.SupportedIndexEncodings?.ContainsKey(imageFormat) ?? false;
+            return _encodingDefinition.GetIndexEncoding(imageFormat) != null;
         }
 
         private bool IsPointInRegion(Point point, Size region)
         {
             var rectangle = new Rectangle(Point.Empty, region);
             return rectangle.Contains(point);
+        }
+
+        private void ExecuteActionWithProgress(Action action, IProgressContext progress = null)
+        {
+            var isRunning = progress?.IsRunning();
+            if (isRunning.HasValue && !isRunning.Value)
+                progress.StartProgress();
+
+            action();
+
+            if (isRunning.HasValue && !isRunning.Value)
+                progress.FinishProgress();
+        }
+
+        public void Dispose()
+        {
+            _decodedImage?.Dispose();
+            _bestImage?.Dispose();
         }
     }
 }

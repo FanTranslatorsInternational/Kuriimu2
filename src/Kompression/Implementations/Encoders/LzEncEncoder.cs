@@ -1,13 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
+using System.Linq;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class LzEncEncoder : IEncoder
+    public class LzEncEncoder : ILzEncoder
     {
         class Block
         {
@@ -17,19 +21,18 @@ namespace Kompression.Implementations.Encoders
             public long matchEndPosition;
         }
 
-        private readonly IMatchParser _matchParser;
-
-        public LzEncEncoder(IMatchParser parser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = parser;
+            matchOptions.CalculatePricesWith(() => new LzEncPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, -1, 1, 0xBFFF));
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
-            foreach (var match in matches)
+            foreach (var match in matches.ToArray())
             {
                 if (input.Position < match.Position)
                     WriteRawData(input, output, block, match.Position - input.Position);
@@ -175,7 +178,6 @@ namespace Kompression.Implementations.Encoders
 
         public void Dispose()
         {
-            _matchParser?.Dispose();
         }
     }
 }

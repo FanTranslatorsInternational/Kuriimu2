@@ -65,7 +65,7 @@ namespace Kore.Progress
 
         public ISetMaxProgressContext SetMaxValue(long maxValue)
         {
-            MaxValue = maxValue;
+            MaxValue = _state.MaxValue = maxValue;
             return this;
         }
 

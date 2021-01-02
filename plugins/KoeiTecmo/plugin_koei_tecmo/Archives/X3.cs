@@ -11,12 +11,12 @@ namespace plugin_koei_tecmo.Archives
     // Game: Yo-Kai Watch: Sangoukushi
     class X3
     {
-        private static int _headerSize = Tools.MeasureType(typeof(X3Header));
-        private static int _entrySize = Tools.MeasureType(typeof(X3FileEntry));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(X3Header));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(X3FileEntry));
 
         private X3Header _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -27,8 +27,10 @@ namespace plugin_koei_tecmo.Archives
             // Read file entries
             var entries = br.ReadMultiple<X3FileEntry>(_header.fileCount);
 
+            var firstBlocksList = new List<(int, int, string)>();
+
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 var fileOffset = entry.offset * _header.offsetMultiplier;
@@ -54,6 +56,17 @@ namespace plugin_koei_tecmo.Archives
                 var fileStream = new SubStream(br.BaseStream, fileOffset + (entry.IsCompressed ? 8 : 0), entry.fileSize);
                 var fileName = result.Count.ToString("00000000") + extension;
 
+                if (firstBlockLength >= 0)
+                    firstBlocksList.Add((firstBlockLength, entry.fileSize, fileName));
+
+                //if (fileName == "00000001.3ds.gt1")
+                //{
+                //    var newFs = File.Create(@"D:\Users\Kirito\Desktop\comp_x3.bin");
+                //    fileStream.CopyTo(newFs);
+                //    fileStream.Position = 0;
+                //    newFs.Close();
+                //}
+
                 if (entry.IsCompressed)
                     result.Add(new X3ArchiveFileInfo(fileStream, fileName,
                         Kompression.Implementations.Compressions.ZLib, entry.decompressedFileSize,
@@ -67,7 +80,7 @@ namespace plugin_koei_tecmo.Archives
         }
 
         // TODO: Set firstBlockLength again (need to understand enough ZLib for that)
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
             var castedFiles = files.Cast<X3ArchiveFileInfo>().ToArray();
@@ -78,7 +91,7 @@ namespace plugin_koei_tecmo.Archives
             };
 
             // Write files
-            bw.BaseStream.Position = (_headerSize + 4 + files.Count * _entrySize + header.offsetMultiplier - 1) & ~(header.offsetMultiplier - 1);
+            bw.BaseStream.Position = (HeaderSize + 4 + files.Count * EntrySize + header.offsetMultiplier - 1) & ~(header.offsetMultiplier - 1);
 
             foreach (var file in castedFiles)
             {
@@ -91,7 +104,7 @@ namespace plugin_koei_tecmo.Archives
                     bw.Write(file.FirstBlockSize);
                 }
 
-                var writtenSize = file.SaveFileData(bw.BaseStream, null);
+                var writtenSize = file.SaveFileData(bw.BaseStream);
                 bw.WriteAlignment(header.offsetMultiplier);
 
                 file.Entry.offset = fileOffset / header.offsetMultiplier;
@@ -101,8 +114,8 @@ namespace plugin_koei_tecmo.Archives
             }
 
             // Write file entries
-            bw.BaseStream.Position = _headerSize + 4;
-            foreach(var file in castedFiles)
+            bw.BaseStream.Position = HeaderSize + 4;
+            foreach (var file in castedFiles)
                 bw.WriteType(file.Entry);
 
             // Write header

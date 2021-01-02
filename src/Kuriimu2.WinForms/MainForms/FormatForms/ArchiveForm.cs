@@ -37,7 +37,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private readonly IProgressContext _progressContext;
 
         private readonly IList<UPath> _expandedPaths;
-        private readonly IList<ArchiveFileInfo> _openingFiles;
+        private readonly IList<IArchiveFileInfo> _openingFiles;
 
         private bool _isSearchEmpty = true;
         private string _searchTerm;
@@ -70,7 +70,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             _pluginManager = pluginManager;
 
             _expandedPaths = new List<UPath>();
-            _openingFiles = new List<ArchiveFileInfo>();
+            _openingFiles = new List<IArchiveFileInfo>();
 
             UpdateDirectories();
             UpdateProperties();
@@ -97,7 +97,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void UpdateFiles()
         {
-            if (!(treDirectories.SelectedNode?.Tag is IList<ArchiveFileInfo> files))
+            var files = EnumerateFilteredFiles(treDirectories.SelectedNode).ToArray();
+
+            if (files.Length <= 0)
             {
                 InvokeAction(() => lstFiles.Items.Clear());
                 return;
@@ -122,7 +124,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     listView.Items.Add(listViewItem);
                 }
 
-                tslFileCount.Text = string.Format(FileCount_, files.Count);
+                tslFileCount.Text = string.Format(FileCount_, files.Length);
             });
         }
 
@@ -144,7 +146,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (item == null)
                 return;
 
-            if (!(item.Tag is ArchiveFileInfo afi))
+            if (!(item.Tag is IArchiveFileInfo afi))
                 return;
 
             var isChanged = afi.ContentChanged || _stateInfo.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == afi.FilePath);
@@ -169,8 +171,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 treeView.Nodes.Clear();
 
                 var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
-                var filePaths = archiveFileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
-                    SearchOption.AllDirectories, SearchTarget.Directory);
+                var filePaths = EnumerateFilteredDirectories(archiveFileSystem);
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
                 // 1. Build directory tree
@@ -209,7 +210,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 var nodePath = GetNodePath(root, treeNode).ToAbsolute();
 
                 var archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo, UPath.Root, _stateInfo.StreamManager);
-                var filePaths = EnumerateFilteredPaths(archiveFileSystem).Where(x =>
+                var filePaths = EnumerateFilteredDirectories(archiveFileSystem).Where(x =>
                     x.IsInDirectory(nodePath, true));
                 var lookup = ArchiveState.Files.OrderBy(f => f.FilePath).ToLookup(f => f.FilePath.GetDirectory());
 
@@ -330,7 +331,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             if (lstFiles.SelectedItems.Count <= 0)
                 return;
 
-            if (!(lstFiles.SelectedItems[0]?.Tag is ArchiveFileInfo afi))
+            if (!(lstFiles.SelectedItems[0]?.Tag is IArchiveFileInfo afi))
                 return;
 
             var isLoadLocked = IsFileLocked(afi, true);
@@ -539,7 +540,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private async void fileMenuContextItem_Click(object sender, EventArgs e)
         {
             var tsi = (ToolStripMenuItem)sender;
-            var (pluginId, afi) = ((Guid, ArchiveFileInfo))tsi.Tag;
+            var (pluginId, afi) = ((Guid, IArchiveFileInfo))tsi.Tag;
 
             if (!await _formCommunicator.Open(afi, pluginId))
                 _formCommunicator.ReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
@@ -571,14 +572,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         private void addDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!treDirectories.Focused)
-                return;
-
-            AddFiles();
-
-            UpdateDirectories();
-            UpdateProperties();
-            _formCommunicator.Update(true, false);
+            AddFilesToSelectedNode();
         }
 
         private void deleteDirectoryToolStripMenuItem_Click(object sender, EventArgs e)
@@ -630,7 +624,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
         private void lstFiles_DoubleClick(object sender, EventArgs e)
         {
             var menuItem = lstFiles.SelectedItems[0];
-            var afi = menuItem.Tag as ArchiveFileInfo;
+            var afi = menuItem.Tag as IArchiveFileInfo;
 
             OpenFiles(new[] { afi });
         }
@@ -700,10 +694,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             MessageBox.Show("This method is not implemented yet.", "Not implemented", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private IEnumerable<ArchiveFileInfo> CollectSelectedFiles()
+        private IEnumerable<IArchiveFileInfo> CollectSelectedFiles()
         {
             foreach (ListViewItem item in lstFiles.SelectedItems)
-                yield return item.Tag as ArchiveFileInfo;
+                yield return item.Tag as IArchiveFileInfo;
+        }
+
+        private UPath GetNodePath(TreeNode node)
+        {
+            return GetNodePath(GetRootNode(), node);
         }
 
         private UPath GetNodePath(TreeNode rootNode, TreeNode node)
@@ -745,10 +744,27 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return treDirectories.Nodes["root"];
         }
 
-        private IEnumerable<UPath> EnumerateFilteredPaths(IFileSystem fileSystem)
+        private IEnumerable<UPath> EnumerateFilteredDirectories(IFileSystem fileSystem)
         {
-            return fileSystem.EnumeratePaths(UPath.Root, _isSearchEmpty ? "*" : _searchTerm,
-                SearchOption.AllDirectories, SearchTarget.Directory);
+            var searchTerm = _isSearchEmpty ? "*" : _searchTerm;
+            return fileSystem.EnumeratePaths(UPath.Root, searchTerm, SearchOption.AllDirectories,SearchTarget.Directory).Concat(
+                fileSystem.EnumeratePaths(UPath.Root, searchTerm, SearchOption.AllDirectories, SearchTarget.File).Select(x=>x.GetDirectory()));
+        }
+
+        private IEnumerable<IArchiveFileInfo> EnumerateFilteredFiles(TreeNode treeNode)
+        {
+            if (!(treeNode?.Tag is IList<IArchiveFileInfo> files))
+                yield break;
+
+            var nodePath = GetNodePath(treeNode).ToAbsolute();
+            var searchTerm = _isSearchEmpty ? "*" : _searchTerm;
+
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo);
+
+            // Yield all files
+            var enumeratedFiles = fileSystem.EnumeratePaths(nodePath, searchTerm, SearchOption.TopDirectoryOnly, SearchTarget.File);
+            foreach (var file in enumeratedFiles.Intersect(files.Select(x => x.FilePath)))
+                yield return files.First(x => x.FilePath == file);
         }
 
         private UPath SelectFolder()
@@ -773,7 +789,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return (UPath)Invoke(new Func<UPath>(() => ofd.ShowDialog() != DialogResult.OK ? UPath.Empty : ofd.FileName));
         }
 
-        private bool IsFileLocked(ArchiveFileInfo afi, bool lockOnLoaded)
+        private bool IsFileLocked(IArchiveFileInfo afi, bool lockOnLoaded)
         {
             var absolutePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative() / afi.FilePath.ToRelative();
 
@@ -788,12 +804,12 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             return openedState.StateChanged;
         }
 
-        private IEnumerable<(UPath, ArchiveFileInfo)> EnumerateTreeNode(TreeNode treeNode, UPath nodePath = default)
+        private IEnumerable<(UPath, IArchiveFileInfo)> EnumerateTreeNode(TreeNode treeNode, UPath nodePath = default)
         {
             nodePath = nodePath.IsNull || nodePath.IsEmpty ? UPath.Root : nodePath / treeNode.Name;
 
             // Yield all files
-            if (treeNode.Tag is IList<ArchiveFileInfo> files)
+            if (treeNode.Tag is IList<IArchiveFileInfo> files)
             {
                 foreach (var file in files)
                     yield return (nodePath / file.FilePath.GetName(), file);
@@ -805,18 +821,18 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                     yield return file;
         }
 
-        private IEnumerable<ArchiveFileInfo> EnumerateListView(ListView listView, bool onlySelected)
+        private IEnumerable<IArchiveFileInfo> EnumerateListView(ListView listView, bool onlySelected)
         {
             if (onlySelected)
             {
                 foreach (ListViewItem item in listView.SelectedItems)
-                    yield return item.Tag as ArchiveFileInfo;
+                    yield return item.Tag as IArchiveFileInfo;
 
                 yield break;
             }
 
             foreach (ListViewItem item in listView.Items)
-                yield return item.Tag as ArchiveFileInfo;
+                yield return item.Tag as IArchiveFileInfo;
         }
 
         private void EnableOperation()
@@ -903,7 +919,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                     currentFileStream.CopyTo(newFileStream);
 
-                    currentFileStream.Close();
                     newFileStream.Close();
                 }
             }, _operationToken.Token);
@@ -981,7 +996,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
                     currentFileStream.CopyTo(newFileStream);
 
-                    currentFileStream.Close();
                     newFileStream.Close();
                 }
             });
@@ -1422,6 +1436,73 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
 
         #endregion
 
+        #region Add Files
+
+        private void AddFilesToSelectedNode()
+        {
+            AddFiles(treDirectories.SelectedNode);
+        }
+
+        private async void AddFiles(TreeNode node)
+        {
+            EnableOperation();
+
+            // Select folder
+            var selectedPath = SelectFolder();
+            if (selectedPath.IsNull || selectedPath.IsEmpty)
+            {
+                _formCommunicator.ReportStatus(false, "No folder selected.");
+                DisableOperation();
+                return;
+            }
+
+            // Add elements
+            var subFolder = GetNodePath(GetRootNode(), node);
+            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath, _stateInfo.StreamManager);
+
+            var elements = sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.File).ToArray();
+            if (elements.Length <= 0)
+            {
+                _formCommunicator.ReportStatus(false, "No files to add.");
+                DisableOperation();
+                return;
+            }
+
+            _formCommunicator.ReportStatus(true, string.Empty);
+
+            _progressContext.StartProgress();
+            _operationToken = new CancellationTokenSource();
+            await Task.Run(() =>
+            {
+                var count = 0;
+                var addState = _stateInfo.PluginState as IAddFiles;
+                foreach (var filePath in elements)
+                {
+                    if (_operationToken.IsCancellationRequested)
+                        break;
+
+                    _progressContext.ReportProgress("Add files", count++, elements.Length);
+
+                    addState?.AddFile(sourceFileSystem.OpenFile(filePath), subFolder / filePath.ToRelative());
+                }
+            }, _operationToken.Token);
+            _progressContext.ReportProgress("Add files", 1, 1);
+            _progressContext.FinishProgress();
+
+            if (_operationToken.IsCancellationRequested)
+                _formCommunicator.ReportStatus(false, "File adding cancelled.");
+            else
+                _formCommunicator.ReportStatus(true, "File(s) added successfully.");
+
+            UpdateDirectory(node);
+            UpdateProperties();
+            _formCommunicator.Update(true, false);
+
+            DisableOperation();
+        }
+
+        #endregion
+
         #region Open Files
 
         private void OpenSelectedFiles()
@@ -1429,7 +1510,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             OpenFiles(CollectSelectedFiles().ToArray());
         }
 
-        private async void OpenFiles(IList<ArchiveFileInfo> files)
+        private async void OpenFiles(IList<IArchiveFileInfo> files)
         {
             if (files == null || !files.Any())
                 return;
@@ -1515,33 +1596,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
                 UpdateProperties();
                 _formCommunicator.Update(true, false);
             });
-        }
-
-        #endregion
-
-        #region Add Files
-
-        private void AddFiles()
-        {
-            var dlg = new FolderBrowserDialog
-            {
-                Description = $"Choose where you want to add from to {treDirectories.SelectedNode.FullPath}:"
-            };
-
-            if (dlg.ShowDialog() != DialogResult.OK)
-                return;
-
-            var fs = FileSystemFactory.CreatePhysicalFileSystem(dlg.SelectedPath, _stateInfo.StreamManager);
-            AddRecursive(fs, UPath.Root);
-        }
-
-        private void AddRecursive(IFileSystem fileSystem, UPath currentPath)
-        {
-            foreach (var dir in fileSystem.EnumeratePaths(currentPath, "*", SearchOption.TopDirectoryOnly, SearchTarget.Directory))
-                AddRecursive(fileSystem, dir);
-
-            foreach (var file in fileSystem.EnumeratePaths(currentPath, "*", SearchOption.TopDirectoryOnly, SearchTarget.File))
-                (ArchiveState as IAddFiles).AddFile(fileSystem, file);
         }
 
         #endregion

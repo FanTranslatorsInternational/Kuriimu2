@@ -12,9 +12,9 @@ namespace plugin_level5._3DS.Archives
 {
     interface IXfsa
     {
-        IList<ArchiveFileInfo> Load(Stream input);
+        IList<IArchiveFileInfo> Load(Stream input);
 
-        void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress);
+        void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress);
     }
 
     // TODO: Research unk1

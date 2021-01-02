@@ -1,6 +1,9 @@
 name: Kuriimu2 CommandLine
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -18,15 +21,18 @@ jobs:
       
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
-      
+      	
     - name: Create manifests
       run: |
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/manifest.json
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.Cmd/Resources/version.json
-      
+        
+    - name: Setup NuGet sources
+      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+      	
     - name: Publish command line with dotnet
       run: dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
-      
+      	
     - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
@@ -39,16 +45,25 @@ jobs:
         dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
         dotnet pack ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
         dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
-        
-    - name: Setup NuGet sources
-      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
     - name: Publish plugins
       run: |
+        dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
     
     - name: Zip release
       uses: papeloto/action-zip@v1

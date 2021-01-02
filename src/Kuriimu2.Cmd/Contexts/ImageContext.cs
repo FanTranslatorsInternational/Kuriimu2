@@ -12,6 +12,8 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Progress;
+using Kontract.Kanvas;
 using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers;
@@ -34,7 +36,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public ImageContext(IStateInfo stateInfo, IContext parentContext)
+        public ImageContext(IStateInfo stateInfo, IContext parentContext, IProgressContext progressContext) :
+            base(progressContext)
         {
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
@@ -91,7 +94,7 @@ namespace Kuriimu2.Cmd.Contexts
             }
 
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(filePath.GetDirectory(), new StreamManager());
-            ExtractImageInternal(new KanvasImage(_imageState, _imageState.Images[imageIndex]), destinationFileSystem, filePath.GetName());
+            ExtractImageInternal(_imageState.Images[imageIndex], destinationFileSystem, filePath.GetName());
         }
 
         private void ExtractAllImage(UPath directoryPath)
@@ -104,17 +107,16 @@ namespace Kuriimu2.Cmd.Contexts
                 if (string.IsNullOrEmpty(imageFileName))
                     imageFileName = _stateInfo.FilePath.GetNameWithoutExtension() + $".{i:00}";
 
-                ExtractImageInternal(new KanvasImage(_imageState, _imageState.Images[i]), destinationFileSystem, imageFileName + ".png");
+                ExtractImageInternal(_imageState.Images[i], destinationFileSystem, imageFileName + ".png");
             }
         }
 
-        private void ExtractImageInternal(KanvasImage image, IFileSystem destinationFileSystem, string fileName)
+        private void ExtractImageInternal(IKanvasImage image, IFileSystem destinationFileSystem, string fileName)
         {
             var newFileStream = destinationFileSystem.OpenFile(fileName, FileMode.Create, FileAccess.Write);
 
-            // TODO: Allow progress?
             var imageStream = new MemoryStream();
-            image.GetImage().Save(imageStream, ImageFormat.Png);
+            image.GetImage(Progress).Save(imageStream, ImageFormat.Png);
 
             imageStream.Position = 0;
             imageStream.CopyTo(newFileStream);
@@ -137,8 +139,8 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            var kanvasImage = new KanvasImage(_imageState, _imageState.Images[imageIndex]);
-            kanvasImage.SetImage((Bitmap)Image.FromFile(injectPath.FullName));
+            var kanvasImage = _imageState.Images[imageIndex];
+            kanvasImage.SetImage((Bitmap)Image.FromFile(injectPath.FullName), Progress);
         }
 
         private void ListImages()
@@ -149,11 +151,11 @@ namespace Kuriimu2.Cmd.Contexts
                 if (string.IsNullOrEmpty(imageFileName))
                     imageFileName = $"{i:00}";
 
-                var saveIndicator = _imageState.Images[i].ContentChanged ? "* " : string.Empty;
+                var saveIndicator = _imageState.Images[i].ImageInfo.ContentChanged ? "* " : string.Empty;
                 Console.WriteLine($"[{i}] " + saveIndicator + imageFileName);
 
-                if (_imageState.Images[i].MipMapCount > 0)
-                    Console.WriteLine($"  Image contains {_imageState.Images[i].MipMapCount} mip maps.");
+                if (_imageState.Images[i].ImageInfo.MipMapCount > 0)
+                    Console.WriteLine($"  Image contains {_imageState.Images[i].ImageInfo.MipMapCount} mip maps.");
             }
         }
 
@@ -171,10 +173,13 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            var image = new KanvasImage(_imageState, _imageState.Images[imageIndex]);
+            var image = _imageState.Images[imageIndex];
 
             var newSize = new Size(Console.WindowWidth, Console.WindowHeight);
-            var resizedImage = ResizeImage(image.GetImage(), newSize);
+            var decodedImage = image.GetImage(Progress);
+            Console.WriteLine();
+
+            var resizedImage = ResizeImage(decodedImage, newSize);
 
             var asciiImage = ConvertAscii(resizedImage);
             Console.WriteLine(asciiImage);

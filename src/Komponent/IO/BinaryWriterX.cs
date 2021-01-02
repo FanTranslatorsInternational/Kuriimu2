@@ -358,16 +358,16 @@ namespace Komponent.IO
 
         #region Generic type writing
 
-        public void WriteType<T>(T obj)
-        {
-            var typeWriter = new TypeWriter();
-            typeWriter.WriteType(this, obj);
-        }
-
         public void WriteMultiple<T>(IEnumerable<T> list)
         {
             foreach (var element in list)
                 WriteType(element);
+        }
+
+        public void WriteType(object value)
+        {
+            var typeWriter = new TypeWriter();
+            typeWriter.WriteType(this, value);
         }
 
         #endregion

@@ -1,6 +1,26 @@
-﻿// Copyright (c) Alexandre Mutel. All rights reserved.
-// This file is licensed under the BSD-Clause 2 license. 
-// See the license.txt file in the project root for more information.
+﻿// Copyright(c) 2017-2019, Alexandre Mutel
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without modification
+// , are permitted provided that the following conditions are met:
+
+// 1. Redistributions of source code must retain the above copyright notice, this
+// list of conditions and the following disclaimer.
+
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+// this list of conditions and the following disclaimer in the documentation
+// and/or other materials provided with the distribution.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED.IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
@@ -41,13 +61,16 @@ namespace Kore.FileSystem.Implementations
         /// </summary>
         /// <param name="copyFrom">The <see cref="MemoryFileSystem"/> to clone from.</param>
         /// <param name="streamManager">The <see cref="IStreamManager"/> for this file system.</param>
-        protected MemoryFileSystem(MemoryFileSystem copyFrom, IStreamManager streamManager) :
+        protected MemoryFileSystem(MemoryFileSystem copyFrom, IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
             base(streamManager)
         {
             if (copyFrom == null) throw new ArgumentNullException(nameof(copyFrom));
             Debug.Assert(copyFrom._globalLock.IsLocked);
             _rootDirectory = (DirectoryNode)copyFrom._rootDirectory.Clone(null, null);
             _globalLock = new FileSystemNodeReadWriteLock();
+
+            foreach (var watcher in watchers)
+                GetOrCreateDispatcher().Add(watcher);
         }
 
         /// <inheritdoc />
@@ -66,7 +89,7 @@ namespace Kore.FileSystem.Implementations
 
         protected virtual MemoryFileSystem CloneImpl(IStreamManager streamManager)
         {
-            return new MemoryFileSystem(this, streamManager);
+            return new MemoryFileSystem(this, streamManager, GetOrCreateDispatcher().Get());
         }
 
         // ----------------------------------------------
@@ -89,6 +112,7 @@ namespace Kore.FileSystem.Implementations
             try
             {
                 CreateDirectoryNode(path);
+                GetOrCreateDispatcher().RaiseCreated(path);
             }
             finally
             {
@@ -185,6 +209,8 @@ namespace Kore.FileSystem.Implementations
                         result.Node.Dispose();
                     }
 
+                    GetOrCreateDispatcher().RaiseDeleted(path);
+
                     ExitFindNode(result);
                 }
             }
@@ -264,6 +290,9 @@ namespace Kore.FileSystem.Implementations
                             }
                             var destFileNode = (FileNode)destNode;
                             destFileNode.Content.CopyFrom(((FileNode)srcNode).Content);
+
+                            GetOrCreateDispatcher().RaiseChanged(srcPath);
+                            GetOrCreateDispatcher().RaiseCreated(destPath);
                         }
                         else
                         {
@@ -336,9 +365,8 @@ namespace Kore.FileSystem.Implementations
                 var results = new NodeResult[destBackupPath.IsNull ? 2 : 3];
                 try
                 {
-                    for (var i = 0; i < paths.Count; i++)
+                    foreach (var pathPair in paths)
                     {
-                        var pathPair = paths[i];
                         var flags = FindNodeFlags.KeepParentNodeExclusive;
                         if (pathPair.Value != 2)
                         {
@@ -379,7 +407,10 @@ namespace Kore.FileSystem.Implementations
                     }
 
                     srcResult.Node.DetachFromParent();
+                    GetOrCreateDispatcher().RaiseDeleted(srcPath);
+
                     srcResult.Node.AttachToParent(destResult.Directory, destResult.Name);
+                    GetOrCreateDispatcher().RaiseChanged(destPath);
                 }
                 finally
                 {
@@ -409,6 +440,24 @@ namespace Kore.FileSystem.Implementations
             try
             {
                 return ((FileNode)FindNodeSafe(path, true)).Content.Length;
+            }
+            finally
+            {
+                ExitFileSystemShared();
+            }
+        }
+
+        /// <inheritdoc />
+        protected override FileEntry GetFileEntryImpl(UPath path)
+        {
+            UPath GetAbsolutePath(FileSystemNode node) =>
+                node == null ? string.Empty : GetAbsolutePath(node.Parent) / node.Name;
+
+            EnterFileSystemShared();
+            try
+            {
+                var node = (FileNode)FindNodeSafe(path, true);
+                return new FileEntry(GetAbsolutePath(node), node.Content.Length);
             }
             finally
             {
@@ -462,6 +511,8 @@ namespace Kore.FileSystem.Implementations
 
                     srcNode.DetachFromParent();
                     srcNode.Dispose();
+
+                    GetOrCreateDispatcher().RaiseDeleted(path);
                 }
                 finally
                 {
@@ -606,6 +657,8 @@ namespace Kore.FileSystem.Implementations
                     }
 
                     fileNode = new FileNode(this, parentDirectory, filename, null);
+                    GetOrCreateDispatcher().RaiseCreated(path);
+                    GetOrCreateDispatcher().RaiseOpened(path);
 
                     if (isExclusive)
                     {
@@ -686,6 +739,7 @@ namespace Kore.FileSystem.Implementations
             createdFile.Close();
         }
 
+        /// <inheritdoc />
         protected override ulong GetTotalSizeImpl(UPath directory)
         {
             throw new NotImplementedException();
@@ -783,6 +837,32 @@ namespace Kore.FileSystem.Implementations
                     yield return entry;
                 }
             }
+        }
+
+        // ----------------------------------------------
+        // Watch API
+        // ----------------------------------------------
+
+        /// <inheritdoc />
+        protected override bool CanWatchImpl(UPath path)
+        {
+            return DirectoryExists(path);
+        }
+
+        /// <inheritdoc />
+        protected override IFileSystemWatcher WatchImpl(UPath path)
+        {
+            var watcher = new FileSystemWatcher(this, path);
+            watcher.Disposed += Watcher_Disposed;
+
+            GetOrCreateDispatcher().Add(watcher);
+
+            return watcher;
+        }
+
+        private void Watcher_Disposed(object sender, EventArgs e)
+        {
+            GetOrCreateDispatcher().Remove((FileSystemWatcher)sender);
         }
 
         // ----------------------------------------------
@@ -890,6 +970,8 @@ namespace Kore.FileSystem.Implementations
 
                     srcResult.Node.DetachFromParent();
                     srcResult.Node.AttachToParent(destResult.Directory, destResult.Name);
+
+                    GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
                 }
                 finally
                 {
@@ -1573,7 +1655,7 @@ namespace Kore.FileSystem.Implementations
 
                 _fileNode = fileNode;
                 var length = copy.Length;
-                _stream = new MemoryStream(length <= Int32.MaxValue ? (int)length : Int32.MaxValue);
+                _stream = new MemoryStream(length <= int.MaxValue ? (int)length : int.MaxValue);
                 CopyFrom(copy);
             }
 

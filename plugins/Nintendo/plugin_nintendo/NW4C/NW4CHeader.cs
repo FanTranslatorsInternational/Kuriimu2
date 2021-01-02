@@ -10,6 +10,7 @@ namespace plugin_nintendo.NW4C
     {
         [FixedLength(4)]
         public string Magic;
+        [Endianness(ByteOrder = ByteOrder.BigEndian)]
         public ByteOrder ByteOrder;
         public short HeaderSize;
         public int Version;

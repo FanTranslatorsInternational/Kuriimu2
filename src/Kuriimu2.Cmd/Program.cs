@@ -26,7 +26,7 @@ namespace Kuriimu2.Cmd
         private static IArgumentGetter _argumentGetter;
 
         static void Main(string[] args)
-        {
+        {			
             _argumentGetter = new ArgumentGetter(args);
             _localManifest = LoadLocalManifest();
 
@@ -40,7 +40,7 @@ namespace Kuriimu2.Cmd
 
             PrintUnloadedPlugins(pluginManager.LoadErrors);
 
-            IContext context = new MainContext(pluginManager);
+            IContext context = new MainContext(pluginManager, progressContext);
 
             while (context != null)
             {

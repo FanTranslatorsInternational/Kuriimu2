@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
 using Komponent.IO.Attributes;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.Archive;
 
 namespace plugin_tri_ace.Archives
 {
@@ -19,8 +22,44 @@ namespace plugin_tri_ace.Archives
         public int zero0;
     }
 
+    class PackArchiveFileInfo : ArchiveFileInfo
+    {
+        public PackFileEntry Entry { get; }
+
+        public PackArchiveFileInfo(Stream fileData, string filePath,PackFileEntry entry) : 
+            base(fileData, filePath)
+        {
+            Entry = entry;
+        }
+
+        public PackArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) : 
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+        }
+    }
+
     static class PackSupport
     {
+        public static string DetermineExtension(int fileType)
+        {
+            switch (fileType)
+            {
+                case 0x2:
+                    return ".pack";
+
+                case 0x20:
+                case 0x30:
+                case 0x40:
+                    return ".cgfx";
+
+                case 0x400:
+                    return ".mpak8";
+
+                default:
+                    return ".bin";
+            }
+        }
+
         public static Guid[] RetrievePluginMapping(int fileType)
         {
             switch (fileType)

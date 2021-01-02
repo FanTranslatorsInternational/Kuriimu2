@@ -24,14 +24,14 @@ namespace plugin_nintendo.Archives
 
         private NcchHeader _ncchHeader;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read header
             _ncchHeader = br.ReadType<NcchHeader>();
 
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
 
             // Add ExtendedHeader
             if (_ncchHeader.exHeaderSize != 0)
@@ -94,7 +94,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var sha256 = new Kryptography.Hash.Sha256();
             using var bw = new BinaryWriterX(output);
@@ -106,7 +106,7 @@ namespace plugin_nintendo.Archives
             if (exHeaderFile != null)
             {
                 var exHeaderPosition = bw.BaseStream.Position;
-                var writtenSize = exHeaderFile.SaveFileData(output);
+                var writtenSize = (exHeaderFile as ArchiveFileInfo).SaveFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -124,7 +124,7 @@ namespace plugin_nintendo.Archives
             if (logoRegionFile != null)
             {
                 var logoRegionPosition = bw.BaseStream.Position;
-                var writtenSize = logoRegionFile.SaveFileData(output);
+                var writtenSize = (logoRegionFile as ArchiveFileInfo).SaveFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -144,7 +144,7 @@ namespace plugin_nintendo.Archives
             if (plainRegionFile != null)
             {
                 var plainRegionPosition = bw.BaseStream.Position;
-                plainRegionFile.SaveFileData(output);
+                (plainRegionFile as ArchiveFileInfo).SaveFileData(output);
 
                 bw.WriteAlignment(MediaSize_);
 
@@ -197,7 +197,7 @@ namespace plugin_nintendo.Archives
                 }
                 var romFsStream = new SubStream(bw.BaseStream, romFsPosition, romFsSize1);
 
-                var (_, _) = RomFsBuilder.Build(romFsStream, romFsFiles, RomFsFolder_);
+                RomFsBuilder.Build(romFsStream, romFsFiles, RomFsFolder_);
 
                 _ncchHeader.romFsOffset = (int)(romFsPosition / MediaSize_);
                 _ncchHeader.romFsSize = (int)(romFsSize1 / MediaSize_);

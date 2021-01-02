@@ -4,28 +4,31 @@ using System.Linq;
 using Komponent.IO;
 using Kompression.Extensions;
 using Kontract.Kompression;
+using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.Huffman;
 using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    public class HuffmanHeaderlessEncoder
+    public class HuffmanHeaderlessEncoder : IHuffmanEncoder
     {
         private readonly int _bitDepth;
 
         private readonly NibbleOrder _nibbleOrder;
-        private readonly IHuffmanTreeBuilder _treeBuilder;
 
-        public HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder, IHuffmanTreeBuilder treeBuilder)
+        public HuffmanHeaderlessEncoder(int bitDepth, NibbleOrder nibbleOrder)
         {
             _bitDepth = bitDepth;
-            _treeBuilder = treeBuilder;
             _nibbleOrder = nibbleOrder;
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Configure(IInternalHuffmanOptions huffmanOptions)
         {
-            var rootNode = _treeBuilder.Build(input.ToArray(), _bitDepth, _nibbleOrder);
+        }
+
+        public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
+        {
+            var rootNode = treeBuilder.Build(input.ToArray(), _bitDepth, _nibbleOrder);
 
             // For a more even distribution of the children over the branches, we'll label the tree nodes
             var labelList = LabelTreeNodes(rootNode);

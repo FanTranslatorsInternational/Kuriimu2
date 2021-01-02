@@ -42,25 +42,25 @@ namespace Kuriimu2.WinForms.MainForms.Models
             //return _mainForm.SaveFile(_stateInfo, saveAs);
         }
 
-        public Task<bool> Open(ArchiveFileInfo file)
+        public Task<bool> Open(IArchiveFileInfo file)
         {
             return Open(file, Guid.Empty);
         }
 
-        public Task<bool> Open(ArchiveFileInfo file, Guid pluginId)
+        public Task<bool> Open(IArchiveFileInfo file, Guid pluginId)
         {
             return _mainForm.OpenFile(_stateInfo, file, pluginId);
             //if (_mainFormControl != null && _mainFormControl.InvokeRequired)
-            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, ArchiveFileInfo, Guid, Task<bool>>((s1, a1, g1) => _mainForm.OpenFile(s1, a1, g1)), _stateInfo, file, pluginId);
+            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, IArchiveFileInfo, Guid, Task<bool>>((s1, a1, g1) => _mainForm.OpenFile(s1, a1, g1)), _stateInfo, file, pluginId);
 
             //return _mainForm.OpenFile(_stateInfo, file, pluginId);
         }
 
-        public Task<bool> Close(ArchiveFileInfo file)
+        public Task<bool> Close(IArchiveFileInfo file)
         {
             return _mainForm.CloseFile(_stateInfo, file);
             //if (_mainFormControl != null && _mainFormControl.InvokeRequired)
-            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, ArchiveFileInfo, Task<bool>>((s1, a1) => _mainForm.CloseFile(s1, a1)), _stateInfo, file);
+            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, IArchiveFileInfo, Task<bool>>((s1, a1) => _mainForm.CloseFile(s1, a1)), _stateInfo, file);
 
             //return _mainForm.CloseFile(_stateInfo, file);
         }
@@ -77,7 +77,7 @@ namespace Kuriimu2.WinForms.MainForms.Models
             InvokeAction(() => _mainForm.Update(_stateInfo, updateParents, updateChildren));
         }
 
-        public void Rename(ArchiveFileInfo file, UPath renamedPath)
+        public void Rename(IArchiveFileInfo file, UPath renamedPath)
         {
             InvokeAction(() => _mainForm.RenameFile(_stateInfo, file, renamedPath));
         }

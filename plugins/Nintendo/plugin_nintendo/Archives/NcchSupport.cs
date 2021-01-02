@@ -232,7 +232,7 @@ namespace plugin_nintendo.Archives
         private const int MediaSize_ = 0x200;
         private const int MaxFiles_ = 0xA;
 
-        public static long Build(Stream output, IList<ArchiveFileInfo> files)
+        public static long Build(Stream output, IList<IArchiveFileInfo> files)
         {
             var sha256 = new Kryptography.Hash.Sha256();
             using var bw = new BinaryWriterX(output, true);
@@ -246,7 +246,7 @@ namespace plugin_nintendo.Archives
             IList<NcchExeFsFileEntry> fileEntries = new List<NcchExeFsFileEntry>(MaxFiles_);
             IList<NcchExeFsFileEntryHash> fileHashes = new List<NcchExeFsFileEntryHash>(MaxFiles_);
             var fileOffset = 0;
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var writtenSize = file.SaveFileData(bw.BaseStream);
 
@@ -299,7 +299,7 @@ namespace plugin_nintendo.Archives
 
         public IList<RomFsDirectoryNode> Directories { get; private set; }
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public static int CountDirectories(IList<ArchiveFileInfo> files, UPath rootDirectory)
         {
@@ -308,13 +308,13 @@ namespace plugin_nintendo.Archives
                 .Count();
         }
 
-        public static RomFsDirectoryNode Parse(IList<ArchiveFileInfo> files, UPath rootDirectory)
+        public static RomFsDirectoryNode Parse(IList<IArchiveFileInfo> files, UPath rootDirectory)
         {
             var root = new RomFsDirectoryNode
             {
                 Name = "/",
                 Directories = new List<RomFsDirectoryNode>(),
-                Files = new List<ArchiveFileInfo>()
+                Files = new List<IArchiveFileInfo>()
             };
 
             var directories = files.Select(x => x.FilePath.GetSubDirectory(rootDirectory.ToAbsolute()).GetDirectory()).Distinct().OrderBy(x => x).ToArray();
@@ -336,7 +336,7 @@ namespace plugin_nintendo.Archives
 
                         Name = part,
                         Directories = new List<RomFsDirectoryNode>(),
-                        Files = new List<ArchiveFileInfo>()
+                        Files = new List<IArchiveFileInfo>()
                     };
                     currentNode.Directories.Add(newNode);
 
@@ -468,7 +468,7 @@ namespace plugin_nintendo.Archives
             }
         }
 
-        public static long CalculateRomFsSize(IList<ArchiveFileInfo> files, UPath rootDirectory)
+        public static long CalculateRomFsSize(IList<IArchiveFileInfo> files, UPath rootDirectory)
         {
             var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);
 
@@ -500,7 +500,7 @@ namespace plugin_nintendo.Archives
             return totalSize;
         }
 
-        public static (long, long) Build(Stream input, IList<ArchiveFileInfo> files, UPath rootDirectory)
+        public static (long, long) Build(Stream input, IList<IArchiveFileInfo> files, UPath rootDirectory)
         {
             // Parse files into file tree
             var rootNode = RomFsDirectoryNode.Parse(files, rootDirectory);

@@ -7,19 +7,25 @@ using Kontract.Models.IO;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
-    public class HuffmanEncoder : IEncoder
+    // TODO: Find configuration way for bit depths and nibble order
+    public class HuffmanEncoder : IHuffmanEncoder
     {
         private readonly int _bitDepth;
 
         private readonly HuffmanHeaderlessEncoder _encoder;
 
-        public HuffmanEncoder(int bitDepth, IHuffmanTreeBuilder treeBuilder, NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst)
+        public HuffmanEncoder(int bitDepth, NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst)
         {
             _bitDepth = bitDepth;
-            _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder, treeBuilder);
+            _encoder = new HuffmanHeaderlessEncoder(bitDepth, nibbleOrder);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Configure(IInternalHuffmanOptions huffmanOptions)
+        {
+            _encoder.Configure(huffmanOptions);
+        }
+
+        public void Encode(Stream input, Stream output, IHuffmanTreeBuilder treeBuilder)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -27,7 +33,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
             var compressionHeader = new[] { (byte)(0x20 + _bitDepth), (byte)input.Length, (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, treeBuilder);
         }
 
         public void Dispose()

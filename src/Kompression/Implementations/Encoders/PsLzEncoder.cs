@@ -1,24 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     /* Found in SMT Nocturne on the PS2 */
-    class PsLzEncoder : IEncoder
+    class PsLzEncoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public PsLzEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new PsLzPriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(1, 0xFFFF, 1, 0xFFFF))
+                .AndFindWith((options, limits) => new StaticValueRleMatchFinder(0, limits, options))
+                .WithinLimitations(() => new FindLimitations(1, 0xFFFF))
+                .AndFindWith((options, limits) => new RleMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(1, 0xFFFF));
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

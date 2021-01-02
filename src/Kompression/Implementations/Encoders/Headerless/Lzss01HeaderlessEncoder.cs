@@ -1,17 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
+using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
     // TODO: Refactor block class
-    public class Lzss01HeaderlessEncoder : IEncoder
+    public class Lzss01HeaderlessEncoder : ILzEncoder
     {
-        private const int WindowBufferLength = 0x1000;
-
-        private IMatchParser _matchParser;
+        private const int WindowBufferLength_ = 0x1000;
+        private const int PreBufferSize_ = 0xFEE;
 
         class Block
         {
@@ -20,16 +22,18 @@ namespace Kompression.Implementations.Encoders.Headerless
             public int flagCount;
         }
 
-        public Lzss01HeaderlessEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new Lzss01PriceCalculator())
+                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
+                .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x1000))
+                .AdjustInput(input => input.Prepend(PreBufferSize_));
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 if (input.Position < match.Position)
@@ -61,7 +65,7 @@ namespace Kompression.Implementations.Encoders.Headerless
             if (block.flagCount == 8)
                 WriteAndResetBuffer(output, block);
 
-            var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
+            var bufferPosition = (PreBufferSize_ + match.Position - match.Displacement) % WindowBufferLength_;
 
             var byte2 = (byte)((match.Length - 3) & 0xF);
             byte2 |= (byte)((bufferPosition >> 4) & 0xF0);

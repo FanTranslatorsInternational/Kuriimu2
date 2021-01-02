@@ -8,5 +8,7 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
         Task<bool> Save(bool saveAs);
         void Update(bool updateParents, bool updateChildren);
         void ReportStatus(bool isSuccessful, string message);
+
+        // TODO: Report progress
     }
 }

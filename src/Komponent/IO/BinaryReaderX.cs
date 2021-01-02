@@ -277,6 +277,11 @@ namespace Komponent.IO
             return encoding.GetString(ReadBytes(length));
         }
 
+        #endregion
+
+        #region Peeks
+
+        // String
         public string PeekString(int length = 4)
         {
             return PeekString(0, length, _encoding);
@@ -302,6 +307,42 @@ namespace Komponent.IO
             BaseStream.Seek(startOffset, SeekOrigin.Begin);
 
             return encoding.GetString(bytes);
+        }
+
+        // Byte
+        public byte PeekByte(long offset)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadByte();
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public byte[] PeekBytes(int length = 1, long offset = 0)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadBytes(length);
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public ushort PeekUInt16()
+        {
+            var startOffset = BaseStream.Position;
+
+            var value = ReadUInt16();
+
+            BaseStream.Position = startOffset;
+
+            return value;
         }
 
         #endregion
@@ -365,13 +406,20 @@ namespace Komponent.IO
 
         #region Read generic type
 
-        public T ReadType<T>()
+        public T ReadType<T>() => (T)ReadType(typeof(T));
+
+        public object ReadType(Type type)
         {
             var typeReader = new TypeReader();
-            return (T)typeReader.ReadType(this, typeof(T));
+            return typeReader.ReadType(this, type);
         }
 
-        public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadType<T>()).ToList();
+        public IList<T> ReadMultiple<T>(int count) => ReadMultipleInternal(count, typeof(T)).Cast<T>().ToArray();
+
+        public IList<object> ReadMultiple(int count, Type type) => ReadMultipleInternal(count, type).ToArray();
+
+        private IEnumerable<object> ReadMultipleInternal(int count, Type type) =>
+            Enumerable.Range(0, count).Select(_ => ReadType(type));
 
         #endregion
 
@@ -428,6 +476,20 @@ namespace Komponent.IO
 
             var b = ReadByte();
             while (b != stop && BaseStream.Position < BaseStream.Length)
+            {
+                result.Add(b);
+                b = ReadByte();
+            }
+
+            return result.ToArray();
+        }
+
+        public byte[] ReadBytesUntil(params byte[] stop)
+        {
+            var result = new List<byte>();
+
+            byte b = ReadByte();
+            while (stop.All(s => s != b) && BaseStream.Position < BaseStream.Length)
             {
                 result.Add(b);
                 b = ReadByte();

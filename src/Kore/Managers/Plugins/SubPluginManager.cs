@@ -84,28 +84,28 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        #region Load ArchiveFileInfo
+        #region Load IArchiveFileInfo
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
         {
             return _parentPluginManager.LoadFile(stateInfo, afi);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
             return _parentPluginManager.LoadFile(stateInfo, afi, loadFileContext);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId)
         {
             return _parentPluginManager.LoadFile(stateInfo, afi, pluginId);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, ArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
         {
             return _parentPluginManager.LoadFile(stateInfo, afi, pluginId, loadFileContext);
         }

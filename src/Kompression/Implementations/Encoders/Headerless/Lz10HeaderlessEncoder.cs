@@ -1,23 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.Kompression;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
+    // TODO: Check all compressions for matches.ToArray() and if it's necessary
     public class Lz10HeaderlessEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public Lz10HeaderlessEncoder(IMatchParser matchParser)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            _matchParser = matchParser;
-        }
-
-        public void Encode(Stream input, Stream output)
-        {
-            var matches = _matchParser.ParseMatches(input).ToArray();
+            var matchArray = matches.ToArray();
 
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 2 + 1];
@@ -32,10 +26,10 @@ namespace Kompression.Implementations.Encoders.Headerless
                     blockBufferLength = 1;
                 }
 
-                if (lzIndex < matches.Length && input.Position == matches[lzIndex].Position)
+                if (lzIndex < matchArray.Length && input.Position == matchArray[lzIndex].Position)
                 {
-                    blockBufferLength = WriteCompressedBlockToBuffer(matches[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
-                    input.Position += matches[lzIndex++].Length;
+                    blockBufferLength = WriteCompressedBlockToBuffer(matchArray[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
+                    input.Position += matchArray[lzIndex++].Length;
                 }
                 else
                 {

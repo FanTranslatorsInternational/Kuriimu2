@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Kanvas;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Kanvas;
@@ -15,14 +16,8 @@ namespace plugin_level5._3DS.Images
     {
         private Imgc imgc;
 
-        public IList<ImageInfo> Images { get; private set; }
-        public IDictionary<int, IColorEncoding> SupportedEncodings { get; private set; }
-        public IDictionary<int, (IIndexEncoding Encoding, IList<int> PaletteEncodingIndices)> SupportedIndexEncodings
-        {
-            get;
-        }
-
-        public IDictionary<int, IColorEncoding> SupportedPaletteEncodings { get; }
+        public EncodingDefinition EncodingDefinition { get; private set; }
+        public IList<IKanvasImage> Images { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
@@ -34,24 +29,23 @@ namespace plugin_level5._3DS.Images
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var img = await Task.Run(() => imgc.Load(fileStream));
+            var img = imgc.Load(fileStream);
 
-            Images = new List<ImageInfo> { img };
-
-            SupportedEncodings = ImgcSupport.DetermineFormatMapping(imgc.ImageFormat, imgc.BitDepth, loadContext.DialogManager);
+            EncodingDefinition = ImgcSupport.DetermineFormatMapping(img.ImageFormat, imgc.BitDepth, loadContext.DialogManager);
+            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, img) };
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            imgc.Save(fileStream, Images[0], SupportedEncodings);
+            imgc.Save(fileStream, Images[0]);
 
             return Task.CompletedTask;
         }
 
         private bool IsChanged()
         {
-            return Images.Any(x => x.ContentChanged);
+            return Images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

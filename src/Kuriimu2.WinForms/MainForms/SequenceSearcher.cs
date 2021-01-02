@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Kore.Utilities;
 using Kore.Utilities.Text;
 using Kuriimu2.WinForms.MainForms.Models;
 using Kuriimu2.WinForms.Properties;
@@ -12,7 +10,7 @@ namespace Kuriimu2.WinForms.MainForms
 {
     public partial class SequenceSearcher : Form
     {
-        private const int SearchLimit = 10 * 1024 * 1024;
+        private const int SearchLimit_ = 10 * 1024 * 1024;
 
         private TextSequenceSearcher _textSequenceSearcher;
 
@@ -25,13 +23,17 @@ namespace Kuriimu2.WinForms.MainForms
 
         private void FillEncodings()
         {
-            List<ListItem> items = new List<ListItem>();
-            foreach (EncodingInfo enc in Encoding.GetEncodings())
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var items = new List<ListItem>
             {
-                string name = enc.GetEncoding().EncodingName;
-                if (name.Contains("ASCII") || name.Contains("Shift-JIS") || (name.Contains("Unicode") && !name.Contains("32")))
-                    items.Add(new ListItem(name.Replace("US-", ""), enc.GetEncoding()));
-            }
+                new ListItem(Encoding.ASCII.EncodingName.Replace("US-",""), Encoding.ASCII),
+                new ListItem(Encoding.GetEncoding("SJIS").EncodingName, Encoding.GetEncoding("SJIS")),
+                new ListItem(Encoding.Unicode.EncodingName, Encoding.Unicode),
+                new ListItem(Encoding.BigEndianUnicode.EncodingName, Encoding.BigEndianUnicode),
+                new ListItem(Encoding.UTF7.EncodingName, Encoding.UTF7),
+                new ListItem(Encoding.UTF8.EncodingName, Encoding.UTF8),
+            };
             items.Sort();
 
             cmbEncoding.DisplayMember = "Text";
@@ -47,6 +49,19 @@ namespace Kuriimu2.WinForms.MainForms
 
             _textSequenceSearcher.Encoding = (Encoding)cmbEncoding.SelectedValue;
             _textSequenceSearcher.IsSearchSubDirectories = chkSearchSubfolders.Checked;
+        }
+
+        private void textSequenceSearcher_FoundMatch(object sender, FoundMatchEventArgs e)
+        {
+            InvokeAction(() => lstResults.Items.Add(e.Result));
+        }
+
+        private void InvokeAction(Action controlAction)
+        {
+            if (InvokeRequired)
+                Invoke(controlAction);
+            else
+                controlAction();
         }
 
         private void ChkSearchSubfolders_CheckedChanged(object sender, EventArgs e)
@@ -75,11 +90,13 @@ namespace Kuriimu2.WinForms.MainForms
             Settings.Default.SequenceSearchDirectory = fbd.SelectedPath;
             Settings.Default.Save();
 
-            _textSequenceSearcher = new TextSequenceSearcher(fbd.SelectedPath, SearchLimit);
+            _textSequenceSearcher = new TextSequenceSearcher(fbd.SelectedPath, SearchLimit_);
+            _textSequenceSearcher.FoundMatch += textSequenceSearcher_FoundMatch;
+
             UpdateSequenceSearcher();
         }
 
-        private void BtnSearch_Click(object sender, EventArgs e)
+        private async void BtnSearch_Click(object sender, EventArgs e)
         {
             lstResults.Items.Clear();
 
@@ -90,13 +107,22 @@ namespace Kuriimu2.WinForms.MainForms
                 return;
             }
 
-            var results = _textSequenceSearcher.Search(txtSearchText.Text.Trim());
-            lstResults.Items.AddRange(results.ToArray());
+            ToggleUi(false);
+            await _textSequenceSearcher.SearchAsync(txtSearchText.Text.Trim());
+            ToggleUi(true);
         }
 
         private void BtnCancel_Click(object sender, EventArgs e)
         {
-            Close();
+            _textSequenceSearcher?.Cancel();
+        }
+
+        private void ToggleUi(bool toggle)
+        {
+            btnCancel.Enabled = !toggle;
+
+            btnBrowse.Enabled = btnSearch.Enabled = toggle;
+            txtSearchText.Enabled = chkSearchSubfolders.Enabled = cmbEncoding.Enabled = toggle;
         }
     }
 }

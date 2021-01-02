@@ -14,6 +14,6 @@ namespace Kontract.Interfaces.Plugins.State.Archive
         /// </summary>
         /// <param name="afi">The file to rename.</param>
         /// <param name="path">The new path of the file.</param>
-        void Rename(ArchiveFileInfo afi, UPath path);
+        void Rename(IArchiveFileInfo afi, UPath path);
     }
 }

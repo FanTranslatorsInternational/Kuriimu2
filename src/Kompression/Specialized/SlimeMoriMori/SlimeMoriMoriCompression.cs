@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
+using Kompression.Configuration.InputManipulation;
 using Kompression.Extensions;
 using Kompression.Huffman;
 using Kompression.PatternMatch.MatchFinders;
@@ -126,7 +127,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     {
                         new HistoryMatchFinder(
                             new FindLimitations(3, 18, 1, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8)), 
+                            new FindOptions(new InputManipulator(), 0, UnitSize.Byte, 8)),
                     };
                     break;
 
@@ -135,7 +136,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     {
                         new HistoryMatchFinder(
                             new FindLimitations(3, -1, 1, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                            new FindOptions(new InputManipulator(), 0, UnitSize.Byte, 8))
                     };
                     break;
 
@@ -144,7 +145,7 @@ namespace Kompression.Specialized.SlimeMoriMori
                     {
                         new HistoryMatchFinder(
                             new FindLimitations(4, -1, 2, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Short, 8))
+                            new FindOptions(new InputManipulator(), 0, UnitSize.Short, 8))
                     };
                     break;
 
@@ -155,9 +156,9 @@ namespace Kompression.Specialized.SlimeMoriMori
                     matchFinders = new IMatchFinder[]
                     {
                         new HistoryMatchFinder(new FindLimitations(3, 0x42, 1, 0xFFFF),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8)),
+                            new FindOptions(new InputManipulator(), 0, UnitSize.Byte, 8)),
                         new RleMatchFinder(new FindLimitations(1, 0x40),
-                            new FindOptions(false, 0, 0, UnitSize.Byte, 8))
+                            new FindOptions(new InputManipulator(), 0, UnitSize.Byte, 8))
                     };
                     break;
 
@@ -167,7 +168,7 @@ namespace Kompression.Specialized.SlimeMoriMori
 
             // Optimal parse all LZ matches
             var parser = new OptimalParser(
-                new FindOptions(false, 0, 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
+                new FindOptions(new InputManipulator(), 0, compressionMode == 3 ? UnitSize.Short : UnitSize.Byte, 8),
                 new SlimePriceCalculator(compressionMode, huffmanMode),
                 matchFinders);
 

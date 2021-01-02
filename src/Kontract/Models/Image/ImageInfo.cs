@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Kanvas.Configuration;
 
@@ -10,9 +11,9 @@ namespace Kontract.Models.Image
     public class ImageInfo
     {
         /// <summary>
-        /// If the value image info contains an indexed image format.
+        /// If the value image info contains palette information.
         /// </summary>
-        public virtual bool IsIndexed => PaletteData != null && PaletteFormat >= 0;
+        public virtual bool HasPaletteInformation => PaletteData != null && PaletteFormat >= 0;
 
         /// <summary>
         /// The name of this image.
@@ -25,14 +26,14 @@ namespace Kontract.Models.Image
         public byte[] ImageData { get; set; }
 
         /// <summary>
+        /// The format to use with this image.
+        /// </summary>
+        public int ImageFormat { get; set; } = -1;
+
+        /// <summary>
         /// The <see cref="Size"/> of this image.
         /// </summary>
         public Size ImageSize { get; set; }
-
-        /// <summary>
-        /// The format to use with this image.
-        /// </summary>
-        public int ImageFormat { get; set; }
 
         /// <summary>
         /// The palette data of the main image.
@@ -65,5 +66,35 @@ namespace Kontract.Models.Image
         /// Determines of the content of this instance changed.
         /// </summary>
         public bool ContentChanged { get; set; }
+
+        /// <summary>
+        /// Creates a new <see cref="ImageInfo"/>.
+        /// </summary>
+        /// <param name="imageData">The encoded data of the image.</param>
+        /// <param name="imageFormat">The format identifier for the encoded data.</param>
+        /// <param name="imageSize">The size of the decoded image.</param>
+        public ImageInfo(byte[] imageData, int imageFormat, Size imageSize)
+        {
+            ContractAssertions.IsNotNull(imageData, nameof(imageData));
+
+            ImageData = imageData;
+            ImageFormat = imageFormat;
+            ImageSize = imageSize;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="ImageInfo"/>.
+        /// </summary>
+        /// <param name="imageData">The encoded data of the image.</param>
+        /// <param name="mipMaps">The encoded data of mip maps.</param>
+        /// <param name="imageFormat">The format identifier for the encoded data.</param>
+        /// <param name="imageSize">The size of the decoded image.</param>
+        public ImageInfo(byte[] imageData, IList<byte[]> mipMaps, int imageFormat, Size imageSize):
+            this(imageData, imageFormat, imageSize)
+        {
+            ContractAssertions.IsNotNull(mipMaps,nameof(mipMaps));
+
+            MipMapData = mipMaps;
+        }
     }
 }

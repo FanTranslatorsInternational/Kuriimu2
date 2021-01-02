@@ -3,13 +3,13 @@ using Kontract.Kompression.Model;
 
 namespace Kontract.Kompression.Configuration
 {
-    public interface IMatchLimitations
+    public interface IMatchLimitations : IInternalMatchOptions
     {
         /// <summary>
-        /// Set limitations for a previously set match finder.
+        /// Sets an additional boundary to find matches in.
         /// </summary>
-        /// <param name="limitationFactory">The factory to declare limitations in which to search patterns in the previously set match finder.</param>
+        /// <param name="limitationFactory">The factory to create limitations.</param>
         /// <returns>The option object.</returns>
-        IMatchAdditionalFinders WithinLimitations(Func<FindLimitations> limitationFactory);
+        IAdditionalMatchFinder WithinLimitations(Func<FindLimitations> limitationFactory);
     }
 }

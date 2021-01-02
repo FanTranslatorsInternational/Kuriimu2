@@ -7,10 +7,10 @@ namespace Kuriimu2.WinForms.MainForms.Interfaces
 {
     public interface IArchiveFormCommunicator : IFormCommunicator
     {
-        Task<bool> Open(ArchiveFileInfo file);
-        Task<bool> Open(ArchiveFileInfo file, Guid pluginId);
-        Task<bool> Close(ArchiveFileInfo file);
+        Task<bool> Open(IArchiveFileInfo file);
+        Task<bool> Open(IArchiveFileInfo file, Guid pluginId);
+        Task<bool> Close(IArchiveFileInfo file);
 
-        void Rename(ArchiveFileInfo file, UPath renamedPath);
+        void Rename(IArchiveFileInfo file, UPath renamedPath);
     }
 }

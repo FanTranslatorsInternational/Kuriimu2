@@ -8,14 +8,13 @@ using Kontract.Models.Archive;
 
 namespace plugin_level5.Wii.Archives
 {
-    // TODO: Test plugin
     // Game: Inazuma Eleven GO Strikers 2013
     // HINT: Despite being on Wii, this archive is Little Endian
     class Bln
     {
         private byte[] _unkIndexData;
 
-        public IList<ArchiveFileInfo> Load(Stream indexStream, Stream dataStream)
+        public IList<IArchiveFileInfo> Load(Stream indexStream, Stream dataStream)
         {
             // Read index entries from mcb0
             var indexEntryCount = PeekMcb0EntryCount(indexStream);
@@ -28,7 +27,7 @@ namespace plugin_level5.Wii.Archives
 
             // Parse files from mcb1
             var index = 0;
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var indexEntry in indexEntries)
             {
                 var stream = new SubStream(dataStream, indexEntry.offset, indexEntry.size);
@@ -41,7 +40,7 @@ namespace plugin_level5.Wii.Archives
             return result;
         }
 
-        public void Save(Stream indexOutput, Stream dataOutput, IList<ArchiveFileInfo> files)
+        public void Save(Stream indexOutput, Stream dataOutput, IList<IArchiveFileInfo> files)
         {
             // Write files
             using var indexBw = new BinaryWriterX(indexOutput);

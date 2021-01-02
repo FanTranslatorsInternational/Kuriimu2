@@ -84,21 +84,24 @@ namespace Kryptography.Hash.Crc
             0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
         };
 
-        public static Crc32 Create(Crc32Formula formula)
-        {
-            return new Crc32(formula, formula == Crc32Formula.Normal ?
-                _defaultCrc32Table :
-                _defaultReflectedCrc32Table);
-        }
+        public static Crc32 Default => Create(Crc32Formula.Normal, DefaultPolynomial);
 
-        public static Crc32 Create(Crc32Formula formula, uint polynomial)
+        public static Crc32 JamCrc => Create(Crc32Formula.Normal, DefaultPolynomial, 0xFFFFFFFF, 0);
+
+        public static Crc32 Create(Crc32Formula formula, uint polynomial, uint initValue = 0xFFFFFFFF, uint xorOut = 0xFFFFFFFF)
         {
             var table = InitializeTable(formula, polynomial);
-            return new Crc32(formula, table);
+            return new Crc32(formula, table, initValue, xorOut);
         }
 
         private static uint[] InitializeTable(Crc32Formula formula, uint polynomial)
         {
+            if (formula == Crc32Formula.Normal && polynomial == DefaultPolynomial)
+                return _defaultCrc32Table;
+
+            if (formula == Crc32Formula.Reflected && polynomial == DefaultReflectedPolynomial)
+                return _defaultReflectedCrc32Table;
+
             var polynomialTable = new uint[256];
             for (uint i = 0; i < 256; i++)
             {
@@ -131,15 +134,21 @@ namespace Kryptography.Hash.Crc
         private readonly Crc32Formula _formula;
         private readonly uint[] _polynomialTable;
 
-        private Crc32(Crc32Formula formula, uint[] polynomialTable)
+        private readonly uint _initValue;
+        private readonly uint _xorOut;
+
+        private Crc32(Crc32Formula formula, uint[] polynomialTable, uint initValue, uint xorOut)
         {
             _polynomialTable = polynomialTable ?? throw new ArgumentNullException(nameof(polynomialTable));
             _formula = formula;
+
+            _initValue = initValue;
+            _xorOut = xorOut;
         }
 
         public byte[] Compute(Stream input)
         {
-            var returnCrc = 0xFFFFFFFF;
+            var returnCrc = _initValue;
 
             byte[] buffer = new byte[4096];
             int readSize;
@@ -157,18 +166,18 @@ namespace Kryptography.Hash.Crc
 
         public byte[] Compute(byte[] input)
         {
-            var result = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF);
+            var result = ComputeInternal(input, 0, input.Length, _initValue);
 
             if (_formula == Crc32Formula.Reflected)
-                return MakeResult(~result);
+                return MakeResult(result ^ _xorOut);
 
-            return MakeResult(~ReverseBits(result));
+            return MakeResult(ReverseBits(result) ^ _xorOut);
         }
 
         private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc)
         {
             var returnCrc = initialCrc;
-            for (int i = offset; i < offset + length; i++)
+            for (var i = offset; i < offset + length; i++)
             {
                 if (_formula == Crc32Formula.Reflected)
                     returnCrc = (returnCrc >> 8) ^ _polynomialTable[(returnCrc & 0xff) ^ toHash[i]];
@@ -192,7 +201,7 @@ namespace Kryptography.Hash.Crc
         private uint ReverseBitsInternal(uint toReverse, int reverseCount)
         {
             uint result = 0;
-            for (int i = 0; i < reverseCount; i++)
+            for (var i = 0; i < reverseCount; i++)
             {
                 result <<= 1;
                 result |= toReverse & 1;

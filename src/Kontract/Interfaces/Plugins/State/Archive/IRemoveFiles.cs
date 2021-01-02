@@ -11,7 +11,7 @@ namespace Kontract.Interfaces.Plugins.State.Archive
         /// Removes a single file from the archive state.
         /// </summary>
         /// <param name="afi">The file to remove.</param>
-        void RemoveFile(ArchiveFileInfo afi);
+        void RemoveFile(IArchiveFileInfo afi);
 
         /// <summary>
         /// Removes all files from the archive state.

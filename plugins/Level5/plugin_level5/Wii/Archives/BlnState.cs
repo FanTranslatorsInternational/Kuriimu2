@@ -17,7 +17,7 @@ namespace plugin_level5.Wii.Archives
     {
         private readonly Bln _bln;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsChanged();
 
@@ -47,7 +47,7 @@ namespace plugin_level5.Wii.Archives
             if (dataStream == null || indexStream == null)
                 throw new InvalidOperationException("This is no Bln archive.");
 
-            Files = await Task.Run(() => _bln.Load(indexStream, dataStream));
+            Files = _bln.Load(indexStream, dataStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -73,7 +73,7 @@ namespace plugin_level5.Wii.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

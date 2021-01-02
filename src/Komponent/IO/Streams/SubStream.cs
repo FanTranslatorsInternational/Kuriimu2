@@ -39,25 +39,19 @@ namespace Komponent.IO.Streams
 
         public override void Flush() => _baseStream.Flush();
 
-        public override long Seek(long offset, SeekOrigin origin)
+        public override long Seek(long offset, SeekOrigin origin) => origin switch
         {
-            switch (origin)
-            {
-                case SeekOrigin.Begin: 
-                    return Position = offset;
-
-                case SeekOrigin.Current: 
-                    return Position += offset;
-
-                case SeekOrigin.End: 
-                    return Position = _length + offset;
-            }
-
-            throw new ArgumentException("Origin is invalid.");
-        }
+            SeekOrigin.Begin => Position = offset,
+            SeekOrigin.Current => Position += offset,
+            SeekOrigin.End => Position = _length + offset,
+            _ => throw new ArgumentException("Origin is invalid."),
+        };
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (Position >= _length)
+                return 0;
+
             var restore = _baseStream.Position;
 
             _baseStream.Position = _baseOffset + Position;
@@ -78,7 +72,9 @@ namespace Komponent.IO.Streams
         {
             if (!CanWrite) throw new NotSupportedException("Write is not supported.");
             if (Position >= _length) throw new ArgumentOutOfRangeException("Stream has fixed length and Position was out of range.");
-            if (_length - Position < count) throw new InvalidOperationException("Stream has fixed length and tries to write too much data.");
+
+            // Cap data to write at length, instead of throwing an exception for too much data
+            count = (int)Math.Min(_length - Position, count);
 
             var restore = _baseStream.Position;
 

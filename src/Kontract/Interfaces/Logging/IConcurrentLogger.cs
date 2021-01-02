@@ -6,6 +6,8 @@ namespace Kontract.Interfaces.Logging
     {
         void StartLogging();
 
+        bool IsRunning();
+
         void StopLogging();
 
         void QueueMessage(LogLevel level, string message);

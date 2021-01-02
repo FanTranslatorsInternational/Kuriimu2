@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Progress;
 
 namespace Kuriimu2.Cmd.Contexts
 {
@@ -15,7 +16,8 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public TextContext(IStateInfo stateInfo, IContext parentContext)
+        public TextContext(IStateInfo stateInfo, IContext parentContext, IProgressContext progressContext) :
+            base(progressContext)
         {
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));

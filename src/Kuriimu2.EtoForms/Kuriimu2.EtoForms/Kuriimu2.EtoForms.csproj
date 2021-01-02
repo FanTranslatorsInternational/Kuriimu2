@@ -1,0 +1,73 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
+    <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
+    <None Remove="Images\kuriimu2winforms.ico" />
+    <None Remove="Images\menu-add.png" />
+    <None Remove="Images\menu-delete.png" />
+    <None Remove="Images\menu-edit.png" />
+    <None Remove="Images\menu-export.png" />
+    <None Remove="Images\menu-find.png" />
+    <None Remove="Images\menu-import.png" />
+    <None Remove="Images\menu-save-as.png" />
+    <None Remove="Images\menu-save.png" />
+    <None Remove="Images\tree-archive-file.png" />
+    <None Remove="Images\tree-directory-32.png" />
+    <None Remove="Images\tree-directory-open.png" />
+    <None Remove="Images\tree-directory.png" />
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Images\kuriimu2winforms.ico" />
+    <EmbeddedResource Include="Images\menu-add.png" />
+    <EmbeddedResource Include="Images\menu-delete.png" />
+    <EmbeddedResource Include="Images\menu-edit.png" />
+    <EmbeddedResource Include="Images\menu-export.png" />
+    <EmbeddedResource Include="Images\menu-find.png" />
+    <EmbeddedResource Include="Images\menu-import.png" />
+    <EmbeddedResource Include="Images\menu-save-as.png" />
+    <EmbeddedResource Include="Images\menu-save.png" />
+    <EmbeddedResource Include="Images\tree-archive-file.png" />
+    <EmbeddedResource Include="Images\tree-directory-32.png" />
+    <EmbeddedResource Include="Images\tree-directory-open.png" />
+    <EmbeddedResource Include="Images\tree-directory.png" />
+    <EmbeddedResource Include="Resources\version.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.5.8" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\..\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Resources\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  
+</Project>
