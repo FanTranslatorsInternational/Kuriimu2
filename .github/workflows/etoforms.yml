@@ -34,8 +34,8 @@ jobs:
       
     - name: Publish EtoForms application with dotnet
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Wpf --configuration Release --framework netcoreapp31 /p:PublishSingleFile=true
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Gtk --configuration Release --framework netcoreapp31 /p:PublishSingleFile=true
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --output ./dist/final/Mac --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
       
     - name: Rename output binaries
