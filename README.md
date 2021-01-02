@@ -12,7 +12,10 @@ You need to be logged in at github to download artifacts from a successful build
 Those builds are considered beta and can contain bugs and unfinished features.
 
 ## Usage
-Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" contains a ready-to-run GUI that you can run.
+Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" contains a ready-to-run GUI for you to execute.
+
+## Status
+![Kuriimu2 EtoForms](https://github.com/FanTranslatorsInternational/Kuriimu2/workflows/Kuriimu2%20EtoForms/badge.svg?branch=master&event=push)
 
 ### Architecture
 1. Kontract - The main API host for all interfaces and base classes. Defines interfaces like ITextAdapter, IFontAdapter, ILoadFiles, etc...
