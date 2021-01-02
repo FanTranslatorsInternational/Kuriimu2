@@ -139,8 +139,20 @@ jobs:
         repository: FanTranslatorsInternational/Kuriimu2-EtoForms-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
-    - name: Upload artifact
+    - name: Upload Windows artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Kuriimu2.EtoForms
-        path: ./dist/final
+        name: Kuriimu2 Windows
+        path: ./dist/final/Wpf
+        
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2 Linux
+        path: ./dist/final/Gtk
+        
+    - name: Upload Mac artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2 Mac
+        path: ./dist/final/Mac
