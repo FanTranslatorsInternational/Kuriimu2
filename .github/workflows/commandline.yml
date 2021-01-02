@@ -32,7 +32,7 @@ jobs:
 	  
     - name: Publish command line with dotnet
       run: dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
-      
+
     - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
