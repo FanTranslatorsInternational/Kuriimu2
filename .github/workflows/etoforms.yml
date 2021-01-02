@@ -41,8 +41,8 @@ jobs:
     - name: Rename output binaries
       run: |
         mv ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Wpf/Kuriimu2.exe
-        mv ./dist/final/Wpf/Kuriimu2.EtoForms.Gtk ./dist/final/Wpf/Kuriimu2
-        mv ./dist/final/Wpf/Kuriimu2.EtoForms.Mac.app ./dist/final/Wpf/Kuriimu2.app
+        mv ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Wpf/Kuriimu2
+        mv ./dist/final/Mac/Kuriimu2.EtoForms.Mac.app ./dist/final/Wpf/Kuriimu2.app
       
     - name: Pack libraries
       run: |
