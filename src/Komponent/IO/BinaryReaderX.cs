@@ -512,9 +512,7 @@ namespace Komponent.IO
                 FillBuffer();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-            {
                 return (int)((_buffer >> _bitPosition++) & 0x1);
-            }
 
             return (int)((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1);
         }
@@ -554,7 +552,7 @@ namespace Komponent.IO
                 }
                 else
                 {
-                    result |= (long)(ReadBitInteger() << i);
+                    result |= (long)ReadBitInteger() << i;
                 }
             }
 
