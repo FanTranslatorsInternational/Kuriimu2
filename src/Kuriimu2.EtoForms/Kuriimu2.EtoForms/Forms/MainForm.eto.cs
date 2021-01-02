@@ -81,8 +81,8 @@ namespace Kuriimu2.EtoForms.Forms
                 {
                     new ButtonMenuItem { Text = "File", Items = { openFileCommand, openFileWithCommand, new SeparatorMenuItem(), saveAllFileCommand } },
                     new ButtonMenuItem { Text = "Tools", Items = { openTextSequenceSearcherCommand, openBatchExtractorCommand, openBatchInjectorCommand } },
-                    new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem(hashCommand),
+                    new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
                     new ButtonMenuItem(openImageTranscoderCommand)
