@@ -34,5 +34,17 @@ namespace Kuriimu2.EtoForms.Resources {
                 this["LastDirectory"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string TypeExtensionLastDirectory {
+            get {
+                return ((string)(this["TypeExtensionLastDirectory"]));
+            }
+            set {
+                this["TypeExtensionLastDirectory"] = value;
+            }
+        }
     }
 }

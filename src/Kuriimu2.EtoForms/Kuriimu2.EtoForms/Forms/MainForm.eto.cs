@@ -10,6 +10,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Command openFileCommand;
         private Command openFileWithCommand;
+        private Command saveAllFileCommand;
 
         private Command openTextSequenceSearcherCommand;
         private Command openBatchExtractorCommand;
@@ -18,7 +19,7 @@ namespace Kuriimu2.EtoForms.Forms
         private Command openEncryptionCommand;
         private Command openDecryptionCommand;
 
-        private Command openHashCommand;
+        private Command hashCommand;
 
         private Command openDecompressionCommand;
         private Command openCompressionCommand;
@@ -43,8 +44,9 @@ namespace Kuriimu2.EtoForms.Forms
         {
             #region Commands
 
-            openFileCommand = new Command { MenuText = "Open" };
-            openFileWithCommand = new Command { MenuText = "Open with Plugin" };
+            openFileCommand = new Command { MenuText = "Open", Shortcut=OpenHotKey };
+            openFileWithCommand = new Command { MenuText = "Open with Plugin", Shortcut=OpenWithHotKey };
+            saveAllFileCommand = new Command { MenuText = "Save All", Shortcut = SaveAllHotKey, Image= MenuSaveResource };
 
             openTextSequenceSearcherCommand = new Command { MenuText = "Text Sequence Searcher" };
             openBatchExtractorCommand = new Command { MenuText = "Batch Extractor" };
@@ -53,7 +55,7 @@ namespace Kuriimu2.EtoForms.Forms
             openEncryptionCommand = new Command { MenuText = "Encrypt" };
             openDecryptionCommand = new Command { MenuText = "Decrypt" };
 
-            openHashCommand = new Command { MenuText = "Hashes" };
+            hashCommand = new Command { MenuText = "Hashes" };
 
             openDecompressionCommand = new Command { MenuText = "Decompress" };
             openCompressionCommand = new Command { MenuText = "Compress" };
@@ -77,10 +79,10 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = "&File", Items = { openFileCommand, openFileWithCommand } },
+                    new ButtonMenuItem { Text = "File", Items = { openFileCommand, openFileWithCommand, new SeparatorMenuItem(), saveAllFileCommand } },
                     new ButtonMenuItem { Text = "Tools", Items = { openTextSequenceSearcherCommand, openBatchExtractorCommand, openBatchInjectorCommand } },
                     new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
-                    new ButtonMenuItem(openHashCommand),
+                    new ButtonMenuItem(hashCommand),
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
                     new ButtonMenuItem(openImageTranscoderCommand)

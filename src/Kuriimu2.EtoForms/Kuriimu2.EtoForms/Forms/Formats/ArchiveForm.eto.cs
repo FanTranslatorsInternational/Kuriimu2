@@ -46,6 +46,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private Command replaceDirectoryCommand;
         private Command renameDirectoryCommand;
         private Command deleteDirectoryCommand;
+        private Command addDirectoryCommand;
 
         private Command extractFileCommand;
         private Command replaceFileCommand;
@@ -72,18 +73,19 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             openCommand = new Command { MenuText = "Open" };
             openWithCommand = new Command { MenuText = "Open with" };
 
-            saveCommand = new Command { MenuText = "Save" };
-            saveAsCommand = new Command { MenuText = "Save As" };
+            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey };
+            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey };
 
-            extractDirectoryCommand = new Command { MenuText = "Extract" };
-            replaceDirectoryCommand = new Command { MenuText = "Replace" };
-            renameDirectoryCommand = new Command { MenuText = "Rename" };
-            deleteDirectoryCommand = new Command { MenuText = "Delete" };
+            extractDirectoryCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
+            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
+            renameDirectoryCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
+            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
+            addDirectoryCommand = new Command { MenuText = "Add", Image = MenuAddResource };
 
-            extractFileCommand = new Command { MenuText = "Extract" };
-            replaceFileCommand = new Command { MenuText = "Replace" };
-            renameFileCommand = new Command { MenuText = "Rename" };
-            deleteFileCommand = new Command { MenuText = "Delete" };
+            extractFileCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
+            replaceFileCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
+            renameFileCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
+            deleteFileCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
 
             #endregion
 
@@ -96,6 +98,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     extractDirectoryCommand,
                     replaceDirectoryCommand,
                     renameDirectoryCommand,
+                    addDirectoryCommand,
                     deleteDirectoryCommand
                 }
             };
@@ -120,7 +123,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Files
 
-            openWithMenuItem = new ButtonMenuItem { Command=openWithCommand };
+            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand };
             var fileContext = new ContextMenu
             {
                 Items =
@@ -187,37 +190,37 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveButton = new ButtonToolStripItem
             {
                 Command = saveCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-save.png")
+                Image = MenuSaveResource
             };
 
             saveAsButton = new ButtonToolStripItem
             {
                 Command = saveAsCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-save-as.png")
+                Image = MenuSaveAsResource
             };
 
             extractButton = new ButtonToolStripItem
             {
                 Command = extractFileCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-export.png")
+                Image = MenuExportResource
             };
 
             replaceButton = new ButtonToolStripItem
             {
                 Command = replaceFileCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-import.png")
+                Image = MenuImportResource
             };
 
             renameButton = new ButtonToolStripItem
             {
                 Command = renameFileCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-edit.png")
+                Image = MenuExportResource
             };
 
             deleteButton = new ButtonToolStripItem
             {
                 Command = deleteFileCommand,
-                Image = Bitmap.FromResource("Kuriimu2.EtoForms.Images.menu-delete.png")
+                Image = MenuDeleteResource
             };
 
             #endregion

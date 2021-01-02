@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,6 +26,7 @@ using Kore.Progress;
 using Kore.Update;
 using Kuriimu2.EtoForms.Exceptions;
 using Kuriimu2.EtoForms.Forms.Dialogs;
+using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Progress;
@@ -51,7 +53,18 @@ namespace Kuriimu2.EtoForms.Forms
 
         private readonly Manifest _localManifest;
 
+        #region HotKeys
+
+        private const Keys OpenHotKey = Keys.Control | Keys.O;
+        private const Keys OpenWithHotKey = Keys.Control | Keys.Shift | Keys.O;
+        private const Keys SaveAllHotKey = Keys.Control | Keys.Shift | Keys.S;
+
+        #endregion
+
         #region Constants
+
+        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
+        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
 
         private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update/main/{0}/manifest.json";
         private const string ApplicationType = "EtoForms.{0}";
@@ -74,8 +87,14 @@ namespace Kuriimu2.EtoForms.Forms
         private const string DependantFiles = "Dependant files";
         private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
 
-        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
         private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
+
+        #endregion
+
+        #region Loaded image resources
+
+        private readonly Bitmap MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
+        private readonly Bitmap MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
 
         #endregion
 
@@ -84,13 +103,10 @@ namespace Kuriimu2.EtoForms.Forms
         {
             InitializeComponent();
 
-            Load += mainForm_Load;
-
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
             // TODO: Implement dialog manager
-            // TODO: Introduce settings like in WinForms
             _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 300));
             _dialogs = new DefaultDialogManager();
             _pluginManager = new PluginManager(_progress, _dialogs, "plugins");
@@ -106,24 +122,27 @@ namespace Kuriimu2.EtoForms.Forms
             Content.DragEnter += mainForm_DragEnter;
             Content.DragDrop += mainForm_DragDrop;
 
-            MessageBox.Show(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), MessageBoxButtons.OK);
+            Content.Load += mainForm_Load;
 
             #region Commands
 
-            openFileCommand.Executed += OpenFileCommand_Executed;
-            openFileWithCommand.Executed += OpenFileWithCommand_Executed;
+            openFileCommand.Executed += openFileCommand_Executed;
+            openFileWithCommand.Executed += openFileWithCommand_Executed;
+            saveAllFileCommand.Executed += saveAllFileCommand_Executed;
+
+            hashCommand.Executed += hashCommand_Executed;
 
             #endregion
         }
 
         #region Open File
 
-        private void OpenFileCommand_Executed(object sender, EventArgs e)
+        private void openFileCommand_Executed(object sender, EventArgs e)
         {
             OpenPhysicalFile(false);
         }
 
-        private void OpenFileWithCommand_Executed(object sender, EventArgs e)
+        private void openFileWithCommand_Executed(object sender, EventArgs e)
         {
             OpenPhysicalFile(true);
         }
@@ -191,7 +210,7 @@ namespace Kuriimu2.EtoForms.Forms
                 chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
-                    MessageBox.Show(NoPluginSelected, LoadError, MessageBoxButtons.OK, MessageBoxType.Error);
+                    ReportStatus(false, NoPluginSelected);
                     return false;
                 }
             }
@@ -280,7 +299,11 @@ namespace Kuriimu2.EtoForms.Forms
             _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
             _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
 
-            Application.Instance.Invoke(() => tabPage.Image = new Icon(new IconFrame(1, Bitmap.FromResource(MenuDeleteResourceName))));
+            Application.Instance.Invoke(() =>
+            {
+                tabPage.Image = new Icon(new IconFrame(1, MenuDeleteResource));
+                tabPage.MouseUp += tabPage_Click;
+            });
 
             // Select tab page in tab control
             Application.Instance.Invoke(() => tabControl.SelectedPage = tabPage);
@@ -319,7 +342,12 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Save File
 
-        private async void SaveAll(bool invokeUpdateForm)
+        private async void saveAllFileCommand_Executed(object sender, EventArgs e)
+        {
+            await SaveAll(true);
+        }
+
+        private async Task SaveAll(bool invokeUpdateForm)
         {
             foreach (var entry in _tabDictionary.Values)
                 await SaveFile(entry.StateInfo, true, invokeUpdateForm);
@@ -545,11 +573,54 @@ namespace Kuriimu2.EtoForms.Forms
 
         #endregion
 
+        #region Extensions
+
+        private void hashCommand_Executed(object sender, EventArgs e)
+        {
+            new HashExtensionDialog().ShowModal();
+        }
+
+        #endregion
+
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
             var selectedPlugin = ChoosePlugin(e.FilePlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
+        }
+
+        private async void tabPage_Click(object sender, MouseEventArgs e)
+        {
+            if (!e.Buttons.HasFlag(MouseButtons.Primary) && !e.Buttons.HasFlag(MouseButtons.Middle))
+                return;
+
+            var page = (TabPage)sender;
+            if (page == null)
+                return;
+
+            var tabEntry = _tabDictionary[page];
+            var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
+
+            if (e.Buttons.HasFlag(MouseButtons.Middle))
+            {
+                if (!page.Bounds.Contains((Point)e.Location))
+                    return;
+            }
+
+            if (e.Buttons.HasFlag(MouseButtons.Primary))
+            {
+                var deleteImage = MenuDeleteResource;
+                var closeButtonRect = new RectangleF(page.Bounds.Left + 9, page.Bounds.Top + 4, deleteImage.Width, deleteImage.Height);
+                if (!closeButtonRect.Contains(e.Location))
+                    return;
+            }
+
+            // Select parent tab
+            if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
+                tabControl.SelectedPage = _stateDictionary[parentStateInfo].TabPage;
+
+            // Close file
+            await CloseFile(tabEntry.StateInfo);
         }
 
         #endregion
@@ -624,6 +695,18 @@ namespace Kuriimu2.EtoForms.Forms
                 var pluginDialog = new ChoosePluginDialog(filePlugins);
                 return pluginDialog.ShowModal(this);
             });
+        }
+
+        private (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor) GetSelectedTabEntry()
+        {
+            var selectedTab = tabControl.SelectedPage;
+            if (selectedTab == null)
+                return default;
+
+            if (!_tabDictionary.ContainsKey(selectedTab))
+                return default;
+
+            return _tabDictionary[selectedTab];
         }
 
         #endregion

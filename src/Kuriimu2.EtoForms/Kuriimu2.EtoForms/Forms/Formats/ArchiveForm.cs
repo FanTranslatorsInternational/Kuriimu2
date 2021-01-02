@@ -33,20 +33,34 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private readonly PluginManager _pluginManager;
         private readonly IProgressContext _progress;
 
-        private readonly IFileSystem _archiveFileSystem;
         private readonly IList<IArchiveFileInfo> _openingFiles;
-
         private readonly HashSet<UPath> _changedDirectories;
-        private UPath _selectedPath;
 
         private readonly SearchTerm _searchTerm;
         private readonly AsyncOperation _asyncOperation;
+
+        private IFileSystem _archiveFileSystem;
+        private UPath _selectedPath;
+
+        #region Hot Keys
+
+        private const Keys SaveHotKey = Keys.Control | Keys.S;
+        private const Keys SaveAsHotKey = Keys.F12;
+
+        #endregion
 
         #region Constants
 
         private const string TreeArchiveResourceName = "Kuriimu2.EtoForms.Images.tree-archive-file.png";
         private const string TreeDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory.png";
         private const string TreeOpenDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory-open.png";
+        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
+        private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
+        private const string MenuExportResourceName = "Kuriimu2.EtoForms.Images.menu-export.png";
+        private const string MenuImportResourceName = "Kuriimu2.EtoForms.Images.menu-import.png";
+        private const string MenuEditResourceName = "Kuriimu2.EtoForms.Images.menu-edit.png";
+        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
+        private const string MenuAddResourceName = "Kuriimu2.EtoForms.Images.menu-add.png";
 
         private static readonly Color ColorDefaultState = KnownColors.Black;
         private static readonly Color ColorChangedState = KnownColors.Orange;
@@ -58,6 +72,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private readonly Image TreeArchiveResource = Bitmap.FromResource(TreeArchiveResourceName);
         private readonly Image TreeDirectoryResource = Bitmap.FromResource(TreeDirectoryResourceName);
         private readonly Image TreeOpenDirectoryResource = Bitmap.FromResource(TreeOpenDirectoryResourceName);
+        private readonly Image MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
+        private readonly Image MenuSaveAsResource = Bitmap.FromResource(MenuSaveAsResourceName);
+        private readonly Image MenuExportResource = Bitmap.FromResource(MenuExportResourceName);
+        private readonly Image MenuImportResource = Bitmap.FromResource(MenuImportResourceName);
+        private readonly Image MenuEditResource = Bitmap.FromResource(MenuEditResourceName);
+        private readonly Image MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
+        private readonly Image MenuAddResource = Bitmap.FromResource(MenuAddResourceName);
 
         #endregion
 
@@ -98,7 +119,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveCommand.Executed += SaveCommand_Executed;
             saveAsCommand.Executed += SaveAsCommand_Executed;
 
-            // TODO: Attach file command events
             openCommand.Executed += openCommand_Executed;
             extractFileCommand.Executed += extractFileCommand_Executed;
             replaceFileCommand.Executed += replaceFileCommand_Executed;
@@ -108,9 +128,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             extractDirectoryCommand.Executed += extractDirectoryCommand_Executed;
             replaceDirectoryCommand.Executed += replaceDirectoryCommand_Executed;
             renameDirectoryCommand.Executed += renameDirectoryCommand_Executed;
+            addDirectoryCommand.Executed += addDirectoryCommand_Executed;
             deleteDirectoryCommand.Executed += deleteDirectoryCommand_Executed;
-
-            // TODO: Add file and folder actions to form (via context menu as well)
 
             UpdateProperties();
             LoadDirectories();
@@ -433,6 +452,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             await RenameSelectedDirectory();
         }
 
+        private async void addDirectoryCommand_Executed(object sender, EventArgs e)
+        {
+            await AddFilesToSelectedItem();
+        }
+
         private async void deleteDirectoryCommand_Executed(object sender, EventArgs e)
         {
             await DeleteSelectedDirectory();
@@ -526,9 +550,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (!wasSuccessful)
                 return;
 
+            _changedDirectories.Clear();
+            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo);
+            _selectedPath = UPath.Root;
+
             await Application.Instance.InvokeAsync(() =>
             {
-                UpdateDirectories();
+                LoadDirectories();
                 UpdateFiles(UPath.Root);
                 UpdateProperties();
 
@@ -1137,7 +1165,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     _progress.ReportProgress("Add files", count++, elements.Length);
 
                     // TODO: This will currently copy files to memory, instead of just using a reference to any more memory efficient stream (like FileStream)
-                    var createdFile=_archiveFileSystem.OpenFile(subFolder / filePath.ToRelative(), FileMode.Create, FileAccess.Write);
+                    var createdFile = _archiveFileSystem.OpenFile(subFolder / filePath.ToRelative(), FileMode.Create, FileAccess.Write);
                     var sourceFile = sourceFileSystem.OpenFile(filePath);
                     sourceFile.CopyTo(createdFile);
 
