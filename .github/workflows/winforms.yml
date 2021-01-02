@@ -8,8 +8,7 @@ on:
 jobs:
   build:
     
-    runs-on: windows-latest
-    container: stefanscherer/openssl-windows
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -30,7 +29,7 @@ jobs:
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
     - name: Publish winforms application with dotnet
-      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
+      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --runtime win-x64 --configuration Release
       
     - name: Pack libraries
       run: |
@@ -74,7 +73,6 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > privatekey.pem
         openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
-      shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
         
@@ -83,7 +81,6 @@ jobs:
         
     - name: Move update files to update repo
       run: mv ./update/* ./update_repo
-      shell: cmd
         
     - name: Commit changes to update repo
       run: |
