@@ -122,7 +122,10 @@ jobs:
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_repo
         
     - name: Move update files to update repo
-      run: mv ./update/* ./update_repo
+      run: |
+        mv ./update/Wpf/* ./update_repo/Wpf
+        mv ./update/Gtk/* ./update_repo/Gtk
+        mv ./update/Mac/* ./update_repo/Mac
         
     - name: Commit changes to update repo
       run: |
