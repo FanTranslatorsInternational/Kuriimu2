@@ -43,6 +43,7 @@ jobs:
         rename ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe Kuriimu2.exe
         rename ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk Kuriimu2
         rename ./dist/final/Mac/Kuriimu2.EtoForms.Mac.app Kuriimu2.app
+      shell: cmd
       
     - name: Pack libraries
       run: |
