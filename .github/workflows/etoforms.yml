@@ -136,11 +136,11 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         directory: ./update_repo
-        repository: FanTranslatorsInternational/Kuriimu2-WinForms-Update
+        repository: FanTranslatorsInternational/Kuriimu2-EtoForms-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Kuriimu2.WinForms
+        name: Kuriimu2.EtoForms
         path: ./dist/final
