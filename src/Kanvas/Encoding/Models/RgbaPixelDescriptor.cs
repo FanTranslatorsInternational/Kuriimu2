@@ -33,11 +33,11 @@ namespace Kanvas.Encoding.Models
 
             void AppendComponent(int level)
             {
-                if (_depthTable[level] != 0)
-                {
-                    componentBuilder.Append(componentLetters[_indexTable[level]]);
-                    depthBuilder.Append(_depthTable[level]);
-                }
+                if (_depthTable[level] == 0) 
+                    return;
+
+                componentBuilder.Append(componentLetters[_indexTable[level]]);
+                depthBuilder.Append(_depthTable[level]);
             }
 
             AppendComponent(3);
@@ -104,14 +104,11 @@ namespace Kanvas.Encoding.Models
         private void AssertBitDepth(int bitDepth)
         {
             ContractAssertions.IsInRange(bitDepth, "bitDepth", 4, 32);
-
-            //if (bitDepth != 4 && bitDepth % 8 > 0)
-            //    throw new InvalidOperationException("Bit depth has to be 4 or dividable by 8.");
         }
 
         private void SetupLookupTables(string componentOrder, int r, int g, int b, int a)
         {
-            void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue, ref bool set)
+            void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue)
             {
                 _indexTable[tableIndex] = colorBufferIndex;
                 _depthTable[tableIndex] = depth;
@@ -120,7 +117,6 @@ namespace Kanvas.Encoding.Models
                 _maskTable[tableIndex] = (1 << depth) - 1;
 
                 shiftValue += depth;
-                set = true;
             }
 
             // Index lookup table holds the indices to the depth Values in order of reading
@@ -138,39 +134,44 @@ namespace Kanvas.Encoding.Models
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
             _maskTable = new int[4];
 
-            bool rSet = false, bSet = false, gSet = false, aSet = false;
             var shift = 0;
             var length = componentOrder.Length;
+            bool rSet = false, bSet = false, gSet = false, aSet = false;
+
             for (var i = length - 1; i >= 0; i--)
             {
                 switch (componentOrder[i])
                 {
                     case 'r':
                     case 'R':
-                        SetTableValues(length - i - 1, 1, r, ref shift, ref rSet);
+                        SetTableValues(length - i - 1, 1, r, ref shift);
+                        rSet = true;
                         break;
 
                     case 'g':
                     case 'G':
-                        SetTableValues(length - i - 1, 2, g, ref shift, ref gSet);
+                        SetTableValues(length - i - 1, 2, g, ref shift);
+                        gSet = true;
                         break;
 
                     case 'b':
                     case 'B':
-                        SetTableValues(length - i - 1, 3, b, ref shift, ref bSet);
+                        SetTableValues(length - i - 1, 3, b, ref shift);
+                        bSet = true;
                         break;
 
                     case 'a':
                     case 'A':
-                        SetTableValues(length - i - 1, 0, a, ref shift, ref aSet);
+                        SetTableValues(length - i - 1, 0, a, ref shift);
+                        aSet = true;
                         break;
                 }
             }
 
-            if (!rSet) SetTableValues(length++, 1, 0, ref shift, ref rSet);
-            if (!gSet) SetTableValues(length++, 2, 0, ref shift, ref gSet);
-            if (!bSet) SetTableValues(length++, 3, 0, ref shift, ref bSet);
-            if (!aSet) SetTableValues(length, 0, 0, ref shift, ref aSet);
+            if (!rSet) SetTableValues(length++, 1, 0, ref shift);
+            if (!gSet) SetTableValues(length++, 2, 0, ref shift);
+            if (!bSet) SetTableValues(length++, 3, 0, ref shift);
+            if (!aSet) SetTableValues(length, 0, 0, ref shift);
         }
 
         private int ReadComponent(long value, int shift, int mask, int depth)
@@ -180,7 +181,7 @@ namespace Kanvas.Encoding.Models
 
         private void WriteComponent(int value, int shift, int mask, int depth, ref long result)
         {
-            result |= (Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+            result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
         }
     }
 }

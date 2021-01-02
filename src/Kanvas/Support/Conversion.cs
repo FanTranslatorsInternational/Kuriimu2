@@ -4,52 +4,57 @@ using Kontract.Models.IO;
 
 namespace Kanvas.Support
 {
+    // TODO: Use BinaryPrimitives in methods to shorten them? (Needs conversion to netcore only)
     internal static class Conversion
     {
-        #region From byte[]
+        #region From byte array
+
         public static TOut FromByteArray<TOut>(byte[] input, ByteOrder byteOrder)
         {
             if (!typeof(TOut).IsPrimitive)
-                throw new InvalidOperationException($"Type is not supported in this method.");
+                throw new InvalidOperationException("Type is not supported in this method.");
 
-            if (TryToNumber<TOut>(input, byteOrder, out var res))
-                return res;
-
-            return default(TOut);
+            return TryToNumber<TOut>(input, byteOrder, out var res) ? res : default;
         }
 
         private static bool TryToNumber<T>(byte[] data, ByteOrder byteOrder, out T result)
         {
-            result = default(T);
+            result = default;
 
             var typeCode = Type.GetTypeCode(typeof(T));
             object value;
-            byte[] buffer;
+
             switch (typeCode)
             {
                 case TypeCode.Int16:
                     value = UseBitConverter(data, byteOrder, 2, BitConverter.ToInt16);
                     break;
+
                 case TypeCode.UInt16:
                     value = UseBitConverter(data, byteOrder, 2, BitConverter.ToUInt16);
                     break;
+
                 case TypeCode.Int32:
                     value = UseBitConverter(data, byteOrder, 4, BitConverter.ToInt32);
                     break;
+
                 case TypeCode.UInt32:
                     value = UseBitConverter(data, byteOrder, 4, BitConverter.ToUInt32);
                     break;
+
                 case TypeCode.Int64:
                     value = UseBitConverter(data, byteOrder, 8, BitConverter.ToInt64);
                     break;
+
                 case TypeCode.UInt64:
                     value = UseBitConverter(data, byteOrder, 8, BitConverter.ToUInt64);
                     break;
+
                 default:
                     return false;
             }
 
-            result = (T)System.Convert.ChangeType(value, typeof(T));
+            result = (T)Convert.ChangeType(value, typeof(T));
             return true;
         }
 
@@ -58,7 +63,7 @@ namespace Kanvas.Support
             if (input.Length <= 0)
                 throw new ArgumentOutOfRangeException(nameof(input));
 
-            byte[] buffer = new byte[arraySize];
+            var buffer = new byte[arraySize];
             if (byteOrder == ByteOrder.LittleEndian)
             {
                 Array.Copy(input, 0, buffer, 0, Math.Min(arraySize, input.Length));
@@ -75,6 +80,7 @@ namespace Kanvas.Support
 
             return func(buffer.Reverse().ToArray(), 0);
         }
+
         #endregion
 
         public static byte[] ToByteArray<TIn>(TIn input, int limit, ByteOrder byteOrder)
@@ -82,7 +88,7 @@ namespace Kanvas.Support
             var inType = typeof(TIn);
 
             if (!inType.IsPrimitive)
-                throw new InvalidOperationException($"Type is not supported in this method.");
+                throw new InvalidOperationException("Type is not supported in this method.");
 
             var typeCode = Type.GetTypeCode(inType);
             switch (typeCode)
@@ -94,6 +100,7 @@ namespace Kanvas.Support
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
                     return FromInteger(input, limit, byteOrder);
+
                 default:
                     throw new InvalidOperationException($"{typeCode} is not supported.");
             }
@@ -110,9 +117,9 @@ namespace Kanvas.Support
             switch (typeCode)
             {
                 case TypeCode.Int16:
-                    var res1 = System.Convert.ToInt16(input);
+                    var res1 = Convert.ToInt16(input);
                     var localLimit = Math.Min(2, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res1 >> (i * 8)) & 0xFF);
@@ -120,10 +127,11 @@ namespace Kanvas.Support
                             result[i] = (byte)((res1 >> ((localLimit - i - 1) * 8)) & 0xFF);
                     }
                     break;
+
                 case TypeCode.UInt16:
-                    var res2 = System.Convert.ToUInt16(input);
+                    var res2 = Convert.ToUInt16(input);
                     localLimit = Math.Min(2, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res2 >> (i * 8)) & 0xFF);
@@ -131,10 +139,11 @@ namespace Kanvas.Support
                             result[i] = (byte)((res2 >> ((localLimit - i - 1) * 8)) & 0xFF);
                     }
                     break;
+
                 case TypeCode.Int32:
-                    var res3 = System.Convert.ToInt32(input);
+                    var res3 = Convert.ToInt32(input);
                     localLimit = Math.Min(4, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res3 >> (i * 8)) & 0xFF);
@@ -142,10 +151,11 @@ namespace Kanvas.Support
                             result[i] = (byte)((res3 >> ((localLimit - i - 1) * 8)) & 0xFF);
                     }
                     break;
+
                 case TypeCode.UInt32:
-                    var res4 = System.Convert.ToUInt32(input);
+                    var res4 = Convert.ToUInt32(input);
                     localLimit = Math.Min(4, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res4 >> (i * 8)) & 0xFF);
@@ -153,10 +163,11 @@ namespace Kanvas.Support
                             result[i] = (byte)((res4 >> ((localLimit - i - 1) * 8)) & 0xFF);
                     }
                     break;
+
                 case TypeCode.Int64:
-                    var res5 = System.Convert.ToInt64(input);
+                    var res5 = Convert.ToInt64(input);
                     localLimit = Math.Min(8, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res5 >> (i * 8)) & 0xFF);
@@ -164,10 +175,11 @@ namespace Kanvas.Support
                             result[i] = (byte)((res5 >> ((localLimit - i - 1) * 8)) & 0xFF);
                     }
                     break;
+
                 case TypeCode.UInt64:
-                    var res6 = System.Convert.ToUInt64(input);
+                    var res6 = Convert.ToUInt64(input);
                     localLimit = Math.Min(8, limit);
-                    for (int i = 0; i < localLimit; i++)
+                    for (var i = 0; i < localLimit; i++)
                     {
                         if (byteOrder == ByteOrder.LittleEndian)
                             result[i] = (byte)((res6 >> (i * 8)) & 0xFF);
@@ -184,8 +196,10 @@ namespace Kanvas.Support
         {
             if (bitDepthTo < 0 || bitDepthFrom < 0)
                 throw new Exception("BitDepths can't be negative!");
+
             if (bitDepthFrom == 0 || bitDepthTo == 0)
                 return 0;
+
             if (bitDepthFrom == bitDepthTo)
                 return value;
 
@@ -203,15 +217,13 @@ namespace Kanvas.Support
 
                 return value * (toMaxRange / fromMaxRange) / div;
             }
-            else
-            {
-                var fromMax = 1 << bitDepthFrom;
-                var toMax = 1 << bitDepthTo;
 
-                var limit = fromMax / toMax;
+            var fromMax = 1 << bitDepthFrom;
+            var toMax = 1 << bitDepthTo;
 
-                return value / limit;
-            }
+            var limit = fromMax / toMax;
+
+            return value / limit;
         }
     }
 }

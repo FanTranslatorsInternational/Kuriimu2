@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 namespace Kryptography
 {
+    // TODO: Remove when Sony krypto is reimplemented.
     public abstract class KryptoStream : Stream
     {
         protected Stream _baseStream;
 
         public delegate void ProgressEventHandler(KryptoStream sender, long done, long total, TimeSpan elapsedTime, bool write);
-        public event ProgressEventHandler Progress;
 
         public abstract int BlockSize { get; }
         public abstract int BlockSizeBytes { get; }

@@ -37,11 +37,11 @@ namespace Kanvas.Encoding.Models
 
             void AppendComponent(int level)
             {
-                if (_depthTable[level] != 0)
-                {
-                    componentBuilder.Append(componentLetters[_indexTable[level]]);
-                    depthBuilder.Append(_depthTable[level]);
-                }
+                if (_depthTable[level] == 0)
+                    return;
+
+                componentBuilder.Append(componentLetters[_indexTable[level]]);
+                depthBuilder.Append(_depthTable[level]);
             }
 
             AppendComponent(1);
@@ -111,7 +111,7 @@ namespace Kanvas.Encoding.Models
 
         private void SetupLookupTables(string componentOrder, int i, int a)
         {
-            void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue, ref bool set)
+            void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue)
             {
                 _indexTable[tableIndex] = colorBufferIndex;
                 _depthTable[tableIndex] = depth;
@@ -120,7 +120,6 @@ namespace Kanvas.Encoding.Models
                 _maskTable[tableIndex] = (1 << depth) - 1;
 
                 shiftValue += depth;
-                set = true;
             }
 
             // Index lookup table holds the indices to the depth Values in order of reading
@@ -155,8 +154,10 @@ namespace Kanvas.Encoding.Models
                         _readActions[tableIndex] = value =>
                             ReadIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteIndexComponent(result, value, _shiftTable[tableIndex], _maskTable[tableIndex]);
-                        SetTableValues(tableIndex, 0, i, ref shift, ref iSet);
+                            WriteIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
+
+                        SetTableValues(tableIndex, 0, i, ref shift);
+                        iSet = true;
                         break;
 
                     case 'a':
@@ -164,14 +165,16 @@ namespace Kanvas.Encoding.Models
                         _readActions[tableIndex] = value =>
                             ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteComponent(result, value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
-                        SetTableValues(tableIndex, 1, a, ref shift, ref aSet);
+                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex], ref result);
+
+                        SetTableValues(tableIndex, 1, a, ref shift);
+                        aSet = true;
                         break;
                 }
             }
 
-            if (!iSet) SetTableValues(length++, 0, 0, ref shift, ref iSet);
-            if (!aSet) SetTableValues(length, 1, 0, ref shift, ref aSet);
+            if (!iSet) SetTableValues(length++, 0, 0, ref shift);
+            if (!aSet) SetTableValues(length, 1, 0, ref shift);
         }
 
         private int ReadComponent(long value, int shift, int mask, int depth)
@@ -184,14 +187,14 @@ namespace Kanvas.Encoding.Models
             return (int)((value >> shift) & mask);
         }
 
-        private long WriteComponent(long input, int value, int shift, int mask, int depth)
+        private long WriteComponent(int value, int shift, int mask, int depth, ref long result)
         {
-            return input |= (Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+            return result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
         }
 
-        private long WriteIndexComponent(long input, int value, int shift, int mask)
+        private long WriteIndexComponent(int value, int shift, int mask, ref long result)
         {
-            return input |= (value & mask) << shift;
+            return result |= (long)(value & mask) << shift;
         }
     }
 }

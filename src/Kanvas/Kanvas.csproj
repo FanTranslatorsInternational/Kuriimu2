@@ -19,7 +19,7 @@
     <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
-    <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
+    <PackageIcon>kuriimu2icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>Image, Transcoding, Quantization, Kuriimu2</PackageTags>
   </PropertyGroup>
@@ -31,7 +31,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Configuration\ImageTranscoder.cs~RF3e6be8fe.TMP" />
     <None Remove="lib\astcenc.dll" />
     <None Remove="lib\PVRTexLib.dll" />
     <None Remove="lib\PVRTexLibWrapper.dll" />
@@ -45,6 +44,7 @@
 
   <ItemGroup>
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
+    <None Include="..\..\kuriimu2icon.png" Pack="True" PackagePath="$(PackageIcon)" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -394,9 +394,9 @@ namespace Komponent.IO
             FlushNibble();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-                _buffer |= ((value) ? 1 : 0) << _bitPosition++;
+                _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
+                _buffer |= (value ? 1L : 0L) << (BlockSize * 8 - _bitPosition++ - 1);
 
             if (_bitPosition >= BlockSize * 8)
                 Flush();
@@ -407,9 +407,9 @@ namespace Komponent.IO
             FlushNibble();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-                _buffer |= ((value) ? 1 : 0) << _bitPosition++;
+                _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
+                _buffer |= (value ? 1L : 0L) << (BlockSize * 8 - _bitPosition++ - 1);
 
             if (writeBuffer)
                 Flush();
@@ -423,7 +423,7 @@ namespace Komponent.IO
             {
                 if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
                 {
-                    for (int i = 0; i < bitCount; i++)
+                    for (var i = 0; i < bitCount; i++)
                     {
                         WriteBit((value & 1) == 1, _bitPosition + 1 >= BlockSize * 8);
                         value >>= 1;
@@ -431,7 +431,7 @@ namespace Komponent.IO
                 }
                 else
                 {
-                    for (int i = bitCount - 1; i >= 0; i--)
+                    for (var i = bitCount - 1; i >= 0; i--)
                     {
                         WriteBit(((value >> i) & 1) == 1, _bitPosition + 1 >= BlockSize * 8);
                     }
