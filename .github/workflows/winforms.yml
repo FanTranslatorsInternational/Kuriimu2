@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-
+    
     runs-on: windows-latest
 
     steps:
@@ -68,7 +68,7 @@ jobs:
       with:
         files: ./dist/final
         dest: ./update/latest.zip
-    
+      
     - name: Install openSSL
       uses: crazy-max/ghaction-chocolatey@v1
       with:
@@ -78,7 +78,6 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > privatekey.pem
         openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
-      shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
         
@@ -87,7 +86,6 @@ jobs:
         
     - name: Move update files to update repo
       run: mv ./update/* ./update_repo
-      shell: cmd
         
     - name: Commit changes to update repo
       run: |
