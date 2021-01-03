@@ -28,13 +28,13 @@ namespace plugin_alpha_dream.Archives
         public int FileOffset
         {
             get => (int)(fileOffset & 0x7FFFFFFF);
-            set => fileOffset = (uint)((fileOffset & 0x80000000) | value);
+            set => fileOffset = (fileOffset & 0x80000000) | (uint)value;
         }
 
         public int FileSize
         {
             get => (int)(fileSize & 0x7FFFFFFF);
-            set => fileSize = (uint)((fileSize & 0x80000000) | value);
+            set => fileSize = (fileSize & 0x80000000) | (uint)value;
         }
 
         public bool IsInvalid => (fileSize & 0x80000000) > 0;
