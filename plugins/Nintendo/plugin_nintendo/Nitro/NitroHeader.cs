@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Komponent.IO.Attributes;
 using Kontract.Models.IO;
+#pragma warning disable 649
 
 namespace plugin_nintendo.Nitro
 {
