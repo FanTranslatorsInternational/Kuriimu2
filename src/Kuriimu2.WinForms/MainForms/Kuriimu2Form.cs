@@ -37,7 +37,7 @@ namespace Kuriimu2.WinForms.MainForms
 {
     public partial class Kuriimu2Form : Form, IMainForm
     {
-        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update/master/manifest.json";
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update/main/manifest.json";
         private const string ApplicationType = "WinForms";
 
         private const string LoadError = "Load Error";
