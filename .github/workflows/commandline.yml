@@ -21,7 +21,7 @@ jobs:
       
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
-      	
+        
     - name: Create manifests
       run: |
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/manifest.json
@@ -29,10 +29,10 @@ jobs:
         
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
-      	
+        
     - name: Publish command line with dotnet
       run: dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
-      	
+        
     - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
