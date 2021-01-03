@@ -19,7 +19,7 @@ namespace Kuriimu2.Cmd
 {
     class Program
     {
-        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/master/manifest.json";
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/main/manifest.json";
         public const string ApplicationType = "CommandLine";
 
         private static Manifest _localManifest;
