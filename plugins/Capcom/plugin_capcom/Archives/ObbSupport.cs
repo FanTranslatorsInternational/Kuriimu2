@@ -4,6 +4,7 @@ using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_capcom.Archives
 {

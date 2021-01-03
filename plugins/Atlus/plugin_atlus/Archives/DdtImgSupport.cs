@@ -1,6 +1,7 @@
 ﻿using Komponent.Extensions;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_atlus.Archives
 {

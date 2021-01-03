@@ -3,6 +3,7 @@ using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+#pragma warning disable 649
 
 namespace plugin_level5.DS.Images
 {

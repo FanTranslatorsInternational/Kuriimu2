@@ -223,6 +223,7 @@ namespace Kuriimu2.WinForms.MainForms
             this.btnProcess.TabIndex = 12;
             this.btnProcess.Text = "Process";
             this.btnProcess.UseVisualStyleBackColor = true;
+            this.btnProcess.Click += BtnProcess_Click;
             // 
             // tbWidth
             // 

@@ -8,6 +8,7 @@ using Kontract.Interfaces.Managers;
 using Kontract.Kanvas;
 using Kontract.Models.Dialog;
 using Kontract.Models.Image;
+#pragma warning disable 649
 
 namespace plugin_level5._3DS.Images
 {

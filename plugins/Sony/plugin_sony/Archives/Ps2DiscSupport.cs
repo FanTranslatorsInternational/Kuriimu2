@@ -3,6 +3,7 @@ using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using System.IO;
 using Kontract.Kompression.Configuration;
+#pragma warning disable 649
 
 namespace plugin_sony.Archives
 {

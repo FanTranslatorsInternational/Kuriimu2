@@ -7,6 +7,7 @@ using Kanvas.Encoding.BlockCompressions.ASTC;
 using Kanvas.Encoding.BlockCompressions.ASTC.Models;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS;
 using Komponent.IO;
+using Komponent.Utilities;
 using Kontract.Kanvas;
 using Kontract.Models.IO;
 
@@ -107,9 +108,9 @@ namespace Kanvas.Encoding
                 bw.Write((byte)_xDim);
                 bw.Write((byte)_yDim);
                 bw.Write((byte)_zDim);
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(Width, 3, ByteOrder.LittleEndian));
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(Height, 3, ByteOrder.LittleEndian));
-                bw.Write(Kanvas.Support.Conversion.ToByteArray(1, 3, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(Width, 3, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(Height, 3, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(1, 3, ByteOrder.LittleEndian));
                 bw.Write(texData);
             }
 

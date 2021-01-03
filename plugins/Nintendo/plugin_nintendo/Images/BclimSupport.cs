@@ -1,5 +1,6 @@
 ﻿using Kanvas.Swizzle.Models;
 using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_nintendo.BCLIM
 {

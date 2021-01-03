@@ -8,6 +8,7 @@ using Kontract.Interfaces.Progress;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.Dialog;
+#pragma warning disable 649
 
 namespace plugin_capcom.Archives
 {

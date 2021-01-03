@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_spike_chunsoft.Archives
 {

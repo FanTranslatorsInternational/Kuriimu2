@@ -180,6 +180,11 @@ namespace Kuriimu2.WinForms.MainForms
 
         #region Events
 
+        private void BtnProcess_Click(object sender, EventArgs e)
+        {
+            LoadImage(false);
+        }
+
         private void CbEncoding_SelectedIndexChanged(object sender, EventArgs e)
         {
             _selectedEncodingIndex = cbEncoding.SelectedIndex;

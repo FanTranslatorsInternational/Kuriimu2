@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_level5.DS.Archives
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_nintendo.Archives
 {
