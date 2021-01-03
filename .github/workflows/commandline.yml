@@ -87,11 +87,14 @@ jobs:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY_2}}
       
     - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update_repo
+      
+    - name: Move update files to update repo
+      run: mv -Force ./update/* ./update_repo
       
     - name: Commit changes to update repo
       run: |
-        cd ./update
+        cd ./update_repo
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add *
@@ -100,7 +103,7 @@ jobs:
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
       with:
-        directory: ./update
+        directory: ./update_repo
         repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
