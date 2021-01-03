@@ -14,10 +14,10 @@ namespace plugin_capcom.Archives
         public int offset;
         public uint size;
 
-        public int FileSize
+        public uint FileSize
         {
-            get => (int)(size & 0x7FFFFFFF);
-            set => size = (uint)((size & ~0x7FFFFFFF) | value);
+            get => size & 0x7FFFFFFF;
+            set => size = (size & ~0x7FFFFFFFu) | value;
         }
 
         public bool IsCompressed => (size & 0x80000000) != 0;

@@ -30,7 +30,7 @@ namespace plugin_capcom.Archives
             {
                 var entry = entries[i];
 
-                var fileSize = entry.IsCompressed ? entries[i + 1].offset - entry.offset : entry.FileSize;
+                var fileSize = entry.IsCompressed ? (uint)(entries[i + 1].offset - entry.offset) : entry.FileSize;
 
                 var subStream = new SubStream(input, entry.offset, fileSize);
                 var fileName = $"{i:00000000}{Gk2Arc1Support.DetermineExtension(subStream, entry.IsCompressed)}";
@@ -57,7 +57,7 @@ namespace plugin_capcom.Archives
                 var writtenSize = file.SaveFileData(output);
 
                 file.Entry.offset = filePosition;
-                file.Entry.FileSize = (int)file.FileSize;
+                file.Entry.FileSize = (uint)file.FileSize;
                 fileEntries.Add(file.Entry);
 
                 filePosition += (int)((writtenSize + 3) & ~3);
