@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kompression.Implementations.Decoders.Headerless;
 using Kontract.Models.Archive;
 
 namespace plugin_level5.Wii.Archives
@@ -66,9 +67,10 @@ namespace plugin_level5.Wii.Archives
 
         private ArchiveFileInfo CreateAfi(Stream stream, int index, BlnSubEntry entry)
         {
-            var compressionMagic = ReadInt32LittleEndian(stream);
+            // Every file not compressed with the headered Spike Chunsoft compression, is compressed headerless
+            var compressionMagic = PeekInt32LittleEndian(stream);
             if (compressionMagic != 0xa755aafc)
-                return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, false), entry);
+                return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.SpikeChunsoftHeaderless, SpikeChunsoftHeaderlessDecoder.CalculateDecompressedSize(stream));
 
             stream.Position = 0;
             return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.SpikeChunsoft, PeekDecompressedSize(stream));
@@ -88,16 +90,17 @@ namespace plugin_level5.Wii.Archives
             var bkPos = stream.Position;
 
             stream.Position = 4;
-            var decompressedSize = ReadInt32LittleEndian(stream);
+            var decompressedSize = PeekInt32LittleEndian(stream);
 
             stream.Position = bkPos;
             return decompressedSize;
         }
 
-        private uint ReadInt32LittleEndian(Stream input)
+        private uint PeekInt32LittleEndian(Stream input)
         {
             var buffer = new byte[4];
             input.Read(buffer, 0, 4);
+            input.Position -= 4;
 
             return (uint)((buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0]);
         }
