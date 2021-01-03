@@ -78,6 +78,7 @@ jobs:
       run: |
         echo "$PRIVATE_KEY" > privatekey.pem
         openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
+      shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
         
