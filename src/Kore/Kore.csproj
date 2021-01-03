@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Batch\BaseBatchProcessor.cs~RF1ee0204c.TMP" />
-    <None Remove="Batch\BatchExtractor.cs~RF3145f99c.TMP" />
-    <None Remove="FileSystem\Implementations\PhysicalFileSystem.cs~RF27b4d275.TMP" />
-    <None Remove="Managers\Plugins\PluginLoader\AssemblyPluginLoader.cs~RF66f36e8a.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
