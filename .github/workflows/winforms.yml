@@ -29,7 +29,9 @@ jobs:
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
     - name: Publish winforms application with dotnet
-      run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
+      run: |
+        dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release
+        rm ./dist/final/*.pdb
       
     - name: Pack libraries
       run: |
@@ -62,6 +64,8 @@ jobs:
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        rm ./dist/final/plugins/*.pdb
+        rm ./dist/final/plugins/*.deps.json
     
     - name: Zip release
       uses: papeloto/action-zip@v1
@@ -86,7 +90,7 @@ jobs:
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update ./update_repo
         
     - name: Move update files to update repo
-      run: mv ./update/* ./update_repo
+      run: mv -Force ./update/* ./update_repo
         
     - name: Commit changes to update repo
       run: |
