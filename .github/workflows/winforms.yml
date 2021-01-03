@@ -105,6 +105,7 @@ jobs:
       with:
         directory: ./update_repo
         repository: FanTranslatorsInternational/Kuriimu2-WinForms-Update
+        branch: master
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     - name: Upload artifact
