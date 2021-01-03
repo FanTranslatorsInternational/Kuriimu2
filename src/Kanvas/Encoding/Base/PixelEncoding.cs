@@ -14,6 +14,7 @@ namespace Kanvas.Encoding.Base
     {
         private readonly IPixelDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
+        private readonly BitOrder _bitOrder;
 
         private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
@@ -26,12 +27,13 @@ namespace Kanvas.Encoding.Base
 
         public string FormatName { get; }
 
-        protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder)
+        protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder = BitOrder.MostSignificantBitFirst)
         {
             ContractAssertions.IsNotNull(pixelDescriptor, nameof(pixelDescriptor));
 
             _descriptor = pixelDescriptor;
             _byteOrder = byteOrder;
+            _bitOrder = bitOrder;
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
@@ -42,7 +44,7 @@ namespace Kanvas.Encoding.Base
 
         public IEnumerable<Color> Load(byte[] input, int taskCount)
         {
-            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
+            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, NibbleOrder.LowNibbleFirst, _bitOrder, 1);
 
             return ReadValues(br).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
@@ -52,7 +54,7 @@ namespace Kanvas.Encoding.Base
         public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
             var ms = new MemoryStream();
-            using var bw = new BinaryWriterX(ms, _byteOrder);
+            using var bw = new BinaryWriterX(ms, _byteOrder, NibbleOrder.LowNibbleFirst, _bitOrder, 1);
 
             var values = colors.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
