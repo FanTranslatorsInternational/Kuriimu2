@@ -1,4 +1,5 @@
 ﻿using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_square_enix.Archives
 {

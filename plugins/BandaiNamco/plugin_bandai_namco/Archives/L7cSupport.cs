@@ -12,6 +12,7 @@ using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
+#pragma warning disable 649
 
 namespace plugin_bandai_namco.Archives
 {

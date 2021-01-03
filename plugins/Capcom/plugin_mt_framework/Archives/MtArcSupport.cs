@@ -11,6 +11,7 @@ using Kontract.Models.IO;
 using Kryptography.Blowfish;
 using Kryptography.Hash;
 using Kryptography.Hash.Crc;
+#pragma warning disable 649
 
 namespace plugin_mt_framework.Archives
 {

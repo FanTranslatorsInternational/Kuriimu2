@@ -3,6 +3,7 @@ using System.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_tri_ace.Archives
 {

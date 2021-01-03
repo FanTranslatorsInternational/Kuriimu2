@@ -2,6 +2,7 @@
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
+#pragma warning disable 649
 
 namespace plugin_nintendo.Images
 {

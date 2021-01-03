@@ -4,6 +4,7 @@ using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
+#pragma warning disable 649
 
 namespace plugin_yuusha_shisu.Images
 {

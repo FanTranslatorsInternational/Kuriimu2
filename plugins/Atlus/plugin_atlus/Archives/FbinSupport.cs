@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_atlus.Archives
 {

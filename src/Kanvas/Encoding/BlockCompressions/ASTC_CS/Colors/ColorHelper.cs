@@ -2,7 +2,6 @@
 using System.Linq;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
-using Kanvas.Support;
 
 namespace Kanvas.Encoding.BlockCompressions.ASTC_CS.Colors
 {

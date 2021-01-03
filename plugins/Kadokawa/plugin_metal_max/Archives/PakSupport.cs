@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+#pragma warning disable 649
 
 namespace plugin_metal_max.Archives
 {

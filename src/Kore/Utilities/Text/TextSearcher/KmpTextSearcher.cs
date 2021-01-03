@@ -1,5 +1,10 @@
 ﻿using System;
 
+/*
+ * Author: James D. McCaffrey on WordPress
+ * https://jamesmccaffrey.wordpress.com/2012/08/18/the-knuth-morris-pratt-string-search-algorithm-in-c/
+ */
+
 namespace Kore.Utilities.Text.TextSearcher
 {
     /// <summary>

@@ -10,6 +10,7 @@ using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kryptography.Hash;
+#pragma warning disable 649
 
 namespace Atlus.Archives
 {

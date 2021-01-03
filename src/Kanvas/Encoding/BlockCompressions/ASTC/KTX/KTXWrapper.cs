@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kanvas.Encoding.BlockCompressions.ASTC.KTX.Models;
+using Komponent.Utilities;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.BlockCompressions.ASTC.KTX
@@ -36,13 +37,13 @@ namespace Kanvas.Encoding.BlockCompressions.ASTC.KTX
         }
 
         private short ReadInt16() =>
-            Kanvas.Support.Conversion.FromByteArray<short>(_reader.ReadBytes(2), _byteOrder);
+            Conversion.FromByteArray<short>(_reader.ReadBytes(2), _byteOrder);
         private ushort ReadUInt16() =>
-            Kanvas.Support.Conversion.FromByteArray<ushort>(_reader.ReadBytes(2), _byteOrder);
+            Conversion.FromByteArray<ushort>(_reader.ReadBytes(2), _byteOrder);
         private int ReadInt32() =>
-            Kanvas.Support.Conversion.FromByteArray<int>(_reader.ReadBytes(4), _byteOrder);
+            Conversion.FromByteArray<int>(_reader.ReadBytes(4), _byteOrder);
         private uint ReadUInt32() =>
-            Kanvas.Support.Conversion.FromByteArray<uint>(_reader.ReadBytes(4), _byteOrder);
+            Conversion.FromByteArray<uint>(_reader.ReadBytes(4), _byteOrder);
 
         private void SetEndianess()
         {

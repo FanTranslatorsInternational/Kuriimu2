@@ -3,6 +3,7 @@ using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
+#pragma warning disable 649
 
 namespace plugin_square_enix.Archives
 {

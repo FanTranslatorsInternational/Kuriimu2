@@ -4,6 +4,7 @@ using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using plugin_nintendo.Compression;
+#pragma warning disable 649
 
 namespace plugin_nintendo.Archives
 {

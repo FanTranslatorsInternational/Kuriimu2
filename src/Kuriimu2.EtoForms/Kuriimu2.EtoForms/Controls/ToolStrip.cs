@@ -313,5 +313,15 @@ namespace Kuriimu2.EtoForms.Controls
         {
             MouseUp?.Invoke(this, e);
         }
+
+        internal void OnMouseDoubleClick(MouseEventArgs e)
+        {
+            MouseDoubleClick?.Invoke(this, e);
+        }
+
+        internal void OnMouseWheel(MouseEventArgs e)
+        {
+            MouseWheel?.Invoke(this, e);
+        }
     }
 }

@@ -8,9 +8,8 @@ using Kanvas.Encoding.BlockCompressions.ASTC_CS.Models;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Partitions;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Types;
 using Kanvas.Encoding.BlockCompressions.ASTC_CS.Weights;
-using Kanvas.Support;
 using Komponent.IO;
-using Komponent.IO.Streams;
+using Komponent.Utilities;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.BlockCompressions.ASTC_CS

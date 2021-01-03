@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Text;
+using Komponent.Utilities;
 using Kontract.Models.IO;
 using Kore.Exceptions.KPal;
 using Kore.Utilities.Models;
@@ -22,15 +23,15 @@ namespace Kore.Utilities.Palettes
             using (var br = new BinaryReader(stream))
             {
                 var magic = Encoding.ASCII.GetString(br.ReadBytes(4));
-                var version = Convert.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var version = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
                 var sig = Encoding.ASCII.GetString(br.ReadBytes(4));
-                var headerSize = Convert.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var headerSize = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
                 if (magic != "KPAL" || sig != "FTI\0" || headerSize != 0x1C || stream.Length < headerSize)
                     throw new InvalidKPalException();
                 if (version != 1)
                     throw new UnsupportedKPalVersionException(version);
 
-                var dataSize = Convert.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var dataSize = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
                 if (stream.Length < headerSize + dataSize)
                     throw new InvalidKPalException();
 
@@ -39,12 +40,12 @@ namespace Kore.Utilities.Palettes
                 var blueDepth = br.ReadByte();
                 var alphaDepth = br.ReadByte();
 
-                var colorCount = Convert.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var colorCount = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
 
                 var palette = new List<Color>();
                 for (int i = 0; i < colorCount; i++)
                 {
-                    var value = Convert.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                    var value = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
 
                     var alpha = value & ((1 << alphaDepth) - 1);
                     var blue = (value >> alphaDepth) & ((1 << blueDepth) - 1);
@@ -98,27 +99,27 @@ namespace Kore.Utilities.Palettes
                 foreach (var c in Palette)
                 {
                     int value = 0;
-                    value |= Convert.ChangeBitDepth(c.R, 8, RedDepth) << (AlphaDepth + BlueDepth + GreenDepth);
-                    value |= Convert.ChangeBitDepth(c.G, 8, GreenDepth) << (AlphaDepth + BlueDepth);
-                    value |= Convert.ChangeBitDepth(c.B, 8, BlueDepth) << AlphaDepth;
-                    value |= Convert.ChangeBitDepth(c.A, 8, AlphaDepth);
+                    value |= Conversion.ChangeBitDepth(c.R, 8, RedDepth) << (AlphaDepth + BlueDepth + GreenDepth);
+                    value |= Conversion.ChangeBitDepth(c.G, 8, GreenDepth) << (AlphaDepth + BlueDepth);
+                    value |= Conversion.ChangeBitDepth(c.B, 8, BlueDepth) << AlphaDepth;
+                    value |= Conversion.ChangeBitDepth(c.A, 8, AlphaDepth);
 
-                    bw.Write(Convert.ToByteArray(value, 4, ByteOrder.LittleEndian));
+                    bw.Write(Conversion.ToByteArray(value, 4, ByteOrder.LittleEndian));
                 }
 
                 header.dataSize = (int)(stream.Length - header.headerSize);
 
                 stream.Position = 0;
                 bw.Write(Encoding.ASCII.GetBytes(header.magic));
-                bw.Write(Convert.ToByteArray(header.version, 4, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(header.version, 4, ByteOrder.LittleEndian));
                 bw.Write(Encoding.ASCII.GetBytes(header.devMagic));
-                bw.Write(Convert.ToByteArray(header.headerSize, 4, ByteOrder.LittleEndian));
-                bw.Write(Convert.ToByteArray(header.dataSize, 4, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(header.headerSize, 4, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(header.dataSize, 4, ByteOrder.LittleEndian));
                 bw.Write(header.redBitDepth);
                 bw.Write(header.greenBitDepth);
                 bw.Write(header.blueBitDepth);
                 bw.Write(header.alphaBitDepth);
-                bw.Write(Convert.ToByteArray(header.colorCount, 4, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(header.colorCount, 4, ByteOrder.LittleEndian));
             }
         }
 
