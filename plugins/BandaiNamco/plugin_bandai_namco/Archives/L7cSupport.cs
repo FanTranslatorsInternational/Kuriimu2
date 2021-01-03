@@ -124,7 +124,7 @@ namespace plugin_bandai_namco.Archives
             {
                 new L7cChunkEntry
                 {
-                    chunkSize = (int) (compFlag | ((int) finalStream.Length & 0xFFFFFF))
+                    chunkSize = (int) (compFlag | ((uint) finalStream.Length & 0xFFFFFF))
                 }
             };
 
