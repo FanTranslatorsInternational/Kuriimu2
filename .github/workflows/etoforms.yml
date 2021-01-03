@@ -1,4 +1,4 @@
-name: Kuriimu2 WinForms
+name: Kuriimu2 EtoForms
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
@@ -21,18 +21,29 @@ jobs:
       
     - name: Create manifests
       run: |
-        mkdir ./update
-        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.WinForms.exe" }' > ./update/manifest.json
-        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.WinForms/Resources/version.json
+        mkdir ./update/Wpf
+        mkdir ./update/Gtk
+        mkdir ./update/Mac
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.exe" }' > ./update/Wpf/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2" }' > ./update/Gtk/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.app" }' > ./update/Mac/manifest.json
+        echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
       
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
       
-    - name: Publish etoforms application with dotnet
+    - name: Publish EtoForms application with dotnet
       run: |
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final --configuration Release
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final --configuration Release
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --output ./dist/final --configuration Release
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
+        mv ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Wpf/Kuriimu2.exe
+        mv ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Gtk/Kuriimu2
+        mkdir ./dist/final/Mac
+        mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
+        mv ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
+        rm ./dist/final/Wpf/*.pdb
+        rm ./dist/final/Gtk/*.pdb
       
     - name: Pack libraries
       run: |
@@ -65,28 +76,57 @@ jobs:
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        rm ./dist/final/plugins/*.pdb
+        rm ./dist/final/plugins/*.deps.json
+        
+    - name: Copy plugins to applications
+      run: |
+        Xcopy /I .\dist\final\plugins .\dist\final\Wpf\plugins
+        Xcopy /I .\dist\final\plugins .\dist\final\Gtk\plugins
+        Xcopy /I .\dist\final\plugins .\dist\final\Mac\plugins
+      shell: cmd
     
-    - name: Zip release
+    - name: Zip Wpf release
       uses: papeloto/action-zip@v1
       with:
-        files: ./dist/final
-        dest: ./update/latest.zip
+        files: ./dist/final/Wpf
+        dest: ./update/Wpf/latest.zip
       
-    - name: Install libSSL
-      run: apt-get install libssl-dev
+    - name: Zip Gtk release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Gtk
+        dest: ./update/Gtk/latest.zip
+        
+    - name: Zip Mac release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Mac
+        dest: ./update/Mac/latest.zip
+      
+    - name: Install openSSL
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install openssl.light
       
     - name: Sign release
       run: |
         echo "$PRIVATE_KEY" > privatekey.pem
-        openssl dgst -sha512 -sign privatekey.pem -out ./update/latest.sig ./update/latest.zip
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/Wpf/latest.sig ./update/Wpf/latest.zip
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/Gtk/latest.sig ./update/Gtk/latest.zip
+        openssl dgst -sha512 -sign privatekey.pem -out ./update/Mac/latest.sig ./update/Mac/latest.zip
+      shell: bash
       env:
-        PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
+        PRIVATE_KEY: ${{secrets.PRIVATE_KEY_3}}
         
     - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-WinForms-Update ./update_repo
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_repo
         
     - name: Move update files to update repo
-      run: mv ./update/* ./update_repo
+      run: |
+        mv -Force ./update/Wpf/* ./update_repo/Wpf
+        mv -Force ./update/Gtk/* ./update_repo/Gtk
+        mv -Force ./update/Mac/* ./update_repo/Mac
         
     - name: Commit changes to update repo
       run: |
@@ -100,11 +140,23 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         directory: ./update_repo
-        repository: FanTranslatorsInternational/Kuriimu2-WinForms-Update
+        repository: FanTranslatorsInternational/Kuriimu2-EtoForms-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
-    - name: Upload artifact
+    - name: Upload Windows artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Kuriimu2.WinForms
-        path: ./dist/final
+        name: Kuriimu2 Windows
+        path: ./dist/final/Wpf
+        
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2 Linux
+        path: ./dist/final/Gtk
+        
+    - name: Upload Mac artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: Kuriimu2 Mac
+        path: ./dist/final/Mac
