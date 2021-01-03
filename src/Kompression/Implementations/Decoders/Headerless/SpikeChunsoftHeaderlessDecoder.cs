@@ -6,6 +6,53 @@ namespace Kompression.Implementations.Decoders.Headerless
 {
     public class SpikeChunsoftHeaderlessDecoder : IDecoder
     {
+        public static long CalculateDecompressedSize(Stream input)
+        {
+            var decompressedSize = 0L;
+            while (input.Position < input.Length)
+            {
+                var flag = input.ReadByte();
+
+                if ((flag & 0x80) == 0x80)
+                {
+                    // Lz match start
+                    decompressedSize += ((flag >> 5) & 0x3) + 4;
+                    input.Position++;
+                }
+                else if ((flag & 0x60) == 0x60)
+                {
+                    // Lz match continue
+                    decompressedSize += flag & 0x1F;
+                }
+                else if ((flag & 0x40) == 0x40)
+                {
+                    // Rle data
+                    int length;
+                    if ((flag & 0x10) == 0x00)
+                        length = (flag & 0xF) + 4;
+                    else
+                        length = ((flag & 0xF) << 8) + input.ReadByte() + 4;
+
+                    input.Position++;
+                    decompressedSize += length;
+                }
+                else
+                {
+                    // Raw data
+                    int length;
+                    if ((flag & 0x20) == 0x00)
+                        length = flag & 0x1F;
+                    else
+                        length = ((flag & 0x1F) << 8) + input.ReadByte();
+
+                    input.Position += length;
+                    decompressedSize += length;
+                }
+            }
+
+            return decompressedSize;
+        }
+
         public void Decode(Stream input, Stream output)
         {
             var circularBuffer = new CircularBuffer(0x1FFF);
