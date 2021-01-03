@@ -36,15 +36,12 @@ jobs:
       run: |
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
-        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --output ./dist/final/Mac/publish --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
-      
-    - name: Rename output binaries
-      run: |
-        rename .\dist\final\Wpf\Kuriimu2.EtoForms.Wpf.exe Kuriimu2.exe
-        rename .\dist\final\Gtk\Kuriimu2.EtoForms.Gtk Kuriimu2
-        mv .\dist\final\Mac\Kuriimu2.EtoForms.Mac.app .\dist\final\Mac\Kuriimu2.app
-        rm -rf .\dist\final\Mac\publish
-      shell: cmd
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
+        mv ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Wpf/Kuriimu2.exe
+        mv ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Gtk/Kuriimu2
+        mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
+        rm ./dist/final/Wpf/*.pdb
+        rm ./dist/final/Gtk/*.pdb
       
     - name: Pack libraries
       run: |
@@ -77,6 +74,8 @@ jobs:
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        rm ./dist/final/plugins/*.pdb
+        rm ./dist/final/plugins/*.deps.json
         
     - name: Copy plugins to applications
       run: |
