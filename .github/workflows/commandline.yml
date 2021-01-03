@@ -18,21 +18,21 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.302
-      
-    - name: Clone update repository
-      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update
-      	
+        
     - name: Create manifests
       run: |
+        mkdir ./update
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }}, "application_name": "Kuriimu2.Cmd.exe" }' > ./update/manifest.json
         echo '{"source_type": "Github Action", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.Cmd/Resources/version.json
         
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
-      	
+        
     - name: Publish command line with dotnet
-      run: dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
-      	
+      run: |
+        dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final --configuration Release
+        rm ./dist/final/*.pdb
+        
     - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
@@ -64,6 +64,8 @@ jobs:
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        rm ./dist/final/plugins/*.pdb
+        rm ./dist/final/plugins/*.deps.json
     
     - name: Zip release
       uses: papeloto/action-zip@v1
@@ -83,10 +85,16 @@ jobs:
       shell: bash
       env:
         PRIVATE_KEY: ${{secrets.PRIVATE_KEY_2}}
-    
+      
+    - name: Clone update repository
+      run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update_repo
+      
+    - name: Move update files to update repo
+      run: mv -Force ./update/* ./update_repo
+      
     - name: Commit changes to update repo
       run: |
-        cd ./update
+        cd ./update_repo
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add *
@@ -95,7 +103,7 @@ jobs:
     - name: Push changes to update repo
       uses: ad-m/github-push-action@master
       with:
-        directory: ./update
+        directory: ./update_repo
         repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     

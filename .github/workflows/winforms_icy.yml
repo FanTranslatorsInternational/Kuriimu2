@@ -21,10 +21,10 @@ jobs:
         
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
-      	
+      
     - name: Publish winforms application with dotnet
       run: dotnet publish ./src/Kuriimu2.WinForms/Kuriimu2.WinForms.csproj --output ./dist/final --configuration Release /p:PublishSingleFile=false
-      	
+      
     - name: Pack libraries
       run: |
         dotnet build ./src/Kontract/Kontract.csproj --configuration Release
@@ -37,7 +37,7 @@ jobs:
         dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release
         dotnet pack ./src/Kompression/Kompression.csproj --configuration Release
         dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release
-
+      
     - name: Publish plugins
       run: |
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
