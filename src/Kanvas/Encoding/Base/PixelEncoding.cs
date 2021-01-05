@@ -27,7 +27,7 @@ namespace Kanvas.Encoding.Base
 
         public string FormatName { get; }
 
-        protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder = BitOrder.MostSignificantBitFirst)
+        protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder)
         {
             ContractAssertions.IsNotNull(pixelDescriptor, nameof(pixelDescriptor));
 

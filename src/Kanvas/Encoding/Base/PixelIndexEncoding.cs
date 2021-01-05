@@ -28,7 +28,7 @@ namespace Kanvas.Encoding.Base
 
         public int MaxColors { get; protected set; }
 
-        protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder = BitOrder.MostSignificantBitFirst)
+        protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder)
         {
             _descriptor = pixelDescriptor;
             _byteOrder = byteOrder;
