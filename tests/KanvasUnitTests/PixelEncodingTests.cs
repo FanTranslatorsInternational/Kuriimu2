@@ -18,7 +18,7 @@ namespace KanvasUnitTests
         public void MemoryConsumption_Low_Success()
         {
             // Assign
-            var encoding = new RGBA(8, 0, 0);
+            var encoding = new Rgba(8, 0, 0);
             var input = Enumerable.Range(0, 1024 * 1024 * 32).Select(x => (byte)(x % 256)).ToArray();
 
             // Act
