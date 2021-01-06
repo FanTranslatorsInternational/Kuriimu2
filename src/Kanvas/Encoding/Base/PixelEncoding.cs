@@ -80,8 +80,8 @@ namespace Kanvas.Encoding.Base
             if (bitDepth == 4)
             {
                 BitsPerValue = 4;
-                _readValuesDelegate = br => new long[] { br.ReadNibble(), br.ReadNibble() };
-                _writeValueDelegate = (bw, value) => bw.WriteNibble((int)value);
+                _readValuesDelegate = br => new long[] { br.ReadBits<int>(4), br.ReadBits<int>(4) };
+                _writeValueDelegate = (bw, value) => bw.WriteBits(value, 4);
                 return;
             }
 
