@@ -668,14 +668,14 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Middle))
             {
-                if (!page.Bounds.Contains((Point)e.Location))
+                if (!new Rectangle(page.Bounds.Size).Contains((Point)e.Location))
                     return;
             }
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
                 var deleteImage = MenuDeleteResource;
-                var closeButtonRect = new RectangleF(page.Bounds.Left + 9, page.Bounds.Top + 4, deleteImage.Width, deleteImage.Height);
+                var closeButtonRect = new RectangleF(9, 4, deleteImage.Width, deleteImage.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }
