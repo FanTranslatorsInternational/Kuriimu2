@@ -56,6 +56,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="Forms\Dialogs\InputBoxDialog.eto.cs">
+      <DependentUpon>InputBoxDialog.cs</DependentUpon>
+    </Compile>
     <Compile Update="Resources\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

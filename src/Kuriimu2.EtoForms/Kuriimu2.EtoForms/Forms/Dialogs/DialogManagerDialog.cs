@@ -65,10 +65,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 case DialogFieldType.DropDown:
                     var cmb = new ComboBox
                     {
+                        DataStore = field.Options,
                         Text = field.DefaultValue,
                         Tag = field
                     };
-                    cmb.Items.AddRange(field.Options.Select(v => new ListItem { Text = v }));
                     cmb.SelectedIndexChanged += cmb_SelectedIndexChanged;
 
                     return cmb;

@@ -91,8 +91,7 @@ namespace Kuriimu2.EtoForms.Support
         {
             var enumNames = Enum.GetNames(parameter.ParameterType).ToList();
 
-            var comboBox = new ComboBox { Tag = parameter };
-            comboBox.Items.AddRange(enumNames.Select(v => new ListItem { Text = v }));
+            var comboBox = new ComboBox { Tag = parameter, DataStore = enumNames };
             comboBox.SelectedValueChanged += comboBox_SelectedValueChanged;
 
             if (parameter.HasDefaultValue)
@@ -181,7 +180,7 @@ namespace Kuriimu2.EtoForms.Support
 
             // Update value
             // ReSharper disable once PossibleInvalidOperationException
-            parameter.Value = ((CheckBox) sender).Checked.Value;
+            parameter.Value = ((CheckBox)sender).Checked.Value;
         }
 
         private void textBox_TextChanged(object sender, EventArgs e)

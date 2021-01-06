@@ -3,9 +3,9 @@ using Eto.Forms;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
-    partial class InputBox : Dialog<string>
+    partial class InputBoxDialog : Dialog<string>
     {
-        public InputBox(string labelText, string formText = "", string defaultValue = "")
+        public InputBoxDialog(string labelText, string formText = "", string defaultValue = "")
         {
             InitializeComponent();
 

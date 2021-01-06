@@ -3,7 +3,7 @@ using Eto.Forms;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
-    partial class InputBox:Dialog<string>
+    partial class InputBoxDialog:Dialog<string>
     {
         private Label label;
         private TextBox input;

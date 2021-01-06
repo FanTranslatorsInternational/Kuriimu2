@@ -114,7 +114,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         private void baseExtensionsDialog_DragDrop(object sender, DragEventArgs e)
         {
-            var paths = e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray();//(string[])e.Data.GetData(DataFormats.FileDrop, false);
+            var paths = e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray();
 
             var path = paths[0];
             selectedPath.Text = path;

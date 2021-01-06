@@ -27,6 +27,7 @@ using Kore.Progress;
 using Kore.Update;
 using Kuriimu2.EtoForms.Exceptions;
 using Kuriimu2.EtoForms.Forms.Dialogs;
+using Kuriimu2.EtoForms.Forms.Dialogs.Batch;
 using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
@@ -58,6 +59,9 @@ namespace Kuriimu2.EtoForms.Forms
         private EncryptExtensionsDialog _encryptDialog;
         private DecompressExtensionDialog _decompressDialog;
         private CompressExtensionDialog _compressDialog;
+        private BatchExtractDialog _extractDialog;
+        private BatchInjectDialog _injectDialog;
+        private SequenceSearcher _searcherDialog;
 
         #region HotKeys
 
@@ -114,6 +118,7 @@ namespace Kuriimu2.EtoForms.Forms
             _encryptDialog = new EncryptExtensionsDialog();
             _decompressDialog = new DecompressExtensionDialog();
             _compressDialog = new CompressExtensionDialog();
+            _searcherDialog=new SequenceSearcher();
 
             _localManifest = LoadLocalManifest();
             UpdateFormText();
@@ -125,6 +130,9 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
+
+            _extractDialog = new BatchExtractDialog(_pluginManager);
+            _injectDialog = new BatchInjectDialog(_pluginManager);
 
             // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
             // HINT: Some kind of form spanning control, which handles the drop action instead
@@ -139,6 +147,10 @@ namespace Kuriimu2.EtoForms.Forms
             openFileCommand.Executed += openFileCommand_Executed;
             openFileWithCommand.Executed += openFileWithCommand_Executed;
             saveAllFileCommand.Executed += saveAllFileCommand_Executed;
+
+            openBatchExtractorCommand.Executed += openBatchExtractorCommand_Executed;
+            openBatchInjectorCommand.Executed += openBatchInjectorCommand_Executed;
+            openTextSequenceSearcherCommand.Executed += openTextSequenceSearcherCommand_Execute;
 
             openHashcommand.Executed += openHashCommand_Executed;
             openDecryptionCommand.Executed += openDecryptionCommand_Executed;
@@ -583,6 +595,25 @@ namespace Kuriimu2.EtoForms.Forms
 #if !DEBUG
             CheckForUpdate();
 #endif
+        }
+
+        #endregion
+
+        #region Tools
+
+        private void openBatchExtractorCommand_Executed(object sender, EventArgs e)
+        {
+            _extractDialog.ShowModal();
+        }
+
+        private void openBatchInjectorCommand_Executed(object sender, EventArgs e)
+        {
+            _injectDialog.ShowModal();
+        }
+
+        private void openTextSequenceSearcherCommand_Execute(object sender, EventArgs e)
+        {
+            _searcherDialog.ShowModal();
         }
 
         #endregion
