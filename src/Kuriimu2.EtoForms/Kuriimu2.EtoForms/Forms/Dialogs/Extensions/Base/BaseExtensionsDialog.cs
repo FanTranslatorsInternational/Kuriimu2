@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Web;
 using Eto.Forms;
 using Kontract.Interfaces.Logging;
 using Kontract.Models.Logging;
@@ -12,9 +13,10 @@ using Kuriimu2.EtoForms.Logging;
 using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 
-namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
+namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 {
-    abstract partial class BaseExtensionsDialog<TExtension,TResult> : Dialog
+    // HINT: This class can't derive and act as the dialog directly, since in Eto.Forms, once closed a dialog seemingly can't be opened after being closed.
+    abstract partial class BaseExtensionsDialog<TExtension, TResult> : Dialog
     {
         private const string TitleName = "{0} Extensions";
 
@@ -41,6 +43,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             extensions.SelectedValueChanged += Extensions_SelectedValueChanged;
             extensions.DataStore = LoadExtensionTypes();
             extensions.SelectedIndex = 0;
+
+            Content.DragEnter += baseExtensionsDialog_DragEnter;
+            Content.DragDrop += baseExtensionsDialog_DragDrop;
 
             #region Commands
 
@@ -103,11 +108,31 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
 
         private void Extensions_SelectedValueChanged(object sender, EventArgs e)
         {
-            var extensionType = (ExtensionType) ((ComboBox) sender).SelectedValue;
+            var extensionType = (ExtensionType)((ComboBox)sender).SelectedValue;
             _parameterBuilder.SetParameters(extensionType.Parameters.Values.ToArray());
         }
 
+        private void baseExtensionsDialog_DragDrop(object sender, DragEventArgs e)
+        {
+            var paths = e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray();//(string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+            var path = paths[0];
+            selectedPath.Text = path;
+
+            _isDirectory = Directory.Exists(path);
+
+            if (autoExecuteBox.Checked ?? false)
+                Execute();
+        }
+
+        private void baseExtensionsDialog_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effects = DragEffects.Copy;
+        }
+
         #endregion
+
+        #region Execution
 
         private void Execute()
         {
@@ -146,7 +171,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
 
             if (!subDirectoryBox.Checked.HasValue)
             {
-                Logger.QueueMessage(LogLevel.Error,"Checkbox for sub directories has no state.");
+                Logger.QueueMessage(LogLevel.Error, "Checkbox for sub directories has no state.");
                 return false;
             }
 
@@ -178,5 +203,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             subDirectoryBox.Enabled = toggle;
             autoExecuteBox.Enabled = toggle;
         }
+
+        #endregion
     }
 }

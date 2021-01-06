@@ -3,7 +3,7 @@ using Eto.Forms;
 using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Support;
 
-namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
+namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 {
     abstract partial class BaseExtensionsDialog<TExtension, TResult> : Dialog
     {
@@ -56,8 +56,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             Title = "TypeExtensionDialog";
             Padding = new Padding(6);
             Size = new Size(700, 300);
-
-            AllowDrop = true;
 
             #region Content
 
@@ -112,6 +110,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             Content = new TableLayout
             {
                 Spacing = new Size(6, 6),
+                AllowDrop = true,
 
                 Rows =
                 {
