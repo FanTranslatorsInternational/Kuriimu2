@@ -18,7 +18,6 @@ namespace Komponent.IO
         private long _buffer;
 
         public ByteOrder ByteOrder { get; set; }
-        public NibbleOrder NibbleOrder { get; set; }
         public BitOrder BitOrder { get; set; }
 
         private Encoding _encoding = Encoding.UTF8;
@@ -53,12 +52,10 @@ namespace Komponent.IO
 
         public BinaryWriterX(Stream input,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -68,12 +65,10 @@ namespace Komponent.IO
         public BinaryWriterX(Stream input,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -83,12 +78,10 @@ namespace Komponent.IO
         public BinaryWriterX(Stream input,
             Encoding encoding,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -101,12 +94,10 @@ namespace Komponent.IO
             Encoding encoding,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -374,20 +365,6 @@ namespace Komponent.IO
         #endregion
 
         #region Custom Methods
-
-        public void WriteNibble(int val)
-        {
-            FlushBuffer();
-
-            val &= 15;
-            if (_nibble == -1)
-                _nibble = NibbleOrder == NibbleOrder.LowNibbleFirst ? val : val * 16;
-            else
-            {
-                _nibble += NibbleOrder == NibbleOrder.LowNibbleFirst ? val * 16 : val;
-                FlushNibble();
-            }
-        }
 
         // Bit Fields
         public void WriteBit(bool value)

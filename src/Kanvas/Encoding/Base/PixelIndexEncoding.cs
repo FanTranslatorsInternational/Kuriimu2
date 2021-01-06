@@ -43,7 +43,7 @@ namespace Kanvas.Encoding.Base
 
         public IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount)
         {
-            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, NibbleOrder.LowNibbleFirst, _bitOrder, 1);
+            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, _bitOrder, 1);
 
             return ReadValues(br).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
@@ -53,7 +53,7 @@ namespace Kanvas.Encoding.Base
         public byte[] Save(IEnumerable<int> indices, IList<Color> palette, int taskCount)
         {
             var ms = new MemoryStream();
-            using var bw = new BinaryWriterX(ms, _byteOrder, NibbleOrder.LowNibbleFirst, _bitOrder, 1);
+            using var bw = new BinaryWriterX(ms, _byteOrder, _bitOrder, 1);
 
             var values = indices.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
