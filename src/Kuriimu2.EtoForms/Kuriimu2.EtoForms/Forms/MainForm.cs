@@ -62,6 +62,7 @@ namespace Kuriimu2.EtoForms.Forms
         private BatchExtractDialog _extractDialog;
         private BatchInjectDialog _injectDialog;
         private SequenceSearcher _searcherDialog;
+        private RawImageDialog _rawImageDialog;
 
         #region HotKeys
 
@@ -119,6 +120,7 @@ namespace Kuriimu2.EtoForms.Forms
             _decompressDialog = new DecompressExtensionDialog();
             _compressDialog = new CompressExtensionDialog();
             _searcherDialog=new SequenceSearcher();
+            _rawImageDialog=new RawImageDialog();
 
             _localManifest = LoadLocalManifest();
             UpdateFormText();
@@ -157,6 +159,8 @@ namespace Kuriimu2.EtoForms.Forms
             openEncryptionCommand.Executed += openEncryptionCommand_Executed;
             openDecompressionCommand.Executed += openDecompressionCommand_Executed;
             openCompressionCommand.Executed += openCompressionCommand_Executed;
+
+            openRawImageViewerCommand.Executed += openRawImageViewerCommand_Executed;
 
             #endregion
         }
@@ -646,6 +650,11 @@ namespace Kuriimu2.EtoForms.Forms
         }
 
         #endregion
+
+        private void openRawImageViewerCommand_Executed(object sender, EventArgs e)
+        {
+            _rawImageDialog.ShowModal();
+        }
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {

@@ -85,7 +85,7 @@ namespace Kuriimu2.EtoForms.Forms
                     new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
-                    new ButtonMenuItem(openImageTranscoderCommand)
+                    //new ButtonMenuItem(openImageTranscoderCommand)
                 },
                 AboutItem = openAboutCommand
             };
