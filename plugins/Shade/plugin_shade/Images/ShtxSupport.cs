@@ -25,11 +25,7 @@ namespace plugin_shade.Images
 
         public static IDictionary<int, IColorEncoding> EncodingsV1 = new Dictionary<int, IColorEncoding>
         {
-            [0x4646] = new Rgba(8, 8, 8, 8)
-        };
-        public static IDictionary<int, IColorEncoding> EncodingsV2 = new Dictionary<int, IColorEncoding>
-        {
-            [0x4646] = new Rgba(8, 8, 8, 8)
+            [0x4646] = new Rgba(8, 8, 8, 8, "ARGB")
         };
         public static IDictionary<int, IColorEncoding> PaletteEncodingsV1 = new Dictionary<int, IColorEncoding>
         {
@@ -42,19 +38,12 @@ namespace plugin_shade.Images
             [0x5346] = new Rgba(8, 8, 8, 8, "ABGR")
         };
 
-
         public static IDictionary<int, IndexEncodingDefinition> IndexEncodings = new Dictionary<int, IndexEncodingDefinition>
         {
             [0x3446] = new IndexEncodingDefinition(new Index(4), new[] { 0x3446 }),
             [0x5346] = new IndexEncodingDefinition(new Index(8), new[] { 0x5346 })
         };
 
-        public static readonly IDictionary<string, IDictionary<int, IColorEncoding>> PlatformEncodingMapping =
-            new Dictionary<string, IDictionary<int, IColorEncoding>>
-            {
-                ["Wii"] = EncodingsV1,
-                ["PS Vita"] = EncodingsV2
-            };
         public static readonly IDictionary<string, IDictionary<int, IColorEncoding>> PlatformPaletteEncodingMapping =
             new Dictionary<string, IDictionary<int, IColorEncoding>>
             {
@@ -67,12 +56,12 @@ namespace plugin_shade.Images
             // Re-uses some of the code used in the Imgc plugin
             
             // Show a dialog to the user, selecting the platform
-            var availablePlatforms = PlatformEncodingMapping.Keys.ToArray();
+            var availablePlatforms = PlatformPaletteEncodingMapping.Keys.ToArray();
             var dialogField = new DialogField(DialogFieldType.DropDown, "Select the platform:", availablePlatforms.First(), availablePlatforms);
 
             dialogManager.ShowDialog(new[] { dialogField });
 
-            var encodingDefinition = PlatformEncodingMapping[dialogField.Result].ToColorDefinition();
+            var encodingDefinition = EncodingsV1.ToColorDefinition();
             encodingDefinition.AddPaletteEncodings(PlatformPaletteEncodingMapping[dialogField.Result]);
 
             return encodingDefinition;
