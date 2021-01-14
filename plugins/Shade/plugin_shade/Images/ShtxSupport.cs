@@ -29,19 +29,17 @@ namespace plugin_shade.Images
         };
         public static IDictionary<int, IColorEncoding> PaletteEncodingsV1 = new Dictionary<int, IColorEncoding>
         {
-            [0x3446] = new Rgba(8, 8, 8, 8, "ARGB"),
-            [0x5346] = new Rgba(8, 8, 8, 8, "ARGB")
+            [0] = new Rgba(8, 8, 8, 8, "ARGB")
         };
         public static IDictionary<int, IColorEncoding> PaletteEncodingsV2 = new Dictionary<int, IColorEncoding>
         {
-            [0x3446] = new Rgba(8, 8, 8, 8, "ABGR"),
-            [0x5346] = new Rgba(8, 8, 8, 8, "ABGR")
+            [0] = new Rgba(8, 8, 8, 8, "ABGR")
         };
 
         public static IDictionary<int, IndexEncodingDefinition> IndexEncodings = new Dictionary<int, IndexEncodingDefinition>
         {
-            [0x3446] = new IndexEncodingDefinition(new Index(4), new[] { 0x3446 }),
-            [0x5346] = new IndexEncodingDefinition(new Index(8), new[] { 0x5346 })
+            [0x3446] = new IndexEncodingDefinition(new Index(4), new[] { 0 }),
+            [0x5346] = new IndexEncodingDefinition(new Index(8), new[] { 0 })
         };
 
         public static readonly IDictionary<string, IDictionary<int, IColorEncoding>> PlatformPaletteEncodingMapping =
@@ -54,7 +52,7 @@ namespace plugin_shade.Images
         public static EncodingDefinition DetermineFormatMapping(IDialogManager dialogManager)
         {
             // Re-uses some of the code used in the Imgc plugin
-            
+
             // Show a dialog to the user, selecting the platform
             var availablePlatforms = PlatformPaletteEncodingMapping.Keys.ToArray();
             var dialogField = new DialogField(DialogFieldType.DropDown, "Select the platform:", availablePlatforms.First(), availablePlatforms);
@@ -63,6 +61,7 @@ namespace plugin_shade.Images
 
             var encodingDefinition = EncodingsV1.ToColorDefinition();
             encodingDefinition.AddPaletteEncodings(PlatformPaletteEncodingMapping[dialogField.Result]);
+            encodingDefinition.AddIndexEncodings(IndexEncodings);
 
             return encodingDefinition;
         }

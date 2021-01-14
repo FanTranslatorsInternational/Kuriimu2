@@ -28,7 +28,6 @@ namespace plugin_shade.Images
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             EncodingDefinition = ShtxSupport.DetermineFormatMapping(loadContext.DialogManager);
-            EncodingDefinition.AddIndexEncodings(ShtxSupport.IndexEncodings);
 
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             var img = _shtx.Load(fileStream);

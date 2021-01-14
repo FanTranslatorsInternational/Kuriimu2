@@ -21,31 +21,32 @@ namespace plugin_shade.Images
                 _header = br.ReadType<ShtxHeader>();
 
                 // Get image data
-                if (_header.Format == 0x4646) textureDataLength = _header.Width * _header.Height * 4;
-                else
+                switch (_header.Format)
                 {
-                    if (_header.Format == 0x3446)
-                    {
+                    case 0x4646:
+                        textureDataLength = _header.Width * _header.Height * 4;
+                        break;
+                    case 0x3446:
                         paletteDataLength = 16 * 4;
                         palette = br.ReadBytes(paletteDataLength);
                         _unkChunk = br.ReadBytes(240 * 4); // For some reason SHTXF4's have space for 240 other colors, it's sometimes used for other things, saves it
                         textureDataLength = (_header.Width * _header.Height) / 2;
-                    }
-                    else {
+                        break;
+                    default:
                         textureDataLength = _header.Width * _header.Height;
                         palette = br.ReadBytes(paletteDataLength);
-                    }     
+                        break;
                 }
                 var textureData = br.ReadBytes(textureDataLength);
 
 
                 var imageInfo = new ImageInfo(textureData, _header.Format, new Size(_header.Width, _header.Height));
-                if (_header.Format == 0x4646) // SHTXFF do not have any palette
+                if (_header.Format == 0x4646)
                     return imageInfo;
 
                 imageInfo.PaletteData = palette;
-                imageInfo.PaletteFormat = _header.Format;
-                
+                imageInfo.PaletteFormat = 0;
+
                 return imageInfo;
             }
         }
@@ -58,11 +59,12 @@ namespace plugin_shade.Images
                 _header.Height = (short)imageInfo.ImageSize.Height;
 
                 bw.WriteType(_header);
-                if(_header.Format == 0x4646)
+                if (_header.Format == 0x4646)
                 {
                     bw.Write(imageInfo.ImageData);
                 }
-                else {
+                else
+                {
                     bw.Write(imageInfo.PaletteData);
 
                     // In case the quantized image has a palette size that doesn't match the number of colors in the format

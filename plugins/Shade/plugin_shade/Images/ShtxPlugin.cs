@@ -15,7 +15,7 @@ namespace plugin_shade.Images
     {
         public Guid PluginId => Guid.Parse("01EB4BEE-8C72-44D2-B6B8-13791DEFA487");
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.shtx","*.btx" };
+        public string[] FileExtensions => new[] { "*.shtx", "*.btx" };
         public PluginMetadata Metadata { get; }
 
         public ShtxPlugin()
