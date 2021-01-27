@@ -16,10 +16,10 @@ namespace Kuriimu2.EtoForms.Forms
         private Command openBatchExtractorCommand;
         private Command openBatchInjectorCommand;
 
+        private Command openHashcommand;
+
         private Command openEncryptionCommand;
         private Command openDecryptionCommand;
-
-        private Command hashCommand;
 
         private Command openDecompressionCommand;
         private Command openCompressionCommand;
@@ -52,10 +52,10 @@ namespace Kuriimu2.EtoForms.Forms
             openBatchExtractorCommand = new Command { MenuText = "Batch Extractor" };
             openBatchInjectorCommand = new Command { MenuText = "Batch Injector" };
 
+            openHashcommand = new Command { MenuText = "Hashes" };
+
             openEncryptionCommand = new Command { MenuText = "Encrypt" };
             openDecryptionCommand = new Command { MenuText = "Decrypt" };
-
-            hashCommand = new Command { MenuText = "Hashes" };
 
             openDecompressionCommand = new Command { MenuText = "Decompress" };
             openCompressionCommand = new Command { MenuText = "Compress" };
@@ -80,12 +80,12 @@ namespace Kuriimu2.EtoForms.Forms
                 Items =
                 {
                     new ButtonMenuItem { Text = "File", Items = { openFileCommand, openFileWithCommand, new SeparatorMenuItem(), saveAllFileCommand } },
-                    new ButtonMenuItem { Text = "Tools", Items = { openTextSequenceSearcherCommand, openBatchExtractorCommand, openBatchInjectorCommand } },
-                    new ButtonMenuItem(hashCommand),
+                    new ButtonMenuItem { Text = "Tools", Items = { openBatchExtractorCommand, openBatchInjectorCommand, openTextSequenceSearcherCommand } },
+                    new ButtonMenuItem(openHashcommand),
                     new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
-                    new ButtonMenuItem(openImageTranscoderCommand)
+                    //new ButtonMenuItem(openImageTranscoderCommand)
                 },
                 AboutItem = openAboutCommand
             };

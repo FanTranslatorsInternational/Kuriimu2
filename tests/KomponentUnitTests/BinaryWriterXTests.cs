@@ -108,7 +108,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream();
 
-            using (var bw = new BinaryWriterX(ms, true, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
+            using (var bw = new BinaryWriterX(ms, true, ByteOrder.LittleEndian, BitOrder.MostSignificantBitFirst, 2))
             {
                 bw.WriteBit(true);
                 bw.Flush();
@@ -124,7 +124,7 @@ namespace KomponentUnitTests
                 0x00, 0x80, 0x00, 0x01
             };
             var ms2 = new MemoryStream();
-            using (var bw = new BinaryWriterX(ms2, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.LowestAddressFirst, 2))
+            using (var bw = new BinaryWriterX(ms2, ByteOrder.LittleEndian, BitOrder.LowestAddressFirst, 2))
             {
                 bw.WriteBit(false);
                 bw.WriteBits(0, 14);
@@ -221,45 +221,6 @@ namespace KomponentUnitTests
                 bw.WriteType(examp);
                 examp.exp2.val1++;
                 bw.WriteType(examp);
-
-                Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
-            }
-        }
-
-        [TestMethod]
-        public void NibbleWriting()
-        {
-            var expect = new byte[] {
-                0x84, 0x08
-            };
-            var ms = new MemoryStream();
-
-            using (var bw = new BinaryWriterX(ms))
-            {
-                bw.WriteNibble(0x04);
-                bw.WriteNibble(0x08);
-
-                bw.WriteNibble(0x08);
-                bw.Flush();
-
-                Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
-            }
-        }
-
-        [TestMethod]
-        public void SwitchNibbleBitWriting()
-        {
-            var expect = new byte[] {
-                0x04, 0x00, 0xF8, 0x48
-            };
-            var ms = new MemoryStream();
-
-            using (var bw = new BinaryWriterX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
-            {
-                bw.WriteNibble(0x4);
-                bw.WriteBits(0x1F, 5);
-                bw.WriteNibble(0x08);
-                bw.WriteNibble(0x04);
 
                 Assert.IsTrue(ms.ToArray().SequenceEqual(expect));
             }

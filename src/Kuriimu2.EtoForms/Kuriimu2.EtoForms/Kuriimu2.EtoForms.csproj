@@ -4,6 +4,14 @@
     <TargetFrameworks>netcoreapp31</TargetFrameworks>
   </PropertyGroup>
 	
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp31|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+	
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp31|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+	
   <ItemGroup>
     <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
     <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
@@ -56,6 +64,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="Forms\Dialogs\InputBoxDialog.eto.cs">
+      <DependentUpon>InputBoxDialog.cs</DependentUpon>
+    </Compile>
     <Compile Update="Resources\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

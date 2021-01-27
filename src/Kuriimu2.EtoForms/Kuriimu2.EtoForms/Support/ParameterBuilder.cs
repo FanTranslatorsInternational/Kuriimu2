@@ -12,6 +12,8 @@ namespace Kuriimu2.EtoForms.Support
 
         private readonly GroupBox _tableLayout;
 
+        public event EventHandler ValueChanged;
+
         public ParameterBuilder(GroupBox tableLayout)
         {
             _tableLayout = tableLayout;
@@ -19,6 +21,12 @@ namespace Kuriimu2.EtoForms.Support
 
         public void SetParameters(IList<ExtensionTypeParameter> parameters)
         {
+            if (parameters == null)
+            {
+                _tableLayout.Content = new TableLayout();
+                return;
+            }
+
             var rows = new List<TableRow>();
             for (var i = 0; i < parameters.Count; i++)
             {
@@ -91,8 +99,7 @@ namespace Kuriimu2.EtoForms.Support
         {
             var enumNames = Enum.GetNames(parameter.ParameterType).ToList();
 
-            var comboBox = new ComboBox { Tag = parameter };
-            comboBox.Items.AddRange(enumNames.Select(v => new ListItem { Text = v }));
+            var comboBox = new ComboBox { Tag = parameter, DataStore = enumNames };
             comboBox.SelectedValueChanged += comboBox_SelectedValueChanged;
 
             if (parameter.HasDefaultValue)
@@ -165,6 +172,8 @@ namespace Kuriimu2.EtoForms.Support
             // Update value
             _tableLayout.FindChild<TextBox>(parameter.Name).Text = ofd.FileName;
             parameter.Value = ofd.FileName;
+
+            OnValueChanged(_tableLayout.FindChild<TextBox>(parameter.Name));
         }
 
         private void comboBox_SelectedValueChanged(object sender, EventArgs e)
@@ -173,6 +182,8 @@ namespace Kuriimu2.EtoForms.Support
 
             // Update value
             parameter.Value = ((ComboBox)sender).SelectedValue;
+
+            OnValueChanged(sender);
         }
 
         private void checkBox_CheckedChanged(object sender, EventArgs e)
@@ -180,8 +191,9 @@ namespace Kuriimu2.EtoForms.Support
             var parameter = (ExtensionTypeParameter)((CheckBox)sender).Tag;
 
             // Update value
-            // ReSharper disable once PossibleInvalidOperationException
-            parameter.Value = ((CheckBox) sender).Checked.Value;
+            parameter.Value = ((CheckBox)sender).Checked ?? false;
+
+            OnValueChanged(sender);
         }
 
         private void textBox_TextChanged(object sender, EventArgs e)
@@ -194,6 +206,7 @@ namespace Kuriimu2.EtoForms.Support
                 if (char.TryParse(textBox.Text, out var charValue))
                 {
                     parameter.Value = charValue;
+                    OnValueChanged(sender);
                     return;
                 }
 
@@ -201,12 +214,14 @@ namespace Kuriimu2.EtoForms.Support
             if (parameter.ParameterType == typeof(string))
             {
                 parameter.Value = textBox.Text;
+                OnValueChanged(sender);
                 return;
             }
 
             // If value is number
             if (TryParseNumber(parameter.ParameterType, ((TextBox)sender).Text, out var parsedValue))
                 parameter.Value = parsedValue;
+            OnValueChanged(sender);
         }
 
         #endregion
@@ -232,5 +247,10 @@ namespace Kuriimu2.EtoForms.Support
         }
 
         #endregion
+
+        private void OnValueChanged(object sender)
+        {
+            ValueChanged?.Invoke(sender, new EventArgs());
+        }
     }
 }

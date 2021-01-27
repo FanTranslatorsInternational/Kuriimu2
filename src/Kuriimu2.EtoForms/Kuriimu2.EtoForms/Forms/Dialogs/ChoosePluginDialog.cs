@@ -81,7 +81,26 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             };
 
             gridView.SelectedRowsChanged += GridView_SelectedRowsChanged;
+            gridView.CellDoubleClick += GridView_CellDoubleClick;
             return gridView;
+        }
+
+        #region Events
+
+        protected override void OnShown(EventArgs e)
+        {
+            _selectedFilePlugin = null;
+            okButton.Enabled = false;
+        }
+
+        private void CancelButtonCommand_Executed(object sender, EventArgs e)
+        {
+            Close(null);
+        }
+
+        private void OkButtonCommand_Executed(object sender, EventArgs e)
+        {
+            Close(_selectedFilePlugin);
         }
 
         private void GridView_SelectedRowsChanged(object sender, EventArgs e)
@@ -93,26 +112,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             okButton.Enabled = true;
         }
 
-        #region Events
-
-        protected override void OnShown(EventArgs e)
+        private void GridView_CellDoubleClick(object sender, GridCellMouseEventArgs e)
         {
-            _selectedFilePlugin = null;
-            okButton.Enabled = false;
-        }
+            var gridView = (GridView)sender;
+            if (gridView.SelectedItem == null) return;
 
-        #endregion
-
-        #region Command events
-
-        private void CancelButtonCommand_Executed(object sender, EventArgs e)
-        {
-            Close(null);
-        }
-
-        private void OkButtonCommand_Executed(object sender, EventArgs e)
-        {
-            Close(_selectedFilePlugin);
+            Close(((ChoosePluginElement)gridView.SelectedItem).Plugin);
         }
 
         #endregion

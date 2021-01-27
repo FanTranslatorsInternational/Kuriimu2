@@ -27,7 +27,7 @@ namespace Kuriimu2.WinForms.Extensions
             // If type is an enum
             if (parameter.ParameterType.IsEnum)
             {
-                var enumName = ((ComboBox)control).SelectedText;
+                var enumName = (string)((ComboBox)control).SelectedItem;
                 if (!Enum.IsDefined(parameter.ParameterType, enumName))
                 {
                     error = $"'{enumName}' is no valid member of  parameter '{parameter.Name}'.";

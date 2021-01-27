@@ -15,24 +15,11 @@ namespace KomponentUnitTests.ByteReader
         public void BitReading()
         {
             var input = new byte[] {
-                0x8f
-            };
-            var ms = new MemoryStream(input);
-
-            using var br= new BinaryReaderX(ms);
-
-            Assert.AreEqual();
-        }
-
-        [TestMethod]
-        public void BitReading()
-        {
-            var input = new byte[] {
                 0x00, 0x80, 0x1F, 0xF8, 0xFF, 0x00
             };
             var ms = new MemoryStream(input);
 
-            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, NibbleOrder.HighNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
+            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, BitOrder.MostSignificantBitFirst, 2))
             {
                 Assert.AreEqual(true, br.ReadBit());
                 br.ResetBitBuffer();
@@ -42,7 +29,7 @@ namespace KomponentUnitTests.ByteReader
                 Assert.AreEqual(0x1F, br.ReadBits<int>(5));
             }
 
-            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.LowestAddressFirst, 2))
+            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, BitOrder.LowestAddressFirst, 2))
             {
                 br.BaseStream.Position = 0;
 
