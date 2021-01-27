@@ -44,14 +44,11 @@ namespace Kore.Managers.Plugins.PluginLoader
 
         private string GetPluginBaseDirectory()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return ".";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return "~/Applications/Kuriimu2";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return "~/Kuriimu2";
 
             throw new InvalidOperationException($"Unsupported operating system: {RuntimeInformation.OSDescription}.");
         }
