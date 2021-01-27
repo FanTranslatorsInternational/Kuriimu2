@@ -31,7 +31,7 @@ namespace Kompression.Implementations.Decoders
             var reverseOutputStream = new ReverseStream(output, header.decompSize + RawSize_);
             var circularBuffer = new CircularBuffer(0x2002);
 
-            using var reverseBr = new BinaryReaderX(reverseCompStream, ByteOrder.LittleEndian, BitOrder.MostSignificantBitFirst, 1);
+            using var reverseBr = new BinaryReaderX(reverseCompStream, ByteOrder.LittleEndian, NibbleOrder.HighNibbleFirst, BitOrder.MostSignificantBitFirst, 1);
 
             while (reverseOutputStream.Position < reverseOutputStream.Length - RawSize_)
             {

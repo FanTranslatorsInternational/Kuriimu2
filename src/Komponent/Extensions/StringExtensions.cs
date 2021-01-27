@@ -2,7 +2,7 @@
 
 namespace Komponent.Extensions
 {
-    public static class StringExtensions
+    static class StringExtensions
     {
         public static byte[] Hexlify(this string hex, int length = -1)
         {

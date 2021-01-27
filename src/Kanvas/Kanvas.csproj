@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
     <LangVersion>8</LangVersion>
     <Version>2.0.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -22,7 +22,6 @@
     <PackageIcon>kuriimu2icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>Image, Transcoding, Quantization, Kuriimu2</PackageTags>
-    <Platforms>AnyCPU;x64;x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -32,33 +31,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="lib\**" />
-    <EmbeddedResource Remove="lib\**" />
-    <None Remove="lib\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\lin-x32\pvr_lib.so" />
-    <None Remove="Resources\lin-x64\pvr_lib.so" />
-    <None Remove="Resources\osx-x32\pvr_lib.dylib" />
-    <None Remove="Resources\osx-x64\pvr_lib.dylib" />
-    <None Remove="Resources\win-x32\pvr_lib.dll" />
-    <None Remove="Resources\win-x64\pvr_lib.dll" />
+    <None Remove="lib\astcenc.dll" />
+    <None Remove="lib\PVRTexLib.dll" />
+    <None Remove="lib\PVRTexLibWrapper.dll" />
   </ItemGroup>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>$(AssemblyName)UnitTests</_Parameter1>
     </AssemblyAttribute>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\lin-x32\pvr_lib.so" />
-    <EmbeddedResource Include="Resources\lin-x64\pvr_lib.so" />
-    <EmbeddedResource Include="Resources\osx-x32\pvr_lib.dylib" />
-    <EmbeddedResource Include="Resources\osx-x64\pvr_lib.dylib" />
-    <EmbeddedResource Include="Resources\win-x32\pvr_lib.dll" />
-    <EmbeddedResource Include="Resources\win-x64\pvr_lib.dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,23 +51,7 @@
     <OutputPath>..\..\dist\Debug\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
@@ -99,7 +64,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCnEncoder.Net" Version="1.2.3" />
+    <Content Include="lib\astcenc.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\PVRTexLib.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="lib\PVRTexLibWrapper.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
 

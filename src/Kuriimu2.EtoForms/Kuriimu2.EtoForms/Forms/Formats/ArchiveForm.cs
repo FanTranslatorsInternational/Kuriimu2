@@ -913,7 +913,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     // Select new name
                     var newName = Application.Instance.Invoke(() =>
                     {
-                        var inputBox = new InputBoxDialog($"Select a new name for '{file.FilePath.GetName()}'",
+                        var inputBox = new InputBox($"Select a new name for '{file.FilePath.GetName()}'",
                             "Rename file", file.FilePath.GetName());
                         return inputBox.ShowModal(this);
                     });
@@ -963,7 +963,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             }
 
             // Select new directory name
-            var inputBox = new InputBoxDialog($"Select a new name for '{GetItemName(item)}'",
+            var inputBox = new InputBox($"Select a new name for '{GetItemName(item)}'",
                 "Rename directory", GetItemName(item));
             var newName = inputBox.ShowModal(this);
 

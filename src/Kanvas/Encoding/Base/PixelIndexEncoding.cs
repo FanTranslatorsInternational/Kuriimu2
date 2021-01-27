@@ -13,7 +13,6 @@ namespace Kanvas.Encoding.Base
     {
         private readonly IPixelIndexDescriptor _descriptor;
         private readonly ByteOrder _byteOrder;
-        private readonly BitOrder _bitOrder;
 
         private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
@@ -28,11 +27,10 @@ namespace Kanvas.Encoding.Base
 
         public int MaxColors { get; protected set; }
 
-        protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder)
+        protected PixelIndexEncoding(IPixelIndexDescriptor pixelDescriptor, ByteOrder byteOrder)
         {
             _descriptor = pixelDescriptor;
             _byteOrder = byteOrder;
-            _bitOrder = bitOrder;
 
             BitDepth = pixelDescriptor.GetBitDepth();
             FormatName = pixelDescriptor.GetPixelName();
@@ -43,7 +41,7 @@ namespace Kanvas.Encoding.Base
 
         public IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount)
         {
-            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, _bitOrder, 1);
+            var br = new BinaryReaderX(new MemoryStream(input), _byteOrder);
 
             return ReadValues(br).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
@@ -53,7 +51,7 @@ namespace Kanvas.Encoding.Base
         public byte[] Save(IEnumerable<int> indices, IList<Color> palette, int taskCount)
         {
             var ms = new MemoryStream();
-            using var bw = new BinaryWriterX(ms, _byteOrder, _bitOrder, 1);
+            using var bw = new BinaryWriterX(ms, _byteOrder);
 
             var values = indices.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(taskCount)
@@ -99,8 +97,8 @@ namespace Kanvas.Encoding.Base
                     break;
 
                 case 4:
-                    _readValuesDelegate = br => ReadBitValues(br, bitDepth);
-                    _writeValueDelegate = (bw, value) => bw.WriteBits(value, 4);
+                    _readValuesDelegate = br => new long[] { br.ReadNibble(), br.ReadNibble() };
+                    _writeValueDelegate = (bw, value) => bw.WriteNibble((int)value);
                     break;
 
                 case 8:

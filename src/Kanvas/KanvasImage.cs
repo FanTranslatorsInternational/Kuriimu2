@@ -91,10 +91,9 @@ namespace Kanvas
             _decodedImage = null;
             _decodedPalette = null;
 
-            var (imageData, paletteData) = EncodeImage(image, ImageFormat, PaletteFormat, progress);
+            var (imageData, _) = EncodeImage(image, ImageFormat, PaletteFormat, progress);
 
             ImageInfo.ImageData = imageData.FirstOrDefault();
-            ImageInfo.PaletteData = paletteData;
             ImageInfo.MipMapData = imageData.Skip(1).ToArray();
             ImageInfo.ImageSize = image.Size;
 

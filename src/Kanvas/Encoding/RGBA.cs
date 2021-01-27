@@ -16,9 +16,8 @@ namespace Kanvas.Encoding
         /// <param name="g">Value of the green component.</param>
         /// <param name="b">Value of the blue component.</param>
         /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        /// <param name="bitOrder">The bit order in which bit values are read.</param>
-        public Rgba(int r, int g, int b, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
-            this(r, g, b, "RGBA", byteOrder, bitOrder)
+        public Rgba(int r, int g, int b, ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            this(r, g, b, "RGBA", byteOrder)
         {
 
         }
@@ -31,9 +30,8 @@ namespace Kanvas.Encoding
         /// <param name="b">Value of the blue component.</param>
         /// <param name="a">Value of the alpha component.</param>
         /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        /// <param name="bitOrder">The bit order in which bit values are read.</param>
-        public Rgba(int r, int g, int b, int a, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
-            this(r, g, b, a, "RGBA", byteOrder, bitOrder)
+        public Rgba(int r, int g, int b, int a, ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            this(r, g, b, a, "RGBA", byteOrder)
         {
 
         }
@@ -46,9 +44,8 @@ namespace Kanvas.Encoding
         /// <param name="b">Value of the blue component.</param>
         /// <param name="componentOrder">The order of the color components.</param>
         /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        /// <param name="bitOrder">The bit order in which bit values are read.</param>
-        public Rgba(int r, int g, int b, string componentOrder, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
-            this(r, g, b, 0, componentOrder, byteOrder, bitOrder)
+        public Rgba(int r, int g, int b, string componentOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            base(new RgbaPixelDescriptor(componentOrder, r, g, b, 0), byteOrder)
         {
         }
 
@@ -61,9 +58,8 @@ namespace Kanvas.Encoding
         /// <param name="a">Value of the alpha component.</param>
         /// <param name="componentOrder">The order of the color components.</param>
         /// <param name="byteOrder">The byte order in which atomic values are read.</param>
-        /// <param name="bitOrder">The bit order in which bit values are read.</param>
-        public Rgba(int r, int g, int b, int a, string componentOrder, ByteOrder byteOrder = ByteOrder.LittleEndian, BitOrder bitOrder = BitOrder.MostSignificantBitFirst) :
-            base(new RgbaPixelDescriptor(componentOrder, r, g, b, a), byteOrder, bitOrder)
+        public Rgba(int r, int g, int b, int a, string componentOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) :
+            base(new RgbaPixelDescriptor(componentOrder, r, g, b, a), byteOrder)
         {
         }
     }

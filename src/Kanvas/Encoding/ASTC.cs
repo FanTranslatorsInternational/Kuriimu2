@@ -1,21 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using Kanvas.Native;
+using System.Drawing.Imaging;
+using System.IO;
+using Kanvas.Encoding.BlockCompressions.ASTC;
+using Kanvas.Encoding.BlockCompressions.ASTC.Models;
+using Kanvas.Encoding.BlockCompressions.ASTC_CS;
+using Komponent.IO;
+using Komponent.Utilities;
 using Kontract.Kanvas;
+using Kontract.Models.IO;
 
 namespace Kanvas.Encoding
 {
-    // TODO: Use PVRTexLibrary
-    // TODO: Set properties
     /// <summary>
     /// Defines the ASTC encoding.
     /// </summary>
     public class ASTC : IColorEncodingKnownDimensions
     {
-        private readonly AstcFormat _format;
-        private readonly int _width;
-        private readonly int _height;
+        private readonly AstcBlockDecoder _decoder;
+
+        private readonly int _xDim;
+        private readonly int _yDim;
+        private readonly int _zDim;
+        private readonly BlockMode _blockMode;
 
         /// <inheritdoc cref="IColorEncoding.BitDepth"/>
         public int BitDepth { get; }
@@ -41,80 +49,121 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="IColorEncodingKnownDimensions.Height"/>
         public int Height { private get; set; } = -1;
 
-        public ASTC(AstcFormat format, int width, int height)
+        public ASTC(int xdim, int ydim) : this(xdim, ydim, 1)
         {
-            _format = format;
-            _width = width;
-            _height = height;
+        }
 
-            FormatName = format.ToString();
+        public ASTC(int xdim, int ydim, int zdim)
+        {
+            _xDim = xdim;
+            _yDim = ydim;
+            _zDim = zdim;
+            _decoder = new AstcBlockDecoder(xdim, ydim, zdim);
+
+            BitDepth = -1;
+            BlockBitDepth = BitsPerValue = 128;
+            ColorsPerValue = xdim * ydim * zdim;
+
+            FormatName = $"ASTC{xdim}x{ydim}" + (zdim > 1 ? $"x{zdim}" : "");
+            if (!Enum.TryParse(FormatName, out _blockMode))
+                throw new InvalidDataException($"Block mode {FormatName} is not supported.");
         }
 
         public IEnumerable<Color> Load(byte[] tex, int taskCount)
         {
-            // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(tex, (uint)_width, (uint)_height, 1, (PixelFormat)_format, ChannelType.UnsignedByte, ColorSpace.Linear);
+            // TODO: Use block compression base class
 
-            // Transcode texture to RGBA8888
-            var successful = pvrTexture.Transcode(Native.PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
-            if (!successful)
-                throw new InvalidOperationException("Transcoding with PVRTexLib was not successful.");
+            using (var br = new BinaryReaderX(new MemoryStream(tex)))
+            {
+                while (br.BaseStream.Position < br.BaseStream.Length)
+                    foreach (var color in _decoder.DecodeBlocks(br.ReadBytes(16)))
+                        yield return color;
+            }
 
-            // Yield colors
-            var textureData = pvrTexture.GetData();
-            for (var i = 0L; i < textureData.Length; i += 4)
-                yield return Color.FromArgb(textureData[i + 3], textureData[i], textureData[i + 1], textureData[i + 2]);
+            //if (Width <= 0 || Height <= 0)
+            //    throw new InvalidDataException("Height and Width has to be set for ASTC.");
+
+            //CreateTempASTCFile("tmp.astc", tex);
+
+            //var wrapper = new ASTCContext();
+            //wrapper.Decode("tmp.astc", "tmp.ktx", _blockMode);
+            //File.Delete("tmp.astc");
+
+            //var ktx = new KTXWrapper("tmp.ktx");
+            //var colors = ktx.GetImageColors().Reverse().ToList();
+            //ktx.Dispose();
+
+            ////File.Delete("tmp.ktx");
+
+            //return colors;
+        }
+
+        private void CreateTempASTCFile(string astcFile, byte[] texData)
+        {
+            var astc = File.Create(astcFile);
+
+            using (var bw = new BinaryWriter(astc, System.Text.Encoding.ASCII, true))
+            {
+                bw.Write(0x5CA1AB13);   // magic val
+                bw.Write((byte)_xDim);
+                bw.Write((byte)_yDim);
+                bw.Write((byte)_zDim);
+                bw.Write(Conversion.ToByteArray(Width, 3, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(Height, 3, ByteOrder.LittleEndian));
+                bw.Write(Conversion.ToByteArray(1, 3, ByteOrder.LittleEndian));
+                bw.Write(texData);
+            }
+
+            astc.Dispose();
+            astc.Close();
         }
 
         public byte[] Save(IEnumerable<Color> colors, int taskCount)
         {
-            var colorData = new byte[_width * _height * 4];
+            if (Width <= 0 || Height <= 0)
+                throw new InvalidDataException("Height and Width has to be set for ASTC.");
 
-            var index = 0;
-            foreach (var color in colors)
+            CreateTempPNG("tmp.png", colors);
+
+            var wrapper = new ASTCContext();
+            var result = wrapper.Encode("tmp.png", "tmp.astc", _blockMode);
+            if (result == ConvertImageResult.Error)
+                return null;
+
+            File.Delete("tmp.png");
+
+            byte[] encodedData;
+            using (var br = new BinaryReader(File.OpenRead("tmp.astc")))
             {
-                colorData[index++] = color.R;
-                colorData[index++] = color.G;
-                colorData[index++] = color.B;
-                colorData[index++] = color.A;
+                br.BaseStream.Position += 12;
+                encodedData = br.ReadBytes((int)(br.BaseStream.Length - br.BaseStream.Position));
             }
+            File.Delete("tmp.astc");
 
-            // Initialize PVR Texture
-            var pvrTexture = PvrTexture.Create(colorData, (uint)_width, (uint)_height, 1, PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear);
-
-            // Transcode texture to PVRTC
-            pvrTexture.Transcode((PixelFormat)_format, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
-
-            return pvrTexture.GetData();
+            return encodedData;
         }
-    }
 
-    public enum AstcFormat
-    {
-        ASTC_4x4 = 27,
-        ASTC_5x4,
-        ASTC_5x5,
-        ASTC_6x5,
-        ASTC_6x6,
-        ASTC_8x5,
-        ASTC_8x6,
-        ASTC_8x8,
-        ASTC_10x5,
-        ASTC_10x6,
-        ASTC_10x8,
-        ASTC_10x10,
-        ASTC_12x10,
-        ASTC_12x12,
+        private void CreateTempPNG(string pngFile, IEnumerable<Color> colors)
+        {
+            var bitmap = new Bitmap(Width, Height);
+            var data = bitmap.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+            unsafe
+            {
+                var pointer = (byte*)data.Scan0;
+                var index = 0;
+                foreach (var color in colors)
+                {
+                    if (index / 4 == Width * Height)
+                        break;
+                    pointer[index++] = color.B;
+                    pointer[index++] = color.G;
+                    pointer[index++] = color.R;
+                    pointer[index++] = color.A;
+                }
+            }
+            bitmap.UnlockBits(data);
 
-        ASTC_3x3x3,
-        ASTC_4x3x3,
-        ASTC_4x4x3,
-        ASTC_4x4x4,
-        ASTC_5x4x4,
-        ASTC_5x5x4,
-        ASTC_5x5x5,
-        ASTC_6x5x5,
-        ASTC_6x6x5,
-        ASTC_6x6x6,
+            bitmap.Save(pngFile);
+        }
     }
 }

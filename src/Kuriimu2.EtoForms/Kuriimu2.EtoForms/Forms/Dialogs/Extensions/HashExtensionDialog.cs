@@ -4,7 +4,6 @@ using System.Linq;
 using Eto.Forms;
 using Kryptography.Hash;
 using Kryptography.Hash.Crc;
-using Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
@@ -25,8 +24,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
 
             // Write hashes to text file
             var reportFile = File.CreateText(reportFilePath);
-            foreach (var (file, hash) in results)
-                reportFile.WriteLine($"{file}: {hash.Aggregate("", (a, b) => $"{a}{b:x2}")}");
+            foreach (var result in results)
+                reportFile.WriteLine($"{result.Item1}: {result.Item2.Aggregate("", (a, b) => $"{a}{b:x2}")}");
 
             reportFile.Close();
 
