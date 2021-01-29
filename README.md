@@ -8,8 +8,13 @@ You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 ## Download
 You can download the newest build of Kuriimu2 in the "Actions" tab. Just select the newest successful build and download its artifact.<br>
-You need to be logged in at github to download artifacts from a successful build.
+You need to be logged in at github to download artifacts from a successful build.<br>
 Those builds are considered beta and can contain bugs and unfinished features.
+
+There are several different GUI's you can choose from:
+1. WinForms: A graphical user interface in a more classic design. Can only be executed on Windows.
+2. EtoForms: A graphical user interface in a look native to the operating system. There are artifacts for Mac, Linux, and Windows.
+3. CommandLine: A command line interface of the main features of Kuriimu2. Can be executed on Mac, Linux, and Windows.
 
 ## Usage
 Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" contains a ready-to-run GUI for you to execute.
