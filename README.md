@@ -3,6 +3,7 @@ Kuriimu2 is a general purpose game translation project manager and toolkit for a
 
 ## Requirements
 You need to have the .Net Core Desktop Runtime 3.1.6 installed on your system.<br>
+If you are on Mac or Linux, you can just install the .Net Core Runtime 3.1.6.<br>
 We build against the .Net Core SDK version 3.1.302.<br>
 You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
