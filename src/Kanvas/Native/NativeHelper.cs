@@ -27,7 +27,7 @@ namespace Kanvas.Native
                 return NativeLibrary.Load(libraryName, assembly, searchPath);
 
             var platform = GetPlatformMonicker();
-            var architecture = GetArchitecture();
+            var architecture = platform == "osx" ? "64" : GetArchitecture();
             var extension = GetExtension();
 
             // Try get resource depending on the platform

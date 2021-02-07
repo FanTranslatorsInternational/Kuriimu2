@@ -163,8 +163,7 @@ namespace Kanvas.Encoding.BlockCompressions.BCn
                 rowPitch, colPitch);
 
             if (applyAlpha)
-                LoadAlphaMask(block, colors.Select(clr => clr.A / 255f).ToArray(),
-                    rowPitch, colPitch);
+                LoadAlphaMask(block, colors.Select(clr => clr.A / 255f).ToArray(), 0, 0.5F, rowPitch, colPitch);
 
             return block;
         }
