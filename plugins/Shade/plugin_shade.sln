@@ -1,0 +1,25 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_shade", "plugin_shade\plugin_shade.csproj", "{629FD794-B56A-491D-AE8E-927B46C87264}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{629FD794-B56A-491D-AE8E-927B46C87264}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{629FD794-B56A-491D-AE8E-927B46C87264}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{629FD794-B56A-491D-AE8E-927B46C87264}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{629FD794-B56A-491D-AE8E-927B46C87264}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8990F3C2-7BEC-40A4-A01F-D6D5F10C83FD}
+	EndGlobalSection
+EndGlobal
+
