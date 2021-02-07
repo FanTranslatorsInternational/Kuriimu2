@@ -227,58 +227,79 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #endregion
 
-            Content = new FixedSplitter((int)ToolStripItem.Height + 6)
+            #region Content
+
+            var archiveToolStrip = new ToolStrip
             {
-                Orientation = Orientation.Vertical,
-
-                Panel1 = new ToolStrip
+                BackgroundColor = KnownColors.White,
+                Items =
                 {
-                    BackgroundColor = KnownColors.White,
-                    Items =
-                    {
-                        saveButton,
-                        saveAsButton
-                    }
-                },
-                Panel2 = new FixedSplitter(300)
-                {
-                    Panel1 = new FixedSplitter(30)
-                    {
-                        Orientation = Orientation.Vertical,
+                    saveButton,
+                    saveAsButton
+                }
+            };
 
-                        Panel1 = new StackLayout
+            var mainContent = new TableLayout
+            {
+                Spacing=new Size(3,3),
+                Rows =
+                {
+                    // Searchbar and file toolstrip
+                    new TableRow
+                    {
+                        Cells =
                         {
-                            Orientation = Orientation.Horizontal,
-
-                            Padding=new Padding(3),
-                            Spacing=3,
-
-                            Items =
+                            // Searchbar
+                            new StackLayout
                             {
-                                searchTextBox,
-                                searchClearButton
-                            }
-                        },
-                        Panel2 = folderView
+                                Spacing=3,
+                                Orientation = Orientation.Horizontal,
+                                Items =
+                                {
+                                    searchTextBox,
+                                    searchClearButton
+                                }
+                            },
+
+                            // file toolstrip
+                            new ToolStrip
+                            {
+                                Size = new SizeF(-1, ToolStripItem.Height + 6),
+                                BackgroundColor = KnownColors.White,
+                                Items =
+                                {
+                                    extractButton,
+                                    replaceButton,
+                                    renameButton,
+                                    deleteButton
+                                }
+                            },
+                        }
                     },
-                    Panel2 = new FixedSplitter((int)ToolStripItem.Height + 6)
-                    {
-                        Orientation = Orientation.Vertical,
 
-                        Panel1 = new ToolStrip {
-                            BackgroundColor = KnownColors.White,
-                            Items =
-                            {
-                                extractButton,
-                                replaceButton,
-                                renameButton,
-                                deleteButton
-                            }
-                        },
-                        Panel2 = fileView
+                    // Folder and file view
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            folderView,
+                            fileView
+                        }
                     }
                 }
             };
+
+            Content = new TableLayout
+            {
+                Spacing = new Size(3, 3),
+                Rows =
+                {
+                    new TableRow(new Panel { Content = archiveToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow { Cells = { new TableCell(mainContent) { ScaleWidth = true } }, ScaleHeight = true }
+                }
+            };
+
+            #endregion
         }
     }
 }

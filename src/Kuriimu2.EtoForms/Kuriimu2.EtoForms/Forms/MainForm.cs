@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +20,6 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Extensions;
-using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kore.Models.Update;
 using Kore.Progress;
@@ -358,19 +356,20 @@ namespace Kuriimu2.EtoForms.Forms
             foreach (var filter in GetFileFilters(_pluginManager.GetFilePluginLoaders()))
                 ofd.Filters.Add(filter);
 
-            return ofd.ShowDialog(this) == DialogResult.Ok ?
-                ofd.FileName :
-                null;
+            return ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : null;
         }
 
         private IList<FileFilter> GetFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
         {
-            var filters = new List<FileFilter>();
+            var filters = new List<FileFilter>
+            {
+                new FileFilter("All Files", ".*")
+            };
 
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins).Where(x => x.FileExtensions != null))
             {
                 var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
-                filters.Add(new FileFilter(pluginName, plugin.FileExtensions));
+                filters.Add(new FileFilter(pluginName, plugin.FileExtensions.Select(x => x.Replace("*", "")).ToArray()));
             }
 
             return filters;

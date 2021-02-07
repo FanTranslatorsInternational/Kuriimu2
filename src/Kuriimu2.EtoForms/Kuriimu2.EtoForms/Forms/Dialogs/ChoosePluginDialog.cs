@@ -27,8 +27,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private void AddPlugins()
         {
-            MessageBox.Show(_filePlugins.Aggregate("", (a, b) => a + Environment.NewLine + b.Metadata?.Name), MessageBoxButtons.OK);
-
             foreach (var groupedPlugins in _filePlugins.GroupBy(x => x.GetType().Assembly))
             {
                 var pluginStore = new ObservableCollection<object>();
