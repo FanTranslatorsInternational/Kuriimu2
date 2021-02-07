@@ -7,6 +7,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.Progress;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Configuration;
+using Kontract.Kanvas.Model;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Configuration
@@ -100,11 +101,9 @@ namespace Kanvas.Configuration
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
             var finalSize = paddedSize.IsEmpty ? imageSize : paddedSize;
 
-            var colorEncoding = _colorEncoding(imageSize);
+            var colorEncoding = _colorEncoding();
 
             // Load colors
-            // TODO: Size is currently only used for block compression with native libs,
-            // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
             var valueCount = data.Length * 8 / colorEncoding.BitsPerValue;
             var valueCountBySize = finalSize.Width * finalSize.Height / colorEncoding.ColorsPerValue;
 
@@ -116,7 +115,7 @@ namespace Kanvas.Configuration
 
             var setMaxProgress = progress?.SetMaxValue(valueCountBySize * colorEncoding.ColorsPerValue);
             var colors = colorEncoding
-                .Load(data, _taskCount)
+                .Load(data, new EncodingLoadContext(imageSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
             // Create image with unpadded dimensions
@@ -132,24 +131,21 @@ namespace Kanvas.Configuration
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
 
             var paletteEncoding = _paletteEncoding();
-            var indexEncoding = _indexEncoding(imageSize);
+            var indexEncoding = _indexEncoding();
 
             // Load palette
             var valueCount = data.Length * 8 / paletteEncoding.BitsPerValue;
             var setMaxProgress = progresses?[0]?.SetMaxValue(valueCount * paletteEncoding.ColorsPerValue);
             var palette = paletteEncoding
-                .Load(paletteData, _taskCount)
+                .Load(paletteData, new EncodingLoadContext(imageSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode palette colors")
                 .ToList();
 
             // Load indices
-            // TODO: Size is currently only used for block compression with native libs,
-            // TODO: Those libs should retrieve the actual size of the image, not the padded dimensions
-            // Yes, this even applies for index encodings, just in case
             valueCount = data.Length * 8 / indexEncoding.BitsPerValue;
             setMaxProgress = progresses?[1]?.SetMaxValue(valueCount * indexEncoding.ColorsPerValue);
             var colors = indexEncoding
-                .Load(data, palette, _taskCount)
+                .Load(data, palette, new EncodingLoadContext(imageSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
             return colors.ToBitmap(imageSize, _swizzle?.Invoke(paddedSize.IsEmpty ? imageSize : paddedSize));
@@ -191,7 +187,7 @@ namespace Kanvas.Configuration
             }
 
             // Save color data
-            return _colorEncoding(image.Size).Save(colors, _taskCount);
+            return _colorEncoding().Save(colors, new EncodingSaveContext(image.Size, _taskCount));
         }
 
         private (byte[] indexData, byte[] paletteData) EncodeIndexInternal(Bitmap image, IProgressContext progress = null)
@@ -203,11 +199,11 @@ namespace Kanvas.Configuration
             // Save palette indexColors
             // This step can be skipped if no palette encoding is given.
             //   That saves time in the scenario when the palette is not needed or already exists as encoded data from somewhere else.
-            var paletteData = _paletteEncoding?.Invoke().Save(palette, _taskCount);
+            var paletteData = _paletteEncoding?.Invoke().Save(palette, new EncodingSaveContext(_taskCount));
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;
-            var indexData = _indexEncoding(size).Save(indices, palette, _taskCount);
+            var indexData = _indexEncoding().Save(indices, palette, new EncodingSaveContext(size, _taskCount));
 
             return (indexData, paletteData);
         }

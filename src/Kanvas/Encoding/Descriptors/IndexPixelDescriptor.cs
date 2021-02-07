@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -7,9 +8,9 @@ using Komponent.Utilities;
 using Kontract;
 using Kontract.Kanvas;
 
-namespace Kanvas.Encoding.Models
+namespace Kanvas.Encoding.Descriptors
 {
-    class LaPixelDescriptor : IPixelDescriptor
+    class IndexPixelDescriptor : IPixelIndexDescriptor
     {
         private int[] _indexTable;
         private int[] _componentIndexTable;
@@ -17,23 +18,26 @@ namespace Kanvas.Encoding.Models
         private int[] _shiftTable;
         private int[] _maskTable;
 
-        public LaPixelDescriptor(string componentOrder, int l, int a)
+        private Func<long, int>[] _readActions;
+        private Func<long, int, long>[] _writeActions;
+
+        public IndexPixelDescriptor(string componentOrder, int i, int a)
         {
             AssertValidOrder(componentOrder.ToLower());
-            AssertBitDepth(l + a);
+            AssertBitDepth(i + a);
 
-            SetupLookupTables(componentOrder, l, a);
+            SetupLookupTables(componentOrder, i, a);
         }
 
         public string GetPixelName()
         {
             var componentBuilder = new StringBuilder();
             var depthBuilder = new StringBuilder();
-            var componentLetters = new[] { "L", "A" };
+            var componentLetters = new[] { "I", "A" };
 
             void AppendComponent(int level)
             {
-                if (_depthTable[level] == 0) 
+                if (_depthTable[level] == 0)
                     return;
 
                 componentBuilder.Append(componentLetters[_indexTable[level]]);
@@ -51,34 +55,31 @@ namespace Kanvas.Encoding.Models
             return _depthTable[0] + _depthTable[1];
         }
 
-        public Color GetColor(long value)
+        public Color GetColor(long value, IList<Color> palette)
         {
             var colorBuffer = new int[2];
 
-            colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
-            colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
+            colorBuffer[_indexTable[0]] = _readActions[0](value);
+            colorBuffer[_indexTable[1]] = _readActions[1](value);
 
-            // If luminance depth 0 then make color white
-            if (_depthTable[_componentIndexTable[0]] == 0)
-                colorBuffer[_indexTable[_componentIndexTable[0]]] = 255;
-
-            // If alpha depth 0 then make color opaque
+            // If alpha depth 0 then return color from palette
             if (_depthTable[_componentIndexTable[1]] == 0)
-                colorBuffer[_indexTable[_componentIndexTable[1]]] = 255;
+                return palette[colorBuffer[0]];
 
-            return Color.FromArgb(colorBuffer[1], colorBuffer[0], colorBuffer[0], colorBuffer[0]);
+            var paletteColor = palette[colorBuffer[0]];
+            return Color.FromArgb(colorBuffer[1], paletteColor.R, paletteColor.G, paletteColor.B);
         }
 
-        public long GetValue(Color color)
+        public long GetValue(int index, IList<Color> palette)
         {
             var result = 0L;
-            var colorBuffer = new[] { (int)(color.GetBrightness() * 255), color.A };
+            var colorBuffer = new[] { index, palette[index].A };
 
-            var index = _componentIndexTable[0];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            var componentIndex = _componentIndexTable[0];
+            result = _writeActions[componentIndex](result, colorBuffer[_indexTable[componentIndex]]);
 
-            index = _componentIndexTable[1];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            componentIndex = _componentIndexTable[1];
+            result = _writeActions[componentIndex](result, colorBuffer[_indexTable[componentIndex]]);
 
             return result;
         }
@@ -88,7 +89,7 @@ namespace Kanvas.Encoding.Models
             ContractAssertions.IsNotNull(componentOrder, nameof(componentOrder));
             ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 2);
 
-            if (!Regex.IsMatch(componentOrder, "^[la]{1,2}$"))
+            if (!Regex.IsMatch(componentOrder, "^[ia]{1,2}$"))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
@@ -97,7 +98,7 @@ namespace Kanvas.Encoding.Models
 
         private void AssertBitDepth(int bitDepth)
         {
-            ContractAssertions.IsInRange(bitDepth, "bitDepth", 1, 32);
+            ContractAssertions.IsInRange(bitDepth, nameof(bitDepth), 1, 16);
 
             if (!IsPowerOf2(bitDepth))
                 throw new InvalidOperationException("Bit depth has to be a power of 2.");
@@ -108,7 +109,7 @@ namespace Kanvas.Encoding.Models
             return value != 0 && (value & (value - 1)) == 0;
         }
 
-        private void SetupLookupTables(string componentOrder, int l, int a)
+        private void SetupLookupTables(string componentOrder, int i, int a)
         {
             void SetTableValues(int tableIndex, int colorBufferIndex, int depth, ref int shiftValue)
             {
@@ -127,7 +128,7 @@ namespace Kanvas.Encoding.Models
             // Depth lookup table holds depth of components in order of reading
             _depthTable = new int[2];
 
-            // Depth index table holds index into depth table in order LA
+            // Depth index table holds index into depth table in order IA
             _componentIndexTable = new int[2];
 
             // Shift lookup table holds the shift Values for each depth in order of reading
@@ -136,29 +137,43 @@ namespace Kanvas.Encoding.Models
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
             _maskTable = new int[2];
 
+            // Table for the read/write action per index lookup
+            _readActions = new Func<long, int>[2];
+            _writeActions = new Func<long, int, long>[2];
+
+            bool iSet = false, aSet = false;
             var shift = 0;
             var length = componentOrder.Length;
-            bool lSet = false, aSet = false;
-
-            for (var i = length - 1; i >= 0; i--)
+            for (var j = length - 1; j >= 0; j--)
             {
-                switch (componentOrder[i])
+                var tableIndex = length - j - 1;
+                switch (componentOrder[j])
                 {
-                    case 'l':
-                    case 'L':
-                        SetTableValues(length - i - 1, 0, l, ref shift);
-                        lSet = true;
+                    case 'i':
+                    case 'I':
+                        _readActions[tableIndex] = value =>
+                            ReadIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
+                        _writeActions[tableIndex] = (result, value) =>
+                            WriteIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
+
+                        SetTableValues(tableIndex, 0, i, ref shift);
+                        iSet = true;
                         break;
 
                     case 'a':
                     case 'A':
-                        SetTableValues(length - i - 1, 1, a, ref shift);
+                        _readActions[tableIndex] = value =>
+                            ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+                        _writeActions[tableIndex] = (result, value) =>
+                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex], ref result);
+
+                        SetTableValues(tableIndex, 1, a, ref shift);
                         aSet = true;
                         break;
                 }
             }
 
-            if (!lSet) SetTableValues(length++, 0, 0, ref shift);
+            if (!iSet) SetTableValues(length++, 0, 0, ref shift);
             if (!aSet) SetTableValues(length, 1, 0, ref shift);
         }
 
@@ -167,9 +182,19 @@ namespace Kanvas.Encoding.Models
             return Conversion.ChangeBitDepth((int)((value >> shift) & mask), depth, 8);
         }
 
-        private void WriteComponent(int value, int shift, int mask, int depth, ref long result)
+        private int ReadIndexComponent(long value, int shift, int mask)
         {
-            result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+            return (int)((value >> shift) & mask);
+        }
+
+        private long WriteComponent(int value, int shift, int mask, int depth, ref long result)
+        {
+            return result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+        }
+
+        private long WriteIndexComponent(int value, int shift, int mask, ref long result)
+        {
+            return result |= (long)(value & mask) << shift;
         }
     }
 }

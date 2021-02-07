@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.Base
@@ -18,12 +19,16 @@ namespace Kanvas.Encoding.Base
         private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
 
+        /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
 
+        /// <inheritdoc cref="BitsPerValue"/>
         public int BitsPerValue { get; private set; }
 
+        /// <inheritdoc cref="ColorsPerValue"/>
         public int ColorsPerValue { get; }
 
+        /// <inheritdoc cref="FormatName"/>
         public string FormatName { get; }
 
         public int MaxColors { get; protected set; }
@@ -41,22 +46,24 @@ namespace Kanvas.Encoding.Base
             SetValueDelegates(BitDepth);
         }
 
-        public IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount)
+        /// <inheritdoc cref="Load"/>
+        public IEnumerable<Color> Load(byte[] input, IList<Color> palette, EncodingLoadContext loadContext)
         {
             var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, _bitOrder, 1);
 
             return ReadValues(br).AsParallel().AsOrdered()
-                .WithDegreeOfParallelism(taskCount)
+                .WithDegreeOfParallelism(loadContext.TaskCount)
                 .Select(c => _descriptor.GetColor(c, palette));
         }
 
-        public byte[] Save(IEnumerable<int> indices, IList<Color> palette, int taskCount)
+        /// <inheritdoc cref="Save"/>
+        public byte[] Save(IEnumerable<int> indices, IList<Color> palette, EncodingSaveContext saveContext)
         {
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder, _bitOrder, 1);
 
             var values = indices.AsParallel().AsOrdered()
-                .WithDegreeOfParallelism(taskCount)
+                .WithDegreeOfParallelism(saveContext.TaskCount)
                 .Select(i => _descriptor.GetValue(i, palette));
 
             foreach (var value in values)

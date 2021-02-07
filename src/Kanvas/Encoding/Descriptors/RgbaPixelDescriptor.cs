@@ -7,7 +7,7 @@ using Komponent.Utilities;
 using Kontract;
 using Kontract.Kanvas;
 
-namespace Kanvas.Encoding.Models
+namespace Kanvas.Encoding.Descriptors
 {
     class RgbaPixelDescriptor : IPixelDescriptor
     {

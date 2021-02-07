@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using Kontract.Kanvas.Model;
 
 namespace Kontract.Kanvas
 {
@@ -17,14 +18,18 @@ namespace Kontract.Kanvas
         /// Decodes image data to a list of colors.
         /// </summary>
         /// <param name="input">Image data to decode.</param>
+        /// <param name="palette">The palette for the input.</param>
+        /// <param name="loadContext">The context for the load operation.</param>
         /// <returns>Decoded list of colors.</returns>
-        IEnumerable<Color> Load(byte[] input, IList<Color> palette, int taskCount);
+        IEnumerable<Color> Load(byte[] input, IList<Color> palette, EncodingLoadContext loadContext);
 
         /// <summary>
         /// Encodes a list of colors.
         /// </summary>
-        /// <param name="colors">List of colors to encode.</param>
+        /// <param name="indices">List of colors to encode.</param>
+        /// <param name="palette">The palette for the input.</param>
+        /// <param name="saveContext">The context for the save operation.</param>
         /// <returns>Encoded data and palette.</returns>
-        byte[] Save(IEnumerable<int> indeces, IList<Color> palette, int taskCount);
+        byte[] Save(IEnumerable<int> indices, IList<Color> palette, EncodingSaveContext saveContext);
     }
 }

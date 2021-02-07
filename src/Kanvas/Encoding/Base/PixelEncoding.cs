@@ -6,6 +6,7 @@ using System.Linq;
 using Komponent.IO;
 using Kontract;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 using Kontract.Models.IO;
 
 namespace Kanvas.Encoding.Base
@@ -19,12 +20,16 @@ namespace Kanvas.Encoding.Base
         private Func<BinaryReaderX, IList<long>> _readValuesDelegate;
         private Action<BinaryWriterX, long> _writeValueDelegate;
 
+        /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
 
+        /// <inheritdoc cref="BitsPerValue"/>
         public int BitsPerValue { get; private set; }
 
+        /// <inheritdoc cref="ColorsPerValue"/>
         public int ColorsPerValue { get; }
 
+        /// <inheritdoc cref="FormatName"/>
         public string FormatName { get; }
 
         protected PixelEncoding(IPixelDescriptor pixelDescriptor, ByteOrder byteOrder, BitOrder bitOrder)
@@ -42,22 +47,24 @@ namespace Kanvas.Encoding.Base
             SetValueDelegates(BitDepth);
         }
 
-        public IEnumerable<Color> Load(byte[] input, int taskCount)
+        /// <inheritdoc cref="Load"/>
+        public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
             var br = new BinaryReaderX(new MemoryStream(input), _byteOrder, _bitOrder, 1);
 
             return ReadValues(br).AsParallel().AsOrdered()
-                .WithDegreeOfParallelism(taskCount)
+                .WithDegreeOfParallelism(loadContext.TaskCount)
                 .Select(_descriptor.GetColor);
         }
 
-        public byte[] Save(IEnumerable<Color> colors, int taskCount)
+        /// <inheritdoc cref="Load"/>
+        public byte[] Save(IEnumerable<Color> colors, EncodingSaveContext saveContext)
         {
             var ms = new MemoryStream();
             using var bw = new BinaryWriterX(ms, _byteOrder, _bitOrder, 1);
 
             var values = colors.AsParallel().AsOrdered()
-                .WithDegreeOfParallelism(taskCount)
+                .WithDegreeOfParallelism(saveContext.TaskCount)
                 .Select(_descriptor.GetValue);
 
             foreach (var value in values)
@@ -75,7 +82,7 @@ namespace Kanvas.Encoding.Base
 
         private void SetValueDelegates(int bitDepth)
         {
-            var bytesToRead = (bitDepth + 7) / 8;
+            var bytesToRead = (bitDepth + 7) >> 3;
 
             if (bitDepth == 4)
             {

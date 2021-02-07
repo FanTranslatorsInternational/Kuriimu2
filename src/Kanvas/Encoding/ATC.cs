@@ -1,73 +1,57 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using Kanvas.Encoding.Base;
-using Kanvas.Encoding.BlockCompressions.ATC;
-using Kanvas.Encoding.BlockCompressions.ATC.Models;
-using Kanvas.Encoding.BlockCompressions.BCn.Models;
-using Komponent.IO;
-using Kontract.Models.IO;
+using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    /// <summary>
-    /// Defines the Atc encoding.
-    /// </summary>
-    public class Atc : BlockCompressionEncoding<AtcBlockData>
+    // TODO: Implement ATC with BCnEncoder nuget package.
+    public class Atc : IColorEncoding
     {
-        private readonly AtcTranscoder _transcoder;
-        private readonly bool _hasSecondBlock;
+        /// <inheritdoc cref="BitDepth"/>
+        public int BitDepth { get; }
 
-        public override int BitDepth { get; }
+        /// <inheritdoc cref="BitsPerValue"/>
+        public int BitsPerValue { get; }
 
-        public override int BitsPerValue { get; protected set; }
+        /// <inheritdoc cref="ColorsPerValue"/>
+        public int ColorsPerValue => 16;
 
-        public override int ColorsPerValue => 16;
+        /// <inheritdoc cref="FormatName"/>
+        public string FormatName { get; }
 
-        public override string FormatName { get; }
-
-        public Atc(AtcFormat format, ByteOrder byteOrder) : base(byteOrder)
+        public Atc(AtcFormat format)
         {
-            _transcoder = new AtcTranscoder(format);
-            _hasSecondBlock = HasSecondBlock(format);
+            var hasSecondBlock = HasSecondBlock(format);
 
-            BitDepth = BitsPerValue = _hasSecondBlock ? 128 : 64;
+            BitDepth = BitsPerValue = hasSecondBlock ? 128 : 64;
 
-            FormatName = format.ToString();
+            FormatName = format.ToString().Replace("_", " ");
         }
 
-        protected override AtcBlockData ReadNextBlock(BinaryReaderX br)
+        /// <inheritdoc cref="Load"/>
+        public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
-            var block1 = br.ReadUInt64();
-            var block2 = _hasSecondBlock ? br.ReadUInt64() : ulong.MaxValue;
-
-            return new AtcBlockData
-            {
-                Block1 = block1,
-                Block2 = block2
-            };
+            throw new System.NotImplementedException();
         }
 
-        protected override void WriteNextBlock(BinaryWriterX bw, AtcBlockData block)
+        /// <inheritdoc cref="Save"/>
+        public byte[] Save(IEnumerable<Color> colors, EncodingSaveContext saveContext)
         {
-            bw.Write(block.Block1);
-            if (_hasSecondBlock) bw.Write(block.Block2);
-        }
-
-        protected override IList<Color> DecodeNextBlock(AtcBlockData block)
-        {
-            return _transcoder.DecodeBlocks(block).ToList();
-        }
-
-        protected override AtcBlockData EncodeNextBlock(IList<Color> colors)
-        {
-            return _transcoder.EncodeColors(colors);
+            throw new System.NotImplementedException();
         }
 
         private bool HasSecondBlock(AtcFormat format)
         {
-            return format == AtcFormat.ATCA_Exp ||
-                   format == AtcFormat.ATCA_Int;
+            return format == AtcFormat.Atc_Explicit ||
+                   format == AtcFormat.Atc_Interpolated;
         }
+    }
+
+    public enum AtcFormat
+    {
+        Atc,
+        Atc_Explicit,
+        Atc_Interpolated
     }
 }
