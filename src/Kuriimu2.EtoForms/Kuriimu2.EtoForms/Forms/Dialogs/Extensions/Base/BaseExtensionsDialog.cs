@@ -4,14 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using Eto.Forms;
-using Kontract.Interfaces.Logging;
-using Kontract.Models.Logging;
 using Kore.Batch;
-using Kore.Logging;
 using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Logging;
 using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
+using Serilog;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 {
@@ -25,7 +23,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         private bool _isDirectory;
 
-        protected IConcurrentLogger Logger { get; }
+        protected ILogger Logger { get; }
 
         protected abstract string TypeExtensionName { get; }
 
@@ -33,7 +31,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         {
             InitializeComponent();
 
-            Logger = new ConcurrentLogger(ApplicationLevel.Ui, new RichTextAreaLogOutput(log));
+            Logger = new LoggerConfiguration().WriteTo.Sink(new RichTextAreaSink(log)).CreateLogger();
             _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, Logger);
             _parameterBuilder = new ParameterBuilder(parameterBox);
 
@@ -137,13 +135,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         private void Execute()
         {
             log.Text = string.Empty;
-            Logger.StartLogging();
 
             if (!VerifyInput())
-            {
-                Logger.StopLogging();
                 return;
-            }
 
             var selectedType = (ExtensionType)extensions.SelectedValue;
 
@@ -159,19 +153,19 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         {
             if (extensions.SelectedIndex < 0)
             {
-                Logger.QueueMessage(LogLevel.Error, $"Select a {TypeExtensionName}.");
+                Logger.Error("Select a {0}.", TypeExtensionName);
                 return false;
             }
 
             if (string.IsNullOrEmpty(selectedPath.Text))
             {
-                Logger.QueueMessage(LogLevel.Error, "Select a file or directory to process.");
+                Logger.Error("Select a file or directory to process.");
                 return false;
             }
 
             if (!subDirectoryBox.Checked.HasValue)
             {
-                Logger.QueueMessage(LogLevel.Error, "Checkbox for sub directories has no state.");
+                Logger.Error("Checkbox for sub directories has no state.");
                 return false;
             }
 
@@ -189,8 +183,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             FinalizeProcess(results, isDirectory ? path : Path.GetDirectoryName(path));
 
             ToggleUi(true);
-
-            Logger.StopLogging();
         }
 
         private void ToggleUi(bool toggle)

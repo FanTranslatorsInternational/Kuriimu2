@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Eto.Forms;
 using Kontract;
-using Kontract.Interfaces.Logging;
-using Kontract.Models.Logging;
 using Kore.Batch;
 using Kore.Extensions;
 using Kore.Factories;
-using Kore.Logging;
 using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Logging;
 using Kuriimu2.EtoForms.Resources;
+using Serilog;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 {
@@ -30,7 +27,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         protected abstract string DestinationEmptyText { get; }
 
-        protected IConcurrentLogger Logger { get; }
+        protected ILogger Logger { get; }
 
         public BaseBatchDialog(IInternalPluginManager pluginManager)
         {
@@ -38,7 +35,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
             InitializeComponent();
 
-            Logger = new ConcurrentLogger(ApplicationLevel.Ui, new RichTextAreaLogOutput(log));
+            Logger = new LoggerConfiguration().WriteTo.Sink(new RichTextAreaSink(log)).CreateLogger();
             _batchProcessor = InitializeBatchProcessor(pluginManager, Logger);
 
             _avgTimer = new System.Timers.Timer(300);
@@ -64,7 +61,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         #region Initialization
 
-        protected abstract BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, IConcurrentLogger logger);
+        protected abstract BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, ILogger logger);
 
         private IList<PluginElement> LoadPlugins(IInternalPluginManager pluginManager)
         {
@@ -138,13 +135,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         private async Task Execute()
         {
             log.Text = string.Empty;
-            Logger.StartLogging();
 
             if (!VerifyInput())
-            {
-                Logger.StopLogging();
                 return;
-            }
 
             ToggleUi(false);
 
@@ -165,19 +158,19 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         {
             if (plugins.SelectedIndex < 0)
             {
-                Logger.QueueMessage(LogLevel.Error, "Select a plugin entry.");
+                Logger.Error("Select a plugin entry.");
                 return false;
             }
 
             if (string.IsNullOrEmpty(selectedInputPath.Text))
             {
-                Logger.QueueMessage(LogLevel.Error, SourceEmptyText);
+                Logger.Error(SourceEmptyText);
                 return false;
             }
 
             if (string.IsNullOrEmpty(selectedOutputPath.Text))
             {
-                Logger.QueueMessage(LogLevel.Error, DestinationEmptyText);
+                Logger.Error(DestinationEmptyText);
                 return false;
             }
 

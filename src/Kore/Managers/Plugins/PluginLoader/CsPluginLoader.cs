@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
 using Kontract.Models.Context;
@@ -15,7 +14,7 @@ namespace Kore.Managers.Plugins.PluginLoader
         protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors)
         {
             // 1. Get all assembly file paths from the designated plugin directories
-            var assemblyFilePaths = pluginPaths.Select(p => GetPluginBaseDirectory() + "/" + p)
+            var assemblyFilePaths = pluginPaths.Select(p => p)
                 .Where(Directory.Exists)
                 .SelectMany(p => Directory.GetFiles(p, "*.dll"))
                 .Select(Path.GetFullPath);
@@ -40,20 +39,6 @@ namespace Kore.Managers.Plugins.PluginLoader
 
             errors = loadErrors.Concat(createErrors).ToArray();
             return !errors.Any();
-        }
-
-        private string GetPluginBaseDirectory()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return ".";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "~/Applications/Kuriimu2";
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return "~/Kuriimu2";
-
-            throw new InvalidOperationException($"Unsupported operating system: {RuntimeInformation.OSDescription}.");
         }
 
         private IList<Type> GetPublicTypes<TPlugin>(IEnumerable<Assembly> assemblies, out IList<PluginLoadError> errors)

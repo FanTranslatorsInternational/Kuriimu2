@@ -2,17 +2,16 @@
 using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Logging;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.IO;
-using Kontract.Models.Logging;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kore.Batch
 {
     public class BatchInjector : BaseBatchProcessor
     {
-        public BatchInjector(IInternalPluginManager pluginManager, IConcurrentLogger logger) :
+        public BatchInjector(IInternalPluginManager pluginManager, ILogger logger) : 
             base(pluginManager, logger)
         {
         }
@@ -38,7 +37,7 @@ namespace Kore.Batch
                     break;
 
                 default:
-                    Logger.QueueMessage(LogLevel.Error, $"'{filePath}' is not supported.");
+                    Logger.Error("'{0}' is not supported.", filePath.FullName);
                     return;
             }
 

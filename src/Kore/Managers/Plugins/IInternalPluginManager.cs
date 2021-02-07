@@ -78,14 +78,6 @@ namespace Kore.Managers.Plugins
         /// Loads a physical path into the Kuriimu runtime.
         /// </summary>
         /// <param name="file">The path to the path to load.</param>
-        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext);
-
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="file">The path to the path to load.</param>
         /// <param name="pluginId">the plugin with which to load the file.</param>
         /// <returns>The loaded state of the path.</returns>
         Task<LoadResult> LoadFile(string file, Guid pluginId);
@@ -94,10 +86,9 @@ namespace Kore.Managers.Plugins
         /// Loads a physical path into the Kuriimu runtime.
         /// </summary>
         /// <param name="file">The path to the path to load.</param>
-        /// <param name="pluginId">the plugin with which to load the file.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(string file, Guid pluginId, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext);
 
         #endregion
 
@@ -117,16 +108,6 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <param name="parentStateInfo">The state from which the file system originates.</param>
-        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
-
-        /// <summary>
-        /// Loads a file from a given file system.
-        /// </summary>
-        /// <param name="fileSystem">The file system to load the file from.</param>
-        /// <param name="path">The file to load from the file system.</param>
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
         /// <param name="parentStateInfo">The state from which the file system originates.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
@@ -137,11 +118,10 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <param name="pluginId">The Id of the plugin to load the file with.</param>
         /// <param name="parentStateInfo">The state from which the file system originates.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
 
         #endregion
 
@@ -160,15 +140,6 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="stream">The stream to load.</param>
         /// <param name="streamName">The name of the stream.</param>
-        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext);
-
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="stream">The stream to load.</param>
-        /// <param name="streamName">The name of the stream.</param>
         /// <param name="pluginId">the plugin with which to load the file.</param>
         /// <returns>The loaded state of the path.</returns>
         Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId);
@@ -178,10 +149,9 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="stream">The stream to load.</param>
         /// <param name="streamName">The name of the stream.</param>
-        /// <param name="pluginId">the plugin with which to load the file.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext);
 
         #endregion
 

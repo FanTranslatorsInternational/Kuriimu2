@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -8,12 +6,11 @@ using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.FileSystem.EventArgs;
-using Kontract.Interfaces.Logging;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.IO;
-using Kontract.Models.Logging;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kore.Batch
 {
@@ -22,14 +19,14 @@ namespace Kore.Batch
         private readonly object _lock = new object();
         private readonly IList<UPath> _openedFiles = new List<UPath>();
 
-        public BatchExtractor(IInternalPluginManager pluginManager, IConcurrentLogger logger) :
+        public BatchExtractor(IInternalPluginManager pluginManager, ILogger logger) :
             base(pluginManager, logger)
         {
         }
 
         protected override async Task ProcessInternal(IFileSystem sourceFileSystem, UPath filePath, IFileSystem destinationFileSystem)
         {
-            Logger.QueueMessage(LogLevel.Information, $"Extract '{filePath}'.");
+            Logger.Information("Extract '{0}'.", filePath.FullName);
 
             IStateInfo loadedState;
             lock (_lock)
@@ -50,7 +47,7 @@ namespace Kore.Batch
                 {
                     PluginManager.Close(loadedState);
 
-                    Logger.QueueMessage(LogLevel.Information, $"'{filePath}' is/was already processed.");
+                    Logger.Information("'{0}' is/was already processed.", filePath.FullName);
                     return;
                 }
 
@@ -70,14 +67,14 @@ namespace Kore.Batch
                     break;
 
                 default:
-                    Logger.QueueMessage(LogLevel.Error, $"'{filePath}' is not supported.");
+                    Logger.Error("'{0}' is not supported.", filePath.FullName);
                     PluginManager.Close(loadedState);
                     return;
             }
 
             PluginManager.Close(loadedState);
 
-            Logger.QueueMessage(LogLevel.Information, $"Extracted '{filePath}'.");
+            Logger.Information("Extracted '{0}'.", filePath.FullName);
         }
 
         private void SourceFileSystemWatcher_Opened(object sender, FileOpenedEventArgs e)

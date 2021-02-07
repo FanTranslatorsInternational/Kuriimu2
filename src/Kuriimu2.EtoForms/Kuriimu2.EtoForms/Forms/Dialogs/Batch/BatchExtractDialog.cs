@@ -1,6 +1,6 @@
-﻿using Kontract.Interfaces.Logging;
-using Kore.Batch;
+﻿using Kore.Batch;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 {
@@ -13,7 +13,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         {
         }
 
-        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, IConcurrentLogger logger)
+        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, ILogger logger)
         {
             return new BatchExtractor(pluginManager, logger);
         }

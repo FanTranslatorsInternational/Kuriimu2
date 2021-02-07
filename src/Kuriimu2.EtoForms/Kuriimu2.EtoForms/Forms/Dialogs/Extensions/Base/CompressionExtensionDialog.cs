@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations;
 using Kontract.Kompression;
-using Kontract.Models.Logging;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
@@ -28,8 +27,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             }
             catch (Exception e)
             {
-                Logger.QueueMessage(LogLevel.Error, e.Message);
-
+                Logger.Fatal(e,"Processing compression failed.");
                 return false;
             }
             finally
@@ -45,10 +43,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         {
             foreach (var result in results)
                 if (!result.Item2)
-                    Logger.QueueMessage(LogLevel.Error, $"Not processed successfully: {result.Item1}");
+                    Logger.Error("Not processed successfully: {0}", result.Item1);
 
             // Report finish
-            Logger.QueueMessage(LogLevel.Information, "Done!");
+            Logger.Information("Done!");
         }
 
         protected override IList<ExtensionType> LoadExtensionTypes()

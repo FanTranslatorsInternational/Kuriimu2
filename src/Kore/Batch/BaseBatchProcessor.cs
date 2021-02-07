@@ -7,12 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Logging;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
 using Kontract.Models.IO;
-using Kontract.Models.Logging;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kore.Batch
 {
@@ -23,7 +22,7 @@ namespace Kore.Batch
         private CancellationTokenSource _processTokenSource;
 
         protected IInternalPluginManager PluginManager { get; }
-        protected IConcurrentLogger Logger { get; }
+        protected ILogger Logger { get; }
         protected IFileSystemWatcher SourceFileSystemWatcher { get; private set; }
 
         public bool ScanSubDirectories { get; set; }
@@ -32,7 +31,7 @@ namespace Kore.Batch
 
         public TimeSpan AverageFileTime { get; private set; }
 
-        public BaseBatchProcessor(IInternalPluginManager pluginManager, IConcurrentLogger logger)
+        public BaseBatchProcessor(IInternalPluginManager pluginManager, ILogger logger)
         {
             ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
             ContractAssertions.IsNotNull(logger, nameof(logger));
@@ -50,19 +49,12 @@ namespace Kore.Batch
 
             var files = EnumerateFiles(sourceFileSystem).ToArray();
 
-            var isRunning = Logger.IsRunning();
-            if (!isRunning)
-                Logger.StartLogging();
-
             var isManualSelection = PluginManager.AllowManualSelection;
             PluginManager.AllowManualSelection = false;
 
             await ProcessMeasurement(files, sourceFileSystem, destinationFileSystem);
 
             PluginManager.AllowManualSelection = isManualSelection;
-
-            if (!isRunning)
-                Logger.StopLogging();
 
             SourceFileSystemWatcher.Dispose();
         }
@@ -95,14 +87,14 @@ namespace Kore.Batch
             }
             catch (Exception e)
             {
-                Logger.QueueMessage(LogLevel.Error, $"File '{filePath}' has load error: {e.Message}");
+                Logger.Fatal(e, "Loading file '{0}' threw an error.", filePath.FullName);
                 return null;
             }
 
             if (loadResult.IsSuccessful)
                 return loadResult.LoadedState;
 
-            Logger.QueueMessage(LogLevel.Error, $"Could not load '{filePath}'.");
+            Logger.Error("Could not load '{0}'.", filePath.FullName);
             return null;
         }
 
@@ -115,12 +107,12 @@ namespace Kore.Batch
             }
             catch (Exception e)
             {
-                Logger.QueueMessage(LogLevel.Error, $"Save Error: {e.Message}");
+                Logger.Fatal(e, "Saving file '{0}' threw an error.", stateInfo.FilePath.FullName);
                 return;
             }
 
             if (!saveResult.IsSuccessful)
-                Logger.QueueMessage(LogLevel.Error, $"Could not save '{stateInfo.FilePath}'.");
+                Logger.Error("Could not save '{0}'.", stateInfo.FilePath.FullName);
         }
 
         private async Task ProcessMeasurement(UPath[] files, IFileSystem sourceFs, IFileSystem destinationFs)
@@ -128,7 +120,7 @@ namespace Kore.Batch
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            _processTokenSource=new CancellationTokenSource();
+            _processTokenSource = new CancellationTokenSource();
             try
             {
                 await Task.Run(() =>

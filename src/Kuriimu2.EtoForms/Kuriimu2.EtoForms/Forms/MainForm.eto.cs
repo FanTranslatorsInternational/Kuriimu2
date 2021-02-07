@@ -98,23 +98,32 @@ namespace Kuriimu2.EtoForms.Forms
             _progressBarEx = new ProgressBarEx();
             statusMessage = new Label();
 
-            Content = new Splitter
+            var progressLayout = new TableLayout
+            {
+                Spacing = new Size(3, 3),
+
+                Rows =
+                {
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(_progressBarEx) { ScaleWidth = true },
+                            new TableCell(statusMessage) { ScaleWidth = true },
+                        }
+                    }
+                }
+            };
+
+            Content = new TableLayout
             {
                 AllowDrop = true,
+                Spacing = new Size(3, 3),
 
-                Orientation = Orientation.Vertical,
-                FixedPanel = SplitterFixedPanel.Panel2,
-
-                Position = 616,
-                Panel2MinimumSize = 24,
-
-                Panel1 = tabControl,
-                Panel2 = new FixedSplitter(450)
+                Rows =
                 {
-                    Orientation = Orientation.Horizontal,
-
-                    Panel1 = _progressBarEx,
-                    Panel2 = statusMessage
+                    new TableRow(tabControl) { ScaleHeight = true },
+                    progressLayout
                 }
             };
 
