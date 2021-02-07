@@ -50,7 +50,10 @@ namespace Kuriimu2.EtoForms.Forms.Models
             if (parameter.IsFile)
                 throw new InvalidOperationException($"Parameter '{name}' is a file parameter.");
 
-            return (TValue)parameter.Value;
+            if (typeof(TValue).IsEnum)
+                return (TValue)Enum.Parse(typeof(TValue), (string)parameter.Value);
+
+            return (TValue)Convert.ChangeType(parameter.Value, typeof(TValue));
         }
 
         public override string ToString()

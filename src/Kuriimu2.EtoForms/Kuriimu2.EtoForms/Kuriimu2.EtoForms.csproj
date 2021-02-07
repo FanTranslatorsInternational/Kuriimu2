@@ -4,6 +4,14 @@
     <TargetFrameworks>netcoreapp31</TargetFrameworks>
   </PropertyGroup>
 	
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp31|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+	
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp31|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+	
   <ItemGroup>
     <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
     <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
@@ -43,6 +51,7 @@
   <ItemGroup>
     <PackageReference Include="Eto.Forms" Version="2.5.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
   
@@ -56,6 +65,9 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="Forms\Dialogs\InputBoxDialog.eto.cs">
+      <DependentUpon>InputBoxDialog.cs</DependentUpon>
+    </Compile>
     <Compile Update="Resources\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

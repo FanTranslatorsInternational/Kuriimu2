@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
@@ -19,19 +20,20 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Extensions;
-using Kore.Managers;
 using Kore.Managers.Plugins;
 using Kore.Models.Update;
 using Kore.Progress;
 using Kore.Update;
 using Kuriimu2.EtoForms.Exceptions;
 using Kuriimu2.EtoForms.Forms.Dialogs;
+using Kuriimu2.EtoForms.Forms.Dialogs.Batch;
 using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Progress;
 using Kuriimu2.EtoForms.Support;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Kuriimu2.EtoForms.Forms
 {
@@ -40,7 +42,6 @@ namespace Kuriimu2.EtoForms.Forms
         private readonly Random _rand = new Random();
 
         private readonly IProgressContext _progress;
-        private readonly IDialogManager _dialogs;
         private readonly PluginManager _pluginManager;
 
         private readonly IList<string> _openingFiles = new List<string>();
@@ -52,6 +53,16 @@ namespace Kuriimu2.EtoForms.Forms
             new Dictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)>();
 
         private readonly Manifest _localManifest;
+
+        private HashExtensionDialog _hashDialog;
+        private DecryptExtensionDialog _decryptDialog;
+        private EncryptExtensionsDialog _encryptDialog;
+        private DecompressExtensionDialog _decompressDialog;
+        private CompressExtensionDialog _compressDialog;
+        private BatchExtractDialog _extractDialog;
+        private BatchInjectDialog _injectDialog;
+        private SequenceSearcher _searcherDialog;
+        private RawImageDialog _rawImageDialog;
 
         #region HotKeys
 
@@ -103,18 +114,33 @@ namespace Kuriimu2.EtoForms.Forms
         {
             InitializeComponent();
 
+            _hashDialog = new HashExtensionDialog();
+            _decryptDialog = new DecryptExtensionDialog();
+            _encryptDialog = new EncryptExtensionsDialog();
+            _decompressDialog = new DecompressExtensionDialog();
+            _compressDialog = new CompressExtensionDialog();
+            _searcherDialog = new SequenceSearcher();
+            _rawImageDialog = new RawImageDialog();
+
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
-            // TODO: Implement dialog manager
             _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 300));
-            _dialogs = new DefaultDialogManager();
-            _pluginManager = new PluginManager(_progress, _dialogs, "plugins");
-            _pluginManager.AllowManualSelection = true;
+            _pluginManager = new PluginManager($"{GetBaseDirectory()}/plugins")
+            {
+                AllowManualSelection = true,
+
+                Progress = _progress,
+                DialogManager = new DialogManagerDialog(this),
+                Logger = new LoggerConfiguration().WriteTo.File($"{GetBaseDirectory()}/Kuriimu2.log").CreateLogger()
+            };
             _pluginManager.OnManualSelection += pluginManager_OnManualSelection;
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
+
+            _extractDialog = new BatchExtractDialog(_pluginManager);
+            _injectDialog = new BatchInjectDialog(_pluginManager);
 
             // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
             // HINT: Some kind of form spanning control, which handles the drop action instead
@@ -130,7 +156,17 @@ namespace Kuriimu2.EtoForms.Forms
             openFileWithCommand.Executed += openFileWithCommand_Executed;
             saveAllFileCommand.Executed += saveAllFileCommand_Executed;
 
-            hashCommand.Executed += hashCommand_Executed;
+            openBatchExtractorCommand.Executed += openBatchExtractorCommand_Executed;
+            openBatchInjectorCommand.Executed += openBatchInjectorCommand_Executed;
+            openTextSequenceSearcherCommand.Executed += openTextSequenceSearcherCommand_Execute;
+
+            openHashcommand.Executed += openHashCommand_Executed;
+            openDecryptionCommand.Executed += openDecryptionCommand_Executed;
+            openEncryptionCommand.Executed += openEncryptionCommand_Executed;
+            openDecompressionCommand.Executed += openDecompressionCommand_Executed;
+            openCompressionCommand.Executed += openCompressionCommand_Executed;
+
+            openRawImageViewerCommand.Executed += openRawImageViewerCommand_Executed;
 
             #endregion
         }
@@ -320,19 +356,20 @@ namespace Kuriimu2.EtoForms.Forms
             foreach (var filter in GetFileFilters(_pluginManager.GetFilePluginLoaders()))
                 ofd.Filters.Add(filter);
 
-            return ofd.ShowDialog(this) == DialogResult.Ok ?
-                ofd.FileName :
-                null;
+            return ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : null;
         }
 
         private IList<FileFilter> GetFileFilters(IPluginLoader<IFilePlugin>[] pluginLoaders)
         {
-            var filters = new List<FileFilter>();
+            var filters = new List<FileFilter>
+            {
+                new FileFilter("All Files", ".*")
+            };
 
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins).Where(x => x.FileExtensions != null))
             {
                 var pluginName = plugin.Metadata?.Name ?? plugin.GetType().Name;
-                filters.Add(new FileFilter(pluginName, plugin.FileExtensions));
+                filters.Add(new FileFilter(pluginName, plugin.FileExtensions.Select(x => x.Replace("*", "")).ToArray()));
             }
 
             return filters;
@@ -561,7 +598,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void mainForm_DragDrop(object sender, DragEventArgs e)
         {
-            OpenPhysicalFiles(e.Data.Uris.Select(x => x.AbsolutePath).ToArray(), false);
+            OpenPhysicalFiles(e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray(), false);
         }
 
         private void mainForm_Load(object sender, EventArgs e)
@@ -573,14 +610,58 @@ namespace Kuriimu2.EtoForms.Forms
 
         #endregion
 
-        #region Extensions
+        #region Tools
 
-        private void hashCommand_Executed(object sender, EventArgs e)
+        private void openBatchExtractorCommand_Executed(object sender, EventArgs e)
         {
-            new HashExtensionDialog().ShowModal();
+            _extractDialog.ShowModal();
+        }
+
+        private void openBatchInjectorCommand_Executed(object sender, EventArgs e)
+        {
+            _injectDialog.ShowModal();
+        }
+
+        private void openTextSequenceSearcherCommand_Execute(object sender, EventArgs e)
+        {
+            _searcherDialog.ShowModal();
         }
 
         #endregion
+
+        #region Extensions
+
+        private void openHashCommand_Executed(object sender, EventArgs e)
+        {
+            _hashDialog.ShowModal();
+        }
+
+        private void openCompressionCommand_Executed(object sender, EventArgs e)
+        {
+            _compressDialog.ShowModal();
+        }
+
+        private void openDecompressionCommand_Executed(object sender, EventArgs e)
+        {
+            _decompressDialog.ShowModal();
+        }
+
+        private void openEncryptionCommand_Executed(object sender, EventArgs e)
+        {
+            _encryptDialog.ShowModal();
+        }
+
+        private void openDecryptionCommand_Executed(object sender, EventArgs e)
+        {
+            _decryptDialog.ShowModal();
+        }
+
+        #endregion
+
+        private void openRawImageViewerCommand_Executed(object sender, EventArgs e)
+        {
+            _rawImageDialog.ShowModal();
+        }
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
@@ -603,14 +684,14 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Middle))
             {
-                if (!page.Bounds.Contains((Point)e.Location))
+                if (!new Rectangle(page.Bounds.Size).Contains((Point)e.Location))
                     return;
             }
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
                 var deleteImage = MenuDeleteResource;
-                var closeButtonRect = new RectangleF(page.Bounds.Left + 9, page.Bounds.Top + 4, deleteImage.Width, deleteImage.Height);
+                var closeButtonRect = new RectangleF(9, 4, deleteImage.Width, deleteImage.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }
@@ -638,8 +719,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
                 return;
 
-            var result =
-                MessageBox.Show(
+            var result = MessageBox.Show(
                     $"Do you want to update from '{_localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
                     "Update available", MessageBoxButtons.YesNo);
             if (result == DialogResult.No)
@@ -653,6 +733,18 @@ namespace Kuriimu2.EtoForms.Forms
             process.Start();
 
             Close();
+        }
+
+        private string GetBaseDirectory()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return ".";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return "~/Applications/Kuriimu2";
+
+            throw new InvalidOperationException($"Unsupported operating system: {RuntimeInformation.OSDescription}.");
         }
 
         private string GetCurrentPlatform()
@@ -695,18 +787,6 @@ namespace Kuriimu2.EtoForms.Forms
                 var pluginDialog = new ChoosePluginDialog(filePlugins);
                 return pluginDialog.ShowModal(this);
             });
-        }
-
-        private (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor) GetSelectedTabEntry()
-        {
-            var selectedTab = tabControl.SelectedPage;
-            if (selectedTab == null)
-                return default;
-
-            if (!_tabDictionary.ContainsKey(selectedTab))
-                return default;
-
-            return _tabDictionary[selectedTab];
         }
 
         #endregion

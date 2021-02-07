@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Kontract.Interfaces.Logging;
-using Kontract.Models.Logging;
+using Serilog;
 
 namespace Kore.Batch
 {
     public class BatchExtensionProcessor<TExtension, TResult>
     {
         private readonly Func<TExtension, string, TResult> _processAction;
-        private readonly IConcurrentLogger _log;
+        private readonly ILogger _log;
 
         public int TaskCount { get; set; } = Environment.ProcessorCount;
 
-        public BatchExtensionProcessor(Func<TExtension, string, TResult> processAction, IConcurrentLogger log)
+        public BatchExtensionProcessor(Func<TExtension, string, TResult> processAction, ILogger log)
         {
             _processAction = processAction;
             _log = log;
@@ -46,7 +45,7 @@ namespace Kore.Batch
 
         private TResult ExecuteProcessDelegate(TExtension extensionType, string filePath)
         {
-            _log.QueueMessage(LogLevel.Information, $"Process file '{filePath}'.");
+            _log.Information("Process file '{0}'.", filePath);
             return _processAction(extensionType, filePath);
         }
     }

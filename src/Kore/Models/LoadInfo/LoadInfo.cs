@@ -3,6 +3,7 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Progress;
 using Kore.Managers;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kore.Models.LoadInfo
 {
@@ -21,5 +22,7 @@ namespace Kore.Models.LoadInfo
         public InternalDialogManager DialogManager { get; set; }
 
         public bool AllowManualSelection { get; set; }
+
+        public ILogger Logger { get; set; }
     }
 }

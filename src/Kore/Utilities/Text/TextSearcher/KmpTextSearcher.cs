@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 /*
  * Author: James D. McCaffrey on WordPress
  * https://jamesmccaffrey.wordpress.com/2012/08/18/the-knuth-morris-pratt-string-search-algorithm-in-c/
  */
 
+[assembly: InternalsVisibleTo("KoreUnitTests")]
 namespace Kore.Utilities.Text.TextSearcher
 {
     /// <summary>
     /// Knuth-Morris-Pratt String pattern searcher.
     /// </summary>
-    class KmpTextSearcher : BaseTextSearcher
+    internal class KmpTextSearcher : BaseTextSearcher
     {
         private readonly byte[] _w;
         private readonly int[] _t;

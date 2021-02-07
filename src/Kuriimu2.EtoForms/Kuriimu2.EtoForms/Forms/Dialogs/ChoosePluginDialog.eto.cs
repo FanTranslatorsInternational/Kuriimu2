@@ -1,10 +1,6 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Interfaces.Plugins.Identifier;
-using Kuriimu2.EtoForms.Controls;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
@@ -12,6 +8,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
     {
         private StackLayout pluginListPanel;
         private Button okButton;
+        private Button cancelButton;
 
         #region Commands
 
@@ -38,32 +35,30 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             pluginListPanel = new StackLayout
             {
                 HorizontalContentAlignment = HorizontalAlignment.Stretch,
-                VerticalContentAlignment = VerticalAlignment.Stretch,
+                VerticalContentAlignment = VerticalAlignment.Stretch
             };
+            cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             okButton = new Button { Text = "Ok", Command = okButtonCommand };
 
-            Content = new FixedSplitter(620)
+            Content = new TableLayout
             {
-                Orientation = Orientation.Vertical,
-                FixedPanel = SplitterFixedPanel.Panel2,
-
-                Panel1 = new Scrollable
+                Rows =
                 {
-                    Content = pluginListPanel
-                },
-                Panel2 = new TableLayout
-                {
-                    Padding = new Padding(3),
-                    Spacing = new Size(3, 3),
-                    Rows =
+                    new TableRow { ScaleHeight = true, Cells = { new Scrollable { Content = pluginListPanel } } },
+                    new TableLayout
                     {
-                        new TableRow
+                        Padding=new Padding(0, 3),
+                        Spacing = new Size(3, 3),
+                        Rows =
                         {
-                            Cells =
+                            new TableRow
                             {
-                                new TableCell { ScaleWidth = true },
-                                new Button { Text = "Cancel", Command = cancelButtonCommand },
-                                okButton
+                                Cells =
+                                {
+                                    new TableCell { ScaleWidth = true },
+                                    cancelButton,
+                                    okButton
+                                }
                             }
                         }
                     }

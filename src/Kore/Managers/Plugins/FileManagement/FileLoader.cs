@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.IsolatedStorage;
 using System.Linq;
 using System.Threading.Tasks;
 using Kontract;
@@ -48,7 +47,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 2. Identify the plugin to use
             var plugin = loadInfo.Plugin ??
-                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo.StreamManager, loadInfo.AllowManualSelection) ??
+                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo) ??
                          new HexPlugin();
 
             // 3. Create state from identified plugin
@@ -81,10 +80,9 @@ namespace Kore.Managers.Plugins.FileManagement
         /// </summary>
         /// <param name="fileSystem">The file system to retrieve the file from.</param>
         /// <param name="filePath">The path of the file to identify.</param>
-        /// <param name="streamManager">The stream manager.</param>
-        /// <param name="identifyPluginManually">Defines if the plugin should be identified by a manual selection.</param>
+        /// <param name="loadInfo">The context for the load operation.</param>
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
-        private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, IStreamManager streamManager, bool identifyPluginManually)
+        private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
             // 1. Get all plugins that implement IIdentifyFile
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
@@ -93,15 +91,18 @@ namespace Kore.Managers.Plugins.FileManagement
             var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
+                var filePlugin = identifiablePlugin as IFilePlugin;
+
                 try
                 {
-                    var identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager));
+                    var identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, loadInfo.StreamManager));
                     if (identifyResult)
-                        matchedPlugins.Add(identifiablePlugin as IFilePlugin);
+                        matchedPlugins.Add(filePlugin);
                 }
-                catch
+                catch (Exception e)
                 {
-                    // Ignore exceptions and carry on
+                    // Log exceptions and carry on
+                    loadInfo.Logger?.Fatal(e, "Tried to identify file '{0}' with plugin '{1}'.", filePath.FullName, filePlugin?.PluginId);
                 }
             }
 
@@ -114,7 +115,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
             var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-            return identifyPluginManually ? GetManualSelection(nonIdentifiablePlugins) : null;
+            return loadInfo.AllowManualSelection ? GetManualSelection(nonIdentifiablePlugins) : null;
         }
 
         /// <summary>

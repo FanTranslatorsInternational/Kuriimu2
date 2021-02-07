@@ -16,10 +16,10 @@ namespace Kuriimu2.EtoForms.Forms
         private Command openBatchExtractorCommand;
         private Command openBatchInjectorCommand;
 
+        private Command openHashcommand;
+
         private Command openEncryptionCommand;
         private Command openDecryptionCommand;
-
-        private Command hashCommand;
 
         private Command openDecompressionCommand;
         private Command openCompressionCommand;
@@ -52,10 +52,10 @@ namespace Kuriimu2.EtoForms.Forms
             openBatchExtractorCommand = new Command { MenuText = "Batch Extractor" };
             openBatchInjectorCommand = new Command { MenuText = "Batch Injector" };
 
+            openHashcommand = new Command { MenuText = "Hashes" };
+
             openEncryptionCommand = new Command { MenuText = "Encrypt" };
             openDecryptionCommand = new Command { MenuText = "Decrypt" };
-
-            hashCommand = new Command { MenuText = "Hashes" };
 
             openDecompressionCommand = new Command { MenuText = "Decompress" };
             openCompressionCommand = new Command { MenuText = "Compress" };
@@ -80,12 +80,12 @@ namespace Kuriimu2.EtoForms.Forms
                 Items =
                 {
                     new ButtonMenuItem { Text = "File", Items = { openFileCommand, openFileWithCommand, new SeparatorMenuItem(), saveAllFileCommand } },
-                    new ButtonMenuItem { Text = "Tools", Items = { openTextSequenceSearcherCommand, openBatchExtractorCommand, openBatchInjectorCommand } },
-                    new ButtonMenuItem(hashCommand),
+                    new ButtonMenuItem { Text = "Tools", Items = { openBatchExtractorCommand, openBatchInjectorCommand, openTextSequenceSearcherCommand } },
+                    new ButtonMenuItem(openHashcommand),
                     new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
-                    new ButtonMenuItem(openImageTranscoderCommand)
+                    //new ButtonMenuItem(openImageTranscoderCommand)
                 },
                 AboutItem = openAboutCommand
             };
@@ -98,23 +98,32 @@ namespace Kuriimu2.EtoForms.Forms
             _progressBarEx = new ProgressBarEx();
             statusMessage = new Label();
 
-            Content = new Splitter
+            var progressLayout = new TableLayout
+            {
+                Spacing = new Size(3, 3),
+
+                Rows =
+                {
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(_progressBarEx) { ScaleWidth = true },
+                            new TableCell(statusMessage) { ScaleWidth = true },
+                        }
+                    }
+                }
+            };
+
+            Content = new TableLayout
             {
                 AllowDrop = true,
+                Spacing = new Size(3, 3),
 
-                Orientation = Orientation.Vertical,
-                FixedPanel = SplitterFixedPanel.Panel2,
-
-                Position = 616,
-                Panel2MinimumSize = 24,
-
-                Panel1 = tabControl,
-                Panel2 = new FixedSplitter(450)
+                Rows =
                 {
-                    Orientation = Orientation.Horizontal,
-
-                    Panel1 = _progressBarEx,
-                    Panel2 = statusMessage
+                    new TableRow(tabControl) { ScaleHeight = true },
+                    progressLayout
                 }
             };
 

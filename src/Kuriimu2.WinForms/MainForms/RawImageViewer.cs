@@ -377,8 +377,10 @@ namespace Kuriimu2.WinForms.MainForms
                     new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
                 new ExtensionType("L8", true),
                 new ExtensionType("A8", true),
-                new ExtensionType("L4", true),
-                new ExtensionType("A4", true),
+                new ExtensionType("L4", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                new ExtensionType("A4", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
 
                 new ExtensionType("ETC1", true,
                     new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
@@ -468,10 +470,10 @@ namespace Kuriimu2.WinForms.MainForms
                     return new La(0, 8);
 
                 case "L4":
-                    return new La(4, 0);
+                    return new La(4, 0, ByteOrder.LittleEndian, SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "A4":
-                    return new La(0, 4);
+                    return new La(0, 4, ByteOrder.LittleEndian, SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "B8":
                     return new Rgba(0, 0, 8);

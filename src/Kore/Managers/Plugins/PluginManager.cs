@@ -19,9 +19,12 @@ using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
+using Kore.Models;
 using Kore.Models.LoadInfo;
 using Kore.Progress;
 using MoreLinq;
+using Serilog;
+using Serilog.Core;
 
 namespace Kore.Managers.Plugins
 {
@@ -35,9 +38,6 @@ namespace Kore.Managers.Plugins
 
         private readonly IFileLoader _fileLoader;
         private readonly IFileSaver _fileSaver;
-
-        private readonly IProgressContext _progress;
-        private readonly IDialogManager _dialogManager;
 
         private readonly StreamMonitor _streamMonitor;
 
@@ -53,54 +53,23 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public IReadOnlyList<PluginLoadError> LoadErrors { get; }
 
+        public IProgressContext Progress { get; set; } = new ProgressContext(new NullProgressOutput());
+
+        public IDialogManager DialogManager { get; set; } = new DefaultDialogManager();
+
+        public ILogger Logger { get; set; }
+
         #region Constructors
 
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(params string[] pluginPaths) :
-            this(new ProgressContext(new NullProgressOutput()), new DefaultDialogManager(), pluginPaths)
+        public PluginManager(params string[] pluginPaths)
         {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="PluginManager"/>.
-        /// </summary>
-        /// <param name="progress">The progress context for plugin processes.</param>
-        /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(IProgressContext progress, params string[] pluginPaths) :
-            this(progress, new DefaultDialogManager(), pluginPaths)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="PluginManager"/>.
-        /// </summary>
-        /// <param name="dialogManager">The dialog manager for plugin processes.</param>
-        /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(IDialogManager dialogManager, params string[] pluginPaths) :
-            this(new ProgressContext(new NullProgressOutput()), dialogManager, pluginPaths)
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="PluginManager"/>.
-        /// </summary>
-        /// <param name="progress">The progress context for plugin processes.</param>
-        /// <param name="dialogManager">The dialog manager for plugin processes.</param>
-        /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(IProgressContext progress, IDialogManager dialogManager, params string[] pluginPaths)
-        {
-            ContractAssertions.IsNotNull(progress, nameof(progress));
-            ContractAssertions.IsNotNull(dialogManager, nameof(dialogManager));
-
             // 1. Setup all necessary instances
             _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
             _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
-
-            _progress = progress;
-            _dialogManager = dialogManager;
 
             LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
                 .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
@@ -110,7 +79,7 @@ namespace Kore.Managers.Plugins
             _streamMonitor = new StreamMonitor();
 
             _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(_streamMonitor, dialogManager);
+            _fileSaver = new FileSaver(_streamMonitor);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
@@ -121,31 +90,10 @@ namespace Kore.Managers.Plugins
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
         /// <param name="pluginLoaders">The plugin loaders for this manager.</param>
-        public PluginManager(params IPluginLoader[] pluginLoaders) :
-            this(new ProgressContext(new NullProgressOutput()), new DefaultDialogManager(), pluginLoaders)
+        public PluginManager(params IPluginLoader[] pluginLoaders)
         {
-        }
-
-        public PluginManager(IProgressContext progress, params IPluginLoader[] pluginLoaders) :
-            this(progress, new DefaultDialogManager(), pluginLoaders)
-        {
-        }
-
-        public PluginManager(IDialogManager dialogManager, params IPluginLoader[] pluginLoaders) :
-            this(new ProgressContext(new NullProgressOutput()), dialogManager, pluginLoaders)
-        {
-        }
-
-        public PluginManager(IProgressContext progress, IDialogManager dialogManager, params IPluginLoader[] pluginLoaders)
-        {
-            ContractAssertions.IsNotNull(progress, nameof(progress));
-            ContractAssertions.IsNotNull(dialogManager, nameof(dialogManager));
-
             _filePluginLoaders = pluginLoaders.Where(x => x is IPluginLoader<IFilePlugin>).Cast<IPluginLoader<IFilePlugin>>().ToArray();
             _gameAdapterLoaders = pluginLoaders.Where(x => x is IPluginLoader<IGameAdapter>).Cast<IPluginLoader<IGameAdapter>>().ToArray();
-
-            _progress = progress;
-            _dialogManager = dialogManager;
 
             LoadErrors = pluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
                 .DistinctBy(e => e.AssemblyPath)
@@ -154,7 +102,7 @@ namespace Kore.Managers.Plugins
             _streamMonitor = new StreamMonitor();
 
             _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(_streamMonitor, dialogManager);
+            _fileSaver = new FileSaver(_streamMonitor);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
 
@@ -221,22 +169,17 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(string file)
         {
-            return LoadFile(file, Guid.Empty, new LoadFileContext());
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
-        {
-            return LoadFile(file, Guid.Empty, loadFileContext);
+            return LoadFile(file, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(string file, Guid pluginId)
         {
-            return LoadFile(file, pluginId, new LoadFileContext());
+            return LoadFile(file, new LoadFileContext { PluginId = pluginId });
         }
 
-        public Task<LoadResult> LoadFile(string file, Guid pluginId, LoadFileContext loadFileContext)
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
         {
             // 1. Get UPath
             var path = new UPath(file);
@@ -251,36 +194,30 @@ namespace Kore.Managers.Plugins
 
             // 3. Load file
             // Physical files don't have a parent, if loaded like this
-            return LoadFile(fileSystemAction, path.GetName(), null, pluginId, loadFileContext);
+            return LoadFile(fileSystemAction, path.GetName(), null, loadFileContext);
         }
 
         #endregion
 
-        #region Load IArchiveFileInfo
+        #region Load ArchiveFileInfo
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
         {
-            return LoadFile(stateInfo, afi, Guid.Empty, new LoadFileContext());
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
-        {
-            return LoadFile(stateInfo, afi, Guid.Empty, loadFileContext);
+            return LoadFile(stateInfo, afi, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId)
         {
-            return LoadFile(stateInfo, afi, pluginId, new LoadFileContext());
+            return LoadFile(stateInfo, afi, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
             // If stateInfo is no archive state
-            if (!(stateInfo.PluginState is IArchiveState archiveState))
+            if (!(stateInfo.PluginState is IArchiveState _))
                 throw new InvalidOperationException("The state represents no archive.");
 
             // If file is already loaded
@@ -294,7 +231,7 @@ namespace Kore.Managers.Plugins
 
             // 2. Load file
             // IArchiveFileInfos have stateInfo as their parent, if loaded like this
-            var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, pluginId, loadFileContext);
+            var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
@@ -312,47 +249,35 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path)
         {
-            return LoadFile(fileSystem, path, Guid.Empty, null, new LoadFileContext());
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo)
-        {
-            return LoadFile(fileSystem, path, Guid.Empty, parentStateInfo, new LoadFileContext());
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
-        {
-            return LoadFile(fileSystem, path, Guid.Empty, loadFileContext);
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
-        {
-            return LoadFile(fileSystem, path, Guid.Empty, parentStateInfo, loadFileContext);
+            return LoadFile(fileSystem, path, null, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId)
         {
-            return LoadFile(fileSystem, path, pluginId, null, new LoadFileContext());
+            return LoadFile(fileSystem, path, null, new LoadFileContext { PluginId = pluginId });
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo)
+        {
+            return LoadFile(fileSystem, path, parentStateInfo, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo)
         {
-            return LoadFile(fileSystem, path, pluginId, parentStateInfo, new LoadFileContext());
+            return LoadFile(fileSystem, path, parentStateInfo, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
         {
-            return LoadFile(fileSystem, path, pluginId, null, loadFileContext);
+            return LoadFile(fileSystem, path, loadFileContext);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
         {
             // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
 
@@ -367,7 +292,7 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             // Only if called by a SubPluginManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            return LoadFile(fileSystemAction, path, parentStateInfo, pluginId, loadFileContext);
+            return LoadFile(fileSystemAction, path, parentStateInfo, loadFileContext);
         }
 
         #endregion
@@ -377,23 +302,17 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(Stream stream, UPath streamName)
         {
-            return LoadFile(stream, streamName, Guid.Empty, new LoadFileContext());
-        }
-
-        /// <inheritdoc />
-        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext)
-        {
-            return LoadFile(stream, streamName, Guid.Empty, loadFileContext);
+            return LoadFile(stream, streamName, new LoadFileContext());
         }
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId)
         {
-            return LoadFile(stream, streamName, pluginId, new LoadFileContext());
+            return LoadFile(stream, streamName, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext)
         {
             // We don't check for an already loaded file here, since that should never happen
 
@@ -403,12 +322,12 @@ namespace Kore.Managers.Plugins
 
             // 2. Load file
             // A stream has no parent, since it should never occur to be loaded from somewhere deeper in the system
-            return LoadFile(fileSystemAction, streamName, null, pluginId, loadFileContext);
+            return LoadFile(fileSystemAction, streamName, null, loadFileContext);
         }
 
         #endregion
 
-        private async Task<LoadResult> LoadFile(Func<IStreamManager, IFileSystem> fileSystemAction, UPath path, IStateInfo parentStateInfo, Guid pluginId, LoadFileContext loadFileContext)
+        private async Task<LoadResult> LoadFile(Func<IStreamManager, IFileSystem> fileSystemAction, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
         {
             // 1. Create stream manager
             var streamManager = _streamMonitor.CreateStreamManager();
@@ -418,13 +337,11 @@ namespace Kore.Managers.Plugins
 
             // 3. Find plugin
             IFilePlugin plugin = null;
-            if (pluginId != Guid.Empty)
-                plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(pluginId)).First();
+            if (loadFileContext.PluginId != Guid.Empty)
+                plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(loadFileContext.PluginId)).First();
 
-            var progress = loadFileContext.Progress ?? _progress;
-            var isRunning = progress.IsRunning();
-            if (!isRunning)
-                progress.StartProgress();
+            var isRunning = Progress.IsRunning();
+            if (!isRunning) Progress.StartProgress();
 
             // 4. Load file
             var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
@@ -433,13 +350,13 @@ namespace Kore.Managers.Plugins
                 StreamManager = streamManager,
                 PluginManager = this,
                 Plugin = plugin,
-                Progress = progress,
-                DialogManager = new InternalDialogManager(_dialogManager, loadFileContext.Options),
-                AllowManualSelection = AllowManualSelection
+                Progress = Progress,
+                DialogManager = new InternalDialogManager(DialogManager, loadFileContext.Options),
+                AllowManualSelection = AllowManualSelection,
+                Logger = loadFileContext.Logger ?? Logger
             });
 
-            if (!isRunning)
-                progress.FinishProgress();
+            if (!isRunning) Progress.FinishProgress();
 
             if (!loadResult.IsSuccessful)
                 return loadResult;
@@ -461,22 +378,24 @@ namespace Kore.Managers.Plugins
             return SaveFile(stateInfo, stateInfo.FilePath);
         }
 
+        // TODO: Put in options from external call like in Load
         /// <inheritdoc />
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
             lock (_loadedFilesLock)
-            {
                 ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
-            }
 
-            var isRunning = _progress.IsRunning();
-            if (!isRunning)
-                _progress.StartProgress();
+            var isRunning = Progress.IsRunning();
+            if (!isRunning) Progress.StartProgress();
 
-            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, _progress);
+            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, new SaveInfo
+            {
+                Progress = Progress,
+                DialogManager = DialogManager,
+                Logger = Logger
+            });
 
-            if (!isRunning)
-                _progress.FinishProgress();
+            if (!isRunning) Progress.FinishProgress();
 
             return saveResult;
         }
@@ -489,14 +408,17 @@ namespace Kore.Managers.Plugins
                 ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
             }
 
-            var isRunning = _progress.IsRunning();
-            if (!isRunning)
-                _progress.StartProgress();
+            var isRunning = Progress.IsRunning();
+            if (!isRunning) Progress.StartProgress();
 
-            var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, _progress);
+            var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, new SaveInfo
+            {
+                Progress = Progress,
+                DialogManager = DialogManager,
+                Logger = Logger
+            });
 
-            if (!isRunning)
-                _progress.FinishProgress();
+            if (!isRunning) Progress.FinishProgress();
 
             return saveResult;
         }
@@ -541,9 +463,8 @@ namespace Kore.Managers.Plugins
             // Indirect children occur when a file is loaded by a FileSystem and got a parent attached manually
             IList<IStateInfo> indirectChildren;
             lock (_loadedFilesLock)
-            {
                 indirectChildren = _loadedFiles.Where(x => x.ParentStateInfo == stateInfo).ToArray();
-            }
+
             foreach (var indirectChild in indirectChildren)
                 CloseInternal(indirectChild);
 
