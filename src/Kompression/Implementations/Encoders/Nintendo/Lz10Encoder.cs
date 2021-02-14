@@ -21,9 +21,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
 
         public void Configure(IInternalMatchOptions matchOptions)
         {
-            matchOptions.CalculatePricesWith(() => new Lz10PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x3, 0x12, 1, 0x1000));
+            _encoder.Configure(matchOptions);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

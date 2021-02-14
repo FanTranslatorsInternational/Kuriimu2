@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Kompression.Configuration;
 using Kompression.Implementations;
+using Kompression.Implementations.Decoders.Headerless;
+using Kompression.Implementations.Encoders.Headerless;
 using Kontract.Kompression;
 using Kuriimu2.EtoForms.Forms.Models;
 
@@ -53,6 +56,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         {
             return new List<ExtensionType>
             {
+                new ExtensionType("Lz10 Headerless",true),
                 new ExtensionType("Lz10 (Nintendo)",true),
                 new ExtensionType("Lz11 (Nintendo)",true),
                 new ExtensionType("Lz40 (Nintendo)",true),
@@ -99,6 +103,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         {
             switch (selectedExtension.Name)
             {
+                case "Lz10 Headerless":
+                    return new KompressionConfiguration()
+                        .EncodeWith(() => new Lz10HeaderlessEncoder())
+                        .DecodeWith(() => new Lz10HeaderlessDecoder())
+                        .Build();
+
                 case "Lz10 (Nintendo)":
                     return Compressions.Nintendo.Lz10.Build();
 
