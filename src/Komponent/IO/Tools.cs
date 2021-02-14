@@ -76,24 +76,7 @@ namespace Komponent.IO
             if (attributes?.FixedLengthAttribute == null)
                 throw new InvalidOperationException("Strings without set length are not supported for static measurement");
 
-            var strEnc = attributes.FixedLengthAttribute.StringEncoding;
-            int charSize;
-            switch (strEnc)
-            {
-                case StringEncoding.ASCII: 
-                    charSize = 1; 
-                    break;
-
-                case StringEncoding.UTF32: 
-                    charSize = 4; 
-                    break;
-
-                default:
-                    throw new InvalidOperationException("Variable width encodings are not supported for static measurement");
-            }
-
-            var length = attributes.FixedLengthAttribute.Length;
-            return length * charSize;
+            return attributes.FixedLengthAttribute.Length;
         }
 
         private static int MeasureList(Type type, MemberAttributeInfo attributes)

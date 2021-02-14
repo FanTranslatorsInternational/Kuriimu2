@@ -5,8 +5,8 @@ namespace Kontract.Kanvas.Configuration
 {
     public delegate Size CreatePaddedSize(Size imageSize);
     public delegate IImageSwizzle CreatePixelRemapper(Size imageSize);
-    public delegate IColorEncoding CreateColorEncoding(Size imageSize);
-    public delegate IIndexEncoding CreateIndexEncoding(Size imageSize);
+    public delegate IColorEncoding CreateColorEncoding();
+    public delegate IIndexEncoding CreateIndexEncoding();
 
     public interface IImageConfiguration
     {

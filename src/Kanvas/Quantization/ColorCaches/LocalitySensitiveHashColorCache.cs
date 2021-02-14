@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas.Quantization.Models;
 using Kanvas.Quantization.Models.ColorCache;
 using Kontract.Kanvas.Model;
 

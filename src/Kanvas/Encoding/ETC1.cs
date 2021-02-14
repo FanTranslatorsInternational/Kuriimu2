@@ -17,15 +17,20 @@ namespace Kanvas.Encoding
         private readonly bool _useAlpha;
         private readonly Etc1Transcoder _transcoder;
 
+        /// <inheritdoc cref="BitDepth"/>
         public override int BitDepth { get; }
 
+        /// <inheritdoc cref="BitsPerValue"/>
         public override int BitsPerValue { get; protected set; }
 
+        /// <inheritdoc cref="ColorsPerValue"/>
         public override int ColorsPerValue => 16;
 
+        /// <inheritdoc cref="FormatName"/>
         public override string FormatName { get; }
 
-        public Etc1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) : base(byteOrder)
+        public Etc1(bool useAlpha, bool useZOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) : 
+            base(byteOrder)
         {
             _useAlpha = useAlpha;
             _transcoder = new Etc1Transcoder(useZOrder);

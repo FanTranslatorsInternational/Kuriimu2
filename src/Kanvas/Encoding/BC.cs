@@ -1,72 +1,80 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using Kanvas.Encoding.Base;
-using Kanvas.Encoding.BlockCompressions;
-using Kanvas.Encoding.BlockCompressions.BCn.Models;
-using Komponent.IO;
-using Kontract.Models.IO;
+using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    public class Bc : BlockCompressionEncoding<BcPixelData>
+    // TODO: Implement BC with BCnEncoder nuget package
+    public class Bc : IColorEncoding
     {
-        private readonly BcTranscoder _transcoder;
-        private readonly bool _hasSecondBlock;
+        /// <inheritdoc cref="BitDepth"/>
+        public int BitDepth { get; }
 
-        public override int BitsPerValue { get; protected set; }
+        /// <inheritdoc cref="BitsPerValue"/>
+        public int BitsPerValue { get; }
 
-        public override int ColorsPerValue => 16;
+        /// <inheritdoc cref="ColorsPerValue"/>
+        public int ColorsPerValue => 16;
 
-        public override int BitDepth { get; }
+        /// <inheritdoc cref="FormatName"/>
+        public string FormatName { get; }
 
-        public override string FormatName { get; }
-
-        public Bc(BcFormat format, ByteOrder byteOrder = ByteOrder.LittleEndian) : base(byteOrder)
+        public Bc(BcFormat format)
         {
-            _transcoder = new BcTranscoder(format);
-            _hasSecondBlock = HasSecondBlock(format);
+            var hasSecondBlock = HasSecondBlock(format);
 
-            BitsPerValue = _hasSecondBlock ? 128 : 64;
-            BitDepth = _hasSecondBlock ? 8 : 4;
+            BitsPerValue = hasSecondBlock ? 128 : 64;
+            BitDepth = hasSecondBlock ? 8 : 4;
 
             FormatName = format.ToString();
         }
 
-        protected override BcPixelData ReadNextBlock(BinaryReaderX br)
+        /// <inheritdoc cref="Load"/>
+        public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
-            var block1 = br.ReadUInt64();
-            var block2 = _hasSecondBlock ? br.ReadUInt64() : ulong.MaxValue;
-
-            return new BcPixelData
-            {
-                Block1 = block1,
-                Block2 = block2
-            };
+            throw new System.NotImplementedException();
         }
 
-        protected override void WriteNextBlock(BinaryWriterX bw, BcPixelData block)
+        /// <inheritdoc cref="Save"/>
+        public byte[] Save(IEnumerable<Color> colors, EncodingSaveContext saveContext)
         {
-            bw.Write(block.Block1);
-            if (_hasSecondBlock) bw.Write(block.Block2);
-        }
-
-        protected override IList<Color> DecodeNextBlock(BcPixelData block)
-        {
-            return _transcoder.DecodeBlocks(block).ToList();
-        }
-
-        protected override BcPixelData EncodeNextBlock(IList<Color> colors)
-        {
-            return _transcoder.EncodeColors(colors);
+            throw new System.NotImplementedException();
         }
 
         private bool HasSecondBlock(BcFormat format)
         {
-            return format == BcFormat.BC2 ||
-                   format == BcFormat.BC3 ||
-                   format == BcFormat.BC5 ||
-                   format == BcFormat.ATI2_WiiU;
+            return format == BcFormat.Bc2 ||
+                   format == BcFormat.Bc3 ||
+                   format == BcFormat.Bc5 ||
+                   //format == BcFormat.Bc6 ||
+                   format == BcFormat.Bc7;
         }
+    }
+
+    /// <summary>
+    /// The format identifier for BCs.
+    /// </summary>
+    /// <remarks>
+    /// The WiiU contains non-standardized implementations for BC4 and BC5.<para />
+    /// The WiiU implements BC4 with target Alpha or Luminance (RGB channels), instead of Red.<para />
+    /// The WiiU implements BC5 with target Alpha/Luminance, instead of Red/Green.
+    /// </remarks>
+    public enum BcFormat
+    {
+        Bc1,
+        Bc2,
+        Bc3,
+        Bc4,
+        Bc5,
+        //Bc6,
+        Bc7,
+
+        Dxt1 = Bc1,
+        Dxt3,
+        Dxt5,
+
+        Ati1 = Bc4,
+        Ati2
     }
 }
