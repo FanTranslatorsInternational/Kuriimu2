@@ -40,7 +40,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             {
                 new ExtensionType("Crc32", true),
                 new ExtensionType("Crc32 Custom", true,
-                    new ExtensionTypeParameter("Polynomial", typeof(uint)))
+                    new ExtensionTypeParameter("Polynomial", typeof(uint))),
+                new ExtensionType("Crc16 X25", true)
             };
         }
 
@@ -53,6 +54,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
 
                 case "Crc32 Custom":
                     return Crc32.Create(Crc32Formula.Normal, extensionType.GetParameterValue<uint>("Polynomial"));
+
+                case "Crc16 X25":
+                    return Crc16.X25;
 
                 // TODO: Plugin extensibility?
                 default:

@@ -174,6 +174,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (folders.Count <= 0)
                 return;
 
+            // If an update is triggered ba a parent, and therefore got this instance saved
+            // We need to clear the changed directories
+            if (!_stateInfo.StateChanged)
+                _changedDirectories.Clear();
+
             folderView.ReloadItem(folders[0]);
         }
 
