@@ -74,7 +74,6 @@ namespace plugin_level5._3DS.Archives
 
         public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
         {
-            // Group files by directory
             var castedFiles = files.Cast<XfsaArchiveFileInfo<Xfsa1FileEntry>>();
 
             // Build directory, file, and name tables

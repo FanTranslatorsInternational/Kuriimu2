@@ -19,8 +19,8 @@ namespace Kontract.Models.Archive
         private UPath _filePath;
 
         private Lazy<Stream> _decompressedStream;
+        private Lazy<Stream> _compressedStream;
         private long _decompressedSize;
-        private bool _hasSetFileData;
 
         /// <inheritdoc />
         public bool UsesCompression => _configuration != null;
@@ -80,17 +80,17 @@ namespace Kontract.Models.Archive
             ContractAssertions.IsNotNull(configuration, nameof(configuration));
 
             _configuration = configuration;
+
             _decompressedSize = decompressedSize;
             _decompressedStream = new Lazy<Stream>(() => DecompressStream(fileData, configuration));
+            _compressedStream = new Lazy<Stream>(GetBaseStream);
         }
 
         /// <inheritdoc />
-        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
+        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null,
+            IProgressContext progress = null)
         {
-            if (UsesCompression)
-                return Task.Run(GetDecompressedStream);
-
-            return Task.FromResult(GetBaseStream());
+            return UsesCompression ? Task.Run(GetDecompressedStream) : Task.FromResult(GetBaseStream());
         }
 
         /// <inheritdoc />
@@ -102,7 +102,6 @@ namespace Kontract.Models.Archive
             FileData.Close();
             FileData = fileData;
 
-            _hasSetFileData = true;
             ContentChanged = true;
 
             if (!UsesCompression)
@@ -110,6 +109,7 @@ namespace Kontract.Models.Archive
 
             _decompressedSize = fileData.Length;
             _decompressedStream = new Lazy<Stream>(GetBaseStream);
+            _compressedStream = new Lazy<Stream>(() => CompressStream(fileData, _configuration));
         }
 
         /// <summary>
@@ -147,33 +147,36 @@ namespace Kontract.Models.Archive
         }
 
         /// <inheritdoc />
+        public void Dispose()
+        {
+            FileData?.Dispose();
+            _decompressedStream = null;
+        }
+
+        /// <inheritdoc />
         public override string ToString()
         {
             return FilePath.FullName;
         }
 
+        #region Stream methods
+
         /// <summary>
         /// Get the final stream of FileData.
-        ///     This is the compressed stream, if a compression is set,
-        ///     or the FileData stream.
+        ///     1. This is the compressed stream if a compression is set,
+        ///     2. The decompressed stream if a compression is set but compression was disabled for this operation, or
+        ///     3. The original FileData stream.
         /// </summary>
         /// <returns>The final stream.</returns>
         protected Stream GetFinalStream(bool compress = true)
         {
-            if (!UsesCompression) 
+            if (!UsesCompression)
                 return GetBaseStream();
 
-            if (!compress)
-            {
-                // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
-                // get decompressed data
-                return _decompressedStream.Value;
-            }
-
-            // Otherwise compress data or use the original compressed data, if never set
-            return _hasSetFileData ?
-                CompressStream(FileData, _configuration) :
-                GetBaseStream();
+            // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
+            //   get decompressed data (decompress it for the first time here, if necessary)
+            // Otherwise use already compressed data
+            return compress ? GetCompressedStream() : GetDecompressedStream();
         }
 
         /// <summary>
@@ -197,6 +200,22 @@ namespace Kontract.Models.Archive
             decompressedStream.Position = 0;
             return decompressedStream;
         }
+
+        /// <summary>
+        /// Gets the compressed stream from the <see cref="Lazy{T}"/> instance.
+        /// </summary>
+        /// <returns>The compressed stream of this instance.</returns>
+        protected Stream GetCompressedStream()
+        {
+            var compressedStream = _compressedStream.Value;
+
+            compressedStream.Position = 0;
+            return compressedStream;
+        }
+
+        #endregion
+
+        #region De-/Compression
 
         /// <summary>
         /// Compresses the given stream.
@@ -240,10 +259,6 @@ namespace Kontract.Models.Archive
             return ms;
         }
 
-        public void Dispose()
-        {
-            FileData?.Dispose();
-            _decompressedStream = null;
-        }
+        #endregion
     }
 }

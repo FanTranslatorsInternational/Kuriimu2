@@ -581,8 +581,6 @@ namespace Kuriimu2.EtoForms.Forms
             // Iterate through children
             foreach (var child in stateInfo.ArchiveChildren)
                 UpdateChildrenTabs(child);
-
-            UpdateTab(stateInfo, true, false);
         }
 
         #endregion

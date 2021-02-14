@@ -7,8 +7,6 @@ using System.Text.RegularExpressions;
 using Eto.Forms;
 using Kanvas.Configuration;
 using Kanvas.Encoding;
-using Kanvas.Encoding.BlockCompressions.ATC.Models;
-using Kanvas.Encoding.BlockCompressions.BCn.Models;
 using Kanvas.Swizzle;
 using Kanvas.Swizzle.Models;
 using Kontract.Kanvas;
@@ -117,7 +115,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 if (SelectedSwizzleExtension.Name != "None")
                     imageConfiguration.RemapPixelsWith(size => CreateSwizzle(size, encoding));
 
-                var transcoder = imageConfiguration.TranscodeWith(size => encoding).Build();
+                var transcoder = imageConfiguration.TranscodeWith(() => encoding).Build();
                 imageView.Image = transcoder.Decode(imgData, new System.Drawing.Size(width, height)).ToEto();
                 imageView.Invalidate();
             }
@@ -282,36 +280,36 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     var zOrder2 = SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order");
                     return new Etc1(true, zOrder2);
 
-                case "DXT1":
-                    return new Bc(BcFormat.DXT1);
+                //case "DXT1":
+                //    return new Bc(BcFormat.DXT1);
 
-                case "DXT3":
-                    return new Bc(BcFormat.DXT3);
+                //case "DXT3":
+                //    return new Bc(BcFormat.DXT3);
 
-                case "DXT5":
-                    return new Bc(BcFormat.DXT5);
+                //case "DXT5":
+                //    return new Bc(BcFormat.DXT5);
 
-                case "ATI1":
-                    return new Bc(BcFormat.ATI1);
+                //case "ATI1":
+                //    return new Bc(BcFormat.ATI1);
 
-                case "ATI1L":
-                    return new Bc(BcFormat.ATI1L_WiiU);
+                //case "ATI1L":
+                //    return new Bc(BcFormat.ATI1L_WiiU);
 
-                case "ATI1A":
-                    return new Bc(BcFormat.ATI1A_WiiU);
+                //case "ATI1A":
+                //    return new Bc(BcFormat.ATI1A_WiiU);
 
-                case "ATI2":
-                    var wiiU = SelectedColorEncodingExtension.GetParameterValue<bool>("WiiU Variant");
-                    return wiiU ? new Bc(BcFormat.ATI2) : new Bc(BcFormat.ATI2_WiiU);
+                //case "ATI2":
+                //    var wiiU = SelectedColorEncodingExtension.GetParameterValue<bool>("WiiU Variant");
+                //    return wiiU ? new Bc(BcFormat.ATI2) : new Bc(BcFormat.ATI2_WiiU);
 
-                case "ATC":
-                    return new Atc(AtcFormat.ATC, ByteOrder.LittleEndian);
+                //case "ATC":
+                //    return new Atc(AtcFormat.ATC, ByteOrder.LittleEndian);
 
-                case "ATCA":
-                    var atcAlpha = SelectedColorEncodingExtension.GetParameterValue<AtcAlpha>("AlphaMode");
-                    return atcAlpha == AtcAlpha.Explicit ?
-                        new Atc(AtcFormat.ATCA_Exp, ByteOrder.LittleEndian) :
-                        new Atc(AtcFormat.ATCA_Int, ByteOrder.LittleEndian);
+                //case "ATCA":
+                //    var atcAlpha = SelectedColorEncodingExtension.GetParameterValue<AtcAlpha>("AlphaMode");
+                //    return atcAlpha == AtcAlpha.Explicit ?
+                //        new Atc(AtcFormat.ATCA_Exp, ByteOrder.LittleEndian) :
+                //        new Atc(AtcFormat.ATCA_Int, ByteOrder.LittleEndian);
 
                 default:
                     return null;
