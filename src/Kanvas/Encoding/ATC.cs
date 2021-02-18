@@ -1,13 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using BCnEncoder.Decoder;
+using BCnEncoder.Encoder;
+using BCnEncoder.Shared;
+using Kanvas.MoreEnumerable;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    // TODO: Implement ATC with BCnEncoder nuget package.
     public class Atc : IColorEncoding
     {
+        private readonly AtcFormat _format;
+
         /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
 
@@ -22,6 +29,8 @@ namespace Kanvas.Encoding
 
         public Atc(AtcFormat format)
         {
+            _format = format;
+
             var hasSecondBlock = HasSecondBlock(format);
 
             BitDepth = BitsPerValue = hasSecondBlock ? 128 : 64;
@@ -32,19 +41,77 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="Load"/>
         public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
-            throw new System.NotImplementedException();
+            var compressionFormat = GetCompressionFormat();
+            var decoder = GetDecoder();
+
+            var blockSize = BitsPerValue / 8;
+            return Enumerable.Range(0, input.Length).AsParallel()
+                .WithDegreeOfParallelism(loadContext.TaskCount)
+                .AsOrdered()
+                .SelectMany(x =>
+                {
+                    var decodedBlock = decoder.DecodeBlock(input.AsSpan(x * blockSize, blockSize), compressionFormat);
+
+                    decodedBlock.TryGetMemory(out var memory);
+                    return memory.ToArray().Select(y => Color.FromArgb(y.a, y.r, y.g, y.b));
+                });
         }
 
         /// <inheritdoc cref="Save"/>
         public byte[] Save(IEnumerable<Color> colors, EncodingSaveContext saveContext)
         {
-            throw new System.NotImplementedException();
+            var compressionFormat = GetCompressionFormat();
+            var encoder = GetEncoder(compressionFormat);
+
+            var blockSize = BitsPerValue / 8;
+            var widthBlocks = ((saveContext.Size.Width + 3) & ~3) >> 2;
+            var heightBlocks = ((saveContext.Size.Height + 3) & ~3) >> 2;
+            var buffer = new byte[widthBlocks * heightBlocks * blockSize];
+
+            colors.Batch(ColorsPerValue).Select((x, i) => (x, i))
+                .AsParallel()
+                .WithDegreeOfParallelism(saveContext.TaskCount)
+                .ForAll(element =>
+                {
+                    var encodedBlock = encoder.EncodeBlock(element.x.Select(y => new ColorRgba32(y.R, y.G, y.B, y.A)).ToArray());
+                    Array.Copy(encodedBlock, 0, buffer, element.i * blockSize, blockSize);
+                });
+
+            return buffer;
         }
 
         private bool HasSecondBlock(AtcFormat format)
         {
             return format == AtcFormat.Atc_Explicit ||
                    format == AtcFormat.Atc_Interpolated;
+        }
+
+        private BcDecoder GetDecoder()
+        {
+            return new BcDecoder();
+        }
+
+        private BcEncoder GetEncoder(CompressionFormat compressionFormat)
+        {
+            return new BcEncoder(compressionFormat);
+        }
+
+        private CompressionFormat GetCompressionFormat()
+        {
+            switch (_format)
+            {
+                case AtcFormat.Atc:
+                    return CompressionFormat.Atc;
+
+                case AtcFormat.Atc_Explicit:
+                    return CompressionFormat.AtcExplicitAlpha;
+
+                case AtcFormat.Atc_Interpolated:
+                    return CompressionFormat.AtcInterpolatedAlpha;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported AtcFormat {_format}.");
+            }
         }
     }
 
