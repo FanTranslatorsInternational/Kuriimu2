@@ -3,7 +3,7 @@ using Eto.Forms;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
-    partial class SequenceSearcher:Dialog
+    partial class SequenceSearcherDialog:Dialog
     {
         private TextBox inputText;
         private TextBox searchText;

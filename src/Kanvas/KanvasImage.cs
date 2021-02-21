@@ -234,8 +234,7 @@ namespace Kanvas
 
             ExecuteActionWithProgress(() => _decodedImage = decodeImageAction(), progress);
 
-            if (_bestImage == null)
-                _bestImage = _decodedImage;
+            _bestImage ??= _decodedImage;
 
             return _decodedImage;
         }

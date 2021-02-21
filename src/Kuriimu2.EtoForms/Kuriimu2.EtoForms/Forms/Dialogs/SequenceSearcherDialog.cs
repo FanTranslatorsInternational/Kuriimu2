@@ -9,13 +9,13 @@ using Kuriimu2.EtoForms.Resources;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
-    partial class SequenceSearcher : Dialog
+    partial class SequenceSearcherDialog : Dialog
     {
         private const int SearchLimit_ = 10 * 1024 * 1024;
 
         private TextSequenceSearcher _sequenceSearcher;
 
-        public SequenceSearcher()
+        public SequenceSearcherDialog()
         {
             InitializeComponent();
 

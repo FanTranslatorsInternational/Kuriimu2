@@ -15,6 +15,8 @@
   <ItemGroup>
     <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
     <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
+    <None Remove="Images\image-export.png" />
+    <None Remove="Images\image-import.png" />
     <None Remove="Images\kuriimu2winforms.ico" />
     <None Remove="Images\menu-add.png" />
     <None Remove="Images\menu-delete.png" />
@@ -32,6 +34,8 @@
   </ItemGroup>
 	
   <ItemGroup>
+    <EmbeddedResource Include="Images\image-export.png" />
+    <EmbeddedResource Include="Images\image-import.png" />
     <EmbeddedResource Include="Images\kuriimu2winforms.ico" />
     <EmbeddedResource Include="Images\menu-add.png" />
     <EmbeddedResource Include="Images\menu-delete.png" />
@@ -67,6 +71,9 @@
   <ItemGroup>
     <Compile Update="Forms\Dialogs\InputBoxDialog.eto.cs">
       <DependentUpon>InputBoxDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Dialogs\SequenceSearcherDialog.eto.cs">
+      <DependentUpon>SequenceSearcherDialog.cs</DependentUpon>
     </Compile>
     <Compile Update="Resources\Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
