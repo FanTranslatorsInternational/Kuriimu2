@@ -2,7 +2,7 @@
 using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Controls.ImageView;
-using Kuriimu2.EtoForms.Support;
+using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
@@ -19,13 +19,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private ButtonToolStripItem importButton;
 
         private ImageViewEx imageView;
+        private PaletteView imagePalette;
 
         private Label width;
         private Label height;
         private ComboBox formats;
         private ComboBox palettes;
         private ListBox images;
-        private Drawable imagePalette;
 
         private void InitializeComponent()
         {
@@ -70,17 +70,24 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Default
 
+            images = new ListBox
+            {
+                ItemImageBinding = Binding.Property<Image>(nameof(ImageElement.Image)),
+                ItemTextBinding = Binding.Property<string>(nameof(ImageElement.Text)),
+            };
+
             imageView = new ImageViewEx();
+            imagePalette = new PaletteView { Size = new Size(200, -1),  };
+
             var widthLabel = new Label { Text = "Width:" };
             var heightLabel = new Label { Text = "Height:" };
             var formatLabel = new Label { Text = "Format:" };
             var paletteLabel = new Label { Text = "Palette:" };
+
             width = new Label();
             height = new Label();
             formats = new ComboBox();
             palettes = new ComboBox();
-            images = new ListBox();
-            imagePalette = new Drawable();
 
             #endregion
 
@@ -144,11 +151,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var listLayout = new StackLayout
             {
+                Spacing = 3,
                 VerticalContentAlignment = VerticalAlignment.Stretch,
                 Orientation = Orientation.Vertical,
                 Items =
                 {
-                    new StackLayoutItem(images, true),
+                    new StackLayoutItem(images, true) { HorizontalAlignment = HorizontalAlignment.Stretch },
                     new StackLayoutItem(imagePalette, true)
                 }
             };

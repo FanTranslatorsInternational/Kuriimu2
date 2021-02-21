@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
+using Kanvas;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
@@ -61,13 +62,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             images.SelectedIndexChanged += Images_SelectedIndexChanged;
             formats.SelectedValueChanged += Formats_SelectedValueChanged;
             palettes.SelectedValueChanged += Palettes_SelectedValueChanged;
+
+            imagePalette.ChoosingColor += ImagePalette_ChoosingColor;
+            imagePalette.PaletteChanged += ImagePalette_PaletteChanged;
         }
 
         #region Update
 
         private void UpdateImageList()
         {
-            images.DataStore = GetStateImages().Select(x => new ImageListItem { Image = GenerateThumbnail(x.GetImage().ToEto()) }).ToArray();
+            images.DataStore = GetStateImages().Select((x, i) => new ImageElement(GenerateThumbnail(x.GetImage().ToEto()), x.Name ?? $"{i:00}")).ToArray();
         }
 
         private void UpdateFormats()
@@ -120,6 +124,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Set image
             imageView.Image = image.GetImage().ToEto();
             imageView.Invalidate();
+
+            // Update palette image
+            UpdatePaletteImage();
         }
 
         private void ToggleForm(bool toggle)
@@ -133,6 +140,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveAsButton.Enabled = toggle;
             exportButton.Enabled = toggle;
             importButton.Enabled = toggle;
+
+            imagePalette.Enabled = toggle;
         }
 
         public void UpdateForm()
@@ -155,6 +164,20 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             imageView.Enabled = GetStateImages().Any();
             images.Enabled = GetStateImages().Any();
+
+            imagePalette.Enabled = isIndexed;
+        }
+
+        private void UpdatePaletteImage()
+        {
+            var selectedImage = GetSelectedImage();
+            if (!selectedImage.IsIndexed)
+            {
+                imagePalette.Palette = null;
+                return;
+            }
+
+            imagePalette.Palette = selectedImage.GetPalette(_progress);
         }
 
         #endregion
@@ -172,7 +195,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateImagePreview(GetSelectedImage());
             UpdateFormInternal();
 
-            _communicator.Update(true,false);
+            _communicator.Update(true, false);
         }
 
         private async void Palettes_SelectedValueChanged(object sender, EventArgs e)
@@ -196,6 +219,24 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateImagePreview(GetSelectedImage());
             UpdatePalettes(GetSelectedImage());
             UpdateFormInternal();
+        }
+
+        private void ImagePalette_ChoosingColor(object sender, Controls.ChoosingColorEventArgs e)
+        {
+            var clrDialog = new ColorDialog();
+            if (clrDialog.ShowDialog(this) != DialogResult.Ok)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            var c = clrDialog.Color;
+            e.Result = System.Drawing.Color.FromArgb(c.Ab, c.Rb, c.Gb, c.Bb);
+        }
+
+        private void ImagePalette_PaletteChanged(object sender, Controls.PaletteChangedEventArgs e)
+        {
+            SetColorInPalette(e.Index, e.NewColor);
         }
 
         #endregion
@@ -256,6 +297,44 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             gfx.DrawImage(input, pos.X, pos.Y, size.Width, size.Height);
 
             return thumb;
+        }
+
+        #endregion
+
+        #region KanvasImage
+
+        private void SetColorInPalette(int index, System.Drawing.Color newColor)
+        {
+            var selectedImage = GetSelectedImage();
+            if (!selectedImage.IsIndexed)
+                return;
+
+            var palette = selectedImage.GetPalette(_progress);
+            if (index < 0 || index >= palette.Count)
+                return;
+
+            ToggleForm(false);
+
+            try
+            {
+                Task.Run(() =>
+                {
+                    selectedImage.SetColorInPalette(index, newColor);
+                    _progress.ReportProgress("Done", 1, 1);
+                }).Wait();
+            }
+            catch (Exception ex)
+            {
+                _communicator.ReportStatus(false, ex.Message);
+                UpdateFormInternal();
+
+                return;
+            }
+
+            UpdateFormInternal();
+
+            UpdateImagePreview(selectedImage);
+            UpdateImageList();
         }
 
         #endregion

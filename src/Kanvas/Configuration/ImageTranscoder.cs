@@ -126,7 +126,7 @@ namespace Kanvas.Configuration
         {
             ContractAssertions.IsTrue(IsIndexed, nameof(IsIndexed));
 
-            var progresses = progress.SplitIntoEvenScopes(2);
+            var progresses = progress?.SplitIntoEvenScopes(2);
 
             var paddedSize = _paddedSize?.Invoke(imageSize) ?? Size.Empty;
 

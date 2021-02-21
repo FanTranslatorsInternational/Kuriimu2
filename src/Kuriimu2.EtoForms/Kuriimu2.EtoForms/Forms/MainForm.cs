@@ -619,19 +619,22 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void mainForm_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            var result = ConfirmSavingChanges();
-            switch (result)
+            if (_stateDictionary.Keys.Any(x => x.StateChanged))
             {
-                case DialogResult.Yes:
-                    // Save all files in place that need saving
-                    SaveAll(false).Wait();
-                    break;
+                var result = ConfirmSavingChanges();
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        // Save all files in place that need saving
+                        SaveAll(false).Wait();
+                        break;
 
-                case DialogResult.Cancel:
-                    e.Cancel = true;
-                    return;
+                    case DialogResult.Cancel:
+                        e.Cancel = true;
+                        return;
 
                     // DialogResult.No means to not save changes and just close all open files
+                }
             }
 
             while (_stateDictionary.Keys.Count > 0)
