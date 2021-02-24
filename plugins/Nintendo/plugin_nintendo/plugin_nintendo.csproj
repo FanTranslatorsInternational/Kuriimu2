@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Archives\GcDisc.cs~RF24b82a33.TMP" />
     <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
   </ItemGroup>
 

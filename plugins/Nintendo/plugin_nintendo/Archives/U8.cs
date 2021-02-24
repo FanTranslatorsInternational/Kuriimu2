@@ -27,11 +27,11 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            var darcTreeBuilder = new U8TreeBuilder(Encoding.ASCII);
-            darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
+            var u8TreeBuilder = new U8TreeBuilder(Encoding.ASCII);
+            u8TreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
 
-            var entries = darcTreeBuilder.Entries;
-            var nameStream = darcTreeBuilder.NameStream;
+            var entries = u8TreeBuilder.Entries;
+            var nameStream = u8TreeBuilder.NameStream;
 
             var namePosition = _headerSize + entries.Count * _entrySize;
             var dataOffset = (namePosition + (int)nameStream.Length + 0x1F) & ~0x1F;
