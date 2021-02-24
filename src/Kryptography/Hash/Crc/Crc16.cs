@@ -6,11 +6,18 @@ using System.Buffers.Binary;
 #endif
 
 // https://stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
+// Online tool to check implementation: https://crccalc.com
+//      This tool seems to utilize a different approach to applying the polynomial.
+//      There are 2 way a polynomial can be read and applied, read from LSB to MSB, or vice versa
+//      Therefore, depending on the implementation, e.g X25 can have a valid polynomial of 0x8404 or 0x1021
+//      If the polynomials of any CRC16 implementation from the link above is used, its bits have to be reversed, to work properly with this algorithm.
 namespace Kryptography.Hash.Crc
 {
     public class Crc16 : IHash
     {
         public static Crc16 X25 => new Crc16(0x8408, 0xFFFF, 0xFFFF);
+
+        public static Crc16 ModBus => new Crc16(0xA001, 0xFFFF, 0x0000);
 
         private readonly int _polynomial;
         private readonly int _initial;

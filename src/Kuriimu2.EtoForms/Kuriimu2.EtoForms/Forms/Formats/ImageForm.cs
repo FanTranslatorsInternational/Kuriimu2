@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
-using Kanvas;
+using Kontract.Extensions;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Progress;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+using Kontract.Models.IO;
 using Kuriimu2.EtoForms.Extensions;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Resources;
+using ImageFormat = System.Drawing.Imaging.ImageFormat;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
@@ -26,6 +29,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private int _selectedImageIndex;
 
         #region Constants
+
+        private const string PngFileFilter_ = "Portable Network Graphics (*.png)|*.png";
+
+        private const string ExportPngTitle_ = "Export Png...";
+        private const string ImportPngTitle_ = "Import Png...";
+
+        private const string ExportPaletteTitle_ = "Export palette...";
+        private const string ImportPaletteTitle_ = "Import palette...";
 
         private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
         private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
@@ -65,13 +76,20 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             imagePalette.ChoosingColor += ImagePalette_ChoosingColor;
             imagePalette.PaletteChanged += ImagePalette_PaletteChanged;
+
+            saveCommand.Executed += SaveCommand_Executed;
+            saveAsCommand.Executed += SaveAsCommand_Executed;
+
+            exportCommand.Executed += ExportCommand_Executed;
+            importCommand.Executed += ImportCommand_Executed;
         }
 
         #region Update
 
         private void UpdateImageList()
         {
-            images.DataStore = GetStateImages().Select((x, i) => new ImageElement(GenerateThumbnail(x.GetImage().ToEto()), x.Name ?? $"{i:00}")).ToArray();
+            images.DataStore = GetStateImages().Select((x, i) =>
+                new ImageElement(GenerateThumbnail(x.GetImage().ToEto()), x.Name ?? $"{i:00}")).ToArray();
         }
 
         private void UpdateFormats()
@@ -80,9 +98,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
             if (definition.HasColorEncodings)
-                elements = elements.Concat(definition.ColorEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
+                elements = elements.Concat(
+                    definition.ColorEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
             if (definition.HasIndexEncodings)
-                elements = elements.Concat(definition.IndexEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
+                elements = elements.Concat(
+                    definition.IndexEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
 
             formats.DataStore = elements;
         }
@@ -98,7 +118,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 var encodingIndices = definition.GetIndexEncoding(image.ImageFormat).PaletteEncodingIndices;
 
                 if (image.IsIndexed && encodingIndices.Any())
-                    paletteEncodings = paletteEncodings.Where(x => encodingIndices.Contains(x.Key)).ToDictionary(x => x.Key, y => y.Value);
+                    paletteEncodings = paletteEncodings.Where(x => encodingIndices.Contains(x.Key))
+                        .ToDictionary(x => x.Key, y => y.Value);
 
                 elements = elements.Concat(paletteEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
             }
@@ -151,11 +172,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void UpdateFormInternal()
         {
-            saveButton.Enabled = _stateInfo.PluginState is ISaveFiles;
-            saveAsButton.Enabled = _stateInfo.PluginState is ISaveFiles && _stateInfo.ParentStateInfo == null;
+            var isSaveState = _stateInfo.PluginState is ISaveFiles;
+            saveButton.Enabled = isSaveState;
+            saveAsButton.Enabled = isSaveState && _stateInfo.ParentStateInfo == null;
 
             exportButton.Enabled = true;
-            importButton.Enabled = true;
+            importButton.Enabled = isSaveState;
 
             var definition = GetEncodingDefinition();
             var isIndexed = GetSelectedImage().IsIndexed;
@@ -178,6 +200,89 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             }
 
             imagePalette.Palette = selectedImage.GetPalette(_progress);
+        }
+
+        #endregion
+
+        #region Save
+
+        private async Task SaveAs()
+        {
+            await Save(true);
+        }
+
+        private async Task Save(bool saveAs = false)
+        {
+            var wasSuccessful = await _communicator.Save(saveAs);
+            if (!wasSuccessful)
+                return;
+
+            UpdateFormInternal();
+            _communicator.Update(true, false);
+        }
+
+        #endregion
+
+        #region Export
+
+        private void ExportPng()
+        {
+            var selectedImage = GetSelectedImage();
+            var imageName = string.IsNullOrEmpty(selectedImage.Name) ?
+                _stateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
+                selectedImage.Name;
+
+            var sfd = new SaveFileDialog
+            {
+                Title = ExportPngTitle_,
+                Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
+                FileName = imageName,
+                Filters = { new FileFilter("Portable Network Graphic (*.png)", "*.png") }
+            };
+
+            if (sfd.ShowDialog(this) != DialogResult.Ok)
+                return;
+
+            selectedImage.GetImage(_progress).Save(sfd.FileName, ImageFormat.Png);
+        }
+
+        #endregion
+
+        #region Import
+
+        private void ImportPng()
+        {
+            var ofd = new OpenFileDialog
+            {
+                Title = ImportPngTitle_,
+                Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
+                Filters = { new FileFilter("Portable Network Graphic (*.png)", "*.png") }
+            };
+
+            if (ofd.ShowDialog(this) != DialogResult.Ok)
+                return;
+
+            Import(ofd.FileName);
+        }
+
+        private void Import(UPath filePath)
+        {
+            ToggleForm(false);
+
+            try
+            {
+                using var newImage = new System.Drawing.Bitmap(filePath.FullName);
+                GetSelectedImage().SetImage(newImage, _progress);
+            }
+            catch (Exception ex)
+            {
+                _communicator.ReportStatus(false, ex.Message);
+            }
+
+            UpdateImageList();
+            UpdateImagePreview(GetSelectedImage());
+
+            UpdateFormInternal();
         }
 
         #endregion
@@ -239,9 +344,34 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             SetColorInPalette(e.Index, e.NewColor);
         }
 
+        private async void SaveAsCommand_Executed(object sender, EventArgs e)
+        {
+            await SaveAs();
+        }
+
+        private async void SaveCommand_Executed(object sender, EventArgs e)
+        {
+            await Save();
+        }
+
+        private void ExportCommand_Executed(object sender, EventArgs e)
+        {
+            ExportPng();
+        }
+
+        private void ImportCommand_Executed(object sender, EventArgs e)
+        {
+            ImportPng();
+        }
+
         #endregion
 
         #region Support
+
+        private ISaveFiles GetSaveState()
+        {
+            return _stateInfo.PluginState as ISaveFiles;
+        }
 
         private IList<IKanvasImage> GetStateImages()
         {

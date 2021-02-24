@@ -54,7 +54,7 @@ namespace Kuriimu2.EtoForms.Controls
             e.Graphics.DrawImage(paletteImg, e.ClipRectangle);
 
             // Draw selected index
-            if (_selectedIndex < 0)
+            if (_selectedIndex < 0 || _selectedIndex >= _palette.Count)
                 return;
 
             var width = e.ClipRectangle.Width / dimPalette;
@@ -77,6 +77,9 @@ namespace Kuriimu2.EtoForms.Controls
             {
                 // Select index
                 SelectIndex(e.Location);
+                if (_selectedIndex < 0 || _selectedIndex >= _palette.Count)
+                    return;
+
                 Invalidate();
 
                 // Invoke color choosing event
