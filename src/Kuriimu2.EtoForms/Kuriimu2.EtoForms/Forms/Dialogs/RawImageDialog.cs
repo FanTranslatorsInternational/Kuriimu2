@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Eto.Drawing;
 using Eto.Forms;
 using Kanvas.Configuration;
 using Kanvas.Encoding;
@@ -13,6 +14,7 @@ using Kontract.Kanvas;
 using Kontract.Models.IO;
 using Kuriimu2.EtoForms.Extensions;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
@@ -55,6 +57,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             openFileCommand.Executed += OpenFileCommand_Executed;
             closeFileCommand.Executed += CloseFileCommand_Executed;
+            extractImageCommand.Executed += ExtractImageCommand_Executed;
             processCommand.Executed += ProcessCommand_Executed;
 
             #endregion
@@ -163,25 +166,33 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             return new List<ExtensionType>
             {
                 new ExtensionType("RGBA8888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB565", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB555", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA5551", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA4444", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RG88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("R8", true),
                 new ExtensionType("G8", true),
                 new ExtensionType("B8", true),
 
                 new ExtensionType("LA88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("LA44", true,
                     new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
                 new ExtensionType("L8", true),
@@ -217,31 +228,38 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             {
                 case "RGBA8888":
                     var componentOrder1 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(8, 8, 8, 8, componentOrder1);
+                    var byteOrder1 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(8, 8, 8, 8, componentOrder1, byteOrder1);
 
                 case "RGB888":
                     var componentOrder2 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(8, 8, 8, componentOrder2);
+                    var byteOrder2 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(8, 8, 8, componentOrder2, byteOrder2);
 
                 case "RGB565":
                     var componentOrder3 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(5, 6, 5, componentOrder3);
+                    var byteOrder3 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(5, 6, 5, componentOrder3, byteOrder3);
 
                 case "RGB555":
                     var componentOrder4 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(5, 5, 5, componentOrder4);
+                    var byteOrder4 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(5, 5, 5, componentOrder4, byteOrder4);
 
                 case "RGBA5551":
                     var componentOrder5 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(5, 5, 5, 1, componentOrder5);
+                    var byteOrder5 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(5, 5, 5, 1, componentOrder5, byteOrder5);
 
                 case "RGBA4444":
                     var componentOrder6 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(4, 4, 4, 4, componentOrder6);
+                    var byteOrder6 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(4, 4, 4, 4, componentOrder6, byteOrder6);
 
                 case "RG88":
                     var componentOrder7 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new Rgba(8, 8, 0, componentOrder7);
+                    var byteOrder7 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new Rgba(8, 8, 0, componentOrder7, byteOrder7);
 
                 case "R8":
                     return new Rgba(8, 0, 0);
@@ -251,7 +269,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
                 case "LA88":
                     var componentOrder8 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    return new La(8, 8, componentOrder8);
+                    var byteOrder8 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    return new La(8, 8, componentOrder8, byteOrder8);
 
                 case "LA44":
                     var componentOrder9 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
@@ -386,6 +405,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             OpenFile();
         }
 
+        private void ExtractImageCommand_Executed(object sender, EventArgs e)
+        {
+            ExtractImage();
+        }
+
         private void CloseFileCommand_Executed(object sender, EventArgs e)
         {
             CloseFile();
@@ -454,8 +478,26 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             _openedFile = File.OpenRead(ofd.FileName);
             closeFileCommand.Enabled = true;
+            extractImageCommand.Enabled = true;
 
             UpdateImage();
+        }
+
+        private void ExtractImage()
+        {
+            var sfd = new SaveFileDialog
+            {
+                Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
+                FileName = "extract.png"
+            };
+
+            if (sfd.ShowDialog(this) != DialogResult.Ok)
+            {
+                SetStatus("No file selected.");
+                return;
+            }
+
+            (imageView.Image as Bitmap)?.Save(sfd.FileName, ImageFormat.Png);
         }
 
         private void CloseFile()
@@ -464,6 +506,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             _openedFile = null;
 
             closeFileCommand.Enabled = false;
+            extractImageCommand.Enabled = false;
 
             imageView.Image = null;
         }

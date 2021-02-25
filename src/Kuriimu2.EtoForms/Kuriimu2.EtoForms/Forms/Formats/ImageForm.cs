@@ -147,7 +147,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             imageView.Invalidate();
 
             // Update palette image
-            UpdatePaletteImage();
+            if (image.IsIndexed)
+                UpdatePaletteImage();
         }
 
         private void ToggleForm(bool toggle)

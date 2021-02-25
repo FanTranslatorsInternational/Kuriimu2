@@ -8,8 +8,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
     partial class RawImageDialog:Dialog
     {
         private ImageViewEx imageView;
-        private Label widthLabel;
-        private Label heightLabel;
 
         private TextBox widthText;
         private TextBox heightText;
@@ -26,6 +24,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private Command openFileCommand;
         private Command closeFileCommand;
+        private Command extractImageCommand;
         private Command processCommand;
 
         #endregion
@@ -35,8 +34,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             #region Controls
 
             imageView = new ImageViewEx();
-            widthLabel = new Label { Text = "Width: 0" };
-            heightLabel = new Label { Text = "Height: 0" };
 
             widthText = new TextBox { Text = "1" };
             heightText = new TextBox { Text = "1" };
@@ -55,6 +52,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             openFileCommand = new Command { MenuText = "Open" };
             closeFileCommand = new Command { MenuText = "Close", Enabled = false };
+            extractImageCommand = new Command { MenuText = "Extract", Enabled = false };
             processCommand = new Command { Enabled = false };
 
             #endregion
@@ -67,7 +65,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = "File", Items = { openFileCommand, closeFileCommand } },
+                    new ButtonMenuItem { Text = "File", Items = { openFileCommand, closeFileCommand, new SeparatorMenuItem(), extractImageCommand } },
                 }
             };
 

@@ -10,6 +10,7 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
+    // Specification: https://www.gc-forever.com/yagcd/chap13.html#sec13
     // Files commonly denoted as 'boot.bin' and 'fst.bin' are internally managed by this plugin, and are therefore not exposed to the user
     class GcDisc
     {
