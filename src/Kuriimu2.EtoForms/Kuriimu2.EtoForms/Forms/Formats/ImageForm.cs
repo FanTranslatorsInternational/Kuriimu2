@@ -109,6 +109,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void UpdatePalettes(IKanvasImage image)
         {
+            if (image == null)
+            {
+                palettes.DataStore = Array.Empty<ImageEncodingElement>();
+                return;
+            }
+
             var definition = GetEncodingDefinition();
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
@@ -129,6 +135,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void UpdateImagePreview(IKanvasImage image)
         {
+            if (image == null)
+                return;
+
             var definition = GetEncodingDefinition();
 
             // Set dropdown values
@@ -173,17 +182,20 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void UpdateFormInternal()
         {
-            var isSaveState = _stateInfo.PluginState is ISaveFiles;
-            saveButton.Enabled = isSaveState;
-            saveAsButton.Enabled = isSaveState && _stateInfo.ParentStateInfo == null;
+            var selectedImage = GetSelectedImage();
 
-            exportButton.Enabled = true;
-            importButton.Enabled = isSaveState;
+            var isSaveState = _stateInfo.PluginState is ISaveFiles;
+            saveButton.Enabled = selectedImage != null && isSaveState;
+            saveAsButton.Enabled = selectedImage != null && isSaveState && _stateInfo.ParentStateInfo == null;
+
+            exportButton.Enabled = selectedImage != null;
+            importButton.Enabled = selectedImage != null && isSaveState;
 
             var definition = GetEncodingDefinition();
-            var isIndexed = GetSelectedImage().IsIndexed;
-            palettes.Enabled = isIndexed && definition.HasPaletteEncodings;
-            formats.Enabled = definition.HasColorEncodings || definition.HasIndexEncodings;
+            var isIndexed = selectedImage?.IsIndexed ?? false;
+            var isLocked = selectedImage?.IsImageLocked ?? false;
+            palettes.Enabled = !isLocked && isIndexed && definition.HasPaletteEncodings;
+            formats.Enabled = !isLocked && definition.HasColorEncodings || definition.HasIndexEncodings;
 
             imageView.Enabled = GetStateImages().Any();
             images.Enabled = GetStateImages().Any();
@@ -284,6 +296,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateImagePreview(GetSelectedImage());
 
             UpdateFormInternal();
+
+            _communicator.Update(true, false);
         }
 
         #endregion
@@ -381,6 +395,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private IKanvasImage GetSelectedImage()
         {
+            if (_selectedImageIndex >= GetStateImages().Count)
+                return null;
+
             return GetStateImages()[_selectedImageIndex];
         }
 

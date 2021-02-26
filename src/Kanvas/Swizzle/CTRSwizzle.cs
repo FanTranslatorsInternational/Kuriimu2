@@ -26,7 +26,7 @@ namespace Kanvas.Swizzle
         /// <param name="height">The height of the image to swizzle.</param>
         /// <param name="transform">The transformation mode for this swizzle.</param>
         /// <param name="toPowerOfTwo">Should the dimensions be padded to a power of 2.</param>
-        public CTRSwizzle(int width, int height, CtrTransformation transform, bool toPowerOfTwo)
+        public CTRSwizzle(int width, int height, CtrTransformation transform = CtrTransformation.None, bool toPowerOfTwo = false)
         {
             Width = (toPowerOfTwo) ? 2 << (int)Math.Log(width - 1, 2) : width;
             Height = (toPowerOfTwo) ? 2 << (int)Math.Log(height - 1, 2) : height;

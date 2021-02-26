@@ -31,8 +31,8 @@ namespace Kanvas
             ImageInfo.Configuration ?? new ImageConfiguration();
 
         /// <inheritdoc />
-        public int BitDepth => _encodingDefinition.ContainsColorEncoding(ImageFormat) ? 
-            _encodingDefinition.GetColorEncoding(ImageFormat).BitDepth : 
+        public int BitDepth => _encodingDefinition.ContainsColorEncoding(ImageFormat) ?
+            _encodingDefinition.GetColorEncoding(ImageFormat).BitDepth :
             _encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding.BitDepth;
 
         /// <inheritdoc />
@@ -53,6 +53,9 @@ namespace Kanvas
         /// <inheritdoc />
         public string Name => ImageInfo.Name;
 
+        /// <inheritdoc />
+        public bool IsImageLocked { get; }
+
         /// <summary>
         /// Creates a new instance of <see cref="KanvasImage"/>.
         /// </summary>
@@ -68,6 +71,26 @@ namespace Kanvas
 
             _encodingDefinition = encodingDefinition;
             ImageInfo = imageInfo;
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="KanvasImage"/>.
+        /// </summary>
+        /// <param name="encodingDefinition">The encoding definition for the image info.</param>
+        /// <param name="imageInfo">The image info to represent.</param>
+        /// <param name="lockImage">Locks the image to its initial dimension and encodings. This will throw an exception in the methods that may try such changes.</param>
+        public KanvasImage(EncodingDefinition encodingDefinition, ImageInfo imageInfo, bool lockImage)
+        {
+            ContractAssertions.IsNotNull(encodingDefinition, nameof(encodingDefinition));
+            ContractAssertions.IsNotNull(imageInfo, nameof(imageInfo));
+
+            if (!encodingDefinition.Supports(imageInfo))
+                throw new InvalidOperationException("The encoding definition can not support the image info.");
+
+            _encodingDefinition = encodingDefinition;
+            ImageInfo = imageInfo;
+
+            IsImageLocked = lockImage;
         }
 
         /// <inheritdoc />
@@ -87,6 +110,10 @@ namespace Kanvas
         /// <inheritdoc />
         public void SetImage(Bitmap image, IProgressContext progress = null)
         {
+            // Check for locking
+            if (IsImageLocked && (ImageSize.Width != image.Width || ImageSize.Height != image.Height))
+                throw new InvalidOperationException("Only images with the same dimensions can be set.");
+
             _bestImage = image;
 
             _decodedImage = null;
@@ -107,6 +134,10 @@ namespace Kanvas
         {
             ContractAssertions.IsTrue(IsIndexed, nameof(IsIndexed));
 
+            // Check for locking
+            if (IsImageLocked && GetPalette(progress).Count != palette.Count)
+                throw new InvalidOperationException("Only palettes with the same amount of colors can be set.");
+
             _decodedImage = _bestImage = null;
             _decodedPalette = palette;
 
@@ -118,6 +149,9 @@ namespace Kanvas
         /// <inheritdoc />
         public void TranscodeImage(int imageFormat, IProgressContext progress = null)
         {
+            if (IsImageLocked)
+                throw new InvalidOperationException("Image cannot be transcoded to another format.");
+
             var paletteFormat = PaletteFormat;
             if (!IsIndexed && IsIndexEncoding(imageFormat))
                 paletteFormat = _encodingDefinition.GetIndexEncoding(imageFormat).PaletteEncodingIndices.First();
@@ -129,6 +163,9 @@ namespace Kanvas
         public void TranscodePalette(int paletteFormat, IProgressContext progress = null)
         {
             ContractAssertions.IsTrue(IsIndexed, nameof(IsIndexed));
+
+            if (IsImageLocked)
+                throw new InvalidOperationException("Palette cannot be transcoded to another format.");
 
             TranscodeInternal(ImageFormat, paletteFormat, true, progress);
         }
