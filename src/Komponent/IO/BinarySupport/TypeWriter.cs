@@ -129,6 +129,11 @@ namespace Komponent.IO.BinarySupport
             var fields = writeType.GetFields().OrderBy(fi => fi.MetadataToken);
             foreach (var field in fields)
             {
+                // If field condition is false, write no value and ignore field
+                var conditionAttribute = field.GetCustomAttribute<ConditionAttribute>();
+                if (!ResolveCondition(conditionAttribute, storage))
+                    continue;
+
                 var fieldValue = field.GetValue(writeValue);
                 storage.Add(field.Name, fieldValue);
 
@@ -175,6 +180,35 @@ namespace Komponent.IO.BinarySupport
             }
 
             return (length, stringEncoding);
+        }
+
+        private bool ResolveCondition(ConditionAttribute condition, ValueStorage storage)
+        {
+            // If no condition is given, resolve it to true so the field is read
+            if (condition == null)
+                return true;
+
+            var value = storage.Get(condition.FieldName);
+            switch (condition.Comparer)
+            {
+                case ConditionComparer.Equal:
+                    return Convert.ToUInt64(value) == condition.Value;
+
+                case ConditionComparer.Greater:
+                    return Convert.ToUInt64(value) > condition.Value;
+
+                case ConditionComparer.Smaller:
+                    return Convert.ToUInt64(value) < condition.Value;
+
+                case ConditionComparer.GEqual:
+                    return Convert.ToUInt64(value) >= condition.Value;
+
+                case ConditionComparer.SEqual:
+                    return Convert.ToUInt64(value) <= condition.Value;
+
+                default:
+                    throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.");
+            }
         }
     }
 }
