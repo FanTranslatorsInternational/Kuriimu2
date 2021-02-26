@@ -40,7 +40,7 @@ namespace plugin_nintendo.Images
 
             var kanvasImage = new KanvasImage(EncodingDefinition, _ncgr.Load(ncgrStream, nclrStream));
 
-            Images = new List<IKanvasImage> { kanvasImage };
+            Images = new IKanvasImage[] { kanvasImage };
         }
     }
 }
