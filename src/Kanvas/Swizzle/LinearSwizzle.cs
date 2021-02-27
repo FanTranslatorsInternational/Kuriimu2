@@ -21,19 +21,19 @@ namespace Kanvas.Swizzle
         /// <summary>
         /// Creates a new instance of <see cref="LinearSwizzle"/>.
         /// </summary>
-        /// <param name="widthStride"></param>
-        /// <param name="heightStride"></param>
-        public LinearSwizzle(int widthStride, int heightStride)
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        public LinearSwizzle(int width, int height)
         {
-            Width = widthStride;
-            Height = heightStride;
+            Width = width;
+            Height = height;
 
             var bitField = new List<(int, int)>();
-            for (int i = 1; i < widthStride; i *= 2)
+            for (int i = 1; i < width; i *= 2)
                 bitField.Add((i, 0));
-            for (int i = 1; i < heightStride; i *= 2)
+            for (int i = 1; i < height; i *= 2)
                 bitField.Add((0, i));
-            Swizzle = new MasterSwizzle(widthStride, new Point(0, 0), bitField.ToArray());
+            Swizzle = new MasterSwizzle(width, new Point(0, 0), bitField.ToArray());
         }
 
         /// <inheritdoc />

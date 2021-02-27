@@ -1,28 +1,20 @@
 ﻿using System;
-using System.Drawing;
 
 namespace Kontract.Kanvas.Configuration
 {
-    public delegate Size CreatePaddedSize(Size imageSize);
-    public delegate IImageSwizzle CreatePixelRemapper(Size imageSize);
-    public delegate IColorEncoding CreateColorEncoding();
-    public delegate IIndexEncoding CreateIndexEncoding();
-
     public interface IImageConfiguration
     {
-        IImageConfiguration WithTaskCount(int taskCount);
+        public ITranscodeConfiguration Transcode { get; }
 
-        IImageConfiguration PadSizeWith(CreatePaddedSize func);
+        public IPadSizeConfiguration PadSize { get; }
 
-        IImageConfiguration RemapPixelsWith(CreatePixelRemapper func);
+        public IRemapPixelsConfiguration RemapPixels { get; }
+
+        IImageConfiguration WithDegreeOfParallelism(int taskCount);
 
         IImageConfiguration ConfigureQuantization(Action<IQuantizationOptions> configure);
 
         IImageConfiguration WithoutQuantization();
-
-        IImageConfiguration TranscodeWith(CreateColorEncoding func);
-
-        IIndexConfiguration TranscodeWith(CreateIndexEncoding func);
 
         IImageTranscoder Build();
 

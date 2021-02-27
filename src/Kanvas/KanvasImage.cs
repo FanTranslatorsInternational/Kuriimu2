@@ -254,8 +254,8 @@ namespace Kanvas
             if (IsIndexed)
             {
                 var transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(() => _encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
-                    .TranscodePaletteWith(() => _encodingDefinition.GetPaletteEncoding(PaletteFormat))
+                    .Transcode.With(_encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
+                    .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(PaletteFormat))
                     .Build();
 
                 decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.PaletteData, ImageInfo.ImageSize, progress);
@@ -263,7 +263,7 @@ namespace Kanvas
             else
             {
                 var transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(() => _encodingDefinition.GetColorEncoding(ImageFormat))
+                    .Transcode.With(_encodingDefinition.GetColorEncoding(ImageFormat))
                     .Build();
 
                 decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.ImageSize, progress);
@@ -312,14 +312,14 @@ namespace Kanvas
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = ImageConfiguration.Clone()
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
-                    .TranscodeWith(() => indexEncoding)
-                    .TranscodePaletteWith(() => _encodingDefinition.GetPaletteEncoding(paletteFormat))
+                    .Transcode.With(indexEncoding)
+                    .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(paletteFormat))
                     .Build();
             }
             else
             {
                 transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(() => _encodingDefinition.GetColorEncoding(imageFormat))
+                    .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 
@@ -357,13 +357,13 @@ namespace Kanvas
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = ImageConfiguration.Clone()
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
-                    .TranscodeWith(() => indexEncoding)
+                    .Transcode.With(indexEncoding)
                     .Build();
             }
             else
             {
                 transcoder = ImageConfiguration.Clone()
-                    .TranscodeWith(() => _encodingDefinition.GetColorEncoding(imageFormat))
+                    .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ using Kuriimu2.EtoForms.Extensions;
 using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
+using Bitmap = Eto.Drawing.Bitmap;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
@@ -116,9 +118,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
                 var imageConfiguration = new ImageConfiguration();
                 if (SelectedSwizzleExtension.Name != "None")
-                    imageConfiguration.RemapPixelsWith(size => CreateSwizzle(size, encoding));
+                    imageConfiguration.RemapPixels.With(() => CreateSwizzle(new System.Drawing.Size(width, height), encoding));
 
-                var transcoder = imageConfiguration.TranscodeWith(() => encoding).Build();
+                var transcoder = imageConfiguration.Transcode.With(encoding).Build();
                 imageView.Image = transcoder.Decode(imgData, new System.Drawing.Size(width, height)).ToEto();
                 imageView.Invalidate();
             }
@@ -362,7 +364,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new NitroSwizzle(size.Width, size.Height);
 
                 case "3DS":
-                    return new CTRSwizzle(size.Width, size.Height, CtrTransformation.None, true);
+                    return new CTRSwizzle(size.Width, size.Height);
 
                 case "WiiU":
                     var swizzleTileMode = SelectedSwizzleExtension.GetParameterValue<byte>("SwizzleTileMode");

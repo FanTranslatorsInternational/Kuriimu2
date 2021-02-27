@@ -8,7 +8,7 @@ using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    public class ASTC : IColorEncoding
+    public class Astc : IColorEncoding
     {
         private readonly AstcFormat _format;
 
@@ -24,7 +24,7 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="FormatName"/>
         public string FormatName { get; }
 
-        public ASTC(AstcFormat format)
+        public Astc(AstcFormat format)
         {
             _format = format;
 
