@@ -33,7 +33,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             #region Controls
 
-            imageView = new ImageViewEx();
+            imageView = new ImageViewEx { BackgroundColor = KnownColors.DarkGreen };
 
             widthText = new TextBox { Text = "1" };
             heightText = new TextBox { Text = "1" };

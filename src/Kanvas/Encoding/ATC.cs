@@ -45,9 +45,9 @@ namespace Kanvas.Encoding
             var decoder = GetDecoder();
 
             var blockSize = BitsPerValue / 8;
-            return Enumerable.Range(0, input.Length).AsParallel()
-                .WithDegreeOfParallelism(loadContext.TaskCount)
+            return Enumerable.Range(0, input.Length/blockSize).AsParallel()
                 .AsOrdered()
+                .WithDegreeOfParallelism(loadContext.TaskCount)
                 .SelectMany(x =>
                 {
                     var decodedBlock = decoder.DecodeBlock(input.AsSpan(x * blockSize, blockSize), compressionFormat);

@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Swizzle
 {
@@ -10,23 +11,13 @@ namespace Kanvas.Swizzle
     {
         private readonly MasterSwizzle _swizzle;
 
-        /// <inheritdoc />
         public int Width { get; }
-
-        /// <inheritdoc />
         public int Height { get; }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="DolphinSwizzle"/>
-        /// </summary>
-        /// <param name="width">The width of the image to swizzle.</param>
-        /// <param name="height">The height of the image to swizzle.</param>
-        public DolphinSwizzle(int width, int height)
+        public DolphinSwizzle(SwizzlePreparationContext context)
         {
-            Width = width;
-            Height = height;
-
-            _swizzle = new MasterSwizzle(Width, new Point(0, 0), new[] { (1, 0), (2, 0), (0, 1), (0, 2) });
+            _swizzle = new MasterSwizzle(context.Size.Width, new Point(0, 0), new[] { (1, 0), (2, 0), (0, 1), (0, 2) });
+            (Width, Height) = ((context.Size.Width + 3) & ~3, (context.Size.Height + 3) & ~3);
         }
 
         /// <inheritdoc />

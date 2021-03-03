@@ -8,14 +8,14 @@ namespace Kontract.Kanvas
     public interface IImageSwizzle
     {
         /// <summary>
-        /// The Width of the image to swizzle.
+        /// The width of the image after the swizzle is applied.
         /// </summary>
-        int Width { get; }
+        public int Width { get; }
 
         /// <summary>
-        /// The Height of the image to swizzle.
+        /// The height of the image after the swizzle is applied.
         /// </summary>
-        int Height { get; }
+        public int Height { get; }
 
         /// <summary>
         /// Transforms a given point according to the swizzle.

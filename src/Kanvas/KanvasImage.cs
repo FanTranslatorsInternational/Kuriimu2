@@ -9,7 +9,6 @@ using Kontract;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Image;
 using Kontract.Kanvas;
-using Kontract.Kanvas.Configuration;
 using Kontract.Kanvas.Model;
 
 namespace Kanvas
@@ -26,9 +25,6 @@ namespace Kanvas
         private IList<Color> _decodedPalette;
 
         private int TaskCount => Environment.ProcessorCount;
-
-        private IImageConfiguration ImageConfiguration =>
-            ImageInfo.Configuration ?? new ImageConfiguration();
 
         /// <inheritdoc />
         public int BitDepth => _encodingDefinition.ContainsColorEncoding(ImageFormat) ?
@@ -253,7 +249,7 @@ namespace Kanvas
             Func<Bitmap> decodeImageAction;
             if (IsIndexed)
             {
-                var transcoder = ImageConfiguration.Clone()
+                var transcoder = CreateImageConfiguration()
                     .Transcode.With(_encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
                     .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(PaletteFormat))
                     .Build();
@@ -262,7 +258,7 @@ namespace Kanvas
             }
             else
             {
-                var transcoder = ImageConfiguration.Clone()
+                var transcoder = CreateImageConfiguration()
                     .Transcode.With(_encodingDefinition.GetColorEncoding(ImageFormat))
                     .Build();
 
@@ -310,7 +306,7 @@ namespace Kanvas
             if (IsIndexEncoding(imageFormat))
             {
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
-                transcoder = ImageConfiguration.Clone()
+                transcoder = CreateImageConfiguration()
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
                     .Transcode.With(indexEncoding)
                     .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(paletteFormat))
@@ -318,7 +314,7 @@ namespace Kanvas
             }
             else
             {
-                transcoder = ImageConfiguration.Clone()
+                transcoder = CreateImageConfiguration()
                     .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
@@ -355,14 +351,14 @@ namespace Kanvas
             if (IsIndexEncoding(imageFormat))
             {
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
-                transcoder = ImageConfiguration.Clone()
+                transcoder = CreateImageConfiguration()
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
                     .Transcode.With(indexEncoding)
                     .Build();
             }
             else
             {
-                transcoder = ImageConfiguration.Clone()
+                transcoder = CreateImageConfiguration()
                     .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
@@ -433,6 +429,18 @@ namespace Kanvas
 
             if (isRunning.HasValue && !isRunning.Value)
                 progress.FinishProgress();
+        }
+
+        private ImageConfiguration CreateImageConfiguration()
+        {
+            var config = new ImageConfiguration();
+
+            if (ImageInfo.PadSize.IsSet)
+                config.PadSize.With(size => ImageInfo.PadSize.Build(size));
+            if (ImageInfo.RemapPixels.IsSet)
+                config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));
+
+            return config;
         }
 
         public void Dispose()

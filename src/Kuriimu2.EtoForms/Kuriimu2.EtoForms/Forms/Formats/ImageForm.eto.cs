@@ -3,6 +3,7 @@ using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Controls.ImageView;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
@@ -76,7 +77,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 ItemTextBinding = Binding.Property<string>(nameof(ImageElement.Text)),
             };
 
-            imageView = new ImageViewEx();
+            imageView = new ImageViewEx { BackgroundColor = KnownColors.DarkGreen };
             imagePalette = new PaletteView { Size = new Size(200, -1),  };
 
             var widthLabel = new Label { Text = "Width:" };
