@@ -59,7 +59,7 @@ namespace plugin_nintendo.Images
                 result.Add(mipCount > 0
                     ? new ImageInfo(imageData, mipMaps, format, size)
                     : new ImageInfo(imageData, format, size));
-                result[^1].Configuration = new ImageConfiguration().RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height));
+                result[^1].RemapPixels.With(context => new CtrSwizzle(context));
             }
 
             return result;

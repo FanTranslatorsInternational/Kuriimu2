@@ -9,31 +9,30 @@ using Kontract.Kanvas;
 using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
-using plugin_nintendo.NW4C;
 
 namespace plugin_nintendo.Images
 {
-    public class BclimState : IImageState, ILoadFiles, ISaveFiles
+    public class BxlimState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly Bclim _bclim;
+        private readonly Bxlim _bxlim;
 
-        public EncodingDefinition EncodingDefinition { get; }
+        public EncodingDefinition EncodingDefinition { get; private set; }
 
         public IList<IKanvasImage> Images { get; private set; }
 
-        public bool ContentChanged => IsChanged();
+        public bool ContentChanged => IsContentChanged();
 
-        public BclimState()
+        public BxlimState()
         {
-            _bclim = new Bclim();
-
-            EncodingDefinition = ImageFormats.CtrFormats.ToColorDefinition();
+            _bxlim = new Bxlim();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var img = _bclim.Load(fileStream);
+            var img = _bxlim.Load(fileStream);
+
+            EncodingDefinition = _bxlim.IsCtr ? BxlimSupport.GetCtrDefinition() : BxlimSupport.GetCafeDefinition();
 
             Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, img) };
         }
@@ -41,12 +40,12 @@ namespace plugin_nintendo.Images
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            _bclim.Save(saveStream, Images[0]);
+            _bxlim.Save(saveStream, Images[0].ImageInfo);
 
             return Task.CompletedTask;
         }
 
-        private bool IsChanged()
+        private bool IsContentChanged()
         {
             return Images.Any(x => x.ImageInfo.ContentChanged);
         }

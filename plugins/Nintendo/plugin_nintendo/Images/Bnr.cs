@@ -37,12 +37,14 @@ namespace plugin_nintendo.Images
             if (_header.version >= 0x103)
                 _animationInfo = br.ReadBytes(0x1180);
 
-            return new ImageInfo(indexData, 0, new Size(32, 32))
+            var imageInfo =new ImageInfo(indexData, 0, new Size(32, 32))
             {
                 PaletteData = paletteData,
-                PaletteFormat = 0,
-                Configuration = new ImageConfiguration().RemapPixelsWith(size => new NitroSwizzle(size.Width, size.Height))
+                PaletteFormat = 0
             };
+            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
+
+            return imageInfo;
         }
 
         public void Save(Stream output, ImageInfo imageInfo)

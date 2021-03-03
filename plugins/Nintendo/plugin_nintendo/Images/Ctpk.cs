@@ -57,10 +57,10 @@ namespace plugin_nintendo.Images
 
                 result[i] = new ImageInfo(imageData, mipMaps, texEntries[i].imageFormat, new Size(texEntries[i].width, texEntries[i].height))
                 {
-                    Name = names[i],
-                    Configuration = new ImageConfiguration()
-                        .RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, CtrTransformation.None, true))
+                    Name = names[i]
                 };
+                result[i].RemapPixels.With(context => new CtrSwizzle(context));
+                result[i].PadSize.ToPowerOfTwo();
             }
 
             return result;

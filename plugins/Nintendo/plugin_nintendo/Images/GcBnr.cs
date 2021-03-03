@@ -29,10 +29,10 @@ namespace plugin_nintendo.Images
             var titleInfoCount = (int)(input.Length - input.Position) / TitleInfoSize;
             _titleInfos = br.ReadMultiple<GcBnrTitleInfo>(titleInfoCount);
 
-            return new ImageInfo(imageData, 0, new Size(96, 32))
-            {
-                Configuration = new ImageConfiguration().RemapPixelsWith(size => new DolphinSwizzle(size.Width, size.Height))
-            };
+            var imageInfo = new ImageInfo(imageData, 0, new Size(96, 32));
+            imageInfo.RemapPixels.With(context => new DolphinSwizzle(context));
+
+            return imageInfo;
         }
 
         public void Save(Stream output, ImageInfo imageInfo)
