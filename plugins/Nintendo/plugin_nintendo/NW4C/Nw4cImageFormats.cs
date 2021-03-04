@@ -25,7 +25,10 @@ namespace plugin_nintendo.NW4C
             [9] = ImageFormats.Rgba8888(),
             [10] = ImageFormats.Etc1(true),
             [11] = ImageFormats.Etc1A4(true),
+
+            [12] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
             [13] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
+
             [18] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
             [19] = ImageFormats.A4(BitOrder.LeastSignificantBitFirst)
         };
