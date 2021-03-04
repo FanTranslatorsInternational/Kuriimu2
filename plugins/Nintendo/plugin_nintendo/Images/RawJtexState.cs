@@ -9,43 +9,40 @@ using Kontract.Kanvas;
 using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
-using plugin_nintendo.Images;
 
-namespace plugin_nintendo.CTPK
+namespace plugin_nintendo.Images
 {
-    public class CtpkState : IImageState, ILoadFiles, ISaveFiles
+    class RawJtexState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly Ctpk _ctpk;
+        private RawJtex _raw;
 
         public EncodingDefinition EncodingDefinition { get; }
         public IList<IKanvasImage> Images { get; private set; }
 
-        public bool ContentChanged => IsChanged();
+        public bool ContentChanged => IsContentChanged();
 
-        public CtpkState()
+        public RawJtexState()
         {
-            _ctpk = new Ctpk();
+            _raw = new RawJtex();
 
-            EncodingDefinition = CtpkSupport.CtrFormat.ToColorDefinition();
+            EncodingDefinition = RawJtexSupport.GetEncodingDefinition();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var images = _ctpk.Load(fileStream);
-
-            Images = images.Select(x => new KanvasImage(EncodingDefinition, x)).ToArray();
+            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _raw.Load(fileStream)) };
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _ctpk.Save(saveStream, Images.Select(x => x.ImageInfo).ToArray());
+            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            _raw.Save(fileStream, Images[0].ImageInfo);
 
             return Task.CompletedTask;
         }
 
-        private bool IsChanged()
+        private bool IsContentChanged()
         {
             return Images.Any(x => x.ImageInfo.ContentChanged);
         }
