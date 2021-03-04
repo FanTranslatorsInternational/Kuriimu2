@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
+using Kontract.Models.Image;
+
 #pragma warning disable 649
 
 namespace plugin_nintendo.Images
@@ -29,23 +32,14 @@ namespace plugin_nintendo.Images
 
     public class CtpkHeader
     {
-        [FixedLength(4)]
-        public string magic;
+        [FixedLength(4)] 
+        public string magic = "CTPK";
         public short version;
         public short texCount;
         public int texSecOffset;
         public int texSecSize;
         public int crc32SecOffset;
         public int texInfoOffset;
-    }
-
-    public class CtpkEntry
-    {
-        public TexEntry texEntry;
-        public List<int> dataSizes = new List<int>();
-        public string name;
-        public HashEntry hash;
-        public MipmapEntry mipmapEntry;
     }
 
     public class TexEntry
@@ -59,7 +53,7 @@ namespace plugin_nintendo.Images
         public byte mipLvl;
         public byte type;
         public short zero0;
-        public int bitmapSizeOffset;
+        public int sizeOffset;
         public uint timeStamp;
     }
 
@@ -76,5 +70,24 @@ namespace plugin_nintendo.Images
         //never used compression specifications?
         public byte compression;
         public byte compMethod;
+    }
+
+    class CtpkImageInfo : ImageInfo
+    {
+        public TexEntry Entry { get; }
+
+        public MipmapEntry MipEntry { get; }
+
+        public CtpkImageInfo(byte[] imageData, int imageFormat, Size imageSize,TexEntry entry,MipmapEntry mipEntry) : base(imageData, imageFormat, imageSize)
+        {
+            Entry = entry;
+            MipEntry = mipEntry;
+        }
+
+        public CtpkImageInfo(byte[] imageData, IList<byte[]> mipMaps, int imageFormat, Size imageSize,TexEntry entry, MipmapEntry mipEntry) : base(imageData, mipMaps, imageFormat, imageSize)
+        {
+            Entry = entry;
+            MipEntry = mipEntry;
+        }
     }
 }
