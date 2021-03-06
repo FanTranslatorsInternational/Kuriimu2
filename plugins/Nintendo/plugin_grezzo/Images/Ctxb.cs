@@ -30,7 +30,7 @@ namespace plugin_grezzo.Images
             {
                 foreach (var texture in chunks[i].textures)
                 {
-                    var format = texture.dataType << 16 | texture.imageFormat;
+                    var format = (texture.dataType << 16) | texture.imageFormat;
 
                     input.Position = header.texDataOffset + texture.dataOffset;
                     var imageInfo = new CtxbImageInfo(br.ReadBytes(texture.dataLength), format, new Size(texture.width, texture.height), i, texture)
