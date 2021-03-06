@@ -8,7 +8,7 @@ namespace Kanvas
     {
         public static IColorEncoding Rgba1010102(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(10, 10, 10, 2, byteOrder);
         public static IColorEncoding Rgba8888(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(8, 8, 8, 8, byteOrder);
-        public static IColorEncoding Rgb888(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(8, 8, 8, byteOrder);
+        public static IColorEncoding Rgb888() => new Rgba(8, 8, 8);
         public static IColorEncoding Rgba5551(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 5, 5, 1, byteOrder);
         public static IColorEncoding Rgb565(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 6, 5, byteOrder);
         public static IColorEncoding Rgb555(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 5, 5, byteOrder);

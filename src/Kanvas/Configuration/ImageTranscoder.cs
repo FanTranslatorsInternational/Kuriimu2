@@ -22,6 +22,7 @@ namespace Kanvas.Configuration
 
         private readonly CreatePixelRemapper _remapPixels;
         private readonly CreatePaddedSize _paddedSize;
+        private readonly CreateShadedColor _shadeColorsFunc;
 
         private readonly IIndexEncoding _indexEncoding;
         private readonly IColorEncoding _paletteEncoding;
@@ -38,10 +39,11 @@ namespace Kanvas.Configuration
         /// <param name="paletteEncoding"></param>
         /// <param name="remapPixels"></param>
         /// <param name="paddedSizeFunc"></param>
+        /// <param name="shadeColorsFunc"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IIndexEncoding indexEncoding, IColorEncoding paletteEncoding,
-            CreatePixelRemapper remapPixels, CreatePaddedSize paddedSizeFunc,
+            CreatePixelRemapper remapPixels, CreatePaddedSize paddedSizeFunc, CreateShadedColor shadeColorsFunc,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
@@ -55,6 +57,7 @@ namespace Kanvas.Configuration
 
             _remapPixels = remapPixels;
             _paddedSize = paddedSizeFunc;
+            _shadeColorsFunc = shadeColorsFunc;
 
             _taskCount = taskCount;
         }
@@ -65,10 +68,11 @@ namespace Kanvas.Configuration
         /// <param name="colorEncoding"></param>
         /// <param name="remapPixels"></param>
         /// <param name="paddedSizeFunc"></param>
+        /// <param name="shadeColorsFunc"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IColorEncoding colorEncoding, CreatePixelRemapper remapPixels,
-            CreatePaddedSize paddedSizeFunc,
+            CreatePaddedSize paddedSizeFunc, CreateShadedColor shadeColorsFunc,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
@@ -78,6 +82,7 @@ namespace Kanvas.Configuration
 
             _remapPixels = remapPixels;
             _paddedSize = paddedSizeFunc;
+            _shadeColorsFunc = shadeColorsFunc;
 
             _taskCount = taskCount;
         }
@@ -103,6 +108,7 @@ namespace Kanvas.Configuration
             var paddedSize = GetPaddedSize(imageSize);
             var swizzle = GetPixelRemapper(_colorEncoding, imageSize, paddedSize);
             var finalSize = GetFinalSize(imageSize, paddedSize, swizzle);
+            var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load colors
             var valueCount = data.Length * 8 / _colorEncoding.BitsPerValue;
@@ -119,6 +125,10 @@ namespace Kanvas.Configuration
                 .Load(data, new EncodingLoadContext(imageSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
+            // Apply color shader
+            if (colorShader != null)
+                colors = colors.Select(colorShader.Read);
+
             // Create image with unpadded dimensions
             return colors.ToBitmap(imageSize, paddedSize, swizzle);
         }
@@ -133,14 +143,17 @@ namespace Kanvas.Configuration
             var paddedSize = GetPaddedSize(imageSize);
             var swizzle = GetPixelRemapper(_indexEncoding, imageSize, paddedSize);
             var finalSize = GetFinalSize(imageSize, paddedSize, swizzle);
+            var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load palette
             var valueCount = data.Length * 8 / _paletteEncoding.BitsPerValue;
             var setMaxProgress = progresses?[0]?.SetMaxValue(valueCount * _paletteEncoding.ColorsPerValue);
-            var palette = _paletteEncoding
+            var paletteEnumeration = _paletteEncoding
                 .Load(paletteData, new EncodingLoadContext(imageSize, _taskCount))
-                .AttachProgress(setMaxProgress, "Decode palette colors")
-                .ToList();
+                .AttachProgress(setMaxProgress, "Decode palette colors");
+
+            // Apply color shader on palette
+            var palette = colorShader != null ? paletteEnumeration.Select(colorShader.Read).ToArray() : paletteEnumeration.ToArray();
 
             // Load indices
             valueCount = data.Length * 8 / _indexEncoding.BitsPerValue;
@@ -168,6 +181,7 @@ namespace Kanvas.Configuration
             // Prepare information and instances
             var paddedSize = GetPaddedSize(image.Size);
             var swizzle = GetPixelRemapper(_colorEncoding, image.Size, paddedSize);
+            var colorShader = _shadeColorsFunc?.Invoke();
 
             // If we have quantization enabled
             IEnumerable<Color> colors;
@@ -175,6 +189,7 @@ namespace Kanvas.Configuration
             {
                 var scopedProgresses = progress?.SplitIntoEvenScopes(2);
 
+                // HINT: Color shader is applied by QuantizeImage
                 var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, scopedProgresses?[0]);
 
                 // Recompose indices to colors
@@ -186,6 +201,10 @@ namespace Kanvas.Configuration
                 // Decompose image to colors
                 var setMaxProgress = progress?.SetMaxValue(image.Width * image.Height);
                 colors = image.ToColors(paddedSize, swizzle).AttachProgress(setMaxProgress, "Encode colors");
+
+                // Apply color shader
+                if (colorShader != null)
+                    colors = colors.Select(colorShader.Write);
             }
 
             // Save color data
@@ -200,7 +219,7 @@ namespace Kanvas.Configuration
 
             var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, progress);
 
-            // Save palette indexColors
+            // Save palette colors
             // This step can be skipped if no palette encoding is given.
             //   That saves time in the scenario when the palette is not needed or already exists as encoded data from somewhere else.
             var paletteData = _paletteEncoding?.Save(palette, new EncodingSaveContext(_taskCount));
@@ -217,12 +236,17 @@ namespace Kanvas.Configuration
         private (IEnumerable<int> indices, IList<Color> palette) QuantizeImage(Bitmap image, Size paddedSize, IImageSwizzle swizzle, IProgressContext progress = null)
         {
             var finalSize = GetFinalSize(image.Size, paddedSize, swizzle);
+            var colorShader = _shadeColorsFunc?.Invoke();
 
             // Decompose unswizzled image to colors
             var colors = image.ToColors(paddedSize);
 
             // Quantize unswizzled indices
             var (indices, palette) = _quantizer.Process(colors, finalSize, progress);
+
+            // Apply color shader
+            if (colorShader != null)
+                palette = palette.Select(colorShader.Write).ToArray();
 
             // Delegate indices to correct positions
             var swizzledIndices = SwizzleIndices(indices.ToArray(), finalSize, swizzle);

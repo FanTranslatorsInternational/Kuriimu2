@@ -67,6 +67,11 @@ namespace Kontract.Models.Image
         /// </summary>
         public RemapPixelsConfiguration RemapPixels { get; } = new RemapPixelsConfiguration();
 
+        /// <summary>
+        /// The configuration to define an adjustment logic to each color in the image.
+        /// </summary>
+        public ShadeColorsConfiguration ShadeColors { get; } = new ShadeColorsConfiguration();
+
         // TODO: Make not settable
         // TODO: Use KanvasImage in Kontract
         /// <summary>
@@ -164,6 +169,27 @@ namespace Kontract.Models.Image
         private int ToMultiple(int value, int multiple)
         {
             return (value + (multiple - 1)) / multiple * multiple;
+        }
+    }
+
+    public class ShadeColorsConfiguration
+    {
+        private CreateShadedColor _func;
+
+        public bool IsSet => _func != null;
+
+        public void With(CreateShadedColor func)
+        {
+            ContractAssertions.IsNotNull(func,nameof(func));
+
+            _func = func;
+        }
+
+        public IColorShader Build()
+        {
+            ContractAssertions.IsNotNull(_func,nameof(_func));
+
+            return _func.Invoke();
         }
     }
 }

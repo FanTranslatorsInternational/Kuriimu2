@@ -439,6 +439,8 @@ namespace Kanvas
                 config.PadSize.With(size => ImageInfo.PadSize.Build(size));
             if (ImageInfo.RemapPixels.IsSet)
                 config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));
+            if (ImageInfo.ShadeColors.IsSet)
+                config.ShadeColors.With(() => ImageInfo.ShadeColors.Build());
 
             return config;
         }

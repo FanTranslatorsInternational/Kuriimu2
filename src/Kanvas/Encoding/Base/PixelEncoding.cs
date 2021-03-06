@@ -54,7 +54,7 @@ namespace Kanvas.Encoding.Base
 
             return ReadValues(br).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(loadContext.TaskCount)
-                .Select(_descriptor.GetColor);
+                .Select(v => _descriptor.GetColor(v));
         }
 
         /// <inheritdoc cref="Load"/>
@@ -65,7 +65,7 @@ namespace Kanvas.Encoding.Base
 
             var values = colors.AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(saveContext.TaskCount)
-                .Select(_descriptor.GetValue);
+                .Select(c => _descriptor.GetValue(c));
 
             foreach (var value in values)
                 _writeValueDelegate(bw, value);

@@ -53,7 +53,7 @@ namespace Kanvas.Encoding.Base
 
             return ReadValues(br).AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(loadContext.TaskCount)
-                .Select(c => _descriptor.GetColor(c, palette));
+                .Select(i => _descriptor.GetColor(i, palette));
         }
 
         /// <inheritdoc cref="Save"/>

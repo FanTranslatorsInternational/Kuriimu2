@@ -14,6 +14,7 @@ namespace Kanvas.Configuration
         private readonly TranscodePaletteConfiguration _transcodePaletteConfiguration;
         private readonly PadSizeConfiguration _padSizeConfiguration;
         private readonly RemapPixelsConfiguration _remapPixelsConfiguration;
+        private readonly ShadeColorsConfiguration _shadeColorsConfiguration;
 
         private int _taskCount = Environment.ProcessorCount;
         private IQuantizationConfiguration _quantizationConfiguration;
@@ -28,12 +29,15 @@ namespace Kanvas.Configuration
 
         public IRemapPixelsConfiguration RemapPixels => _remapPixelsConfiguration;
 
+        public IShadeColorsConfiguration ShadeColors => _shadeColorsConfiguration;
+
         public ImageConfiguration()
         {
             _transcodeConfiguration = new TranscodeConfiguration(this);
             _transcodePaletteConfiguration = new TranscodePaletteConfiguration(this);
             _padSizeConfiguration = new PadSizeConfiguration(this);
             _remapPixelsConfiguration = new RemapPixelsConfiguration(this);
+            _shadeColorsConfiguration = new ShadeColorsConfiguration(this);
         }
 
         public IImageConfiguration WithDegreeOfParallelism(int taskCount)
@@ -70,6 +74,8 @@ namespace Kanvas.Configuration
                 config.PadSize.With(_padSizeConfiguration.Delegate);
             if (_remapPixelsConfiguration.Delegate != null)
                 config.RemapPixels.With(_remapPixelsConfiguration.Delegate);
+            if (_shadeColorsConfiguration.Delegate != null)
+                config.ShadeColors.With(_shadeColorsConfiguration.Delegate);
             if (_quantizationConfiguration != null)
                 config.SetQuantizationConfiguration(_quantizationConfiguration);
 
@@ -100,7 +106,7 @@ namespace Kanvas.Configuration
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationConfiguration != null ? BuildQuantizer() : null;
 
-            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
         }
 
         private IImageTranscoder BuildIndexInternal()
@@ -110,7 +116,7 @@ namespace Kanvas.Configuration
 
             var quantizer = BuildQuantizer();
 
-            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
         }
 
         private IQuantizer BuildQuantizer()
@@ -239,6 +245,27 @@ namespace Kanvas.Configuration
         }
 
         public IImageConfiguration With(CreatePixelRemapper func)
+        {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
+            Delegate = func;
+
+            return _parent;
+        }
+    }
+
+    public class ShadeColorsConfiguration : IShadeColorsConfiguration
+    {
+        private readonly IImageConfiguration _parent;
+
+        internal CreateShadedColor Delegate { get; private set; }
+
+        public ShadeColorsConfiguration(IImageConfiguration parent)
+        {
+            _parent = parent;
+        }
+
+        public IImageConfiguration With(CreateShadedColor func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
