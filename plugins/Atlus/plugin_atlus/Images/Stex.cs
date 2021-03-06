@@ -6,7 +6,10 @@ using Komponent.IO;
 using Kontract.Models.Image;
 
 namespace plugin_atlus.Images
-{
+{ 
+    /* Original understanding by xdaniel and his tool Tharsis
+     * https://github.com/xdanieldzd/Tharsis */
+
     class Stex
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(StexHeader));

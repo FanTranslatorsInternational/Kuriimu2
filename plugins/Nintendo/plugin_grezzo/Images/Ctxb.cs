@@ -8,6 +8,9 @@ using Kontract.Models.Image;
 
 namespace plugin_grezzo.Images
 {
+	/* Original understanding by xdaniel and his tool Tharsis
+	 * https://github.com/xdanieldzd/Tharsis */
+	 
     class Ctxb
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(CtxbHeader));
