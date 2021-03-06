@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Kanvas;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+using Kontract.Models.IO;
 
 namespace plugin_grezzo.Images
 {
@@ -67,21 +69,21 @@ namespace plugin_grezzo.Images
         {
             // composed of dataType and PixelFormat
             // short+short
-            [0x14016752] = new Rgba(8, 8, 8, 8),
-            [0x80336752] = new Rgba(4, 4, 4, 4),
-            [0x80346752] = new Rgba(5, 5, 5, 1),
-            [0x14016754] = new Rgba(8, 8, 8),
-            [0x83636754] = new Rgba(5, 6, 5),
-            [0x14016756] = new La(0, 8),
-            [0x67616756] = new La(0, 4),
-            [0x14016757] = new La(8, 0),
-            [0x67616757] = new La(4, 0),
-            [0x67606758] = new La(4, 4),
-            [0x14016758] = new La(8, 8),
-            [0x0000675A] = new Etc1(false, true),
-            [0x0000675B] = new Etc1(true, true),
-            [0x1401675A] = new Etc1(false, true),
-            [0x1401675B] = new Etc1(true, true)
+            [0x14016752] = ImageFormats.Rgba8888(),
+            [0x80336752] = ImageFormats.Rgba4444(),
+            [0x80346752] = ImageFormats.Rgba5551(),
+            [0x14016754] = ImageFormats.Rgb888(),
+            [0x83636754] = ImageFormats.Rgb565(),
+            [0x14016756] = ImageFormats.A8(),
+            [0x67616756] = ImageFormats.A4(BitOrder.LeastSignificantBitFirst),
+            [0x14016757] = ImageFormats.L8(),
+            [0x67616757] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
+            [0x67606758] = ImageFormats.La44(),
+            [0x14016758] = ImageFormats.La88(),
+            [0x0000675A] = ImageFormats.Etc1(true),
+            [0x0000675B] = ImageFormats.Etc1A4(true),
+            [0x1401675A] = ImageFormats.Etc1(true),
+            [0x1401675B] = ImageFormats.Etc1A4(true)
         };
 
         public static EncodingDefinition GetEncodingDefinition()

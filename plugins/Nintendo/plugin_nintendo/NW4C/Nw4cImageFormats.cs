@@ -44,7 +44,7 @@ namespace plugin_nintendo.NW4C
             [3] = ImageFormats.La88(ByteOrder.BigEndian),
             [4] = ImageFormats.Rg88(ByteOrder.BigEndian),
             [5] = ImageFormats.Rgb565(ByteOrder.BigEndian),
-            [6] = ImageFormats.Rgb888(ByteOrder.BigEndian),
+            [6] = ImageFormats.Rgb888(),
             [7] = ImageFormats.Rgba5551(ByteOrder.BigEndian),
             [8] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
             [9] = ImageFormats.Rgba8888(ByteOrder.BigEndian),

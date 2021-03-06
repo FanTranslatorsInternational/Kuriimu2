@@ -29,8 +29,8 @@ namespace plugin_nintendo.Images
             _bnr = new Bnr();
 
             EncodingDefinition = new EncodingDefinition();
-            EncodingDefinition.AddPaletteEncoding(0, new Rgba(5, 5, 5));
-            EncodingDefinition.AddIndexEncoding(0, new Kanvas.Encoding.Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 });
+            EncodingDefinition.AddPaletteEncoding(0, ImageFormats.Rgb555());
+            EncodingDefinition.AddIndexEncoding(0, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), new[] { 0 });
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)

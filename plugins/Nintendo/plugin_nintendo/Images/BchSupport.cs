@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Kanvas;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+using Kontract.Models.IO;
 
 namespace plugin_nintendo.Images
 {
@@ -47,20 +49,20 @@ namespace plugin_nintendo.Images
         {
             var formats = new Dictionary<int, IColorEncoding>
             {
-                [0] = new Rgba(8, 8, 8, 8),
-                [1] = new Rgba(8, 8, 8),
-                [2] = new Rgba(5, 5, 5, 1),
-                [3] = new Rgba(5, 6, 5),
-                [4] = new Rgba(4, 4, 4, 4),
-                [5] = new La(8, 8),
-                [6] = new Rgba(8, 8, 0),
-                [7] = new La(8, 0),
-                [8] = new La(0, 8),
-                [9] = new La(4, 4),
-                [10] = new La(4, 0),
-                [11] = new La(0, 4),
-                [12] = new Etc1(false, true),
-                [13] = new Etc1(true, true)
+                [0] = ImageFormats.Rgba8888(),
+                [1] = ImageFormats.Rgb888(),
+                [2] = ImageFormats.Rgba5551(),
+                [3] = ImageFormats.Rgb565(),
+                [4] = ImageFormats.Rgba4444(),
+                [5] = ImageFormats.La88(),
+                [6] = ImageFormats.Rg88(),
+                [7] = ImageFormats.L8(),
+                [8] = ImageFormats.A8(),
+                [9] = ImageFormats.La44(),
+                [10] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
+                [11] = ImageFormats.A4(BitOrder.LeastSignificantBitFirst),
+                [12] = ImageFormats.Etc1(true),
+                [13] = ImageFormats.Etc1A4(true)
             };
 
             var definition = EncodingDefinition.Empty;

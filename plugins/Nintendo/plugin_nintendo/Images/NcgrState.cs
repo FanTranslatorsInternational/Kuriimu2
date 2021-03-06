@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kanvas;
 using Kanvas.Encoding;
@@ -29,8 +26,8 @@ namespace plugin_nintendo.Images
 
             EncodingDefinition = new EncodingDefinition();
             EncodingDefinition.AddPaletteEncoding(0, new Rgba(5, 5, 5, "BGR"));
-            EncodingDefinition.AddIndexEncoding(3, new Kanvas.Encoding.Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 });
-            EncodingDefinition.AddIndexEncoding(4, new Kanvas.Encoding.Index(8), new[] { 0 });
+            EncodingDefinition.AddIndexEncoding(3, ImageFormats.I4(BitOrder.LeastSignificantBitFirst), new[] { 0 });
+            EncodingDefinition.AddIndexEncoding(4, ImageFormats.I8(), new[] { 0 });
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
