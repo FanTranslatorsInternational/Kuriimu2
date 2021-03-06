@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Kanvas;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
@@ -26,7 +27,7 @@ namespace plugin_arc_system_works.Images
     {
         private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
-            [0x1006] = new Etc1(true, true)
+            [0x1006] = ImageFormats.Etc1A4(true)
         };
 
         public static EncodingDefinition GetEncodingDefinition()
