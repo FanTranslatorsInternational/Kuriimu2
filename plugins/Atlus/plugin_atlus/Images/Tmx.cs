@@ -44,7 +44,6 @@ namespace plugin_atlus.Images
 
             // Create image info
             var imageInfo = new ImageInfo(imageData, (int)_header.imageFormat, new Size(_header.width, _header.height));
-            imageInfo.ShadeColors.With(() => new TmxColorShader());
 
             if (_header.mipmapCount > 0)
                 imageInfo.MipMapData = mips;

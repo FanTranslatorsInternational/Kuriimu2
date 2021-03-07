@@ -68,6 +68,13 @@ namespace plugin_atlus.Images
             [0x14] = ImageFormats.I4(BitOrder.LeastSignificantBitFirst)
         };
 
+        private static readonly IDictionary<int, IColorShader> Shaders = new Dictionary<int, IColorShader>
+        {
+            [0x00] = new TmxColorShader(),
+            [0x01] = new TmxColorShader(),
+            [0x02] = new TmxColorShader()
+        };
+
         public static EncodingDefinition GetEncodingDefinition()
         {
             var definition = new EncodingDefinition();
@@ -75,6 +82,12 @@ namespace plugin_atlus.Images
             definition.AddPaletteEncodings(ColorFormats);
 
             definition.AddIndexEncodings(IndexFormats.ToDictionary(x => x.Key, y => new IndexEncodingDefinition(y.Value, new[] { 0, 1, 2 })));
+
+            // HINT: The color shader is only applied on color encodings or palette encodings
+            // Since both, color encodings and palette encodings, share the same encodings declaration
+            // They also share the same shader declaration
+            definition.AddColorShaders(Shaders);
+            definition.AddPaletteShaders(Shaders);
 
             return definition;
         }
