@@ -33,7 +33,8 @@ namespace Kanvas.Encoding
 
             var hasSecondBlock = HasSecondBlock(format);
 
-            BitDepth = BitsPerValue = hasSecondBlock ? 128 : 64;
+            BitsPerValue = hasSecondBlock ? 128 : 64;
+            BitDepth = hasSecondBlock ? 8 : 4;
 
             FormatName = format.ToString().Replace("_", " ");
         }

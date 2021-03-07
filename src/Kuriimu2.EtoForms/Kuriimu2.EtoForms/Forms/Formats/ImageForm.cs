@@ -292,12 +292,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 _communicator.ReportStatus(false, ex.Message);
             }
 
-            UpdateImageList();
             UpdateImagePreview(GetSelectedImage());
+            UpdateImageList();
 
             UpdateFormInternal();
 
             _communicator.Update(true, false);
+            _communicator.ReportStatus(true, "Image successfully imported.");
         }
 
         #endregion
@@ -395,7 +396,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private IKanvasImage GetSelectedImage()
         {
-            if (_selectedImageIndex >= GetStateImages().Count)
+            if (_selectedImageIndex >= GetStateImages().Count || _selectedImageIndex < 0)
                 return null;
 
             return GetStateImages()[_selectedImageIndex];

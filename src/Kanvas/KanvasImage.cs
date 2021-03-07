@@ -215,25 +215,22 @@ namespace Kanvas
                     IsIndexEncoding(imageFormat) && PaletteFormat == paletteFormat)
                     return;
 
+            // Decode image
             var decodedImage = _bestImage ?? DecodeImage(progress);
+
+            // Update format information
+            ImageInfo.ImageFormat = imageFormat;
+            ImageInfo.PaletteFormat = IsIndexEncoding(imageFormat) ? paletteFormat : -1;
+
+            // Encode image
             var (imageData, paletteData) = EncodeImage(decodedImage, imageFormat, paletteFormat, progress);
 
-            // Set image info properties
+            // Set remaining image info properties
             ImageInfo.ImageData = imageData.FirstOrDefault();
             ImageInfo.MipMapData = imageData.Skip(1).ToArray();
-            ImageInfo.ImageFormat = imageFormat;
-            ImageInfo.ImageSize = decodedImage.Size;
+            ImageInfo.PaletteData = IsIndexEncoding(imageFormat) ? paletteData : null;
 
-            if (IsIndexEncoding(imageFormat))
-            {
-                ImageInfo.PaletteFormat = paletteFormat;
-                ImageInfo.PaletteData = paletteData;
-            }
-            else
-            {
-                ImageInfo.PaletteFormat = -1;
-                ImageInfo.PaletteData = null;
-            }
+            ImageInfo.ImageSize = decodedImage.Size;
 
             _decodedImage = null;
             _decodedPalette = null;
@@ -249,7 +246,7 @@ namespace Kanvas
             Func<Bitmap> decodeImageAction;
             if (IsIndexed)
             {
-                var transcoder = CreateImageConfiguration()
+                var transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .Transcode.With(_encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
                     .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(PaletteFormat))
                     .Build();
@@ -258,7 +255,7 @@ namespace Kanvas
             }
             else
             {
-                var transcoder = CreateImageConfiguration()
+                var transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .Transcode.With(_encodingDefinition.GetColorEncoding(ImageFormat))
                     .Build();
 
@@ -306,7 +303,7 @@ namespace Kanvas
             if (IsIndexEncoding(imageFormat))
             {
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
-                transcoder = CreateImageConfiguration()
+                transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
                     .Transcode.With(indexEncoding)
                     .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(paletteFormat))
@@ -314,7 +311,7 @@ namespace Kanvas
             }
             else
             {
-                transcoder = CreateImageConfiguration()
+                transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
@@ -351,14 +348,14 @@ namespace Kanvas
             if (IsIndexEncoding(imageFormat))
             {
                 var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
-                transcoder = CreateImageConfiguration()
+                transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
                     .Transcode.With(indexEncoding)
                     .Build();
             }
             else
             {
-                transcoder = CreateImageConfiguration()
+                transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
@@ -431,7 +428,7 @@ namespace Kanvas
                 progress.FinishProgress();
         }
 
-        private ImageConfiguration CreateImageConfiguration()
+        private ImageConfiguration CreateImageConfiguration(int imageFormat, int paletteFormat)
         {
             var config = new ImageConfiguration();
 
@@ -439,8 +436,11 @@ namespace Kanvas
                 config.PadSize.With(size => ImageInfo.PadSize.Build(size));
             if (ImageInfo.RemapPixels.IsSet)
                 config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));
-            if (ImageInfo.ShadeColors.IsSet)
-                config.ShadeColors.With(() => ImageInfo.ShadeColors.Build());
+
+            if (IsIndexEncoding(imageFormat) && _encodingDefinition.ContainsPaletteShader(paletteFormat))
+                config.ShadeColors.With(() => _encodingDefinition.GetPaletteShader(paletteFormat));
+            if (!IsIndexEncoding(imageFormat) && _encodingDefinition.ContainsColorShader(imageFormat))
+                config.ShadeColors.With(() => _encodingDefinition.GetColorShader(imageFormat));
 
             return config;
         }

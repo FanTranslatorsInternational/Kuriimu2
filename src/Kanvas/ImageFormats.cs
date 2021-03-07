@@ -9,6 +9,7 @@ namespace Kanvas
         public static IColorEncoding Rgba1010102(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(10, 10, 10, 2, byteOrder);
         public static IColorEncoding Rgba8888(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(8, 8, 8, 8, byteOrder);
         public static IColorEncoding Rgb888() => new Rgba(8, 8, 8);
+        public static IColorEncoding Bgr888() => new Rgba(8, 8, 8, "BGR");
         public static IColorEncoding Rgba5551(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 5, 5, 1, byteOrder);
         public static IColorEncoding Rgb565(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 6, 5, byteOrder);
         public static IColorEncoding Rgb555(ByteOrder byteOrder = ByteOrder.LittleEndian) => new Rgba(5, 5, 5, byteOrder);
@@ -25,8 +26,8 @@ namespace Kanvas
         public static IIndexEncoding I8() => new Index(8);
         public static IIndexEncoding Ia53() => new Index(5, 3);
 
-        public static IColorEncoding Etc1(bool zOrder) => new Etc1(false, zOrder);
-        public static IColorEncoding Etc1A4(bool zOrder) => new Etc1(true, zOrder);
+        public static IColorEncoding Etc1(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(false, zOrder, byteOrder);
+        public static IColorEncoding Etc1A4(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(true, zOrder, byteOrder);
 
         public static IColorEncoding Dxt1() => new Bc(BcFormat.Dxt1);
         public static IColorEncoding Dxt3() => new Bc(BcFormat.Dxt3);
@@ -41,7 +42,14 @@ namespace Kanvas
         public static IColorEncoding AtcExplicit() => new Atc(AtcFormat.Atc_Explicit);
         public static IColorEncoding AtcInterpolated() => new Atc(AtcFormat.Atc_Interpolated);
 
-        public static IColorEncoding Astc4x4()=>new Astc(AstcFormat.ASTC_4x4);
+        public static IColorEncoding Pvrtc_2bpp() => new PVRTC(PvrtcFormat.PVRTCI_2bpp_RGB);
+        public static IColorEncoding PvrtcA_2bpp() => new PVRTC(PvrtcFormat.PVRTCI_2bpp_RGBA);
+        public static IColorEncoding Pvrtc_4bpp() => new PVRTC(PvrtcFormat.PVRTCI_4bpp_RGB);
+        public static IColorEncoding PvrtcA_4bpp() => new PVRTC(PvrtcFormat.PVRTCI_4bpp_RGBA);
+        public static IColorEncoding Pvrtc2_2bpp() => new PVRTC(PvrtcFormat.PVRTCII_2bpp);
+        public static IColorEncoding Pvrtc2_4bpp() => new PVRTC(PvrtcFormat.PVRTCII_4bpp);
+
+        public static IColorEncoding Astc4x4() => new Astc(AstcFormat.ASTC_4x4);
         public static IColorEncoding Astc5x4() => new Astc(AstcFormat.ASTC_5x4);
         public static IColorEncoding Astc5x5() => new Astc(AstcFormat.ASTC_5x5);
         public static IColorEncoding Astc6x5() => new Astc(AstcFormat.ASTC_6x5);
