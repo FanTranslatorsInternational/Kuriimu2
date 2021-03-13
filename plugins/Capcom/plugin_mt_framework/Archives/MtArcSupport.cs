@@ -487,7 +487,21 @@ namespace plugin_mt_framework.Archives
             [0x4323D83A] = ".stex",
             [0x6A5CDD23] = ".occ",
             [0x62440501] = ".lmd",
-            [0x3516C3D2] = ".lfd"
+            [0x62A68441] = ".thk",
+            [0x4D3C70A1] = ".bth",
+            [0x244CC507] = ".itr",
+            [0x6A9197ED] = ".sss",
+            [0x3B764DD4] = ".sstr",
+            [0x3516C3D2] = ".lfd",
+            [0x0CF7FB37] = ".cfsm",
+            [0x3D2E1661] = ".ein",
+            [0x3B5A0DA5] = ".idx",
+            [0x354E1E08] = ".ard",
+            [0x5B9071CF] = ".col",
+            [0x342366F0] = ".atk",
+            [0x76042FD2] = ".eco",
+            [0x052CCE4E] = ".mef",
+            [0x55E21D03] = ".emp"
         };
     }
 }

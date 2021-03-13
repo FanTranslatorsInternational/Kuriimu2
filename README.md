@@ -3,13 +3,19 @@ Kuriimu2 is a general purpose game translation project manager and toolkit for a
 
 ## Requirements
 You need to have the .Net Core Desktop Runtime 3.1.6 installed on your system.<br>
+If you are on Mac or Linux, you can just install the .Net Core Runtime 3.1.6.<br>
 We build against the .Net Core SDK version 3.1.302.<br>
 You can get it here: https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 ## Download
 You can download the newest build of Kuriimu2 in the "Actions" tab. Just select the newest successful build and download its artifact.<br>
-You need to be logged in at github to download artifacts from a successful build.
+You need to be logged in at github to download artifacts from a successful build.<br>
 Those builds are considered beta and can contain bugs and unfinished features.
+
+There are several different GUI's you can choose from:
+1. WinForms: A graphical user interface in a more classic design. Can only be executed on Windows.
+2. EtoForms: A graphical user interface in a look native to the operating system. There are artifacts for Mac, Linux, and Windows.
+3. CommandLine: A command line interface of the main features of Kuriimu2. Can be executed on Mac, Linux, and Windows.
 
 ## Usage
 Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" contains a ready-to-run GUI for you to execute.
