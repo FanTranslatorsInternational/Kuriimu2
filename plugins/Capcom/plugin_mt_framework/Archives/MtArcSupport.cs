@@ -49,6 +49,7 @@ namespace plugin_mt_framework.Archives
         public abstract int Offset { get; set; }
 
         public abstract int CompSize { get; set; }
+
         protected abstract int DecompSize { get; set; }
 
         public int GetDecompressedSize(Platform platform)

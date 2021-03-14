@@ -46,7 +46,7 @@ namespace plugin_mt_framework.Archives
             if (_isEncrypted)
                 entryStream = new MtBlowfishStream(entryStream, key);
 
-            using var entryBr = new BinaryReaderX(entryStream);
+            using var entryBr = new BinaryReaderX(entryStream, _byteOrder);
             var entries = entryBr.ReadMultiple(_header.entryCount, _header.version == 9 ? typeof(MtEntrySwitch) : typeof(MtEntry)).Cast<IMtEntry>();
 
             // Add files
@@ -145,15 +145,16 @@ namespace plugin_mt_framework.Archives
         private IArchiveFileInfo CreateAfi(Stream file, string fileName, IMtEntry entry, Platform platform)
         {
             // It seems every file is compressed with ZLib on Switch
-            // Example file game.arc contains of at least one file "om120a" where compressed and uncompressed size are equal but the file is still compressed
-            // the decompressed file is really the same size; comparing with other entries no clear differences were found, that would indicate a
-            // compression flag
+            // Reasoning: Example file game.arc contains of at least one file "om120a" where compressed and uncompressed size are equal but the file is still compressed
+            //            the decompressed file is really the same size; comparing with other entries no clear differences were found, that would indicate a
+            //            compression flag
             if (platform == Platform.SWITCH)
                 return new MtArchiveFileInfo(file, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(platform));
 
             if (entry.CompSize != entry.GetDecompressedSize(platform))
             {
-                if (file.ReadByte() != 0x78)
+                var compMagic = file.ReadByte();
+                if ((compMagic & 0xF) != 8 || (compMagic & 0xF0) > 0x70)
                     throw new InvalidOperationException("File is marked as compressed but doesn't use ZLib.");
 
                 return new MtArchiveFileInfo(file, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(platform));
