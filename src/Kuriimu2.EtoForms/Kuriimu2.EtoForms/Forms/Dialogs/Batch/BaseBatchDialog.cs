@@ -65,7 +65,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         private IList<PluginElement> LoadPlugins(IInternalPluginManager pluginManager)
         {
-            return pluginManager.GetFilePlugins().Select(x => new PluginElement(x)).ToArray();
+            return pluginManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x=>x.ToString()).ToArray();
         }
 
         #endregion
