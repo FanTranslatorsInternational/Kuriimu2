@@ -21,7 +21,7 @@ namespace Kanvas.Configuration
         private readonly int _taskCount;
 
         private readonly CreatePixelRemapper _remapPixels;
-        private readonly CreatePaddedSize _paddedSize;
+        private readonly IPadSizeOptionsBuild _padSizeOptions;
         private readonly CreateShadedColor _shadeColorsFunc;
 
         private readonly IIndexEncoding _indexEncoding;
@@ -38,12 +38,12 @@ namespace Kanvas.Configuration
         /// <param name="indexEncoding"></param>
         /// <param name="paletteEncoding"></param>
         /// <param name="remapPixels"></param>
-        /// <param name="paddedSizeFunc"></param>
+        /// <param name="padSizeOptions"></param>
         /// <param name="shadeColorsFunc"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IIndexEncoding indexEncoding, IColorEncoding paletteEncoding,
-            CreatePixelRemapper remapPixels, CreatePaddedSize paddedSizeFunc, CreateShadedColor shadeColorsFunc,
+            CreatePixelRemapper remapPixels, IPadSizeOptionsBuild padSizeOptions, CreateShadedColor shadeColorsFunc,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
@@ -56,7 +56,7 @@ namespace Kanvas.Configuration
             _quantizer = quantizer;
 
             _remapPixels = remapPixels;
-            _paddedSize = paddedSizeFunc;
+            _padSizeOptions = padSizeOptions;
             _shadeColorsFunc = shadeColorsFunc;
 
             _taskCount = taskCount;
@@ -67,12 +67,12 @@ namespace Kanvas.Configuration
         /// </summary>
         /// <param name="colorEncoding"></param>
         /// <param name="remapPixels"></param>
-        /// <param name="paddedSizeFunc"></param>
+        /// <param name="padSizeOptionsFunc"></param>
         /// <param name="shadeColorsFunc"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IColorEncoding colorEncoding, CreatePixelRemapper remapPixels,
-            CreatePaddedSize paddedSizeFunc, CreateShadedColor shadeColorsFunc,
+            IPadSizeOptionsBuild padSizeOptionsFunc, CreateShadedColor shadeColorsFunc,
             IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
@@ -81,7 +81,7 @@ namespace Kanvas.Configuration
             _quantizer = quantizer;
 
             _remapPixels = remapPixels;
-            _paddedSize = paddedSizeFunc;
+            _padSizeOptions = padSizeOptionsFunc;
             _shadeColorsFunc = shadeColorsFunc;
 
             _taskCount = taskCount;
@@ -106,8 +106,8 @@ namespace Kanvas.Configuration
         {
             // Prepare information and instances
             var paddedSize = GetPaddedSize(imageSize);
-            var swizzle = GetPixelRemapper(_colorEncoding, imageSize, paddedSize);
-            var finalSize = GetFinalSize(imageSize, paddedSize, swizzle);
+            var swizzle = GetPixelRemapper(_colorEncoding, paddedSize);
+            var finalSize = GetFinalSize(paddedSize, swizzle);
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load colors
@@ -141,8 +141,8 @@ namespace Kanvas.Configuration
 
             // Prepare information and instances
             var paddedSize = GetPaddedSize(imageSize);
-            var swizzle = GetPixelRemapper(_indexEncoding, imageSize, paddedSize);
-            var finalSize = GetFinalSize(imageSize, paddedSize, swizzle);
+            var swizzle = GetPixelRemapper(_indexEncoding, paddedSize);
+            var finalSize = GetFinalSize(paddedSize, swizzle);
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load palette
@@ -180,7 +180,7 @@ namespace Kanvas.Configuration
         {
             // Prepare information and instances
             var paddedSize = GetPaddedSize(image.Size);
-            var swizzle = GetPixelRemapper(_colorEncoding, image.Size, paddedSize);
+            var swizzle = GetPixelRemapper(_colorEncoding, paddedSize);
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // If we have quantization enabled
@@ -215,7 +215,7 @@ namespace Kanvas.Configuration
         {
             // Prepare information and instances
             var paddedSize = GetPaddedSize(image.Size);
-            var swizzle = GetPixelRemapper(_indexEncoding, image.Size, paddedSize);
+            var swizzle = GetPixelRemapper(_indexEncoding, paddedSize);
 
             var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, progress);
 
@@ -235,7 +235,7 @@ namespace Kanvas.Configuration
 
         private (IEnumerable<int> indices, IList<Color> palette) QuantizeImage(Bitmap image, Size paddedSize, IImageSwizzle swizzle, IProgressContext progress = null)
         {
-            var finalSize = GetFinalSize(image.Size, paddedSize, swizzle);
+            var finalSize = GetFinalSize(paddedSize, swizzle);
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Decompose unswizzled image to colors
@@ -269,23 +269,23 @@ namespace Kanvas.Configuration
 
         private Size GetPaddedSize(Size imageSize)
         {
-            return _paddedSize?.Invoke(imageSize) ?? Size.Empty;
+            return _padSizeOptions.Build(imageSize);
         }
 
-        private Size GetFinalSize(Size imageSize, Size paddedSize, IImageSwizzle swizzle)
+        private Size GetFinalSize(Size paddedSize, IImageSwizzle swizzle)
         {
-            if (!paddedSize.IsEmpty)
-                return paddedSize;
-
+            // Swizzle dimensions are based on padded size already
+            // Swizzle has higher priority since it might pad the padded size further, due to its macro blocks
             if (swizzle != null)
                 return new Size(swizzle.Width, swizzle.Height);
 
-            return imageSize;
+            // Otherwise just return the already padded size
+            return paddedSize;
         }
 
-        private IImageSwizzle GetPixelRemapper(IEncodingInfo encodingInfo, Size imageSize, Size paddedSize)
+        private IImageSwizzle GetPixelRemapper(IEncodingInfo encodingInfo, Size paddedSize)
         {
-            return _remapPixels?.Invoke(new SwizzlePreparationContext(encodingInfo, paddedSize.IsEmpty ? imageSize : paddedSize));
+            return _remapPixels?.Invoke(new SwizzlePreparationContext(encodingInfo, paddedSize));
         }
 
         #endregion

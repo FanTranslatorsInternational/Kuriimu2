@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Eto.Drawing;
 using Eto.Forms;
+using Kanvas;
 using Kanvas.Configuration;
 using Kanvas.Encoding;
 using Kanvas.Swizzle;
@@ -208,6 +209,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("ETC1A4", true,
                     new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
 
+                new ExtensionType("ETC2 RGB", true),
+                new ExtensionType("ETC2 RGBA", true),
+                new ExtensionType("ETC2 RGBA1", true),
+                new ExtensionType("EAC R11", true),
+                new ExtensionType("EAC RG11", true),
+
                 new ExtensionType("DXT1", true),
                 new ExtensionType("DXT3", true),
                 new ExtensionType("DXT5", true),
@@ -220,6 +227,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("ATC", true),
                 new ExtensionType("ATCA", true,
                     new ExtensionTypeParameter("AlphaMode", typeof(AtcAlpha), AtcAlpha.Explicit)),
+
+                new ExtensionType("BC7", true),
+
+                new ExtensionType("ASTC 4x4", true)
             };
         }
 
@@ -268,6 +279,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 case "G8":
                     return new Rgba(0, 8, 0);
 
+                case "B8":
+                    return new Rgba(0, 0, 8);
+
                 case "LA88":
                     var componentOrder8 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
                     var byteOrder8 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
@@ -278,58 +292,74 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new La(4, 4, componentOrder9);
 
                 case "L8":
-                    return new La(8, 0);
+                    return ImageFormats.L8();
 
                 case "A8":
-                    return new La(0, 8);
+                    return ImageFormats.A8();
 
                 case "L4":
-                    return new La(4, 0, ByteOrder.LittleEndian, SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
+                    return ImageFormats.L4(SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "A4":
-                    return new La(0, 4, ByteOrder.LittleEndian, SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
-
-                case "B8":
-                    return new Rgba(0, 0, 8);
+                    return ImageFormats.A4(SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "ETC1":
-                    var zOrder1 = SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order");
-                    return new Etc1(false, zOrder1);
+                    return ImageFormats.Etc1(SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order"));
 
                 case "ETC1A4":
-                    var zOrder2 = SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order");
-                    return new Etc1(true, zOrder2);
+                    return ImageFormats.Etc1A4(SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order"));
+
+                case "ETC2 RGB":
+                    return ImageFormats.Etc2();
+
+                case "ETC2 RGBA":
+                    return ImageFormats.Etc2A();
+
+                case "ETC2 RGBA1":
+                    return ImageFormats.Etc2A1();
+
+                case "EAC R11":
+                    return ImageFormats.EacR11();
+
+                case "EAC RG11":
+                    return ImageFormats.EacRG11();
 
                 case "DXT1":
-                    return new Bc(BcFormat.Dxt1);
+                    return ImageFormats.Dxt1();
 
                 case "DXT3":
-                    return new Bc(BcFormat.Dxt3);
+                    return ImageFormats.Dxt3();
 
                 case "DXT5":
-                    return new Bc(BcFormat.Dxt5);
+                    return ImageFormats.Dxt5();
 
                 case "ATI1":
-                    return new Bc(BcFormat.Ati1);
+                    return ImageFormats.Ati1();
 
                 case "ATI1L":
-                    return new Bc(BcFormat.Ati1L);
+                    return ImageFormats.Ati1L();
 
                 case "ATI1A":
-                    return new Bc(BcFormat.Ati1A);
+                    return ImageFormats.Ati1A();
 
                 case "ATI2":
                     var wiiU = SelectedColorEncodingExtension.GetParameterValue<bool>("Alpha/Luminance");
-                    return wiiU ? new Bc(BcFormat.Ati2) : new Bc(BcFormat.Ati2AL);
+                    return wiiU ? ImageFormats.Ati2() : ImageFormats.Ati2AL();
 
                 case "ATC":
-                    return new Atc(AtcFormat.Atc);
+                    return ImageFormats.Atc();
 
                 case "ATCA":
                     var atcAlpha = SelectedColorEncodingExtension.GetParameterValue<AtcAlpha>("AlphaMode");
                     return atcAlpha == AtcAlpha.Explicit ?
-                        new Atc(AtcFormat.Atc_Explicit) :
-                        new Atc(AtcFormat.Atc_Interpolated);
+                        ImageFormats.AtcExplicit() :
+                        ImageFormats.AtcInterpolated();
+
+                case "BC7":
+                    return ImageFormats.Bc7();
+
+                case "ASTC 4x4":
+                    return ImageFormats.Astc4x4();
 
                 default:
                     return null;
@@ -349,6 +379,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("3DS", true),
                 new ExtensionType("WiiU", true,
                     new ExtensionTypeParameter("SwizzleTileMode", typeof(int))),
+                new ExtensionType("Switch", true),
 
                 new ExtensionType("Custom", true,
                     new ExtensionTypeParameter("BitMapping", typeof(string), "{1,0},{0,1}"),
@@ -370,6 +401,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 case "WiiU":
                     var swizzleTileMode = SelectedSwizzleExtension.GetParameterValue<byte>("SwizzleTileMode");
                     return new CafeSwizzle(context, swizzleTileMode);
+
+                case "Switch":
+                    return new NxSwizzle(context);
 
                 case "Custom":
                     var pointSequenceRegex = new Regex(@"\{([\d]+),([\d]+)\}[,]?");

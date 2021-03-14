@@ -8,6 +8,7 @@ using BCnEncoder.Shared;
 using Kanvas.MoreEnumerable;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Model;
+using Microsoft.Toolkit.HighPerformance.Extensions;
 
 namespace Kanvas.Encoding
 {
@@ -42,16 +43,24 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="Load"/>
         public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
+            var blockSize = BitsPerValue / 8;
+
             var compressionFormat = GetCompressionFormat();
             var decoder = GetDecoder();
 
-            var blockSize = BitsPerValue / 8;
             return Enumerable.Range(0, input.Length / blockSize).AsParallel()
                 .AsOrdered()
-                .WithDegreeOfParallelism(1)//loadContext.TaskCount)
+                .WithDegreeOfParallelism(loadContext.TaskCount)
                 .SelectMany(x =>
                 {
-                    var decodedBlock = decoder.DecodeBlock(input.AsSpan(x * blockSize, blockSize), compressionFormat);
+                    var span = input.AsSpan(x * blockSize, blockSize);
+
+                    // Filter out null blocks with error color for BC7 and BC6H
+                    if (_format == BcFormat.Bc7 || _format == BcFormat.Bc6H)
+                        if (input.Skip(x * blockSize).Take(blockSize).All(b => b == 0))
+                            return Enumerable.Repeat(Color.Magenta, blockSize);
+
+                    var decodedBlock = decoder.DecodeBlock(span, compressionFormat);
 
                     decodedBlock.TryGetMemory(out var memory);
                     return memory.ToArray().Select(y => Color.FromArgb(y.a, y.r, y.g, y.b));
@@ -86,7 +95,7 @@ namespace Kanvas.Encoding
             return format == BcFormat.Bc2 ||
                    format == BcFormat.Bc3 ||
                    format == BcFormat.Bc5 ||
-                   format == BcFormat.Bc6 ||
+                   format == BcFormat.Bc6H ||
                    format == BcFormat.Bc7 ||
                    format == BcFormat.Ati2AL;
         }
@@ -183,7 +192,7 @@ namespace Kanvas.Encoding
         Bc3,
         Bc4,
         Bc5,
-        Bc6,
+        Bc6H,
         Bc7,
 
         // WiiU specifications

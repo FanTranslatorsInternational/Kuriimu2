@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using Kanvas.Native;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    public class Astc : IColorEncoding
+    // TODO: Unswizzle for framework support
+    public class Etc2 : IColorEncoding
     {
-        private readonly AstcFormat _format;
+        private readonly Etc2Format _format;
 
         /// <inheritdoc cref="BitDepth"/>
         public int BitDepth { get; }
@@ -19,18 +19,17 @@ namespace Kanvas.Encoding
         public int BitsPerValue { get; }
 
         /// <inheritdoc cref="ColorsPerValue"/>
-        public int ColorsPerValue { get; }
+        public int ColorsPerValue => 16;
 
         /// <inheritdoc cref="FormatName"/>
         public string FormatName { get; }
 
-        public Astc(AstcFormat format)
+        public Etc2(Etc2Format format)
         {
             _format = format;
 
-            BitDepth = -1;
-            BitsPerValue = 128;
-            ColorsPerValue = format.ToString()[5..].Split('x').Aggregate(1, (a, b) => a * int.Parse(b));
+            BitDepth = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.RGBA ? 8 : 4;
+            BitsPerValue = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.RGBA ? 128 : 64;
 
             FormatName = format.ToString().Replace("_", " ");
         }
@@ -69,39 +68,19 @@ namespace Kanvas.Encoding
             // Initialize PVR Texture
             var pvrTexture = PvrTexture.Create(colorData, (uint)saveContext.Size.Width, (uint)saveContext.Size.Height, 1, PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear);
 
-            // Transcode texture to ASTC
+            // Transcode texture to ETC2
             pvrTexture.Transcode((PixelFormat)_format, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
 
             return pvrTexture.GetData();
         }
     }
 
-    public enum AstcFormat
+    public enum Etc2Format
     {
-        ASTC_4x4 = 27,
-        ASTC_5x4,
-        ASTC_5x5,
-        ASTC_6x5,
-        ASTC_6x6,
-        ASTC_8x5,
-        ASTC_8x6,
-        ASTC_8x8,
-        ASTC_10x5,
-        ASTC_10x6,
-        ASTC_10x8,
-        ASTC_10x10,
-        ASTC_12x10,
-        ASTC_12x12,
-
-        ASTC_3x3x3,
-        ASTC_4x3x3,
-        ASTC_4x4x3,
-        ASTC_4x4x4,
-        ASTC_5x4x4,
-        ASTC_5x5x4,
-        ASTC_5x5x5,
-        ASTC_6x5x5,
-        ASTC_6x6x5,
-        ASTC_6x6x6,
+        RGB = 22,
+        RGBA,
+        RGB_A1,
+        EAC_R11,
+        EAC_RG11
     }
 }

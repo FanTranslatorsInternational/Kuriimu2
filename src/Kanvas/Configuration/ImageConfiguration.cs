@@ -4,6 +4,7 @@ using Kontract;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Configuration;
 using Kontract.Kanvas.Quantization;
+using Kontract.Models.Image;
 
 namespace Kanvas.Configuration
 {
@@ -68,10 +69,10 @@ namespace Kanvas.Configuration
         {
             var config = new ImageConfiguration();
 
+            config.PadSize.With(options => options.To(size => _padSizeConfiguration.Options.Build(size)));
+
             if (_taskCount != Environment.ProcessorCount)
                 config.WithDegreeOfParallelism(_taskCount);
-            if (_padSizeConfiguration.Delegate != null)
-                config.PadSize.With(_padSizeConfiguration.Delegate);
             if (_remapPixelsConfiguration.Delegate != null)
                 config.RemapPixels.With(_remapPixelsConfiguration.Delegate);
             if (_shadeColorsConfiguration.Delegate != null)
@@ -106,7 +107,7 @@ namespace Kanvas.Configuration
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationConfiguration != null ? BuildQuantizer() : null;
 
-            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
         }
 
         private IImageTranscoder BuildIndexInternal()
@@ -116,7 +117,7 @@ namespace Kanvas.Configuration
 
             var quantizer = BuildQuantizer();
 
-            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Delegate, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
         }
 
         private IQuantizer BuildQuantizer()
@@ -192,14 +193,86 @@ namespace Kanvas.Configuration
     {
         private readonly IImageConfiguration _parent;
 
-        internal CreatePaddedSize Delegate { get; private set; }
+        internal IPadSizeOptionsBuild Options { get; } = new PadSizeOptions();
 
         public PadSizeConfiguration(IImageConfiguration parent)
         {
             _parent = parent;
         }
 
-        public IImageConfiguration With(CreatePaddedSize func)
+        public IImageConfiguration With(ConfigurePadSizeOptions options)
+        {
+            ContractAssertions.IsNotNull(options, nameof(options));
+
+            options.Invoke(Options);
+
+            return _parent;
+        }
+
+        public IImageConfiguration ToPowerOfTwo()
+        {
+            Options.Width.ToPowerOfTwo();
+            Options.Height.ToPowerOfTwo();
+
+            return _parent;
+        }
+
+        public IImageConfiguration ToMultiple(int multiple)
+        {
+            Options.Width.ToMultiple(multiple);
+            Options.Height.ToMultiple(multiple);
+
+            return _parent;
+        }
+    }
+
+    public class PadSizeOptions : IPadSizeOptionsBuild
+    {
+        private readonly PadSizeDimensionConfiguration _widthConfig;
+        private readonly PadSizeDimensionConfiguration _heightConfig;
+
+        private CreatePaddedSize _padSizeFunc;
+
+        public IPadSizeDimensionConfiguration Width => _widthConfig;
+        public IPadSizeDimensionConfiguration Height => _heightConfig;
+
+        public PadSizeOptions()
+        {
+            _widthConfig = new PadSizeDimensionConfiguration(this);
+            _heightConfig = new PadSizeDimensionConfiguration(this);
+        }
+
+        public void To(CreatePaddedSize func)
+        {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
+            _padSizeFunc = func;
+        }
+
+        public Size Build(Size imageSize)
+        {
+            if (_padSizeFunc != null)
+                return _padSizeFunc(imageSize);
+
+            var width = _widthConfig.Delegate?.Invoke(imageSize.Width) ?? imageSize.Width;
+            var height = _heightConfig.Delegate?.Invoke(imageSize.Height) ?? imageSize.Height;
+
+            return new Size(width, height);
+        }
+    }
+
+    public class PadSizeDimensionConfiguration : IPadSizeDimensionConfiguration
+    {
+        private readonly IPadSizeOptions _parent;
+
+        internal CreatePaddedSizeDimension Delegate { get; private set; }
+
+        public PadSizeDimensionConfiguration(IPadSizeOptions parent)
+        {
+            _parent = parent;
+        }
+
+        public IPadSizeOptions To(CreatePaddedSizeDimension func)
         {
             ContractAssertions.IsNotNull(func, nameof(func));
 
@@ -208,16 +281,16 @@ namespace Kanvas.Configuration
             return _parent;
         }
 
-        public IImageConfiguration ToPowerOfTwo()
+        public IPadSizeOptions ToPowerOfTwo()
         {
-            Delegate = size => new Size(ToPowerOfTwo(size.Width), ToPowerOfTwo(size.Height));
+            Delegate = ToPowerOfTwo;
 
             return _parent;
         }
 
-        public IImageConfiguration ToMultiple(int multiple)
+        public IPadSizeOptions ToMultiple(int multiple)
         {
-            Delegate = size => new Size(ToMultiple(size.Width, multiple), ToMultiple(size.Height, multiple));
+            Delegate = i => ToMultiple(i, multiple);
 
             return _parent;
         }

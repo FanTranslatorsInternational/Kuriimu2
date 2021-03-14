@@ -432,8 +432,8 @@ namespace Kanvas
         {
             var config = new ImageConfiguration();
 
-            if (ImageInfo.PadSize.IsSet)
-                config.PadSize.With(size => ImageInfo.PadSize.Build(size));
+            config.PadSize.With(options => options.To(size => ImageInfo.PadSize.Build(size)));
+
             if (ImageInfo.RemapPixels.IsSet)
                 config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));
 

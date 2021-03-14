@@ -128,32 +128,71 @@ namespace Kontract.Models.Image
 
     public class PadSizeConfiguration
     {
-        private CreatePaddedSize _func;
+        private readonly PadSizeDimensionConfiguration _widthConfig;
+        private readonly PadSizeDimensionConfiguration _heightConfig;
 
-        public bool IsSet => _func != null;
+        public PadSizeDimensionConfiguration Width => _widthConfig;
+        public PadSizeDimensionConfiguration Height => _heightConfig;
 
-        public void With(CreatePaddedSize func)
+        public PadSizeConfiguration()
         {
-            ContractAssertions.IsNotNull(func, nameof(func));
-
-            _func = func;
+            _widthConfig = new PadSizeDimensionConfiguration(this);
+            _heightConfig = new PadSizeDimensionConfiguration(this);
         }
 
         public void ToPowerOfTwo()
         {
-            _func = size => new Size(ToPowerOfTwo(size.Width), ToPowerOfTwo(size.Height));
+            Width.ToPowerOfTwo();
+            Height.ToPowerOfTwo();
         }
 
         public void ToMultiple(int multiple)
         {
-            _func = size => new Size(ToMultiple(size.Width, multiple), ToMultiple(size.Height, multiple));
+            Width.ToMultiple(multiple);
+            Height.ToMultiple(multiple);
         }
 
-        public Size Build(Size size)
+        public Size Build(Size imageSize)
         {
-            ContractAssertions.IsNotNull(_func, nameof(_func));
+            var width = _widthConfig.Delegate?.Invoke(imageSize.Width) ?? imageSize.Width;
+            var height = _heightConfig.Delegate?.Invoke(imageSize.Height) ?? imageSize.Height;
 
-            return _func.Invoke(size);
+            return new Size(width, height);
+        }
+    }
+
+    public class PadSizeDimensionConfiguration
+    {
+        private readonly PadSizeConfiguration _parent;
+
+        internal CreatePaddedSizeDimension Delegate { get; private set; }
+
+        public PadSizeDimensionConfiguration(PadSizeConfiguration parent)
+        {
+            _parent = parent;
+        }
+
+        public PadSizeConfiguration To(CreatePaddedSizeDimension func)
+        {
+            ContractAssertions.IsNotNull(func, nameof(func));
+
+            Delegate = func;
+
+            return _parent;
+        }
+
+        public PadSizeConfiguration ToPowerOfTwo()
+        {
+            Delegate = ToPowerOfTwo;
+
+            return _parent;
+        }
+
+        public PadSizeConfiguration ToMultiple(int multiple)
+        {
+            Delegate = i => ToMultiple(i, multiple);
+
+            return _parent;
         }
 
         private int ToPowerOfTwo(int value)

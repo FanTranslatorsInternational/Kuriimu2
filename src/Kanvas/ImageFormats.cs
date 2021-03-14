@@ -29,6 +29,12 @@ namespace Kanvas
         public static IColorEncoding Etc1(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(false, zOrder, byteOrder);
         public static IColorEncoding Etc1A4(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(true, zOrder, byteOrder);
 
+        public static IColorEncoding Etc2()=>new Etc2(Etc2Format.RGB);
+        public static IColorEncoding Etc2A() => new Etc2(Etc2Format.RGBA);
+        public static IColorEncoding Etc2A1() => new Etc2(Etc2Format.RGB_A1);
+        public static IColorEncoding EacR11() => new Etc2(Etc2Format.EAC_R11);
+        public static IColorEncoding EacRG11() => new Etc2(Etc2Format.EAC_RG11);
+
         public static IColorEncoding Dxt1() => new Bc(BcFormat.Dxt1);
         public static IColorEncoding Dxt3() => new Bc(BcFormat.Dxt3);
         public static IColorEncoding Dxt5() => new Bc(BcFormat.Dxt5);
@@ -41,6 +47,8 @@ namespace Kanvas
         public static IColorEncoding Atc() => new Atc(AtcFormat.Atc);
         public static IColorEncoding AtcExplicit() => new Atc(AtcFormat.Atc_Explicit);
         public static IColorEncoding AtcInterpolated() => new Atc(AtcFormat.Atc_Interpolated);
+
+        public static IColorEncoding Bc7() => new Bc(BcFormat.Bc7);
 
         public static IColorEncoding Pvrtc_2bpp() => new PVRTC(PvrtcFormat.PVRTCI_2bpp_RGB);
         public static IColorEncoding PvrtcA_2bpp() => new PVRTC(PvrtcFormat.PVRTCI_2bpp_RGBA);
