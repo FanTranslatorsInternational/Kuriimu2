@@ -6,6 +6,7 @@ using Kanvas.Swizzle;
 using Komponent.IO.Attributes;
 using Kontract.Interfaces.Managers;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 using Kontract.Models.Dialog;
 using Kontract.Models.Image;
 #pragma warning disable 649
@@ -39,26 +40,24 @@ namespace plugin_level5._3DS.Images
         public int const12; // 00 00 00 00
     }
 
+    // TODO: Implement into CtrSwizzle as a config value at ctor?
     class ImgcSwizzle : IImageSwizzle
     {
         private readonly MasterSwizzle _zOrder;
-        private readonly IImageSwizzle _swizzle;
 
         public int Width { get; }
         public int Height { get; }
 
-        public ImgcSwizzle(int width, int height)
+        public ImgcSwizzle(SwizzlePreparationContext context)
         {
-            Width = (width + 0x7) & ~0x7;
-            Height = (height + 0x7) & ~0x7;
+            Width = (context.Size.Width + 0x7) & ~0x7;
+            Height = (context.Size.Height + 0x7) & ~0x7;
 
-            _zOrder = new MasterSwizzle(Width, new Point(0, 0), new[] { (0, 1), (1, 0), (0, 2), (2, 0), (0, 4), (4, 0) });
-            _swizzle = new BCSwizzle(width, height);
+            _zOrder = new MasterSwizzle(Width, Point.Empty, new[] { (0, 1), (1, 0), (0, 2), (2, 0), (0, 4), (4, 0) });
         }
 
         public Point Transform(Point point)
         {
-            //return _swizzle.Transform(point);
             return _zOrder.Get(point.Y * Width + point.X);
         }
     }
@@ -69,7 +68,7 @@ namespace plugin_level5._3DS.Images
         {
             var encodingDefinitions = new[]
             {
-                ImgcFormatsV1.ToColorDefinition(), 
+                ImgcFormatsV1.ToColorDefinition(),
                 ImgcFormatsV2.ToColorDefinition()
             };
 

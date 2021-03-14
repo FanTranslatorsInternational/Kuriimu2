@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -52,14 +51,15 @@ namespace plugin_level5.DS.Images
             var imageStream = new SubStream(input, _header.imageDataOffset, input.Length - _header.imageDataOffset);
             var imageData = CombineTiles(imageStream, tileIndices, encoding.IndexEncoding.BitDepth);
 
-            return new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
+            var imageInfo= new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
             {
                 PaletteData = palette,
-                PaletteFormat = 0,
-
-                Configuration = new ImageConfiguration()
-                    .RemapPixelsWith(size => new NitroSwizzle(size.Width, size.Height))
+                PaletteFormat = 0
             };
+
+            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
+
+            return imageInfo;
         }
 
         public void Save(Stream output, ImageInfo imageInfo)

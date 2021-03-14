@@ -30,6 +30,7 @@ namespace plugin_bandai_namco.Images
             var texture = br.ReadBytes((int)input.Length - 0x80);
 
             var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height));
+
             imageInfo.RemapPixels.With(context => new CtrSwizzle(context,CtrTransformation.YFlip));
             imageInfo.PadSize.ToPowerOfTwo();
 
