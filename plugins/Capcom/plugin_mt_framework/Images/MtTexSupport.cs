@@ -48,7 +48,7 @@ namespace plugin_mt_framework.Images
         public string magic;
 
         [BitField(16)]
-        public short version;
+        public ushort version;
         [BitField(8)]
         public byte format;
         [BitField(8)]
@@ -174,7 +174,12 @@ namespace plugin_mt_framework.Images
                 case 0xa6:
                     return MtTexPlatform.N3DS;
 
+                case 0x87:
+                    return MtTexPlatform.Wii;
+
+                case 0x97:
                 case 0x9a:
+                case 0x9d:
                     return MtTexPlatform.PS3;
 
                 case 0xa0:
@@ -207,6 +212,9 @@ namespace plugin_mt_framework.Images
                 case MtTexPlatform.Mobile:
                     definition.AddColorEncodings(MobileFormats);
                     break;
+
+                case MtTexPlatform.Wii:
+                    throw new InvalidOperationException("Cannot obtain encoding definition for Wii MT Tex.");
             }
 
             return definition;
@@ -215,9 +223,12 @@ namespace plugin_mt_framework.Images
 
     enum MtTexPlatform
     {
+        Wii,
         N3DS,
         Switch,
+
         PS3,
+
         Mobile
     }
 

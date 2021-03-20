@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -13,42 +12,40 @@ using Kontract.Models.IO;
 
 namespace plugin_mt_framework.Archives
 {
-    class MtArcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class HfsState : IArchiveState, ILoadFiles
     {
-        private MtArc _arc;
+        private Hfs _hfs;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsContentChanged();
 
-        public MtArcState()
+        public HfsState()
         {
-            _arc = new MtArc();
+            _hfs = new Hfs();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-
-            var platform = MtArcSupport.DeterminePlatform(fileStream);
-            Files = _arc.Load(fileStream, platform);
+            Files = _hfs.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _arc.Save(fileStream, Files);
+            _hfs.Save(fileStream, Files);
 
             return Task.CompletedTask;
-        }
-
-        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
-        {
-            afi.SetFileData(fileData);
         }
 
         private bool IsContentChanged()
         {
             return Files.Any(x => x.ContentChanged);
+        }
+
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        {
+            afi.SetFileData(fileData);
         }
     }
 }

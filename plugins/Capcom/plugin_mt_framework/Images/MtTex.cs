@@ -36,6 +36,9 @@ namespace plugin_mt_framework.Images
 
             switch (platform)
             {
+                case MtTexPlatform.Wii:
+                    return new[] { LoadWii(br) };
+
                 case MtTexPlatform.N3DS:
                     return new[] { Load3ds(br) };
 
@@ -79,6 +82,13 @@ namespace plugin_mt_framework.Images
         }
 
         #region Load
+
+        private ImageInfo LoadWii(BinaryReaderX br)
+        {
+            throw new InvalidOperationException("MT TEX from Wii are not supported yet.");
+
+            // TODO: Those TEX are just a container for the bres format by Nintendo (http://wiki.tockdom.com/wiki/BRRES_(File_Format))
+        }
 
         private ImageInfo Load3ds(BinaryReaderX br)
         {
