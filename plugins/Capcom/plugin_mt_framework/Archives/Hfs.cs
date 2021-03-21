@@ -45,7 +45,7 @@ namespace plugin_mt_framework.Archives
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
             // Write header
-            var archiveSize = _arc.GetArchiveSize(files, ByteOrder.BigEndian);
+            var archiveSize = _arc.GetArchiveSize(files);
             _header.fileSize = archiveSize;
 
             bw.WriteType(_header);

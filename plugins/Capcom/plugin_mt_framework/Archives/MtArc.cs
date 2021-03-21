@@ -34,49 +34,6 @@ namespace plugin_mt_framework.Archives
                 default:
                     throw new InvalidOperationException();
             }
-
-            //_isEncrypted = IsEncrypted(input);
-            //var key = GetCipherKey("imaguy_uyrag_igurustim_", "enokok_ikorodo_odohuran");
-
-            //using var br = new BinaryReaderX(input, true);
-
-            //// Determine byte order
-            //var magic = br.ReadString(4);
-            //br.ByteOrder = _byteOrder = magic == "\0CRA" ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
-            //input.Position -= 4;
-
-            //// Header
-            //_header = br.ReadType<MtHeader>();
-
-            //// Determine possible mtArcPlatform the arc was found on
-            //_mtArcPlatform = MtArcSupport.DeterminePlatform(_byteOrder, _header);
-
-            //// Skip additional int under certain conditions
-            //if (_byteOrder == ByteOrder.LittleEndian && _header.version != 7 && _header.version != 8 && _header.version != 9)
-            //    br.ReadInt32();
-
-            //// Read entries
-            //Stream entryStream = new SubStream(input, br.BaseStream.Position, input.Length - br.BaseStream.Position);
-            //if (_isEncrypted)
-            //    entryStream = new MtBlowfishStream(entryStream, key);
-
-            //using var entryBr = new BinaryReaderX(entryStream, _byteOrder);
-            //var entries = entryBr.ReadMultiple(_header.entryCount, _header.version == 9 ? typeof(MtEntrySwitch) : typeof(MtEntry)).Cast<IMtEntry>();
-
-            //// Add files
-            //var result = new List<IArchiveFileInfo>();
-            //foreach (var entry in entries)
-            //{
-            //    Stream subStream = new SubStream(input, entry.Offset, entry.CompSize);
-            //    var fileName = entry.FileName.TrimEnd('\0') + MtArcSupport.DetermineExtension(entry.ExtensionHash);
-
-            //    if (_isEncrypted)
-            //        subStream = new MtBlowfishStream(subStream, key);
-
-            //    result.Add(CreateAfi(subStream, fileName, entry, _mtArcPlatform));
-            //}
-
-            //return result;
         }
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
@@ -353,14 +310,22 @@ namespace plugin_mt_framework.Archives
 
         #endregion
 
-        public int GetArchiveSize(IList<IArchiveFileInfo> files, ByteOrder byteOrder)
+        #region Support
+
+        public int GetArchiveSize(IList<IArchiveFileInfo> files)
+        {
+            var byteOrder = _platform == MtArcPlatform.BigEndian ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
+            return GetArchiveSize(files, _header.version, byteOrder);
+        }
+
+        public static int GetArchiveSize(IList<IArchiveFileInfo> files, int version, ByteOrder byteOrder)
         {
             // Get header size
-            var isExtendedHeader = _header.version != 7 && _header.version != 8;
+            var isExtendedHeader = version != 7 && version != 8;
             var headerSize = HeaderSize + (isExtendedHeader ? 4 : 0);
 
             // Get file offset
-            var fileOffset = MtArcSupport.DetermineFileOffset(byteOrder, _header.version, files.Count, headerSize);
+            var fileOffset = MtArcSupport.DetermineFileOffset(byteOrder, version, files.Count, headerSize);
 
             // Add file sizes
             var fileRegionSize = (int)files.Cast<MtArchiveFileInfo>().Sum(x => x.GetFinalStream().Length);
@@ -368,23 +333,7 @@ namespace plugin_mt_framework.Archives
             return fileOffset + fileRegionSize;
         }
 
-        private bool IsEncrypted(Stream input)
-        {
-            input.Position = 8;
-
-            var buffer = new byte[0x40];
-            input.Read(buffer, 0, 0x40);
-
-            // Check if first entry name looks encrypted
-            var isEncrypted = buffer.Any(x => x > 0x7F || x > 0 && x < 0x20);
-
-            input.Position = 0;
-            return isEncrypted;
-        }
-
-        private byte[] GetCipherKey(string key1, string key2) => key1.Reverse().Select((c, i) => (byte)(c ^ key2[i] | i << 6)).ToArray();
-
-        private IArchiveFileInfo CreateAfi(Stream file, string fileName, IMtEntry entry, MtArcPlatform mtArcPlatform)
+        public static IArchiveFileInfo CreateAfi(Stream file, string fileName, IMtEntry entry, MtArcPlatform mtArcPlatform)
         {
             if (entry.CompSize == entry.GetDecompressedSize(mtArcPlatform))
                 return new MtArchiveFileInfo(file, fileName, entry);
@@ -396,5 +345,7 @@ namespace plugin_mt_framework.Archives
             return new MtArchiveFileInfo(file, fileName, entry, Kompression.Implementations.Compressions.ZLib, entry.GetDecompressedSize(mtArcPlatform));
 
         }
+
+        #endregion
     }
 }

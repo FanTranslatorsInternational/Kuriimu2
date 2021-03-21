@@ -11,30 +11,29 @@ using Kontract.Models.IO;
 
 namespace plugin_mt_framework.Archives
 {
-    public class MtArcPlugin : IFilePlugin, IIdentifyFiles
+    public class ArccPlugin:IFilePlugin,IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("5a2dfcb6-60d6-4783-acd1-bc7fb4a65f38");
+        public Guid PluginId => Guid.Parse("5a2dfcb6-60d6-4783-acd3-bc7fb4a65f38");
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.arc" };
+        public string[] FileExtensions => new[] {"*.arc"};
         public PluginMetadata Metadata { get; }
 
-        public MtArcPlugin()
+        public ArccPlugin()
         {
-            Metadata = new PluginMetadata("MT ARC", "onepiecefreak", "The main archive resource in Capcom games using the MT Framework.");
+            Metadata=new PluginMetadata("ARCC","onepiecefreak","The encrypted archive resource found on mobile Capcom games.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadString(4);
-            return magic == "ARC\0" || magic == "\0CRA";
+            using var br=new BinaryReaderX(fileStream);
+            return br.ReadString(4) == "ARCC";
         }
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
-            return new MtArcState();
+            return new ArccState();
         }
     }
 }
