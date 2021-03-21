@@ -115,6 +115,7 @@ namespace plugin_mt_framework.Images
             [0x17] = ImageFormats.Dxt5(),
 
             [0x19] = ImageFormats.Dxt1(),
+            [0x1F] = ImageFormats.Dxt5(),
             [0x21] = ImageFormats.Dxt5(),
             [0x27] = ImageFormats.Dxt5(),
             [0x2A] = ImageFormats.Dxt5()
