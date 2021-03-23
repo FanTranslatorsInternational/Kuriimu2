@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
     <LangVersion>8</LangVersion>
     <Version>2.0.8</Version>
 
@@ -30,28 +30,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Models\PluginMetadata.cs~RF525ad6e8.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
     <None Include="..\..\kuriimu2icon.png" Pack="True" PackagePath="$(PackageIcon)" Visible="false" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
-    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.10.0" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\dist\Debug\</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\dist\Release\</OutputPath>
+    <OutputPath>..\..\..\dist\Release\</OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
+  </ItemGroup>
 
 </Project>
