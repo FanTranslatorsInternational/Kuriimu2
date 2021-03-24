@@ -5,6 +5,9 @@ using System.IO;
 using System.Buffers.Binary;
 #endif
 
+// TODO: Refactor all hashes to not pass offset and length now that a Span is used
+// TODO: Create base hash method that provides an overridable ComputeInternal only to reduce code duplication in 1st and 3rd party implementations
+
 // https://stackoverflow.com/questions/10564491/function-to-calculate-a-crc16-checksum
 // Online tool to check implementation: https://crccalc.com
 //      This tool seems to utilize a different approach to applying the polynomial.
@@ -45,14 +48,14 @@ namespace Kryptography.Hash.Crc
             return MakeResult(returnCrc ^ _xorOut);
         }
 
-        public byte[] Compute(byte[] input)
+        public byte[] Compute(Span<byte> input)
         {
             var result = ComputeInternal(input, 0, input.Length, _initial);
 
             return MakeResult(result ^ _xorOut);
         }
 
-        private int ComputeInternal(byte[] toHash, int offset, int length, int initialCrc)
+        private int ComputeInternal(Span<byte> toHash, int offset, int length, int initialCrc)
         {
             var returnCrc = initialCrc;
 

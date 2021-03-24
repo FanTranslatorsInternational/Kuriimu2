@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,12 +11,12 @@ using Kontract.Models.IO;
 
 namespace plugin_mt_framework.Archives
 {
-    class HfsState : IArchiveState, ILoadFiles
+    class HfsState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private Hfs _hfs;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
-        public bool ContentChanged => IsContentChanged();
+        public bool ContentChanged => true;//IsContentChanged();
 
         public HfsState()
         {
@@ -32,7 +31,7 @@ namespace plugin_mt_framework.Archives
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.ReadWrite);
             _hfs.Save(fileStream, Files);
 
             return Task.CompletedTask;

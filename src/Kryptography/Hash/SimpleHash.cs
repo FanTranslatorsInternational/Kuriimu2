@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 
 #if NET_CORE_31
@@ -16,7 +17,7 @@ namespace Kryptography.Hash
             _magic = magic;
         }
 
-        public byte[] Compute(byte[] input)
+        public byte[] Compute(Span<byte> input)
         {
             var returnValue = ComputeInternal(input, 0, input.Length, 0);
 
@@ -38,7 +39,7 @@ namespace Kryptography.Hash
             return MakeResult(returnValue);
         }
 
-        private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialValue)
+        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialValue)
         {
             var result = initialValue;
             for (var i = offset; i < offset + length; i++)

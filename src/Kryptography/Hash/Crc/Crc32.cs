@@ -164,7 +164,7 @@ namespace Kryptography.Hash.Crc
             return MakeResult(~ReverseBits(returnCrc));
         }
 
-        public byte[] Compute(byte[] input)
+        public byte[] Compute(Span<byte> input)
         {
             var result = ComputeInternal(input, 0, input.Length, _initValue);
 
@@ -174,7 +174,7 @@ namespace Kryptography.Hash.Crc
             return MakeResult(ReverseBits(result) ^ _xorOut);
         }
 
-        private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc)
+        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialCrc)
         {
             var returnCrc = initialCrc;
             for (var i = offset; i < offset + length; i++)

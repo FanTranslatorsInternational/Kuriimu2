@@ -38,22 +38,26 @@ namespace plugin_mt_framework.Archives
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            //using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
+            // Prepare stream
+            var archiveOffset = GetArchiveOffset(_header.type);
+            var archiveSize = _arc.GetArchiveSize(files);
 
-            //// Write header
-            //var archiveSize = _arc.GetArchiveSize(files);
-            //_header.fileSize = archiveSize;
+            var hfsLength = HfsStream.GetBaseLength(archiveSize);
+            output.SetLength(archiveOffset + hfsLength);
 
-            //bw.WriteType(_header);
+            using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
-            //// Write footer
-            //output.Position = archiveSize + GetArchiveOffset(_header.type);
-            //bw.WriteAlignment();
-            //bw.Write(_footer);
+            // Write arc
+            var hfsStream = new HfsStream(new SubStream(output, archiveOffset, hfsLength));
+            _arc.Save(hfsStream, files);
 
-            //// Write arc
-            //var arcStream = new SubStream(output, GetArchiveOffset(_header.type), archiveSize);
-            //_arc.Save(arcStream, files);
+            hfsStream.Flush();
+
+            // Write header
+            _header.fileSize = archiveSize;
+
+            bw.BaseStream.Position = 0;
+            bw.WriteType(_header);
         }
 
         private int GetArchiveOffset(int type)

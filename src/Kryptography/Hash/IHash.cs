@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Kryptography.Hash
 {
@@ -12,7 +13,7 @@ namespace Kryptography.Hash
         /// </summary>
         /// <param name="input">The array of bytes to hash.</param>
         /// <returns>The computed hash.</returns>
-        byte[] Compute(byte[] input);
+        byte[] Compute(Span<byte> input);
 
         /// <summary>
         /// Computes a hash over a stream of data.

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 #if NET_CORE_31
 using System.Buffers.Binary;
@@ -20,7 +21,7 @@ namespace Kryptography.Hash.Fnv
         {
         }
 
-        public byte[] Compute(byte[] input)
+        public byte[] Compute(Span<byte> input)
         {
             var result = ComputeInternal(input, 0, input.Length, Initial);
 
@@ -42,7 +43,7 @@ namespace Kryptography.Hash.Fnv
             return MakeResult(returnFnv);
         }
 
-        private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialFnv)
+        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialFnv)
         {
             var returnFnv = initialFnv;
 
