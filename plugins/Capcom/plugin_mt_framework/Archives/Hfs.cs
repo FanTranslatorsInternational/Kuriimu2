@@ -10,10 +10,8 @@ namespace plugin_mt_framework.Archives
 {
     class Hfs
     {
-        //private const int FooterSize_ = 0x10;
-
         private HfsHeader _header;
-        //private byte[] _footer;
+        private string _contentMagic;
 
         private MtArc _arc;
 
@@ -29,32 +27,49 @@ namespace plugin_mt_framework.Archives
             var arcOffset = GetArchiveOffset(_header.type);
             var hfsStream = new HfsStream(new SubStream(input, arcOffset, input.Length - arcOffset));
 
-            // Read MT ARC
-            _arc = new MtArc();
-            var files = _arc.Load(hfsStream, MtArcPlatform.BigEndian);
+            // Read HFS content
+            input.Position = arcOffset;
+            _contentMagic = br.ReadString(4);
 
-            return files;
+            switch (_contentMagic)
+            {
+                case "\0CRA":
+                    _arc = new MtArc();
+                    return _arc.Load(hfsStream, MtArcPlatform.BigEndian);
+
+                default:
+                    return new List<IArchiveFileInfo> { new ArchiveFileInfo(hfsStream, "content.bin") };
+            }
         }
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             // Prepare stream
             var archiveOffset = GetArchiveOffset(_header.type);
-            var archiveSize = _arc.GetArchiveSize(files);
+            var archiveSize = GetArchiveSize(files);
 
             var hfsLength = HfsStream.GetBaseLength(archiveSize);
             output.SetLength(archiveOffset + hfsLength);
 
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
-            // Write arc
+            // Write HFS content
             var hfsStream = new HfsStream(new SubStream(output, archiveOffset, hfsLength));
-            _arc.Save(hfsStream, files);
+            switch (_contentMagic)
+            {
+                case "\0CRA":
+                    _arc.Save(hfsStream, files);
+                    break;
+
+                default:
+                    (files[0] as ArchiveFileInfo).SaveFileData(hfsStream);
+                    break;
+            }
 
             hfsStream.Flush();
 
             // Write header
-            _header.fileSize = archiveSize;
+            _header.fileSize = (int)archiveSize;
 
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
@@ -63,6 +78,18 @@ namespace plugin_mt_framework.Archives
         private int GetArchiveOffset(int type)
         {
             return type == 0 ? 0x20000 : 0x10;
+        }
+
+        private long GetArchiveSize(IList<IArchiveFileInfo> files)
+        {
+            switch (_contentMagic)
+            {
+                case "\0CRA":
+                    return _arc.GetArchiveSize(files);
+
+                default:
+                    return files[0].FileSize;
+            }
         }
     }
 }

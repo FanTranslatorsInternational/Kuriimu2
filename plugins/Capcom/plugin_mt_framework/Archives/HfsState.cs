@@ -16,7 +16,7 @@ namespace plugin_mt_framework.Archives
         private Hfs _hfs;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
-        public bool ContentChanged => IsContentChanged();
+        public bool ContentChanged => true;//IsContentChanged();
 
         public HfsState()
         {
