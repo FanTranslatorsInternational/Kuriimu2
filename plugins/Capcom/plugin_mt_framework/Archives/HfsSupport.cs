@@ -220,8 +220,9 @@ namespace plugin_mt_framework.Archives
             // Write amount of data to base stream
             _baseStream.Write(buffer, offset, count);
 
-            // Write alignment if count is smaller than BlockSize
-            _baseStream.Position += 0x10 - _baseStream.Position % 0x10;
+            // Skip alignment if alignment is needed
+            if (_baseStream.Position % 0x10 > 0)
+                _baseStream.Position += 0x10 - _baseStream.Position % 0x10;
 
             // Write placeholder for verification block, if we are at the end of the stream
             if (_baseStream.Position >= _baseStream.Length)
@@ -258,8 +259,9 @@ namespace plugin_mt_framework.Archives
             {
                 result += length % DataBlockSize;
 
-                // Align to 16 bytes
-                result += 0x10 - result % 0x10;
+                // Align to 16 bytes if necessary
+                if (result % 0x10 > 0)
+                    result += 0x10 - result % 0x10;
 
                 // Add final verification block placeholder
                 result += 0x10;

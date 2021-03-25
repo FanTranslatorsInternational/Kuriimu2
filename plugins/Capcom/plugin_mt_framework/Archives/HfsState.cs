@@ -16,7 +16,7 @@ namespace plugin_mt_framework.Archives
         private Hfs _hfs;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
-        public bool ContentChanged => true;//IsContentChanged();
+        public bool ContentChanged => IsContentChanged();
 
         public HfsState()
         {
@@ -37,14 +37,14 @@ namespace plugin_mt_framework.Archives
             return Task.CompletedTask;
         }
 
-        private bool IsContentChanged()
-        {
-            return Files.Any(x => x.ContentChanged);
-        }
-
         public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
+        }
+
+        private bool IsContentChanged()
+        {
+            return Files.Any(x => x.ContentChanged);
         }
     }
 }
