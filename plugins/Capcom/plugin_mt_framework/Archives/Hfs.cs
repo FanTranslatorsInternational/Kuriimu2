@@ -16,7 +16,7 @@ namespace plugin_mt_framework.Archives
         private MtArc _arc;
 
         // Method based on MtArc.LoadBigEndian
-        public IList<IArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input, string fileName)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -38,7 +38,7 @@ namespace plugin_mt_framework.Archives
                     return _arc.Load(hfsStream, MtArcPlatform.BigEndian);
 
                 default:
-                    return new List<IArchiveFileInfo> { new ArchiveFileInfo(hfsStream, "content.bin") };
+                    return new List<IArchiveFileInfo> { new ArchiveFileInfo(hfsStream, Path.GetFileNameWithoutExtension(fileName) + ".unhfs" + Path.GetExtension(fileName)) };
             }
         }
 

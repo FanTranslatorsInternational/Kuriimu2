@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
@@ -26,7 +27,7 @@ namespace plugin_mt_framework.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _hfs.Load(fileStream);
+            Files = _hfs.Load(fileStream, filePath.GetName());
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
