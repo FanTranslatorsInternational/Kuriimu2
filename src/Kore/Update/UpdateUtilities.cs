@@ -24,7 +24,11 @@ namespace Kore.Update
             if (remoteManifest == null || localManifest == null)
                 return false;
 
-            return remoteManifest.SourceType != localManifest.SourceType || remoteManifest.BuildNumber != localManifest.BuildNumber;
+            var sourceCheck = remoteManifest.SourceType != localManifest.SourceType;
+            var versionCheck = new Models.Update.Version(localManifest.Version) < new Models.Update.Version(remoteManifest.Version);
+            var buildCheck = remoteManifest.BuildNumber != localManifest.BuildNumber;
+
+            return sourceCheck || versionCheck || buildCheck;
         }
 
         public static string DownloadUpdateExecutable()
