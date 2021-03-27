@@ -13,7 +13,7 @@ using Kontract.Models.IO;
 
 namespace plugin_mt_framework.Archives
 {
-    class MtArcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class MtArcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRenameFiles
     {
         private MtArc _arc;
 
@@ -44,6 +44,19 @@ namespace plugin_mt_framework.Archives
         public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
+        }
+
+        public IArchiveFileInfo AddFile(Stream fileData, UPath filePath)
+        {
+            var afi = _arc.Add(fileData, filePath);
+            Files.Add(afi);
+
+            return afi;
+        }
+
+        public void Rename(IArchiveFileInfo afi, UPath path)
+        {
+            afi.FilePath = path;
         }
 
         private bool IsContentChanged()

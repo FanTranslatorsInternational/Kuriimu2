@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -55,64 +56,37 @@ namespace plugin_mt_framework.Archives
                 default:
                     throw new InvalidOperationException();
             }
+        }
 
-            //var key = GetCipherKey("imaguy_uyrag_igurustim_", "enokok_ikorodo_odohuran");
+        public IArchiveFileInfo Add(Stream fileData, UPath filePath)
+        {
+            IMtEntry entry;
+            switch (_platform)
+            {
+                case MtArcPlatform.Switch:
+                    entry = new MtEntrySwitch
+                    {
+                        ExtensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot()),
+                        FileName = filePath.FullName,
+                        decompSize = (int)fileData.Length
+                    };
+                    break;
 
-            //using var bw = new BinaryWriterX(output, _byteOrder);
+                case MtArcPlatform.LittleEndian:
+                case MtArcPlatform.BigEndian:
+                    entry=new MtEntry
+                    {
+                        ExtensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot()),
+                        FileName = filePath.FullName,
+                        decompSize = (int)fileData.Length,
+                    };
+                    break;
 
-            //var isExtendedHeader = _byteOrder == ByteOrder.LittleEndian && _header.version != 7 && _header.version != 8 && _header.version != 9;
+                default:
+                    throw new InvalidOperationException();
+            }
 
-            //// Calculate offsets
-            //var entryOffset = HeaderSize + (isExtendedHeader ? 4 : 0);
-            //var fileOffset = MtArcSupport.DetermineFileOffset(_byteOrder, _header.version, files.Count, entryOffset);
-
-            //// Write files
-            //var entries = new List<IMtEntry>();
-
-            //var filePosition = fileOffset;
-            //foreach (var file in files.Cast<MtArchiveFileInfo>())
-            //{
-            //    output.Position = filePosition;
-
-            //    long writtenSize;
-            //    if (!_isEncrypted)
-            //        writtenSize = file.SaveFileData(output);
-            //    else
-            //    {
-            //        var fileStream = file.GetFinalStream();
-
-            //        var ms = new MemoryStream();
-            //        var encryptedStream = new MtBlowfishStream(ms, key);
-
-            //        fileStream.CopyTo(encryptedStream);
-
-            //        ms.Position = 0;
-            //        ms.CopyTo(output);
-
-            //        writtenSize = fileStream.Length;
-            //    }
-
-            //    file.Entry.Offset = filePosition;
-            //    file.Entry.SetDecompressedSize((int)file.FileSize, _mtArcPlatform);
-            //    file.Entry.CompSize = (int)writtenSize;
-            //    entries.Add(file.Entry);
-
-            //    filePosition += (int)writtenSize;
-            //}
-
-            //// Write entries
-            //Stream entryStream = new SubStream(output, entryOffset, output.Length - entryOffset);
-            //if (_isEncrypted)
-            //    entryStream = new MtBlowfishStream(entryStream, key);
-
-            //using var entryBw = new BinaryWriterX(entryStream, _byteOrder);
-            //entryBw.WriteMultiple(entries);
-
-            //// Write header
-            //_header.entryCount = (short)files.Count;
-
-            //output.Position = 0;
-            //bw.WriteType(_header);
+            return CreateAfi(fileData, filePath.FullName, entry, _platform);
         }
 
         #region Load

@@ -43,6 +43,11 @@ namespace plugin_mt_framework.Archives
             afi.SetFileData(fileData);
         }
 
+        public void Rename(IArchiveFileInfo afi, UPath path)
+        {
+            afi.FilePath = path;
+        }
+
         private bool IsContentChanged()
         {
             return Files.Any(x => x.ContentChanged);

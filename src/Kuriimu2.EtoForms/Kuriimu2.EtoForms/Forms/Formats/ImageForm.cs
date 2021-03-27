@@ -22,9 +22,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class ImageForm : Panel, IKuriimuForm
     {
-        private readonly IStateInfo _stateInfo;
-        private readonly IFormCommunicator _communicator;
-        private readonly IProgressContext _progress;
+        private readonly FormInfo _formInfo;
 
         private int _selectedImageIndex;
 
@@ -54,13 +52,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-        public ImageForm(IStateInfo stateInfo, IFormCommunicator communicator, IProgressContext progress)
+        public ImageForm(FormInfo formInfo)
         {
             InitializeComponent();
 
-            _stateInfo = stateInfo;
-            _communicator = communicator;
-            _progress = progress;
+            _formInfo = formInfo;
 
             UpdateImageList();
             UpdateFormats();
@@ -184,9 +180,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
 
-            var isSaveState = _stateInfo.PluginState is ISaveFiles;
+            var isSaveState = _formInfo.StateInfo.PluginState is ISaveFiles;
             saveButton.Enabled = selectedImage != null && isSaveState;
-            saveAsButton.Enabled = selectedImage != null && isSaveState && _stateInfo.ParentStateInfo == null;
+            saveAsButton.Enabled = selectedImage != null && isSaveState && _formInfo.StateInfo.ParentStateInfo == null;
 
             exportButton.Enabled = selectedImage != null;
             importButton.Enabled = selectedImage != null && isSaveState;
@@ -212,7 +208,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            imagePalette.Palette = selectedImage.GetPalette(_progress);
+            imagePalette.Palette = selectedImage.GetPalette(_formInfo.Progress);
         }
 
         #endregion
@@ -226,12 +222,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private async Task Save(bool saveAs = false)
         {
-            var wasSuccessful = await _communicator.Save(saveAs);
+            var wasSuccessful = await _formInfo.FormCommunicator.Save(saveAs);
             if (!wasSuccessful)
                 return;
 
             UpdateFormInternal();
-            _communicator.Update(true, false);
+            _formInfo.FormCommunicator.Update(true, false);
         }
 
         #endregion
@@ -242,7 +238,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
             var imageName = string.IsNullOrEmpty(selectedImage.Name) ?
-                _stateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
+                _formInfo.StateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
                 selectedImage.Name;
 
             var sfd = new SaveFileDialog
@@ -256,7 +252,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (sfd.ShowDialog(this) != DialogResult.Ok)
                 return;
 
-            selectedImage.GetImage(_progress).Save(sfd.FileName, ImageFormat.Png);
+            selectedImage.GetImage(_formInfo.Progress).Save(sfd.FileName, ImageFormat.Png);
         }
 
         #endregion
@@ -285,11 +281,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             try
             {
                 using var newImage = new System.Drawing.Bitmap(filePath.FullName);
-                GetSelectedImage().SetImage(newImage, _progress);
+                GetSelectedImage().SetImage(newImage, _formInfo.Progress);
             }
             catch (Exception ex)
             {
-                _communicator.ReportStatus(false, ex.Message);
+                _formInfo.FormCommunicator.ReportStatus(false, ex.Message);
             }
 
             UpdateImagePreview(GetSelectedImage());
@@ -297,8 +293,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             UpdateFormInternal();
 
-            _communicator.Update(true, false);
-            _communicator.ReportStatus(true, "Image successfully imported.");
+            _formInfo.FormCommunicator.Update(true, false);
+            _formInfo.FormCommunicator.ReportStatus(true, "Image successfully imported.");
         }
 
         #endregion
@@ -311,12 +307,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var selectedImage = GetSelectedImage();
             var selectedFormat = GetSelectedImageFormat();
-            await Task.Run(() => selectedImage.TranscodeImage(selectedFormat, _progress));
+            await Task.Run(() => selectedImage.TranscodeImage(selectedFormat, _formInfo.Progress));
 
             UpdateImagePreview(GetSelectedImage());
             UpdateFormInternal();
 
-            _communicator.Update(true, false);
+            _formInfo.FormCommunicator.Update(true, false);
         }
 
         private async void Palettes_SelectedValueChanged(object sender, EventArgs e)
@@ -325,12 +321,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var selectedImage = GetSelectedImage();
             var selectedFormat = GetSelectedPaletteFormat();
-            await Task.Run(() => selectedImage.TranscodePalette(selectedFormat, _progress));
+            await Task.Run(() => selectedImage.TranscodePalette(selectedFormat, _formInfo.Progress));
 
             UpdateImagePreview(GetSelectedImage());
             UpdateFormInternal();
 
-            _communicator.Update(true, false);
+            _formInfo.FormCommunicator.Update(true, false);
         }
 
         private void Images_SelectedIndexChanged(object sender, EventArgs e)
@@ -386,12 +382,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private ISaveFiles GetSaveState()
         {
-            return _stateInfo.PluginState as ISaveFiles;
+            return _formInfo.StateInfo.PluginState as ISaveFiles;
         }
 
         private IList<IKanvasImage> GetStateImages()
         {
-            return (_stateInfo.PluginState as IImageState).Images;
+            return (_formInfo.StateInfo.PluginState as IImageState).Images;
         }
 
         private IKanvasImage GetSelectedImage()
@@ -404,7 +400,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private EncodingDefinition GetEncodingDefinition()
         {
-            return (_stateInfo.PluginState as IImageState).EncodingDefinition;
+            return (_formInfo.StateInfo.PluginState as IImageState).EncodingDefinition;
         }
 
         private int GetSelectedImageFormat()
@@ -458,7 +454,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (!selectedImage.IsIndexed)
                 return;
 
-            var palette = selectedImage.GetPalette(_progress);
+            var palette = selectedImage.GetPalette(_formInfo.Progress);
             if (index < 0 || index >= palette.Count)
                 return;
 
@@ -469,12 +465,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Task.Run(() =>
                 {
                     selectedImage.SetColorInPalette(index, newColor);
-                    _progress.ReportProgress("Done", 1, 1);
+                    _formInfo.Progress.ReportProgress("Done", 1, 1);
                 }).Wait();
             }
             catch (Exception ex)
             {
-                _communicator.ReportStatus(false, ex.Message);
+                _formInfo.FormCommunicator.ReportStatus(false, ex.Message);
                 UpdateFormInternal();
 
                 return;

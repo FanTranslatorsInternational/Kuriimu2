@@ -31,6 +31,7 @@ using Kuriimu2.EtoForms.Forms.Dialogs.Batch;
 using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
+using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Progress;
 using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
@@ -281,15 +282,15 @@ namespace Kuriimu2.EtoForms.Forms
                     //    break;
 
                     case IImageState _:
-                        kuriimuForm = new ImageForm(stateInfo, communicator, _progress);
+                        kuriimuForm = new ImageForm(new FormInfo(stateInfo, communicator, _progress, _pluginManager.Logger));
                         break;
 
                     case IArchiveState _:
-                        kuriimuForm = new ArchiveForm(stateInfo, communicator, _pluginManager, _progress);
+                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(stateInfo, communicator, _progress, _pluginManager.Logger), _pluginManager);
                         break;
 
                     case IHexState _:
-                        kuriimuForm = new HexForm(stateInfo, communicator);
+                        kuriimuForm = new HexForm(new FormInfo(stateInfo, communicator, _progress, _pluginManager.Logger));
                         break;
 
                     default:

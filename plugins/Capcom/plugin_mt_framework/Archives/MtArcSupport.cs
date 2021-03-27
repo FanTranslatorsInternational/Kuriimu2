@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -264,6 +265,11 @@ namespace plugin_mt_framework.Archives
             return _extensionMap.ContainsKey(extensionHash) ? _extensionMap[extensionHash] : $".{extensionHash:X8}";
         }
 
+        public static uint DetermineExtensionHash(string extension)
+        {
+            return _extensionMap.ContainsValue(extension) ? _extensionMap.First(x => x.Value == extension).Key : throw new InvalidOperationException($"Extension '{extension}' cannot be mapped to a hash.");
+        }
+
         public static int DetermineFileOffset(ByteOrder byteOrder, int version, int fileCount, int entryOffset)
         {
             switch (version)
@@ -290,8 +296,7 @@ namespace plugin_mt_framework.Archives
 
         private static uint GetHash(string input)
         {
-            var hash = Hash.Compute(Encoding.ASCII.GetBytes(input));
-            return (uint)(((~hash[0] & 0xFF) << 24) | ((~hash[1] & 0xFF) << 16) | ((~hash[2] & 0xFF) << 8) | (~hash[3] & 0xFF));
+            return ~BinaryPrimitives.ReadUInt32BigEndian(Hash.Compute(Encoding.ASCII.GetBytes(input)));
         }
 
         private static Dictionary<uint, string> _extensionMap = new Dictionary<uint, string>
