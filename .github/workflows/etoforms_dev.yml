@@ -36,6 +36,7 @@ jobs:
         content="${content//$'\r'/'%0D'}"
         # end of optional handling for multi line json
         echo "::set-output name=packageJson::$content"
+      shell: bash
       
     - name: Create manifests
       run: |
