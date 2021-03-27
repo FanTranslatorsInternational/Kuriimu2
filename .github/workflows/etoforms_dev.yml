@@ -25,17 +25,18 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.302
-      
-    - name: Read version manifest
+  
+    # Read version manifest
     - id: set_version
-      run: |
-        content=`cat ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json`
-        # the following lines are only required for multi line json
-        content="${content//'%'/'%25'}"
-        content="${content//$'\n'/'%0A'}"
-        content="${content//$'\r'/'%0D'}"
-        # end of optional handling for multi line json
-        echo "::set-output name=packageJson::$content"
+      uses: notiz-dev/github-action-json-property@release
+      with: 
+        path: './src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json'
+        prop_path: 'version'
+        
+    - run: echo ${{steps.version.outputs.prop}} 
+      
+    - run: |
+          echo "${{ fromJson(steps.set_version.outputs.packageJson).version }}"
       
     - name: Create manifests
       run: |
