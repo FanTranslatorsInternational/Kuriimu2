@@ -20,7 +20,7 @@ namespace Kontract.Models.Archive
 
         private Lazy<Stream> _decompressedStream;
         private Lazy<Stream> _compressedStream;
-        private long _decompressedSize;
+        private Func<long> _getFileSizeAction;
 
         /// <inheritdoc />
         public bool UsesCompression => _configuration != null;
@@ -48,7 +48,7 @@ namespace Kontract.Models.Archive
         }
 
         /// <inheritdoc />
-        public virtual long FileSize => UsesCompression ? _decompressedSize : FileData?.Length ?? 0;
+        public virtual long FileSize => _getFileSizeAction();
 
         /// <summary>
         /// Creates a new instance of <see cref="ArchiveFileInfo"/>.
@@ -64,6 +64,8 @@ namespace Kontract.Models.Archive
             FilePath = filePath;
 
             ContentChanged = false;
+
+            _getFileSizeAction = GetFileDataLength;
         }
 
         /// <summary>
@@ -81,7 +83,7 @@ namespace Kontract.Models.Archive
 
             _configuration = configuration;
 
-            _decompressedSize = decompressedSize;
+            _getFileSizeAction = () => decompressedSize;
             _decompressedStream = new Lazy<Stream>(() => DecompressStream(fileData, configuration));
             _compressedStream = new Lazy<Stream>(GetBaseStream);
         }
@@ -102,12 +104,13 @@ namespace Kontract.Models.Archive
             FileData.Close();
             FileData = fileData;
 
+            _getFileSizeAction = GetFileDataLength;
+
             ContentChanged = true;
 
             if (!UsesCompression)
                 return;
 
-            _decompressedSize = fileData.Length;
             _decompressedStream = new Lazy<Stream>(GetBaseStream);
             _compressedStream = new Lazy<Stream>(() => CompressStream(fileData, _configuration));
         }
@@ -257,6 +260,15 @@ namespace Kontract.Models.Archive
             ms.Position = 0;
 
             return ms;
+        }
+
+        #endregion
+
+        #region Size delegates
+
+        private long GetFileDataLength()
+        {
+            return FileData?.Length ?? 0;
         }
 
         #endregion

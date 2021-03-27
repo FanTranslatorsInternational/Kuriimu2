@@ -1164,6 +1164,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
                     _formInfo.Progress.ReportProgress("Add files", count++, elements.Length);
 
+                    // Do not add file if it already exists
+                    // This would be replacement and is not part of this operation
+                    if(_archiveFileSystem.FileExists(subFolder / filePath.ToRelative()))
+                        continue;
+
                     // TODO: This will currently copy files to memory, instead of just using a reference to any more memory efficient stream (like FileStream)
                     Stream createdFile;
                     try

@@ -590,7 +590,9 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void mainForm_DragDrop(object sender, DragEventArgs e)
         {
-            OpenPhysicalFiles(e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray(), false);
+            // Filter out directory paths and only keep file paths
+            var paths = e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).Where(p => !Directory.Exists(p)).ToArray();
+            OpenPhysicalFiles(paths, false);
         }
 
         private void mainForm_Load(object sender, EventArgs e)

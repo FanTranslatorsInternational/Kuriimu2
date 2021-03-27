@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -13,9 +11,11 @@ using Kontract.Models.IO;
 
 namespace plugin_mt_framework.Archives
 {
-    class MtArcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRenameFiles
+    class MtArcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IAddFiles, IRenameFiles, IRemoveFiles
     {
         private MtArc _arc;
+        private bool _hasAddedFiles;
+        private bool _hasDeletedFiles;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsContentChanged();
@@ -27,6 +27,9 @@ namespace plugin_mt_framework.Archives
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
+            _hasAddedFiles = false;
+            _hasDeletedFiles = false;
+
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
             var platform = MtArcSupport.DeterminePlatform(fileStream);
@@ -51,6 +54,8 @@ namespace plugin_mt_framework.Archives
             var afi = _arc.Add(fileData, filePath);
             Files.Add(afi);
 
+            _hasAddedFiles = true;
+
             return afi;
         }
 
@@ -61,7 +66,19 @@ namespace plugin_mt_framework.Archives
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return _hasAddedFiles || _hasDeletedFiles || Files.Any(x => x.ContentChanged);
+        }
+
+        public void RemoveFile(IArchiveFileInfo afi)
+        {
+            Files.Remove(afi);
+            _hasDeletedFiles = true;
+        }
+
+        public void RemoveAll()
+        {
+            Files.Clear();
+            _hasDeletedFiles = true;
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
@@ -60,24 +62,30 @@ namespace plugin_mt_framework.Archives
 
         public IArchiveFileInfo Add(Stream fileData, UPath filePath)
         {
+            // Determine extension hash
+            var extensionHash = Regex.IsMatch(filePath.GetExtensionWithDot(), @"\.[\da-fA-F]{8}") ?
+                uint.Parse(filePath.GetExtensionWithDot().Substring(1), NumberStyles.HexNumber) :
+                MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot());
+
+            // Create entry
             IMtEntry entry;
             switch (_platform)
             {
                 case MtArcPlatform.Switch:
                     entry = new MtEntrySwitch
                     {
-                        ExtensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot()),
-                        FileName = filePath.FullName,
+                        ExtensionHash = extensionHash,
+                        FileName = (filePath.GetDirectory() / filePath.GetNameWithoutExtension()).FullName,
                         decompSize = (int)fileData.Length
                     };
                     break;
 
                 case MtArcPlatform.LittleEndian:
                 case MtArcPlatform.BigEndian:
-                    entry=new MtEntry
+                    entry = new MtEntry
                     {
-                        ExtensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot()),
-                        FileName = filePath.FullName,
+                        ExtensionHash = extensionHash,
+                        FileName = (filePath.GetDirectory() / filePath.GetNameWithoutExtension()).FullName,
                         decompSize = (int)fileData.Length,
                     };
                     break;
@@ -86,6 +94,7 @@ namespace plugin_mt_framework.Archives
                     throw new InvalidOperationException();
             }
 
+            // Create ArchiveFileInfo
             return CreateAfi(fileData, filePath.FullName, entry, _platform);
         }
 
@@ -285,12 +294,6 @@ namespace plugin_mt_framework.Archives
         #endregion
 
         #region Support
-
-        public int GetArchiveSize(IList<IArchiveFileInfo> files)
-        {
-            var byteOrder = _platform == MtArcPlatform.BigEndian ? ByteOrder.BigEndian : ByteOrder.LittleEndian;
-            return GetArchiveSize(files, _header.version, byteOrder);
-        }
 
         public static int GetArchiveSize(IList<IArchiveFileInfo> files, int version, ByteOrder byteOrder)
         {
