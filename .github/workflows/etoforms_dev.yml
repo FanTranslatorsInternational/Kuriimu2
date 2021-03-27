@@ -32,21 +32,19 @@ jobs:
       with: 
         path: './src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json'
         prop_path: 'version'
-        
-    - run: echo ${{steps.version.outputs.prop}} 
       
     - run: |
-          echo "${{ fromJson(steps.set_version.outputs.packageJson).version }}"
+          echo "${{ fromJson(steps.set_version.outputs.prop).version }}"
       
     - name: Create manifests
       run: |
         mkdir ./update/Wpf
         mkdir ./update/Gtk
         mkdir ./update/Mac
-        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.packageJson).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Wpf/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.packageJson).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Gtk/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.packageJson).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.app" }' > ./update/Mac/manifest.json
-        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.packageJson).version }}", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
+        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.prop).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Wpf/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.prop).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Gtk/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.prop).version }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.app" }' > ./update/Mac/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ fromJson(steps.set_version.outputs.prop).version }}", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
       
     - name: Setup NuGet sources
       run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
