@@ -90,8 +90,8 @@ namespace Kuriimu2.EtoForms.Forms
         private const string ExceptionCatched = "Exception catched";
         private const string PluginsNotAvailable = "Plugins not available";
 
-        private const string FormTitle = "Kuriimu2 {0}";
-        private const string FormTitlePlugin = "Kuriimu2 {0} - {1} - {2} - {3}";
+        private const string FormTitle = "Kuriimu2 {0}-{1}";
+        private const string FormTitlePlugin = "Kuriimu2 {0}-{1} - {2} - {3} - {4}";
 
         private const string UnsavedChanges = "Unsaved changes";
         private const string UnsavedChangesToFileText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
@@ -553,7 +553,7 @@ namespace Kuriimu2.EtoForms.Forms
         {
             if (tabControl.Pages.Count <= 0 || tabControl.SelectedIndex < 0)
             {
-                Title = string.Format(FormTitle, _localManifest.BuildNumber);
+                Title = string.Format(FormTitle, _localManifest.Version, _localManifest.BuildNumber);
                 return;
             }
 
@@ -563,7 +563,7 @@ namespace Kuriimu2.EtoForms.Forms
             var pluginName = stateEntry.StateInfo.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
 
-            Title = string.Format(FormTitlePlugin, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
+            Title = string.Format(FormTitlePlugin, _localManifest.Version, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
         private void UpdateTab(IStateInfo stateInfo, bool invokeUpdateForm = false, bool iterateParents = true)
@@ -633,7 +633,7 @@ namespace Kuriimu2.EtoForms.Forms
                         e.Cancel = true;
                         return;
 
-                    // DialogResult.No means to not save changes and just close all open files
+                        // DialogResult.No means to not save changes and just close all open files
                 }
             }
 
