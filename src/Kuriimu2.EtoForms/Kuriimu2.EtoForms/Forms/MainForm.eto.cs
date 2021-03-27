@@ -1,6 +1,7 @@
 using Eto.Forms;
 using Eto.Drawing;
 using Kuriimu2.EtoForms.Controls;
+using Kuriimu2.EtoForms.Resources;
 
 namespace Kuriimu2.EtoForms.Forms
 {
@@ -27,6 +28,8 @@ namespace Kuriimu2.EtoForms.Forms
         private Command openRawImageViewerCommand;
 
         private Command openImageTranscoderCommand;
+
+        private Command includeDevBuildCommand;
 
         private Command openAboutCommand;
 
@@ -64,6 +67,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             openImageTranscoderCommand = new Command { MenuText = "Image Trascoder" };
 
+            includeDevBuildCommand = new Command();
+
             openAboutCommand = new Command { MenuText = "About..." };
 
             #endregion
@@ -85,7 +90,8 @@ namespace Kuriimu2.EtoForms.Forms
                     new ButtonMenuItem { Text = "Ciphers", Items = { openEncryptionCommand, openDecryptionCommand } },
                     new ButtonMenuItem { Text = "Compressions", Items = { openDecompressionCommand, openCompressionCommand } },
                     new ButtonMenuItem(openRawImageViewerCommand),
-                    //new ButtonMenuItem(openImageTranscoderCommand)
+                    //new ButtonMenuItem(openImageTranscoderCommand),
+                    new ButtonMenuItem { Text = "Settings", Items = { new CheckMenuItem { Text = "Include Developer Builds", Checked = Settings.Default.IncludeDevBuilds, Command = includeDevBuildCommand } } }
                 },
                 AboutItem = openAboutCommand
             };

@@ -106,5 +106,17 @@ namespace Kuriimu2.EtoForms.Resources {
                 this["ThumbnailHeight"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IncludeDevBuilds {
+            get {
+                return ((bool)(this["IncludeDevBuilds"]));
+            }
+            set {
+                this["IncludeDevBuilds"] = value;
+            }
+        }
     }
 }

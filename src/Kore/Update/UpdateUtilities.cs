@@ -19,7 +19,7 @@ namespace Kore.Update
             return resourceStream != null ? JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd()) : null;
         }
 
-        public static bool IsUpdateAvailable(Manifest remoteManifest, Manifest localManifest)
+        public static bool IsUpdateAvailable(Manifest remoteManifest, Manifest localManifest, bool includeDevBuilds)
         {
             if (remoteManifest == null || localManifest == null)
                 return false;
@@ -27,6 +27,9 @@ namespace Kore.Update
             var sourceCheck = remoteManifest.SourceType != localManifest.SourceType;
             var versionCheck = new Models.Update.Version(localManifest.Version) < new Models.Update.Version(remoteManifest.Version);
             var buildCheck = remoteManifest.BuildNumber != localManifest.BuildNumber;
+
+            if (!includeDevBuilds)
+                return sourceCheck || versionCheck;
 
             return sourceCheck || versionCheck || buildCheck;
         }

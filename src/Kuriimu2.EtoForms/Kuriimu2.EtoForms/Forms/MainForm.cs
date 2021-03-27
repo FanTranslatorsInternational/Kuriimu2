@@ -32,6 +32,7 @@ using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Progress;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 using Newtonsoft.Json;
 using Serilog;
@@ -106,14 +107,6 @@ namespace Kuriimu2.EtoForms.Forms
         {
             InitializeComponent();
 
-            //_hashDialog = new HashExtensionDialog();
-            //_decryptDialog = new DecryptExtensionDialog();
-            //_encryptDialog = new EncryptExtensionsDialog();
-            //_decompressDialog = new DecompressExtensionDialog();
-            //_compressDialog = new CompressExtensionDialog();
-            //_searcherDialog = new SequenceSearcherDialog();
-            //_rawImageDialog = new RawImageDialog();
-
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
@@ -130,9 +123,6 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
-
-            //_extractDialog = new BatchExtractDialog(_pluginManager);
-            //_injectDialog = new BatchInjectDialog(_pluginManager);
 
             // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
             // HINT: Some kind of form spanning control, which handles the drop action instead
@@ -160,6 +150,8 @@ namespace Kuriimu2.EtoForms.Forms
             openCompressionCommand.Executed += openCompressionCommand_Executed;
 
             openRawImageViewerCommand.Executed += openRawImageViewerCommand_Executed;
+
+            includeDevBuildCommand.Executed += IncludeDevBuildCommand_Executed;
 
             #endregion
         }
@@ -696,6 +688,12 @@ namespace Kuriimu2.EtoForms.Forms
             new RawImageDialog().ShowModal();
         }
 
+        private void IncludeDevBuildCommand_Executed(object sender, EventArgs e)
+        {
+            Settings.Default.IncludeDevBuilds = !Settings.Default.IncludeDevBuilds;
+            Settings.Default.Save();
+        }
+
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
             var selectedPlugin = ChoosePlugin(e.FilePlugins);
@@ -749,7 +747,7 @@ namespace Kuriimu2.EtoForms.Forms
             var platform = GetCurrentPlatform();
 
             var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl, platform));
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, Settings.Default.IncludeDevBuilds))
                 return;
 
             var result = MessageBox.Show(
