@@ -25,8 +25,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.302
-      
-    - name: Read version manifest
+  
+    # Read version manifest
     - id: set_version
       run: |
         content=`cat ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json`
