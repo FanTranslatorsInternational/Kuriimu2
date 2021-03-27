@@ -26,15 +26,12 @@ jobs:
       with:
         dotnet-version: 3.1.302
   
-    # Read version manifest
-    - id: set_version
+    - name: Get manifest version
+      id: set_version
       uses: notiz-dev/github-action-json-property@release
       with: 
         path: './src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json'
         prop_path: 'version'
-      
-    - run: |
-          echo "${{ fromJson(steps.set_version.outputs.prop).version }}"
       
     - name: Create manifests
       run: |
