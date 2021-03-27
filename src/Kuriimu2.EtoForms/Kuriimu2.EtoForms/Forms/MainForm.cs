@@ -55,16 +55,6 @@ namespace Kuriimu2.EtoForms.Forms
 
         private readonly Manifest _localManifest;
 
-        //private HashExtensionDialog _hashDialog;
-        //private DecryptExtensionDialog _decryptDialog;
-        //private EncryptExtensionsDialog _encryptDialog;
-        //private DecompressExtensionDialog _decompressDialog;
-        //private CompressExtensionDialog _compressDialog;
-        //private BatchExtractDialog _extractDialog;
-        //private BatchInjectDialog _injectDialog;
-        //private SequenceSearcherDialog _searcherDialog;
-        //private RawImageDialog _rawImageDialog;
-
         #region HotKeys
 
         private const Keys OpenHotKey = Keys.Control | Keys.O;
@@ -763,7 +753,7 @@ namespace Kuriimu2.EtoForms.Forms
                 return;
 
             var result = MessageBox.Show(
-                    $"Do you want to update from '{_localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
+                    $"Do you want to update from '{_localManifest.Version}-{_localManifest.BuildNumber}' to '{remoteManifest.Version}-{remoteManifest.BuildNumber}'?",
                     "Update available", MessageBoxButtons.YesNo);
             if (result == DialogResult.No)
                 return;
