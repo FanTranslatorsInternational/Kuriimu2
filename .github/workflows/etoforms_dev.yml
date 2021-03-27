@@ -38,6 +38,9 @@ jobs:
         echo "::set-output name=packageJson::$content"
       shell: bash
       
+    - run: |
+          echo "${{ fromJson(steps.set_version.outputs.packageJson).version }}"
+      
     - name: Create manifests
       run: |
         mkdir ./update/Wpf
