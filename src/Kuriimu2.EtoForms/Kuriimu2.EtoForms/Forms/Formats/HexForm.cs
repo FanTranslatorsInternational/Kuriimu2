@@ -14,6 +14,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             hexBox.LoadStream((formInfo.StateInfo.PluginState as IHexState)?.FileStream);
         }
 
+        #region Forminterface methods
+
+        public bool HasRunningOperations()
+        {
+            return false;
+        }
+
+        #endregion
+
         #region Update
 
         public void UpdateForm()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Kontract.Interfaces.Providers;
+using Serilog;
 
 namespace Kontract.Interfaces.Managers
 {
@@ -9,6 +10,11 @@ namespace Kontract.Interfaces.Managers
     /// </summary>
     public interface IStreamManager : IDisposable
     {
+        /// <summary>
+        /// The logger of this stream manager.
+        /// </summary>
+        ILogger Logger { get; set; }
+
         /// <summary>
         /// The amount of stream registered.
         /// </summary>

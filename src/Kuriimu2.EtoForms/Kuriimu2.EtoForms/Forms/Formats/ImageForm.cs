@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
-using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Progress;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
@@ -23,6 +21,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
     partial class ImageForm : Panel, IKuriimuForm
     {
         private readonly FormInfo _formInfo;
+        private readonly AsyncOperation _asyncOperation;
 
         private int _selectedImageIndex;
 
@@ -58,6 +57,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             _formInfo = formInfo;
 
+            _asyncOperation = new AsyncOperation();
+            _asyncOperation.Started += asyncOperation_Started;
+            _asyncOperation.Finished += asyncOperation_Finished;
+
             UpdateImageList();
             UpdateFormats();
             UpdatePalettes(GetSelectedImage());
@@ -79,6 +82,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             exportCommand.Executed += ExportCommand_Executed;
             importCommand.Executed += ImportCommand_Executed;
         }
+
+        #region Forminterface methods
+
+        public bool HasRunningOperations()
+        {
+            return _asyncOperation.IsRunning;
+        }
+
+        #endregion
 
         #region Update
 
@@ -259,7 +271,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Import
 
-        private void ImportPng()
+        private async Task ImportPng()
         {
             var ofd = new OpenFileDialog
             {
@@ -271,17 +283,17 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (ofd.ShowDialog(this) != DialogResult.Ok)
                 return;
 
-            Import(ofd.FileName);
+            await Import(ofd.FileName);
         }
 
-        private void Import(UPath filePath)
+        private async Task Import(UPath filePath)
         {
             ToggleForm(false);
 
             try
             {
                 using var newImage = new System.Drawing.Bitmap(filePath.FullName);
-                GetSelectedImage().SetImage(newImage, _formInfo.Progress);
+                await _asyncOperation.StartAsync(cts => GetSelectedImage().SetImage(newImage, _formInfo.Progress));
             }
             catch (Exception ex)
             {
@@ -307,7 +319,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var selectedImage = GetSelectedImage();
             var selectedFormat = GetSelectedImageFormat();
-            await Task.Run(() => selectedImage.TranscodeImage(selectedFormat, _formInfo.Progress));
+            await _asyncOperation.StartAsync(cts => selectedImage.TranscodeImage(selectedFormat, _formInfo.Progress));
 
             UpdateImagePreview(GetSelectedImage());
             UpdateFormInternal();
@@ -321,7 +333,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var selectedImage = GetSelectedImage();
             var selectedFormat = GetSelectedPaletteFormat();
-            await Task.Run(() => selectedImage.TranscodePalette(selectedFormat, _formInfo.Progress));
+            await _asyncOperation.StartAsync(cts => selectedImage.TranscodePalette(selectedFormat, _formInfo.Progress));
 
             UpdateImagePreview(GetSelectedImage());
             UpdateFormInternal();
@@ -351,9 +363,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             e.Result = System.Drawing.Color.FromArgb(c.Ab, c.Rb, c.Gb, c.Bb);
         }
 
-        private void ImagePalette_PaletteChanged(object sender, Controls.PaletteChangedEventArgs e)
+        private async void ImagePalette_PaletteChanged(object sender, Controls.PaletteChangedEventArgs e)
         {
-            SetColorInPalette(e.Index, e.NewColor);
+            await SetColorInPalette(e.Index, e.NewColor);
         }
 
         private async void SaveAsCommand_Executed(object sender, EventArgs e)
@@ -371,9 +383,17 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             ExportPng();
         }
 
-        private void ImportCommand_Executed(object sender, EventArgs e)
+        private async void ImportCommand_Executed(object sender, EventArgs e)
         {
-            ImportPng();
+            await ImportPng();
+        }
+
+        private void asyncOperation_Started(object sender, EventArgs e)
+        {
+        }
+
+        private void asyncOperation_Finished(object sender, EventArgs e)
+        {
         }
 
         #endregion
@@ -448,8 +468,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region KanvasImage
 
-        private void SetColorInPalette(int index, System.Drawing.Color newColor)
+        private async Task SetColorInPalette(int index, System.Drawing.Color newColor)
         {
+            if(_asyncOperation.IsRunning)
+                return;
+
             var selectedImage = GetSelectedImage();
             if (!selectedImage.IsIndexed)
                 return;
@@ -462,11 +485,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             try
             {
-                Task.Run(() =>
+                await _asyncOperation.StartAsync(cts =>
                 {
                     selectedImage.SetColorInPalette(index, newColor);
                     _formInfo.Progress.ReportProgress("Done", 1, 1);
-                }).Wait();
+                });
             }
             catch (Exception ex)
             {

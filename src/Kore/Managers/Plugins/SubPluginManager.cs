@@ -9,6 +9,7 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using Serilog;
 
 namespace Kore.Managers.Plugins
 {
@@ -37,6 +38,34 @@ namespace Kore.Managers.Plugins
 
             _stateInfo = stateInfo;
         }
+
+        #region Check
+
+        /// <inheritdoc />
+        public bool IsLoading(UPath filePath)
+        {
+            return _parentPluginManager.IsLoading(filePath);
+        }
+
+        /// <inheritdoc />
+        public bool IsLoaded(UPath filePath)
+        {
+            return _parentPluginManager.IsLoaded(filePath);
+        }
+
+        /// <inheritdoc />
+        public bool IsSaving(IStateInfo stateInfo)
+        {
+            return _parentPluginManager.IsSaving(stateInfo);
+        }
+
+        /// <inheritdoc />
+        public bool IsClosing(IStateInfo stateInfo)
+        {
+            return _parentPluginManager.IsClosing(stateInfo);
+        }
+
+        #endregion
 
         #region Load File
 
@@ -78,7 +107,7 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        #region Load IArchiveFileInfo
+        #region Load ArchiveFileInfo
 
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
@@ -118,12 +147,14 @@ namespace Kore.Managers.Plugins
 
         #region Close file
 
-        public void Close(IStateInfo stateInfo)
+        public CloseResult Close(IStateInfo stateInfo)
         {
             ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
 
-            _parentPluginManager.Close(stateInfo);
+            var closeResult = _parentPluginManager.Close(stateInfo);
             _loadedFiles.Remove(stateInfo);
+
+            return closeResult;
         }
 
         public void CloseAll()

@@ -8,6 +8,7 @@ using Kontract.Interfaces.Providers;
 using Kontract.Models.IO;
 using Kore.Providers;
 using Kore.Streams;
+using Serilog;
 
 namespace Kore.Managers
 {
@@ -26,6 +27,9 @@ namespace Kore.Managers
         private readonly IDictionary<Stream, Stream> _parentStreams;
 
         public const string TemporaryDirectory = "tmp";
+
+        /// <inheritdoc />
+        public ILogger Logger { get; set; }
 
         /// <inheritdoc />
         public int Count => _streams.Count(x => !IsStreamClosed(x));
@@ -84,6 +88,12 @@ namespace Kore.Managers
         /// <inheritdoc />
         public void Release(Stream release, bool recursive = false)
         {
+            if (release == null)
+            {
+                Logger?.Error("Probable race condition in stream manager.");
+                return;
+            }
+
             if (!ContainsStream(release))
                 throw new InvalidOperationException("The stream is not managed by this provider.");
 
@@ -114,6 +124,13 @@ namespace Kore.Managers
             }
         }
 
+        /// <inheritdoc cref="Dispose"/>
+        public void Dispose()
+        {
+            _streamCollectionTimer?.Dispose();
+            ReleaseAll();
+        }
+
         /// <summary>
         /// Acts as the garbage collection process per interval for this instance.
         /// </summary>
@@ -134,15 +151,14 @@ namespace Kore.Managers
             }
         }
 
+        /// <summary>
+        /// Checks if a given stream is already closed.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
         private bool IsStreamClosed(Stream stream)
         {
             return !stream.CanRead && !stream.CanWrite && !stream.CanSeek;
-        }
-
-        public void Dispose()
-        {
-            _streamCollectionTimer?.Dispose();
-            ReleaseAll();
         }
     }
 }

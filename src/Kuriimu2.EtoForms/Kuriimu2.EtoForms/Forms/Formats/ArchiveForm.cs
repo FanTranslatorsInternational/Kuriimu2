@@ -128,6 +128,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateFiles(_selectedPath);
         }
 
+        #region Forminterface methods
+
+        public bool HasRunningOperations()
+        {
+            return _asyncOperation.IsRunning;
+        }
+
+        #endregion
+
         #region Update
 
         public void UpdateForm()
