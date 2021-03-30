@@ -1,0 +1,227 @@
+name: Kuriimu2 Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    
+    timeout-minutes: 15
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: nuget/setup-nuget@v1
+    
+   # Setup the build
+    - name: Wait for other release builds
+      uses: softprops/turnstyle@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.302
+		
+    - name: Setup NuGet sources
+      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+  
+    # Setup release version manifests
+    - name: Get manifest version
+      id: set_version
+      uses: notiz-dev/github-action-json-property@release
+      with: 
+        path: './version.json'
+        prop_path: 'version'
+      
+    - name: Create manifests
+      run: |
+        mkdir ./update/Eto/Wpf
+        mkdir ./update/Eto/Gtk
+        mkdir ./update/Eto/Mac
+        mkdir ./update/Cmd
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Eto/Wpf/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2" }' > ./update/Eto/Gtk/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.app" }' > ./update/Eto/Mac/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.exe" }' > ./update/Cmd/manifest.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
+        echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.Cmd/Resources/version.json
+      
+    # Publish applications
+    - name: Publish EtoForms for Windows
+      run: |
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Eto/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
+        mv ./dist/final/Eto/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Eto/Wpf/Kuriimu2.exe
+        rm ./dist/final/Eto/Wpf/*.pdb
+
+    - name: Publish EtoForms for Linux
+      run: |
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Eto/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
+        mv ./dist/final/Eto/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Eto/Gtk/Kuriimu2
+        rm ./dist/final/Gtk/*.pdb
+
+    - name: Publish EtoForms for Mac
+      run: |
+        dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Mac/Kuriimu2.EtoForms.Mac.csproj --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
+        mkdir ./dist/final/Eto/Mac
+        mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Eto/Mac/Kuriimu2.app
+        mv ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
+
+    - name: Publish EtoForms for Windows
+      run: |
+        dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
+        mv ./dist/final/Cmd/Kuriimu2.Cmd.exe ./dist/final/Cmd/Kuriimu2.exe
+        rm ./dist/final/Cmd/*.pdb
+      
+    # Publish libraries as nuget packages
+    - name: Pack libraries
+      run: |
+        dotnet build ./src/Kontract/Kontract.csproj --configuration Release
+        dotnet build ./src/Komponent/Komponent.csproj --configuration Release
+        dotnet build ./src/Kanvas/Kanvas.csproj --configuration Release
+        dotnet build ./src/Kompression/Kompression.csproj --configuration Release
+        dotnet build ./src/Kryptography/Kryptography.csproj --configuration Release
+        dotnet pack ./src/Kontract/Kontract.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Komponent/Komponent.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kanvas/Kanvas.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kompression/Kompression.csproj --configuration Release --verbosity normal
+        dotnet pack ./src/Kryptography/Kryptography.csproj --configuration Release --verbosity normal
+      
+    # Publish plugins
+    - name: Publish plugins
+      run: |
+        dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
+        rm ./dist/final/plugins/*.pdb
+        rm ./dist/final/plugins/*.deps.json
+        
+    - name: Copy plugins to applications
+      run: |
+        xcopy /I .\dist\final\plugins .\dist\final\Eto\Wpf\plugins
+        xcopy /I .\dist\final\plugins .\dist\final\Eto\Gtk\plugins
+        xcopy /I .\dist\final\plugins .\dist\final\Eto\Mac\plugins
+        xcopy /I .\dist\final\plugins .\dist\final\Cmd\plugins
+      shell: cmd
+      
+
+    # Prepare release archives
+    - name: Zip EtoForms Wpf release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Eto/Wpf
+        dest: ./update/Eto/Wpf/latest.zip
+      
+    - name: Zip EtoForms Gtk release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Eto/Gtk
+        dest: ./update/Eto/Gtk/latest.zip
+        
+    - name: Zip EtoForms Mac release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Eto/Mac
+        dest: ./update/Eto/Mac/latest.zip
+      
+    - name: Zip Cmd release
+      uses: papeloto/action-zip@v1
+      with:
+        files: ./dist/final/Cmd
+        dest: ./update/Cmd/latest.zip
+
+    # Sign release packages
+    - name: Install openSSL
+      uses: crazy-max/ghaction-chocolatey@v1
+      with:
+        args: install openssl.light
+      
+    - name: Sign releases
+      run: |
+        echo "$CMD_PRIVATE_KEY" > cmd.pem
+        echo "$ETOFORMS_PRIVATE_KEY" > etoforms.pem
+        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Wpf/latest.sig ./update/Eto/Wpf/latest.zip
+        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Gtk/latest.sig ./update/Eto/Gtk/latest.zip
+        openssl dgst -sha512 -sign etoforms.pem -out ./update/Eto/Mac/latest.sig ./update/Eto/Mac/latest.zip
+        openssl dgst -sha512 -sign cmd.pem -out ./update/Cmd/latest.sig ./update/Cmd/latest.zip
+      shell: bash
+      env:
+        CMD_PRIVATE_KEY: ${{secrets.CMD_PRIVATE_KEY}}
+        ETOFORMS_PRIVATE_KEY: ${{secrets.ETOFORMS_PRIVATE_KEY}}
+      
+    # Upload releases to update repositories
+    - name: Clone update repositories
+      run: |
+        git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_eto_repo
+        git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update_cmd_repo
+        
+    - name: Move update files to update repos
+      run: |
+        mv -Force ./update/Eto/Wpf/* ./update_eto_repo/Wpf
+        mv -Force ./update/Eto/Gtk/* ./update_eto_repo/Gtk
+        mv -Force ./update/Eto/Mac/* ./update_eto_repo/Mac
+        mv -Force ./update/Cmd/* ./update_cmd_repo
+        
+    - name: Commit releases to EtoForms update repository
+      run: |
+        cd ./update_eto_repo
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Update binaries" -a
+
+    - name: Commit release to CommandLine update repository
+      run: |
+        cd ./update_cmd_repo
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add *
+        git commit -m "Update binaries" -a
+        
+    - name: Push releases to EtoForms update repo
+      uses: ad-m/github-push-action@master
+      with:
+        directory: ./update_eto_repo
+        repository: FanTranslatorsInternational/Kuriimu2-EtoForms-Update
+        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+
+    - name: Push release to CommandLine update repo
+      uses: ad-m/github-push-action@master
+      with:
+        directory: ./update_cmd_repo
+        repository: FanTranslatorsInternational/Kuriimu2-CommandLine-Update
+        github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
+    
+    # Create github release for EtoForms
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ steps.set_version.outputs.prop }}
+        draft: false
+        prerelease: false
+        body_path: changelog.txt
+        files: |
+          update/Eto/Wpf/latest.zip
+          update/Eto/Gtk/latest.zip
+          update/Eto/Mac/latest.zip
+          update/Cmd/latest.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

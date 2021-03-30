@@ -14,6 +14,7 @@ using Kuriimu2.Cmd.Manager;
 using Kuriimu2.Cmd.Parsers;
 using Kuriimu2.Cmd.Progress;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Kuriimu2.Cmd
 {
@@ -26,7 +27,7 @@ namespace Kuriimu2.Cmd
         private static IArgumentGetter _argumentGetter;
 
         static void Main(string[] args)
-        {			
+        {
             _argumentGetter = new ArgumentGetter(args);
             _localManifest = LoadLocalManifest();
 
@@ -35,7 +36,13 @@ namespace Kuriimu2.Cmd
 
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
             var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
-            var pluginManager = new PluginManager(progressContext, dialogManager, "plugins");
+            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+            var pluginManager = new PluginManager("plugins")
+            {
+                DialogManager = dialogManager,
+                Progress = progressContext,
+                Logger = logger
+            };
             pluginManager.OnManualSelection += PluginManager_OnManualSelection;
 
             PrintUnloadedPlugins(pluginManager.LoadErrors);
@@ -53,7 +60,7 @@ namespace Kuriimu2.Cmd
         private static void PrintWelcomeText()
         {
             Console.WriteLine("Welcome to Kuriimu2");
-            Console.WriteLine($"Build: {_localManifest.BuildNumber}");
+            Console.WriteLine($"Version: {_localManifest.Version}-{_localManifest.BuildNumber}");
             Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
             Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
@@ -61,11 +68,11 @@ namespace Kuriimu2.Cmd
         private static void CheckForUpdate()
         {
             var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl);
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, true))
                 return;
 
             Console.WriteLine();
-            Console.WriteLine($"A new version is available: {remoteManifest.BuildNumber}");
+            Console.WriteLine($"A new version is available: {remoteManifest.Version}-{remoteManifest.BuildNumber}");
         }
 
         private static Manifest LoadLocalManifest()
