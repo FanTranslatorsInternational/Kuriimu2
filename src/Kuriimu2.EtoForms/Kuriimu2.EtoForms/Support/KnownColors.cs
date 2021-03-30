@@ -16,7 +16,9 @@ namespace Kuriimu2.EtoForms.Support
 
         public static Color LimeGreen => Color.FromArgb(0x32, 0xCD, 0x32);
 
-        public static Color NeonGreen=> Color.FromArgb(0x20, 0xC2, 0x0E);
+        public static Color NeonGreen => Color.FromArgb(0x20, 0xC2, 0x0E);
+
+        public static Color DarkGreen => Color.FromArgb(0x00, 0x64, 0x00);
 
         public static Color Orange => Color.FromArgb(0xFF, 0xA5, 0x00);
 

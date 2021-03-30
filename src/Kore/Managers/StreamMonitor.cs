@@ -9,6 +9,7 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Models.IO;
 using Kore.Factories;
+using Serilog;
 
 namespace Kore.Managers
 {
@@ -26,6 +27,14 @@ namespace Kore.Managers
         private readonly ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)> _temporaryFileSystemMapping;
         private readonly ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)> _streamManagerMapping;
 
+        private ILogger _logger;
+
+        public ILogger Logger
+        {
+            get => _logger;
+            set => SetLogger(value);
+        }
+
         public StreamMonitor()
         {
             _temporaryContainerCollectionTimer = new Timer(1000.0);
@@ -40,7 +49,7 @@ namespace Kore.Managers
 
         public IStreamManager CreateStreamManager()
         {
-            var streamManager = new StreamManager();
+            var streamManager = new StreamManager { Logger = _logger };
 
             lock (_streamManagersLock)
                 _streamManagers.Add(streamManager);
@@ -160,6 +169,17 @@ namespace Kore.Managers
         {
             var process = Process.GetCurrentProcess().MainModule;
             return process == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+        }
+
+        private void SetLogger(ILogger logger)
+        {
+            _logger = logger;
+
+            lock (_streamManagersLock)
+            {
+                foreach (var manager in _streamManagers)
+                    manager.Logger = logger;
+            }
         }
     }
 }

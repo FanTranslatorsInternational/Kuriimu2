@@ -63,6 +63,13 @@ namespace Kryptography.Hash.Crc
             _polynomialTable = polynomialTable ?? throw new ArgumentNullException(nameof(polynomialTable));
         }
 
+        public byte[] Compute(Span<byte> input)
+        {
+            var (result, _) = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF, 0);
+
+            return MakeResult(~result);
+        }
+
         public byte[] Compute(Stream input)
         {
             var returnCrc = 0xFFFFFFFF;
@@ -79,14 +86,7 @@ namespace Kryptography.Hash.Crc
             return MakeResult(~returnCrc);
         }
 
-        public byte[] Compute(byte[] input)
-        {
-            var (result, _) = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF, 0);
-
-            return MakeResult(~result);
-        }
-
-        private (uint, uint) ComputeInternal(byte[] toHash, int offset, int length, uint initialCrc, uint initialHash)
+        private (uint, uint) ComputeInternal(Span<byte> toHash, int offset, int length, uint initialCrc, uint initialHash)
         {
             var returnCrc = initialCrc;
             var hash2 = initialHash;

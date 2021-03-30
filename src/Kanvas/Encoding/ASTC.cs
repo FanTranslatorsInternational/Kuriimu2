@@ -8,7 +8,7 @@ using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    public class ASTC : IColorEncoding
+    public class Astc : IColorEncoding
     {
         private readonly AstcFormat _format;
 
@@ -24,7 +24,7 @@ namespace Kanvas.Encoding
         /// <inheritdoc cref="FormatName"/>
         public string FormatName { get; }
 
-        public ASTC(AstcFormat format)
+        public Astc(AstcFormat format)
         {
             _format = format;
 
@@ -69,7 +69,7 @@ namespace Kanvas.Encoding
             // Initialize PVR Texture
             var pvrTexture = PvrTexture.Create(colorData, (uint)saveContext.Size.Width, (uint)saveContext.Size.Height, 1, PixelFormat.RGBA8888, ChannelType.UnsignedByteNorm, ColorSpace.Linear);
 
-            // Transcode texture to PVRTC
+            // Transcode texture to ASTC
             pvrTexture.Transcode((PixelFormat)_format, ChannelType.UnsignedByteNorm, ColorSpace.Linear, CompressionQuality.PVRTCHigh);
 
             return pvrTexture.GetData();

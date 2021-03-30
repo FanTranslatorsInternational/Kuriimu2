@@ -31,7 +31,7 @@ namespace Kanvas.Native
             var extension = GetExtension();
 
             // Try get resource depending on the platform
-            var resourceName = $"PVR_CS.Resources.{platform}_x{architecture}.{libraryName}.{extension}";
+            var resourceName = $"Kanvas.Resources.{platform}_x{architecture}.{libraryName}.{extension}";
             var resourceStream = currentAssembly.GetManifestResourceStream(resourceName);
 
             if (resourceStream == null)

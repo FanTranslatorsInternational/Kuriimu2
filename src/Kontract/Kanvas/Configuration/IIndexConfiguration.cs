@@ -4,6 +4,6 @@
 
     public interface IIndexConfiguration : IImageConfiguration
     {
-        IIndexConfiguration TranscodePaletteWith(CreatePaletteEncoding func);
+        public ITranscodePaletteConfiguration TranscodePalette { get; }
     }
 }

@@ -40,7 +40,8 @@ namespace Kanvas
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, imageSize), ImageLockMode.WriteOnly,
                 PixelFormat.Format32bppArgb);
 
-            var colorPoints = Zip(colors, GetPointSequence(paddedSize.IsEmpty ? imageSize : paddedSize, swizzle));
+            var finalSize = !paddedSize.IsEmpty ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : imageSize;
+            var colorPoints = Zip(colors, GetPointSequence(finalSize, swizzle));
 
             foreach (var (color, point) in colorPoints)
             {

@@ -69,7 +69,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbPaletteImport = new System.Windows.Forms.ToolStripButton();
             this.tsbPaletteExport = new System.Windows.Forms.ToolStripButton();
             this.clrDialog = new System.Windows.Forms.ColorDialog();
-            this.pbPalette = new Kuriimu2.WinForms.Controls.PictureBoxWithInterpolationMode();
             this.tlsMain.SuspendLayout();
             this.pnlMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splMain)).BeginInit();
@@ -83,7 +82,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.splProperties.Panel2.SuspendLayout();
             this.splProperties.SuspendLayout();
             this.tlsPalette.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).BeginInit();
             this.SuspendLayout();
             // 
             // tlsMain
@@ -103,7 +101,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbImageBorderColor});
             this.tlsMain.Location = new System.Drawing.Point(0, 0);
             this.tlsMain.Name = "tlsMain";
-            this.tlsMain.Size = new System.Drawing.Size(789, 25);
+            this.tlsMain.Size = new System.Drawing.Size(1863, 25);
             this.tlsMain.TabIndex = 1;
             this.tlsMain.Text = "toolStrip1";
             // 
@@ -111,7 +109,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // 
             this.tsbSave.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbSave.Enabled = false;
-            this.tsbSave.Image = global::Kuriimu2.WinForms.Properties.Resources.menu_save;
             this.tsbSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSave.Name = "tsbSave";
             this.tsbSave.Size = new System.Drawing.Size(23, 22);
@@ -121,7 +118,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // 
             this.tsbSaveAs.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbSaveAs.Enabled = false;
-            this.tsbSaveAs.Image = global::Kuriimu2.WinForms.Properties.Resources.menu_save_as;
             this.tsbSaveAs.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbSaveAs.Name = "tsbSaveAs";
             this.tsbSaveAs.Size = new System.Drawing.Size(23, 22);
@@ -135,7 +131,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // tsbExport
             // 
             this.tsbExport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbExport.Image = global::Kuriimu2.WinForms.Properties.Resources.image_export;
             this.tsbExport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbExport.Name = "tsbExport";
             this.tsbExport.Size = new System.Drawing.Size(23, 22);
@@ -144,7 +139,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // tsbImport
             // 
             this.tsbImport.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbImport.Image = global::Kuriimu2.WinForms.Properties.Resources.import_import;
             this.tsbImport.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImport.Name = "tsbImport";
             this.tsbImport.Size = new System.Drawing.Size(23, 22);
@@ -175,10 +169,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // 
             // tsbImageBorderStyle
             // 
-            this.tsbImageBorderStyle.Image = global::Kuriimu2.WinForms.Properties.Resources.menu_border_none;
             this.tsbImageBorderStyle.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImageBorderStyle.Name = "tsbImageBorderStyle";
-            this.tsbImageBorderStyle.Size = new System.Drawing.Size(65, 22);
+            this.tsbImageBorderStyle.Size = new System.Drawing.Size(49, 22);
             this.tsbImageBorderStyle.Text = "None";
             this.tsbImageBorderStyle.ToolTipText = "Image Border Style";
             // 
@@ -196,14 +189,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.pnlMain.Controls.Add(this.splMain);
             this.pnlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlMain.Location = new System.Drawing.Point(0, 25);
+            this.pnlMain.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.pnlMain.Name = "pnlMain";
-            this.pnlMain.Size = new System.Drawing.Size(789, 446);
+            this.pnlMain.Size = new System.Drawing.Size(1863, 850);
             this.pnlMain.TabIndex = 2;
             // 
             // splMain
             // 
             this.splMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splMain.Location = new System.Drawing.Point(0, 0);
+            this.splMain.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.splMain.Name = "splMain";
             // 
             // splMain.Panel1
@@ -215,8 +210,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // splMain.Panel2
             // 
             this.splMain.Panel2.Controls.Add(this.splProperties);
-            this.splMain.Size = new System.Drawing.Size(789, 446);
-            this.splMain.SplitterDistance = 570;
+            this.splMain.Size = new System.Drawing.Size(1863, 850);
+            this.splMain.SplitterDistance = 1345;
+            this.splMain.SplitterWidth = 5;
             this.splMain.TabIndex = 1;
             // 
             // imbPreview
@@ -230,9 +226,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.imbPreview.ImageBorderColor = System.Drawing.Color.Black;
             this.imbPreview.ImageBorderStyle = Cyotek.Windows.Forms.ImageBoxBorderStyle.FixedSingleDropShadow;
             this.imbPreview.Location = new System.Drawing.Point(0, 0);
+            this.imbPreview.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.imbPreview.Name = "imbPreview";
             this.imbPreview.SelectionMode = Cyotek.Windows.Forms.ImageBoxSelectionMode.Zoom;
-            this.imbPreview.Size = new System.Drawing.Size(570, 396);
+            this.imbPreview.Size = new System.Drawing.Size(1345, 796);
             this.imbPreview.TabIndex = 0;
             this.imbPreview.TabStop = false;
             this.imbPreview.Zoomed += new System.EventHandler<Cyotek.Windows.Forms.ImageBoxZoomEventArgs>(this.imbPreview_Zoomed);
@@ -258,9 +255,9 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tslWidth,
             this.tslHeightLabel,
             this.tslHeight});
-            this.tlsProperties.Location = new System.Drawing.Point(0, 396);
+            this.tlsProperties.Location = new System.Drawing.Point(0, 796);
             this.tlsProperties.Name = "tlsProperties";
-            this.tlsProperties.Size = new System.Drawing.Size(570, 25);
+            this.tlsProperties.Size = new System.Drawing.Size(1345, 25);
             this.tlsProperties.TabIndex = 4;
             // 
             // tslWidthLabel
@@ -299,16 +296,16 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbFormat,
             this.tslPalette,
             this.tsbPalette});
-            this.tlsTools.Location = new System.Drawing.Point(0, 421);
+            this.tlsTools.Location = new System.Drawing.Point(0, 821);
             this.tlsTools.Name = "tlsTools";
-            this.tlsTools.Size = new System.Drawing.Size(570, 25);
+            this.tlsTools.Size = new System.Drawing.Size(1345, 29);
             this.tlsTools.TabIndex = 3;
             // 
             // tslZoom
             // 
             this.tslZoom.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslZoom.Name = "tslZoom";
-            this.tslZoom.Size = new System.Drawing.Size(73, 22);
+            this.tslZoom.Size = new System.Drawing.Size(73, 26);
             this.tslZoom.Text = "Zoom: 100%";
             // 
             // tslTool
@@ -316,19 +313,19 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tslTool.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.tslTool.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslTool.Name = "tslTool";
-            this.tslTool.Size = new System.Drawing.Size(67, 22);
+            this.tslTool.Size = new System.Drawing.Size(67, 26);
             this.tslTool.Text = "Tool: Zoom";
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 29);
             // 
             // tslFormat
             // 
             this.tslFormat.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tslFormat.Name = "tslFormat";
-            this.tslFormat.Size = new System.Drawing.Size(48, 22);
+            this.tslFormat.Size = new System.Drawing.Size(48, 26);
             this.tslFormat.Text = "Format:";
             // 
             // tsbFormat
@@ -336,13 +333,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbFormat.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbFormat.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbFormat.Name = "tsbFormat";
-            this.tsbFormat.Size = new System.Drawing.Size(61, 22);
+            this.tsbFormat.Size = new System.Drawing.Size(61, 26);
             this.tsbFormat.Text = "Format:";
             // 
             // tslPalette
             // 
             this.tslPalette.Name = "tslPalette";
-            this.tslPalette.Size = new System.Drawing.Size(46, 22);
+            this.tslPalette.Size = new System.Drawing.Size(46, 26);
             this.tslPalette.Text = "Palette:";
             // 
             // tsbPalette
@@ -350,13 +347,14 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbPalette.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.tsbPalette.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPalette.Name = "tsbPalette";
-            this.tsbPalette.Size = new System.Drawing.Size(59, 22);
+            this.tsbPalette.Size = new System.Drawing.Size(59, 26);
             this.tsbPalette.Text = "Palette:";
             // 
             // splProperties
             // 
             this.splProperties.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splProperties.Location = new System.Drawing.Point(0, 0);
+            this.splProperties.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.splProperties.Name = "splProperties";
             this.splProperties.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -366,10 +364,10 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             // 
             // splProperties.Panel2
             // 
-            this.splProperties.Panel2.Controls.Add(this.pbPalette);
             this.splProperties.Panel2.Controls.Add(this.tlsPalette);
-            this.splProperties.Size = new System.Drawing.Size(215, 446);
-            this.splProperties.SplitterDistance = 236;
+            this.splProperties.Size = new System.Drawing.Size(513, 850);
+            this.splProperties.SplitterDistance = 449;
+            this.splProperties.SplitterWidth = 5;
             this.splProperties.TabIndex = 0;
             // 
             // treBitmaps
@@ -380,12 +378,13 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.treBitmaps.ImageIndex = 0;
             this.treBitmaps.ImageList = this.imlBitmaps;
             this.treBitmaps.Location = new System.Drawing.Point(0, 0);
+            this.treBitmaps.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.treBitmaps.Name = "treBitmaps";
             this.treBitmaps.SelectedImageIndex = 0;
             this.treBitmaps.ShowLines = false;
             this.treBitmaps.ShowPlusMinus = false;
             this.treBitmaps.ShowRootLines = false;
-            this.treBitmaps.Size = new System.Drawing.Size(215, 236);
+            this.treBitmaps.Size = new System.Drawing.Size(513, 449);
             this.treBitmaps.TabIndex = 0;
             this.treBitmaps.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treBitmaps_AfterSelect);
             this.treBitmaps.MouseEnter += new System.EventHandler(this.treBitmaps_MouseEnter);
@@ -406,7 +405,7 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbPaletteExport});
             this.tlsPalette.Location = new System.Drawing.Point(0, 0);
             this.tlsPalette.Name = "tlsPalette";
-            this.tlsPalette.Size = new System.Drawing.Size(215, 25);
+            this.tlsPalette.Size = new System.Drawing.Size(513, 25);
             this.tlsPalette.TabIndex = 1;
             this.tlsPalette.Text = "tlsPalette";
             // 
@@ -437,35 +436,15 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.tsbPaletteExport.Size = new System.Drawing.Size(23, 22);
             this.tsbPaletteExport.Click += new System.EventHandler(this.tsbPaletteExport_Click);
             // 
-            // pbPalette
-            // 
-            this.pbPalette.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pbPalette.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pbPalette.ErrorImage = null;
-            this.pbPalette.InitialImage = null;
-            this.pbPalette.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            this.pbPalette.Location = new System.Drawing.Point(0, 25);
-            this.pbPalette.Name = "pbPalette";
-            this.pbPalette.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-            this.pbPalette.Size = new System.Drawing.Size(215, 181);
-            this.pbPalette.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pbPalette.TabIndex = 0;
-            this.pbPalette.TabStop = false;
-            this.pbPalette.KeyUp += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyUp);
-            this.pbPalette.KeyDown += new System.Windows.Forms.KeyEventHandler(this.pbPalette_KeyDown);
-            this.pbPalette.Paint += new System.Windows.Forms.PaintEventHandler(this.pbPalette_Paint);
-            this.pbPalette.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pbPalette_MouseClick);
-            this.pbPalette.MouseEnter += new System.EventHandler(this.pbPalette_MouseEnter);
-            // 
             // ImageForm
             // 
-            this.Dock = DockStyle.Fill;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.pnlMain);
             this.Controls.Add(this.tlsMain);
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "ImageForm";
-            this.Size = new System.Drawing.Size(789, 471);
+            this.Size = new System.Drawing.Size(1863, 875);
             this.Load += new System.EventHandler(this.ImageForm_Load);
             this.tlsMain.ResumeLayout(false);
             this.tlsMain.PerformLayout();
@@ -486,7 +465,6 @@ namespace Kuriimu2.WinForms.MainForms.FormatForms
             this.splProperties.ResumeLayout(false);
             this.tlsPalette.ResumeLayout(false);
             this.tlsPalette.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pbPalette)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -29,11 +29,10 @@ namespace plugin_bandai_namco.Images
             // Read texture
             var texture = br.ReadBytes((int)input.Length - 0x80);
 
-            var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height))
-            {
-                Configuration = new ImageConfiguration().
-                        RemapPixelsWith(size => new CTRSwizzle(size.Width, size.Height, CtrTransformation.YFlip, true)),
-            };
+            var imageInfo = new ImageInfo(texture, _header.format, new Size(_header.width, _header.height));
+
+            imageInfo.RemapPixels.With(context => new CtrSwizzle(context,CtrTransformation.YFlip));
+            imageInfo.PadSize.ToPowerOfTwo();
 
             return imageInfo;
         }

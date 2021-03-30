@@ -3,6 +3,8 @@ using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+using Kontract.Models.IO;
+
 #pragma warning disable 649
 
 namespace plugin_level5.DS.Images
@@ -15,14 +17,14 @@ namespace plugin_level5.DS.Images
         public uint paletteOffset;
 
         public short unkOffset1;
-        public short unkCount1;     //Size 0x8
+        public short unkCount1;     // Size 0x8
         public short unkOffset2;
-        public short unkCount2;     //Size 0xc
+        public short unkCount2;     // Size 0xc
 
         public short tileDataOffset;
-        public short tileEntryCount;    //Size 0x2
+        public short tileEntryCount;    // Size 0x2
         public short imageDataOffset;
-        public short imageTileCount;    //Size 0x40
+        public short imageTileCount;    // Size 0x40
 
         public short imgFormat;
         public short colorCount;
@@ -37,7 +39,7 @@ namespace plugin_level5.DS.Images
     {
         public static IDictionary<int, IndexEncodingDefinition> LimgFormats = new Dictionary<int, IndexEncodingDefinition>
         {
-            [0] = new IndexEncodingDefinition(new Index(4), new[] { 0 }),
+            [0] = new IndexEncodingDefinition(new Index(4, ByteOrder.LittleEndian, BitOrder.LeastSignificantBitFirst), new[] { 0 }),
             [1] = new IndexEncodingDefinition(new Index(8), new[] { 0 }),
             [2] = new IndexEncodingDefinition(new Index(5, 3), new[] { 0 }),
         };

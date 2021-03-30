@@ -50,6 +50,9 @@ namespace Kore.Models
         /// <inheritdoc />
         public bool StateChanged => IsStateChanged();
 
+        /// <inheritdoc />
+        public bool IsDisposed { get; private set; }
+
         /// <summary>
         /// Represents an open file in the runtime of Kuriimu.
         /// </summary>
@@ -136,6 +139,8 @@ namespace Kore.Models
             DialogOptions = null;
 
             ParentStateInfo = null;
+
+            IsDisposed = true;
         }
 
         private bool IsStateChanged()

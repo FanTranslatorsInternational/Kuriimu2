@@ -76,6 +76,11 @@ namespace Kontract.Interfaces.Managers
         bool StateChanged { get; }
 
         /// <summary>
+        /// Determines if this state is disposed.
+        /// </summary>
+        bool IsDisposed { get; }
+
+        /// <summary>
         /// Sets <see cref="FileSystem"/> and <see cref="FilePath"/> for a new input file.
         /// </summary>
         /// <param name="fileSystem">The new file system for this state.</param>

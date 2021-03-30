@@ -23,5 +23,6 @@ namespace Komponent.IO.BinarySupport
         public BitFieldInfoAttribute BitFieldInfoAttribute => _member.GetCustomAttribute<BitFieldInfoAttribute>();
         public AlignmentAttribute AlignmentAttribute => _member.GetCustomAttribute<AlignmentAttribute>();
         public IEnumerable<TypeChoiceAttribute> TypeChoiceAttributes => _member.GetCustomAttributes<TypeChoiceAttribute>();
+        public ConditionAttribute ConditionAttribute => _member.GetCustomAttribute<ConditionAttribute>();
     }
 }

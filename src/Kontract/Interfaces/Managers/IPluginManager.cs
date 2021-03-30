@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Progress;
 using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using Serilog;
 
 namespace Kontract.Interfaces.Managers
 {
@@ -15,6 +14,33 @@ namespace Kontract.Interfaces.Managers
     /// </summary>
     public interface IPluginManager
     {
+        #region Check
+
+        bool IsLoading(UPath filePath);
+
+        /// <summary>
+        /// Determines if a file is already loaded.
+        /// </summary>
+        /// <param name="filePath">The path of the file to check.</param>
+        /// <returns>If the file is already loaded.</returns>
+        bool IsLoaded(UPath filePath);
+
+        /// <summary>
+        /// Determines if a state is currently saving.
+        /// </summary>
+        /// <param name="stateInfo">The state to check for saving.</param>
+        /// <returns>If the state is currently saving.</returns>
+        bool IsSaving(IStateInfo stateInfo);
+
+        /// <summary>
+        /// Determines is a state is currently closing.
+        /// </summary>
+        /// <param name="stateInfo">The state to check for closing.</param>
+        /// <returns>If the state is currently closing.</returns>
+        bool IsClosing(IStateInfo stateInfo);
+
+        #endregion
+
         #region Load File
 
         #region Load FileSystem
@@ -105,7 +131,7 @@ namespace Kontract.Interfaces.Managers
         /// Closes a loaded state.
         /// </summary>
         /// <param name="stateInfo">The state to close and release.</param>
-        void Close(IStateInfo stateInfo);
+        CloseResult Close(IStateInfo stateInfo);
 
         /// <summary>
         /// Closes all loaded states.

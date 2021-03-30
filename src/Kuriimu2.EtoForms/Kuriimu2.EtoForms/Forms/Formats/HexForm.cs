@@ -1,20 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kuriimu2.EtoForms.Forms.Interfaces;
+using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class HexForm : IKuriimuForm
     {
-        public HexForm(IStateInfo stateInfo, IFormCommunicator communicator)
+        public HexForm(FormInfo formInfo)
         {
             InitializeComponent();
 
-            hexBox.LoadStream((stateInfo.PluginState as IHexState)?.FileStream);
+            hexBox.LoadStream((formInfo.StateInfo.PluginState as IHexState)?.FileStream);
         }
+
+        #region Forminterface methods
+
+        public bool HasRunningOperations()
+        {
+            return false;
+        }
+
+        #endregion
 
         #region Update
 

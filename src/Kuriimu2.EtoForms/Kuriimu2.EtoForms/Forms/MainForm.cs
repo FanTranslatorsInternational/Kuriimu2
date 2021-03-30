@@ -30,7 +30,9 @@ using Kuriimu2.EtoForms.Forms.Dialogs.Batch;
 using Kuriimu2.EtoForms.Forms.Dialogs.Extensions;
 using Kuriimu2.EtoForms.Forms.Formats;
 using Kuriimu2.EtoForms.Forms.Interfaces;
+using Kuriimu2.EtoForms.Forms.Models;
 using Kuriimu2.EtoForms.Progress;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 using Newtonsoft.Json;
 using Serilog;
@@ -42,10 +44,8 @@ namespace Kuriimu2.EtoForms.Forms
         private readonly Random _rand = new Random();
 
         private readonly IProgressContext _progress;
+        private readonly ILogger _logger;
         private readonly PluginManager _pluginManager;
-
-        private readonly IList<string> _openingFiles = new List<string>();
-        private readonly IList<IStateInfo> _savingFiles = new List<IStateInfo>();
 
         private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary =
             new Dictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)>();
@@ -53,16 +53,6 @@ namespace Kuriimu2.EtoForms.Forms
             new Dictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)>();
 
         private readonly Manifest _localManifest;
-
-        private HashExtensionDialog _hashDialog;
-        private DecryptExtensionDialog _decryptDialog;
-        private EncryptExtensionsDialog _encryptDialog;
-        private DecompressExtensionDialog _decompressDialog;
-        private CompressExtensionDialog _compressDialog;
-        private BatchExtractDialog _extractDialog;
-        private BatchInjectDialog _injectDialog;
-        private SequenceSearcher _searcherDialog;
-        private RawImageDialog _rawImageDialog;
 
         #region HotKeys
 
@@ -89,11 +79,12 @@ namespace Kuriimu2.EtoForms.Forms
         private const string ExceptionCatched = "Exception catched";
         private const string PluginsNotAvailable = "Plugins not available";
 
-        private const string FormTitle = "Kuriimu2 {0}";
-        private const string FormTitlePlugin = "Kuriimu2 {0} - {1} - {2} - {3}";
+        private const string FormTitle = "Kuriimu2 {0}-{1}";
+        private const string FormTitlePlugin = "Kuriimu2 {0}-{1} - {2} - {3} - {4}";
 
         private const string UnsavedChanges = "Unsaved changes";
-        private const string UnsavedChangesText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
+        private const string UnsavedChangesToFileText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
+        private const string UnsavedChangesGenericText = "Changes were made to one or more files. Do you want to save those changes?";
 
         private const string DependantFiles = "Dependant files";
         private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
@@ -114,33 +105,23 @@ namespace Kuriimu2.EtoForms.Forms
         {
             InitializeComponent();
 
-            _hashDialog = new HashExtensionDialog();
-            _decryptDialog = new DecryptExtensionDialog();
-            _encryptDialog = new EncryptExtensionsDialog();
-            _decompressDialog = new DecompressExtensionDialog();
-            _compressDialog = new CompressExtensionDialog();
-            _searcherDialog = new SequenceSearcher();
-            _rawImageDialog = new RawImageDialog();
-
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
-            _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 300));
+            _logger = new LoggerConfiguration().WriteTo.File($"{GetBaseDirectory()}/Kuriimu2.log").CreateLogger();
+            _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 20));
             _pluginManager = new PluginManager($"{GetBaseDirectory()}/plugins")
             {
                 AllowManualSelection = true,
 
                 Progress = _progress,
                 DialogManager = new DialogManagerDialog(this),
-                Logger = new LoggerConfiguration().WriteTo.File($"{GetBaseDirectory()}/Kuriimu2.log").CreateLogger()
+                Logger = _logger
             };
             _pluginManager.OnManualSelection += pluginManager_OnManualSelection;
 
             if (_pluginManager.LoadErrors.Any())
                 DisplayPluginErrors(_pluginManager.LoadErrors);
-
-            _extractDialog = new BatchExtractDialog(_pluginManager);
-            _injectDialog = new BatchInjectDialog(_pluginManager);
 
             // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
             // HINT: Some kind of form spanning control, which handles the drop action instead
@@ -149,6 +130,7 @@ namespace Kuriimu2.EtoForms.Forms
             Content.DragDrop += mainForm_DragDrop;
 
             Content.Load += mainForm_Load;
+            Closing += mainForm_Closing;
 
             #region Commands
 
@@ -167,6 +149,8 @@ namespace Kuriimu2.EtoForms.Forms
             openCompressionCommand.Executed += openCompressionCommand_Executed;
 
             openRawImageViewerCommand.Executed += openRawImageViewerCommand_Executed;
+
+            includeDevBuildCommand.Executed += IncludeDevBuildCommand_Executed;
 
             #endregion
         }
@@ -200,13 +184,6 @@ namespace Kuriimu2.EtoForms.Forms
         {
             foreach (var fileToOpen in filesToOpen)
             {
-                if (_openingFiles.Contains(fileToOpen))
-                {
-                    ReportStatus(false, $"{fileToOpen} is already opening.");
-                    continue;
-                }
-                _openingFiles.Add(fileToOpen);
-
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                     plugin == null ?
                         _pluginManager.LoadFile(fileToOpen) :
@@ -214,8 +191,6 @@ namespace Kuriimu2.EtoForms.Forms
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
                 await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
-
-                _openingFiles.Remove(fileToOpen);
             }
         }
 
@@ -228,6 +203,13 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 MessageBox.Show(InvalidFile, LoadError, MessageBoxButtons.OK, MessageBoxType.Error);
                 return false;
+            }
+
+            // Check if file is already loading
+            if (_pluginManager.IsLoading(filePath))
+            {
+                ReportStatus(false, $"{filePath} is already opening.");
+                return true;
             }
 
             // Check if file is already opened
@@ -295,16 +277,16 @@ namespace Kuriimu2.EtoForms.Forms
                     //        _progressContext);
                     //    break;
 
-                    //case IImageState _:
-                    //    kuriimuForm = new ImageForm(stateInfo, communicator, _progressContext);
-                    //    break;
+                    case IImageState _:
+                        kuriimuForm = new ImageForm(new FormInfo(stateInfo, communicator, _progress, _logger));
+                        break;
 
                     case IArchiveState _:
-                        kuriimuForm = new ArchiveForm(stateInfo, communicator, _pluginManager, _progress);
+                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(stateInfo, communicator, _progress, _logger), _pluginManager);
                         break;
 
                     case IHexState _:
-                        kuriimuForm = new HexForm(stateInfo, communicator);
+                        kuriimuForm = new HexForm(new FormInfo(stateInfo, communicator, _progress, _logger));
                         break;
 
                     default:
@@ -395,13 +377,11 @@ namespace Kuriimu2.EtoForms.Forms
             ReportStatus(true, string.Empty);
 
             // Check if file is already attempted to be saved
-            if (_savingFiles.Contains(stateInfo))
+            if (_pluginManager.IsSaving(stateInfo))
             {
                 ReportStatus(false, $"{stateInfo.FilePath.ToRelative()} is already saving.");
                 return false;
             }
-
-            _savingFiles.Add(stateInfo);
 
             // Select save path if necessary
             var savePath = UPath.Empty;
@@ -412,7 +392,6 @@ namespace Kuriimu2.EtoForms.Forms
                 {
                     ReportStatus(false, "The selected file is invalid.");
 
-                    _savingFiles.Remove(stateInfo);
                     return false;
                 }
             }
@@ -432,7 +411,6 @@ namespace Kuriimu2.EtoForms.Forms
                 ReportStatus(false, "File not saved successfully.");
                 MessageBox.Show(message, SaveError, MessageBoxButtons.OK, MessageBoxType.Error);
 
-                _savingFiles.Remove(stateInfo);
                 return false;
             }
 
@@ -447,7 +425,6 @@ namespace Kuriimu2.EtoForms.Forms
 
             ReportStatus(true, "File saved successfully.");
 
-            _savingFiles.Remove(stateInfo);
             return true;
         }
 
@@ -467,9 +444,16 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Close File
 
-        private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false)
+        private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false, bool ignoreChangesWarning = false, bool ignoreRunningOperations = false)
         {
             ReportStatus(true, string.Empty);
+
+            // Check if operations are running
+            if (!ignoreRunningOperations && _stateDictionary[stateInfo].KuriimuForm.HasRunningOperations())
+            {
+                ReportStatus(false, "Operations are still running and the file cannot be closed.");
+                return false;
+            }
 
             // Security question, so the user knows that every sub file will be closed
             if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
@@ -487,10 +471,9 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Save unchanged files, if wanted
-            if (stateInfo.StateChanged)
+            if (stateInfo.StateChanged && !ignoreChangesWarning)
             {
-                var text = string.Format(UnsavedChangesText, stateInfo.FilePath);
-                var result = MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
+                var result = ConfirmSavingChanges(stateInfo);
                 switch (result)
                 {
                     case DialogResult.Yes:
@@ -509,12 +492,24 @@ namespace Kuriimu2.EtoForms.Forms
                 }
             }
 
-            // Remove all tabs related to the state
-            CloseTab(stateInfo);
+            // Collect all opened children states
+            var childrenStates = CollectChildrenStates(stateInfo).ToArray();
 
             // Close all related states
             var parentState = stateInfo.ParentStateInfo;
-            _pluginManager.Close(stateInfo);
+            var closeResult = _pluginManager.Close(stateInfo);
+
+            // If closing of the state was not successful
+            if (!closeResult.IsSuccessful)
+            {
+                ReportStatus(false, closeResult.Message);
+                return false;
+            }
+
+            // Remove all tabs related to the state, if closing was successful
+            foreach (var childState in childrenStates)
+                CloseTab(childState);
+            CloseTab(stateInfo);
 
             // Update parents before state is disposed
             UpdateTab(parentState, true);
@@ -522,11 +517,21 @@ namespace Kuriimu2.EtoForms.Forms
             return true;
         }
 
-        private void CloseTab(IStateInfo stateInfo)
+        private IEnumerable<IStateInfo> CollectChildrenStates(IStateInfo stateInfo)
         {
             foreach (var child in stateInfo.ArchiveChildren)
-                CloseTab(child);
+            {
+                yield return child;
 
+                foreach (var collectedChild in CollectChildrenStates(child))
+                    yield return collectedChild;
+            }
+        }
+
+        private void CloseTab(IStateInfo stateInfo)
+        {
+            // We only close the tab related to the state itself, not its archive children
+            // Closing archive children is done by CloseFile, to enable proper rollback if closing the state itself was unsuccessful
             if (!_stateDictionary.ContainsKey(stateInfo))
                 return;
 
@@ -537,6 +542,12 @@ namespace Kuriimu2.EtoForms.Forms
             _stateDictionary.Remove(stateInfo);
         }
 
+        private DialogResult ConfirmSavingChanges(IStateInfo stateInfo = null)
+        {
+            var text = stateInfo == null ? UnsavedChangesGenericText : string.Format(UnsavedChangesToFileText, stateInfo.FilePath);
+            return MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
+        }
+
         #endregion
 
         #region Update
@@ -545,7 +556,7 @@ namespace Kuriimu2.EtoForms.Forms
         {
             if (tabControl.Pages.Count <= 0 || tabControl.SelectedIndex < 0)
             {
-                Title = string.Format(FormTitle, _localManifest.BuildNumber);
+                Title = string.Format(FormTitle, _localManifest.Version, _localManifest.BuildNumber);
                 return;
             }
 
@@ -555,7 +566,7 @@ namespace Kuriimu2.EtoForms.Forms
             var pluginName = stateEntry.StateInfo.FilePlugin.Metadata.Name;
             var pluginId = stateEntry.StateInfo.FilePlugin.PluginId;
 
-            Title = string.Format(FormTitlePlugin, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
+            Title = string.Format(FormTitlePlugin, _localManifest.Version, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
         private void UpdateTab(IStateInfo stateInfo, bool invokeUpdateForm = false, bool iterateParents = true)
@@ -580,7 +591,10 @@ namespace Kuriimu2.EtoForms.Forms
         {
             // Iterate through children
             foreach (var child in stateInfo.ArchiveChildren)
+            {
+                UpdateTab(child, true, false);
                 UpdateChildrenTabs(child);
+            }
         }
 
         #endregion
@@ -596,7 +610,9 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void mainForm_DragDrop(object sender, DragEventArgs e)
         {
-            OpenPhysicalFiles(e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).ToArray(), false);
+            // Filter out directory paths and only keep file paths
+            var paths = e.Data.Uris.Select(x => HttpUtility.UrlDecode(x.AbsolutePath)).Where(p => !Directory.Exists(p)).ToArray();
+            OpenPhysicalFiles(paths, false);
         }
 
         private void mainForm_Load(object sender, EventArgs e)
@@ -606,23 +622,57 @@ namespace Kuriimu2.EtoForms.Forms
 #endif
         }
 
+        private void mainForm_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (_stateDictionary.Keys.Any(x => x.StateChanged))
+            {
+                var result = ConfirmSavingChanges();
+                switch (result)
+                {
+                    case DialogResult.Yes:
+                        // Save all files in place that need saving
+                        SaveAll(false).Wait();
+                        break;
+
+                    case DialogResult.Cancel:
+                        e.Cancel = true;
+                        return;
+
+                        // DialogResult.No means to not save changes and just close all open files
+                }
+            }
+
+            while (_stateDictionary.Keys.Count > 0)
+            {
+                var stateInfo = _stateDictionary.Keys.First();
+
+                // Ignore changes warning for closing a single file, because we already made a check if all files, unrelated to each other, should be saved
+                // The warning is therefore meaningless and should be ignored for every subsequent closing operation
+                if (CloseFile(stateInfo, true, true, true).Result)
+                    continue;
+
+                e.Cancel = true;
+                break;
+            }
+        }
+
         #endregion
 
         #region Tools
 
         private void openBatchExtractorCommand_Executed(object sender, EventArgs e)
         {
-            _extractDialog.ShowModal();
+            new BatchExtractDialog(_pluginManager).ShowModal();
         }
 
         private void openBatchInjectorCommand_Executed(object sender, EventArgs e)
         {
-            _injectDialog.ShowModal();
+            new BatchInjectDialog(_pluginManager).ShowModal();
         }
 
         private void openTextSequenceSearcherCommand_Execute(object sender, EventArgs e)
         {
-            _searcherDialog.ShowModal();
+            new SequenceSearcherDialog().ShowModal();
         }
 
         #endregion
@@ -631,34 +681,40 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void openHashCommand_Executed(object sender, EventArgs e)
         {
-            _hashDialog.ShowModal();
+            new HashExtensionDialog().ShowModal();
         }
 
         private void openCompressionCommand_Executed(object sender, EventArgs e)
         {
-            _compressDialog.ShowModal();
+            new CompressExtensionDialog().ShowModal();
         }
 
         private void openDecompressionCommand_Executed(object sender, EventArgs e)
         {
-            _decompressDialog.ShowModal();
+            new DecompressExtensionDialog().ShowModal();
         }
 
         private void openEncryptionCommand_Executed(object sender, EventArgs e)
         {
-            _encryptDialog.ShowModal();
+            new EncryptExtensionsDialog().ShowModal();
         }
 
         private void openDecryptionCommand_Executed(object sender, EventArgs e)
         {
-            _decryptDialog.ShowModal();
+            new DecryptExtensionDialog().ShowModal();
         }
 
         #endregion
 
         private void openRawImageViewerCommand_Executed(object sender, EventArgs e)
         {
-            _rawImageDialog.ShowModal();
+            new RawImageDialog().ShowModal();
+        }
+
+        private void IncludeDevBuildCommand_Executed(object sender, EventArgs e)
+        {
+            Settings.Default.IncludeDevBuilds = !Settings.Default.IncludeDevBuilds;
+            Settings.Default.Save();
         }
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
@@ -714,11 +770,11 @@ namespace Kuriimu2.EtoForms.Forms
             var platform = GetCurrentPlatform();
 
             var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl, platform));
-            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest))
+            if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, Settings.Default.IncludeDevBuilds))
                 return;
 
             var result = MessageBox.Show(
-                    $"Do you want to update from '{_localManifest.BuildNumber}' to '{remoteManifest.BuildNumber}'?",
+                    $"Do you want to update from '{_localManifest.Version}-{_localManifest.BuildNumber}' to '{remoteManifest.Version}-{remoteManifest.BuildNumber}'?",
                     "Update available", MessageBoxButtons.YesNo);
             if (result == DialogResult.No)
                 return;

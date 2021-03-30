@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 #if NET_CORE_31
 using System.Buffers.Binary;
@@ -8,7 +9,7 @@ namespace Kryptography.Hash
 {
     public class XbbHash : IHash
     {
-        public byte[] Compute(byte[] input)
+        public byte[] Compute(Span<byte> input)
         {
             var seed = 0;
             var returnValue = ComputeInternal(input, 0, input.Length, 0, ref seed);
@@ -32,7 +33,7 @@ namespace Kryptography.Hash
             return MakeResult(returnValue);
         }
 
-        private uint ComputeInternal(byte[] toHash, int offset, int length, uint initialValue, ref int seed)
+        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialValue, ref int seed)
         {
             var result = initialValue;
             for (var i = offset; i < offset + length; i++)

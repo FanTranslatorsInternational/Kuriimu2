@@ -1,4 +1,5 @@
-﻿using Eto.Drawing;
+﻿using System;
+using Eto.Drawing;
 using Eto.Forms;
 
 namespace Kuriimu2.EtoForms.Controls.ImageView
@@ -19,9 +20,14 @@ namespace Kuriimu2.EtoForms.Controls.ImageView
             if (Image == null)
                 return;
 
+            // Calculate starting position
+            var posX = (e.ClipRectangle.Width - Image.Size.Width) / 2;
+            var posY = (e.ClipRectangle.Height - Image.Size.Height) / 2;
+            var position = new PointF(posX, posY);
+
             e.Graphics.MultiplyTransform(_transform);
             e.Graphics.ImageInterpolation = ImageInterpolation.None;
-            e.Graphics.DrawImage(Image, e.ClipRectangle);
+            e.Graphics.DrawImage(Image, new RectangleF(position, Image.Size));
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
     <LangVersion>8</LangVersion>
     <Version>2.0.8</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -41,18 +41,6 @@
     <None Include="..\..\kuriimu2icon.png" Pack="True" PackagePath="$(PackageIcon)" Visible="false" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
-    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Kontract\Kontract.csproj" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <OutputPath>..\..\dist\Debug\</OutputPath>
   </PropertyGroup>
@@ -61,8 +49,12 @@
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
-    <DefineConstants>NET_CORE_31</DefineConstants>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+  </ItemGroup>
 
 </Project>

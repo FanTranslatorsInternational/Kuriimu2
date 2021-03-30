@@ -29,7 +29,7 @@ namespace plugin_mt_framework.Archives
 
             using var br = new BinaryReaderX(fileStream);
             var magic = br.ReadString(4);
-            return magic == "ARCC" || magic == "ARC\0" || magic == "\0CRA";
+            return magic == "ARC\0" || magic == "\0CRA";
         }
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)

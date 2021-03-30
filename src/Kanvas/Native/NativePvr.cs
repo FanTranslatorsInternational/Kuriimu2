@@ -414,12 +414,12 @@ namespace Kanvas.Native
         ETCSlow,            //!< ETC slow
         NumETCModes,        //!< Number of ETC modes
 
-        ASTCVeryFast = 0,   //!< ASTC very fast
-        ASTCFast,           //!< ASTC fast
-        ASTCMedium,         //!< ASTC medium
-        ASTCThorough,       //!< ASTC thorough
-        ASTCExhaustive,     //!< ASTC exhaustive
-        NumASTCModes,       //!< Number of ASTC modes
+        ASTCVeryFast = 0,   //!< Astc very fast
+        ASTCFast,           //!< Astc fast
+        ASTCMedium,         //!< Astc medium
+        ASTCThorough,       //!< Astc thorough
+        ASTCExhaustive,     //!< Astc exhaustive
+        NumASTCModes,       //!< Number of Astc modes
 
         BASISULowest = 0,   //!< BASISU lowest quality
         BASISULow,          //!< BASISU low quality

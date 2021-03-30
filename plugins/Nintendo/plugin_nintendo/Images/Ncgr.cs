@@ -47,11 +47,9 @@ namespace plugin_nintendo.Images
                 ImageFormat = _charHeader.imageFormat,
 
                 PaletteData = paletteData,
-                PaletteFormat = 0,
-
-                Configuration = new ImageConfiguration()
-                    .RemapPixelsWith(imageSize => new NitroSwizzle(imageSize.Width, imageSize.Height))
+                PaletteFormat = 0
             };
+            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
 
             return imageInfo;
         }

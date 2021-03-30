@@ -1,0 +1,30 @@
+Release 1.2.0
+
+The actual first release of Kuriimu2.
+
+General changes:
+- A complete rewrite of the underlying framework compared to Kuriimu, Kukkii, and Karameru
+- A single application window to rule them all.
+- Ability to open multiple files at once
+- Nested opening and saving, as requested by many
+	- Open files from opened archives, change them and save them all in button press or mouse-click
+- Logging, progress reporting, and more
+- Tools to process encryptions, checksums, and compressions
+- Tool to view binary data as an image
+
+API Changes:
+- Includes a full-fledged archive API
+- Includes a full-fledged image API
+- The plugin interfaces are considered mostly final
+
+Plugin changes:
+- Includes all archive plugins with equal or better support from Karameru
+	- Some exceptions apply, see below
+- Includes half of all image plugins with equal or better support from Kanvas
+
+Future plans:
+- 1.2.1: Finish porting of image plugins
+- 1.3.0: Introduce text API and port all text plugins from Kuriimu
+
+Overview of our current and future file format support:
+https://docs.google.com/spreadsheets/d/1LbRqXkJUi4WD0awJMWInEfSiGtTIc2hu7ag2ngdoVC0/edit?usp=sharing

@@ -24,7 +24,6 @@ using Kore.Models.LoadInfo;
 using Kore.Progress;
 using MoreLinq;
 using Serilog;
-using Serilog.Core;
 
 namespace Kore.Managers.Plugins
 {
@@ -41,8 +40,19 @@ namespace Kore.Managers.Plugins
 
         private readonly StreamMonitor _streamMonitor;
 
-        private readonly IList<IStateInfo> _loadedFiles;
+        private readonly IList<UPath> _loadingFiles = new List<UPath>();
+        private readonly object _loadingLock = new object();
+
+        private readonly IList<IStateInfo> _loadedFiles = new List<IStateInfo>();
         private readonly object _loadedFilesLock = new object();
+
+        private readonly IList<IStateInfo> _savingStates = new List<IStateInfo>();
+        private readonly object _saveLock = new object();
+
+        private readonly IList<IStateInfo> _closingStates = new List<IStateInfo>();
+        private readonly object _closeLock = new object();
+
+        private ILogger _logger;
 
         /// <inheritdoc />
         public event EventHandler<ManualSelectionEventArgs> OnManualSelection;
@@ -57,7 +67,11 @@ namespace Kore.Managers.Plugins
 
         public IDialogManager DialogManager { get; set; } = new DefaultDialogManager();
 
-        public ILogger Logger { get; set; }
+        public ILogger Logger
+        {
+            get => _logger;
+            set => SetLogger(value);
+        }
 
         #region Constructors
 
@@ -82,8 +96,6 @@ namespace Kore.Managers.Plugins
             _fileSaver = new FileSaver(_streamMonitor);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
-
-            _loadedFiles = new List<IStateInfo>();
         }
 
         /// <summary>
@@ -105,8 +117,6 @@ namespace Kore.Managers.Plugins
             _fileSaver = new FileSaver(_streamMonitor);
 
             _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
-
-            _loadedFiles = new List<IStateInfo>();
         }
 
         /// <summary>
@@ -122,20 +132,9 @@ namespace Kore.Managers.Plugins
 
             _fileLoader = fileLoader;
             _fileSaver = fileSaver;
-
-            _loadedFiles = new List<IStateInfo>();
         }
 
         #endregion
-
-        /// <inheritdoc />
-        public bool IsLoaded(UPath filePath)
-        {
-            lock (_loadedFilesLock)
-            {
-                return _loadedFiles.Any(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
-            }
-        }
 
         #region Get Methods
 
@@ -162,6 +161,46 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
+        #region Check
+
+        /// <inheritdoc />
+        public bool IsLoading(UPath filePath)
+        {
+            lock (_loadingLock)
+            {
+                return _loadingFiles.Any(x => x == filePath);
+            }
+        }
+
+        /// <inheritdoc />
+        public bool IsLoaded(UPath filePath)
+        {
+            lock (_loadedFilesLock)
+            {
+                return _loadedFiles.Any(x => UPath.Combine(x.AbsoluteDirectory, x.FilePath.ToRelative()) == filePath);
+            }
+        }
+
+        /// <inheritdoc />
+        public bool IsSaving(IStateInfo stateInfo)
+        {
+            lock (_saveLock)
+            {
+                return _savingStates.Contains(stateInfo);
+            }
+        }
+
+        /// <inheritdoc />
+        public bool IsClosing(IStateInfo stateInfo)
+        {
+            lock (_closeLock)
+            {
+                return _closingStates.Contains(stateInfo);
+            }
+        }
+
+        #endregion
+
         #region Load File
 
         #region Load Physical
@@ -179,14 +218,22 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
         {
             // 1. Get UPath
             var path = new UPath(file);
 
-            // If file is already loaded
-            if (IsLoaded(path))
-                return Task.FromResult(new LoadResult(GetLoadedFile(path)));
+            // If file is already loaded or loading
+            lock (_loadingLock)
+            {
+                if (_loadingFiles.Any(x => x == file))
+                    return new LoadResult(false, $"File {file} is already loading.");
+
+                if (IsLoaded(path))
+                    return new LoadResult(GetLoadedFile(path));
+
+                _loadingFiles.Add(file);
+            }
 
             // 2. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
@@ -194,7 +241,12 @@ namespace Kore.Managers.Plugins
 
             // 3. Load file
             // Physical files don't have a parent, if loaded like this
-            return LoadFile(fileSystemAction, path.GetName(), null, loadFileContext);
+            var loadedFile = await LoadFile(fileSystemAction, path.GetName(), null, loadFileContext);
+
+            lock (_loadingLock)
+                _loadingFiles.Remove(file);
+
+            return loadedFile;
         }
 
         #endregion
@@ -220,10 +272,18 @@ namespace Kore.Managers.Plugins
             if (!(stateInfo.PluginState is IArchiveState _))
                 throw new InvalidOperationException("The state represents no archive.");
 
-            // If file is already loaded
+            // If file is already loaded or loading
             var absoluteFilePath = UPath.Combine(stateInfo.AbsoluteDirectory, stateInfo.FilePath.ToRelative(), afi.FilePath.ToRelative());
-            if (IsLoaded(absoluteFilePath))
-                return new LoadResult(GetLoadedFile(absoluteFilePath));
+            lock (_loadingLock)
+            {
+                if (_loadingFiles.Any(x => x == absoluteFilePath))
+                    return new LoadResult(false, $"File {absoluteFilePath} is already loading.");
+
+                if (IsLoaded(absoluteFilePath))
+                    return new LoadResult(GetLoadedFile(absoluteFilePath));
+
+                _loadingFiles.Add(absoluteFilePath);
+            }
 
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
@@ -238,6 +298,9 @@ namespace Kore.Managers.Plugins
             // 3. Add archive child to parent
             // ArchiveChildren are only added, if a file is loaded like this
             stateInfo.ArchiveChildren.Add(loadResult.LoadedState);
+
+            lock (_loadingLock)
+                _loadingFiles.Remove(absoluteFilePath);
 
             return loadResult;
         }
@@ -273,18 +336,26 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
         {
-            return LoadFile(fileSystem, path, loadFileContext);
+            return LoadFile(fileSystem, path, null, loadFileContext);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
         {
             // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
 
             // If file is loaded
             var absoluteFilePath = UPath.Combine(fileSystem.ConvertPathToInternal(UPath.Root), path.ToRelative());
-            if (IsLoaded(absoluteFilePath))
-                return Task.FromResult(new LoadResult(GetLoadedFile(absoluteFilePath)));
+            lock (_loadingLock)
+            {
+                if (_loadingFiles.Any(x => x == absoluteFilePath))
+                    return new LoadResult(false, $"File {absoluteFilePath} is already loading.");
+
+                if (IsLoaded(absoluteFilePath))
+                    return new LoadResult(GetLoadedFile(absoluteFilePath));
+
+                _loadingFiles.Add(absoluteFilePath);
+            }
 
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(fileSystem.Clone);
@@ -292,7 +363,12 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             // Only if called by a SubPluginManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            return LoadFile(fileSystemAction, path, parentStateInfo, loadFileContext);
+            var loadedFile = await LoadFile(fileSystemAction, path, parentStateInfo, loadFileContext);
+
+            lock (_loadingLock)
+                _loadingFiles.Remove(absoluteFilePath);
+
+            return loadedFile;
         }
 
         #endregion
@@ -382,8 +458,23 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
+            if (stateInfo.IsDisposed)
+                return new SaveResult(false, "The given file is already closed.");
+
+            lock (_saveLock)
+            {
+                if (_savingStates.Contains(stateInfo))
+                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
+
+                if (IsClosing(stateInfo))
+                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
+
+                _savingStates.Add(stateInfo);
+            }
+
             lock (_loadedFilesLock)
-                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+                if (!_loadedFiles.Contains(stateInfo))
+                    return new SaveResult(false, "The given file is not loaded anymore.");
 
             var isRunning = Progress.IsRunning();
             if (!isRunning) Progress.StartProgress();
@@ -397,16 +488,32 @@ namespace Kore.Managers.Plugins
 
             if (!isRunning) Progress.FinishProgress();
 
+            lock (_saveLock)
+                _savingStates.Remove(stateInfo);
+
             return saveResult;
         }
 
         /// <inheritdoc />
         public async Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
         {
-            lock (_loadedFilesLock)
+            if (stateInfo.IsDisposed)
+                return new SaveResult(false, "The given file is already closed.");
+
+            lock (_saveLock)
             {
-                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+                if (_savingStates.Contains(stateInfo))
+                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
+
+                if (IsClosing(stateInfo))
+                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
+
+                _savingStates.Add(stateInfo);
             }
+
+            lock (_loadedFilesLock)
+                if (!_loadedFiles.Contains(stateInfo))
+                    return new SaveResult(false, "The given file is not loaded anymore.");
 
             var isRunning = Progress.IsRunning();
             if (!isRunning) Progress.StartProgress();
@@ -420,6 +527,9 @@ namespace Kore.Managers.Plugins
 
             if (!isRunning) Progress.FinishProgress();
 
+            lock (_saveLock)
+                _savingStates.Remove(stateInfo);
+
             return saveResult;
         }
 
@@ -427,25 +537,61 @@ namespace Kore.Managers.Plugins
 
         #region Close File
 
-        public void Close(IStateInfo stateInfo)
+        /// <inheritdoc />
+        public CloseResult Close(IStateInfo stateInfo)
         {
-            lock (_loadedFilesLock)
+            if (stateInfo.IsDisposed)
+                return CloseResult.SuccessfulResult;
+
+            lock (_closeLock)
             {
-                ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+                if (_closingStates.Contains(stateInfo))
+                    return new CloseResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already closing.");
+
+                if (IsSaving(stateInfo))
+                    return new CloseResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently saving.");
+
+                _closingStates.Add(stateInfo);
             }
+
+            lock (_loadedFilesLock)
+                if (!_loadedFiles.Contains(stateInfo))
+                    return new CloseResult(false, "The given file is not loaded anymore.");
 
             // Remove state from its parent
             stateInfo.ParentStateInfo?.ArchiveChildren.Remove(stateInfo);
 
             CloseInternal(stateInfo);
+
+            lock (_closeLock)
+                _closingStates.Remove(stateInfo);
+
+            return CloseResult.SuccessfulResult;
         }
 
+        /// <inheritdoc />
         public void CloseAll()
         {
             lock (_loadedFilesLock)
             {
-                foreach (var state in _loadedFiles)
-                    state.Dispose();
+                foreach (var stateInfo in _loadedFiles)
+                {
+                    lock (_closeLock)
+                    {
+                        if (_closingStates.Contains(stateInfo))
+                            return;
+
+                        if (IsSaving(stateInfo))
+                            return;
+
+                        _closingStates.Add(stateInfo);
+                    }
+
+                    stateInfo.Dispose();
+
+                    lock (_closeLock)
+                        _closingStates.Remove(stateInfo);
+                }
 
                 _loadedFiles.Clear();
             }
@@ -482,16 +628,22 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        private void FileLoader_OnManualSelection(object sender, ManualSelectionEventArgs e)
-        {
-            OnManualSelection?.Invoke(sender, e);
-        }
-
         public void Dispose()
         {
             CloseAll();
 
             _streamMonitor?.Dispose();
+        }
+
+        private void FileLoader_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        {
+            OnManualSelection?.Invoke(sender, e);
+        }
+
+        private void SetLogger(ILogger logger)
+        {
+            _logger = logger;
+            _streamMonitor.Logger = logger;
         }
     }
 }

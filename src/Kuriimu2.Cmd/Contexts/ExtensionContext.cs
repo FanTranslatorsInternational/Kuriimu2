@@ -4,21 +4,19 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.IO;
-using Kontract.Models.Logging;
 using Kore.Batch;
 using Kore.Factories;
-using Kore.Logging;
 using Kore.Managers;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kuriimu2.Cmd.Contexts
 {
     class ExtensionContext : BaseContext
     {
-        private readonly IInternalPluginManager _pluginManager;
         private readonly IContext _parentContext;
 
-        private BatchExtractor _batchExtractor;
+        private readonly BatchExtractor _batchExtractor;
 
         protected override IList<Command> Commands { get; } = new List<Command>
         {
@@ -33,9 +31,10 @@ namespace Kuriimu2.Cmd.Contexts
             ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
 
-            _pluginManager = pluginManager;
+            var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
             _parentContext = parentContext;
-            _batchExtractor = new BatchExtractor(pluginManager, new ConcurrentLogger(ApplicationLevel.Ui, new NullLogOutput()));
+            _batchExtractor = new BatchExtractor(pluginManager, logger);
         }
 
         protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
@@ -73,7 +72,8 @@ namespace Kuriimu2.Cmd.Contexts
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, new StreamManager());
 
             _batchExtractor.ScanSubDirectories = true;
-            await _batchExtractor.Process(sourceFileSystem,destinationFileSystem);
+            _batchExtractor.PluginId = pluginId;
+            await _batchExtractor.Process(sourceFileSystem, destinationFileSystem);
         }
     }
 }

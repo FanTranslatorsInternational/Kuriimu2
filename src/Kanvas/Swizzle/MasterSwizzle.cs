@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 
@@ -35,12 +36,13 @@ namespace Kanvas.Swizzle
         public MasterSwizzle(int imageStride, Point init, (int, int)[] bitFieldCoords, (int, int)[] initPointTransformOnY = null)
         {
             _bitFieldCoords = bitFieldCoords;
-            _initPointTransformOnY = initPointTransformOnY ?? new (int, int)[0];
+            _initPointTransformOnY = initPointTransformOnY ?? Array.Empty<(int, int)>();
 
             _init = init;
 
-            MacroTileWidth = bitFieldCoords.Select(p => p.Item1).Aggregate(0, (x, y) => x | y) + 1;
-            MacroTileHeight = bitFieldCoords.Select(p => p.Item2).Aggregate(0, (x, y) => x | y) + 1;
+            MacroTileWidth = bitFieldCoords.Select(p => p.Item1).Aggregate((x, y) => x | y) + 1;
+            MacroTileHeight = bitFieldCoords.Select(p => p.Item2).Aggregate((x, y) => x | y) + 1;
+
             _widthInTiles = (imageStride + MacroTileWidth - 1) / MacroTileWidth;
         }
 

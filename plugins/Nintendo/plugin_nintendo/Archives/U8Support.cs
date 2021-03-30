@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -232,7 +233,9 @@ namespace plugin_nintendo.Archives
                 path = path.Substring(0, path.Length - 1);
 
             var splitted = path.Split("/");
-            return string.Join("/", splitted.Take(splitted.Length - 1));
+            var joined = string.Join("/", splitted.Take(splitted.Length - 1));
+
+            return string.IsNullOrEmpty(joined) ? "/" : joined;
         }
 
         private string GetName(string path)

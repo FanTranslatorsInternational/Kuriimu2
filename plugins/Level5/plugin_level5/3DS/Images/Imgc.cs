@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Kanvas.Configuration;
+using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Kanvas;
@@ -68,15 +68,13 @@ namespace plugin_level5._3DS.Images
                 images[i] = new byte[width * height * _header.bitDepth / 8];
                 combinedImageStream.Read(images[i], 0, images[i].Length);
 
-                (width, height) = (width / 2, height / 2);
+                (width, height) = (width >> 1, height >> 1);
             }
 
-            return new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height))
-            {
-                Configuration = new ImageConfiguration()
-                    .PadSizeWith(size => new Size((size.Width + 7) & ~7, (size.Height + 7) & ~7))
-                    .RemapPixelsWith(size => new ImgcSwizzle(size.Width, size.Height))
-            };
+            var imageInfo = new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height));
+            imageInfo.RemapPixels.With(context => new ImgcSwizzle(context));
+
+            return imageInfo;
         }
 
         public void Save(Stream output, IKanvasImage image)

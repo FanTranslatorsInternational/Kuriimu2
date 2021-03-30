@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -36,8 +37,8 @@ namespace plugin_mt_framework.Archives
 
         int CompSize { get; set; }
 
-        int GetDecompressedSize(Platform platform);
-        void SetDecompressedSize(int size, Platform platform);
+        int GetDecompressedSize(MtArcPlatform mtArcPlatform);
+        void SetDecompressedSize(int size, MtArcPlatform mtArcPlatform);
     }
 
     abstract class BaseMtEntry : IMtEntry
@@ -49,16 +50,17 @@ namespace plugin_mt_framework.Archives
         public abstract int Offset { get; set; }
 
         public abstract int CompSize { get; set; }
+
         protected abstract int DecompSize { get; set; }
 
-        public int GetDecompressedSize(Platform platform)
+        public int GetDecompressedSize(MtArcPlatform mtArcPlatform)
         {
-            switch (platform)
+            switch (mtArcPlatform)
             {
-                case Platform.PC_3DS:
+                case MtArcPlatform.LittleEndian:
                     return DecompSize & 0x00FFFFFF;
 
-                case Platform.PS_XBOX:
+                case MtArcPlatform.BigEndian:
                     return DecompSize >> 3;
 
                 default:
@@ -66,15 +68,15 @@ namespace plugin_mt_framework.Archives
             }
         }
 
-        public void SetDecompressedSize(int size, Platform platform)
+        public void SetDecompressedSize(int size, MtArcPlatform mtArcPlatform)
         {
-            switch (platform)
+            switch (mtArcPlatform)
             {
-                case Platform.PC_3DS:
+                case MtArcPlatform.LittleEndian:
                     DecompSize = (DecompSize & ~0x00FFFFFF) | size;
                     break;
 
-                case Platform.PS_XBOX:
+                case MtArcPlatform.BigEndian:
                     DecompSize = (DecompSize & 0x00000007) | (size << 3);
                     break;
 
@@ -226,35 +228,46 @@ namespace plugin_mt_framework.Archives
         }
     }
 
-    enum Platform
+    enum MtArcPlatform
     {
-        PC_3DS,
-        SWITCH,
-        PS_XBOX
+        LittleEndian,
+        Switch,
+        BigEndian
     }
 
     class MtArcSupport
     {
         private static readonly IHash Hash = Crc32.Default;
 
-        public static Platform DeterminePlatform(ByteOrder byteOrder, MtHeader header)
+        public static MtArcPlatform DeterminePlatform(Stream input)
         {
+            using var br = new BinaryReaderX(input, true);
+
+            // Peek header
+            var header = br.ReadType<MtHeader>();
+            input.Position = 0;
+
             // Version 9 was only encountered in Nintendo Switch games
             if (header.version == 9)
-                return Platform.SWITCH;
+                return MtArcPlatform.Switch;
 
             // PS and XBox system use BigEndian
-            if (byteOrder == ByteOrder.BigEndian)
-                return Platform.PS_XBOX;
+            if (header.magic == "\0CRA")
+                return MtArcPlatform.BigEndian;
 
-            // Otherwise default to PC_3DS
+            // Otherwise default to LittleEndian
             // PC's also use LittleEndian
-            return Platform.PC_3DS;
+            return MtArcPlatform.LittleEndian;
         }
 
         public static string DetermineExtension(uint extensionHash)
         {
-            return _extensionMap.ContainsKey(extensionHash) ? _extensionMap[extensionHash] : ".bin";
+            return _extensionMap.ContainsKey(extensionHash) ? _extensionMap[extensionHash] : $".{extensionHash:X8}";
+        }
+
+        public static uint DetermineExtensionHash(string extension)
+        {
+            return _extensionMap.ContainsValue(extension) ? _extensionMap.First(x => x.Value == extension).Key : throw new InvalidOperationException($"Extension '{extension}' cannot be mapped to a hash.");
         }
 
         public static int DetermineFileOffset(ByteOrder byteOrder, int version, int fileCount, int entryOffset)
@@ -283,8 +296,7 @@ namespace plugin_mt_framework.Archives
 
         private static uint GetHash(string input)
         {
-            var hash = Hash.Compute(Encoding.ASCII.GetBytes(input));
-            return (uint)(((~hash[0] & 0xFF) << 24) | ((~hash[1] & 0xFF) << 16) | ((~hash[2] & 0xFF) << 8) | (~hash[3] & 0xFF));
+            return ~BinaryPrimitives.ReadUInt32BigEndian(Hash.Compute(Encoding.ASCII.GetBytes(input)));
         }
 
         private static Dictionary<uint, string> _extensionMap = new Dictionary<uint, string>
@@ -487,7 +499,21 @@ namespace plugin_mt_framework.Archives
             [0x4323D83A] = ".stex",
             [0x6A5CDD23] = ".occ",
             [0x62440501] = ".lmd",
-            [0x3516C3D2] = ".lfd"
+            [0x62A68441] = ".thk",
+            [0x4D3C70A1] = ".bth",
+            [0x244CC507] = ".itr",
+            [0x6A9197ED] = ".sss",
+            [0x3B764DD4] = ".sstr",
+            [0x3516C3D2] = ".lfd",
+            [0x0CF7FB37] = ".cfsm",
+            [0x3D2E1661] = ".ein",
+            [0x3B5A0DA5] = ".idx",
+            [0x354E1E08] = ".ard",
+            [0x5B9071CF] = ".col",
+            [0x342366F0] = ".atk",
+            [0x76042FD2] = ".eco",
+            [0x052CCE4E] = ".mef",
+            [0x55E21D03] = ".emp"
         };
     }
 }

@@ -48,6 +48,11 @@ namespace Kontract.Kanvas
         string Name { get; }
 
         /// <summary>
+        /// Decides if the image is locked to its current dimensions and encodings.
+        /// </summary>
+        bool IsImageLocked { get; }
+
+        /// <summary>
         /// Gets the image of the set <see cref="ImageInfo"/>.
         /// </summary>
         /// <param name="progress">The progress for this action.</param>

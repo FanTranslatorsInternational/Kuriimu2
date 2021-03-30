@@ -10,6 +10,7 @@ using Kontract.Interfaces.Plugins.State.Game;
 using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using Serilog;
 
 namespace Kore.Managers.Plugins
 {
@@ -24,6 +25,11 @@ namespace Kore.Managers.Plugins
         event EventHandler<ManualSelectionEventArgs> OnManualSelection;
 
         /// <summary>
+        /// The logger for this plugin manager.
+        /// </summary>
+        ILogger Logger { get; set; }
+
+        /// <summary>
         /// Declares if manual plugin selection on Load is allowed.
         /// </summary>
         bool AllowManualSelection { get; set; }
@@ -32,13 +38,6 @@ namespace Kore.Managers.Plugins
         /// The errors the plugins produced when loaded.
         /// </summary>
         IReadOnlyList<PluginLoadError> LoadErrors { get; }
-
-        /// <summary>
-        /// Determines if a file is already loaded.
-        /// </summary>
-        /// <param name="filePath">The path of the file to check.</param>
-        /// <returns>If the file is already loaded.</returns>
-        bool IsLoaded(UPath filePath);
 
         #region Get Methods
 
