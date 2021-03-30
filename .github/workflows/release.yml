@@ -62,7 +62,7 @@ jobs:
       run: |
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Eto/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
         mv ./dist/final/Eto/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Eto/Gtk/Kuriimu2
-        rm ./dist/final/Gtk/*.pdb
+        rm ./dist/final/Eto/Gtk/*.pdb
 
     - name: Publish EtoForms for Mac
       run: |
