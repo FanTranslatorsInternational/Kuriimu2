@@ -213,10 +213,10 @@ jobs:
     # Create github release for EtoForms
     - name: Rename releases
       run: |
-        mv ./update/Eto/Wpf/latest.zip ./update/Eto/Wpf/Kuriimu2_Windows.zip
-        mv ./update/Eto/Gtk/latest.zip ./update/Eto/Gtk/Kuriimu2_Linux.zip
-        mv ./update/Eto/Mac/latest.zip ./update/Eto/Mac/Kuriimu2_Mac.zip
-        mv ./update/Cmd/latest.zip ./update/Cmd/Kuriimu2_Cmd.zip
+        mv ./update_eto_repo/Wpf/latest.zip ./update_eto_repo/Wpf/Kuriimu2_Windows.zip
+        mv ./update_eto_repo/Gtk/latest.zip ./update_eto_repo/Gtk/Kuriimu2_Linux.zip
+        mv ./update_eto_repo/Mac/latest.zip ./update_eto_repo/Mac/Kuriimu2_Mac.zip
+        mv ./update_cmd_repo/latest.zip ./update_cmd_repo/Kuriimu2_Cmd.zip
 
     - name: Release
       uses: softprops/action-gh-release@v1
@@ -227,9 +227,9 @@ jobs:
         body_path: changelog.txt
         tag_name: ${{ steps.set_version.outputs.prop }}
         files: |
-          ./update/Eto/Wpf/Kuriimu2_Windows.zip
-          ./update/Eto/Gtk/Kuriimu2_Linux.zip
-          ./update/Eto/Mac/Kuriimu2_Mac.zip
-          ./update/Cmd/Kuriimu2_Cmd.zip
+          update_eto_repo/Wpf/Kuriimu2_Windows.zip
+          update_eto_repo/Gtk/Kuriimu2_Linux.zip
+          update_eto_repo/Mac/Kuriimu2_Mac.zip
+          update_cmd_repo/Kuriimu2_Cmd.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
