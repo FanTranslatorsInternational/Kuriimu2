@@ -62,7 +62,7 @@ jobs:
       run: |
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Gtk/Kuriimu2.EtoForms.Gtk.csproj --output ./dist/final/Eto/Gtk --configuration Release --framework netcoreapp31 --runtime linux-x64 /p:PublishSingleFile=true
         mv ./dist/final/Eto/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Eto/Gtk/Kuriimu2
-        rm ./dist/final/Gtk/*.pdb
+        rm ./dist/final/Eto/Gtk/*.pdb
 
     - name: Publish EtoForms for Mac
       run: |
@@ -71,7 +71,7 @@ jobs:
         mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Eto/Mac/Kuriimu2.app
         mv ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
 
-    - name: Publish EtoForms for Windows
+    - name: Publish CommandLine for Windows
       run: |
         dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
         mv ./dist/final/Cmd/Kuriimu2.Cmd.exe ./dist/final/Cmd/Kuriimu2.exe
@@ -211,6 +211,13 @@ jobs:
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     # Create github release for EtoForms
+    - name: Rename releases
+      run: |
+        mv ./update_eto_repo/Wpf/latest.zip ./update_eto_repo/Wpf/Kuriimu2_Windows.zip
+        mv ./update_eto_repo/Gtk/latest.zip ./update_eto_repo/Gtk/Kuriimu2_Linux.zip
+        mv ./update_eto_repo/Mac/latest.zip ./update_eto_repo/Mac/Kuriimu2_Mac.zip
+        mv ./update_cmd_repo/latest.zip ./update_cmd_repo/Kuriimu2_Cmd.zip
+
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
@@ -218,10 +225,11 @@ jobs:
         draft: false
         prerelease: false
         body_path: changelog.txt
+        tag_name: ${{ steps.set_version.outputs.prop }}
         files: |
-          update/Eto/Wpf/latest.zip
-          update/Eto/Gtk/latest.zip
-          update/Eto/Mac/latest.zip
-          update/Cmd/latest.zip
+          update_eto_repo/Wpf/Kuriimu2_Windows.zip
+          update_eto_repo/Gtk/Kuriimu2_Linux.zip
+          update_eto_repo/Mac/Kuriimu2_Mac.zip
+          update_cmd_repo/Kuriimu2_Cmd.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
