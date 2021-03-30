@@ -218,6 +218,7 @@ jobs:
         draft: false
         prerelease: false
         body_path: changelog.txt
+        tag_name: ${{ steps.set_version.outputs.prop }}
         files: |
           update/Eto/Wpf/latest.zip
           update/Eto/Gtk/latest.zip
