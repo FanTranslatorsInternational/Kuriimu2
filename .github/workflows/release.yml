@@ -71,7 +71,7 @@ jobs:
         mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Eto/Mac/Kuriimu2.app
         mv ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Eto/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
 
-    - name: Publish EtoForms for Windows
+    - name: Publish CommandLine for Windows
       run: |
         dotnet publish ./src/Kuriimu2.Cmd/Kuriimu2.Cmd.csproj --output ./dist/final/Cmd --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
         mv ./dist/final/Cmd/Kuriimu2.Cmd.exe ./dist/final/Cmd/Kuriimu2.exe
@@ -211,6 +211,13 @@ jobs:
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
     
     # Create github release for EtoForms
+    - name: Rename releases
+      run: |
+        mv ./update/Eto/Wpf/latest.zip ./update/Eto/Wpf/Kuriimu2_Windows.zip
+        mv ./update/Eto/Gtk/latest.zip ./update/Eto/Gtk/Kuriimu2_Linux.zip
+        mv ./update/Eto/Mac/latest.zip ./update/Eto/Mac/Kuriimu2_Mac.zip
+        mv ./update/Cmd/latest.zip ./update/Cmd/Kuriimu2_Cmd.zip
+
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
@@ -220,9 +227,9 @@ jobs:
         body_path: changelog.txt
         tag_name: ${{ steps.set_version.outputs.prop }}
         files: |
-          update/Eto/Wpf/latest.zip
-          update/Eto/Gtk/latest.zip
-          update/Eto/Mac/latest.zip
-          update/Cmd/latest.zip
+          ./update/Eto/Wpf/Kuriimu2_Windows.zip
+          ./update/Eto/Gtk/Kuriimu2_Linux.zip
+          ./update/Eto/Mac/Kuriimu2_Mac.zip
+          ./update/Cmd/Kuriimu2_Cmd.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
