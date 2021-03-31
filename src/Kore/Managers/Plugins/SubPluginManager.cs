@@ -9,7 +9,6 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
-using Serilog;
 
 namespace Kore.Managers.Plugins
 {
@@ -129,9 +128,41 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
+        #region Load Stream
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(StreamFile streamFile)
+        {
+            return LoadFile(streamFile, new LoadFileContext());
+        }
+
+        /// <inheritdoc />
+        public Task<LoadResult> LoadFile(StreamFile streamFile, Guid pluginId)
+        {
+            return LoadFile(streamFile, new LoadFileContext { PluginId = pluginId });
+        }
+
+        /// <inheritdoc />
+        public async Task<LoadResult> LoadFile(StreamFile streamFile, LoadFileContext loadFileContext)
+        {
+            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
+
+            // 1. Load file
+            var loadResult = await _parentPluginManager.LoadFile(streamFile, loadFileContext);
+            if (!loadResult.IsSuccessful)
+                return loadResult;
+
+            // 2. Add file to loaded files
+            _loadedFiles.Add(loadResult.LoadedState);
+
+            return loadResult;
+        }
+
         #endregion
 
-        #region Save file
+        #endregion
+
+        #region Save File
 
         public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
@@ -141,6 +172,15 @@ namespace Kore.Managers.Plugins
         public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
         {
             return _parentPluginManager.SaveFile(stateInfo, fileSystem, savePath);
+        }
+
+        #endregion
+
+        #region Save Stream
+
+        public Task<SaveStreamResult> SaveStream(IStateInfo stateInfo)
+        {
+            return _parentPluginManager.SaveStream(stateInfo);
         }
 
         #endregion

@@ -77,7 +77,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
             var internalDialogManager = new InternalDialogManager(saveInfo.DialogManager, stateInfo.DialogOptions);
             var loadContext = new LoadContext(temporaryStreamProvider, saveInfo.Progress, internalDialogManager);
-            var reloadResult = await TryLoadStateAsync(stateInfo.PluginState, destinationFileSystem, savePath, loadContext);
+            var reloadResult = await TryLoadStateAsync(stateInfo.PluginState, destinationFileSystem, savePath.ToAbsolute(), loadContext);
             if (!reloadResult.IsSuccessful)
                 return new SaveResult(reloadResult.Exception);
 

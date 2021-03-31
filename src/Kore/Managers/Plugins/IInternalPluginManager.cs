@@ -124,36 +124,6 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        #region Load Stream
-
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="stream">The stream to load.</param>
-        /// <param name="streamName">The name of the stream.</param>
-        /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(Stream stream, UPath streamName);
-
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="stream">The stream to load.</param>
-        /// <param name="streamName">The name of the stream.</param>
-        /// <param name="pluginId">the plugin with which to load the file.</param>
-        /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId);
-
-        /// <summary>
-        /// Loads a physical path into the Kuriimu runtime.
-        /// </summary>
-        /// <param name="stream">The stream to load.</param>
-        /// <param name="streamName">The name of the stream.</param>
-        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext);
-
-        #endregion
-
         #endregion
 
         /// <summary>

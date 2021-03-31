@@ -17,6 +17,7 @@ using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 using Kore.Factories;
+using Kore.FileSystem.Implementations;
 using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models;
@@ -376,29 +377,29 @@ namespace Kore.Managers.Plugins
         #region Load Stream
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(Stream stream, UPath streamName)
+        public Task<LoadResult> LoadFile(StreamFile streamFile)
         {
-            return LoadFile(stream, streamName, new LoadFileContext());
+            return LoadFile(streamFile, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, Guid pluginId)
+        public Task<LoadResult> LoadFile(StreamFile streamFile, Guid pluginId)
         {
-            return LoadFile(stream, streamName, new LoadFileContext { PluginId = pluginId });
+            return LoadFile(streamFile, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(Stream stream, UPath streamName, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(StreamFile streamFile, LoadFileContext loadFileContext)
         {
             // We don't check for an already loaded file here, since that should never happen
 
             // 1. Create file system action
             var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
-                FileSystemFactory.CreateMemoryFileSystem(stream, streamName, streamManager));
+                FileSystemFactory.CreateMemoryFileSystem(streamFile, streamManager));
 
             // 2. Load file
             // A stream has no parent, since it should never occur to be loaded from somewhere deeper in the system
-            return LoadFile(fileSystemAction, streamName, null, loadFileContext);
+            return LoadFile(fileSystemAction, streamFile.Path.ToAbsolute(), null, loadFileContext);
         }
 
         #endregion
@@ -531,6 +532,57 @@ namespace Kore.Managers.Plugins
                 _savingStates.Remove(stateInfo);
 
             return saveResult;
+        }
+
+        #endregion
+
+        #region Save Stream
+
+        public async Task<SaveStreamResult> SaveStream(IStateInfo stateInfo)
+        {
+            if (stateInfo.IsDisposed)
+                return new SaveStreamResult(false, "The given file is already closed.");
+
+            lock (_saveLock)
+            {
+                if (_savingStates.Contains(stateInfo))
+                    return new SaveStreamResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
+
+                if (IsClosing(stateInfo))
+                    return new SaveStreamResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
+
+                _savingStates.Add(stateInfo);
+            }
+
+            lock (_loadedFilesLock)
+                if (!_loadedFiles.Contains(stateInfo))
+                    return new SaveStreamResult(false, "The given file is not loaded anymore.");
+
+            var isRunning = Progress.IsRunning();
+            if (!isRunning) Progress.StartProgress();
+
+            // Save to memory file system
+            var fileSystem = new MemoryFileSystem(stateInfo.StreamManager);
+            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, stateInfo.FilePath, new SaveInfo
+            {
+                Progress = Progress,
+                DialogManager = DialogManager,
+                Logger = Logger
+            });
+
+            if (!isRunning) Progress.FinishProgress();
+
+            lock (_saveLock)
+                _savingStates.Remove(stateInfo);
+
+            if (!saveResult.IsSuccessful)
+                return new SaveStreamResult(saveResult.Exception);
+
+            // Collect all StreamFiles from memory file system
+            var streamFiles = fileSystem.EnumerateAllFiles(UPath.Root).Select(x =>
+                new StreamFile(fileSystem.OpenFile(x, FileMode.Open, FileAccess.Read, FileShare.Read), x)).ToArray();
+
+            return new SaveStreamResult(streamFiles);
         }
 
         #endregion

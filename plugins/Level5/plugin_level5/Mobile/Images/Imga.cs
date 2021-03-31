@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -10,47 +11,36 @@ using Kontract.Models.Image;
 using Kryptography.Hash.Crc;
 using plugin_level5.Compression;
 
-namespace plugin_level5._3DS.Images
+namespace plugin_level5.Mobile.Images
 {
-    public class Imgc
+    class Imga
     {
-        private ImgcHeader _header;
-        private int _headerSize = Tools.MeasureType(typeof(ImgcHeader));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(ImgaHeader));
 
-        private byte[] _tileTableLegacyStart;
+        private ImgaHeader _header;
 
         private Level5CompressionMethod _tileTableCompression;
         private Level5CompressionMethod _imageDataCompression;
-
-        public int ImageFormat => _header.imageFormat;
-
-        public int BitDepth => _header.bitDepth;
 
         public ImageInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Header
-            _header = br.ReadType<ImgcHeader>();
-            //if (_header.imageFormat == 28 && _header.bitDepth == 8)
-            //    _header.imageFormat = 29;
+            _header = br.ReadType<ImgaHeader>();
 
             // Get tile table
             var tileTableComp = new SubStream(input, _header.tableDataOffset, _header.tileTableSize);
             var tileTable = new MemoryStream();
+            _tileTableCompression = Level5Compressor.PeekCompressionMethod(tileTableComp);
             Level5Compressor.Decompress(tileTableComp, tileTable);
-
-            tileTableComp.Position = 0;
-            _tileTableCompression = (Level5CompressionMethod)(tileTableComp.ReadByte() & 0x7);
 
             // Get image data
             var imageDataComp = new SubStream(input, _header.tableDataOffset + _header.tileTableSizePadded,
                 _header.imgDataSize);
             var imageData = new MemoryStream();
+            _imageDataCompression = Level5Compressor.PeekCompressionMethod(imageDataComp);
             Level5Compressor.Decompress(imageDataComp, imageData);
-
-            imageDataComp.Position = 0;
-            _imageDataCompression = (Level5CompressionMethod)(imageDataComp.ReadByte() & 0x7);
 
             // Combine tiles to full image data
             tileTable.Position = imageData.Position = 0;
@@ -68,7 +58,7 @@ namespace plugin_level5._3DS.Images
             }
 
             var imageInfo = new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height));
-            imageInfo.RemapPixels.With(context => new ImgcSwizzle(context));
+            imageInfo.RemapPixels.With(context => new ImgaSwizzle(context));
 
             return imageInfo;
         }
@@ -93,18 +83,18 @@ namespace plugin_level5._3DS.Images
             var (imageData, tileTable) = SplitTiles(combinedImageStream, image.BitDepth);
 
             // Write tile table
-            output.Position = _headerSize;
+            output.Position = HeaderSize;
             Level5Compressor.Compress(tileTable, output, _tileTableCompression);
 
-            _header.tileTableSize = (int)output.Length - _headerSize;
+            _header.tileTableSize = (int)output.Length - HeaderSize;
             _header.tileTableSizePadded = (_header.tileTableSize + 3) & ~3;
 
             // Write image tiles
-            output.Position = _headerSize + _header.tileTableSizePadded;
+            output.Position = HeaderSize + _header.tileTableSizePadded;
             Level5Compressor.Compress(imageData, output, _imageDataCompression);
             bw.WriteAlignment(4);
 
-            _header.imgDataSize = (int)(output.Length - (_headerSize + _header.tileTableSizePadded));
+            _header.imgDataSize = (int)(output.Length - (HeaderSize + _header.tileTableSizePadded));
 
             // Write header
             bw.BaseStream.Position = 0;
@@ -116,36 +106,22 @@ namespace plugin_level5._3DS.Images
             using var tileTable = new BinaryReaderX(tileTableStream);
 
             var tileByteDepth = 64 * bitDepth / 8;
+            var tile = new byte[tileByteDepth];
 
-            var entryLength = 2;
-
-            var legacyIndicator = tileTable.ReadInt16();
-            tileTable.BaseStream.Position -= 2;
-            if (legacyIndicator == 0x453)
-            {
-                _tileTableLegacyStart = tileTable.ReadBytes(8);
-
-                entryLength = 4;
-            }
-
-            var entries = new List<int>();
             var result = new MemoryStream();
             while (tileTableStream.Position < tileTableStream.Length)
             {
-                var entry = entryLength == 2 ? tileTable.ReadInt16() : tileTable.ReadInt32();
-                entries.Add(entry);
-                if (entry == -1)
+                var entry = tileTable.ReadInt16();
+
+                if (entry >= 0)
                 {
-                    var tile = new byte[tileByteDepth];
-                    result.Write(tile, 0, tile.Length);
-                }
-                else
-                {
-                    var tile = new byte[tileByteDepth];
                     imageDataStream.Position = entry * tileByteDepth;
                     imageDataStream.Read(tile, 0, tile.Length);
-                    result.Write(tile, 0, tile.Length);
                 }
+                else
+                    Array.Clear(tile, 0, tile.Length);
+
+                result.Write(tile, 0, tile.Length);
             }
 
             result.Position = 0;
@@ -161,11 +137,8 @@ namespace plugin_level5._3DS.Images
             using var tileBw = new BinaryWriterX(tileTable, true);
             using var imageBw = new BinaryWriterX(imageData, true);
 
-            if (_tileTableLegacyStart != null)
-                tileTable.Write(_tileTableLegacyStart, 0, _tileTableLegacyStart.Length);
-
             var crc32 = Crc32.Default;
-            var tileDictionary = new Dictionary<uint, int>();
+            var tileDictionary = new Dictionary<uint, short>();
 
             // Add placeholder tile for all 0's
             var zeroTileHash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(new byte[tileByteDepth]));
@@ -182,13 +155,10 @@ namespace plugin_level5._3DS.Images
                     tile.Position = 0;
                     tile.CopyTo(imageBw.BaseStream);
 
-                    tileDictionary[tileHash] = tileIndex++;
+                    tileDictionary[tileHash] = (short)tileIndex++;
                 }
 
-                if (_tileTableLegacyStart != null)
-                    tileBw.Write(tileDictionary[tileHash]);
-                else
-                    tileBw.Write((short)tileDictionary[tileHash]);
+                tileBw.Write(tileDictionary[tileHash]);
 
                 imageOffset += tileByteDepth;
             }

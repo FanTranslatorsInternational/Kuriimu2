@@ -29,9 +29,9 @@ namespace Kanvas
         public static IColorEncoding Etc1(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(false, zOrder, byteOrder);
         public static IColorEncoding Etc1A4(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(true, zOrder, byteOrder);
 
-        public static IColorEncoding Etc2()=>new Etc2(Etc2Format.RGB);
-        public static IColorEncoding Etc2A() => new Etc2(Etc2Format.RGBA);
-        public static IColorEncoding Etc2A1() => new Etc2(Etc2Format.RGB_A1);
+        public static IColorEncoding Etc2()=>new Etc2(Etc2Format.ETC2_RGB);
+        public static IColorEncoding Etc2A() => new Etc2(Etc2Format.ETC2_RGBA);
+        public static IColorEncoding Etc2A1() => new Etc2(Etc2Format.ETC2_RGB_A1);
         public static IColorEncoding EacR11() => new Etc2(Etc2Format.EAC_R11);
         public static IColorEncoding EacRG11() => new Etc2(Etc2Format.EAC_RG11);
 

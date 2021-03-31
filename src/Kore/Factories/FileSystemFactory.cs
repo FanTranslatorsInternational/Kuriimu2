@@ -5,6 +5,7 @@ using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.FileSystem.Implementations;
 
@@ -101,19 +102,20 @@ namespace Kore.Factories
         /// <summary>
         /// Creates a <see cref="MemoryFileSystem"/> based on the given <see cref="Stream"/>.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to add to the file system.</param>
-        /// <param name="streamName">The path of the stream in the file system.</param>
+        /// <param name="streamFile">The in-memory file to add to the file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this stream.</returns>
-        public static IFileSystem CreateMemoryFileSystem(Stream stream, UPath streamName, IStreamManager streamManager)
+        public static IFileSystem CreateMemoryFileSystem(StreamFile streamFile, IStreamManager streamManager)
         {
+            var stream = streamFile.Stream;
+            var directory = streamFile.Path.GetDirectory();
+
             // 1. Create file system
             var fileSystem = new MemoryFileSystem(streamManager);
-            var directory = streamName.GetDirectory();
-            if (!directory.IsEmpty && !fileSystem.DirectoryExists(streamName.GetDirectory()))
-                fileSystem.CreateDirectory(streamName.GetDirectory());
+            if (!directory.IsEmpty && !fileSystem.DirectoryExists(directory))
+                fileSystem.CreateDirectory(directory);
 
-            var createdStream = fileSystem.OpenFile(streamName, FileMode.CreateNew, FileAccess.Write);
+            var createdStream = fileSystem.OpenFile(streamFile.Path.ToAbsolute(), FileMode.CreateNew, FileAccess.Write, FileShare.Write);
 
             // 2. Copy data
             var bkPos = stream.Position;

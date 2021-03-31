@@ -5,7 +5,6 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
-using Serilog;
 
 namespace Kontract.Interfaces.Managers
 {
@@ -73,7 +72,7 @@ namespace Kontract.Interfaces.Managers
 
         #endregion
 
-        #region Load IArchiveFileInfo
+        #region Load ArchiveFileInfo
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
@@ -103,6 +102,33 @@ namespace Kontract.Interfaces.Managers
 
         #endregion
 
+        #region Load Stream
+
+        /// <summary>
+        /// Loads a stream into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="streamFile">The in-memory file to load.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(StreamFile streamFile);
+
+        /// <summary>
+        /// Loads a stream into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="streamFile">The in-memory file to load.</param>
+        /// <param name="pluginId">the plugin with which to load the file.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(StreamFile streamFile, Guid pluginId);
+
+        /// <summary>
+        /// Loads a stream into the Kuriimu runtime.
+        /// </summary>
+        /// <param name="streamFile">The in-memory file to load.</param>
+        /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
+        /// <returns>The loaded state of the path.</returns>
+        Task<LoadResult> LoadFile(StreamFile streamFile, LoadFileContext loadFileContext);
+
+        #endregion
+
         #endregion
 
         #region Save File
@@ -122,6 +148,17 @@ namespace Kontract.Interfaces.Managers
         /// <param name="savePath">The path into the filesystem to save the file at.</param>
         /// <returns></returns>
         Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath);
+
+        #endregion
+
+        #region Save Stream
+
+        /// <summary>
+        /// Saves a loaded state into <see cref="StreamFile"/>s.
+        /// </summary>
+        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <returns></returns>
+        Task<SaveStreamResult> SaveStream(IStateInfo stateInfo);
 
         #endregion
 
