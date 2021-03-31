@@ -10,6 +10,8 @@ namespace plugin_khronos_group.Images
     {
         private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
+            [(int)GlInternalFormat.GlCompressedRgb8Etc2] = ImageFormats.Etc2(),
+            [(int)GlInternalFormat.GlCompressedRgb8PunchthroughAlpha1Etc2] = ImageFormats.Etc2A1(),
             [(int)GlInternalFormat.GlCompressedRgba8Etc2Eac] = ImageFormats.Etc2A()
         };
 
