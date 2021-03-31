@@ -57,10 +57,7 @@ namespace plugin_level5._3DS.Archives
                 }
                 else
                 {
-                    files.Add(new XpckArchiveFileInfo(fileData, name, entry)
-                    {
-                        PluginIds = XpckSupport.RetrievePluginMapping(name)
-                    });
+                    files.Add(new XpckArchiveFileInfo(fileData, name, entry));
                 }
             }
 
