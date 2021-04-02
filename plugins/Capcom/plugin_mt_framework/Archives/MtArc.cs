@@ -63,9 +63,8 @@ namespace plugin_mt_framework.Archives
         public IArchiveFileInfo Add(Stream fileData, UPath filePath)
         {
             // Determine extension hash
-            var extensionHash = Regex.IsMatch(filePath.GetExtensionWithDot(), @"\.[\da-fA-F]{8}") ?
-                uint.Parse(filePath.GetExtensionWithDot().Substring(1), NumberStyles.HexNumber) :
-                MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot());
+            if (!uint.TryParse(filePath.GetExtensionWithDot()[1..], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var extensionHash))
+                extensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot());
 
             // Create entry
             IMtEntry entry;

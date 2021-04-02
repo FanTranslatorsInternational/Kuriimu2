@@ -27,7 +27,7 @@ namespace plugin_khronos_group.Images
 
         public KtxPlugin()
         {
-            Metadata = new PluginMetadata("KTX", "onepiecefreak", "The image resource by the Khronos Group.");
+            Metadata = new PluginMetadata("KTX", "Nominom; onepiecefreak", "The image resource by the Khronos Group.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
