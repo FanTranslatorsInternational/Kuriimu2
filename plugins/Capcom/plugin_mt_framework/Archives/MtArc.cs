@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
@@ -63,8 +62,16 @@ namespace plugin_mt_framework.Archives
         public IArchiveFileInfo Add(Stream fileData, UPath filePath)
         {
             // Determine extension hash
-            if (!uint.TryParse(filePath.GetExtensionWithDot()[1..], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var extensionHash))
+            var extension = filePath.GetExtensionWithDot()[1..];
+
+            uint extensionHash;
+            if (extension.Length != 8)
                 extensionHash = MtArcSupport.DetermineExtensionHash(filePath.GetExtensionWithDot());
+            else
+            {
+                if (!uint.TryParse(extension, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out extensionHash))
+                    throw new InvalidOperationException($"Extension '{extension}' cannot be converted to a hash.");
+            }
 
             // Create entry
             IMtEntry entry;
