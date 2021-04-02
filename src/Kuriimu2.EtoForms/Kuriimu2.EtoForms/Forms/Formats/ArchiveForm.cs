@@ -655,7 +655,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private async Task ExtractDirectory(TreeGridItem item)
         {
             var itemPath = GetAbsolutePath(item);
-            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath, _searchTerm.Get()).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
 
             if (filePaths.Length <= 0)
             {
@@ -678,7 +678,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
-            await _asyncOperation.StartAsync(async cts =>
+            await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
                 foreach (var filePath in filePaths)
@@ -702,7 +702,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
                     }
 
-                    var currentFileStream = await afi.GetFileData();
+                    var currentFileStream = afi.GetFileData().Result;
 
                     currentFileStream.CopyTo(newFileStream);
 
