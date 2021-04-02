@@ -132,18 +132,23 @@ namespace Kontract.Models.Image
             return _paletteShaders[paletteFormat];
         }
 
-        public bool Supports(ImageInfo imageInfo)
+        public bool Supports(ImageInfo imageInfo, out string error)
         {
+            error = string.Empty;
+
             var isColorEncoding = _colorEncodings.ContainsKey(imageInfo.ImageFormat);
             var isIndexColorEncoding = _indexEncodings.ContainsKey(imageInfo.ImageFormat);
             if (!isColorEncoding && !isIndexColorEncoding)
+            {
+                error = $"Format {imageInfo.ImageFormat} is not supported by the encoding definition.";
                 return false;
+            }
 
             if (isIndexColorEncoding && !imageInfo.HasPaletteInformation)
+            {
+                error = "The image requires palette data, but it doesn't contain any.";
                 return false;
-
-            if (isColorEncoding && imageInfo.HasPaletteInformation)
-                return false;
+            }
 
             return true;
         }
@@ -220,8 +225,9 @@ namespace Kontract.Models.Image
             if (_indexEncodings.ContainsKey(indexFormat) || _colorEncodings.ContainsKey(indexFormat) || !indexDefinition.PaletteEncodingIndices.Any())
                 return;
 
-            if (indexDefinition.PaletteEncodingIndices.Any(x => !_paletteEncodings.ContainsKey(x)))
-                throw new InvalidOperationException("Some palette encodings are not supported.");
+            var missingPaletteEncodings = indexDefinition.PaletteEncodingIndices.Where(x => !_paletteEncodings.ContainsKey(x)).ToArray();
+            if (missingPaletteEncodings.Length > 0)
+                throw new InvalidOperationException($"Palette encodings {string.Join(", ", missingPaletteEncodings)} are not supported by the encoding definition.");
 
             _indexEncodings.Add(indexFormat, indexDefinition);
         }

@@ -62,8 +62,8 @@ namespace Kanvas
             ContractAssertions.IsNotNull(encodingDefinition, nameof(encodingDefinition));
             ContractAssertions.IsNotNull(imageInfo, nameof(imageInfo));
 
-            if (!encodingDefinition.Supports(imageInfo))
-                throw new InvalidOperationException("The encoding definition can not support the image info.");
+            if (!encodingDefinition.Supports(imageInfo, out var error))
+                throw new InvalidOperationException(error);
 
             _encodingDefinition = encodingDefinition;
             ImageInfo = imageInfo;
@@ -80,8 +80,8 @@ namespace Kanvas
             ContractAssertions.IsNotNull(encodingDefinition, nameof(encodingDefinition));
             ContractAssertions.IsNotNull(imageInfo, nameof(imageInfo));
 
-            if (!encodingDefinition.Supports(imageInfo))
-                throw new InvalidOperationException("The encoding definition can not support the image info.");
+            if (!encodingDefinition.Supports(imageInfo, out var error))
+                throw new InvalidOperationException(error);
 
             _encodingDefinition = encodingDefinition;
             ImageInfo = imageInfo;
