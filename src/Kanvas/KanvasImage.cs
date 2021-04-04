@@ -433,6 +433,7 @@ namespace Kanvas
             var config = new ImageConfiguration();
 
             config.PadSize.With(options => options.To(size => ImageInfo.PadSize.Build(size)));
+            config.IsAnchoredAt(ImageInfo.IsAnchoredAt);
 
             if (ImageInfo.RemapPixels.IsSet)
                 config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));

@@ -13,6 +13,7 @@ using Kontract.Models.Image;
 
 namespace Kanvas.Configuration
 {
+    // TODO: For better management, add a container for all the different configuration variables. It may be set up by the configuration, and passed into the transcoder
     /// <summary>
     /// The class to implement transcoding actions on data and images.
     /// </summary>
@@ -28,6 +29,8 @@ namespace Kanvas.Configuration
         private readonly IColorEncoding _paletteEncoding;
         private readonly IQuantizer _quantizer;
 
+        private readonly ImageAnchor _anchor;
+
         private readonly IColorEncoding _colorEncoding;
 
         private bool IsIndexed => _indexEncoding != null && _paletteEncoding != null;
@@ -40,11 +43,12 @@ namespace Kanvas.Configuration
         /// <param name="remapPixels"></param>
         /// <param name="padSizeOptions"></param>
         /// <param name="shadeColorsFunc"></param>
+        /// <param name="anchor"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IIndexEncoding indexEncoding, IColorEncoding paletteEncoding,
             CreatePixelRemapper remapPixels, IPadSizeOptionsBuild padSizeOptions, CreateShadedColor shadeColorsFunc,
-            IQuantizer quantizer, int taskCount)
+            ImageAnchor anchor, IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
             ContractAssertions.IsNotNull(quantizer, nameof(quantizer));
@@ -59,6 +63,8 @@ namespace Kanvas.Configuration
             _padSizeOptions = padSizeOptions;
             _shadeColorsFunc = shadeColorsFunc;
 
+            _anchor = anchor;
+
             _taskCount = taskCount;
         }
 
@@ -69,11 +75,12 @@ namespace Kanvas.Configuration
         /// <param name="remapPixels"></param>
         /// <param name="padSizeOptionsFunc"></param>
         /// <param name="shadeColorsFunc"></param>
+        /// <param name="anchor"></param>
         /// <param name="quantizer"></param>
         /// <param name="taskCount"></param>
         public ImageTranscoder(IColorEncoding colorEncoding, CreatePixelRemapper remapPixels,
             IPadSizeOptionsBuild padSizeOptionsFunc, CreateShadedColor shadeColorsFunc,
-            IQuantizer quantizer, int taskCount)
+            ImageAnchor anchor, IQuantizer quantizer, int taskCount)
         {
             ContractAssertions.IsNotNull(colorEncoding, nameof(colorEncoding));
 
@@ -83,6 +90,8 @@ namespace Kanvas.Configuration
             _remapPixels = remapPixels;
             _padSizeOptions = padSizeOptionsFunc;
             _shadeColorsFunc = shadeColorsFunc;
+
+            _anchor = anchor;
 
             _taskCount = taskCount;
         }
@@ -130,7 +139,7 @@ namespace Kanvas.Configuration
                 colors = colors.Select(colorShader.Read);
 
             // Create image with unpadded dimensions
-            return colors.ToBitmap(imageSize, paddedSize, swizzle);
+            return colors.ToBitmap(imageSize, paddedSize, swizzle, _anchor);
         }
 
         private Bitmap DecodeIndexInternal(byte[] data, byte[] paletteData, Size imageSize, IProgressContext progress)
@@ -200,7 +209,7 @@ namespace Kanvas.Configuration
             {
                 // Decompose image to colors
                 var setMaxProgress = progress?.SetMaxValue(image.Width * image.Height);
-                colors = image.ToColors(paddedSize, swizzle).AttachProgress(setMaxProgress, "Encode colors");
+                colors = image.ToColors(paddedSize, swizzle, _anchor).AttachProgress(setMaxProgress, "Encode colors");
 
                 // Apply color shader
                 if (colorShader != null)

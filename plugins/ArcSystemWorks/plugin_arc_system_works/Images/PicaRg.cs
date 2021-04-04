@@ -2,6 +2,7 @@
 using System.IO;
 using Kanvas.Swizzle;
 using Komponent.IO;
+using Kontract.Kanvas.Model;
 using Kontract.Models.Image;
 
 namespace plugin_arc_system_works.Images
@@ -23,9 +24,10 @@ namespace plugin_arc_system_works.Images
             var imageData = br.ReadBytes((int)(input.Length - HeaderSize));
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.paddedWidth, _header.paddedHeight));
+            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
             imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
             imageInfo.PadSize.ToPowerOfTwo();
+            imageInfo.IsAnchoredAt = ImageAnchor.BottomLeft;
 
             return imageInfo;
         }
@@ -42,10 +44,13 @@ namespace plugin_arc_system_works.Images
             output.Write(imageInfo.ImageData);
 
             // Write header
-            // TODO: Point transformation via Kanvas
             _header.format = (ushort)imageInfo.ImageFormat;
-            _header.paddedWidth = (short)imageInfo.ImageSize.Width;
-            _header.paddedHeight = (short)imageInfo.ImageSize.Height;
+            _header.width = (short)imageInfo.ImageSize.Width;
+            _header.height = (short)imageInfo.ImageSize.Height;
+
+            var paddedSize = imageInfo.PadSize.Build(imageInfo.ImageSize);
+            _header.width = (short)paddedSize.Width;
+            _header.height = (short)paddedSize.Height;
 
             output.Position = 0;
             bw.WriteType(_header);

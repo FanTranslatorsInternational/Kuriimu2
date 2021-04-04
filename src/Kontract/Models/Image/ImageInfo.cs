@@ -67,6 +67,11 @@ namespace Kontract.Models.Image
         /// </summary>
         public RemapPixelsConfiguration RemapPixels { get; } = new RemapPixelsConfiguration();
 
+        /// <summary>
+        /// Defines where the image with its real size is anchored in the padded size.
+        /// </summary>
+        public ImageAnchor IsAnchoredAt { get; set; } = ImageAnchor.TopLeft;
+
         // TODO: Make not settable
         // TODO: Use KanvasImage in Kontract
         /// <summary>

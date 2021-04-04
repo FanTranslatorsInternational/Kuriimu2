@@ -3,8 +3,8 @@ using System.Drawing;
 using Kontract;
 using Kontract.Kanvas;
 using Kontract.Kanvas.Configuration;
+using Kontract.Kanvas.Model;
 using Kontract.Kanvas.Quantization;
-using Kontract.Models.Image;
 
 namespace Kanvas.Configuration
 {
@@ -16,6 +16,8 @@ namespace Kanvas.Configuration
         private readonly PadSizeConfiguration _padSizeConfiguration;
         private readonly RemapPixelsConfiguration _remapPixelsConfiguration;
         private readonly ShadeColorsConfiguration _shadeColorsConfiguration;
+
+        private ImageAnchor _anchor = ImageAnchor.TopLeft;
 
         private int _taskCount = Environment.ProcessorCount;
         private IQuantizationConfiguration _quantizationConfiguration;
@@ -39,6 +41,12 @@ namespace Kanvas.Configuration
             _padSizeConfiguration = new PadSizeConfiguration(this);
             _remapPixelsConfiguration = new RemapPixelsConfiguration(this);
             _shadeColorsConfiguration = new ShadeColorsConfiguration(this);
+        }
+
+        public IImageConfiguration IsAnchoredAt(ImageAnchor anchor)
+        {
+            _anchor = anchor;
+            return this;
         }
 
         public IImageConfiguration WithDegreeOfParallelism(int taskCount)
@@ -107,7 +115,7 @@ namespace Kanvas.Configuration
             // If no quantization configuration was done beforehand we assume no quantization to be used here
             var quantizer = _quantizationConfiguration != null ? BuildQuantizer() : null;
 
-            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.ColorEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, _anchor, quantizer, _taskCount);
         }
 
         private IImageTranscoder BuildIndexInternal()
@@ -117,7 +125,7 @@ namespace Kanvas.Configuration
 
             var quantizer = BuildQuantizer();
 
-            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, quantizer, _taskCount);
+            return new ImageTranscoder(_transcodeConfiguration.IndexEncoding, _transcodePaletteConfiguration.PaletteEncoding, _remapPixelsConfiguration.Delegate, _padSizeConfiguration.Options, _shadeColorsConfiguration.Delegate, _anchor, quantizer, _taskCount);
         }
 
         private IQuantizer BuildQuantizer()
