@@ -29,11 +29,11 @@ namespace Kanvas.Encoding.Descriptors
         {
             var componentBuilder = new StringBuilder();
             var depthBuilder = new StringBuilder();
-            var componentLetters = new[] { "A", "R", "G", "B" };
+            var componentLetters = new[] { "A", "R", "G", "B", "X" };
 
             void AppendComponent(int level)
             {
-                if (_depthTable[level] == 0) 
+                if (_depthTable[level] == 0)
                     return;
 
                 componentBuilder.Append(componentLetters[_indexTable[level]]);
@@ -55,7 +55,8 @@ namespace Kanvas.Encoding.Descriptors
 
         public Color GetColor(long value)
         {
-            var colorBuffer = new int[4];
+            // colorBuffer[4] is reserved for the X color component, and will be ignored when the color is constructed
+            var colorBuffer = new int[5];
 
             colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
             colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
@@ -71,8 +72,10 @@ namespace Kanvas.Encoding.Descriptors
 
         public long GetValue(Color color)
         {
+            // colorBuffer[4] is reserved for the X color component
+            var colorBuffer = new[] { color.A, color.R, color.G, color.B, 0 };
+
             var result = 0L;
-            var colorBuffer = new[] { color.A, color.R, color.G, color.B };
 
             var index = _componentIndexTable[0];
             WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
@@ -94,7 +97,7 @@ namespace Kanvas.Encoding.Descriptors
             ContractAssertions.IsNotNull(componentOrder, nameof(componentOrder));
             ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 4);
 
-            if (!Regex.IsMatch(componentOrder, "^[rgba]{1,4}$"))
+            if (!Regex.IsMatch(componentOrder, "^[rgbax]{1,4}$"))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
@@ -120,23 +123,23 @@ namespace Kanvas.Encoding.Descriptors
             }
 
             // Index lookup table holds the indices to the depth Values in order of reading
-            _indexTable = new int[4];
+            _indexTable = new int[5];
 
             // Depth lookup table holds depth of components in order of reading
-            _depthTable = new int[4];
+            _depthTable = new int[5];
 
-            // Depth index table holds index into depth table in order ARGB
-            _componentIndexTable = new int[4];
+            // Depth index table holds index into depth table in order ARGBX
+            _componentIndexTable = new int[5];
 
             // Shift lookup table holds the shift Values for each depth in order of reading
-            _shiftTable = new int[4];
+            _shiftTable = new int[5];
 
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
-            _maskTable = new int[4];
+            _maskTable = new int[5];
 
             var shift = 0;
             var length = componentOrder.Length;
-            bool rSet = false, bSet = false, gSet = false, aSet = false;
+            bool rSet = false, bSet = false, gSet = false, aSet = false, xSet = false;
 
             for (var i = length - 1; i >= 0; i--)
             {
@@ -165,13 +168,23 @@ namespace Kanvas.Encoding.Descriptors
                         SetTableValues(length - i - 1, 0, a, ref shift);
                         aSet = true;
                         break;
+
+                    case 'x':
+                    case 'X':
+                        if (componentOrder.Length != 4)
+                            throw new InvalidOperationException("Ignoring a component by X, can only be done if 4 color components are given.");
+
+                        SetTableValues(length - i - 1, 4, GetBitDepthOfMissingComponent(componentOrder, r, g, b, a), ref shift);
+                        xSet = true;
+                        break;
                 }
             }
 
             if (!rSet) SetTableValues(length++, 1, 0, ref shift);
             if (!gSet) SetTableValues(length++, 2, 0, ref shift);
             if (!bSet) SetTableValues(length++, 3, 0, ref shift);
-            if (!aSet) SetTableValues(length, 0, 0, ref shift);
+            if (!aSet) SetTableValues(length++, 0, 0, ref shift);
+            if (!xSet) SetTableValues(length, 4, 0, ref shift);
         }
 
         private int ReadComponent(long value, int shift, int mask, int depth)
@@ -182,6 +195,44 @@ namespace Kanvas.Encoding.Descriptors
         private void WriteComponent(int value, int shift, int mask, int depth, ref long result)
         {
             result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+        }
+
+        private int GetBitDepthOfMissingComponent(string componentOrder, int r, int g, int b, int a)
+        {
+            bool rSet = false, bSet = false, gSet = false, aSet = false, xSet = false;
+            foreach (var component in componentOrder)
+            {
+                switch (component)
+                {
+                    case 'r':
+                    case 'R':
+                        rSet = true;
+                        break;
+
+                    case 'g':
+                    case 'G':
+                        gSet = true;
+                        break;
+
+                    case 'b':
+                    case 'B':
+                        bSet = true;
+                        break;
+
+                    case 'a':
+                    case 'A':
+                        aSet = true;
+                        break;
+                }
+            }
+
+            if (!rSet) return r;
+            if (!gSet) return g;
+            if (!bSet) return b;
+            if (!aSet) return a;
+
+            // HINT: This case should never occur!
+            throw new InvalidOperationException("No color component was marked as missing, but a missing color component was expected.");
         }
     }
 }

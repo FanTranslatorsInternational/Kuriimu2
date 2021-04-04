@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Kanvas;
+using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
+using Kontract.Models.IO;
+
 #pragma warning disable 649
 
 namespace plugin_bandai_namco.Images
@@ -48,6 +51,7 @@ namespace plugin_bandai_namco.Images
 
         int Type { get; set; }
         int Format { get; set; }
+        int SubFormat { get; set; }
     }
 
     class GxtEntry1 : IGxtEntry
@@ -72,6 +76,7 @@ namespace plugin_bandai_namco.Images
 
         public int Type { get => type; set => type = (int)value; }
         public int Format { get => (int)(0x80000000 | (tmp1 & 0x0F000000)); set => tmp1 = (int)(tmp1 & 0xF0FFFFFF) | (value & 0x0F000000); }
+        public int SubFormat { get; set; }
     }
 
     class GxtEntry2 : IGxtEntry
@@ -96,6 +101,7 @@ namespace plugin_bandai_namco.Images
 
         public int Type { get => type; set => type = (int)value; }
         public int Format { get => (int)(0x80000000 | (tmp1 & 0x0F000000)); set => tmp1 = (int)(tmp1 & 0xF0FFFFFF) | (value & 0x0F000000); }
+        public int SubFormat { get; set; }
     }
 
     class GxtEntry3 : IGxtEntry
@@ -123,7 +129,8 @@ namespace plugin_bandai_namco.Images
         public int Height { get => height; set => height = (short)value; }
 
         public int Type { get => type; set => type = (int)value; }
-        public int Format { get => format; set => format = value; }
+        public int Format { get => (int)(format & 0xFF000000); set => format = (format & 0x00FFFFFF) | (int)(value & 0xFF000000); }
+        public int SubFormat { get => format & 0xFFFF; set => format = (int)(format & 0xFFFF0000) | value; }
     }
 
     #endregion
@@ -135,10 +142,31 @@ namespace plugin_bandai_namco.Images
             [0x85000000] = ImageFormats.Dxt1()
         };
 
+        private static readonly IDictionary<uint, IIndexEncoding> IndexFormats = new Dictionary<uint, IIndexEncoding>
+        {
+            [0x94000000] = ImageFormats.I4(),
+            [0x95000000] = ImageFormats.I8()
+        };
+
+        private static readonly IDictionary<uint, IColorEncoding> PaletteFormats = new Dictionary<uint, IColorEncoding>
+        {
+            [0x0000] = new Rgba(8, 8, 8, 8, "ABGR"),
+            [0x1000] = new Rgba(8, 8, 8, 8, "ARGB"),
+            [0x2000] = new Rgba(8, 8, 8, 8, "RGBA"),
+            [0x3000] = new Rgba(8, 8, 8, 8, "BGRA"),
+            [0x4000] = new Rgba(8, 8, 8, 8, "XBGR"),
+            [0x5000] = new Rgba(8, 8, 8, 8, "XRGB"),
+            [0x6000] = new Rgba(8, 8, 8, 8, "RGBX"),
+            [0x7000] = new Rgba(8, 8, 8, 8, "BGRX")
+        };
+
         public static EncodingDefinition GetEncodingDefinition()
         {
             var definition = new EncodingDefinition();
             definition.AddColorEncodings(Formats.Select(x => ((int)x.Key, x.Value)).ToArray());
+
+            definition.AddPaletteEncodings(PaletteFormats.Select(x => ((int)x.Key, x.Value)).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition(x.Value, new[] { 0 }))).ToArray());
 
             return definition;
         }
