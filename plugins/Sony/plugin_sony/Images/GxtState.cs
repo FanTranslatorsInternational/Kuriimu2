@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Kanvas;
 using Kontract.Interfaces.FileSystem;
@@ -13,35 +14,37 @@ namespace plugin_bandai_namco.Images
 {
     class GxtState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly GXT _gxt;
+        private readonly Gxt _gxt;
 
         public EncodingDefinition EncodingDefinition { get; }
         public IList<IKanvasImage> Images { get; private set; }
 
-        public bool ContentChanged { get; }
+        public bool ContentChanged => IsContentChanged();
 
         public GxtState()
         {
-            _gxt = new GXT();
+            _gxt = new Gxt();
 
-            EncodingDefinition = GxtSupport.GxtFormats.ToColorDefinition();
-            EncodingDefinition.AddIndexEncodings(GxtSupport.GxtIndexFormats);
+            EncodingDefinition = GxtSupport.GetEncodingDefinition();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            var img = _gxt.Load(fileStream);
-
-            Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, img) };
+            Images = _gxt.Load(fileStream).Select(x => new KanvasImage(EncodingDefinition, x)).ToArray();
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var output = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-            _gxt.Save(output, Images[0]);
+            _gxt.Save(output, Images.Select(x=>x.ImageInfo).ToArray());
 
             return Task.CompletedTask;
+        }
+
+        private bool IsContentChanged()
+        {
+            return Images.Any(x => x.ImageInfo.ContentChanged);
         }
     }
 }

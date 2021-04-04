@@ -20,7 +20,7 @@ namespace plugin_bandai_namco.Images
 
         public GxtPlugin()
         {
-            Metadata=new PluginMetadata("GXT","onepiecefreak, IcySon55","The image format found in [...]");
+            Metadata = new PluginMetadata("Gxt", "onepiecefreak, IcySon55", "The main image resource by the Sony Vita SDK.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
