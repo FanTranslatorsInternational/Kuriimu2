@@ -214,7 +214,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             renameButton = new ButtonToolStripItem
             {
                 Command = renameFileCommand,
-                Image = MenuExportResource
+                Image = MenuEditResource
             };
 
             deleteButton = new ButtonToolStripItem
