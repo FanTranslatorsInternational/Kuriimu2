@@ -103,15 +103,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             {
                 var encoding = CreateEncoding();
 
-                var totalColors = width * height;
-                if (totalColors % encoding.ColorsPerValue > 0)
-                    throw new InvalidOperationException("Total pixels does not match with the encoding specification.");
-
-                var bitsPerColor = encoding.BitsPerValue / encoding.ColorsPerValue;
-                var dataLength = totalColors * bitsPerColor / 8;
-
-                var minDataLength = Math.Min(dataLength, _openedFile.Length - offset);
-                var imgData = new byte[minDataLength];
+                // HINT: Pre-Calculation of the buffer based on the given size is not possible,
+                // since we're missing runtime information for the swizzle
+                var imgData = new byte[_openedFile.Length - offset];
 
                 _openedFile.Position = offset;
                 _openedFile.Read(imgData, 0, imgData.Length);

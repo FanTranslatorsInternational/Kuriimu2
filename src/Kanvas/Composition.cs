@@ -31,7 +31,7 @@ namespace Kanvas
         /// </summary>
         /// <param name="colors">The colors to compose in the image.</param>
         /// <param name="imageSize">The dimensions of the composed image.</param>
-        /// <param name="paddedSize">The padded dimensions of the composed image. Used for the swizzle operation.</param>
+        /// <param name="paddedSize">The padded dimensions of the composed image. Used for the swizzle operation. Is equal to <param name="imageSize">, if it was not further modified by the framework.</param></param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
         /// <param name="anchor">Defines where the image with its real size is anchored in the padded size.</param>
         /// <returns>The composed image.</returns>
@@ -43,7 +43,7 @@ namespace Kanvas
                 PixelFormat.Format32bppArgb);
 
             // Get point sequence modified by swizzle
-            var finalSize = !paddedSize.IsEmpty ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : imageSize;
+            var finalSize = imageSize != paddedSize ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : imageSize;
             var colorPoints = colors.Zip(GetPointSequence(finalSize, swizzle));
 
             // Get difference between final padded size and real size
@@ -112,16 +112,14 @@ namespace Kanvas
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppArgb);
 
-            // TODO: Use anchor
-
-            var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
+            var finalSize = image.Size != paddedSize ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : image.Size;
 
             // Get difference between final padded size and real size
-            var widthDiff = imageSize.Width - image.Size.Width;
-            var heightDiff = imageSize.Height - image.Size.Height;
+            var widthDiff = finalSize.Width - image.Size.Width;
+            var heightDiff = finalSize.Height - image.Size.Height;
 
             // Get point sequence, modified by swizzle
-            var points = GetPointSequence(imageSize, swizzle)
+            var points = GetPointSequence(finalSize, swizzle)
                 .Clamp(GetMinPoint(widthDiff, heightDiff, anchor), GetMaxPoint(image.Size, widthDiff, heightDiff, anchor));
 
             foreach (var p in points)
