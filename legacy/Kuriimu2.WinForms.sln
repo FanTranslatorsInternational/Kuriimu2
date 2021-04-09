@@ -10,21 +10,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "src\Komponent\Komponent.csproj", "{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Komponent", "..\src\Komponent\Komponent.csproj", "{0601DFC5-60DD-44A3-AFF8-A62E1E1481DB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "src\Kanvas\Kanvas.csproj", "{810CEFCF-6900-43FF-8939-EF2D52236882}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kanvas", "..\src\Kanvas\Kanvas.csproj", "{810CEFCF-6900-43FF-8939-EF2D52236882}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kryptography", "..\src\Kryptography\Kryptography.csproj", "{B0D44561-33F6-4BD0-8617-537DF06E2AAB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.WinForms", "src\Kuriimu2.WinForms\Kuriimu2.WinForms.csproj", "{0BD4CBA2-FEA2-42A1-92E0-FB7BA4F389C4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "src\Kompression\Kompression.csproj", "{D170F614-83C8-4608-96EA-72D30B2AC77E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kompression", "..\src\Kompression\Kompression.csproj", "{D170F614-83C8-4608-96EA-72D30B2AC77E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kuriimu2.Wpf", "src\Kuriimu2.Wpf\Kuriimu2.Wpf.csproj", "{F6675105-6585-4FD2-A50F-355C14BB3D8E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "src\Kontract\Kontract.csproj", "{DACC2BEC-30EA-4156-92D3-591A4C487F81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kontract", "..\src\Kontract\Kontract.csproj", "{DACC2BEC-30EA-4156-92D3-591A4C487F81}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "src\Kore\Kore.csproj", "{1838658F-B50F-48B2-B48B-1E609CD92536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Kore", "..\src\Kore\Kore.csproj", "{1838658F-B50F-48B2-B48B-1E609CD92536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

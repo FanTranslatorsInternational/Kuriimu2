@@ -29,11 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
-    <ProjectReference Include="..\Kompression\Kompression.csproj" />
-    <ProjectReference Include="..\Kontract\Kontract.csproj" />
-    <ProjectReference Include="..\Kore\Kore.csproj" />
-    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+    <ProjectReference Include="..\..\..\src\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\..\..\src\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\..\..\src\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\..\..\src\Kore\Kore.csproj" />
+    <ProjectReference Include="..\..\..\src\Kryptography\Kryptography.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
