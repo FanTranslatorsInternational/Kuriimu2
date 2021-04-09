@@ -10,15 +10,17 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
     partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
+        private readonly string _message;
         private readonly IReadOnlyList<IFilePlugin> _filePlugins;
 
         private IFilePlugin _selectedFilePlugin;
 
-        public ChoosePluginDialog(IReadOnlyList<IFilePlugin> filePlugins)
+        public ChoosePluginDialog(string message, IReadOnlyList<IFilePlugin> filePlugins)
         {
-            InitializeComponent();
-
+            _message = message;
             _filePlugins = filePlugins;
+            
+            InitializeComponent();
             AddPlugins();
 
             okButtonCommand.Executed += OkButtonCommand_Executed;

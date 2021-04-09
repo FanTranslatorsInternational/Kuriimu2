@@ -111,11 +111,17 @@ namespace Kore.Managers.Plugins.FileManagement
                 return matchedPlugins.First();
 
             if (matchedPlugins.Count > 1)
-                return GetManualSelection(matchedPlugins);
+                return GetManualSelection(
+                    "Multiple plugins think they can open this file, please choose one:", 
+                    matchedPlugins
+                );
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
             var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-            return loadInfo.AllowManualSelection ? GetManualSelection(nonIdentifiablePlugins) : null;
+            return loadInfo.AllowManualSelection ? GetManualSelection(
+                "Could not automatically determine plugin for opening this file, please choose manually:",
+                nonIdentifiablePlugins
+            ) : null;
         }
 
         /// <summary>
@@ -142,10 +148,10 @@ namespace Kore.Managers.Plugins.FileManagement
         /// Select a plugin manually.
         /// </summary>
         /// <returns>The manually selected plugin.</returns>
-        private IFilePlugin GetManualSelection(IReadOnlyList<IFilePlugin> pluginList)
+        private IFilePlugin GetManualSelection(string message, IReadOnlyList<IFilePlugin> pluginList)
         {
             // 1. Request manual selection by the user
-            var selectionArgs = new ManualSelectionEventArgs(pluginList);
+            var selectionArgs = new ManualSelectionEventArgs(message, pluginList);
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;

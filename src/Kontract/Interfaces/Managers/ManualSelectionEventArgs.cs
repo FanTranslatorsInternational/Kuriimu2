@@ -6,12 +6,14 @@ namespace Kontract.Interfaces.Managers
 {
     public class ManualSelectionEventArgs : EventArgs
     {
+        public string Message { get; }
         public IReadOnlyList<IFilePlugin> FilePlugins { get; }
 
         public IFilePlugin Result { get; set; }
 
-        public ManualSelectionEventArgs(IReadOnlyList<IFilePlugin> filePlugins)
+        public ManualSelectionEventArgs(string message, IReadOnlyList<IFilePlugin> filePlugins)
         {
+            Message = message;
             FilePlugins = filePlugins;
         }
     }

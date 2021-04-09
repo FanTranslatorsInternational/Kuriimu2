@@ -225,7 +225,7 @@ namespace Kuriimu2.EtoForms.Forms
             IFilePlugin chosenPlugin = null;
             if (manualIdentification)
             {
-                chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
+                chosenPlugin = ChoosePlugin("Choose plugin to open file with:", _pluginManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
                     ReportStatus(false, NoPluginSelected);
@@ -719,7 +719,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
-            var selectedPlugin = ChoosePlugin(e.FilePlugins);
+            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
         }
@@ -834,11 +834,11 @@ namespace Kuriimu2.EtoForms.Forms
             return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
-        private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
+        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins)
         {
             return Application.Instance.Invoke(() =>
             {
-                var pluginDialog = new ChoosePluginDialog(filePlugins);
+                var pluginDialog = new ChoosePluginDialog(message, filePlugins);
                 return pluginDialog.ShowModal(this);
             });
         }
