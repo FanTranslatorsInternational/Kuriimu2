@@ -6,10 +6,25 @@ namespace Kontract.Models
     public class LoadResult
     {
         /// <summary>
-        /// Declares if the load process was successful.
-        /// Use `null` when the load was canceled.
+        /// Declares if the load was successful, unsuccessful or canceled (null).
+        /// Use IsSuccessful, IsUnsuccessful and IsCanceled.
         /// </summary>
-        public bool? IsSuccessful { get; }
+        private bool? Status { get; }
+
+        /// <summary>
+        /// Declares if the load process was successful.
+        /// </summary>
+        public virtual bool IsSuccessful => Status == true;
+        
+        /// <summary>
+        /// Declares if the load process was unsuccessful due to an error.
+        /// </summary>
+        public virtual bool IsUnsuccessful => Status == false;
+        
+        /// <summary>
+        /// Declares if the load process was canceled.
+        /// </summary>
+        public virtual bool IsCanceled => Status == null;
 
         /// <summary>
         /// Contains the result if the load process was successful.
@@ -35,13 +50,13 @@ namespace Kontract.Models
             LoadedState = stateInfo;
         }
 
-        public LoadResult(bool? isSuccessful)
+        public LoadResult(bool? status)
         {
-            IsSuccessful = isSuccessful;
+            Status = status;
         }
 
-        public LoadResult(bool? isSuccessful, string message) :
-            this(isSuccessful)
+        public LoadResult(bool? status, string message) :
+            this(status)
         {
             Message = message;
         }

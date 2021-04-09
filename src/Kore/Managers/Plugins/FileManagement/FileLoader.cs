@@ -57,7 +57,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 3. Create state from identified plugin
             var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
             var createResult = TryCreateState(plugin, subPluginManager, loadInfo, out var state);
-            if (createResult.IsSuccessful != true)
+            if (!createResult.IsSuccessful)
                 return createResult;
 
             // 4. Create new state info
@@ -67,7 +67,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 5. Load data from state
             var loadContext = new LoadContext(temporaryStreamProvider, loadInfo.Progress, loadInfo.DialogManager);
             var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, loadContext, loadInfo, plugin);
-            if (!loadStateResult.IsSuccessful != true)
+            if (!loadStateResult.IsSuccessful)
             {
                 loadInfo.StreamManager.ReleaseAll();
                 stateInfo.Dispose();

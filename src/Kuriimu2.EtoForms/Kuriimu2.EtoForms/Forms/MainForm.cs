@@ -235,7 +235,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             // Load file
             var loadResult = await loadFileFunc(chosenPlugin);
-            if (loadResult.IsSuccessful != true)
+            if (loadResult.IsUnsuccessful)
             {
 #if DEBUG
                 var message = loadResult.Exception?.ToString() ?? loadResult.Message;

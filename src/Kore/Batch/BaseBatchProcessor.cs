@@ -91,7 +91,7 @@ namespace Kore.Batch
                 return null;
             }
 
-            if (loadResult.IsSuccessful == true)
+            if (loadResult.IsSuccessful)
                 return loadResult.LoadedState;
 
             Logger.Error("Could not load '{0}'.", filePath.FullName);

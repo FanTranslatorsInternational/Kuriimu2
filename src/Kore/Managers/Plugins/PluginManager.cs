@@ -293,7 +293,7 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             // IArchiveFileInfos have stateInfo as their parent, if loaded like this
             var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, loadFileContext);
-            if (loadResult.IsSuccessful != true)
+            if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 3. Add archive child to parent
@@ -435,7 +435,7 @@ namespace Kore.Managers.Plugins
 
             if (!isRunning) Progress.FinishProgress();
 
-            if (loadResult.IsSuccessful != true)
+            if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 5. Add file to loaded files

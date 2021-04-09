@@ -95,7 +95,7 @@ namespace Kore.Managers.Plugins
 
             // 1. Load file
             var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, parent, loadFileContext);
-            if (loadResult.IsSuccessful != true)
+            if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 2. Add file to loaded files
@@ -149,7 +149,7 @@ namespace Kore.Managers.Plugins
 
             // 1. Load file
             var loadResult = await _parentPluginManager.LoadFile(streamFile, loadFileContext);
-            if (loadResult.IsSuccessful != true)
+            if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 2. Add file to loaded files
