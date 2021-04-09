@@ -108,7 +108,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private void CancelButtonCommand_Executed(object sender, EventArgs e)
         {
             Close(null);
-            //TODO Close(new HexPlugin());
         }
 
         private void OkButtonCommand_Executed(object sender, EventArgs e)

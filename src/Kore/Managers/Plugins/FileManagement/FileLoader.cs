@@ -46,13 +46,9 @@ namespace Kore.Managers.Plugins.FileManagement
             var temporaryStreamProvider = loadInfo.StreamManager.CreateTemporaryStreamProvider();
 
             // 2. Identify the plugin to use
-            var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
-
-            if (plugin == null)
-            {
-                // No plugin selected: load canceled
-                return new LoadResult(null, "No plugin selected");
-            }
+            var plugin = loadInfo.Plugin ??
+                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo) ??
+                         new HexPlugin();
 
             // 3. Create state from identified plugin
             var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
