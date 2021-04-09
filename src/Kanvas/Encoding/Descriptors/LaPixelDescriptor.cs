@@ -9,7 +9,7 @@ using Kontract.Kanvas;
 
 namespace Kanvas.Encoding.Descriptors
 {
-    class LaPixelDescriptor : IPixelDescriptor
+    public class LaPixelDescriptor : IPixelDescriptor
     {
         private int[] _indexTable;
         private int[] _componentIndexTable;

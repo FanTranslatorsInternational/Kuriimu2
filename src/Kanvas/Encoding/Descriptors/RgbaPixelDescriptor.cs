@@ -9,7 +9,7 @@ using Kontract.Kanvas;
 
 namespace Kanvas.Encoding.Descriptors
 {
-    class RgbaPixelDescriptor : IPixelDescriptor
+    public class RgbaPixelDescriptor : IPixelDescriptor
     {
         private int[] _indexTable;
         private int[] _componentIndexTable;
@@ -199,7 +199,7 @@ namespace Kanvas.Encoding.Descriptors
 
         private int GetBitDepthOfMissingComponent(string componentOrder, int r, int g, int b, int a)
         {
-            bool rSet = false, bSet = false, gSet = false, aSet = false, xSet = false;
+            bool rSet = false, bSet = false, gSet = false, aSet = false;
             foreach (var component in componentOrder)
             {
                 switch (component)
