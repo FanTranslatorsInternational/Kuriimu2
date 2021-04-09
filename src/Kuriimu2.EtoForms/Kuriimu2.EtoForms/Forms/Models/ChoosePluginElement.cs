@@ -10,6 +10,7 @@ namespace Kuriimu2.EtoForms.Forms.Models
         public IFilePlugin Plugin { get; }
 
         public string Name => Plugin.Metadata?.Name ?? "<undefined>";
+        public String Description => Plugin.Metadata?.ShortDescription ?? "<undefined>";
 
         public PluginType Type => Plugin.PluginType;
 

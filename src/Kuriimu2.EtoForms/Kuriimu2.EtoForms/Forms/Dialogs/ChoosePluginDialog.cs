@@ -79,6 +79,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     },
                     new GridColumn
                     {
+                        HeaderText = "Description",
+                        DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.Description)}
+                    },
+                    new GridColumn
+                    {
                         HeaderText = "GUID",
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.PluginId.ToString("D"))},
                         Sortable = true,
