@@ -6,9 +6,10 @@ namespace Kontract.Models
     public class LoadResult
     {
         /// <summary>
-        /// Declares if the save process was successful.
+        /// Declares if the load process was successful.
+        /// Use `null` when the load was canceled.
         /// </summary>
-        public bool IsSuccessful { get; }
+        public bool? IsSuccessful { get; }
 
         /// <summary>
         /// Contains the result if the load process was successful.
@@ -34,12 +35,12 @@ namespace Kontract.Models
             LoadedState = stateInfo;
         }
 
-        public LoadResult(bool isSuccessful)
+        public LoadResult(bool? isSuccessful)
         {
             IsSuccessful = isSuccessful;
         }
 
-        public LoadResult(bool isSuccessful, string message) :
+        public LoadResult(bool? isSuccessful, string message) :
             this(isSuccessful)
         {
             Message = message;

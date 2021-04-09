@@ -78,7 +78,7 @@ namespace Kore.Managers.Plugins.FileManagement
             var internalDialogManager = new InternalDialogManager(saveInfo.DialogManager, stateInfo.DialogOptions);
             var loadContext = new LoadContext(temporaryStreamProvider, saveInfo.Progress, internalDialogManager);
             var reloadResult = await TryLoadStateAsync(stateInfo.PluginState, destinationFileSystem, savePath.ToAbsolute(), loadContext);
-            if (!reloadResult.IsSuccessful)
+            if (reloadResult.IsSuccessful != true)
                 return new SaveResult(reloadResult.Exception);
 
             // 2. Set new file input, if state was loaded from a physical medium
