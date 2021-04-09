@@ -43,7 +43,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             };
             
             continueButton = new Button { Text = "Continue", Command = continueButtonCommand };
-            viewRawButton = new Button {Text = "View raw bytes", Command = viewRawButtonCommand};
+            viewRawButton = new Button {Text = "View raw bytes", Command = viewRawButtonCommand };
+            viewRawButton.Width = viewRawButton.MinimumSize.Width + 16; // add some ooga-booga padding
             cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             
             showAllCheckbox = new CheckBox()
