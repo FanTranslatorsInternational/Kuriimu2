@@ -245,6 +245,9 @@ namespace Kuriimu2.EtoForms.Forms
 
                 MessageBox.Show(message, LoadError, MessageBoxButtons.OK, MessageBoxType.Error);
                 return false;
+            } else if (loadResult.IsCanceled)
+            {
+                return false;
             }
 
             // Open tab page
