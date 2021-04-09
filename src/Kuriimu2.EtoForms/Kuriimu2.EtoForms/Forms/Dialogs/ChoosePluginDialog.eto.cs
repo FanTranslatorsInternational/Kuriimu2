@@ -28,7 +28,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             #endregion
 
             Title = "Choose plugin";
-            Size = new Size(450, 700);
+            Size = new Size(550, 500);
             Padding = new Padding(3);
 
             #region Content
@@ -38,6 +38,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 HorizontalContentAlignment = HorizontalAlignment.Stretch,
                 VerticalContentAlignment = VerticalAlignment.Stretch
             };
+            
             cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             okButton = new Button { Text = "Ok", Command = okButtonCommand };
             
@@ -51,6 +52,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             Content = new TableLayout
             {
+                Padding = new Padding(10, 6),
+                Spacing = new Size(0, 10),
+                
                 Rows =
                 {
                     new TableRow
@@ -71,7 +75,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     
                     new TableLayout
                     {
-                        Padding=new Padding(0, 3),
+                        Padding = new Padding(0, 3),
                         Spacing = new Size(3, 3),
                         Rows =
                         {
