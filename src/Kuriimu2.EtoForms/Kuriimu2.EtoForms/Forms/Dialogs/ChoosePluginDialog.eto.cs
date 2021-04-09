@@ -7,14 +7,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
     partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
         private StackLayout pluginListPanel;
-        private Button okButton;
+        private Button continueButton;
         private Button viewRawButton;
         private Button cancelButton;
         private CheckBox showAllCheckbox;
 
         #region Commands
 
-        private Command okButtonCommand;
+        private Command continueButtonCommand;
         private Command viewRawButtonCommand;
         private Command cancelButtonCommand;
 
@@ -24,7 +24,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             #region Commands
 
-            okButtonCommand = new Command();
+            continueButtonCommand = new Command();
             viewRawButtonCommand = new Command();
             cancelButtonCommand = new Command();
 
@@ -42,7 +42,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 VerticalContentAlignment = VerticalAlignment.Stretch
             };
             
-            okButton = new Button { Text = "Ok", Command = okButtonCommand };
+            continueButton = new Button { Text = "Continue", Command = continueButtonCommand };
             viewRawButton = new Button {Text = "View raw bytes", Command = viewRawButtonCommand};
             cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             
@@ -88,7 +88,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                                 Cells =
                                 {
                                     new TableCell { ScaleWidth = true },
-                                    okButton,
+                                    continueButton,
                                     viewRawButton,
                                     cancelButton
                                 }

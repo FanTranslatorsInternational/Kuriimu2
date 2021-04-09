@@ -28,7 +28,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             InitializeComponent();
             ListPlugins(filteredPlugins ?? filePlugins);
 
-            okButtonCommand.Executed += OkButtonCommand_Executed;
+            continueButtonCommand.Executed += ContinueButtonCommandExecuted;
             viewRawButtonCommand.Executed += ViewRawButtonCommandExecuted;
             cancelButtonCommand.Executed += CancelButtonCommand_Executed;
             showAllCheckbox.CheckedChanged += ShowAllCheckbox_Changed;
@@ -104,10 +104,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         protected override void OnShown(EventArgs e)
         {
             _selectedFilePlugin = null;
-            okButton.Enabled = false;
+            continueButton.Enabled = false;
         }
 
-        private void OkButtonCommand_Executed(object sender, EventArgs e)
+        private void ContinueButtonCommandExecuted(object sender, EventArgs e)
         {
             Close(_selectedFilePlugin);
         }
@@ -133,7 +133,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             if (gridView.SelectedItem == null) return;
 
             _selectedFilePlugin = ((ChoosePluginElement)gridView.SelectedItem).Plugin;
-            okButton.Enabled = true;
+            continueButton.Enabled = true;
         }
 
         private void GridView_CellDoubleClick(object sender, GridCellMouseEventArgs e)
