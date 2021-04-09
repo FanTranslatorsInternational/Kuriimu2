@@ -8,12 +8,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
     {
         private StackLayout pluginListPanel;
         private Button okButton;
+        private Button viewRawButton;
         private Button cancelButton;
         private CheckBox showAllCheckbox;
 
         #region Commands
 
         private Command okButtonCommand;
+        private Command viewRawButtonCommand;
         private Command cancelButtonCommand;
 
         #endregion
@@ -23,6 +25,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             #region Commands
 
             okButtonCommand = new Command();
+            viewRawButtonCommand = new Command();
             cancelButtonCommand = new Command();
 
             #endregion
@@ -39,8 +42,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 VerticalContentAlignment = VerticalAlignment.Stretch
             };
             
-            cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             okButton = new Button { Text = "Ok", Command = okButtonCommand };
+            viewRawButton = new Button {Text = "View raw bytes", Command = viewRawButtonCommand};
+            cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             
             showAllCheckbox = new CheckBox()
             {
@@ -84,8 +88,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                                 Cells =
                                 {
                                     new TableCell { ScaleWidth = true },
-                                    cancelButton,
-                                    okButton
+                                    okButton,
+                                    viewRawButton,
+                                    cancelButton
                                 }
                             }
                         }

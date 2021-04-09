@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Eto.Forms;
 using Kontract.Interfaces.Plugins.Identifier;
+using Kore.Models.UnsupportedPlugin;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
@@ -28,6 +29,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             ListPlugins(filteredPlugins ?? filePlugins);
 
             okButtonCommand.Executed += OkButtonCommand_Executed;
+            viewRawButtonCommand.Executed += ViewRawButtonCommandExecuted;
             cancelButtonCommand.Executed += CancelButtonCommand_Executed;
             showAllCheckbox.CheckedChanged += ShowAllCheckbox_Changed;
         }
@@ -105,14 +107,19 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             okButton.Enabled = false;
         }
 
-        private void CancelButtonCommand_Executed(object sender, EventArgs e)
-        {
-            Close(null);
-        }
-
         private void OkButtonCommand_Executed(object sender, EventArgs e)
         {
             Close(_selectedFilePlugin);
+        }
+
+        private void ViewRawButtonCommandExecuted(object sender, EventArgs e)
+        {
+            Close(new HexPlugin());
+        }
+
+        private void CancelButtonCommand_Executed(object sender, EventArgs e)
+        {
+            Close(null);
         }
 
         private void ShowAllCheckbox_Changed(object sender, EventArgs e)
