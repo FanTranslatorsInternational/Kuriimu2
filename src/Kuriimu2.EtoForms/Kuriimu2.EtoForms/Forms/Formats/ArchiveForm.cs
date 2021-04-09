@@ -591,18 +591,21 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            // Select folder
-            var extractPath = SelectFolder();
-            if (extractPath.IsNull || extractPath.IsEmpty)
+            // Select folder or file
+            var selectedPath = files.Count > 1 ? SelectFolder() : SaveFile(files[0].FilePath.GetName());
+            if (selectedPath.IsNull || selectedPath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, "No target selected.");
                 return;
             }
+            
+            // Use containing directory as root if a file was selected
+            var extractRoot = files.Count > 1 ? selectedPath : selectedPath.GetDirectory();
 
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _formInfo.StateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractRoot, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(async cts =>
@@ -621,7 +624,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     Stream newFileStream;
                     try
                     {
-                        newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.Create, FileAccess.Write);
+                        // Use in-archive filename if a folder was selected, use selected filename if a file was selected
+                        var extractName = files.Count > 1 ? file.FilePath.GetName() : selectedPath.GetName();
+                        newFileStream = destinationFileSystem.OpenFile(extractName, FileMode.Create, FileAccess.Write);
                     }
                     catch (IOException)
                     {
@@ -744,7 +749,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UPath replaceFileName;
             if (files.Count == 1)
             {
-                var selectedPath = SelectFile(files[0].FilePath.GetName());
+                var selectedPath = OpenFile(files[0].FilePath.GetName());
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
                     _formInfo.FormCommunicator.ReportStatus(false, "No file selected.");
@@ -1240,13 +1245,24 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             return openedState.StateChanged;
         }
 
-        private UPath SelectFile(string fileName)
+        private UPath OpenFile(string fileName)
         {
-            var ofd = new OpenFileDialog
+            return SelectFile<OpenFileDialog>(fileName);
+        }
+        
+        private UPath SaveFile(string fileName)
+        {
+            return SelectFile<SaveFileDialog>(fileName);
+        }
+        
+        private UPath SelectFile<DialogType>(string fileName) where DialogType : FileDialog, new()
+        {
+            var ofd = new DialogType
             {
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
                 FileName = fileName
             };
+            
             var result = ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : UPath.Empty;
 
             if (result != UPath.Empty)

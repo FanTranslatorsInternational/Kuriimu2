@@ -223,7 +223,10 @@ namespace Kuriimu2.EtoForms.Controls
 
         private void ButtonToolStripItem_MouseUp(object sender, MouseEventArgs e)
         {
-            Command?.Execute();
+            if (_isEnabled)
+            {
+                Command?.Execute();
+            }
 
             _isClicked = false;
             ParentToolStrip?.Invalidate();
