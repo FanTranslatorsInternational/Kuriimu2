@@ -11,25 +11,32 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
     partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
         private readonly string _message;
-        private readonly IReadOnlyList<IFilePlugin> _filePlugins;
+        private readonly string _filterNote;
+        private readonly IReadOnlyList<IFilePlugin> _filteredPlugins;
+        private readonly IReadOnlyList<IFilePlugin> _allPlugins;
 
         private IFilePlugin _selectedFilePlugin;
 
-        public ChoosePluginDialog(string message, IReadOnlyList<IFilePlugin> filePlugins)
+        public ChoosePluginDialog(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote, IReadOnlyList<IFilePlugin> filteredPlugins)
         {
             _message = message;
-            _filePlugins = filePlugins;
+            _allPlugins = filePlugins;
+            _filterNote = filterNote;
+            _filteredPlugins = filteredPlugins;
             
             InitializeComponent();
-            AddPlugins();
+            ListPlugins(filteredPlugins ?? filePlugins);
 
             okButtonCommand.Executed += OkButtonCommand_Executed;
             cancelButtonCommand.Executed += CancelButtonCommand_Executed;
+            showAllCheckbox.CheckedChanged += ShowAllCheckbox_Changed;
         }
 
-        private void AddPlugins()
+        private void ListPlugins(IReadOnlyList<IFilePlugin> plugins)
         {
-            foreach (var groupedPlugins in _filePlugins.GroupBy(x => x.GetType().Assembly))
+            pluginListPanel.Items.Clear();
+            
+            foreach (var groupedPlugins in plugins.GroupBy(x => x.GetType().Assembly))
             {
                 var pluginStore = new ObservableCollection<object>();
                 foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? "<undefined>"))
@@ -101,6 +108,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private void OkButtonCommand_Executed(object sender, EventArgs e)
         {
             Close(_selectedFilePlugin);
+        }
+
+        private void ShowAllCheckbox_Changed(object sender, EventArgs e)
+        {
+            ListPlugins(showAllCheckbox.Checked.Value ? _allPlugins : _filteredPlugins);
         }
 
         private void GridView_SelectedRowsChanged(object sender, EventArgs e)

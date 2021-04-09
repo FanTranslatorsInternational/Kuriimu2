@@ -719,7 +719,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
-            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins);
+            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins, e.FilterNote, e.FilteredPlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
         }
@@ -834,11 +834,11 @@ namespace Kuriimu2.EtoForms.Forms
             return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
-        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins)
+        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote = null, IReadOnlyList<IFilePlugin> filteredPlugins = null)
         {
             return Application.Instance.Invoke(() =>
             {
-                var pluginDialog = new ChoosePluginDialog(message, filePlugins);
+                var pluginDialog = new ChoosePluginDialog(message, filePlugins, filterNote, filteredPlugins);
                 return pluginDialog.ShowModal(this);
             });
         }

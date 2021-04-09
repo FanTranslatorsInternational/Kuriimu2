@@ -9,6 +9,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private StackLayout pluginListPanel;
         private Button okButton;
         private Button cancelButton;
+        private CheckBox showAllCheckbox;
 
         #region Commands
 
@@ -39,12 +40,35 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             };
             cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
             okButton = new Button { Text = "Ok", Command = okButtonCommand };
+            
+            showAllCheckbox = new CheckBox()
+            {
+                Text = "Show all plugins",
+                ToolTip = _filterNote,
+                Checked = _filteredPlugins == null,
+                Enabled = _filteredPlugins != null
+            };
 
             Content = new TableLayout
             {
                 Rows =
                 {
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new Label
+                            {
+                                Text = _message,
+                                TextAlignment = TextAlignment.Center,
+                            }
+                        } 
+                    },
+                    
                     new TableRow { ScaleHeight = true, Cells = { new Scrollable { Content = pluginListPanel } } },
+                    
+                    new TableRow { Cells = { showAllCheckbox } },
+                    
                     new TableLayout
                     {
                         Padding=new Padding(0, 3),
