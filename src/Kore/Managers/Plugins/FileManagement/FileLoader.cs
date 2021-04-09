@@ -47,11 +47,9 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 2. Identify the plugin to use
             var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
-
             if (plugin == null)
             {
-                // No plugin selected: load canceled
-                return null;
+                return LoadResult.CancelledResult;
             }
 
             // 3. Create state from identified plugin

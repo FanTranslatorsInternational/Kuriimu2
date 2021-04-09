@@ -235,11 +235,13 @@ namespace Kuriimu2.EtoForms.Forms
 
             // Load file
             var loadResult = await loadFileFunc(chosenPlugin);
-            if (loadResult == null)
+            if (loadResult.IsCancelled)
             {
                 // Load was canceled
                 return false;
-            } else if (!loadResult.IsSuccessful)
+            }
+            
+            if (!loadResult.IsSuccessful)
             {
 #if DEBUG
                 var message = loadResult.Exception?.ToString() ?? loadResult.Message;
