@@ -2,6 +2,7 @@ using Eto.Forms;
 using Eto.Drawing;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Resources;
+using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms
 {
@@ -47,15 +48,16 @@ namespace Kuriimu2.EtoForms.Forms
         {
             #region Commands
 
-            openFileCommand = new Command { MenuText = "Open", Shortcut=OpenHotKey };
-            openFileWithCommand = new Command { MenuText = "Open with Plugin", Shortcut=OpenWithHotKey };
-            saveAllFileCommand = new Command { MenuText = "Save All", Shortcut = SaveAllHotKey, Image= MenuSaveResource };
+            openFileCommand = new Command { MenuText = "Open", Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
+            //TODO separate open *with* icon?
+            openFileWithCommand = new Command { MenuText = "Open with Plugin", Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
+            saveAllFileCommand = new Command { MenuText = "Save All", Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
 
-            openTextSequenceSearcherCommand = new Command { MenuText = "Text Sequence Searcher" };
-            openBatchExtractorCommand = new Command { MenuText = "Batch Extractor" };
-            openBatchInjectorCommand = new Command { MenuText = "Batch Injector" };
+            openTextSequenceSearcherCommand = new Command { MenuText = "Text Sequence Searcher", Image = ImageResources.Actions.Text };
+            openBatchExtractorCommand = new Command { MenuText = "Batch Extractor", Image = ImageResources.Actions.BatchExtract };
+            openBatchInjectorCommand = new Command { MenuText = "Batch Injector", Image = ImageResources.Actions.BatchArchive };
 
-            openHashcommand = new Command { MenuText = "Hashes" };
+            openHashcommand = new Command { MenuText = "Hashes", Image = ImageResources.Actions.Hashes };
 
             openEncryptionCommand = new Command { MenuText = "Encrypt" };
             openDecryptionCommand = new Command { MenuText = "Decrypt" };
@@ -63,20 +65,19 @@ namespace Kuriimu2.EtoForms.Forms
             openDecompressionCommand = new Command { MenuText = "Decompress" };
             openCompressionCommand = new Command { MenuText = "Compress" };
 
-            openRawImageViewerCommand = new Command { MenuText = "Raw Image Viewer" };
-
-            openImageTranscoderCommand = new Command { MenuText = "Image Trascoder" };
+            openRawImageViewerCommand = new Command { MenuText = "Raw Image Viewer", Image = ImageResources.Actions.ImageViewer };
+            //openImageTranscoderCommand = new Command { MenuText = "Image Trascoder" };
 
             includeDevBuildCommand = new Command();
 
-            openAboutCommand = new Command { MenuText = "About..." };
+            openAboutCommand = new Command { MenuText = "About Kuriimu", Image = ImageResources.Actions.About };
 
             #endregion
 
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
             Padding = new Padding(3);
-            Icon = Icon.FromResource("Kuriimu2.EtoForms.Images.kuriimu2winforms.ico");
+            Icon = Icon.FromResource("Kuriimu2.EtoForms.Images.Misc.kuriimu2.ico");
 
             #region Menu
 
@@ -84,46 +85,66 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = "File", Items =
-                    {
-                        openFileCommand, 
-                        openFileWithCommand, 
-                        new SeparatorMenuItem(), 
-                        saveAllFileCommand
-                    } },
+                    new ButtonMenuItem { Text = "File",
+                        Image = ImageResources.Menu.File,
+                        Items =
+                        {
+                            openFileCommand, 
+                            openFileWithCommand, 
+                            new SeparatorMenuItem(), 
+                            saveAllFileCommand
+                        } 
+                    },
                     
-                    new ButtonMenuItem { Text = "Tools", Items =
-                    {
-                        openBatchExtractorCommand,
-                        openBatchInjectorCommand,
-                        openTextSequenceSearcherCommand,
-                        openHashcommand,
-                        openRawImageViewerCommand,
-                    } },
+                    new ButtonMenuItem { Text = "Tools",
+                        Image = ImageResources.Menu.Tools,
+                        Items =
+                        {
+                            openBatchExtractorCommand,
+                            openBatchInjectorCommand,
+                            openTextSequenceSearcherCommand,
+                            openHashcommand,
+                            openRawImageViewerCommand,
+                        }
+                    },
                     
-                    new ButtonMenuItem { Text = "Ciphers", Items =
-                    {
-                        openEncryptionCommand, 
-                        openDecryptionCommand
-                    } },
+                    new ButtonMenuItem { Text = "Ciphers",
+                        Image = ImageResources.Menu.Ciphers,
+                        Items =
+                        {
+                            openDecryptionCommand,
+                            openEncryptionCommand 
+                        }
+                    },
                     
-                    new ButtonMenuItem { Text = "Compressions", Items =
-                    {
-                        openDecompressionCommand, 
-                        openCompressionCommand
-                    } },
+                    new ButtonMenuItem { Text = "Compression",
+                        Image = ImageResources.Menu.Compression,
+                        Items =
+                        {
+                            openDecompressionCommand, 
+                            openCompressionCommand
+                        }
+                    },
                     
                     //new ButtonMenuItem(openImageTranscoderCommand),
                     
-                    new ButtonMenuItem { Text = "Settings", Items =
-                    {
-                        new CheckMenuItem
+                    new ButtonMenuItem { Text = "Settings",
+                        Image = ImageResources.Menu.Settings,
+                        Items =
                         {
-                            Text = "Include Developer Builds", 
-                            Checked = Settings.Default.IncludeDevBuilds, 
-                            Command = includeDevBuildCommand
-                        }
-                    } }
+                            new CheckMenuItem
+                            {
+                                Text = "Include Developer Builds", 
+                                Checked = Settings.Default.IncludeDevBuilds, 
+                                Command = includeDevBuildCommand
+                            }
+                        } 
+                    }
+                },
+                
+                HelpMenu =
+                {
+                    Image = ImageResources.Menu.Help
                 },
                 
                 AboutItem = openAboutCommand

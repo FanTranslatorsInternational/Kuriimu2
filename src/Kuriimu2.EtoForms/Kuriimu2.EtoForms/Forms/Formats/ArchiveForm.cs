@@ -45,34 +45,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Constants
 
-        private const string TreeArchiveResourceName = "Kuriimu2.EtoForms.Images.tree-archive-file.png";
-        private const string TreeDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory.png";
-        private const string TreeOpenDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory-open.png";
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-        private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
-        private const string MenuExportResourceName = "Kuriimu2.EtoForms.Images.menu-export.png";
-        private const string MenuImportResourceName = "Kuriimu2.EtoForms.Images.menu-import.png";
-        private const string MenuEditResourceName = "Kuriimu2.EtoForms.Images.menu-edit.png";
-        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
-        private const string MenuAddResourceName = "Kuriimu2.EtoForms.Images.menu-add.png";
-
         private static readonly Color ColorDefaultState = KnownColors.Black;
         private static readonly Color ColorChangedState = KnownColors.Orange;
-
-        #endregion
-
-        #region Loaded image resources
-
-        private readonly Image TreeArchiveResource = Bitmap.FromResource(TreeArchiveResourceName);
-        private readonly Image TreeDirectoryResource = Bitmap.FromResource(TreeDirectoryResourceName);
-        private readonly Image TreeOpenDirectoryResource = Bitmap.FromResource(TreeOpenDirectoryResourceName);
-        private readonly Image MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
-        private readonly Image MenuSaveAsResource = Bitmap.FromResource(MenuSaveAsResourceName);
-        private readonly Image MenuExportResource = Bitmap.FromResource(MenuExportResourceName);
-        private readonly Image MenuImportResource = Bitmap.FromResource(MenuImportResourceName);
-        private readonly Image MenuEditResource = Bitmap.FromResource(MenuEditResourceName);
-        private readonly Image MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
-        private readonly Image MenuAddResource = Bitmap.FromResource(MenuAddResourceName);
 
         #endregion
 
@@ -271,7 +245,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             folders.Clear();
 
             // Load tree into tree items
-            var rootItem = new TreeGridItem(TreeArchiveResource, _formInfo.StateInfo.FilePath.ToRelative().FullName) { Expanded = true };
+            var rootItem = new TreeGridItem(ImageResources.Misc.Archive, _formInfo.StateInfo.FilePath.ToRelative().FullName) { Expanded = true };
             foreach (var directory in _archiveFileSystem.EnumerateAllDirectories(UPath.Root, _searchTerm.Get())
                 .Concat(_archiveFileSystem.EnumerateAllFiles(UPath.Root, _searchTerm.Get()).Select(x => x.GetDirectory()))
                 .Distinct())
@@ -284,7 +258,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (existingDirectory != null)
                         return existingDirectory;
 
-                    var directoryItem = new TreeGridItem(TreeDirectoryResource, currentDirectory);
+                    var directoryItem = new TreeGridItem(ImageResources.Misc.Directory, currentDirectory);
                     node.Children.Add(directoryItem);
 
                     return directoryItem;
@@ -317,7 +291,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void folderView_Expanded(object sender, TreeGridViewItemEventArgs e)
         {
             var gridItem = (TreeGridItem)e.Item;
-            gridItem.Values[0] = TreeOpenDirectoryResource;
+            gridItem.Values[0] = ImageResources.Misc.DirectoryOpen;
 
             folderView.ReloadItem(gridItem, false);
         }
@@ -325,7 +299,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void folderView_Collapsed(object sender, TreeGridViewItemEventArgs e)
         {
             var gridItem = (TreeGridItem)e.Item;
-            gridItem.Values[0] = TreeDirectoryResource;
+            gridItem.Values[0] = ImageResources.Misc.Directory;
 
             folderView.ReloadItem(gridItem, false);
         }

@@ -35,20 +35,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string ExportPaletteTitle_ = "Export palette...";
         private const string ImportPaletteTitle_ = "Import palette...";
 
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-        private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
-        private const string MenuExportResourceName = "Kuriimu2.EtoForms.Images.image-export.png";
-        private const string MenuImportResourceName = "Kuriimu2.EtoForms.Images.image-import.png";
-
-        #endregion
-
-        #region Loaded image resources
-
-        private readonly Image MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
-        private readonly Image MenuSaveAsResource = Bitmap.FromResource(MenuSaveAsResourceName);
-        private readonly Image MenuExportResource = Bitmap.FromResource(MenuExportResourceName);
-        private readonly Image MenuImportResource = Bitmap.FromResource(MenuImportResourceName);
-
         #endregion
 
         public ImageForm(FormInfo formInfo)

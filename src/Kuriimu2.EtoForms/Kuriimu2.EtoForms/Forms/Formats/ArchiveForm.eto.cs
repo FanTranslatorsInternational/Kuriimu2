@@ -66,26 +66,26 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Commands
 
-            searchClearCommand = new Command { MenuText = "Clear" };
+            searchClearCommand = new Command { MenuText = "Clear", Image = ImageResources.Actions.Delete };
 
             cancelCommand = new Command { MenuText = "Cancel" };
 
-            openCommand = new Command { MenuText = "Open" };
-            openWithCommand = new Command { MenuText = "Open with" };
+            openCommand = new Command { MenuText = "Open", Image = ImageResources.Actions.Open };
+            openWithCommand = new Command { MenuText = "Open with", Image = ImageResources.Actions.OpenWith };
 
-            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey };
-            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey };
+            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey, Image = ImageResources.Actions.Save };
+            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey, Image = ImageResources.Actions.SaveAs };
 
-            extractDirectoryCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
-            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
-            renameDirectoryCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
-            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
-            addDirectoryCommand = new Command { MenuText = "Add", Image = MenuAddResource };
+            extractDirectoryCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FolderExport };
+            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FolderImport };
+            renameDirectoryCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
+            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
+            addDirectoryCommand = new Command { MenuText = "Add", Image = ImageResources.Actions.Add };
 
-            extractFileCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
-            replaceFileCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
-            renameFileCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
-            deleteFileCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
+            extractFileCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FileExport };
+            replaceFileCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FileImport };
+            renameFileCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
+            deleteFileCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
 
             #endregion
 
@@ -176,9 +176,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             searchClearButton = new Button
             {
-                Text = "X",
-                Size=new Size(22,-1),
-                Command = searchClearCommand
+                Image = ImageResources.Actions.Clear,
+                Command = searchClearCommand,
+                Size = new Size(22,-1)
             };
 
             cancelButton = new Button
@@ -214,7 +214,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             renameButton = new ButtonToolStripItem
             {
                 Command = renameFileCommand,
-                Image = MenuEditResource
+                Image = MenuRenameResource
             };
 
             deleteButton = new ButtonToolStripItem
