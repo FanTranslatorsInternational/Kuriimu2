@@ -3,6 +3,7 @@ using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Controls.ImageView;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
@@ -32,10 +33,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             #region Commands
 
-            saveCommand = new Command();
-            saveAsCommand = new Command();
-            exportCommand = new Command();
-            importCommand = new Command();
+            saveCommand = new Command { Image = ImageResources.Actions.Save };
+            saveAsCommand = new Command { Image = ImageResources.Actions.SaveAs };
+            exportCommand = new Command { Image = ImageResources.Actions.ImageExport };
+            importCommand = new Command { Image = ImageResources.Actions.ImageImport };
 
             #endregion
 
@@ -46,25 +47,21 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveButton = new ButtonToolStripItem
             {
                 Command = saveCommand,
-                Image = MenuSaveResource
             };
 
             saveAsButton = new ButtonToolStripItem
             {
                 Command = saveAsCommand,
-                Image = MenuSaveAsResource
             };
 
             exportButton = new ButtonToolStripItem
             {
                 Command = exportCommand,
-                Image = MenuExportResource
             };
 
             importButton = new ButtonToolStripItem
             {
                 Command = importCommand,
-                Image = MenuImportResource
             };
 
             #endregion

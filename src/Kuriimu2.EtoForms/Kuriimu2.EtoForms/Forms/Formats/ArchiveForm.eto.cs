@@ -123,7 +123,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Files
 
-            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand };
+            //NOTE Image has to be set explicitly, I think the Command is not used anymore as soon as sub-items are added
+            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand, Image = openWithCommand.Image };
             var fileContext = new ContextMenu
             {
                 Items =
@@ -190,37 +191,31 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             saveButton = new ButtonToolStripItem
             {
                 Command = saveCommand,
-                Image = MenuSaveResource
             };
 
             saveAsButton = new ButtonToolStripItem
             {
                 Command = saveAsCommand,
-                Image = MenuSaveAsResource
             };
 
             extractButton = new ButtonToolStripItem
             {
                 Command = extractFileCommand,
-                Image = MenuExportResource
             };
 
             replaceButton = new ButtonToolStripItem
             {
                 Command = replaceFileCommand,
-                Image = MenuImportResource
             };
 
             renameButton = new ButtonToolStripItem
             {
                 Command = renameFileCommand,
-                Image = MenuRenameResource
             };
 
             deleteButton = new ButtonToolStripItem
             {
                 Command = deleteFileCommand,
-                Image = MenuDeleteResource
             };
 
             #endregion
