@@ -8,41 +8,13 @@
   <ItemGroup>
     <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
     <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
-    <None Remove="Images\image-export.png" />
-    <None Remove="Images\image-import.png" />
-    <None Remove="Images\kuriimu2winforms.ico" />
-    <None Remove="Images\menu-add.png" />
-    <None Remove="Images\menu-delete.png" />
-    <None Remove="Images\menu-edit.png" />
-    <None Remove="Images\menu-export.png" />
-    <None Remove="Images\menu-find.png" />
-    <None Remove="Images\menu-import.png" />
-    <None Remove="Images\menu-save-as.png" />
-    <None Remove="Images\menu-save.png" />
-    <None Remove="Images\tree-archive-file.png" />
-    <None Remove="Images\tree-directory-32.png" />
-    <None Remove="Images\tree-directory-open.png" />
-    <None Remove="Images\tree-directory.png" />
     <None Remove="Resources\version.json" />
   </ItemGroup>
 	
   <ItemGroup>
-    <EmbeddedResource Include="Images\image-export.png" />
-    <EmbeddedResource Include="Images\image-import.png" />
-    <EmbeddedResource Include="Images\kuriimu2winforms.ico" />
-    <EmbeddedResource Include="Images\menu-add.png" />
-    <EmbeddedResource Include="Images\menu-delete.png" />
-    <EmbeddedResource Include="Images\menu-edit.png" />
-    <EmbeddedResource Include="Images\menu-export.png" />
-    <EmbeddedResource Include="Images\menu-find.png" />
-    <EmbeddedResource Include="Images\menu-import.png" />
-    <EmbeddedResource Include="Images\menu-save-as.png" />
-    <EmbeddedResource Include="Images\menu-save.png" />
-    <EmbeddedResource Include="Images\tree-archive-file.png" />
-    <EmbeddedResource Include="Images\tree-directory-32.png" />
-    <EmbeddedResource Include="Images\tree-directory-open.png" />
-    <EmbeddedResource Include="Images\tree-directory.png" />
     <EmbeddedResource Include="Resources\version.json" />
+	<EmbeddedResource Include="Images\**\*.png" />
+	<EmbeddedResource Include="Images\**\*.ico" />
   </ItemGroup>
   
   <ItemGroup>

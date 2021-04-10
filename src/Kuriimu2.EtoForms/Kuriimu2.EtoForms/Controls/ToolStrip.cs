@@ -171,8 +171,6 @@ namespace Kuriimu2.EtoForms.Controls
         private bool _isClicked;
         private bool _isEnabled;
 
-        public Image Image { get; set; }
-
         public Command Command { get; set; }
 
         public bool Enabled
@@ -199,7 +197,7 @@ namespace Kuriimu2.EtoForms.Controls
 
         public override float Paint(Graphics g, PointF drawLocation)
         {
-            if (Image == null)
+            if (Command.Image == null)
                 return 0;
 
             // If clicked use darker colors
@@ -216,7 +214,7 @@ namespace Kuriimu2.EtoForms.Controls
                 g.DrawRectangle(new Pen(Color.FromArgb(0, 0x78, 0xd7)), new RectangleF(drawLocation, new SizeF(Width, Height)));
             }
 
-            g.DrawImage(_isEnabled ? Image : ToGreyScale(Image),
+            g.DrawImage(_isEnabled ? Command.Image : ToGreyScale(Command.Image),
                 new RectangleF(new PointF(drawLocation.X + (Width - 16) / 2, drawLocation.Y + (Height - 16) / 2), new SizeF(16, 16)));
             return Width;
         }

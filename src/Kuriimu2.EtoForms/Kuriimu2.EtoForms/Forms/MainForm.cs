@@ -64,9 +64,6 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Constants
 
-        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-
         private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update/main/{0}/manifest.json";
         private const string ApplicationType = "EtoForms.{0}";
 
@@ -91,13 +88,6 @@ namespace Kuriimu2.EtoForms.Forms
         private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
 
         private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
-
-        #endregion
-
-        #region Loaded image resources
-
-        private readonly Bitmap MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
-        private readonly Bitmap MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
 
         #endregion
 
@@ -327,7 +317,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             Application.Instance.Invoke(() =>
             {
-                tabPage.Image = new Icon(new IconFrame(1, MenuDeleteResource));
+                tabPage.Image = new Icon(new IconFrame(1, ImageResources.Actions.Close));
                 tabPage.MouseUp += tabPage_Click;
             });
 
@@ -752,8 +742,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
-                var deleteImage = MenuDeleteResource;
-                var closeButtonRect = new RectangleF(9, 4, deleteImage.Width, deleteImage.Height);
+                // There's 5 pixels of spacing on the right side of the close icon
+                var closeButtonRect = new RectangleF(9, 4, page.Image.Width - 5, page.Image.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }
