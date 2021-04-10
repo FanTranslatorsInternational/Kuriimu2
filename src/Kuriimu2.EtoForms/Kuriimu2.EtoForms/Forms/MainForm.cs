@@ -71,6 +71,7 @@ namespace Kuriimu2.EtoForms.Forms
         private const string ApplicationType = "EtoForms.{0}";
 
         private const string LoadError = "Load Error";
+        private const string LoadCancelled = "Load cancelled";
         private const string InvalidFile = "The selected file is invalid.";
         private const string NoPluginSelected = "No plugin was selected.";
 
@@ -225,7 +226,7 @@ namespace Kuriimu2.EtoForms.Forms
             IFilePlugin chosenPlugin = null;
             if (manualIdentification)
             {
-                chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
+                chosenPlugin = ChoosePlugin("Choose plugin to open file with:", _pluginManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
                     ReportStatus(false, NoPluginSelected);
@@ -235,6 +236,13 @@ namespace Kuriimu2.EtoForms.Forms
 
             // Load file
             var loadResult = await loadFileFunc(chosenPlugin);
+            if (loadResult.IsCancelled)
+            {
+                // Load was canceled
+                ReportStatus(false, LoadCancelled);
+                return false;
+            }
+            
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
@@ -719,7 +727,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
-            var selectedPlugin = ChoosePlugin(e.FilePlugins);
+            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins, e.FilterNote, e.FilteredPlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
         }
@@ -834,11 +842,11 @@ namespace Kuriimu2.EtoForms.Forms
             return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
-        private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
+        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote = null, IReadOnlyList<IFilePlugin> filteredPlugins = null)
         {
             return Application.Instance.Invoke(() =>
             {
-                var pluginDialog = new ChoosePluginDialog(filePlugins);
+                var pluginDialog = new ChoosePluginDialog(message, filePlugins, filterNote, filteredPlugins);
                 return pluginDialog.ShowModal(this);
             });
         }
