@@ -146,6 +146,7 @@ namespace Kore.Managers.Plugins.FileManagement
             return identifyResult;
         }
 
+        // TODO: Maybe do not pass whole messages, since this message may not be universal for all UI's. Instead pass other atomic parameters  to signalize this behaviour.
         /// <summary>
         /// Select a plugin manually.
         /// </summary>

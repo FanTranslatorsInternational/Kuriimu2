@@ -579,7 +579,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractRoot, _formInfo.StateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(extractRoot, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(async cts =>
@@ -654,7 +654,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
             var subFolder = item == folders[0] ? GetRootName() : GetAbsolutePath(item).ToRelative();
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _formInfo.StateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(extractPath / subFolder, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(cts =>
@@ -749,7 +749,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replaceDirectory, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(replaceDirectory, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(cts =>
@@ -821,7 +821,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replacePath, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(replacePath, _formInfo.StateInfo.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(cts =>
@@ -1129,7 +1129,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             // Add elements
             var subFolder = GetAbsolutePath(item);
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedPath, _formInfo.StateInfo.StreamManager);
 
             var elements = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
             if (elements.Length <= 0)

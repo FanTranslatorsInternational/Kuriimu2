@@ -11,52 +11,46 @@ using Kore.FileSystem.Implementations;
 
 namespace Kore.Factories
 {
-    // TODO: Make internal again
     /// <summary>
     /// Contains methods to create specific <see cref="IFileSystem"/> implementations.
     /// </summary>
     public static class FileSystemFactory
     {
-        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]?");
-        private static readonly Regex MountRegex = new Regex(@"^/mnt/[a-zA-Z][/]?");
-
         /// <summary>
-        /// Create a <see cref="PhysicalFileSystem"/> based on the directory in <paramref name="path"/>.
+        /// Create a <see cref="PhysicalFileSystem"/>.
         /// </summary>
-        /// <param name="path">The path of the physical file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="PhysicalFileSystem"/> for this folder.</returns>
-        public static IFileSystem CreatePhysicalFileSystem(UPath path, IStreamManager streamManager)
+        public static IFileSystem CreatePhysicalFileSystem(IStreamManager streamManager)
         {
-            IFileSystem fileSystem;
+            return new PhysicalFileSystem(streamManager);
+        }
 
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-            {
-                fileSystem = new PhysicalFileSystem(streamManager);
-                return new SubFileSystem(fileSystem, path);
-            }
+        /// <summary>
+        /// Creates a <see cref="SubFileSystem"/> from the physical path given.
+        /// </summary>
+        /// <param name="subPath">The path on a physical drive to root the file system to.</param>
+        /// <param name="streamManager">The <see cref="IStreamManager"/> for the file system.</param>
+        /// <returns>The rooted physical file system.</returns>
+        public static IFileSystem CreateSubFileSystem(UPath subPath, IStreamManager streamManager)
+        {
+            return CreateSubFileSystem(new PhysicalFileSystem(streamManager), subPath);
+        }
 
-            if (!IsRooted(path))
-                throw new InvalidOperationException($"Path {path} is not rooted to a drive.");
+        /// <summary>
+        /// Creates a <see cref="SubFileSystem"/> relative to a given path.
+        /// </summary>
+        /// <param name="fileSystem">The file system to root to the path.</param>
+        /// <param name="subPath">The path to root the file system to.</param>
+        /// <returns>The re-rooted file system.</returns>
+        public static IFileSystem CreateSubFileSystem(IFileSystem fileSystem, UPath subPath)
+        {
+            subPath = fileSystem.ConvertPathFromInternal(subPath.FullName);
 
-            var internalPath = ReplaceWindowsDrive(path);
-            var physicalPath = ReplaceMountPoint(path);
+            if (!fileSystem.DirectoryExists(subPath))
+                fileSystem.CreateDirectory(subPath);
 
-            if (!Directory.Exists(physicalPath.FullName))
-                Directory.CreateDirectory(physicalPath.FullName);
-
-            fileSystem = new PhysicalFileSystem(streamManager);
-            if (IsOnlyDrive(internalPath))
-            {
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 6));
-            }
-            else
-            {
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 7));
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(6));
-            }
-
-            return fileSystem;
+            return new SubFileSystem(fileSystem, subPath);
         }
 
         /// <summary>
@@ -142,57 +136,6 @@ namespace Kore.Factories
                 newFileSystem = new SubFileSystem(newFileSystem, path);
 
             return newFileSystem;
-        }
-
-        /// <summary>
-        /// Checks if the path rooted to either a windows drive or <see cref="IFileSystem"/> compatible mount point.
-        /// </summary>
-        /// <param name="path">The path to check.</param>
-        /// <returns>If the path is rooted.</returns>
-        private static bool IsRooted(UPath path)
-        {
-            return MountRegex.IsMatch(path.FullName) || DriveRegex.IsMatch(path.FullName);
-        }
-
-        /// <summary>
-        /// Replaces a windows drive root (eg C:/) with a <see cref="IFileSystem"/> compatible mount point.
-        /// </summary>
-        /// <param name="path">The path to modify.</param>
-        /// <returns>The modified path.</returns>
-        private static UPath ReplaceWindowsDrive(UPath path)
-        {
-            if (!DriveRegex.IsMatch(path.FullName))
-                return path;
-
-            var driveLetter = path.FullName[0];
-            return new UPath(DriveRegex.Replace(path.FullName, $"/mnt/{char.ToLower(driveLetter)}/"));
-        }
-
-        /// <summary>
-        /// Replaces a <see cref="IFileSystem"/> compatible mount point with a windows drive root (eg C:/)
-        /// </summary>
-        /// <param name="path">The path to modify.</param>
-        /// <returns>The modified path.</returns>
-        private static UPath ReplaceMountPoint(UPath path)
-        {
-            if (!MountRegex.IsMatch(path.FullName))
-                return path;
-
-            var driveLetter = path.FullName[5];
-            return new UPath(MountRegex.Replace(path.FullName, $"{char.ToUpper(driveLetter)}:/"));
-        }
-
-        /// <summary>
-        /// Checks if the path is only the mount drive or mount point.
-        /// </summary>
-        /// <param name="path">The path to check.</param>
-        /// <returns></returns>
-        private static bool IsOnlyDrive(UPath path)
-        {
-            var driveMatch = DriveRegex.Match(path.FullName).Value;
-            var mountMatch = MountRegex.Match(path.FullName).Value;
-
-            return driveMatch == path.FullName || mountMatch == path.FullName;
         }
     }
 }

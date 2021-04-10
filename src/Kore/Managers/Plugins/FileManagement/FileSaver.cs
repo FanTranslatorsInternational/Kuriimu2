@@ -29,7 +29,9 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <inheritdoc />
         public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath, SaveInfo saveInfo)
         {
-            var destination = CreateDestinationFileSystem(stateInfo, savePath);
+            // The destination will be in relation to the file system that originally opened the state
+            // Save path is a path is an absolute path to said file system
+            var destination = stateInfo.FileSystem.Clone(stateInfo.StreamManager);
             return SaveAsync(stateInfo, destination, savePath, saveInfo);
         }
 
@@ -49,8 +51,8 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Save child states
             foreach (var archiveChild in stateInfo.ArchiveChildren)
             {
-                var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
-                var saveChildResult = await SaveInternalAsync(archiveChild, destination, archiveChild.FilePath, saveInfo, false);
+                var childDestination = archiveChild.FileSystem.Clone(archiveChild.StreamManager);
+                var saveChildResult = await SaveInternalAsync(archiveChild, childDestination, archiveChild.FilePath, saveInfo, false);
                 if (!saveChildResult.IsSuccessful)
                     return saveChildResult;
             }
@@ -88,7 +90,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 3. Reload all child states
             foreach (var archiveChild in stateInfo.ArchiveChildren)
             {
-                var destination = CreateDestinationFileSystem(archiveChild, archiveChild.FilePath);
+                var destination = archiveChild.FileSystem.Clone(archiveChild.StreamManager);
                 var reloadChildResult = await ReloadInternalAsync(archiveChild, destination, archiveChild.FilePath, saveInfo);
                 if (!reloadChildResult.IsSuccessful)
                     return reloadChildResult;
@@ -122,19 +124,6 @@ namespace Kore.Managers.Plugins.FileManagement
             _streamMonitor.ReleaseTemporaryFileSystem(temporaryContainer);
 
             return SaveResult.SuccessfulResult;
-        }
-
-        /// <summary>
-        /// Creates an <see cref="IFileSystem"/> to save the files to.
-        /// </summary>
-        /// <param name="stateInfo">The state from which to create the file system.</param>
-        /// <param name="savePath">The path for the root destination.</param>
-        /// <returns></returns>
-        private IFileSystem CreateDestinationFileSystem(IStateInfo stateInfo, UPath savePath)
-        {
-            return stateInfo.FilePath == savePath ?
-                stateInfo.FileSystem.Clone(stateInfo.StreamManager) :
-                FileSystemFactory.CreatePhysicalFileSystem(savePath.GetDirectory(), stateInfo.StreamManager);
         }
 
         /// <summary>

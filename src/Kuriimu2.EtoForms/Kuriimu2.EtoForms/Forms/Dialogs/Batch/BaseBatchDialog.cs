@@ -146,8 +146,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
             _batchProcessor.PluginId = selectedPlugin.IsEmpty ? Guid.Empty : selectedPlugin.Plugin.PluginId;
             _batchProcessor.ScanSubDirectories = subDirectoryBox.Checked ?? false;
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedInputPath.Text, new StreamManager());
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedOutputPath.Text, new StreamManager());
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedInputPath.Text, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(selectedOutputPath.Text, new StreamManager());
 
             await _batchProcessor.Process(sourceFileSystem, destinationFileSystem);
 

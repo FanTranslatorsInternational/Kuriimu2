@@ -62,7 +62,7 @@ namespace Kore.Managers
             var streamManager = CreateStreamManager();
 
             var tempDirectory = CreateTemporaryDirectory();
-            var temporaryFileSystem = FileSystemFactory.CreatePhysicalFileSystem(tempDirectory, streamManager);
+            var temporaryFileSystem = FileSystemFactory.CreateSubFileSystem(tempDirectory, streamManager);
 
             _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, x => (streamManager, tempDirectory));
             _streamManagerMapping.GetOrAdd(streamManager, x => (temporaryFileSystem, tempDirectory));

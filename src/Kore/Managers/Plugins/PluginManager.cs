@@ -221,31 +221,31 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<LoadResult> LoadFile(string file, LoadFileContext loadFileContext)
         {
-            // 1. Get UPath
-            var path = new UPath(file);
+            // 1. Create file system
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(streamManager);
+
+            // 2. Get path in the form the file system accepts it
+            var path = fileSystem.ConvertPathFromInternal(file);
 
             // If file is already loaded or loading
             lock (_loadingLock)
             {
-                if (_loadingFiles.Any(x => x == file))
+                if (_loadingFiles.Any(x => x == path))
                     return new LoadResult(false, $"File {file} is already loading.");
 
                 if (IsLoaded(path))
                     return new LoadResult(GetLoadedFile(path));
 
-                _loadingFiles.Add(file);
+                _loadingFiles.Add(path);
             }
-
-            // 2. Create file system action
-            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
-                FileSystemFactory.CreatePhysicalFileSystem(path.GetDirectory(), streamManager));
 
             // 3. Load file
             // Physical files don't have a parent, if loaded like this
-            var loadedFile = await LoadFile(fileSystemAction, path.GetName(), null, loadFileContext);
+            var loadedFile = await LoadFile(fileSystem, path, streamManager, null, loadFileContext);
 
             lock (_loadingLock)
-                _loadingFiles.Remove(file);
+                _loadingFiles.Remove(path);
 
             return loadedFile;
         }
@@ -286,13 +286,13 @@ namespace Kore.Managers.Plugins
                 _loadingFiles.Add(absoluteFilePath);
             }
 
-            // 1. Create file system action
-            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
-                  FileSystemFactory.CreateAfiFileSystem(stateInfo, UPath.Root, streamManager));
+            // 1. Create file system
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(stateInfo, UPath.Root, streamManager);
 
             // 2. Load file
             // IArchiveFileInfos have stateInfo as their parent, if loaded like this
-            var loadResult = await LoadFile(fileSystemAction, afi.FilePath, stateInfo, loadFileContext);
+            var loadResult = await LoadFile(fileSystem, afi.FilePath, streamManager, stateInfo, loadFileContext);
             if (!loadResult.IsSuccessful)
             {
                 lock (_loadingLock)
@@ -364,12 +364,13 @@ namespace Kore.Managers.Plugins
             }
 
             // 1. Create file system action
-            var fileSystemAction = new Func<IStreamManager, IFileSystem>(fileSystem.Clone);
+            var streamManager = CreateStreamManager();
+            fileSystem = fileSystem.Clone(streamManager);
 
             // 2. Load file
             // Only if called by a SubPluginManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            var loadedFile = await LoadFile(fileSystemAction, path, parentStateInfo, loadFileContext);
+            var loadedFile = await LoadFile(fileSystem, path, streamManager, parentStateInfo, loadFileContext);
 
             lock (_loadingLock)
                 _loadingFiles.Remove(absoluteFilePath);
@@ -399,25 +400,19 @@ namespace Kore.Managers.Plugins
             // We don't check for an already loaded file here, since that should never happen
 
             // 1. Create file system action
-            var fileSystemAction = new Func<IStreamManager, IFileSystem>(streamManager =>
-                FileSystemFactory.CreateMemoryFileSystem(streamFile, streamManager));
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreateMemoryFileSystem(streamFile, streamManager);
 
             // 2. Load file
             // A stream has no parent, since it should never occur to be loaded from somewhere deeper in the system
-            return LoadFile(fileSystemAction, streamFile.Path.ToAbsolute(), null, loadFileContext);
+            return LoadFile(fileSystem, streamFile.Path.ToAbsolute(), streamManager, null, loadFileContext);
         }
 
         #endregion
 
-        private async Task<LoadResult> LoadFile(Func<IStreamManager, IFileSystem> fileSystemAction, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        private async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
         {
-            // 1. Create stream manager
-            var streamManager = _streamMonitor.CreateStreamManager();
-
-            // 2. Create file system
-            var fileSystem = fileSystemAction(streamManager);
-
-            // 3. Find plugin
+            // 1. Find plugin
             IFilePlugin plugin = null;
             if (loadFileContext.PluginId != Guid.Empty)
                 plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(loadFileContext.PluginId)).First();
@@ -425,7 +420,7 @@ namespace Kore.Managers.Plugins
             var isRunning = Progress.IsRunning();
             if (!isRunning) Progress.StartProgress();
 
-            // 4. Load file
+            // 2. Load file
             var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
             {
                 ParentStateInfo = parentStateInfo,
@@ -702,6 +697,11 @@ namespace Kore.Managers.Plugins
         {
             _logger = logger;
             _streamMonitor.Logger = logger;
+        }
+
+        private IStreamManager CreateStreamManager()
+        {
+            return _streamMonitor.CreateStreamManager();
         }
     }
 }
