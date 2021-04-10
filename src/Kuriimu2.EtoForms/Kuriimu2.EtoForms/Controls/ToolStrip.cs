@@ -1,116 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Eto.Drawing;
 using Eto.Forms;
-using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Controls
 {
-    public class ToolStrip : Drawable
+    
+    public class ToolStrip : Panel
     {
-        private (RectangleF, ToolStripItem) _hoveredItem;
-        private SizeF _size;
-
+        internal readonly StackLayout Layout;
+        
+        // ReSharper disable once CollectionNeverQueried.Global (XXX caused by awkward architecture)
         public ToolStripItemCollection Items { get; }
+        public int ItemHeight { get; }
 
-        public int Spacing { get; set; }
-
-        public new SizeF Size
+        public ToolStrip(int itemHeight = 24)
         {
-            get => _size;
-            set
-            {
-                _size = new SizeF(value.Width, ToolStripItem.Height);
-                Invalidate();
-            }
-        }
-
-        public ToolStrip()
-        {
+            ItemHeight = itemHeight;
+            Content = Layout = new StackLayout { Orientation = Orientation.Horizontal};
             Items = new ToolStripItemCollection(this);
-
-            BackgroundColor = KnownColors.White;
-            Padding = new Padding(3);
-
-            MouseMove += ToolStrip_MouseMove;
-            MouseDown += ToolStrip_MouseDown;
-            MouseUp += ToolStrip_MouseUp;
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            var g = e.Graphics;
-            var rect = new RectangleF(e.ClipRectangle.Location, new SizeF(e.ClipRectangle.Width, ToolStripItem.Height + Padding.Top + Padding.Bottom));
-
-            base.OnPaint(new PaintEventArgs(g, rect));
-            OnPaintInternal(g, rect);
-        }
-
-        private void OnPaintInternal(Graphics graphics, RectangleF clipRectangle)
-        {
-            var drawLocation = new PointF(clipRectangle.X + Padding.Left, clipRectangle.Y + Padding.Top);
-
-            foreach (var item in Items)
-            {
-                var itemWidth = item.Paint(graphics, drawLocation);
-                drawLocation = new PointF(drawLocation.X + itemWidth + Spacing, drawLocation.Y);
-            }
-        }
-
-        private void ToolStrip_MouseDown(object sender, MouseEventArgs e)
-        {
-            _hoveredItem.Item2?.OnMouseDown(e);
-        }
-
-        private void ToolStrip_MouseUp(object sender, MouseEventArgs e)
-        {
-            _hoveredItem.Item2?.OnMouseUp(e);
-        }
-
-        private void ToolStrip_MouseMove(object sender, MouseEventArgs e)
-        {
-            var currentItem = GetHoveredItemRectangle(e.Location);
-
-            // If item didn't change, raise move event
-            if (_hoveredItem.Item1 == currentItem.Item1)
-            {
-                _hoveredItem.Item2?.OnMouseMove(e);
-                return;
-            }
-
-            // Raise leave event of previous item
-            _hoveredItem.Item2?.OnMouseLeave(e);
-
-            // Raise enter event of current item
-            currentItem.Item2?.OnMouseEnter(e);
-
-            _hoveredItem = currentItem;
-        }
-
-        private (RectangleF, ToolStripItem) GetHoveredItemRectangle(PointF location)
-        {
-            var rects = GetItemInformation();
-            return rects.FirstOrDefault(x => x.Item1.Contains(location));
-        }
-
-        private (RectangleF, ToolStripItem)[] GetItemInformation()
-        {
-            // TODO: Cache item rectangles?
-            var rects = new List<(RectangleF, ToolStripItem)>();
-
-            var position = new PointF(Padding.Left, Padding.Right);
-            foreach (var item in Items)
-            {
-                rects.Add((new RectangleF(position, new SizeF(item.Width, ToolStripItem.Height)), item));
-                position = new PointF(position.X + item.Width + Spacing, position.Y);
-            }
-
-            return rects.ToArray();
         }
     }
 
+    //XXX this is kind of an awkward proxy class, is there a better solution?
+    //  We want to allow fancy initializing, and directly pass the elements into the layout, as well as register the parent
     public class ToolStripItemCollection : Collection<ToolStripItem>
     {
         private readonly ToolStrip _parent;
@@ -123,13 +36,14 @@ namespace Kuriimu2.EtoForms.Controls
         protected override void ClearItems()
         {
             base.ClearItems();
+            _parent.Layout.Items.Clear();
             _parent.Invalidate();
         }
 
         protected override void InsertItem(int index, ToolStripItem item)
         {
             base.InsertItem(index, item);
-
+            _parent.Layout.Items.Insert(index, item);
             item?.RegisterParent(_parent);
             _parent.Invalidate();
         }
@@ -137,13 +51,14 @@ namespace Kuriimu2.EtoForms.Controls
         protected override void RemoveItem(int index)
         {
             base.RemoveItem(index);
+            _parent.Layout.Items.RemoveAt(index);
             _parent.Invalidate();
         }
 
         protected override void SetItem(int index, ToolStripItem item)
         {
             base.SetItem(index, item);
-
+            _parent.Layout.Items[index] = item;
             item?.RegisterParent(_parent);
             _parent.Invalidate();
         }
@@ -151,17 +66,23 @@ namespace Kuriimu2.EtoForms.Controls
         public new void Add(ToolStripItem item)
         {
             base.Add(item);
+            _parent.Layout.Items.Add(item);
             item?.RegisterParent(_parent);
         }
     }
 
     public class SplitterToolStripItem : ToolStripItem
     {
-        public override float Width => 1;
-        public override float Paint(Graphics g, PointF drawLocation)
+        public override int Width => Padding.Horizontal + 1;
+
+        public SplitterToolStripItem()
         {
-            g.FillRectangle(Color.FromArgb(0xbd, 0xbd, 0xbd), new RectangleF(new PointF(drawLocation.X, drawLocation.Y + (Height - 16) / 2), new SizeF(Width, 16)));
-            return Width;
+            Padding = new Padding(5, 2);
+        }
+
+        protected override void DoPaint(Graphics g)
+        {
+            g.FillRectangle(Color.FromArgb(0xbd, 0xbd, 0xbd), Padding.Left, Padding.Top, 1, Height - Padding.Vertical);
         }
     }
 
@@ -169,86 +90,76 @@ namespace Kuriimu2.EtoForms.Controls
     {
         private bool _isHovering;
         private bool _isClicked;
-        private bool _isEnabled;
+
+        public override int Width => Height;
 
         public Command Command { get; set; }
 
-        public bool Enabled
-        {
-            get => _isEnabled;
-            set
-            {
-                _isEnabled = value;
-                ParentToolStrip?.Invalidate();
-            }
-        }
-
-        public override float Width => Height;
-
         public ButtonToolStripItem()
         {
-            _isEnabled = true;
-
             MouseEnter += ButtonToolStripItem_MouseEnter;
             MouseLeave += ButtonToolStripItem_MouseLeave;
             MouseDown += ButtonToolStripItem_MouseDown;
             MouseUp += ButtonToolStripItem_MouseUp;
         }
 
-        public override float Paint(Graphics g, PointF drawLocation)
+        protected override void DoPaint(Graphics g)
         {
             if (Command.Image == null)
-                return 0;
+                return;
+
+            var rect = new RectangleF(0, 0, Width, Height);
 
             // If clicked use darker colors
-            if (_isEnabled && _isClicked)
+            if (Enabled && _isClicked)
             {
-                g.FillRectangle(Color.FromArgb(0x80, 0xbc, 0xeb), new RectangleF(drawLocation, new SizeF(Width, Height)));
-                g.DrawRectangle(new Pen(Color.FromArgb(0, 0x78, 0xd7)), new RectangleF(drawLocation, new SizeF(Width, Height)));
+                g.FillRectangle(Color.FromArgb(0x80, 0xbc, 0xeb), rect);
+                g.DrawRectangle(new Pen(Color.FromArgb(0, 0x78, 0xd7)), rect);
             }
 
             // If only hovering use lighter colors
-            if (_isEnabled && !_isClicked && _isHovering)
+            if (Enabled && !_isClicked && _isHovering)
             {
-                g.FillRectangle(Color.FromArgb(0xb3, 0xd7, 0xf3), new RectangleF(drawLocation, new SizeF(Width, Height)));
-                g.DrawRectangle(new Pen(Color.FromArgb(0, 0x78, 0xd7)), new RectangleF(drawLocation, new SizeF(Width, Height)));
+                g.FillRectangle(Color.FromArgb(0xb3, 0xd7, 0xf3), rect);
+                g.DrawRectangle(new Pen(Color.FromArgb(0, 0x78, 0xd7)), rect);
             }
 
-            g.DrawImage(_isEnabled ? Command.Image : ToGreyScale(Command.Image),
-                new RectangleF(new PointF(drawLocation.X + (Width - 16) / 2, drawLocation.Y + (Height - 16) / 2), new SizeF(16, 16)));
-            return Width;
+            g.DrawImage(Enabled ? Command.Image : ToGreyScale(Command.Image),
+                new RectangleF(new PointF((Width - 16) / 2F, (Height - 16) / 2F), new SizeF(16, 16)));
         }
 
+        #region Events
         private void ButtonToolStripItem_MouseUp(object sender, MouseEventArgs e)
         {
-            if (_isEnabled)
+            if (Enabled)
             {
                 Command?.Execute();
             }
 
             _isClicked = false;
-            ParentToolStrip?.Invalidate();
+            Invalidate();
         }
 
         private void ButtonToolStripItem_MouseDown(object sender, MouseEventArgs e)
         {
             _isClicked = true;
-            ParentToolStrip?.Invalidate();
+            Invalidate();
         }
 
         private void ButtonToolStripItem_MouseLeave(object sender, MouseEventArgs e)
         {
             _isHovering = false;
             _isClicked = false;
-            ParentToolStrip?.Invalidate();
+            Invalidate();
         }
 
         private void ButtonToolStripItem_MouseEnter(object sender, MouseEventArgs e)
         {
             _isHovering = true;
             _isClicked = (e.Buttons & MouseButtons.Primary) != 0;
-            ParentToolStrip?.Invalidate();
+            Invalidate();
         }
+        #endregion
 
         private Image ToGreyScale(Image image)
         {
@@ -267,62 +178,23 @@ namespace Kuriimu2.EtoForms.Controls
         }
     }
 
-    public abstract class ToolStripItem : IMouseInputSource
+    public abstract class ToolStripItem : Drawable
     {
-        public const float Height = 24;
-
-        public abstract float Width { get; }
-
         protected ToolStrip ParentToolStrip { get; private set; }
+        
+        public new abstract int Width { get; }
 
-        public event EventHandler<MouseEventArgs> MouseUp;
-        public event EventHandler<MouseEventArgs> MouseMove;
-        public event EventHandler<MouseEventArgs> MouseEnter;
-        public event EventHandler<MouseEventArgs> MouseLeave;
-        public event EventHandler<MouseEventArgs> MouseDown;
-        public event EventHandler<MouseEventArgs> MouseDoubleClick;
-        public event EventHandler<MouseEventArgs> MouseWheel;
+        protected ToolStripItem()
+        {
+            Paint += (_, ev) => DoPaint(ev.Graphics);
+        }
 
-        public abstract float Paint(Graphics g, PointF drawLocation);
+        protected abstract void DoPaint(Graphics g);
 
         internal void RegisterParent(ToolStrip parent)
         {
             ParentToolStrip = parent;
-        }
-
-        internal void OnMouseMove(MouseEventArgs e)
-        {
-            MouseMove?.Invoke(this, e);
-        }
-
-        internal void OnMouseEnter(MouseEventArgs e)
-        {
-            MouseEnter?.Invoke(this, e);
-        }
-
-        internal void OnMouseLeave(MouseEventArgs e)
-        {
-            MouseLeave?.Invoke(this, e);
-        }
-
-        internal void OnMouseDown(MouseEventArgs e)
-        {
-            MouseDown?.Invoke(this, e);
-        }
-
-        internal void OnMouseUp(MouseEventArgs e)
-        {
-            MouseUp?.Invoke(this, e);
-        }
-
-        internal void OnMouseDoubleClick(MouseEventArgs e)
-        {
-            MouseDoubleClick?.Invoke(this, e);
-        }
-
-        internal void OnMouseWheel(MouseEventArgs e)
-        {
-            MouseWheel?.Invoke(this, e);
+            Size = new Size(Width, ParentToolStrip.ItemHeight);
         }
     }
 }

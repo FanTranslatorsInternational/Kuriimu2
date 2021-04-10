@@ -97,6 +97,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var mainToolStrip = new ToolStrip
             {
+                Padding = 3,
                 Items =
                 {
                     saveButton,
@@ -187,7 +188,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             {
                 Rows =
                 {
-                    new TableRow(new Panel { Content = mainToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow(mainToolStrip),
                     mainLayout
                 }
             };
