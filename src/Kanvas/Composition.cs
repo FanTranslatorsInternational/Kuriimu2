@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
@@ -18,13 +17,13 @@ namespace Kanvas
             indices.Select(i => palette[i]).ToBitmap(imageSize);
 
         public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize, IImageSwizzle swizzle) =>
-            indices.Select(i => palette[i]).ToBitmap(imageSize, Size.Empty, swizzle, ImageAnchor.TopLeft);
+            indices.Select(i => palette[i]).ToBitmap(imageSize, imageSize, swizzle, ImageAnchor.TopLeft);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
-            colors.ToBitmap(imageSize, Size.Empty, null, ImageAnchor.TopLeft);
+            colors.ToBitmap(imageSize, imageSize, null, ImageAnchor.TopLeft);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle) =>
-            colors.ToBitmap(imageSize, Size.Empty, swizzle, ImageAnchor.TopLeft);
+            colors.ToBitmap(imageSize, imageSize, swizzle, ImageAnchor.TopLeft);
 
         /// <summary>
         /// Compose an image from a collection of colors.
@@ -88,13 +87,13 @@ namespace Kanvas
             indices.Select(x => palette[x]);
 
         public static IEnumerable<Color> ToColors(this Bitmap image) =>
-            image.ToColors(Size.Empty, null, ImageAnchor.TopLeft);
+            image.ToColors(image.Size, null, ImageAnchor.TopLeft);
 
         public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize) =>
             image.ToColors(paddedSize, null, ImageAnchor.TopLeft);
 
         public static IEnumerable<Color> ToColors(this Bitmap image, IImageSwizzle swizzle) =>
-            image.ToColors(Size.Empty, swizzle, ImageAnchor.TopLeft);
+            image.ToColors(image.Size, swizzle, ImageAnchor.TopLeft);
 
         public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize, ImageAnchor anchor) =>
             image.ToColors(paddedSize, null, anchor);
