@@ -46,21 +46,25 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
+                ToolTip = "Save",
                 Command = saveCommand,
             };
 
             saveAsButton = new ButtonToolStripItem
             {
+                ToolTip = "Save As",
                 Command = saveAsCommand,
             };
 
             exportButton = new ButtonToolStripItem
             {
+                ToolTip = "Export image",
                 Command = exportCommand,
             };
 
             importButton = new ButtonToolStripItem
             {
+                ToolTip = "Import image data",
                 Command = importCommand,
             };
 
