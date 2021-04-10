@@ -46,9 +46,11 @@ namespace Kore.Managers.Plugins.FileManagement
             var temporaryStreamProvider = loadInfo.StreamManager.CreateTemporaryStreamProvider();
 
             // 2. Identify the plugin to use
-            var plugin = loadInfo.Plugin ??
-                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo) ??
-                         new HexPlugin();
+            var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
+            if (plugin == null)
+            {
+                return LoadResult.CancelledResult;
+            }
 
             // 3. Create state from identified plugin
             var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
@@ -107,15 +109,21 @@ namespace Kore.Managers.Plugins.FileManagement
             }
 
             // 3. Return only matched plugin or manually select one of the matched plugins
+            var allPlugins = _filePluginLoaders.GetAllFilePlugins().ToArray();
+            
             if (matchedPlugins.Count == 1)
                 return matchedPlugins.First();
-
+            
             if (matchedPlugins.Count > 1)
-                return GetManualSelection(matchedPlugins);
+                return GetManualSelection(
+                    "Multiple plugins think they can open this file, please choose one:",
+                    allPlugins, null, matchedPlugins);
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
             var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-            return loadInfo.AllowManualSelection ? GetManualSelection(nonIdentifiablePlugins) : null;
+            return loadInfo.AllowManualSelection ? GetManualSelection(
+                "Could not automatically determine plugin for opening this file, please choose manually:", 
+                allPlugins, "By default only plugins that couldn't automatically determine if they support the file are shown", nonIdentifiablePlugins) : null;
         }
 
         /// <summary>
@@ -142,10 +150,10 @@ namespace Kore.Managers.Plugins.FileManagement
         /// Select a plugin manually.
         /// </summary>
         /// <returns>The manually selected plugin.</returns>
-        private IFilePlugin GetManualSelection(IReadOnlyList<IFilePlugin> pluginList)
+        private IFilePlugin GetManualSelection(string message, IReadOnlyList<IFilePlugin> filePluginList, string filterNote, IReadOnlyList<IFilePlugin> filteredPluginList)
         {
             // 1. Request manual selection by the user
-            var selectionArgs = new ManualSelectionEventArgs(pluginList);
+            var selectionArgs = new ManualSelectionEventArgs(message, filePluginList, filterNote, filteredPluginList);
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;
