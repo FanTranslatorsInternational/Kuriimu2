@@ -71,6 +71,7 @@ namespace Kuriimu2.EtoForms.Forms
         private const string ApplicationType = "EtoForms.{0}";
 
         private const string LoadError = "Load Error";
+        private const string LoadCancelled = "Load cancelled";
         private const string InvalidFile = "The selected file is invalid.";
         private const string NoPluginSelected = "No plugin was selected.";
 
@@ -238,6 +239,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (loadResult.IsCancelled)
             {
                 // Load was canceled
+                ReportStatus(false, LoadCancelled);
                 return false;
             }
             
