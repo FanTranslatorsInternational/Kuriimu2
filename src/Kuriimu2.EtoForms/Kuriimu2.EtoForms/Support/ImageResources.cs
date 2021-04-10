@@ -40,16 +40,6 @@ namespace Kuriimu2.EtoForms.Support
             public static readonly Bitmap About = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Actions.about.png");
         }
 
-        public static class Menu
-        {
-            public static readonly Bitmap File = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.file.png");
-            public static readonly Bitmap Tools = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.tools.png");
-            public static readonly Bitmap Ciphers = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.ciphers.png");
-            public static readonly Bitmap Compression = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.compression.png");
-            public static readonly Bitmap Settings = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.settings.png");
-            public static readonly Bitmap Help = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Menu.help.png");
-        }
-
         public static class Misc
         {
             public static readonly Bitmap Archive = Bitmap.FromResource("Kuriimu2.EtoForms.Images.Misc.archive.png");

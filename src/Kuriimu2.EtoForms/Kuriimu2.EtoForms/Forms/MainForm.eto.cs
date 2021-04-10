@@ -86,7 +86,6 @@ namespace Kuriimu2.EtoForms.Forms
                 Items =
                 {
                     new ButtonMenuItem { Text = "File",
-                        Image = ImageResources.Menu.File,
                         Items =
                         {
                             openFileCommand, 
@@ -97,7 +96,6 @@ namespace Kuriimu2.EtoForms.Forms
                     },
                     
                     new ButtonMenuItem { Text = "Tools",
-                        Image = ImageResources.Menu.Tools,
                         Items =
                         {
                             openBatchExtractorCommand,
@@ -109,7 +107,6 @@ namespace Kuriimu2.EtoForms.Forms
                     },
                     
                     new ButtonMenuItem { Text = "Ciphers",
-                        Image = ImageResources.Menu.Ciphers,
                         Items =
                         {
                             openDecryptionCommand,
@@ -118,7 +115,6 @@ namespace Kuriimu2.EtoForms.Forms
                     },
                     
                     new ButtonMenuItem { Text = "Compression",
-                        Image = ImageResources.Menu.Compression,
                         Items =
                         {
                             openDecompressionCommand, 
@@ -129,7 +125,6 @@ namespace Kuriimu2.EtoForms.Forms
                     //new ButtonMenuItem(openImageTranscoderCommand),
                     
                     new ButtonMenuItem { Text = "Settings",
-                        Image = ImageResources.Menu.Settings,
                         Items =
                         {
                             new CheckMenuItem
@@ -140,11 +135,6 @@ namespace Kuriimu2.EtoForms.Forms
                             }
                         } 
                     }
-                },
-                
-                HelpMenu =
-                {
-                    Image = ImageResources.Menu.Help
                 },
                 
                 AboutItem = openAboutCommand
