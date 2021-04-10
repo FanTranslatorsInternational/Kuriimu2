@@ -16,7 +16,7 @@ namespace Kontract.Models
         public bool IsSuccessful => Status == LoadStatus.Successful;
         
         /// <summary>
-        /// Declares if the load process was successful.
+        /// Declares if the load process was cancelled.
         /// </summary>
         public bool IsCancelled => Status == LoadStatus.Cancelled;
 
