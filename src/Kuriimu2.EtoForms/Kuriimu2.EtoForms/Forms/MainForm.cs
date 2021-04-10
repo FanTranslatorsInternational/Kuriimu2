@@ -742,8 +742,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
-                var closeIcon = ImageResources.Actions.Close;
-                var closeButtonRect = new RectangleF(9, 4, closeIcon.Width, closeIcon.Height);
+                // There's 5 pixels of spacing on the right side of the close icon
+                var closeButtonRect = new RectangleF(9, 4, page.Image.Width - 5, page.Image.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }
