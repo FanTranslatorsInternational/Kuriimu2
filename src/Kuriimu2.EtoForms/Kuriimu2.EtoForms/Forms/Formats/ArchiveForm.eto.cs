@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Eto.Drawing;
 using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
@@ -178,6 +178,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             searchClearButton = new Button
             {
                 Image = ImageResources.Actions.Clear,
+                ToolTip = "Reset search",
                 Command = searchClearCommand,
                 Size = new Size(22,-1)
             };
@@ -190,31 +191,37 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
+                ToolTip = "Save",
                 Command = saveCommand,
             };
 
             saveAsButton = new ButtonToolStripItem
             {
+                ToolTip = "Save As",
                 Command = saveAsCommand,
             };
 
             extractButton = new ButtonToolStripItem
             {
+                ToolTip = "Extract file(s)",
                 Command = extractFileCommand,
             };
 
             replaceButton = new ButtonToolStripItem
             {
+                ToolTip = "Replace file(s)",
                 Command = replaceFileCommand,
             };
 
             renameButton = new ButtonToolStripItem
             {
+                ToolTip = "Rename file",
                 Command = renameFileCommand,
             };
 
             deleteButton = new ButtonToolStripItem
             {
+                ToolTip = "Delete file",
                 Command = deleteFileCommand,
             };
 
@@ -226,7 +233,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var archiveToolStrip = new ToolStrip
             {
-                BackgroundColor = KnownColors.White,
+                Padding = 3,
                 Items =
                 {
                     saveButton,
@@ -236,7 +243,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var mainContent = new TableLayout
             {
-                Spacing=new Size(3,3),
+                Spacing = new Size(3,3),
                 Rows =
                 {
                     // Searchbar and file toolstrip
@@ -259,8 +266,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                             // file toolstrip
                             new ToolStrip
                             {
-                                Size = new SizeF(-1, ToolStripItem.Height + 6),
-                                BackgroundColor = KnownColors.White,
                                 Items =
                                 {
                                     extractButton,
@@ -289,7 +294,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Spacing = new Size(3, 3),
                 Rows =
                 {
-                    new TableRow(new Panel { Content = archiveToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow(archiveToolStrip),
                     new TableRow { Cells = { new TableCell(mainContent) { ScaleWidth = true } }, ScaleHeight = true }
                 }
             };

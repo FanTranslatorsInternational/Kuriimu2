@@ -1,11 +1,11 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea to improve Kuriimu
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-Feature details:  
+<!-- Please describe your idea as detailed as possible! -->
 [details]
