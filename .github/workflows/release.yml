@@ -28,7 +28,9 @@ jobs:
         dotnet-version: 3.1.302
 
     - name: Setup NuGet sources
-      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+      run: |
+        nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+        nuget sources add -name EtoFeed -source https://www.myget.org/F/eto/api/v3/index.json -verbosity detailed
   
     # Setup release version manifests
     - name: Get manifest version
