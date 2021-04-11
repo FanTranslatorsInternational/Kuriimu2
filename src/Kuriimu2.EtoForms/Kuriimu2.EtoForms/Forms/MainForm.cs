@@ -396,7 +396,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             var saveResult = savePath.IsEmpty ?
                 await _pluginManager.SaveFile(stateInfo) :
-                await _pluginManager.SaveFile(stateInfo, savePath);
+                await _pluginManager.SaveFile(stateInfo, savePath.FullName);
 
             if (!saveResult.IsSuccessful)
             {
@@ -749,11 +749,16 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Select parent tab
+            TabPage parentTab = null;
             if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
-                tabControl.SelectedPage = _stateDictionary[parentStateInfo].TabPage;
+                parentTab = _stateDictionary[parentStateInfo].TabPage;
 
             // Close file
-            await CloseFile(tabEntry.StateInfo);
+            if(!await CloseFile(tabEntry.StateInfo))
+                return;
+
+            // Switch to parent tab
+            tabControl.SelectedPage = parentTab;
         }
 
         #endregion
@@ -853,7 +858,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         public Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId)
         {
-            var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
+            var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative() / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                 pluginId == Guid.Empty ?
                     _pluginManager.LoadFile(stateInfo, file) :

@@ -49,7 +49,7 @@ namespace Kuriimu2.EtoForms.Forms
             #region Commands
 
             openFileCommand = new Command { MenuText = "Open", Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
-            //TODO separate open *with* icon?
+            // TODO: Separate open *with* icon?
             openFileWithCommand = new Command { MenuText = "Open with Plugin", Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
             saveAllFileCommand = new Command { MenuText = "Save All", Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
 

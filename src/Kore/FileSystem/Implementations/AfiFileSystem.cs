@@ -191,7 +191,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
         {
-            return _fileDictionary.ContainsKey(path);
+            return GetAfi(path) != null;
         }
 
         /// <inheritdoc />
@@ -216,7 +216,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            return _fileDictionary[path].FileSize;
+            return GetAfi(path).FileSize;
         }
 
         /// <inheritdoc />
@@ -227,7 +227,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(srcPath);
             }
 
-            var file = _fileDictionary[srcPath];
+            var file = GetAfi(srcPath);
             _fileDictionary.Remove(srcPath);
 
             // Remove file from source directory
@@ -260,7 +260,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            var file = _fileDictionary[path];
+            var file = GetAfi(path);
 
             // Remove file from directory
             var srcDir = path.GetDirectory();
@@ -268,7 +268,7 @@ namespace Kore.FileSystem.Implementations
 
             // Remove file
             var removingState = ArchiveState as IRemoveFiles;
-            removingState?.RemoveFile(_fileDictionary[path]);
+            removingState?.RemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -295,14 +295,14 @@ namespace Kore.FileSystem.Implementations
             switch (mode)
             {
                 case FileMode.Open:
-                    afi = _fileDictionary[path];
+                    afi = GetAfi(path);
                     break;
 
                 case FileMode.Create:
                     if (fileExists)
                     {
-                        afi = _fileDictionary[path];
-                        afi.SetFileData(new MemoryStream());
+                        afi = GetAfi(path);
+                        afi?.SetFileData(new MemoryStream());
                     }
                     else
                     {
@@ -318,7 +318,7 @@ namespace Kore.FileSystem.Implementations
                     break;
 
                 case FileMode.OpenOrCreate:
-                    afi = fileExists ? _fileDictionary[path] : CreateFileInternal(new MemoryStream(), path);
+                    afi = fileExists ? GetAfi(path) : CreateFileInternal(new MemoryStream(), path);
 
                     if (fileExists)
                         GetOrCreateDispatcher().RaiseCreated(path);
@@ -353,7 +353,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(savePath);
             }
 
-            _fileDictionary[savePath].SetFileData(saveData);
+            GetAfi(savePath)?.SetFileData(saveData);
 
             GetOrCreateDispatcher().RaiseCreated(savePath);
         }
@@ -380,7 +380,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override FileEntry GetFileEntryImpl(UPath path)
         {
-            var afi = _fileDictionary[path];
+            var afi = GetAfi(path);
             return new AfiFileEntry(afi);
         }
 
@@ -550,6 +550,27 @@ namespace Kore.FileSystem.Implementations
         }
 
         #endregion
+
+        private IArchiveFileInfo GetAfi(UPath filePath)
+        {
+            if (!_fileDictionary.ContainsKey(filePath))
+                return null;
+
+            var afi = _fileDictionary[filePath];
+
+            // If the file data stream is closed, this may point to a stale reference from before an external operation modified the IStateInfo
+            // Do expensive FirstOrDefault operation to search the requested file in the ArchiveState itself
+            if (afi.IsFileDataInvalid)
+                afi = ArchiveState.Files.FirstOrDefault(x => x.FilePath == filePath);
+
+            // Update the file dictionary, regardless of validity of the file data stream
+            if (afi == null)
+                _fileDictionary.Remove(filePath);
+            else
+                _fileDictionary[filePath] = afi;
+
+            return afi;
+        }
     }
 
     public class AfiFileEntry : FileEntry

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Kontract.Models;
 using Kontract.Models.IO;
 
@@ -290,6 +291,40 @@ namespace Kontract.Extensions
             if (!path.IsAbsolute)
                 throw new ArgumentException($"Path `{path}` must be absolute.", name);
             return path.FullName;
+        }
+
+        /// <summary>
+        /// Determines the root of the given absolute path.
+        /// </summary>
+        /// <returns>The mount point or <see cref="UPath.Root"/>.</returns>
+        public static UPath GetRoot(this UPath path)
+        {
+            // If the path only contains one character
+            if (path.FullName.Length < 2)
+            {
+                // The path must be absolute
+                AssertAbsolute(path);
+                return UPath.Root;
+            }
+
+            // Do not AssertAbsolute, since windows paths do not start with a /
+
+            // Check for windows specific drive letters
+            var firstChar = char.ToLower(path.FullName[0]);
+            var secondChar = path.FullName[1];
+            if (firstChar >= 'a' && firstChar <= 'z' && secondChar == ':')
+                return $"/mnt/{firstChar}";
+
+            // Assert absolute path now
+            AssertAbsolute(path);
+
+            // Check for /mnt/[drive]/ mount
+            var mntRegex=new Regex(@"^\/mnt\/[a-z]");
+            if (mntRegex.IsMatch(path.FullName))
+                return path.FullName[..6];
+
+            // Otherwise just return UPath.Root
+            return UPath.Root;
         }
     }
 }

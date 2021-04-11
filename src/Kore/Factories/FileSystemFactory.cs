@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
@@ -32,9 +31,10 @@ namespace Kore.Factories
         /// <param name="subPath">The path on a physical drive to root the file system to.</param>
         /// <param name="streamManager">The <see cref="IStreamManager"/> for the file system.</param>
         /// <returns>The rooted physical file system.</returns>
-        public static IFileSystem CreateSubFileSystem(UPath subPath, IStreamManager streamManager)
+        public static IFileSystem CreateSubFileSystem(string subPath, IStreamManager streamManager)
         {
-            return CreateSubFileSystem(new PhysicalFileSystem(streamManager), subPath);
+            var physicalFileSystem = new PhysicalFileSystem(streamManager);
+            return CreateSubFileSystem(physicalFileSystem, physicalFileSystem.ConvertPathFromInternal(subPath));
         }
 
         /// <summary>
@@ -45,8 +45,6 @@ namespace Kore.Factories
         /// <returns>The re-rooted file system.</returns>
         public static IFileSystem CreateSubFileSystem(IFileSystem fileSystem, UPath subPath)
         {
-            subPath = fileSystem.ConvertPathFromInternal(subPath.FullName);
-
             if (!fileSystem.DirectoryExists(subPath))
                 fileSystem.CreateDirectory(subPath);
 

@@ -39,6 +39,11 @@ namespace Kontract.Models.Archive
         long FileSize { get; }
 
         /// <summary>
+        /// Determines if the file is invalid or closed and not eligible for use.
+        /// </summary>
+        bool IsFileDataInvalid { get; }
+
+        /// <summary>
         /// Gets the (decompressed) file data from this file info.
         /// </summary>
         /// <param name="temporaryStreamProvider">A provider for temporary streams.</param>

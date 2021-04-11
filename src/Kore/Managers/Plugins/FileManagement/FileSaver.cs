@@ -27,15 +27,6 @@ namespace Kore.Managers.Plugins.FileManagement
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveAsync(IStateInfo stateInfo, UPath savePath, SaveInfo saveInfo)
-        {
-            // The destination will be in relation to the file system that originally opened the state
-            // Save path is a path is an absolute path to said file system
-            var destination = stateInfo.FileSystem.Clone(stateInfo.StreamManager);
-            return SaveAsync(stateInfo, destination, savePath, saveInfo);
-        }
-
-        /// <inheritdoc />
         public Task<SaveResult> SaveAsync(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath, SaveInfo saveInfo)
         {
             return SaveInternalAsync(stateInfo, fileSystem, savePath, saveInfo);
@@ -75,7 +66,6 @@ namespace Kore.Managers.Plugins.FileManagement
         {
             // 1. Reload current state
             var temporaryStreamProvider = stateInfo.StreamManager.CreateTemporaryStreamProvider();
-            savePath = stateInfo.HasParent ? savePath : savePath.GetName();
 
             var internalDialogManager = new InternalDialogManager(saveInfo.DialogManager, stateInfo.DialogOptions);
             var loadContext = new LoadContext(temporaryStreamProvider, saveInfo.Progress, internalDialogManager);
@@ -105,7 +95,7 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 1. Save state to a temporary destination
             var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
-            var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath.GetName(), saveInfo);
+            var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath, saveInfo);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
@@ -131,15 +121,15 @@ namespace Kore.Managers.Plugins.FileManagement
         /// </summary>
         /// <param name="saveState">The plugin state to save.</param>
         /// <param name="temporaryContainer">The temporary destination the state will be saved in.</param>
-        /// <param name="fileName">The name of the initial file.</param>
+        /// <param name="savePath">The path of the initial file to save.</param>
         /// <param name="saveInfo">The context for the save operation.</param>
         /// <returns>The result of the save state process.</returns>
-        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, string fileName, SaveInfo saveInfo)
+        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, UPath savePath, SaveInfo saveInfo)
         {
             try
             {
                 var saveContext = new SaveContext(saveInfo.Progress);
-                await Task.Run(async () => await saveState.Save(temporaryContainer, fileName, saveContext));
+                await Task.Run(async () => await saveState.Save(temporaryContainer, savePath, saveContext));
             }
             catch (Exception ex)
             {
@@ -215,7 +205,7 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<SaveResult> TryCopyFiles(IFileSystem temporaryContainer, IFileSystem destinationFileSystem)
         {
             // 1. Set new file data into parent file system
-            foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
+            foreach (var file in temporaryContainer.EnumerateAllFiles(UPath.Root))
             {
                 Stream saveData;
 

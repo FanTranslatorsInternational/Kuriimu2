@@ -224,28 +224,29 @@ namespace Kore.Managers.Plugins
             // 1. Create file system
             var streamManager = CreateStreamManager();
             var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(streamManager);
+            var filePath = fileSystem.ConvertPathFromInternal(file);
 
-            // 2. Get path in the form the file system accepts it
-            var path = fileSystem.ConvertPathFromInternal(file);
+            var root = filePath.GetRoot();
+            fileSystem = FileSystemFactory.CreateSubFileSystem(fileSystem, root);
 
             // If file is already loaded or loading
             lock (_loadingLock)
             {
-                if (_loadingFiles.Any(x => x == path))
+                if (_loadingFiles.Any(x => x == file))
                     return new LoadResult(false, $"File {file} is already loading.");
 
-                if (IsLoaded(path))
-                    return new LoadResult(GetLoadedFile(path));
+                if (IsLoaded(file))
+                    return new LoadResult(GetLoadedFile(file));
 
-                _loadingFiles.Add(path);
+                _loadingFiles.Add(file);
             }
 
             // 3. Load file
             // Physical files don't have a parent, if loaded like this
-            var loadedFile = await LoadFile(fileSystem, path, streamManager, null, loadFileContext);
+            var loadedFile = await LoadFile(fileSystem, filePath.GetSubDirectory(root), streamManager, null, loadFileContext);
 
             lock (_loadingLock)
-                _loadingFiles.Remove(path);
+                _loadingFiles.Remove(file);
 
             return loadedFile;
         }
@@ -447,10 +448,24 @@ namespace Kore.Managers.Plugins
 
         #region Save File
 
+        // TODO: Add archive children as saving files as well to reduce race conditions
+
         /// <inheritdoc />
         public Task<SaveResult> SaveFile(IStateInfo stateInfo)
         {
-            return SaveFile(stateInfo, stateInfo.FilePath);
+            return SaveFile(stateInfo, stateInfo.FileSystem, stateInfo.FilePath.FullName);
+        }
+
+        /// <inheritdoc />
+        public Task<SaveResult> SaveFile(IStateInfo stateInfo, string saveFile)
+        {
+            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(stateInfo.StreamManager);
+            var savePath = fileSystem.ConvertPathFromInternal(saveFile);
+
+            var root = savePath.GetRoot();
+            fileSystem = FileSystemFactory.CreateSubFileSystem(fileSystem, root);
+
+            return SaveFile(stateInfo, fileSystem, savePath.GetSubDirectory(root));
         }
 
         // TODO: Put in options from external call like in Load
@@ -488,48 +503,7 @@ namespace Kore.Managers.Plugins
             if (!isRunning) Progress.FinishProgress();
 
             lock (_saveLock)
-                if (saveResult.IsSuccessful)
-                    _savingStates.Remove(stateInfo);
-
-            return saveResult;
-        }
-
-        /// <inheritdoc />
-        public async Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName)
-        {
-            if (stateInfo.IsDisposed)
-                return new SaveResult(false, "The given file is already closed.");
-
-            lock (_saveLock)
-            {
-                if (_savingStates.Contains(stateInfo))
-                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
-
-                if (IsClosing(stateInfo))
-                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
-
-                _savingStates.Add(stateInfo);
-            }
-
-            lock (_loadedFilesLock)
-                if (!_loadedFiles.Contains(stateInfo))
-                    return new SaveResult(false, "The given file is not loaded anymore.");
-
-            var isRunning = Progress.IsRunning();
-            if (!isRunning) Progress.StartProgress();
-
-            var saveResult = await _fileSaver.SaveAsync(stateInfo, saveName, new SaveInfo
-            {
-                Progress = Progress,
-                DialogManager = DialogManager,
-                Logger = Logger
-            });
-
-            if (!isRunning) Progress.FinishProgress();
-
-            lock (_saveLock)
-                if (saveResult.IsSuccessful)
-                    _savingStates.Remove(stateInfo);
+                _savingStates.Remove(stateInfo);
 
             return saveResult;
         }
@@ -573,8 +547,7 @@ namespace Kore.Managers.Plugins
             if (!isRunning) Progress.FinishProgress();
 
             lock (_saveLock)
-                if (saveResult.IsSuccessful)
-                    _savingStates.Remove(stateInfo);
+                _savingStates.Remove(stateInfo);
 
             if (!saveResult.IsSuccessful)
                 return new SaveStreamResult(saveResult.Exception);

@@ -127,11 +127,11 @@ namespace Kore.Managers.Plugins
         #endregion
 
         /// <summary>
-        /// Save a loaded state to the given path.
+        /// Save a loaded state to a physical path.
         /// </summary>
         /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
-        /// <param name="saveName">The path at which to save the file.</param>
+        /// <param name="saveFile">The physical path at which to save the file.</param>
         /// <returns></returns>
-        Task<SaveResult> SaveFile(IStateInfo stateInfo, UPath saveName);
+        Task<SaveResult> SaveFile(IStateInfo stateInfo, string saveFile);
     }
 }
