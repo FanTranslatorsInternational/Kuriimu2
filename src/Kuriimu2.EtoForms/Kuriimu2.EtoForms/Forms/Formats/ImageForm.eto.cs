@@ -46,21 +46,25 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
+                ToolTip = "Save",
                 Command = saveCommand,
             };
 
             saveAsButton = new ButtonToolStripItem
             {
+                ToolTip = "Save As",
                 Command = saveAsCommand,
             };
 
             exportButton = new ButtonToolStripItem
             {
+                ToolTip = "Export image",
                 Command = exportCommand,
             };
 
             importButton = new ButtonToolStripItem
             {
+                ToolTip = "Import image data",
                 Command = importCommand,
             };
 
@@ -93,6 +97,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var mainToolStrip = new ToolStrip
             {
+                Padding = 3,
                 Items =
                 {
                     saveButton,
@@ -183,7 +188,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             {
                 Rows =
                 {
-                    new TableRow(new Panel { Content = mainToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow(mainToolStrip),
                     mainLayout
                 }
             };
