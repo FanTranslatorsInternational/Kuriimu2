@@ -109,6 +109,7 @@ namespace Kuriimu2.EtoForms.Controls
                 return;
 
             var rect = new RectangleF(0, 0, Width, Height);
+            g.PixelOffsetMode = PixelOffsetMode.Half;
 
             // If clicked use darker colors
             if (Enabled && _isClicked)
