@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
@@ -8,6 +9,7 @@ namespace Kontract.Interfaces.Plugins.State
     /// <summary>
     /// Marks the plugin state as saveable and exposes methods to save the current state.
     /// </summary>
+    [Obsolete("Override IPluginState.Save instead")]
     public interface ISaveFiles
     {
         /// <summary>

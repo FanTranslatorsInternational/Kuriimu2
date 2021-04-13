@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
@@ -8,6 +9,8 @@ namespace Kontract.Interfaces.Plugins.Identifier
     /// <summary>
     /// Exposes methods to identify if a file is supported.
     /// </summary>
+    /// <see cref="IPlugin"/>
+    [Obsolete("Override IPlugin.IdentifyAsync instead")]
     public interface IIdentifyFiles
     {
         /// <summary>

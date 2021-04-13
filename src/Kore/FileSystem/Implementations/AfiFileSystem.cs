@@ -27,6 +27,7 @@ namespace Kore.FileSystem.Implementations
         private readonly IDictionary<UPath, IArchiveFileInfo> _fileDictionary;
         private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)> _directoryDictionary;
 
+        // TODO this cast smells, should IStateInfo/IPluginState be generified?
         protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
 
         protected UPath SubPath => _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
@@ -70,10 +71,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteDirectories => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
-        public override bool CanMoveDirectories => ArchiveState is IRenameFiles;
+        public override bool CanMoveDirectories => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -118,10 +119,14 @@ namespace Kore.FileSystem.Implementations
             CreateDirectoryInternal(destPath);
 
             // Move files
-            var renameState = ArchiveState as IRenameFiles;
             foreach (var file in element.Item2)
             {
-                renameState?.Rename(file, destPath / file.FilePath.GetName());
+                if (ArchiveState.CanRenameFiles)
+                {
+                    //XXX this check is the equivalent of the 'as' cast here previously
+                    //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                    ArchiveState.Rename(file, destPath / file.FilePath.GetName());
+                }
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -160,9 +165,15 @@ namespace Kore.FileSystem.Implementations
                 _directoryDictionary[parent].Item1.Remove(path);
 
             // Delete files
-            var removeState = ArchiveState as IRemoveFiles;
             foreach (var file in element.Item2)
-                removeState?.RemoveFile(file);
+            {
+                if (ArchiveState.CanDeleteFiles)
+                {
+                    //XXX this check is the equivalent of the 'as' cast here previously
+                    //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                    ArchiveState.RemoveFile(file);
+                }
+            }
 
             element.Item2.Clear();
         }
@@ -172,7 +183,7 @@ namespace Kore.FileSystem.Implementations
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => ArchiveState is IAddFiles;
+        public override bool CanCreateFiles => ArchiveState.CanAddFiles;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -183,10 +194,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanMoveFiles => ArchiveState is IRenameFiles;
+        public override bool CanMoveFiles => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteFiles => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
@@ -237,8 +248,12 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            var renameState = ArchiveState as IRenameFiles;
-            renameState?.Rename(file, destPath);
+            if (ArchiveState.CanRenameFiles)
+            {
+                //XXX this check is the equivalent of the 'as' cast here previously
+                //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                ArchiveState.Rename(file, destPath);
+            }
 
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
@@ -267,8 +282,12 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            var removingState = ArchiveState as IRemoveFiles;
-            removingState?.RemoveFile(file);
+            if (ArchiveState.CanDeleteFiles)
+            {
+                //XXX this check is the equivalent of the 'as' cast here previously
+                //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                ArchiveState.RemoveFile(file);
+            }
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -510,10 +529,10 @@ namespace Kore.FileSystem.Implementations
 
         private IArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
         {
-            if (!(_stateInfo.PluginState is IAddFiles addState))
+            if (!ArchiveState.CanAddFiles)
                 return null;
 
-            var newAfi = addState.AddFile(fileData, newFilePath);
+            var newAfi = ArchiveState.AddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());

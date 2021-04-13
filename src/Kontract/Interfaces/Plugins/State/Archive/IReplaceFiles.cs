@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System;
+using System.IO;
 using Kontract.Models.Archive;
 
 namespace Kontract.Interfaces.Plugins.State.Archive
@@ -6,6 +7,7 @@ namespace Kontract.Interfaces.Plugins.State.Archive
     /// <summary>
     /// Exposes methods to replace file data.
     /// </summary>
+    [Obsolete("Override IArchiveState.ReplaceFile instead")]
     public interface IReplaceFiles
     {
         /// <summary>

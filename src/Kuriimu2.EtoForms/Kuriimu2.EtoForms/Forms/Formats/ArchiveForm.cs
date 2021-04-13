@@ -8,6 +8,7 @@ using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
+using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -755,7 +756,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
-                var replaceState = _formInfo.StateInfo.PluginState as IReplaceFiles;
                 foreach (var file in files)
                 {
                     if (cts.IsCancellationRequested)
@@ -771,7 +771,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    replaceState?.ReplaceFile(file, currentFileStream);
+
+                    if (_formInfo.CanReplaceFiles)
+                    {
+                        //XXX this check is the equivalent of the 'as' cast here previously
+                        //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                        // TODO this cast smells, should IStateInfo/IPluginState be generified?
+                        ((IArchiveState)_formInfo.StateInfo.PluginState).ReplaceFile(file, currentFileStream);
+                    }
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
@@ -827,7 +834,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
-                var replaceState = _formInfo.StateInfo.PluginState as IReplaceFiles;
                 foreach (var filePath in filePaths)
                 {
                     if (cts.IsCancellationRequested)
@@ -843,7 +849,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    replaceState?.ReplaceFile(afi, currentFileStream);
+                    if (_formInfo.CanReplaceFiles)
+                    {
+                        //XXX this check is the equivalent of the 'as' cast here previously
+                        //  However, the 'unsupported' case doesn't seem to be handled anywhere
+                        // TODO this cast smells, should IStateInfo/IPluginState be generified?
+                        ((IArchiveState)_formInfo.StateInfo.PluginState).ReplaceFile(afi, currentFileStream);
+                    }
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }

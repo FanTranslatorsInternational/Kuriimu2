@@ -178,12 +178,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
 
-            var isSaveState = _formInfo.StateInfo.PluginState is ISaveFiles;
-            saveButton.Enabled = selectedImage != null && isSaveState;
-            saveAsButton.Enabled = selectedImage != null && isSaveState && _formInfo.StateInfo.ParentStateInfo == null;
+            saveButton.Enabled = selectedImage != null && _formInfo.CanSave;
+            saveAsButton.Enabled = selectedImage != null && _formInfo.CanSave && _formInfo.StateInfo.ParentStateInfo == null;
 
             exportButton.Enabled = selectedImage != null;
-            importButton.Enabled = selectedImage != null && isSaveState;
+            importButton.Enabled = selectedImage != null && _formInfo.CanSave;
 
             var definition = GetEncodingDefinition();
             var isIndexed = selectedImage?.IsIndexed ?? false;
@@ -385,11 +384,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         #endregion
 
         #region Support
-
-        private ISaveFiles GetSaveState()
-        {
-            return _formInfo.StateInfo.PluginState as ISaveFiles;
-        }
 
         private IList<IKanvasImage> GetStateImages()
         {

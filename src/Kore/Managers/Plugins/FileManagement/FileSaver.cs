@@ -36,7 +36,7 @@ namespace Kore.Managers.Plugins.FileManagement
             SaveInfo saveInfo, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!(stateInfo.PluginState is ISaveFiles) || !stateInfo.StateChanged)
+            if (!(stateInfo.PluginState.CanSave) || !stateInfo.StateChanged)
                 return new SaveResult(true, "The file had no changes and was not saved.");
 
             // 2. Save child states
@@ -91,11 +91,9 @@ namespace Kore.Managers.Plugins.FileManagement
 
         private async Task<SaveResult> SaveAndReplaceStateAsync(IStateInfo stateInfo, IFileSystem destinationFileSystem, UPath savePath, SaveInfo saveInfo)
         {
-            var saveState = stateInfo.PluginState as ISaveFiles;
-
             // 1. Save state to a temporary destination
             var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
-            var saveStateResult = await TrySaveState(saveState, temporaryContainer, savePath, saveInfo);
+            var saveStateResult = await TrySaveState(stateInfo.PluginState, temporaryContainer, savePath, saveInfo);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
@@ -124,7 +122,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="savePath">The path of the initial file to save.</param>
         /// <param name="saveInfo">The context for the save operation.</param>
         /// <returns>The result of the save state process.</returns>
-        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, UPath savePath, SaveInfo saveInfo)
+        private async Task<SaveResult> TrySaveState(IPluginState saveState, IFileSystem temporaryContainer, UPath savePath, SaveInfo saveInfo)
         {
             try
             {

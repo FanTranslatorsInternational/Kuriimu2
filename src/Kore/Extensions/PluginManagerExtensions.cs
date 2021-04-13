@@ -13,7 +13,7 @@ namespace Kore.Extensions
             return pluginManager.GetFilePluginLoaders().SelectMany(x => x.Plugins);
         }
 
-        public static IEnumerable<IIdentifyFiles> GetIdentifiableFilePlugins(this IInternalPluginManager pluginManager)
+        public static IEnumerable<IFilePlugin> GetIdentifiableFilePlugins(this IInternalPluginManager pluginManager)
         {
             return pluginManager.GetFilePluginLoaders().GetIdentifiableFilePlugins();
         }

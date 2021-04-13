@@ -86,14 +86,14 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
         private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
-            // 1. Get all plugins that implement IIdentifyFile
+            // 1. Get all plugins that support identification
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
             // 2. Identify the file with identifiable plugins
             var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
-                var filePlugin = identifiablePlugin as IFilePlugin;
+                var filePlugin = identifiablePlugin;
 
                 try
                 {
@@ -134,7 +134,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="filePath">The path of the file to identify.</param>
         /// <param name="streamManager">The stream manager.</param>
         /// <returns>If hte identification was successful.</returns>
-        private async Task<bool> TryIdentifyFileAsync(IIdentifyFiles identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
+        private async Task<bool> TryIdentifyFileAsync(IFilePlugin identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
         {
             // 1. Identify plugin
             var identifyContext = new IdentifyContext(streamManager.CreateTemporaryStreamProvider());
