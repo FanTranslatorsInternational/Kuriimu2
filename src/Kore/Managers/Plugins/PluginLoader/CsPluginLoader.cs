@@ -89,7 +89,7 @@ namespace Kore.Managers.Plugins.PluginLoader
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            foreach (var loadedPlugin in loadedPlugins.OfType<IRegisterAssembly>())
+            foreach (var loadedPlugin in loadedPlugins)
             {
                 var assembly = loadedPlugin.GetType().Assembly;
                 var domainContext = new DomainContext(assembly);

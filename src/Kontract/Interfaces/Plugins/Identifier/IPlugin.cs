@@ -1,5 +1,6 @@
 using System;
 using Kontract.Models;
+using Kontract.Models.Context;
 
 namespace Kontract.Interfaces.Plugins.Identifier
 {
@@ -18,5 +19,11 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// The metadata for this plugin.
         /// </summary>
         PluginMetadata Metadata { get; }
+        
+        /// <summary>
+        /// Override to register assemblies that are not loaded by the main executable.
+        /// </summary>
+        /// <param name="context">The context to register the assemblies in.</param>
+        void RegisterAssemblies(DomainContext context) { }
     }
 }
