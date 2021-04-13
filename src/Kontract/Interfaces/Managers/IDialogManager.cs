@@ -11,7 +11,6 @@ namespace Kontract.Interfaces.Managers
         /// Shows a dialog on which the user can interact with the plugin.
         /// </summary>
         /// <param name="fields">The fields to show on the dialog.</param>
-        /// <returns>If the dialog was exited normally.</returns>
         void ShowDialog(DialogField[] fields);
     }
 }
