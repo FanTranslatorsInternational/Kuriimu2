@@ -14,6 +14,13 @@ namespace Kuriimu2.EtoForms.Forms.Models
         public ArchiveFormInfo(IStateInfo stateInfo, IArchiveFormCommunicator formCommunicator, IProgressContext progress, ILogger logger) : base(stateInfo, formCommunicator, progress, logger)
         {
         }
+        
+        // TODO this cast smells, should IStateInfo/IPluginState be generified?
+        public bool CanReplaceFiles => StateInfo.PluginState is IArchiveState {CanReplaceFiles: true};
+        public bool CanRenameFiles => StateInfo.PluginState is IArchiveState {CanRenameFiles: true};
+        //TODO also check for RemoveAll?
+        public bool CanDeleteFiles => StateInfo.PluginState is IArchiveState {CanDeleteFiles: true};
+        public bool CanAddFiles => StateInfo.PluginState is IArchiveState {CanAddFiles: true};
     }
 
     public class FormInfo
@@ -28,13 +35,6 @@ namespace Kuriimu2.EtoForms.Forms.Models
 
         // TODO remove+inline?
         public bool CanSave => StateInfo.PluginState.CanSave;
-        
-        // TODO this cast smells, should IStateInfo/IPluginState be generified?
-        public bool CanReplaceFiles => StateInfo.PluginState is IArchiveState {CanReplaceFiles: true};
-        public bool CanRenameFiles => StateInfo.PluginState is IArchiveState {CanRenameFiles: true};
-        //TODO also check for RemoveAll?
-        public bool CanDeleteFiles => StateInfo.PluginState is IArchiveState {CanDeleteFiles: true};
-        public bool CanAddFiles => StateInfo.PluginState is IArchiveState {CanAddFiles: true};
 
         public FormInfo(IStateInfo stateInfo, IFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
         {
