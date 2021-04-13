@@ -59,7 +59,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             #region Initialization
 
-            searchTextBox = new TextBox
+            searchTextBox = new SearchBox
             {
                 Size=new Size(268,-1)
             };
