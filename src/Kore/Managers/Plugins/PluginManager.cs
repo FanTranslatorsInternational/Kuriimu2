@@ -80,24 +80,12 @@ namespace Kore.Managers.Plugins
         /// Creates a new instance of <see cref="PluginManager"/>.
         /// </summary>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(params string[] pluginPaths)
-        {
-            // 1. Setup all necessary instances
-            _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
-            _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
-
-            LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
-                .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
-                .DistinctBy(e => e.AssemblyPath)
-                .ToList();
-
-            _streamMonitor = new StreamMonitor();
-
-            _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(_streamMonitor);
-
-            _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
-        }
+        public PluginManager(params string[] pluginPaths) :
+            this(
+                new CsFilePluginLoader(pluginPaths),
+                new CsGamePluginLoader(pluginPaths)
+            )
+        { }
 
         /// <summary>
         /// Creates a new instance of <see cref="PluginManager"/>.
