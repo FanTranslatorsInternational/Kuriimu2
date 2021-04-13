@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using Kontract.Interfaces.Plugins.Identifier;
 
 namespace Kontract.Interfaces.Loaders
 {
     /// <summary>
-    /// Exposes methods for methods with generic plugin types.
+    /// Exposes methods to handle a specific type of plugin.
     /// </summary>
     /// <typeparam name="TPlugin">The type of the plugin to retrieve.</typeparam>
-    public interface IPluginLoader<out TPlugin> : IPluginLoader
+    public interface IPluginLoader<out TPlugin> : IPluginLoader where TPlugin : IPlugin
     {
         /// <summary>
         /// A read-only list of plugins loaded by this instance.
