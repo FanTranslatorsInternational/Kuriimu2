@@ -61,7 +61,7 @@ namespace plugin_bandai_namco.Images
             var entryOffset = HeaderSize;
             var stringOffset = entryOffset + imageInfos.Count * EntrySize;
             var hashOffset = (stringOffset + imageInfos.Sum(x => x.Name.Length + 1) + 3) & ~3;
-            var dataOffset = (hashOffset + imageInfos.Count * 8 + 0x3F) & ~0x3F;
+            var dataOffset = (hashOffset + imageInfos.Count * 8 + 0x7F) & ~0x7F;
 
             // Write image data
             var entries = new List<NstpImageHeader>();
