@@ -6,11 +6,10 @@ using Kanvas.Encoding;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
-using Kontract.Models.IO;
 
 #pragma warning disable 649
 
-namespace plugin_bandai_namco.Images
+namespace plugin_sony.Images
 {
     #region Gxt Structures
 
@@ -166,7 +165,7 @@ namespace plugin_bandai_namco.Images
             definition.AddColorEncodings(Formats.Select(x => ((int)x.Key, x.Value)).ToArray());
 
             definition.AddPaletteEncodings(PaletteFormats.Select(x => ((int)x.Key, x.Value)).ToArray());
-            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition(x.Value, new[] { 0 }))).ToArray());
+            definition.AddIndexEncodings(IndexFormats.Select(x => ((int)x.Key, new IndexEncodingDefinition(x.Value, PaletteFormats.Keys.Select(x => (int)x).ToArray()))).ToArray());
 
             return definition;
         }

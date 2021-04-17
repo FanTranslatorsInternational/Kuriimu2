@@ -10,7 +10,7 @@ using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 
-namespace plugin_bandai_namco.Images
+namespace plugin_sony.Images
 {
     class GxtState : IImageState, ILoadFiles, ISaveFiles
     {

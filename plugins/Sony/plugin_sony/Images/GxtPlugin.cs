@@ -9,7 +9,7 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_bandai_namco.Images
+namespace plugin_sony.Images
 {
     public class GxtPlugin : IFilePlugin, IIdentifyFiles
     {

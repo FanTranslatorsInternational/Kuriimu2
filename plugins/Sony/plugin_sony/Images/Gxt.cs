@@ -5,7 +5,7 @@ using Kanvas.Swizzle;
 using Komponent.IO;
 using Kontract.Models.Image;
 
-namespace plugin_bandai_namco.Images
+namespace plugin_sony.Images
 {
     // TODO: index/palette data write
 
@@ -109,7 +109,7 @@ namespace plugin_bandai_namco.Images
                 if ((uint)imageInfo.ImageFormat == 0x94000000 || (uint)imageInfo.ImageFormat == 0x95000000)
                     entry.SubFormat = imageInfo.PaletteFormat;
 
-                if ((uint) imageInfo.ImageFormat == 0x94000000)
+                if ((uint)imageInfo.ImageFormat == 0x94000000)
                     entry.PaletteIndex = p4Index++;
                 if ((uint)imageInfo.ImageFormat == 0x95000000)
                     entry.PaletteIndex = p8Index++;
@@ -121,18 +121,18 @@ namespace plugin_bandai_namco.Images
             }
 
             // Write palette data
-            foreach(var imageInfo in imageInfos)
+            foreach (var imageInfo in imageInfos)
             {
-                if ((uint) imageInfo.ImageFormat == 0x94000000)
+                if ((uint)imageInfo.ImageFormat == 0x94000000)
                 {
                     bw.Write(imageInfo.PaletteData);
-                    bw.WritePadding(P4PaletteSize_-imageInfo.PaletteData.Length);
+                    bw.WritePadding(P4PaletteSize_ - imageInfo.PaletteData.Length);
                 }
             }
 
             foreach (var imageInfo in imageInfos)
             {
-                if ((uint) imageInfo.ImageFormat == 0x95000000)
+                if ((uint)imageInfo.ImageFormat == 0x95000000)
                 {
                     bw.Write(imageInfo.PaletteData);
                     bw.WritePadding(P8PaletteSize_ - imageInfo.PaletteData.Length);
