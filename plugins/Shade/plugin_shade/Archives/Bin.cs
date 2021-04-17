@@ -15,7 +15,6 @@ namespace plugin_shade.Archives
         {
             using var br = new BinaryReaderX(input, true);
             
-
             // Read Header
             _header = br.ReadType<BinHeader>();
 
@@ -24,16 +23,16 @@ namespace plugin_shade.Archives
 
             // Read files
             var files = new List<IArchiveFileInfo>();
-            var index = 0;
-            foreach(var entry in entries)
+            for(var i = 0; i<entries.Count; i++)
             {
+                var entry = entries[i];
                 var offset = (entry.offSize >> _header.shiftFactor) * _header.padFactor;
                 var size = (entry.offSize & _header.mask) * _header.mulFactor;
 
                 var stream = new SubStream(input, offset, size);
-                files.Add(CreateAfi(stream, index++, entry));
-
+                files.Add(CreateAfi(stream, i, entry));
             }
+
             return files;
         }
 
@@ -41,7 +40,6 @@ namespace plugin_shade.Archives
         {
             using var bw = new BinaryWriterX(output);
             var castedFiles = files.Cast<BinArchiveFileInfo>();
-
             
             // Write files
             foreach(var file in castedFiles)
@@ -52,7 +50,6 @@ namespace plugin_shade.Archives
                 file.SaveFileData(output);
             }
             bw.WriteAlignment(_header.padFactor);
-
 
             // Write header
             output.Position = 0;

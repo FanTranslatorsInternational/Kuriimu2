@@ -29,6 +29,7 @@ namespace plugin_shade.Archives
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _bin.Load(fileStream);
         }
+
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             var fileStream = fileSystem.OpenFile(savePath, FileMode.Create);
@@ -37,15 +38,14 @@ namespace plugin_shade.Archives
             return Task.CompletedTask;
         }
 
-
         public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
+
         private bool IsChanged()
         {
             return Files.Any(x => x.ContentChanged);
         }
-
     }
 }
