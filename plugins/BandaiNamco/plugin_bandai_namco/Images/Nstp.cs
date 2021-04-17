@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -54,7 +53,7 @@ namespace plugin_bandai_namco.Images
 
         public void Save(Stream output, IList<ImageInfo> imageInfos)
         {
-            var crc32b = Crc32.Crc32B;
+            var crc32 = Crc32.Crc32B;
             using var bw = new BinaryWriterX(output);
 
             // Calculate offsets
@@ -90,7 +89,7 @@ namespace plugin_bandai_namco.Images
             // Write hash entries
             output.Position = hashOffset;
 
-            var hashEntries = imageInfos.Select((x, i) => (BinaryPrimitives.ReadUInt32BigEndian(crc32b.Compute(Encoding.ASCII.GetBytes(x.Name))), i));
+            var hashEntries = imageInfos.Select((x, i) => (crc32.ComputeValue(x.Name), i));
             foreach (var (hash, index) in hashEntries.OrderBy(x => x.Item1))
             {
                 bw.Write(hash);

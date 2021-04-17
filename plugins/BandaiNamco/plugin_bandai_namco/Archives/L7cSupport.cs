@@ -9,7 +9,6 @@ using Komponent.IO.Streams;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Kompression;
-using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
 #pragma warning disable 649
@@ -104,7 +103,7 @@ namespace plugin_bandai_namco.Archives
             Entry.decompSize = (int)FileData.Length;
 
             FileData.Position = 0;
-            Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(Crc32.Compute(FileData));
+            Entry.crc32 = Crc32.ComputeValue(FileData);
 
             var finalStream = FileData;
             if (_chunkStream.UsesCompression)

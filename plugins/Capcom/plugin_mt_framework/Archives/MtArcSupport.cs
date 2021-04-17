@@ -3,14 +3,12 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kryptography.Blowfish;
-using Kryptography.Hash;
 using Kryptography.Hash.Crc;
 #pragma warning disable 649
 
@@ -237,7 +235,7 @@ namespace plugin_mt_framework.Archives
 
     class MtArcSupport
     {
-        private static readonly IHash Hash = Crc32.Default;
+        private static readonly Crc32 Hash = Crc32.Default;
 
         public static MtArcPlatform DeterminePlatform(Stream input)
         {
@@ -296,7 +294,7 @@ namespace plugin_mt_framework.Archives
 
         private static uint GetHash(string input)
         {
-            return ~BinaryPrimitives.ReadUInt32BigEndian(Hash.Compute(Encoding.ASCII.GetBytes(input)));
+            return ~Hash.ComputeValue(input);
         }
 
         private static Dictionary<uint, string> _extensionMap = new Dictionary<uint, string>
@@ -322,11 +320,11 @@ namespace plugin_mt_framework.Archives
             [GetHash("rSoundRequest")] = ".srqr",
             [GetHash("rSoundSourceADPCM")] = ".mca",
             [GetHash("rTexture")] = ".tex",
-			[GetHash("rBodyEdit")] = ".bed",
-			[GetHash("rEditConvert")] = ".edc",
-			[GetHash("rEffect2D")] = ".e2d",
-			[GetHash("rFaceEdit")] = ".fed",
-			[GetHash("rFacialAnimation")] = ".fca",
+            [GetHash("rBodyEdit")] = ".bed",
+            [GetHash("rEditConvert")] = ".edc",
+            [GetHash("rEffect2D")] = ".e2d",
+            [GetHash("rFaceEdit")] = ".fed",
+            [GetHash("rFacialAnimation")] = ".fca",
 
             [0x22FA09] = ".hpe",
             [0x26E7FF] = ".ccl",

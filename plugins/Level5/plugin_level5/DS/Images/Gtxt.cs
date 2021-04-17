@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -171,7 +170,7 @@ namespace plugin_level5.DS.Images
             var tileDictionary = new Dictionary<uint, short>();
 
             // Add placeholder tile for all 0's
-            var zeroTileHash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(new byte[tileByteDepth]));
+            var zeroTileHash = crc32.ComputeValue(new byte[tileByteDepth]);
             tileDictionary[zeroTileHash] = -1;
 
             var imageOffset = 0;
@@ -179,7 +178,7 @@ namespace plugin_level5.DS.Images
             while (imageOffset < image.Length)
             {
                 var tile = new SubStream(image, imageOffset, tileByteDepth);
-                var tileHash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(tile));
+                var tileHash = crc32.ComputeValue(tile);
                 if (!tileDictionary.ContainsKey(tileHash))
                 {
                     tile.Position = 0;

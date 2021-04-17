@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -65,7 +64,7 @@ namespace plugin_nintendo.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
-            var fnv = Fnv1.Create();
+            var hash = Fnv1.Create();
 
             // Get distinct strings
             var stringMap = GetStringMap(files);
@@ -90,9 +89,9 @@ namespace plugin_nintendo.Archives
 
                 file.Entry.decompSize = (int)file.FileSize;
                 file.Entry.extensionOffset = (int)stringMap[file.FilePath.GetExtensionWithDot()] + stringOffset;
-                file.Entry.extensionFnvHash = BinaryPrimitives.ReadUInt32BigEndian(fnv.Compute(Encoding.ASCII.GetBytes(file.FilePath.GetExtensionWithDot())));
+                file.Entry.extensionFnvHash = hash.ComputeValue(file.FilePath.GetExtensionWithDot());
                 file.Entry.stringOffset = (int)stringMap[filePath.FullName] + stringOffset;
-                file.Entry.fnvHash = BinaryPrimitives.ReadUInt32BigEndian(fnv.Compute(Encoding.ASCII.GetBytes(filePath.FullName)));
+                file.Entry.fnvHash = hash.ComputeValue(filePath.FullName);
 
                 // Check if file already exists
                 var fileHash = file.GetHash();
@@ -142,7 +141,7 @@ namespace plugin_nintendo.Archives
                     count = fileCount,
                     entryOffset = entryPosition,
                     stringOffset = (int)stringMap[fileGroup.Key] + stringOffset,
-                    fnvHash = BinaryPrimitives.ReadUInt32BigEndian(fnv.Compute(Encoding.ASCII.GetBytes(fileGroup.Key)))
+                    fnvHash = hash.ComputeValue(fileGroup.Key)
                 });
 
                 entryPosition += fileCount * EntrySize;

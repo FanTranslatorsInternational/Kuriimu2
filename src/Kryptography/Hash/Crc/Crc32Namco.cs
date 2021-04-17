@@ -1,14 +1,15 @@
 ﻿using System;
-using System.IO;
-
-#if NET_CORE_31
 using System.Buffers.Binary;
-#endif
+using System.IO;
 
 // https://github.com/mariodon/taikotools/blob/master/psvita-l7ctool/psvita-l7ctool/Crc32.cs
 namespace Kryptography.Hash.Crc
 {
-    public class Crc32Namco : IHash
+    /// <summary>
+    /// The CRC32 implementation by Bandai Namco.
+    /// </summary>
+    /// <remarks>This hash implementation is not thread-safe.</remarks>
+    public class Crc32Namco : BaseHash<uint>
     {
         #region Statics and Constants
 
@@ -58,66 +59,43 @@ namespace Kryptography.Hash.Crc
 
         private readonly uint[] _polynomialTable;
 
+        private uint _hash2;
+
         private Crc32Namco(uint[] polynomialTable)
         {
             _polynomialTable = polynomialTable ?? throw new ArgumentNullException(nameof(polynomialTable));
         }
 
-        public byte[] Compute(Span<byte> input)
+        protected override uint CreateInitialValue()
         {
-            var (result, _) = ComputeInternal(input, 0, input.Length, 0xFFFFFFFF, 0);
-
-            return MakeResult(~result);
+            _hash2 = 0;
+            return 0xFFFFFFFF;
         }
 
-        public byte[] Compute(Stream input)
+        protected override void FinalizeResult(ref uint result)
         {
-            var returnCrc = 0xFFFFFFFF;
-            var initialHash = 0u;
-
-            byte[] buffer = new byte[4096];
-            int readSize;
-            do
-            {
-                readSize = input.Read(buffer, 0, 4096);
-                (returnCrc, initialHash) = ComputeInternal(buffer, 0, readSize, returnCrc, initialHash);
-            } while (readSize > 0);
-
-            return MakeResult(~returnCrc);
+            result = ~result;
         }
 
-        private (uint, uint) ComputeInternal(Span<byte> toHash, int offset, int length, uint initialCrc, uint initialHash)
+        protected override void ComputeInternal(Span<byte> input, ref uint result)
         {
-            var returnCrc = initialCrc;
-            var hash2 = initialHash;
-
-            for (var i = offset; i < length; i++)
+            foreach (var value in input)
             {
-                returnCrc = (returnCrc >> 8) ^ _polynomialTable[(returnCrc & 0xff) ^ toHash[i]];
+                result = (result >> 8) ^ _polynomialTable[(result & 0xff) ^ value];
 
-                hash2 ^= returnCrc;
-                returnCrc = hash2 * toHash[i] + returnCrc;
-                hash2 *= 5;
-                hash2++;
+                _hash2 ^= result;
+                result = _hash2 * value + result;
+                _hash2 *= 5;
+                _hash2++;
             }
-
-            return (returnCrc, hash2);
         }
 
-        private byte[] MakeResult(uint result)
+        protected override byte[] ConvertResult(uint result)
         {
-            var returnBuffer = new byte[4];
+            var buffer = new byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(buffer,result);
 
-#if NET_CORE_31
-            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
-#else
-            returnBuffer[0] = (byte)(result >> 24);
-            returnBuffer[1] = (byte)(result >> 16);
-            returnBuffer[2] = (byte)(result >> 8);
-            returnBuffer[3] = (byte)result;
-#endif
-
-            return returnBuffer;
+            return buffer;
         }
     }
 }

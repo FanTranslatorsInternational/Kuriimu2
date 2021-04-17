@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -86,7 +85,6 @@ namespace plugin_level5._3DS.Archives
             _header.DataOffset = (ushort)((_headerSize + files.Count * _entrySize + nameStreamComp.Length + 3) & ~3);
 
             var crc32 = Crc32.Default;
-            var ascii = Encoding.ASCII;
 
             var fileOffset = (int)_header.DataOffset;
             foreach (var file in castedFiles.OrderBy(x => x.FileEntry.FileOffset))
@@ -96,7 +94,7 @@ namespace plugin_level5._3DS.Archives
 
                 file.FileEntry.FileOffset = fileOffset - _header.DataOffset;
                 file.FileEntry.FileSize = (int)writtenSize;
-                file.FileEntry.hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(ascii.GetBytes(file.FilePath.ToRelative().FullName)));
+                file.FileEntry.hash = crc32.ComputeValue(file.FilePath.ToRelative().FullName);
 
                 fileOffset = (int)output.Length;
             }

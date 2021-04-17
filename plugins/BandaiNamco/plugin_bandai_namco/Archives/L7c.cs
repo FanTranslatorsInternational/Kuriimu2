@@ -165,7 +165,7 @@ namespace plugin_bandai_namco.Archives
                     id = entryId++,
                     folderNameOffset = directoryNameOffset,
                     fileNameOffset = fileNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(file.FilePath.ToRelative().FullName.ToLower()))),
+                    hash = Crc32Namco.ComputeValue(file.FilePath.ToRelative().FullName.ToLower(), Encoding.UTF8),
                     timestamp = DateTime.Now.ToFileTime()
                 };
 
@@ -188,7 +188,7 @@ namespace plugin_bandai_namco.Archives
                 {
                     id = -1,
                     folderNameOffset = directoryNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(directory.AbsolutePath.FullName.ToLower()))),
+                    hash = Crc32Namco.ComputeValue(directory.AbsolutePath.FullName.ToLower(), Encoding.UTF8),
                     timestamp = DateTime.Now.ToFileTime()
                 };
 

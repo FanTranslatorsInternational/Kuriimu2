@@ -1,13 +1,9 @@
 ﻿using System;
-using System.IO;
-
-#if NET_CORE_31
 using System.Buffers.Binary;
-#endif
 
 namespace Kryptography.Hash.Fnv
 {
-    public class Fnv1 : IHash
+    public class Fnv1 : BaseHash<uint>
     {
         private const uint Initial = 0x811c9dc5;
         private const uint Prime = 0x1000193;
@@ -21,52 +17,27 @@ namespace Kryptography.Hash.Fnv
         {
         }
 
-        public byte[] Compute(Span<byte> input)
+        protected override uint CreateInitialValue()
         {
-            var result = ComputeInternal(input, 0, input.Length, Initial);
-
-            return MakeResult(result);
+            return Initial;
         }
 
-        public byte[] Compute(Stream input)
+        protected override void FinalizeResult(ref uint result)
         {
-            var returnFnv = Initial;
-
-            var buffer = new byte[4096];
-            int readSize;
-            do
-            {
-                readSize = input.Read(buffer, 0, 4096);
-                returnFnv = ComputeInternal(buffer, 0, readSize, returnFnv);
-            } while (readSize > 0);
-
-            return MakeResult(returnFnv);
         }
 
-        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialFnv)
+        protected override void ComputeInternal(Span<byte> input, ref uint result)
         {
-            var returnFnv = initialFnv;
-
-            while (length-- > 0)
-                returnFnv = (returnFnv * Prime) ^ toHash[offset++];
-
-            return returnFnv;
+            foreach (var value in input)
+                result = (result * Prime) ^ value;
         }
 
-        private byte[] MakeResult(uint result)
+        protected override byte[] ConvertResult(uint result)
         {
-            var returnBuffer = new byte[4];
+            var buffer = new byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(buffer,result);
 
-#if NET_CORE_31
-            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
-#else
-            returnBuffer[0] = (byte)(result >> 24);
-            returnBuffer[1] = (byte)(result >> 16);
-            returnBuffer[2] = (byte)(result >> 8);
-            returnBuffer[3] = (byte)result;
-#endif
-
-            return returnBuffer;
+            return buffer;
         }
     }
 }
