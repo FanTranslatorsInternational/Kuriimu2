@@ -352,7 +352,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateFormInternal();
 
             _formInfo.FormCommunicator.Update(true, false);
-            _formInfo.FormCommunicator.ReportStatus(true, "Thumbnail successfully imported.");
+            _formInfo.FormCommunicator.ReportStatus(true, "Image successfully imported.");
         }
 
         #endregion
