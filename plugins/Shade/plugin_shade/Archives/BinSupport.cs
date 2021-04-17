@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using Kontract.Interfaces.Progress;
+﻿using System.IO;
 using Kontract.Kompression.Configuration;
-using Kontract.Models.Archive;
 #pragma warning disable 649
 
 namespace plugin_shade.Archives
