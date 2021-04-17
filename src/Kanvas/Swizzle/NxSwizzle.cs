@@ -37,12 +37,14 @@ namespace Kanvas.Swizzle
         // TODO: Coords for block based encodings are prepended by the preparation method
         private static readonly Dictionary<int, (int, int)[]> CoordsBlock = new Dictionary<int, (int, int)[]>
         {
-            [4] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (0, 4), (8, 0), (0, 8), (0, 16), (16, 0) },
-            [8] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (0, 4), (4, 0), (0, 8), (0, 16), (8, 0) }
+            [04] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (4, 0), (0, 4), (8, 0), (0, 8), (0, 16), (16, 0) },
+            [08] = new[] { (1, 0), (2, 0), (0, 1), (0, 2), (0, 4), (4, 0), (0, 8), (0, 16), (8, 0) }
         };
 
         private static readonly Dictionary<int, (int, int)[]> CoordsRegular = new Dictionary<int, (int, int)[]>
         {
+            [08] = new[] { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (16, 0), (0, 2), (0, 4), (32, 0), (0, 8), (0, 16) },
+            [16] = new[] { (1, 0), (2, 0), (4, 0), (0, 1), (8, 0), (0, 2), (0, 4), (16, 0), (0, 8), (0, 16) },
             [32] = new[] { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0), (0, 8), (0, 16) }
         };
 
@@ -73,26 +75,38 @@ namespace Kanvas.Swizzle
 
         private (int, int) PadSizeToBlocks(int width, int height, IEncodingInfo encodingInfo)
         {
-            // Pad for Block Compression
             var isBlockCompression = encodingInfo is Bc;
-            if (isBlockCompression)
-                return ((width + 3) & ~3, (height + 3) & ~3);
+            var maxHeight = isBlockCompression ? BlockMaxSize_ : RegularMaxSize_;
+            var maxWidth = 16;
+
+            var newWidth = width > maxWidth ? ToMultiple(width, maxWidth) : ToPowerOfTwo(width);
+            var newHeight = height > maxHeight ? ToMultiple(height, maxHeight) : ToPowerOfTwo(height);
 
             // Default case
-            if (!AstcBlock.ContainsKey(encodingInfo.FormatName)) 
-                return (width, height);
+            if (!AstcBlock.ContainsKey(encodingInfo.FormatName))
+                return (newWidth, newHeight);
 
             // Pad for ASTC
             var astcBlock = AstcBlock[encodingInfo.FormatName];
 
             var restWidth = width % astcBlock.Item1;
-            var newWidth = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
+            newWidth = width + (restWidth != 0 ? astcBlock.Item1 - restWidth : 0);
 
             var restHeight = height % astcBlock.Item2;
-            var newHeight = height + (restHeight != 0 ? astcBlock.Item2 - restHeight : 0);
+            newHeight = height + (restHeight != 0 ? astcBlock.Item2 - restHeight : 0);
 
             return (newWidth, newHeight);
 
+        }
+
+        private int ToPowerOfTwo(int value)
+        {
+            return 2 << (int)Math.Log(value - 1, 2);
+        }
+
+        private int ToMultiple(int value, int multiple)
+        {
+            return (value + (multiple - 1)) / multiple * multiple;
         }
     }
 }

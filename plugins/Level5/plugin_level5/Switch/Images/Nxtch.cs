@@ -49,8 +49,6 @@ namespace plugin_level5.Switch.Images
             {
                 MipMapData = mipData
             };
-
-            imageInfo.PadSize.Height.ToPowerOfTwo().Width.ToMultiple(16);
             imageInfo.RemapPixels.With(context => new NxSwizzle(context));
 
             return imageInfo;
