@@ -23,23 +23,19 @@ namespace plugin_shade.Archives
         public int offSize;
     }
 
-    class BinArchiveFileInfo : ArchiveFileInfo
+    class BinArchiveFileInfo : ShadeArchiveFileInfo
     {
         public BinFileInfo Entry { get; }
-
-        public long OriginalSize { get; }
 
         public BinArchiveFileInfo(Stream fileData, string filePath, BinFileInfo entry) :
             base(fileData, filePath) 
         {
             Entry = entry;
-            OriginalSize = fileData.Length;
         }
         public BinArchiveFileInfo(Stream fileData, string filePath, BinFileInfo entry, IKompressionConfiguration configuration, long decompressedSize) : 
             base(fileData, filePath, configuration, decompressedSize)
         {
             Entry = entry;
-            OriginalSize = fileData.Length;
         }
     }
 }

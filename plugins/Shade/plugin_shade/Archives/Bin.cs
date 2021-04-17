@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.IO;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -11,30 +11,59 @@ namespace plugin_shade.Archives
 {
     class Bin
     {
+        BinHeader _header;
         public IList<IArchiveFileInfo> Load(Stream input) 
         {
             using var br = new BinaryReaderX(input, true);
             
+
             // Read Header
-            var header = br.ReadType<BinHeader>();
+            _header = br.ReadType<BinHeader>();
 
             // Read entries
-            var entries = br.ReadMultiple<BinFileInfo>(header.fileCount);
+            var entries = br.ReadMultiple<BinFileInfo>(_header.fileCount);
 
+            // Read files
             var files = new List<IArchiveFileInfo>();
             var index = 0;
             foreach(var entry in entries)
             {
-                var offset = (entry.offSize >> header.shiftFactor) * header.padFactor;
-                var size = (entry.offSize & header.mask) * header.mulFactor;
+                var offset = (entry.offSize >> _header.shiftFactor) * _header.padFactor;
+                var size = (entry.offSize & _header.mask) * _header.mulFactor;
 
                 var stream = new SubStream(input, offset, size);
                 files.Add(CreateAfi(stream, index++, entry));
 
             }
             return files;
-
         }
+
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
+        {
+            using var bw = new BinaryWriterX(output);
+            var castedFiles = files.Cast<BinArchiveFileInfo>();
+
+            
+            // Write files
+            foreach(var file in castedFiles)
+            {
+                var offset = (file.Entry.offSize >> _header.shiftFactor) * _header.padFactor;
+                output.Position = offset;
+
+                file.SaveFileData(output);
+            }
+            bw.WriteAlignment(_header.padFactor);
+
+
+            // Write header
+            output.Position = 0;
+            bw.WriteType(_header);
+
+            // Write entries
+            foreach (var file in castedFiles)
+                bw.Write(file.Entry.offSize);
+        }
+
         private ArchiveFileInfo CreateAfi(Stream stream, int index, BinFileInfo entry)
         {
             // Every file not compressed with the headered Spike Chunsoft compression, is compressed headerless

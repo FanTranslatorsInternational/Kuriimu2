@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using Kontract.Interfaces.Progress;
+using Kontract.Kompression.Configuration;
+using Kontract.Models.Archive;
 
 namespace plugin_shade.Archives
 {
@@ -95,6 +98,42 @@ namespace plugin_shade.Archives
             input.Position -= 4;
 
             return (uint)((buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0]);
+        }
+    }
+    class ShadeArchiveFileInfo : ArchiveFileInfo
+    {
+        public long OriginalSize { get; }
+
+        public ShadeArchiveFileInfo(Stream fileData, string filePath):
+            base(fileData, filePath)
+        {
+            OriginalSize = fileData.Length;
+        }
+        public ShadeArchiveFileInfo(Stream fileData, string filePath, IKompressionConfiguration configuration, long decompressedSize) :
+            base(fileData, filePath, configuration, decompressedSize)
+        {
+            OriginalSize = fileData.Length;
+        }
+
+        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
+        {
+            var writtenSize = base.SaveFileData(output, compress, progress);
+
+            if (writtenSize > OriginalSize)
+                throw new InvalidOperationException("The replaced file cannot be larger than its original.");
+
+            // Pad to original size
+            var paddedSize = OriginalSize - writtenSize;
+            if (paddedSize > 0)
+            {
+                var padding = new byte[paddedSize];
+                output.Write(padding, 0, padding.Length);
+
+                writtenSize += paddedSize;
+            }
+
+            // Return padded size as written
+            return writtenSize;
         }
     }
 }

@@ -25,45 +25,22 @@ namespace plugin_shade.Archives
     }
 
 
-    class BlnSubArchiveFileInfo : ArchiveFileInfo
+    class BlnSubArchiveFileInfo : ShadeArchiveFileInfo
     {
         public BlnSubEntry Entry { get; }
-
-        public long OriginalSize { get; }
 
         public BlnSubArchiveFileInfo(Stream fileData, string filePath, BlnSubEntry entry) :
             base(fileData, filePath)
         {
             Entry = entry;
-            OriginalSize = fileData.Length;
         }
 
         public BlnSubArchiveFileInfo(Stream fileData, string filePath, BlnSubEntry entry, IKompressionConfiguration configuration, long decompressedSize) :
             base(fileData, filePath, configuration, decompressedSize)
         {
             Entry = entry;
-            OriginalSize = fileData.Length;
         }
 
-        public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
-        {
-            var writtenSize = base.SaveFileData(output, compress, progress);
-
-            if (writtenSize > OriginalSize)
-                throw new InvalidOperationException("The replaced file cannot be larger than its original.");
-
-            // Pad to original size
-            var paddedSize = OriginalSize - writtenSize;
-            if (paddedSize > 0)
-            {
-                var padding = new byte[paddedSize];
-                output.Write(padding, 0, padding.Length);
-
-                writtenSize += paddedSize;
-            }
-
-            // Return padded size as written
-            return writtenSize;
-        }
+        
     }
 }
