@@ -35,7 +35,7 @@ namespace Kontract.Interfaces.Plugins.State
         
         #region Optional feature support checks
         
-        public bool CanSave => GetType().GetMethod("Save")!.IsOverriden();
+        public bool CanSave => this.ImplementsMethod(typeof(IPluginState), "Save");
         
         #endregion
     }

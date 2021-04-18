@@ -1,16 +1,26 @@
-using System.Reflection;
+using System;
 
 namespace Kontract.Extensions
 {
     public static class ReflectionExtensions
     {
         /// <summary>
-        /// Returns if the given MethodInfo belongs to an override method.
+        /// Returns if a method with the given methodName defined by the given interfaceType was implemented by this object's type.
         /// </summary>
-        /// https://stackoverflow.com/a/10020948/10434371
-        public static bool IsOverriden(this MethodInfo methodInfo)
+        public static bool ImplementsMethod(this object o, Type interfaceType, string methodName)
         {
-            return (methodInfo.GetBaseDefinition() != methodInfo);
+            var type = o.GetType();
+            
+            // Find the method that {interfaceType}.{methodName} was mapped to
+            var target = Array.Find(type.GetInterfaceMap(interfaceType).TargetMethods, method => method.Name == methodName);
+            
+            if (target == null)
+            {
+                throw new MissingMethodException($"Method {methodName} does not exist in interface map for {interfaceType.Name} of {type.Name}");
+            }
+            
+            // Check if it was NOT mapped to the interface itself (default implementation)
+            return target.DeclaringType != interfaceType;
         }
     }
 }

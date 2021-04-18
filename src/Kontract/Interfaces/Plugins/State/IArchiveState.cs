@@ -76,11 +76,11 @@ namespace Kontract.Interfaces.Plugins.State
         
         #region Optional feature support checks
         
-        public bool CanReplaceFiles => GetType().GetMethod("ReplaceFile")!.IsOverriden();
-        public bool CanRenameFiles => GetType().GetMethod("Rename")!.IsOverriden();
+        public bool CanReplaceFiles => this.ImplementsMethod(typeof(IArchiveState), "ReplaceFile");
+        public bool CanRenameFiles => this.ImplementsMethod(typeof(IArchiveState), "Rename");
         //TODO also check for RemoveAll?
-        public bool CanDeleteFiles => GetType().GetMethod("RemoveFile")!.IsOverriden();
-        public bool CanAddFiles => GetType().GetMethod("AddFile")!.IsOverriden();
+        public bool CanDeleteFiles => this.ImplementsMethod(typeof(IArchiveState), "RemoveFile");
+        public bool CanAddFiles => this.ImplementsMethod(typeof(IArchiveState), "AddFile");
         
         #endregion
     }

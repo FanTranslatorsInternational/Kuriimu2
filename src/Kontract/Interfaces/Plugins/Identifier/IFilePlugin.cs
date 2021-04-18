@@ -42,7 +42,7 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// <param name="filePath">The path to the file requested by the user.</param>
         /// <param name="identifyContext">The context for this identify operation, containing environment instances.</param>
         /// <returns>If the file is supported by this plugin.</returns>
-        Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
+        public Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             throw new InvalidOperationException();
         }
@@ -51,8 +51,8 @@ namespace Kontract.Interfaces.Plugins.Identifier
         
         #region Optional feature support checks
         
-        public bool CanIdentifyFiles => GetType().GetMethod("IdentifyAsync")!.IsOverriden();
-        
+        public bool CanIdentifyFiles => this.ImplementsMethod(typeof(IFilePlugin), "IdentifyAsync");
+
         #endregion
     }
 }
