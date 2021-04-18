@@ -13,8 +13,21 @@ namespace Kanvas.Swizzle
     /// </summary>
     public class NxSwizzle : IImageSwizzle
     {
+        // Observed patterns:
+        // 1. Max size and y extension are multiplied by 4 to regular limitations
+        // 2. Bit Fields contain more elements the lower the bit depth
+        // 2.1 One more element per possible halving starting from bit depth 32
+        // 3. Comparing bit fields reveals that diagonal values are either equal or a half of the higher value
+        
+        // Possible origins for patterns:
+        // 1. Block compression have 4-multiplied limitations due to the nature of 4x4 blocks of BC
+        //    Since block compressions require a 4x4 linear layout, they aren't actually part of the NxSwizzle and are therefore "skipped", resulting in the multiplication of 4
+
         private const int BlockMaxSize_ = 512;
         private const int RegularMaxSize_ = 128;
+
+        private const int BlockYExtensionStart_ = 32;
+        private const int RegularYExtensionStart_ = 8;
 
         private static readonly Dictionary<string, (int, int)> AstcBlock = new Dictionary<string, (int, int)>
         {
@@ -43,9 +56,9 @@ namespace Kanvas.Swizzle
 
         private static readonly Dictionary<int, (int, int)[]> CoordsRegular = new Dictionary<int, (int, int)[]>
         {
-            [08] = new[] { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (16, 0), (0, 2), (0, 4), (32, 0), (0, 8), (0, 16) },
-            [16] = new[] { (1, 0), (2, 0), (4, 0), (0, 1), (8, 0), (0, 2), (0, 4), (16, 0), (0, 8), (0, 16) },
-            [32] = new[] { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0), (0, 8), (0, 16) }
+            [08] = new[] { (1, 0), (2, 0), (4, 0), (8, 0), (0, 1), (16, 0), (0, 2), (0, 4), (32, 0) },
+            [16] = new[] { (1, 0), (2, 0), (4, 0), (0, 1), (8, 0), (0, 2), (0, 4), (16, 0) },
+            [32] = new[] { (1, 0), (2, 0), (0, 1), (4, 0), (0, 2), (0, 4), (8, 0) },
         };
 
         private readonly MasterSwizzle _swizzle;
@@ -64,7 +77,8 @@ namespace Kanvas.Swizzle
             // Expand baseBitField to a max macro block height
             var bitFieldExtension = new List<(int, int)>();
             var maxSize = isBlockCompression ? BlockMaxSize_ : RegularMaxSize_;
-            for (var i = 32; i < Math.Min(Height, maxSize); i *= 2)
+            var startY = isBlockCompression ? BlockYExtensionStart_ : RegularYExtensionStart_;
+            for (var i = startY; i < Math.Min(Height, maxSize); i *= 2)
                 bitFieldExtension.Add((0, i));
 
             _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, baseBitField.Concat(bitFieldExtension).ToArray());
