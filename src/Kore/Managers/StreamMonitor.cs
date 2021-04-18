@@ -168,7 +168,7 @@ namespace Kore.Managers
         private string GetCurrentDirectory()
         {
             var process = Process.GetCurrentProcess().MainModule;
-            return process == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+            return process == null || process.FileVersionInfo.InternalName == ".NET Host" ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
         }
 
         private void SetLogger(ILogger logger)
