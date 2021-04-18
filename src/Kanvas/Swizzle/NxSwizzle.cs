@@ -18,7 +18,7 @@ namespace Kanvas.Swizzle
         // 2. Bit Fields contain more elements the lower the bit depth
         // 2.1 One more element per possible halving starting from bit depth 32
         // 3. Comparing bit fields reveals that diagonal values are either equal or a half of the higher value
-        
+
         // Possible origins for patterns:
         // 1. Block compression have 4-multiplied limitations due to the nature of 4x4 blocks of BC
         //    Since block compressions require a 4x4 linear layout, they aren't actually part of the NxSwizzle and are therefore "skipped", resulting in the multiplication of 4
@@ -75,10 +75,11 @@ namespace Kanvas.Swizzle
             var baseBitField = isBlockCompression ? CoordsBlock[bitDepth] : CoordsRegular[bitDepth];
 
             // Expand baseBitField to a max macro block height
-            var bitFieldExtension = new List<(int, int)>();
             var maxSize = isBlockCompression ? BlockMaxSize_ : RegularMaxSize_;
             var startY = isBlockCompression ? BlockYExtensionStart_ : RegularYExtensionStart_;
-            for (var i = startY; i < Math.Min(Height, maxSize); i *= 2)
+
+            var bitFieldExtension = new List<(int, int)>();
+            for (var i = startY; i < Math.Min(ToNextPowerOfTwo(context.Size.Height), maxSize); i *= 2)
                 bitFieldExtension.Add((0, i));
 
             _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, baseBitField.Concat(bitFieldExtension).ToArray());
@@ -116,6 +117,11 @@ namespace Kanvas.Swizzle
         private int ToPowerOfTwo(int value)
         {
             return 2 << (int)Math.Log(value - 1, 2);
+        }
+
+        private int ToNextPowerOfTwo(int value)
+        {
+            return 2 << (int)Math.Log(value, 2);
         }
 
         private int ToMultiple(int value, int multiple)
