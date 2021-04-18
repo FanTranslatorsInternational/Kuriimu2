@@ -66,7 +66,7 @@ namespace Kanvas.Swizzle
         public int Width { get; }
         public int Height { get; }
 
-        public NxSwizzle(SwizzlePreparationContext context)
+        public NxSwizzle(SwizzlePreparationContext context, int swizzleMode = -1)
         {
             (Width, Height) = PadSizeToBlocks(context.Size.Width, context.Size.Height, context.EncodingInfo);
 
@@ -79,8 +79,17 @@ namespace Kanvas.Swizzle
             var startY = isBlockCompression ? BlockYExtensionStart_ : RegularYExtensionStart_;
 
             var bitFieldExtension = new List<(int, int)>();
-            for (var i = startY; i < Math.Min(ToNextPowerOfTwo(context.Size.Height), maxSize); i *= 2)
-                bitFieldExtension.Add((0, i));
+            if (swizzleMode == -1)
+            {
+                for (var i = startY; i < Math.Min(Height, maxSize); i *= 2)
+                    bitFieldExtension.Add((0, i));
+            }
+            else
+            {
+                var y = startY;
+                for (var j = 0; j < swizzleMode; y *= 2, j++)
+                    bitFieldExtension.Add((0, y));
+            }
 
             _swizzle = new MasterSwizzle(context.Size.Width, Point.Empty, baseBitField.Concat(bitFieldExtension).ToArray());
         }
