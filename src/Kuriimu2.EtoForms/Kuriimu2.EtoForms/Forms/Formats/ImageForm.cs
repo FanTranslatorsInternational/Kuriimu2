@@ -179,7 +179,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedImage = GetSelectedImage();
 
             saveButton.Enabled = selectedImage != null && _formInfo.CanSave;
-            saveAsButton.Enabled = selectedImage != null && _formInfo.CanSave && _formInfo.StateInfo.ParentStateInfo == null;
+            saveAsButton.Enabled = selectedImage != null && _formInfo.CanSave && _formInfo.FileState.ParentFileState == null;
 
             exportButton.Enabled = selectedImage != null;
             importButton.Enabled = selectedImage != null && _formInfo.CanSave;
@@ -235,7 +235,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
             var imageName = string.IsNullOrEmpty(selectedImage.Name) ?
-                _formInfo.StateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
+                _formInfo.FileState.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
                 selectedImage.Name;
 
             var sfd = new SaveFileDialog
@@ -387,7 +387,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private IList<IKanvasImage> GetStateImages()
         {
-            return (_formInfo.StateInfo.PluginState as IImageState).Images;
+            return (_formInfo.FileState.PluginState as IImageState).Images;
         }
 
         private IKanvasImage GetSelectedImage()
@@ -400,7 +400,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private EncodingDefinition GetEncodingDefinition()
         {
-            return (_formInfo.StateInfo.PluginState as IImageState).EncodingDefinition;
+            return (_formInfo.FileState.PluginState as IImageState).EncodingDefinition;
         }
 
         private int GetSelectedImageFormat()

@@ -52,39 +52,39 @@ namespace Kore.Factories
         }
 
         /// <summary>
-        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IFileState"/>.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState)
         {
-            return CreateAfiFileSystem(stateInfo, UPath.Root);
+            return CreateAfiFileSystem(fileState, UPath.Root);
         }
 
         /// <summary>
-        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IFileState"/>.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState, UPath path)
         {
-            if (!(stateInfo.PluginState is IArchiveState))
+            if (!(fileState.PluginState is IArchiveState))
                 throw new InvalidOperationException("This state is not an archive.");
 
-            return CreateAfiFileSystem(stateInfo, path, stateInfo.StreamManager);
+            return CreateAfiFileSystem(fileState, path, fileState.StreamManager);
         }
 
         /// <summary>
         /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IArchiveState"/>.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path, IStreamManager streamManager)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState, UPath path, IStreamManager streamManager)
         {
-            var fileSystem = (IFileSystem)new AfiFileSystem(stateInfo, streamManager);
+            var fileSystem = (IFileSystem)new AfiFileSystem(fileState, streamManager);
             if (path != UPath.Empty && path != UPath.Root)
                 fileSystem = new SubFileSystem(fileSystem, path);
 

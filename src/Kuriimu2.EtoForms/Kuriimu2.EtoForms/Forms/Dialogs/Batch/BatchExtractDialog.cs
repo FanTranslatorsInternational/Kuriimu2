@@ -9,13 +9,13 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         protected override string SourceEmptyText { get; } = "Select a directory with files to extract.";
         protected override string DestinationEmptyText { get; } = "Select a directory to extract the files to.";
 
-        public BatchExtractDialog(IInternalPluginManager pluginManager) : base(pluginManager)
+        public BatchExtractDialog(IInternalFileManager fileManager) : base(fileManager)
         {
         }
 
-        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, ILogger logger)
+        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger)
         {
-            return new BatchExtractor(pluginManager, logger);
+            return new BatchExtractor(fileManager, logger);
         }
     }
 }

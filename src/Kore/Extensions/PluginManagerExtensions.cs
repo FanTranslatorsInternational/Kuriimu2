@@ -8,24 +8,24 @@ namespace Kore.Extensions
 {
     public static class PluginManagerExtensions
     {
-        public static IEnumerable<IFilePlugin> GetFilePlugins(this IInternalPluginManager pluginManager)
+        public static IEnumerable<IFilePlugin> GetFilePlugins(this IInternalFileManager fileManager)
         {
-            return pluginManager.GetFilePluginLoaders().SelectMany(x => x.Plugins);
+            return fileManager.GetFilePluginLoaders().SelectMany(x => x.Plugins);
         }
 
-        public static IEnumerable<IFilePlugin> GetIdentifiableFilePlugins(this IInternalPluginManager pluginManager)
+        public static IEnumerable<IFilePlugin> GetIdentifiableFilePlugins(this IInternalFileManager fileManager)
         {
-            return pluginManager.GetFilePluginLoaders().GetIdentifiableFilePlugins();
+            return fileManager.GetFilePluginLoaders().GetIdentifiableFilePlugins();
         }
 
-        public static IEnumerable<IFilePlugin> GetNonIdentifiableFilePlugins(this IInternalPluginManager pluginManager)
+        public static IEnumerable<IFilePlugin> GetNonIdentifiableFilePlugins(this IInternalFileManager fileManager)
         {
-            return pluginManager.GetFilePluginLoaders().GetNonIdentifiableFilePlugins();
+            return fileManager.GetFilePluginLoaders().GetNonIdentifiableFilePlugins();
         }
 
-        public static IEnumerable<IGameAdapter> GetGameAdapters(this IInternalPluginManager pluginManager)
+        public static IEnumerable<IGameAdapter> GetGameAdapters(this IInternalFileManager fileManager)
         {
-            return pluginManager.GetGamePluginLoaders().SelectMany(x => x.Plugins);
+            return fileManager.GetGamePluginLoaders().SelectMany(x => x.Plugins);
         }
     }
 }

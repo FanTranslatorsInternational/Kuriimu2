@@ -11,15 +11,15 @@ namespace Kuriimu2.EtoForms.Forms
 {
     class FormCommunicator : IArchiveFormCommunicator
     {
-        private readonly IStateInfo _stateInfo;
+        private readonly IFileState _fileState;
         private readonly IMainForm _mainForm;
 
-        public FormCommunicator(IStateInfo stateInfo, IMainForm mainForm)
+        public FormCommunicator(IFileState fileState, IMainForm mainForm)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
             ContractAssertions.IsNotNull(mainForm, nameof(mainForm));
 
-            _stateInfo = stateInfo;
+            _fileState = fileState;
             _mainForm = mainForm;
         }
 
@@ -31,11 +31,11 @@ namespace Kuriimu2.EtoForms.Forms
 
         public Task<bool> Save(bool saveAs)
         {
-            return _mainForm.SaveFile(_stateInfo, saveAs);
+            return _mainForm.SaveFile(_fileState, saveAs);
             //if (_mainFormControl != null && _mainFormControl.InvokeRequired)
-            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, bool, Task<bool>>((s1, s2) => _mainForm.SaveFile(s1, s2)), _stateInfo, saveAs);
+            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IFileState, bool, Task<bool>>((s1, s2) => _mainForm.SaveFile(s1, s2)), _fileState, saveAs);
 
-            //return _mainForm.SaveFile(_stateInfo, saveAs);
+            //return _mainForm.SaveFile(_fileState, saveAs);
         }
 
         public Task<bool> Open(IArchiveFileInfo file)
@@ -45,20 +45,20 @@ namespace Kuriimu2.EtoForms.Forms
 
         public Task<bool> Open(IArchiveFileInfo file, Guid pluginId)
         {
-            return _mainForm.OpenFile(_stateInfo, file, pluginId);
+            return _mainForm.OpenFile(_fileState, file, pluginId);
             //if (_mainFormControl != null && _mainFormControl.InvokeRequired)
-            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, IArchiveFileInfo, Guid, Task<bool>>((s1, a1, g1) => _mainForm.OpenFile(s1, a1, g1)), _stateInfo, file, pluginId);
+            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IFileState, IArchiveFileInfo, Guid, Task<bool>>((s1, a1, g1) => _mainForm.OpenFile(s1, a1, g1)), _fileState, file, pluginId);
 
-            //return _mainForm.OpenFile(_stateInfo, file, pluginId);
+            //return _mainForm.OpenFile(_fileState, file, pluginId);
         }
 
         public Task<bool> Close(IArchiveFileInfo file)
         {
-            return _mainForm.CloseFile(_stateInfo, file);
+            return _mainForm.CloseFile(_fileState, file);
             //if (_mainFormControl != null && _mainFormControl.InvokeRequired)
-            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IStateInfo, IArchiveFileInfo, Task<bool>>((s1, a1) => _mainForm.CloseFile(s1, a1)), _stateInfo, file);
+            //    return (Task<bool>)_mainFormControl.Invoke(new Func<IFileState, IArchiveFileInfo, Task<bool>>((s1, a1) => _mainForm.CloseFile(s1, a1)), _fileState, file);
 
-            //return _mainForm.CloseFile(_stateInfo, file);
+            //return _mainForm.CloseFile(_fileState, file);
         }
 
         #endregion
@@ -70,12 +70,12 @@ namespace Kuriimu2.EtoForms.Forms
 
         public void Update(bool updateParents, bool updateChildren)
         {
-            InvokeAction(() => _mainForm.Update(_stateInfo, updateParents, updateChildren));
+            InvokeAction(() => _mainForm.Update(_fileState, updateParents, updateChildren));
         }
 
         public void Rename(IArchiveFileInfo file, UPath renamedPath)
         {
-            InvokeAction(() => _mainForm.RenameFile(_stateInfo, file, renamedPath));
+            InvokeAction(() => _mainForm.RenameFile(_fileState, file, renamedPath));
         }
 
         public void ReportStatus(bool isSuccessful, string message)

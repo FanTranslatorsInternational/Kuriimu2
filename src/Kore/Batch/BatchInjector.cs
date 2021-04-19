@@ -11,8 +11,8 @@ namespace Kore.Batch
 {
     public class BatchInjector : BaseBatchProcessor
     {
-        public BatchInjector(IInternalPluginManager pluginManager, ILogger logger) : 
-            base(pluginManager, logger)
+        public BatchInjector(IInternalFileManager fileManager, ILogger logger) : 
+            base(fileManager, logger)
         {
         }
 
@@ -45,7 +45,7 @@ namespace Kore.Batch
             await SaveFile(loadedFile);
 
             // Close file
-            PluginManager.Close(loadedFile);
+            FileManager.Close(loadedFile);
         }
 
         private void InjectArchive(IArchiveState archiveState, UPath filePath, IFileSystem destinationFileSystem)

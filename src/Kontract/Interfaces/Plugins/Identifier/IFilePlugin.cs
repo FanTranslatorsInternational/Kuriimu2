@@ -31,9 +31,9 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// <summary>
         /// Creates an <see cref="IPluginState"/> to further work with the file.
         /// </summary>
-        /// <param name="pluginManager">The plugin manager to load files with the Kuriimu runtime.</param>
+        /// <param name="fileManager">The plugin manager to load files with the Kuriimu runtime.</param>
         /// <returns>Newly created <see cref="IPluginState"/>.</returns>
-        IPluginState CreatePluginState(IPluginManager pluginManager);
+        IPluginState CreatePluginState(IFileManager fileManager);
         
         /// <summary>
         /// Identify if a file is supported by this plugin.

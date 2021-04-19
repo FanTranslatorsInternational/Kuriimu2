@@ -53,13 +53,13 @@ namespace Kore.Managers.Plugins.FileManagement
             }
 
             // 3. Create state from identified plugin
-            var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
+            var subPluginManager = new ScopedFileManager(loadInfo.FileManager);
             var createResult = TryCreateState(plugin, subPluginManager, loadInfo, out var state);
             if (!createResult.IsSuccessful)
                 return createResult;
 
             // 4. Create new state info
-            var stateInfo = new StateInfo(plugin, state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
+            var stateInfo = new DefaultFileState(plugin, state, loadInfo.ParentFileState, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
             subPluginManager.RegisterStateInfo(stateInfo);
 
             // 5. Load data from state
@@ -164,17 +164,17 @@ namespace Kore.Managers.Plugins.FileManagement
         /// Try to create a new plugin state.
         /// </summary>
         /// <param name="plugin">The plugin from which to create a new state.</param>
-        /// <param name="pluginManager">The plugin manager to pass to the state creation.</param>
+        /// <param name="fileManager">The plugin manager to pass to the state creation.</param>
         /// <param name="pluginState">The created state.</param>
         /// <param name="loadInfo">The load info for this loading operation.</param>
         /// <returns>If the creation was successful.</returns>
-        private LoadResult TryCreateState(IFilePlugin plugin, IPluginManager pluginManager, LoadInfo loadInfo, out IPluginState pluginState)
+        private LoadResult TryCreateState(IFilePlugin plugin, IFileManager fileManager, LoadInfo loadInfo, out IPluginState pluginState)
         {
             pluginState = null;
 
             try
             {
-                pluginState = plugin.CreatePluginState(pluginManager);
+                pluginState = plugin.CreatePluginState(fileManager);
             }
             catch (Exception e)
             {

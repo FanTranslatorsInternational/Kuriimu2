@@ -10,12 +10,12 @@ namespace Kontract.Interfaces.Managers
     /// <summary>
     /// Exposes properties for a loaded file in the Kuriimu runtime.
     /// </summary>
-    public interface IStateInfo : IDisposable
+    public interface IFileState : IDisposable
     {
         /// <summary>
         /// The plugin manager for this state.
         /// </summary>
-        IPluginManager PluginManager { get; }
+        IFileManager FileManager { get; }
 
         /// <summary>
         /// The entry class of the plugin for this file.
@@ -52,13 +52,13 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// All child states that were opened from this one.
         /// </summary>
-        IList<IStateInfo> ArchiveChildren { get; }
+        IList<IFileState> ArchiveChildren { get; }
 
         /// <summary>
         /// The parent state from which this file was opened.
         /// <see langword="null" /> if this file wasn't opened from another state.
         /// </summary>
-        IStateInfo ParentStateInfo { get; }
+        IFileState ParentFileState { get; }
 
         /// <summary>
         /// The values retrieved by dialogs in the initial load process.

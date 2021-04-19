@@ -6,7 +6,7 @@ using Serilog;
 namespace Kontract.Models.Context
 {
     /// <summary>
-    /// The class containing all environment instances for a load process in <see cref="IPluginManager"/>.
+    /// The class containing all environment instances for a load process in <see cref="IFileManager"/>.
     /// </summary>
     public class LoadFileContext
     {
