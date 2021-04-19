@@ -13,13 +13,6 @@ namespace Kontract.Interfaces.Plugins.State.Game
     /// </summary>
     public interface IGameAdapter : IGamePlugin
     {
-        PluginMetadata MetaData { get; }
-
-        //TODO: Implement game adapters
-        /// <summary>
-        /// 
-        /// </summary>
-        Guid PluginId { get; }
 
         /// <summary>
         /// 
