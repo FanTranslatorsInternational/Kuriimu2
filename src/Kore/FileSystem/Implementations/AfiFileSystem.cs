@@ -121,12 +121,7 @@ namespace Kore.FileSystem.Implementations
             // Move files
             foreach (var file in element.Item2)
             {
-                if (ArchiveState.CanRenameFiles)
-                {
-                    //XXX this check is the equivalent of the 'as' cast here previously
-                    //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                    ArchiveState.Rename(file, destPath / file.FilePath.GetName());
-                }
+                ArchiveState.Rename(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -167,12 +162,7 @@ namespace Kore.FileSystem.Implementations
             // Delete files
             foreach (var file in element.Item2)
             {
-                if (ArchiveState.CanDeleteFiles)
-                {
-                    //XXX this check is the equivalent of the 'as' cast here previously
-                    //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                    ArchiveState.RemoveFile(file);
-                }
+                ArchiveState.RemoveFile(file);
             }
 
             element.Item2.Clear();
@@ -248,13 +238,8 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            if (ArchiveState.CanRenameFiles)
-            {
-                //XXX this check is the equivalent of the 'as' cast here previously
-                //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                ArchiveState.Rename(file, destPath);
-            }
-
+            ArchiveState.Rename(file, destPath);
+            
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
             // Create directory of destination
@@ -282,12 +267,7 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            if (ArchiveState.CanDeleteFiles)
-            {
-                //XXX this check is the equivalent of the 'as' cast here previously
-                //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                ArchiveState.RemoveFile(file);
-            }
+            ArchiveState.RemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }

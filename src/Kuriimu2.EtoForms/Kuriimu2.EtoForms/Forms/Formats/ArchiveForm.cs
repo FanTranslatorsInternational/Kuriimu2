@@ -772,13 +772,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
 
-                    if (_formInfo.CanReplaceFiles)
-                    {
-                        //XXX this check is the equivalent of the 'as' cast here previously
-                        //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                        // TODO this cast smells, should IFileState/IPluginState be generified?
-                        ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(file, currentFileStream);
-                    }
+                    // TODO this cast smells, should IFileState/IPluginState be generified?
+                    ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(file, currentFileStream);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
@@ -849,13 +844,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    if (_formInfo.CanReplaceFiles)
-                    {
-                        //XXX this check is the equivalent of the 'as' cast here previously
-                        //  However, the 'unsupported' case doesn't seem to be handled anywhere
-                        // TODO this cast smells, should IFileState/IPluginState be generified?
-                        ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(afi, currentFileStream);
-                    }
+                    // TODO this cast smells, should IFileState/IPluginState be generified?
+                    ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(afi, currentFileStream);
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }
