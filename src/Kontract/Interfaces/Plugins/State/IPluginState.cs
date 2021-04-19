@@ -30,13 +30,26 @@ namespace Kontract.Interfaces.Plugins.State
         {
             throw new InvalidOperationException();
         }
+
+        /// <summary>
+        /// Load the file into the state.
+        /// </summary>
+        /// <param name="fileSystem">The file system from which the file is requested.</param>
+        /// <param name="filePath">The path to the file requested by the user.</param>
+        /// <param name="loadContext">The context for this load operation, containing environment instances.</param>
+        /// <returns>If the load procedure was successful.</returns>
+        Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
+        {
+            throw new InvalidOperationException();
+        }
         
         #endregion
         
         #region Optional feature support checks
         
-        public bool CanSave => this.ImplementsMethod(typeof(IPluginState), "Save");
-        
+        public bool CanSave => this.ImplementsMethod(typeof(IPluginState), nameof(Save));
+        public bool CanLoad => this.ImplementsMethod(typeof(IPluginState), nameof(Load));
+
         #endregion
     }
 }

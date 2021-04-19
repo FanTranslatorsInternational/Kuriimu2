@@ -9,6 +9,7 @@ namespace Kontract.Interfaces.Plugins.State
     /// <summary>
     /// Marks the plugin as loadable and exposes methods to load a file into the state.
     /// </summary>
+    [Obsolete("Override IPluginState.Load instead")]
     public interface ILoadFiles
     {
         /// <summary>

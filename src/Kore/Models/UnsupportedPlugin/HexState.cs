@@ -7,7 +7,7 @@ using Kontract.Models.IO;
 
 namespace Kore.Models.UnsupportedPlugin
 {
-    public class HexState : IHexState, ILoadFiles
+    public class HexState : IHexState
     {
         public Stream FileStream { get; private set; }
 

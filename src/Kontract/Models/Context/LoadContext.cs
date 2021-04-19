@@ -6,7 +6,7 @@ using Kontract.Interfaces.Providers;
 namespace Kontract.Models.Context
 {
     /// <summary>
-    /// The class containing all environment instances for a <see cref="ILoadFiles.Load"/> action.
+    /// The class containing all environment instances for a <see cref="IPluginState.Load"/> action.
     /// </summary>
     public class LoadContext
     {

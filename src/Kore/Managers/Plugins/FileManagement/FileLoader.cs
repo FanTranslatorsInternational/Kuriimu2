@@ -198,14 +198,14 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
             LoadContext loadContext, LoadInfo loadInfo, IFilePlugin plugin)
         {
-            // 1. Check if state implements ILoadFile
-            if (!(pluginState is ILoadFiles loadableState))
+            // 1. Check if state supports loading
+            if (!pluginState.CanLoad)
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await pluginState.Load(fileSystem, filePath, loadContext));
             }
             catch (Exception e)
             {

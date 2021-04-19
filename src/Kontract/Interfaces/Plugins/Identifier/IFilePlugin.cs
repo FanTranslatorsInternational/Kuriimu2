@@ -51,7 +51,7 @@ namespace Kontract.Interfaces.Plugins.Identifier
         
         #region Optional feature support checks
         
-        public bool CanIdentifyFiles => this.ImplementsMethod(typeof(IFilePlugin), "IdentifyAsync");
+        public bool CanIdentifyFiles => this.ImplementsMethod(typeof(IFilePlugin), nameof(IdentifyAsync));
 
         #endregion
     }

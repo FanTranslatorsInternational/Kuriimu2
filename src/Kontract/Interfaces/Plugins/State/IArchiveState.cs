@@ -76,11 +76,11 @@ namespace Kontract.Interfaces.Plugins.State
         
         #region Optional feature support checks
         
-        public bool CanReplaceFiles => this.ImplementsMethod(typeof(IArchiveState), "ReplaceFile");
-        public bool CanRenameFiles => this.ImplementsMethod(typeof(IArchiveState), "Rename");
+        public bool CanReplaceFiles => this.ImplementsMethod(typeof(IArchiveState), nameof(ReplaceFile));
+        public bool CanRenameFiles => this.ImplementsMethod(typeof(IArchiveState), nameof(Rename));
         //TODO also check for RemoveAll?
-        public bool CanDeleteFiles => this.ImplementsMethod(typeof(IArchiveState), "RemoveFile");
-        public bool CanAddFiles => this.ImplementsMethod(typeof(IArchiveState), "AddFile");
+        public bool CanDeleteFiles => this.ImplementsMethod(typeof(IArchiveState), nameof(RemoveFile));
+        public bool CanAddFiles => this.ImplementsMethod(typeof(IArchiveState), nameof(AddFile));
         
         #endregion
     }

@@ -1,10 +1,12 @@
-﻿using Kontract.Models.Text;
+﻿using System;
+using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// This interface allows the text adapter to rename entries through the UI making use of the NameList.
     /// </summary>
+    [Obsolete("Override ITextState.RenameEntry instead")]
     public interface IRenameEntries
     {
         /// <summary>
