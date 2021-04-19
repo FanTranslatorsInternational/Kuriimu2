@@ -16,6 +16,7 @@ namespace Kuriimu2.EtoForms.Forms.Models
         }
         
         // TODO this cast smells, should IFileState/IPluginState be generified?
+        // TODO can be inlined if generified
         public bool CanReplaceFiles => FileState.PluginState is IArchiveState {CanReplaceFiles: true};
         public bool CanRenameFiles => FileState.PluginState is IArchiveState {CanRenameFiles: true};
         //TODO also check for RemoveAll?
@@ -32,9 +33,6 @@ namespace Kuriimu2.EtoForms.Forms.Models
         public IProgressContext Progress { get; }
 
         public ILogger Logger { get; }
-
-        // TODO remove+inline?
-        public bool CanSave => FileState.PluginState.CanSave;
 
         public FormInfo(IFileState fileState, IFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
         {

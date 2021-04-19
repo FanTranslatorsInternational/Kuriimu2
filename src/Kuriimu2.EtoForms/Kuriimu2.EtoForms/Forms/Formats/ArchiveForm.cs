@@ -132,7 +132,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateProperties()
         {
-            var canSave = _formInfo.CanSave;
+            var canSave = _formInfo.FileState.PluginState.CanSave;
 
             // Menu
             saveButton.Enabled = canSave && !_asyncOperation.IsRunning;

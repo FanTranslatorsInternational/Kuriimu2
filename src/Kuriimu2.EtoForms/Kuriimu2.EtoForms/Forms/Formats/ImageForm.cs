@@ -178,11 +178,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
 
-            saveButton.Enabled = selectedImage != null && _formInfo.CanSave;
-            saveAsButton.Enabled = selectedImage != null && _formInfo.CanSave && _formInfo.FileState.ParentFileState == null;
+            saveButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
+            saveAsButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave && _formInfo.FileState.ParentFileState == null;
 
             exportButton.Enabled = selectedImage != null;
-            importButton.Enabled = selectedImage != null && _formInfo.CanSave;
+            importButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
 
             var definition = GetEncodingDefinition();
             var isIndexed = selectedImage?.IsIndexed ?? false;
