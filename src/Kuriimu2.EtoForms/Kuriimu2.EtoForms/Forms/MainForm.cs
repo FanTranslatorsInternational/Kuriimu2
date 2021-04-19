@@ -109,7 +109,7 @@ namespace Kuriimu2.EtoForms.Forms
                 DialogManager = new DialogManagerDialog(this),
                 Logger = _logger
             };
-            _fileManager.OnManualSelection += FileManagerOnManualSelection;
+            _fileManager.OnManualSelection += fileManager_OnManualSelection;
 
             if (_fileManager.LoadErrors.Any())
                 DisplayPluginErrors(_fileManager.LoadErrors);
@@ -715,7 +715,7 @@ namespace Kuriimu2.EtoForms.Forms
             Settings.Default.Save();
         }
 
-        private void FileManagerOnManualSelection(object sender, ManualSelectionEventArgs e)
+        private void fileManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
             var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins, e.FilterNote, e.FilteredPlugins);
             if (selectedPlugin != null)

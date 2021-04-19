@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -8,7 +8,6 @@ using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
-using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -132,7 +131,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateProperties()
         {
-            var canSave = _formInfo.FileState.PluginState.CanSave;
+            var canSave = _formInfo.CanSave;
 
             // Menu
             saveButton.Enabled = canSave && !_asyncOperation.IsRunning;
@@ -756,6 +755,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
+                var replaceState = _formInfo.FileState.PluginState as IReplaceFiles;
                 foreach (var file in files)
                 {
                     if (cts.IsCancellationRequested)
@@ -771,9 +771,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-
-                    // TODO this cast smells, should IFileState/IPluginState be generified?
-                    ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(file, currentFileStream);
+                    replaceState?.ReplaceFile(file, currentFileStream);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
@@ -829,6 +827,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
+                var replaceState = _formInfo.FileState.PluginState as IReplaceFiles;
                 foreach (var filePath in filePaths)
                 {
                     if (cts.IsCancellationRequested)
@@ -844,8 +843,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    // TODO this cast smells, should IFileState/IPluginState be generified?
-                    ((IArchiveState)_formInfo.FileState.PluginState).ReplaceFile(afi, currentFileStream);
+                    replaceState?.ReplaceFile(afi, currentFileStream);
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }

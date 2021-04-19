@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -178,11 +178,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
 
-            saveButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
-            saveAsButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave && _formInfo.FileState.ParentFileState == null;
+            var isSaveState = _formInfo.FileState.PluginState is ISaveFiles;
+            saveButton.Enabled = selectedImage != null && isSaveState;
+            saveAsButton.Enabled = selectedImage != null && isSaveState && _formInfo.FileState.ParentFileState == null;
 
             exportButton.Enabled = selectedImage != null;
-            importButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
+            importButton.Enabled = selectedImage != null && isSaveState;
 
             var definition = GetEncodingDefinition();
             var isIndexed = selectedImage?.IsIndexed ?? false;
@@ -384,6 +385,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         #endregion
 
         #region Support
+
+        private ISaveFiles GetSaveState()
+        {
+            return _formInfo.FileState.PluginState as ISaveFiles;
+        }
 
         private IList<IKanvasImage> GetStateImages()
         {

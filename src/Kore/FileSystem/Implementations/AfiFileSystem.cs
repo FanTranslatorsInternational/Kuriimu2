@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,10 +71,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => ArchiveState.CanDeleteFiles;
+        public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
-        public override bool CanMoveDirectories => ArchiveState.CanRenameFiles;
+        public override bool CanMoveDirectories => ArchiveState is IRenameFiles;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -119,9 +119,10 @@ namespace Kore.FileSystem.Implementations
             CreateDirectoryInternal(destPath);
 
             // Move files
+            var renameState = ArchiveState as IRenameFiles;
             foreach (var file in element.Item2)
             {
-                ArchiveState.Rename(file, destPath / file.FilePath.GetName());
+                renameState?.Rename(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -160,10 +161,9 @@ namespace Kore.FileSystem.Implementations
                 _directoryDictionary[parent].Item1.Remove(path);
 
             // Delete files
+            var removeState = ArchiveState as IRemoveFiles;
             foreach (var file in element.Item2)
-            {
-                ArchiveState.RemoveFile(file);
-            }
+                removeState?.RemoveFile(file);
 
             element.Item2.Clear();
         }
@@ -173,7 +173,7 @@ namespace Kore.FileSystem.Implementations
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => ArchiveState.CanAddFiles;
+        public override bool CanCreateFiles => ArchiveState is IAddFiles;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -184,10 +184,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanMoveFiles => ArchiveState.CanRenameFiles;
+        public override bool CanMoveFiles => ArchiveState is IRenameFiles;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => ArchiveState.CanDeleteFiles;
+        public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
@@ -238,8 +238,9 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            ArchiveState.Rename(file, destPath);
-            
+            var renameState = ArchiveState as IRenameFiles;
+            renameState?.Rename(file, destPath);
+
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
             // Create directory of destination
@@ -267,7 +268,8 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            ArchiveState.RemoveFile(file);
+            var removingState = ArchiveState as IRemoveFiles;
+            removingState?.RemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -509,10 +511,10 @@ namespace Kore.FileSystem.Implementations
 
         private IArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
         {
-            if (!ArchiveState.CanAddFiles)
+            if (!(_fileState.PluginState is IAddFiles addState))
                 return null;
 
-            var newAfi = ArchiveState.AddFile(fileData, newFilePath);
+            var newAfi = addState.AddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());

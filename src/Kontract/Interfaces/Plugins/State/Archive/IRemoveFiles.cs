@@ -1,12 +1,10 @@
-using System;
-using Kontract.Models.Archive;
+﻿using Kontract.Models.Archive;
 
 namespace Kontract.Interfaces.Plugins.State.Archive
 {
     /// <summary>
     /// Marks the archive state able to remove files.
     /// </summary>
-    [Obsolete("Override IArchiveState.RemoveFile and RemoveAll instead")]
     public interface IRemoveFiles
     {
         /// <summary>

@@ -86,14 +86,14 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
         private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
-            // 1. Get all plugins that support identification
+            // 1. Get all plugins that implement IIdentifyFile
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
             // 2. Identify the file with identifiable plugins
             var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
-                var filePlugin = identifiablePlugin;
+                var filePlugin = identifiablePlugin as IFilePlugin;
 
                 try
                 {
@@ -134,7 +134,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="filePath">The path of the file to identify.</param>
         /// <param name="streamManager">The stream manager.</param>
         /// <returns>If hte identification was successful.</returns>
-        private async Task<bool> TryIdentifyFileAsync(IFilePlugin identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
+        private async Task<bool> TryIdentifyFileAsync(IIdentifyFiles identifyFile, IFileSystem fileSystem, UPath filePath, IStreamManager streamManager)
         {
             // 1. Identify plugin
             var identifyContext = new IdentifyContext(streamManager.CreateTemporaryStreamProvider());
@@ -198,14 +198,14 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
             LoadContext loadContext, LoadInfo loadInfo, IFilePlugin plugin)
         {
-            // 1. Check if state supports loading
-            if (!pluginState.CanLoad)
+            // 1. Check if state implements ILoadFile
+            if (!(pluginState is ILoadFiles loadableState))
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await pluginState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
             }
             catch (Exception e)
             {

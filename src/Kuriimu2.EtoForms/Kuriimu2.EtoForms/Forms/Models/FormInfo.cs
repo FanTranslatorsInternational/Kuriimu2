@@ -1,7 +1,7 @@
-﻿using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Interfaces.Progress;
-using Kontract.Models.Archive;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Serilog;
 
@@ -15,13 +15,10 @@ namespace Kuriimu2.EtoForms.Forms.Models
         {
         }
         
-        // TODO this cast smells, should IFileState/IPluginState be generified?
-        // TODO can be inlined if generified
-        public bool CanReplaceFiles => FileState.PluginState is IArchiveState {CanReplaceFiles: true};
-        public bool CanRenameFiles => FileState.PluginState is IArchiveState {CanRenameFiles: true};
-        //TODO also check for RemoveAll?
-        public bool CanDeleteFiles => FileState.PluginState is IArchiveState {CanDeleteFiles: true};
-        public bool CanAddFiles => FileState.PluginState is IArchiveState {CanAddFiles: true};
+        public bool CanReplaceFiles => FileState.PluginState is IReplaceFiles;
+        public bool CanRenameFiles => FileState.PluginState is IRenameFiles;
+        public bool CanDeleteFiles => FileState.PluginState is IRemoveFiles;
+        public bool CanAddFiles => FileState.PluginState is IAddFiles;
     }
 
     public class FormInfo
@@ -33,6 +30,8 @@ namespace Kuriimu2.EtoForms.Forms.Models
         public IProgressContext Progress { get; }
 
         public ILogger Logger { get; }
+        
+        public bool CanSave => FileState.PluginState is ISaveFiles;
 
         public FormInfo(IFileState fileState, IFormCommunicator formCommunicator, IProgressContext progress, ILogger logger)
         {

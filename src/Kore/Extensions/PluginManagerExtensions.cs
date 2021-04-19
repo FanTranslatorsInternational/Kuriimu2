@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State.Game;
@@ -13,7 +13,7 @@ namespace Kore.Extensions
             return fileManager.GetFilePluginLoaders().SelectMany(x => x.Plugins);
         }
 
-        public static IEnumerable<IFilePlugin> GetIdentifiableFilePlugins(this IInternalFileManager fileManager)
+        public static IEnumerable<IIdentifyFiles> GetIdentifiableFilePlugins(this IInternalFileManager fileManager)
         {
             return fileManager.GetFilePluginLoaders().GetIdentifiableFilePlugins();
         }

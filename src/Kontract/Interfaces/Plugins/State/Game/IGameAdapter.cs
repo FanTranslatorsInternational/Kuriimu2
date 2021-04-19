@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using Kontract.Extensions;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
 using Kontract.Models.Text;
@@ -45,25 +43,5 @@ namespace Kontract.Interfaces.Plugins.State.Game
         /// </summary>
         /// <returns></returns>
         IEnumerable<TextEntry> SaveEntries();
-        
-        #region Optional features
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <returns></returns>
-        Bitmap GeneratePreview(TextEntry entry)
-        {
-            throw new InvalidOperationException();
-        }
-        
-        #endregion
-        
-        #region Optional feature support checks
-        
-        public bool CanGeneratePreview => this.ImplementsMethod(typeof(IGameAdapter), nameof(GeneratePreview));
-        
-        #endregion
     }
 }

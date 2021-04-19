@@ -259,7 +259,7 @@ namespace Kore.Managers.Plugins
         public async Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
             // If fileState is no archive state
-            if (!(fileState.PluginState is IArchiveState _))
+            if (!(fileState.PluginState is IArchiveState))
                 throw new InvalidOperationException("The state represents no archive.");
 
             // If file is already loaded or loading

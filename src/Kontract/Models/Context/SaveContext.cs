@@ -4,7 +4,7 @@ using Kontract.Interfaces.Progress;
 namespace Kontract.Models.Context
 {
     /// <summary>
-    /// The class containing all environment instances for a <see cref="IPluginState.Save"/> action.
+    /// The class containing all environment instances for a <see cref="ISaveFiles.Save"/> action.
     /// </summary>
     public class SaveContext
     {

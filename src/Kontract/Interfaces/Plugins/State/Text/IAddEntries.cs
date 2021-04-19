@@ -1,12 +1,10 @@
-﻿using System;
-using Kontract.Models.Text;
+﻿using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// This interface allows the text adapter to add new entries through the UI.
     /// </summary>
-    [Obsolete("Override ITextState.AddEntry instead")]
     public interface IAddEntries
     {
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Kontract.Extensions;
@@ -36,7 +36,7 @@ namespace Kore.Managers.Plugins.FileManagement
             SaveInfo saveInfo, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!(fileState.PluginState.CanSave) || !fileState.StateChanged)
+            if (!(fileState.PluginState is ISaveFiles) || !fileState.StateChanged)
                 return new SaveResult(true, "The file had no changes and was not saved.");
 
             // 2. Save child states
@@ -93,7 +93,7 @@ namespace Kore.Managers.Plugins.FileManagement
         {
             // 1. Save state to a temporary destination
             var temporaryContainer = _streamMonitor.CreateTemporaryFileSystem();
-            var saveStateResult = await TrySaveState(fileState.PluginState, temporaryContainer, savePath, saveInfo);
+            var saveStateResult = await TrySaveState(fileState.PluginState as ISaveFiles, temporaryContainer, savePath, saveInfo);
             if (!saveStateResult.IsSuccessful)
                 return saveStateResult;
 
@@ -122,7 +122,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="savePath">The path of the initial file to save.</param>
         /// <param name="saveInfo">The context for the save operation.</param>
         /// <returns>The result of the save state process.</returns>
-        private async Task<SaveResult> TrySaveState(IPluginState saveState, IFileSystem temporaryContainer, UPath savePath, SaveInfo saveInfo)
+        private async Task<SaveResult> TrySaveState(ISaveFiles saveState, IFileSystem temporaryContainer, UPath savePath, SaveInfo saveInfo)
         {
             try
             {
@@ -235,13 +235,13 @@ namespace Kore.Managers.Plugins.FileManagement
             LoadContext loadContext)
         {
             // 1. Check if state implements ILoadFile
-            if (!pluginState.CanLoad)
+            if (!(pluginState is ILoadFiles loadableState))
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await pluginState.Load(fileSystem, savePath, loadContext));
+                await Task.Run(async () => await loadableState.Load(fileSystem, savePath, loadContext));
             }
             catch (Exception ex)
             {

@@ -1,5 +1,4 @@
-using System;
-using System.IO;
+﻿using System.IO;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -8,7 +7,6 @@ namespace Kontract.Interfaces.Plugins.State.Archive
     /// <summary>
     /// Marks the archive state able to add a new file.
     /// </summary>
-    [Obsolete("Override IArchiveState.AddFile instead")]
     public interface IAddFiles
     {
         /// <summary>

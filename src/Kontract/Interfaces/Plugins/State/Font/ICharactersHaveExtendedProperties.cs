@@ -1,12 +1,10 @@
-﻿using System;
-using Kontract.Models.Font;
+﻿using Kontract.Models.Font;
 
 namespace Kontract.Interfaces.Plugins.State.Font
 {
     /// <summary>
     /// Characters provide an extended properties dialog?
     /// </summary>
-    [Obsolete("Override IFontState.ShowCharacterProperties instead")]
     public interface ICharactersHaveExtendedProperties
     {
         // TODO: Figure out how to best implement this feature with WPF.

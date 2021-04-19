@@ -1,12 +1,10 @@
-﻿using System;
-using Kontract.Models.Font;
+﻿using Kontract.Models.Font;
 
 namespace Kontract.Interfaces.Plugins.State.Font
 {
     /// <summary>
     /// This interface allows the font adapter to delete characters through the UI.
     /// </summary>
-    [Obsolete("Override IFontState.RemoveCharacter instead")]
     public interface IRemoveCharacters
     {
         /// <summary>

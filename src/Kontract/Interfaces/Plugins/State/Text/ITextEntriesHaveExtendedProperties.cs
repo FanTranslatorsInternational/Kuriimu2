@@ -1,12 +1,10 @@
-﻿using System;
-using Kontract.Models.Text;
+﻿using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Text
 {
     /// <summary>
     /// Entries provide an extended properties dialog?
     /// </summary>
-    [Obsolete("Override ITextState.ShowEntryProperties instead")]
     public interface ITextEntriesHaveExtendedProperties
     {
         // TODO: Figure out how to best implement this feature with WPF.

@@ -1,10 +1,11 @@
-﻿using Kontract.Interfaces.Providers;
+﻿using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Providers;
 using Kontract.Interfaces.Plugins.Identifier;
 
 namespace Kontract.Models.Context
 {
     /// <summary>
-    /// The class containing all environment instances for a <see cref="IPlugin.IdentifyAsync"/> action.
+    /// The class containing all environment instances for a <see cref="IIdentifyFiles.IdentifyAsync"/> action.
     /// </summary>
     public class IdentifyContext
     {

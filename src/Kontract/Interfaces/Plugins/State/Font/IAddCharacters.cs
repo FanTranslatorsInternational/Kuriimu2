@@ -1,12 +1,10 @@
-﻿using System;
-using Kontract.Models.Font;
+﻿using Kontract.Models.Font;
 
 namespace Kontract.Interfaces.Plugins.State.Font
 {
     /// <summary>
     /// This interface allows the font adapter to add new characters through the UI.
     /// </summary>
-    [Obsolete("Override IFontState.AddCharacter instead")]
     public interface IAddCharacters
     {
         /// <summary>
