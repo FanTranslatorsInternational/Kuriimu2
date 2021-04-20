@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Kanvas.Swizzle;
@@ -148,7 +147,7 @@ namespace plugin_level5.DS.Images
             for (var i = 0; i < imageData.Length / tileSize; i++)
             {
                 var tileStream = new SubStream(new MemoryStream(imageData), offset, tileSize);
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(tileStream));
+                var hash = crc32.ComputeValue(tileStream);
 
                 if (!tileDictionary.ContainsKey(hash))
                 {

@@ -68,10 +68,10 @@ namespace plugin_level5.Mobile.Archives
                 bw.WriteAlignment(0x800);
 
                 // Update entry
-                file.Entry.crc32bFileNameHash = BinaryPrimitives.ReadUInt32BigEndian(crc32b.Compute(Encoding.ASCII.GetBytes(file.FilePath.GetName())));
-                file.Entry.crc32cFileNameHash = BinaryPrimitives.ReadUInt32BigEndian(crc32c.Compute(Encoding.ASCII.GetBytes(file.FilePath.GetName())));
-                file.Entry.crc32bFilePathHash = BinaryPrimitives.ReadUInt32BigEndian(crc32b.Compute(Encoding.ASCII.GetBytes(file.FilePath.ToRelative().FullName)));
-                file.Entry.crc32cFilePathHash = BinaryPrimitives.ReadUInt32BigEndian(crc32c.Compute(Encoding.ASCII.GetBytes(file.FilePath.ToRelative().FullName)));
+                file.Entry.crc32bFileNameHash = crc32b.ComputeValue(file.FilePath.GetName());
+                file.Entry.crc32cFileNameHash = crc32c.ComputeValue(file.FilePath.GetName());
+                file.Entry.crc32bFilePathHash = crc32b.ComputeValue(file.FilePath.ToRelative().FullName);
+                file.Entry.crc32cFilePathHash = crc32c.ComputeValue(file.FilePath.ToRelative().FullName);
                 file.Entry.nameOffset = namePosition;
                 file.Entry.fileOffset = (uint)(dataPosition - dataOffset);
                 file.Entry.fileSize = (int)writtenSize;

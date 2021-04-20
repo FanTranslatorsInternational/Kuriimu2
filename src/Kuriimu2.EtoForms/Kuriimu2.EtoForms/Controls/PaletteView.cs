@@ -24,7 +24,7 @@ namespace Kuriimu2.EtoForms.Controls
             get => _palette;
             set
             {
-                _palette = value.ToArray();
+                _palette = value?.ToArray();
                 Invalidate();
             }
         }

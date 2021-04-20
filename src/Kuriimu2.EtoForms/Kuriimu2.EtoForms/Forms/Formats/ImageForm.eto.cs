@@ -27,7 +27,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private Label height;
         private ComboBox formats;
         private ComboBox palettes;
-        private ListBox images;
+        private ListBox imageList;
 
         private void InitializeComponent()
         {
@@ -72,9 +72,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Default
 
-            images = new ListBox
+            imageList = new ListBox
             {
-                ItemImageBinding = Binding.Property<Image>(nameof(ImageElement.Image)),
+                ItemImageBinding = Binding.Property<Image>(nameof(ImageElement.Thumbnail)),
                 ItemTextBinding = Binding.Property<string>(nameof(ImageElement.Text)),
             };
 
@@ -159,7 +159,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Orientation = Orientation.Vertical,
                 Items =
                 {
-                    new StackLayoutItem(images, true) { HorizontalAlignment = HorizontalAlignment.Stretch },
+                    new StackLayoutItem(imageList, true) { HorizontalAlignment = HorizontalAlignment.Stretch },
                     new StackLayoutItem(imagePalette, true)
                 }
             };

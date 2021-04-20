@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -82,7 +81,7 @@ namespace plugin_level5.Switch.Archives
                 bw.Write((short)relativeStringOffset);
 
                 // Add hash
-                fileHashes.Add(BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(Encoding.ASCII.GetBytes(files[i].FilePath.ToRelative().FullName))));
+                fileHashes.Add(crc32.ComputeValue(files[i].FilePath.ToRelative().FullName));
 
                 // Write string
                 bw.BaseStream.Position = stringOffsetPosition + relativeStringOffset;

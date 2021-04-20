@@ -373,7 +373,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("3DS", true),
                 new ExtensionType("WiiU", true,
                     new ExtensionTypeParameter("SwizzleTileMode", typeof(int))),
-                new ExtensionType("Switch", true),
+                new ExtensionType("Switch", true,
+                    new ExtensionTypeParameter("SwizzleMode", typeof(int))),
 
                 new ExtensionType("Custom", true,
                     new ExtensionTypeParameter("BitMapping", typeof(string), "{1,0},{0,1}"),
@@ -397,7 +398,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new CafeSwizzle(context, swizzleTileMode);
 
                 case "Switch":
-                    return new NxSwizzle(context);
+                    var swizzleMode = SelectedSwizzleExtension.GetParameterValue<int>("SwizzleMode");
+                    return new NxSwizzle(context, swizzleMode);
 
                 case "Custom":
                     var pointSequenceRegex = new Regex(@"\{([\d]+),([\d]+)\}[,]?");

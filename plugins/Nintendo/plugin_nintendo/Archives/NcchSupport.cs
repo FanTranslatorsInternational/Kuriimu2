@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
@@ -235,7 +233,7 @@ namespace plugin_nintendo.Archives
 
         public static long Build(Stream output, IList<IArchiveFileInfo> files)
         {
-            var sha256 = new Kryptography.Hash.Sha256();
+            var hash = new Kryptography.Hash.Sha256();
             using var bw = new BinaryWriterX(output, true);
 
             var inOffset = output.Position;
@@ -261,7 +259,7 @@ namespace plugin_nintendo.Archives
                 });
                 fileHashes.Add(new NcchExeFsFileEntryHash
                 {
-                    hash = sha256.Compute(new SubStream(output, filePosition + fileOffset, writtenSize))
+                    hash = hash.Compute(new SubStream(output, filePosition + fileOffset, writtenSize))
                 });
 
                 fileOffset = (int)(bw.BaseStream.Position - filePosition);

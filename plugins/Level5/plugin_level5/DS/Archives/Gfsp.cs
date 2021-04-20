@@ -70,7 +70,7 @@ namespace plugin_level5.DS.Archives
 
                 fileInfos.Add(new GfspFileInfo
                 {
-                    hash = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(Encoding.ASCII.GetBytes(file.FilePath.GetName()))),
+                    hash = crc16.ComputeValue(file.FilePath.GetName()),
                     FileOffset = fileOffset,
                     NameOffset = stringOffset,
                     size = (ushort)writtenSize

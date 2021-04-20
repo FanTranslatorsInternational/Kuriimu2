@@ -232,7 +232,7 @@ namespace Kuriimu2.EtoForms.Forms
                 ReportStatus(false, LoadCancelled);
                 return false;
             }
-            
+
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
@@ -253,9 +253,7 @@ namespace Kuriimu2.EtoForms.Forms
                 return false;
             }
 
-            // Update title if only one file is open
-            if (tabControl.Pages.Count == 1)
-                UpdateFormText();
+            Application.Instance.Invoke(UpdateFormText);
 
             return true;
         }
@@ -512,6 +510,8 @@ namespace Kuriimu2.EtoForms.Forms
             // Update parents before state is disposed
             UpdateTab(parentState, true);
 
+            Application.Instance.Invoke(UpdateFormText);
+
             return true;
         }
 
@@ -742,6 +742,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
+                UpdateFormText();
+
                 // There's 5 pixels of spacing on the right side of the close icon
                 var closeButtonRect = new RectangleF(9, 4, page.Image.Width - 5, page.Image.Height);
                 if (!closeButtonRect.Contains(e.Location))
@@ -754,11 +756,12 @@ namespace Kuriimu2.EtoForms.Forms
                 parentTab = _stateDictionary[parentStateInfo].TabPage;
 
             // Close file
-            if(!await CloseFile(tabEntry.StateInfo))
+            if (!await CloseFile(tabEntry.StateInfo))
                 return;
 
             // Switch to parent tab
-            tabControl.SelectedPage = parentTab;
+            if (parentTab != null)
+                tabControl.SelectedPage = parentTab;
         }
 
         #endregion

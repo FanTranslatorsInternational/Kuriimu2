@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -200,7 +199,7 @@ namespace plugin_level5._3DS.Archives
                     directoryName += "/";
                 nameBw.WriteString(directoryName, sjis, false);
 
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName.ToLower())));
+                var hash = crc32.ComputeValue(directoryName.ToLower(), sjis);
                 var newDirectoryEntry = new B123DirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
@@ -221,7 +220,7 @@ namespace plugin_level5._3DS.Archives
                 foreach (var fileEntry in fileGroupEntries)
                 {
                     fileEntry.Entry.nameOffsetInFolder = (uint)(nameBw.BaseStream.Position - newDirectoryEntry.fileNameStartOffset);
-                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName().ToLower())));
+                    fileEntry.Entry.crc32 = crc32.ComputeValue(fileEntry.FilePath.GetName().ToLower(), sjis);
 
                     nameBw.WriteString(fileEntry.FilePath.GetName(), sjis, false);
                 }

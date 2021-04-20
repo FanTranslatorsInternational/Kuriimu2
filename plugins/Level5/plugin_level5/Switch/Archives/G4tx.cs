@@ -153,7 +153,7 @@ namespace plugin_level5.Switch.Archives
             bw.WriteMultiple(ids);
 
             // Write hashes
-            var hashes = names.Select(x => BinaryPrimitives.ReadUInt32BigEndian(crc.Compute(Encoding.ASCII.GetBytes(x))));
+            var hashes = names.Select(x => crc.ComputeValue(x));
 
             output.Position = hashOffset;
             bw.WriteMultiple(hashes);

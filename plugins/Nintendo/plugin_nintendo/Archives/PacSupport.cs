@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.IO;
+﻿using System.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
@@ -74,7 +73,7 @@ namespace plugin_nintendo.Archives
             var finalStream = GetFinalStream();
             finalStream.Position = 0;
 
-            return BinaryPrimitives.ReadUInt32BigEndian(Crc.Compute(finalStream));
+            return Crc.ComputeValue(finalStream);
         }
     }
 }

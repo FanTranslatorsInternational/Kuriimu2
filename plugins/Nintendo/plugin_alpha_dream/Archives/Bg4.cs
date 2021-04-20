@@ -1,12 +1,10 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
-using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kryptography.Hash;
 
@@ -86,7 +84,7 @@ namespace plugin_alpha_dream.Archives
                     IsCompressed = file.UsesCompression,
 
                     nameOffset = (short)stringDictionary[fileName],
-                    nameHash = BinaryPrimitives.ReadUInt32BigEndian(hash.Compute(Encoding.ASCII.GetBytes(ReverseString(fileName))))
+                    nameHash = hash.ComputeValue(ReverseString(fileName))
                 });
 
                 filePosition += (int)writtenSize;

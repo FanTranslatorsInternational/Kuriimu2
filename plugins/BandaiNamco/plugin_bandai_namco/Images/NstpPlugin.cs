@@ -9,31 +9,38 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_sony.Images
+namespace plugin_bandai_namco.Images
 {
-    public class GxtPlugin : IFilePlugin, IIdentifyFiles
+    public class NstpPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("b7453fd6-ca66-4684-b172-8f51db77ea75");
+        public Guid PluginId => Guid.Parse("40f66321-eb99-401e-b510-a2a402741f00");
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.gxt", "*.bin" };
+        public string[] FileExtensions => new[] { ".txp" };
         public PluginMetadata Metadata { get; }
 
-        public GxtPlugin()
+        public NstpPlugin()
         {
-            Metadata = new PluginMetadata("Gxt", "onepiecefreak, IcySon55", "The main image resource by the Sony Vita SDK.");
+            Metadata = new PluginMetadata("NSTP", "onepiecefreak", "Main image resource for Bandai Namco games on Nintendo Switch.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            using var br = new BinaryReaderX(fileStream);
 
-            return br.PeekString() == "GXT\0";
+            using var br = new BinaryReaderX(fileStream);
+            var magic = br.ReadString(4);
+
+            // Magics for possible compressions
+            fileStream.Position++;
+            var magic2 = br.ReadString(4);
+            var magic3 = br.ReadString(4);
+
+            return magic == "NSTP" || magic2 == "NSTP" || magic3 == "NSTP";
         }
 
         public IPluginState CreatePluginState(IPluginManager pluginManager)
         {
-            return new GxtState();
+            return new NstpState();
         }
     }
 }

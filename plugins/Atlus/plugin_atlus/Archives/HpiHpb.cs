@@ -6,6 +6,7 @@ using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
+using Kryptography.Hash;
 
 namespace Atlus.Archives
 {
@@ -52,6 +53,8 @@ namespace Atlus.Archives
         public void Save(Stream hpiStream, Stream hpbStream, IList<IArchiveFileInfo> files)
         {
             var sjis = Encoding.GetEncoding("SJIS");
+            var hash = new SimpleHash(0x25);
+
             using var hpiBw = new BinaryWriterX(hpiStream);
 
             // Calculate offsets
@@ -61,7 +64,7 @@ namespace Atlus.Archives
             var stringOffset = entryOffset + files.Count * FileEntrySize;
 
             // Group files
-            var fileLookup = files.ToLookup(x => HpiHpbSupport.CreateHash(x.FilePath.ToRelative().FullName) % HashSlotCount_);
+            var fileLookup = files.ToLookup(x => hash.ComputeValue(x.FilePath.ToRelative().FullName, sjis) % HashSlotCount_);
 
             // Write files and strings
             hpiStream.Position = stringOffset;

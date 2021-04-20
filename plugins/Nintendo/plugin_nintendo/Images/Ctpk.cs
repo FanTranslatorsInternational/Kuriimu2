@@ -1,14 +1,10 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Kanvas.Configuration;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kryptography.Hash.Crc;
 
@@ -128,7 +124,7 @@ namespace plugin_nintendo.Images
                 hashEntries.Add(new HashEntry
                 {
                     id = infoIndex++,
-                    crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(Encoding.ASCII.GetBytes(info.Name)))
+                    crc32 = crc32.ComputeValue(info.Name)
                 });
 
                 // Add new mip entry

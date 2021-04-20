@@ -93,9 +93,6 @@ namespace Atlus.Archives
 
     class HpiHpbSupport
     {
-        private static readonly Encoding Sjis = Encoding.GetEncoding("SJIS");
-        private static readonly SimpleHash SimpleHash = new SimpleHash(0x25);
-
         public static string PeekString(Stream input, int length)
         {
             var bkPos = input.Position;
@@ -106,14 +103,6 @@ namespace Atlus.Archives
             input.Position = bkPos;
 
             return result;
-        }
-
-        public static uint CreateHash(string input)
-        {
-            var bytes = Sjis.GetBytes(input);
-
-            var hash = SimpleHash.Compute(bytes);
-            return (uint)((hash[0] << 24) | (hash[1] << 16) | (hash[2] << 8) | hash[3]);
         }
     }
 
