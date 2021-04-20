@@ -148,7 +148,7 @@ namespace Kore.Models
             if (!PluginState.CanSave)
                 return false;
 
-            return ((ISaveFiles)PluginState).ContentChanged || ArchiveChildren.Any(child => child.StateChanged);
+            return PluginState.TryContentChanged || ArchiveChildren.Any(child => child.StateChanged);
         }
 
         private UPath BuildAbsoluteDirectory()

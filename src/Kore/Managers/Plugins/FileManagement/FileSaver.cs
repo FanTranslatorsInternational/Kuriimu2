@@ -241,7 +241,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await ((ILoadFiles)pluginState).Load(fileSystem, savePath, loadContext));
+                await Task.Run(async () => await pluginState.TryLoad(fileSystem, savePath, loadContext));
             }
             catch (Exception ex)
             {
