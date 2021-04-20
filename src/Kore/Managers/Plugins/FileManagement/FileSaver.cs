@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Kontract.Extensions;
@@ -36,7 +36,7 @@ namespace Kore.Managers.Plugins.FileManagement
             SaveInfo saveInfo, bool isStart = true)
         {
             // 1. Check if state is saveable and if the contents are changed
-            if (!(fileState.PluginState is ISaveFiles) || !fileState.StateChanged)
+            if (!(fileState.PluginState.CanSave) || !fileState.StateChanged)
                 return new SaveResult(true, "The file had no changes and was not saved.");
 
             // 2. Save child states
@@ -235,13 +235,13 @@ namespace Kore.Managers.Plugins.FileManagement
             LoadContext loadContext)
         {
             // 1. Check if state implements ILoadFile
-            if (!(pluginState is ILoadFiles loadableState))
+            if (!pluginState.CanLoad)
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await loadableState.Load(fileSystem, savePath, loadContext));
+                await Task.Run(async () => await ((ILoadFiles)pluginState).Load(fileSystem, savePath, loadContext));
             }
             catch (Exception ex)
             {

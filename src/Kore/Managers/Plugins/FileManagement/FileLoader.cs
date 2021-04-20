@@ -86,13 +86,14 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
         private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
-            // 1. Get all plugins that implement IIdentifyFile
+            // 1. Get all plugins that support identification
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
             // 2. Identify the file with identifiable plugins
             var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
+                //TODO this cast smells, all IIdentifyFiles should be IFilePlugins (right?)
                 var filePlugin = identifiablePlugin as IFilePlugin;
 
                 try
@@ -198,14 +199,14 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
             LoadContext loadContext, LoadInfo loadInfo, IFilePlugin plugin)
         {
-            // 1. Check if state implements ILoadFile
-            if (!(pluginState is ILoadFiles loadableState))
+            // 1. Check if state supports loading
+            if (!pluginState.CanLoad)
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await ((ILoadFiles)pluginState).Load(fileSystem, filePath, loadContext));
             }
             catch (Exception e)
             {

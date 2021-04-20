@@ -5,5 +5,11 @@
     /// </summary>
     public interface IPluginState
     {
+        #region Optional feature support checks
+        
+        public bool CanSave => this is ISaveFiles;
+        public bool CanLoad => this is ILoadFiles;
+
+        #endregion
     }
 }

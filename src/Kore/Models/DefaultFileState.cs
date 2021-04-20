@@ -145,10 +145,10 @@ namespace Kore.Models
 
         private bool IsStateChanged()
         {
-            if (!(PluginState is ISaveFiles saveState))
+            if (!PluginState.CanSave)
                 return false;
 
-            return saveState.ContentChanged || ArchiveChildren.Any(child => child.StateChanged);
+            return ((ISaveFiles)PluginState).ContentChanged || ArchiveChildren.Any(child => child.StateChanged);
         }
 
         private UPath BuildAbsoluteDirectory()

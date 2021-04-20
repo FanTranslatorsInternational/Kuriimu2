@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Kontract.Interfaces.Plugins.Identifier;
-using Kontract.Models;
 using Kontract.Models.Text;
 
 namespace Kontract.Interfaces.Plugins.State.Game
@@ -43,5 +41,11 @@ namespace Kontract.Interfaces.Plugins.State.Game
         /// </summary>
         /// <returns></returns>
         IEnumerable<TextEntry> SaveEntries();
+        
+        #region Optional feature support checks
+        
+        public bool CanGeneratePreview => this is IGenerateGamePreviews;
+        
+        #endregion
     }
 }

@@ -1,4 +1,4 @@
-using Kontract.Interfaces.Managers;
+﻿using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models;
 
@@ -26,6 +26,11 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// <param name="fileManager">The plugin manager to load files with the Kuriimu runtime.</param>
         /// <returns>Newly created <see cref="IPluginState"/>.</returns>
         IPluginState CreatePluginState(IFileManager fileManager);
+        
+        #region Optional feature support checks
+        
+        public bool CanIdentifyFiles => this is IIdentifyFiles;
 
+        #endregion
     }
 }

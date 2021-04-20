@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,10 +71,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteDirectories => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
-        public override bool CanMoveDirectories => ArchiveState is IRenameFiles;
+        public override bool CanMoveDirectories => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -119,10 +119,9 @@ namespace Kore.FileSystem.Implementations
             CreateDirectoryInternal(destPath);
 
             // Move files
-            var renameState = ArchiveState as IRenameFiles;
             foreach (var file in element.Item2)
             {
-                renameState?.Rename(file, destPath / file.FilePath.GetName());
+                ((IRenameFiles)ArchiveState).Rename(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -161,9 +160,10 @@ namespace Kore.FileSystem.Implementations
                 _directoryDictionary[parent].Item1.Remove(path);
 
             // Delete files
-            var removeState = ArchiveState as IRemoveFiles;
             foreach (var file in element.Item2)
-                removeState?.RemoveFile(file);
+            {
+                ((IRemoveFiles)ArchiveState).RemoveFile(file);
+            }
 
             element.Item2.Clear();
         }
@@ -173,7 +173,7 @@ namespace Kore.FileSystem.Implementations
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => ArchiveState is IAddFiles;
+        public override bool CanCreateFiles => ArchiveState.CanAddFiles;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -184,10 +184,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanMoveFiles => ArchiveState is IRenameFiles;
+        public override bool CanMoveFiles => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteFiles => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
@@ -238,8 +238,7 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            var renameState = ArchiveState as IRenameFiles;
-            renameState?.Rename(file, destPath);
+            ((IRenameFiles)ArchiveState).Rename(file, destPath);
 
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
@@ -268,8 +267,7 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            var removingState = ArchiveState as IRemoveFiles;
-            removingState?.RemoveFile(file);
+            ((IRemoveFiles)ArchiveState).RemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -511,10 +509,10 @@ namespace Kore.FileSystem.Implementations
 
         private IArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
         {
-            if (!(_fileState.PluginState is IAddFiles addState))
+            if (!ArchiveState.CanAddFiles)
                 return null;
 
-            var newAfi = addState.AddFile(fileData, newFilePath);
+            var newAfi = ((IAddFiles)ArchiveState).AddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());
