@@ -11,10 +11,10 @@ namespace plugin_shade.Archives
     class Bin
     {
         BinHeader _header;
-        public IList<IArchiveFileInfo> Load(Stream input) 
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
-            
+
             // Read Header
             _header = br.ReadType<BinHeader>();
 
@@ -23,7 +23,7 @@ namespace plugin_shade.Archives
 
             // Read files
             var files = new List<IArchiveFileInfo>();
-            for(var i = 0; i<entries.Count; i++)
+            for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 var offset = (entry.offSize >> _header.shiftFactor) * _header.padFactor;
@@ -40,9 +40,9 @@ namespace plugin_shade.Archives
         {
             using var bw = new BinaryWriterX(output);
             var castedFiles = files.Cast<BinArchiveFileInfo>();
-            
+
             // Write files
-            foreach(var file in castedFiles)
+            foreach (var file in castedFiles)
             {
                 var offset = (file.Entry.offSize >> _header.shiftFactor) * _header.padFactor;
                 output.Position = offset;
