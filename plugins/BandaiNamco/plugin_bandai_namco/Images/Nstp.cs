@@ -43,7 +43,17 @@ namespace plugin_bandai_namco.Images
                 {
                     Name = name
                 };
-                imageInfo.RemapPixels.With(context => new NxSwizzle(context));
+
+                switch (entry.swizzleMode)
+                {
+	                // swizzleMode == 0
+                    // Linear swizzle
+
+                    // Switch swizzle
+                    case 1:
+		                imageInfo.RemapPixels.With(context => new NxSwizzle(context));
+                        break;
+                }
 
                 result.Add(imageInfo);
             }

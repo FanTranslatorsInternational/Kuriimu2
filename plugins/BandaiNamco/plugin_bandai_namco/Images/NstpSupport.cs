@@ -29,9 +29,11 @@ namespace plugin_bandai_namco.Images
 
         public short width;
         public short height;
-        public int unk1;
-        public int unk2;
+        public byte mipLevels;
+        public byte swizzleMode;
+        public short unk2;
         public int unk3;
+        public int unk4;
     }
 
     class NstpImageInfo : ImageInfo
