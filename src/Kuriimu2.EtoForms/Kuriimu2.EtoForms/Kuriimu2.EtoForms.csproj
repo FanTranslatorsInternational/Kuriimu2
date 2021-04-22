@@ -18,7 +18,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Eto.Forms" Version="2.5.8" />
+    <PackageReference Include="Eto.Forms" Version="2.5.11-ci-20210413.746270315" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
