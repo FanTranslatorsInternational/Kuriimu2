@@ -35,11 +35,13 @@ namespace Atlus.Archives
             var stringStream = new SubStream(hpiStream, hpiStream.Position, hpiStream.Length - hpiStream.Position);
             using var stringBr = new BinaryReaderX(stringStream);
 
+            var t = entries.Select(x => (x.offset, x.offset + x.compSize)).OrderByDescending(x => x.offset).ToArray();
+
             // Add files
             var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
-                var subStream = new SubStream(hpbStream, entry.offset, entry.compSize);
+                var subStream = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize);
 
                 stringStream.Position = entry.stringOffset;
                 var name = stringBr.ReadCStringSJIS();
