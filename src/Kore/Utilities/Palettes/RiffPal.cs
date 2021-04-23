@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
-using Komponent.Utilities;
-using Kontract.Models.IO;
 using Kore.Exceptions.RiffPal;
 
 namespace Kore.Utilities.Palettes
@@ -22,7 +21,7 @@ namespace Kore.Utilities.Palettes
             using (var br = new BinaryReader(stream))
             {
                 var fourCC = Encoding.ASCII.GetString(br.ReadBytes(4));
-                var dataSize = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var dataSize = BinaryPrimitives.ReadInt32LittleEndian(br.ReadBytes(4));
                 var typeFourCC = Encoding.ASCII.GetString(br.ReadBytes(4));
                 if (fourCC != "RIFF" || typeFourCC != "PAL " || dataSize + 8 != stream.Length)
                     throw new InvalidRiffPalException();
@@ -33,13 +32,13 @@ namespace Kore.Utilities.Palettes
                 if (paletteType == "plth")
                     throw new UnsupportedRiffPaletteException("Extended palette");
 
-                var chunkSize = Conversion.FromByteArray<int>(br.ReadBytes(4), ByteOrder.LittleEndian);
+                var chunkSize = BinaryPrimitives.ReadInt32LittleEndian(br.ReadBytes(4));
                 if (chunkSize + 0x14 != stream.Length)
                     throw new InvalidRiffPalException();
 
                 var minorVersion = br.ReadByte();
                 var majorVersion = br.ReadByte();
-                var colorCount = Conversion.FromByteArray<short>(br.ReadBytes(2), ByteOrder.LittleEndian);
+                var colorCount = BinaryPrimitives.ReadInt32LittleEndian(br.ReadBytes(2));
                 if (stream.Position + colorCount * 4 > stream.Length)
                     throw new InvalidRiffPalException();
 

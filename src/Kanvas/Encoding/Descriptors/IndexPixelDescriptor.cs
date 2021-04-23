@@ -21,6 +21,9 @@ namespace Kanvas.Encoding.Descriptors
         private Func<long, int>[] _readActions;
         private Func<long, int, long>[] _writeActions;
 
+        private Func<int, int>[] _readBitDepthDelegates;
+        private Func<int, int>[] _writeBitDepthDelegates;
+
         public IndexPixelDescriptor(string componentOrder, int i, int a)
         {
             AssertValidOrder(componentOrder.ToLower());
@@ -111,6 +114,25 @@ namespace Kanvas.Encoding.Descriptors
                 _shiftTable[tableIndex] = shiftValue;
                 _maskTable[tableIndex] = (1 << depth) - 1;
 
+                if (depth <= 8)
+                {
+	                if (depth == 0)
+	                {
+		                _readBitDepthDelegates[tableIndex] = value => 0;
+		                _writeBitDepthDelegates[tableIndex] = value => 0;
+	                }
+	                else
+	                {
+		                _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
+		                _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
+	                }
+                }
+                else
+                {
+	                _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
+	                _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
+                }
+
                 shiftValue += depth;
             }
 
@@ -133,6 +155,11 @@ namespace Kanvas.Encoding.Descriptors
             _readActions = new Func<long, int>[3];
             _writeActions = new Func<long, int, long>[3];
 
+            // Delegates to convert from one bit depth to another
+            // Based on input and output bit depth, certain conditions can optimize the process
+            _readBitDepthDelegates = new Func<int, int>[3];
+            _writeBitDepthDelegates = new Func<int, int>[3];
+
             bool iSet = false, aSet = false, xSet = false;
             var shift = 0;
             var length = componentOrder.Length;
@@ -143,10 +170,10 @@ namespace Kanvas.Encoding.Descriptors
                 {
                     case 'i':
                     case 'I':
-                        _readActions[tableIndex] = value =>
-                            ReadIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
+                        _readActions[tableIndex] = value => 
+	                        ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
+                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
 
                         SetTableValues(tableIndex, 0, i, ref shift);
                         iSet = true;
@@ -155,9 +182,9 @@ namespace Kanvas.Encoding.Descriptors
                     case 'a':
                     case 'A':
                         _readActions[tableIndex] = value =>
-                            ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+	                        _readBitDepthDelegates[tableIndex](ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]));
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex], ref result);
+                            WriteComponent(_writeBitDepthDelegates[tableIndex](value), _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
 
                         SetTableValues(tableIndex, 1, a, ref shift);
                         aSet = true;
@@ -166,9 +193,9 @@ namespace Kanvas.Encoding.Descriptors
                     case 'x':
                     case 'X':
                         _readActions[tableIndex] = value =>
-                            ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+                            _readBitDepthDelegates[tableIndex](ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]));
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex], ref result);
+	                        WriteComponent(_writeBitDepthDelegates[tableIndex](value), _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
 
                         SetTableValues(tableIndex, 2, GetBitDepthOfMissingComponent(componentOrder, i, a), ref shift);
                         xSet = true;
@@ -177,26 +204,16 @@ namespace Kanvas.Encoding.Descriptors
             }
 
             if (!iSet) SetTableValues(length++, 0, 0, ref shift);
-            if (!aSet) SetTableValues(length, 1, 0, ref shift);
+            if (!aSet) SetTableValues(length++, 1, 0, ref shift);
             if (!xSet) SetTableValues(length, 2, 0, ref shift);
         }
 
-        private int ReadComponent(long value, int shift, int mask, int depth)
-        {
-            return Conversion.ChangeBitDepth((int)((value >> shift) & mask), depth, 8);
-        }
-
-        private int ReadIndexComponent(long value, int shift, int mask)
+        private int ReadComponent(long value, int shift, int mask)
         {
             return (int)((value >> shift) & mask);
         }
 
-        private long WriteComponent(int value, int shift, int mask, int depth, ref long result)
-        {
-            return result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
-        }
-
-        private long WriteIndexComponent(int value, int shift, int mask, ref long result)
+        private long WriteComponent(int value, int shift, int mask, ref long result)
         {
             return result |= (long)(value & mask) << shift;
         }

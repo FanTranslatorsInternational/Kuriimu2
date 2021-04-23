@@ -17,6 +17,9 @@ namespace Kanvas.Encoding.Descriptors
         private int[] _shiftTable;
         private int[] _maskTable;
 
+        private Func<int, int>[] _readBitDepthDelegates;
+        private Func<int, int>[] _writeBitDepthDelegates;
+
         public RgbaPixelDescriptor(string componentOrder, int r, int g, int b, int a)
         {
             AssertValidOrder(componentOrder.ToLower());
@@ -58,10 +61,10 @@ namespace Kanvas.Encoding.Descriptors
             // colorBuffer[4] is reserved for the X color component, and will be ignored when the color is constructed
             var colorBuffer = new int[5];
 
-            colorBuffer[_indexTable[0]] = ReadComponent(value, _shiftTable[0], _maskTable[0], _depthTable[0]);
-            colorBuffer[_indexTable[1]] = ReadComponent(value, _shiftTable[1], _maskTable[1], _depthTable[1]);
-            colorBuffer[_indexTable[2]] = ReadComponent(value, _shiftTable[2], _maskTable[2], _depthTable[2]);
-            colorBuffer[_indexTable[3]] = ReadComponent(value, _shiftTable[3], _maskTable[3], _depthTable[3]);
+            colorBuffer[_indexTable[0]] = _readBitDepthDelegates[0](ReadComponent(value, _shiftTable[0], _maskTable[0]));
+            colorBuffer[_indexTable[1]] = _readBitDepthDelegates[1](ReadComponent(value, _shiftTable[1], _maskTable[1]));
+            colorBuffer[_indexTable[2]] = _readBitDepthDelegates[2](ReadComponent(value, _shiftTable[2], _maskTable[2]));
+            colorBuffer[_indexTable[3]] = _readBitDepthDelegates[3](ReadComponent(value, _shiftTable[3], _maskTable[3]));
 
             // If alpha depth 0 then make color opaque
             if (_depthTable[_componentIndexTable[0]] == 0)
@@ -78,16 +81,16 @@ namespace Kanvas.Encoding.Descriptors
             var result = 0L;
 
             var index = _componentIndexTable[0];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            WriteComponent(_writeBitDepthDelegates[index](colorBuffer[_indexTable[index]]), _shiftTable[index], _maskTable[index], ref result);
 
             index = _componentIndexTable[1];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            WriteComponent(_writeBitDepthDelegates[index](colorBuffer[_indexTable[index]]), _shiftTable[index], _maskTable[index], ref result);
 
             index = _componentIndexTable[2];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            WriteComponent(_writeBitDepthDelegates[index](colorBuffer[_indexTable[index]]), _shiftTable[index], _maskTable[index], ref result);
 
             index = _componentIndexTable[3];
-            WriteComponent(colorBuffer[_indexTable[index]], _shiftTable[index], _maskTable[index], _depthTable[index], ref result);
+            WriteComponent(_writeBitDepthDelegates[index](colorBuffer[_indexTable[index]]), _shiftTable[index], _maskTable[index], ref result);
 
             return result;
         }
@@ -106,7 +109,7 @@ namespace Kanvas.Encoding.Descriptors
 
         private void AssertBitDepth(int bitDepth)
         {
-            ContractAssertions.IsInRange(bitDepth, "bitDepth", 4, 32);
+            ContractAssertions.IsInRange(bitDepth, nameof(bitDepth), 4, 32);
         }
 
         private void SetupLookupTables(string componentOrder, int r, int g, int b, int a)
@@ -118,6 +121,25 @@ namespace Kanvas.Encoding.Descriptors
                 _componentIndexTable[colorBufferIndex] = tableIndex;
                 _shiftTable[tableIndex] = shiftValue;
                 _maskTable[tableIndex] = (1 << depth) - 1;
+
+                if (depth <= 8)
+                {
+	                if (depth == 0)
+	                {
+		                _readBitDepthDelegates[tableIndex] = value => 0;
+		                _writeBitDepthDelegates[tableIndex] = value => 0;
+                    }
+                    else
+                    {
+	                    _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
+	                    _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
+                    }
+                }
+                else
+                {
+	                _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
+	                _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
+                }
 
                 shiftValue += depth;
             }
@@ -136,6 +158,11 @@ namespace Kanvas.Encoding.Descriptors
 
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
             _maskTable = new int[5];
+
+            // Delegates to convert from one bit depth to another
+            // Based on input and output bit depth, certain conditions can optimize the process
+            _readBitDepthDelegates = new Func<int,int>[5];
+            _writeBitDepthDelegates = new Func<int,int>[5];
 
             var shift = 0;
             var length = componentOrder.Length;
@@ -187,14 +214,14 @@ namespace Kanvas.Encoding.Descriptors
             if (!xSet) SetTableValues(length, 4, 0, ref shift);
         }
 
-        private int ReadComponent(long value, int shift, int mask, int depth)
+        private int ReadComponent(long value, int shift, int mask)
         {
-            return Conversion.ChangeBitDepth((int)((value >> shift) & mask), depth, 8);
+	        return (int) ((value >> shift) & mask);
         }
 
-        private void WriteComponent(int value, int shift, int mask, int depth, ref long result)
+        private void WriteComponent(int value, int shift, int mask, ref long result)
         {
-            result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
+            result |= (long)(value & mask) << shift;
         }
 
         private int GetBitDepthOfMissingComponent(string componentOrder, int r, int g, int b, int a)
