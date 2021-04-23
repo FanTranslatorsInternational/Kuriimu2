@@ -15,7 +15,7 @@ namespace plugin_shade.Archives
     
     class BinFileInfo
     {
-        public int offSize;
+        public uint offSize;
     }
 
     class BinArchiveFileInfo : ShadeArchiveFileInfo
