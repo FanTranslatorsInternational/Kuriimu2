@@ -56,7 +56,7 @@ jobs:
         mv ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Wpf/Kuriimu2.exe
         mv ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Gtk/Kuriimu2
         mkdir ./dist/final/Mac
-        mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
+        mv ./dist/Release/netcoreapp31/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
         mv ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
         rm ./dist/final/Wpf/*.pdb
         rm ./dist/final/Gtk/*.pdb
