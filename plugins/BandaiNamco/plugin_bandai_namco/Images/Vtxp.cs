@@ -10,22 +10,22 @@ using Kryptography.Hash.Crc;
 
 namespace plugin_bandai_namco.Images
 {
-    class Nstp
+    class Vtxp
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(NstpHeader));
-        private static readonly int EntrySize = Tools.MeasureType(typeof(NstpImageEntry));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(VtxpHeader));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(VtxpImageEntry));
 
-        private NstpHeader _header;
+        private VtxpHeader _header;
 
         public IList<ImageInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<NstpHeader>();
+            _header = br.ReadType<VtxpHeader>();
 
             // Read entries
-            var entries = br.ReadMultiple<NstpImageEntry>(_header.imgCount);
+            var entries = br.ReadMultiple<VtxpImageEntry>(_header.imgCount);
 
             // Read image infos
             var result = new List<ImageInfo>();
@@ -35,24 +35,31 @@ namespace plugin_bandai_namco.Images
                 input.Position = entry.nameOffset;
                 var name = br.ReadCStringASCII();
 
+                // Read palette
+                input.Position = entry.paletteOffset;
+                var paletteData = br.ReadBytes(entry.dataOffset - entry.paletteOffset);
+
                 // Read data
                 input.Position = entry.dataOffset;
                 var imgData = br.ReadBytes(entry.dataSize);
 
-                var imageInfo = new NstpImageInfo(imgData, entry.format, new Size(entry.width, entry.height), entry)
+                var format = entry.format >> 24 == 0x94 || entry.format >> 24 == 0x95 ? entry.format & 0xFFFF0000 : entry.format;
+                var imageInfo = new VtxpImageInfo(imgData, (int)format, new Size(entry.width, entry.height), entry)
                 {
                     Name = name
                 };
 
-                switch (entry.swizzleMode)
+                switch (entry.type)
                 {
-	                // swizzleMode == 0
-                    // Linear swizzle
-
-                    // Switch swizzle
-                    case 1:
-		                imageInfo.RemapPixels.With(context => new NxSwizzle(context));
+                    case 0x02:
+                        imageInfo.RemapPixels.With(context => new VitaSwizzle(context));
                         break;
+                }
+
+                if ((uint)imageInfo.ImageFormat == 0x94000000 || (uint)imageInfo.ImageFormat == 0x95000000)
+                {
+                    imageInfo.PaletteData = paletteData;
+                    imageInfo.PaletteFormat = (int)(entry.format & 0xFFFF);
                 }
 
                 result.Add(imageInfo);
@@ -73,27 +80,39 @@ namespace plugin_bandai_namco.Images
             var dataOffset = (hashOffset + imageInfos.Count * 8 + 0x7F) & ~0x7F;
 
             // Write image data
-            var entries = new List<NstpImageEntry>();
+            var entries = new List<VtxpImageEntry>();
 
             var stringPosition = stringOffset;
             var dataPosition = dataOffset;
-            foreach (var imageInfo in imageInfos.Cast<NstpImageInfo>())
+            foreach (var imageInfo in imageInfos.Cast<VtxpImageInfo>())
             {
-                // Write data
                 output.Position = dataPosition;
+
+                // Write palette
+                if (imageInfo.HasPaletteInformation)
+                    bw.Write(imageInfo.PaletteData);
+
+                // Write data
                 bw.Write(imageInfo.ImageData);
 
                 // Add entry
-                imageInfo.Entry.dataOffset = dataPosition;
+                imageInfo.Entry.paletteOffset = imageInfo.HasPaletteInformation ? dataPosition : 0;
+                imageInfo.Entry.dataOffset = imageInfo.HasPaletteInformation ? dataPosition + imageInfo.PaletteData.Length : dataPosition;
                 imageInfo.Entry.dataSize = imageInfo.ImageData.Length;
-                imageInfo.Entry.format = imageInfo.ImageFormat;
                 imageInfo.Entry.width = (short)imageInfo.ImageSize.Width;
                 imageInfo.Entry.height = (short)imageInfo.ImageSize.Height;
                 imageInfo.Entry.nameOffset = stringPosition;
+
+                imageInfo.Entry.format = (uint)imageInfo.ImageFormat;
+                if ((uint)imageInfo.ImageFormat == 0x94000000 || (uint)imageInfo.ImageFormat == 0x95000000)
+                    imageInfo.Entry.format |= (uint)imageInfo.PaletteFormat;
+
                 entries.Add(imageInfo.Entry);
 
-                dataPosition += (imageInfo.ImageData.Length + 0x3F) & ~0x3F;
+                // Increase positions
                 stringPosition += imageInfo.Name.Length + 1;
+                dataPosition += imageInfo.ImageData.Length + (imageInfo.HasPaletteInformation ? imageInfo.PaletteData.Length : 0);
+                dataPosition = (dataPosition + 0x3F) & ~0x3F;
             }
 
             // Write hash entries

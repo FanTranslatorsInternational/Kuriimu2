@@ -20,7 +20,7 @@ namespace plugin_bandai_namco.Images
         public byte[] padding = new byte[0x10];
     }
 
-    class NstpImageHeader
+    class NstpImageEntry
     {
         public int nameOffset;
         public int dataSize;
@@ -38,9 +38,9 @@ namespace plugin_bandai_namco.Images
 
     class NstpImageInfo : ImageInfo
     {
-        public NstpImageHeader Entry { get; }
+        public NstpImageEntry Entry { get; }
 
-        public NstpImageInfo(byte[] imageData, int imageFormat, Size imageSize, NstpImageHeader entry) : base(imageData, imageFormat, imageSize)
+        public NstpImageInfo(byte[] imageData, int imageFormat, Size imageSize, NstpImageEntry entry) : base(imageData, imageFormat, imageSize)
         {
             Entry = entry;
         }
