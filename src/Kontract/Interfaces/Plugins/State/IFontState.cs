@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Kontract.Interfaces.Plugins.State.Font;
 using Kontract.Models.Font;
 
 namespace Kontract.Interfaces.Plugins.State
@@ -19,5 +20,13 @@ namespace Kontract.Interfaces.Plugins.State
         /// Character descent line.
         /// </summary>
         float DescentLine { get; set; }
+        
+        #region Optional feature support checks
+        
+        public bool CanAddCharacter => this is IAddCharacters;
+        public bool CanRemoveCharacter => this is IRemoveCharacters;
+        public bool CanShowCharacterProperties => this is ICharactersHaveExtendedProperties;
+        
+        #endregion
     }
 }

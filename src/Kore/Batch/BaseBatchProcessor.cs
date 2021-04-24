@@ -21,7 +21,7 @@ namespace Kore.Batch
         private HashSet<UPath> _batchedFiles;
         private CancellationTokenSource _processTokenSource;
 
-        protected IInternalPluginManager PluginManager { get; }
+        protected IInternalFileManager FileManager { get; }
         protected ILogger Logger { get; }
         protected IFileSystemWatcher SourceFileSystemWatcher { get; private set; }
 
@@ -31,12 +31,12 @@ namespace Kore.Batch
 
         public TimeSpan AverageFileTime { get; private set; }
 
-        public BaseBatchProcessor(IInternalPluginManager pluginManager, ILogger logger)
+        public BaseBatchProcessor(IInternalFileManager fileManager, ILogger logger)
         {
-            ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
+            ContractAssertions.IsNotNull(fileManager, nameof(fileManager));
             ContractAssertions.IsNotNull(logger, nameof(logger));
 
-            PluginManager = pluginManager;
+            FileManager = fileManager;
             Logger = logger;
         }
 
@@ -49,12 +49,12 @@ namespace Kore.Batch
 
             var files = EnumerateFiles(sourceFileSystem).ToArray();
 
-            var isManualSelection = PluginManager.AllowManualSelection;
-            PluginManager.AllowManualSelection = false;
+            var isManualSelection = FileManager.AllowManualSelection;
+            FileManager.AllowManualSelection = false;
 
             await ProcessMeasurement(files, sourceFileSystem, destinationFileSystem);
 
-            PluginManager.AllowManualSelection = isManualSelection;
+            FileManager.AllowManualSelection = isManualSelection;
 
             SourceFileSystemWatcher.Dispose();
         }
@@ -76,14 +76,14 @@ namespace Kore.Batch
             _batchedFiles.Add(filePath);
         }
 
-        protected async Task<IStateInfo> LoadFile(IFileSystem sourceFileSystem, UPath filePath)
+        protected async Task<IFileState> LoadFile(IFileSystem sourceFileSystem, UPath filePath)
         {
             LoadResult loadResult;
             try
             {
                 loadResult = PluginId == Guid.Empty ?
-                    await PluginManager.LoadFile(sourceFileSystem, filePath) :
-                    await PluginManager.LoadFile(sourceFileSystem, filePath, PluginId);
+                    await FileManager.LoadFile(sourceFileSystem, filePath) :
+                    await FileManager.LoadFile(sourceFileSystem, filePath, PluginId);
             }
             catch (Exception e)
             {
@@ -92,27 +92,27 @@ namespace Kore.Batch
             }
 
             if (loadResult.IsSuccessful)
-                return loadResult.LoadedState;
+                return loadResult.LoadedFileState;
 
             Logger.Error("Could not load '{0}'.", filePath.FullName);
             return null;
         }
 
-        protected async Task SaveFile(IStateInfo stateInfo)
+        protected async Task SaveFile(IFileState fileState)
         {
             SaveResult saveResult;
             try
             {
-                saveResult = await PluginManager.SaveFile(stateInfo);
+                saveResult = await FileManager.SaveFile(fileState);
             }
             catch (Exception e)
             {
-                Logger.Fatal(e, "Saving file '{0}' threw an error.", stateInfo.FilePath.FullName);
+                Logger.Fatal(e, "Saving file '{0}' threw an error.", fileState.FilePath.FullName);
                 return;
             }
 
             if (!saveResult.IsSuccessful)
-                Logger.Error("Could not save '{0}'.", stateInfo.FilePath.FullName);
+                Logger.Error("Could not save '{0}'.", fileState.FilePath.FullName);
         }
 
         private async Task ProcessMeasurement(UPath[] files, IFileSystem sourceFs, IFileSystem destinationFs)

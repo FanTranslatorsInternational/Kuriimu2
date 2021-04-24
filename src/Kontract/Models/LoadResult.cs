@@ -23,7 +23,7 @@ namespace Kontract.Models
         /// <summary>
         /// Contains the result if the load process was successful.
         /// </summary>
-        public IStateInfo LoadedState { get; }
+        public IFileState LoadedFileState { get; }
 
         /// <summary>
         /// Contains a human readable message about the state of the save process.
@@ -43,12 +43,12 @@ namespace Kontract.Models
         
         public static LoadResult CancelledResult => new LoadResult(LoadStatus.Cancelled);
 
-        public LoadResult(IStateInfo stateInfo) :
+        public LoadResult(IFileState fileState) :
             this(LoadStatus.Successful)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
 
-            LoadedState = stateInfo;
+            LoadedFileState = fileState;
         }
 
         public LoadResult(bool isSuccessful)

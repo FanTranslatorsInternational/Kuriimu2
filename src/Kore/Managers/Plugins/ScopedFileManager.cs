@@ -13,29 +13,29 @@ using Kontract.Models.IO;
 namespace Kore.Managers.Plugins
 {
     /// <summary>
-    /// A nested <see cref="IPluginManager"/> for passing into plugins and controlling their behaviour.
+    /// A nested <see cref="IFileManager"/> for passing into plugins and controlling their behaviour.
     /// </summary>
-    class SubPluginManager : IPluginManager
+    class ScopedFileManager : IFileManager
     {
-        private readonly IInternalPluginManager _parentPluginManager;
-        private IStateInfo _stateInfo;
+        private readonly IInternalFileManager _parentFileManager;
+        private IFileState _fileState;
 
-        private readonly IList<IStateInfo> _loadedFiles;
+        private readonly IList<IFileState> _loadedFiles;
 
-        public SubPluginManager(IInternalPluginManager parentPluginManager)
+        public ScopedFileManager(IInternalFileManager parentFileManager)
         {
-            ContractAssertions.IsNotNull(parentPluginManager, nameof(parentPluginManager));
+            ContractAssertions.IsNotNull(parentFileManager, nameof(parentFileManager));
 
-            _parentPluginManager = parentPluginManager;
+            _parentFileManager = parentFileManager;
 
-            _loadedFiles = new List<IStateInfo>();
+            _loadedFiles = new List<IFileState>();
         }
 
-        public void RegisterStateInfo(IStateInfo stateInfo)
+        public void RegisterStateInfo(IFileState fileState)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
 
-            _stateInfo = stateInfo;
+            _fileState = fileState;
         }
 
         #region Check
@@ -43,25 +43,25 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public bool IsLoading(UPath filePath)
         {
-            return _parentPluginManager.IsLoading(filePath);
+            return _parentFileManager.IsLoading(filePath);
         }
 
         /// <inheritdoc />
         public bool IsLoaded(UPath filePath)
         {
-            return _parentPluginManager.IsLoaded(filePath);
+            return _parentFileManager.IsLoaded(filePath);
         }
 
         /// <inheritdoc />
-        public bool IsSaving(IStateInfo stateInfo)
+        public bool IsSaving(IFileState fileState)
         {
-            return _parentPluginManager.IsSaving(stateInfo);
+            return _parentFileManager.IsSaving(fileState);
         }
 
         /// <inheritdoc />
-        public bool IsClosing(IStateInfo stateInfo)
+        public bool IsClosing(IFileState fileState)
         {
-            return _parentPluginManager.IsClosing(stateInfo);
+            return _parentFileManager.IsClosing(fileState);
         }
 
         #endregion
@@ -85,21 +85,21 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext)
         {
-            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
+            ContractAssertions.IsNotNull(_fileState, "fileState");
 
             // If the same file is passed to another plugin, take the parent of the current state
-            var parent = _stateInfo;
-            var statePath = _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
+            var parent = _fileState;
+            var statePath = _fileState.AbsoluteDirectory / _fileState.FilePath.ToRelative();
             if (fileSystem.ConvertPathToInternal(path) == statePath)
-                parent = _stateInfo.ParentStateInfo;
+                parent = _fileState.ParentFileState;
 
             // 1. Load file
-            var loadResult = await _parentPluginManager.LoadFile(fileSystem, path, parent, loadFileContext);
+            var loadResult = await _parentFileManager.LoadFile(fileSystem, path, parent, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 2. Add file to loaded files
-            _loadedFiles.Add(loadResult.LoadedState);
+            _loadedFiles.Add(loadResult.LoadedFileState);
 
             return loadResult;
         }
@@ -109,21 +109,21 @@ namespace Kore.Managers.Plugins
         #region Load ArchiveFileInfo
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
+        public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi)
         {
-            return _parentPluginManager.LoadFile(stateInfo, afi);
+            return _parentFileManager.LoadFile(fileState, afi);
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId)
+        public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, Guid pluginId)
         {
-            return _parentPluginManager.LoadFile(stateInfo, afi, new LoadFileContext { PluginId = pluginId });
+            return _parentFileManager.LoadFile(fileState, afi, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
+        public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
-            return _parentPluginManager.LoadFile(stateInfo, afi, loadFileContext);
+            return _parentFileManager.LoadFile(fileState, afi, loadFileContext);
         }
 
         #endregion
@@ -145,15 +145,15 @@ namespace Kore.Managers.Plugins
         /// <inheritdoc />
         public async Task<LoadResult> LoadFile(StreamFile streamFile, LoadFileContext loadFileContext)
         {
-            ContractAssertions.IsNotNull(_stateInfo, "stateInfo");
+            ContractAssertions.IsNotNull(_fileState, "fileState");
 
             // 1. Load file
-            var loadResult = await _parentPluginManager.LoadFile(streamFile, loadFileContext);
+            var loadResult = await _parentFileManager.LoadFile(streamFile, loadFileContext);
             if (!loadResult.IsSuccessful)
                 return loadResult;
 
             // 2. Add file to loaded files
-            _loadedFiles.Add(loadResult.LoadedState);
+            _loadedFiles.Add(loadResult.LoadedFileState);
 
             return loadResult;
         }
@@ -164,35 +164,35 @@ namespace Kore.Managers.Plugins
 
         #region Save File
 
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo)
+        public Task<SaveResult> SaveFile(IFileState fileState)
         {
-            return _parentPluginManager.SaveFile(stateInfo);
+            return _parentFileManager.SaveFile(fileState);
         }
 
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        public Task<SaveResult> SaveFile(IFileState fileState, IFileSystem fileSystem, UPath savePath)
         {
-            return _parentPluginManager.SaveFile(stateInfo, fileSystem, savePath);
+            return _parentFileManager.SaveFile(fileState, fileSystem, savePath);
         }
 
         #endregion
 
         #region Save Stream
 
-        public Task<SaveStreamResult> SaveStream(IStateInfo stateInfo)
+        public Task<SaveStreamResult> SaveStream(IFileState fileState)
         {
-            return _parentPluginManager.SaveStream(stateInfo);
+            return _parentFileManager.SaveStream(fileState);
         }
 
         #endregion
 
         #region Close file
 
-        public CloseResult Close(IStateInfo stateInfo)
+        public CloseResult Close(IFileState fileState)
         {
-            ContractAssertions.IsElementContained(_loadedFiles, stateInfo, "loadedFiles", nameof(stateInfo));
+            ContractAssertions.IsElementContained(_loadedFiles, fileState, "loadedFiles", nameof(fileState));
 
-            var closeResult = _parentPluginManager.Close(stateInfo);
-            _loadedFiles.Remove(stateInfo);
+            var closeResult = _parentFileManager.Close(fileState);
+            _loadedFiles.Remove(fileState);
 
             return closeResult;
         }
@@ -200,7 +200,7 @@ namespace Kore.Managers.Plugins
         public void CloseAll()
         {
             foreach (var loadedFile in _loadedFiles)
-                _parentPluginManager.Close(loadedFile);
+                _parentFileManager.Close(loadedFile);
 
             _loadedFiles.Clear();
         }

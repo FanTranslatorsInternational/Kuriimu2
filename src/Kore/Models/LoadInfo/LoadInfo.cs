@@ -9,11 +9,11 @@ namespace Kore.Models.LoadInfo
 {
     class LoadInfo
     {
-        public IStateInfo ParentStateInfo { get; set; }
+        public IFileState ParentFileState { get; set; }
 
         public IStreamManager StreamManager { get; set; }
 
-        public PluginManager PluginManager { get; set; }
+        public FileManager FileManager { get; set; }
 
         public IFilePlugin Plugin { get; set; }
 

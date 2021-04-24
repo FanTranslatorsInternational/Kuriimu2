@@ -11,7 +11,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             InitializeComponent();
 
-            hexBox.LoadStream((formInfo.StateInfo.PluginState as IHexState)?.FileStream);
+            hexBox.LoadStream((formInfo.FileState.PluginState as IHexState)?.FileStream);
         }
 
         #region Forminterface methods

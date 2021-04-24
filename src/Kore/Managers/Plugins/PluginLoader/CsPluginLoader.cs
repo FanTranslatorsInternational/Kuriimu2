@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +11,7 @@ namespace Kore.Managers.Plugins.PluginLoader
 {
     public abstract class CsPluginLoader
     {
-        protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors)
+        protected bool TryLoadPlugins<TPlugin>(string[] pluginPaths, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
         {
             // 1. Get all assembly file paths from the designated plugin directories
             var assemblyFilePaths = pluginPaths.Select(p => p)
@@ -26,7 +26,7 @@ namespace Kore.Managers.Plugins.PluginLoader
             return TryLoadPlugins(assemblyFiles, out loadedPlugins, out errors);
         }
 
-        protected bool TryLoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors)
+        protected bool TryLoadPlugins<TPlugin>(Assembly[] assemblyFiles, out IReadOnlyList<TPlugin> loadedPlugins, out IReadOnlyList<PluginLoadError> errors) where TPlugin : IPlugin
         {
             // 3. Get all public types assignable to IPlugin
             var pluginTypes = GetPublicTypes<TPlugin>(assemblyFiles, out var loadErrors);
@@ -85,11 +85,11 @@ namespace Kore.Managers.Plugins.PluginLoader
             return result;
         }
 
-        private void RegisterReferencedAssemblies<TPlugin>(IReadOnlyList<TPlugin> loadedPlugins)
+        private void RegisterReferencedAssemblies<TPlugin>(IReadOnlyList<TPlugin> loadedPlugins) where TPlugin : IPlugin
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
-            foreach (var loadedPlugin in loadedPlugins.OfType<IRegisterAssembly>())
+            foreach (var loadedPlugin in loadedPlugins)
             {
                 var assembly = loadedPlugin.GetType().Assembly;
                 var domainContext = new DomainContext(assembly);

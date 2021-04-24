@@ -11,7 +11,7 @@ namespace Kontract.Interfaces.Managers
     /// <summary>
     /// Exposes methods to load files in the Kuriimu runtime.
     /// </summary>
-    public interface IPluginManager
+    public interface IFileManager
     {
         #region Check
 
@@ -27,16 +27,16 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// Determines if a state is currently saving.
         /// </summary>
-        /// <param name="stateInfo">The state to check for saving.</param>
+        /// <param name="fileState">The state to check for saving.</param>
         /// <returns>If the state is currently saving.</returns>
-        bool IsSaving(IStateInfo stateInfo);
+        bool IsSaving(IFileState fileState);
 
         /// <summary>
         /// Determines is a state is currently closing.
         /// </summary>
-        /// <param name="stateInfo">The state to check for closing.</param>
+        /// <param name="fileState">The state to check for closing.</param>
         /// <returns>If the state is currently closing.</returns>
-        bool IsClosing(IStateInfo stateInfo);
+        bool IsClosing(IFileState fileState);
 
         #endregion
 
@@ -49,7 +49,7 @@ namespace Kontract.Interfaces.Managers
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
         Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path);
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
         Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId);
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
         Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, LoadFileContext loadFileContext);
 
         #endregion
@@ -77,28 +77,28 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
         /// </summary>
-        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="fileState">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi);
+        Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
         /// </summary>
-        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="fileState">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="pluginId">The plugin to load this virtual file with.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId);
+        Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, Guid pluginId);
 
         /// <summary>
         /// Loads a virtual path into the Kuriimu runtime.
         /// </summary>
-        /// <param name="stateInfo">The loaded path state to load a path from.</param>
+        /// <param name="fileState">The loaded path state to load a path from.</param>
         /// <param name="afi">The path to load from that state.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
         /// <returns>The loaded state of the path.</returns>
-        Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext);
+        Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, LoadFileContext loadFileContext);
 
         #endregion
 
@@ -136,18 +136,18 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// Save a loaded state in place.
         /// </summary>
-        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="fileState">The <see cref="IFileState"/> to save.</param>
         /// <returns></returns>
-        Task<SaveResult> SaveFile(IStateInfo stateInfo);
+        Task<SaveResult> SaveFile(IFileState fileState);
 
         /// <summary>
         /// Save a loaded state to the given filesystem and path.
         /// </summary>
-        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="fileState">The <see cref="IFileState"/> to save.</param>
         /// <param name="fileSystem">The filesystem at which to save the file.</param>
         /// <param name="savePath">The path into the filesystem to save the file at.</param>
         /// <returns></returns>
-        Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath);
+        Task<SaveResult> SaveFile(IFileState fileState, IFileSystem fileSystem, UPath savePath);
 
         #endregion
 
@@ -156,9 +156,9 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// Saves a loaded state into <see cref="StreamFile"/>s.
         /// </summary>
-        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="fileState">The <see cref="IFileState"/> to save.</param>
         /// <returns></returns>
-        Task<SaveStreamResult> SaveStream(IStateInfo stateInfo);
+        Task<SaveStreamResult> SaveStream(IFileState fileState);
 
         #endregion
 
@@ -167,8 +167,8 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// Closes a loaded state.
         /// </summary>
-        /// <param name="stateInfo">The state to close and release.</param>
-        CloseResult Close(IStateInfo stateInfo);
+        /// <param name="fileState">The state to close and release.</param>
+        CloseResult Close(IFileState fileState);
 
         /// <summary>
         /// Closes all loaded states.

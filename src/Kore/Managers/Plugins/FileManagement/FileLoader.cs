@@ -53,13 +53,13 @@ namespace Kore.Managers.Plugins.FileManagement
             }
 
             // 3. Create state from identified plugin
-            var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
+            var subPluginManager = new ScopedFileManager(loadInfo.FileManager);
             var createResult = TryCreateState(plugin, subPluginManager, loadInfo, out var state);
             if (!createResult.IsSuccessful)
                 return createResult;
 
             // 4. Create new state info
-            var stateInfo = new StateInfo(plugin, state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
+            var stateInfo = new DefaultFileState(plugin, state, loadInfo.ParentFileState, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
             subPluginManager.RegisterStateInfo(stateInfo);
 
             // 5. Load data from state
@@ -86,13 +86,14 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
         private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
-            // 1. Get all plugins that implement IIdentifyFile
+            // 1. Get all plugins that support identification
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
             // 2. Identify the file with identifiable plugins
             var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
+                //TODO this cast smells, all IIdentifyFiles should be IFilePlugins (right?)
                 var filePlugin = identifiablePlugin as IFilePlugin;
 
                 try
@@ -164,17 +165,17 @@ namespace Kore.Managers.Plugins.FileManagement
         /// Try to create a new plugin state.
         /// </summary>
         /// <param name="plugin">The plugin from which to create a new state.</param>
-        /// <param name="pluginManager">The plugin manager to pass to the state creation.</param>
+        /// <param name="fileManager">The plugin manager to pass to the state creation.</param>
         /// <param name="pluginState">The created state.</param>
         /// <param name="loadInfo">The load info for this loading operation.</param>
         /// <returns>If the creation was successful.</returns>
-        private LoadResult TryCreateState(IFilePlugin plugin, IPluginManager pluginManager, LoadInfo loadInfo, out IPluginState pluginState)
+        private LoadResult TryCreateState(IFilePlugin plugin, IFileManager fileManager, LoadInfo loadInfo, out IPluginState pluginState)
         {
             pluginState = null;
 
             try
             {
-                pluginState = plugin.CreatePluginState(pluginManager);
+                pluginState = plugin.CreatePluginState(fileManager);
             }
             catch (Exception e)
             {
@@ -198,14 +199,14 @@ namespace Kore.Managers.Plugins.FileManagement
         private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
             LoadContext loadContext, LoadInfo loadInfo, IFilePlugin plugin)
         {
-            // 1. Check if state implements ILoadFile
-            if (!(pluginState is ILoadFiles loadableState))
+            // 1. Check if state supports loading
+            if (!pluginState.CanLoad)
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await pluginState.TryLoad(fileSystem, filePath, loadContext));
             }
             catch (Exception e)
             {

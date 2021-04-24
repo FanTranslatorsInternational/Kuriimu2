@@ -1,7 +1,7 @@
 ﻿namespace Kontract.Interfaces.Plugins.Identifier
 {
-    // TODO: Design game plugins
-    public interface IGamePlugin
+    public interface IGamePlugin : IPlugin
     {
+        // TODO: Design game plugins
     }
 }

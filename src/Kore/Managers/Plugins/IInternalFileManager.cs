@@ -17,7 +17,7 @@ namespace Kore.Managers.Plugins
     /// <summary>
     /// Exposes methods to load physical and virtual files directly.
     /// </summary>
-    public interface IInternalPluginManager : IPluginManager, IDisposable
+    public interface IInternalFileManager : IFileManager, IDisposable
     {
         /// <summary>
         /// An event to allow for manual selection by the user.
@@ -42,11 +42,11 @@ namespace Kore.Managers.Plugins
         #region Get Methods
 
         /// <summary>
-        /// Gets the <see cref="IStateInfo"/> of the requested file.
+        /// Gets the <see cref="IFileState"/> of the requested file.
         /// </summary>
         /// <param name="filePath">The path of the file to request.</param>
-        /// <returns>The <see cref="IStateInfo"/> of the file.</returns>
-        IStateInfo GetLoadedFile(UPath filePath);
+        /// <returns>The <see cref="IFileState"/> of the file.</returns>
+        IFileState GetLoadedFile(UPath filePath);
 
         /// <summary>
         /// Retrieves all <see cref="IPluginLoader"/>s that can load files.
@@ -98,9 +98,9 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <param name="parentStateInfo">The state from which the file system originates.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo);
+        /// <param name="parentFileState">The state from which the file system originates.</param>
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState parentFileState);
 
         /// <summary>
         /// Loads a file from a given file system.
@@ -108,19 +108,19 @@ namespace Kore.Managers.Plugins
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
         /// <param name="pluginId">The Id of the plugin to load the file with.</param>
-        /// <param name="parentStateInfo">The state from which the file system originates.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo);
+        /// <param name="parentFileState">The state from which the file system originates.</param>
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IFileState parentFileState);
 
         /// <summary>
         /// Loads a file from a given file system.
         /// </summary>
         /// <param name="fileSystem">The file system to load the file from.</param>
         /// <param name="path">The file to load from the file system.</param>
-        /// <param name="parentStateInfo">The state from which the file system originates.</param>
+        /// <param name="parentFileState">The state from which the file system originates.</param>
         /// <param name="loadFileContext">The context with additional parameters for the load process.</param>
-        /// <returns>The loaded <see cref="IStateInfo"/> for the file.</returns>
-        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext);
+        /// <returns>The loaded <see cref="IFileState"/> for the file.</returns>
+        Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState parentFileState, LoadFileContext loadFileContext);
 
         #endregion
 
@@ -129,9 +129,9 @@ namespace Kore.Managers.Plugins
         /// <summary>
         /// Save a loaded state to a physical path.
         /// </summary>
-        /// <param name="stateInfo">The <see cref="IStateInfo"/> to save.</param>
+        /// <param name="fileState">The <see cref="IFileState"/> to save.</param>
         /// <param name="saveFile">The physical path at which to save the file.</param>
         /// <returns></returns>
-        Task<SaveResult> SaveFile(IStateInfo stateInfo, string saveFile);
+        Task<SaveResult> SaveFile(IFileState fileState, string saveFile);
     }
 }

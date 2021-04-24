@@ -31,7 +31,7 @@ namespace Kore.Managers.Plugins
     /// <summary>
     /// The core component of the Kuriimu runtime.
     /// </summary>
-    public class PluginManager : IInternalPluginManager
+    public class FileManager : IInternalFileManager
     {
         private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
         private readonly IPluginLoader<IGameAdapter>[] _gameAdapterLoaders;
@@ -44,13 +44,13 @@ namespace Kore.Managers.Plugins
         private readonly IList<UPath> _loadingFiles = new List<UPath>();
         private readonly object _loadingLock = new object();
 
-        private readonly IList<IStateInfo> _loadedFiles = new List<IStateInfo>();
+        private readonly IList<IFileState> _loadedFiles = new List<IFileState>();
         private readonly object _loadedFilesLock = new object();
 
-        private readonly IList<IStateInfo> _savingStates = new List<IStateInfo>();
+        private readonly IList<IFileState> _savingStates = new List<IFileState>();
         private readonly object _saveLock = new object();
 
-        private readonly IList<IStateInfo> _closingStates = new List<IStateInfo>();
+        private readonly IList<IFileState> _closingStates = new List<IFileState>();
         private readonly object _closeLock = new object();
 
         private ILogger _logger;
@@ -77,33 +77,21 @@ namespace Kore.Managers.Plugins
         #region Constructors
 
         /// <summary>
-        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// Creates a new instance of <see cref="FileManager"/>.
         /// </summary>
         /// <param name="pluginPaths">The paths to search for plugins.</param>
-        public PluginManager(params string[] pluginPaths)
-        {
-            // 1. Setup all necessary instances
-            _filePluginLoaders = new IPluginLoader<IFilePlugin>[] { new CsFilePluginLoader(pluginPaths) };
-            _gameAdapterLoaders = new IPluginLoader<IGameAdapter>[] { new CsGamePluginLoader(pluginPaths) };
-
-            LoadErrors = _filePluginLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>())
-                .Concat(_gameAdapterLoaders.SelectMany(pl => pl.LoadErrors ?? Array.Empty<PluginLoadError>()))
-                .DistinctBy(e => e.AssemblyPath)
-                .ToList();
-
-            _streamMonitor = new StreamMonitor();
-
-            _fileLoader = new FileLoader(_filePluginLoaders);
-            _fileSaver = new FileSaver(_streamMonitor);
-
-            _fileLoader.OnManualSelection += FileLoader_OnManualSelection;
-        }
+        public FileManager(params string[] pluginPaths) :
+            this(
+                new CsFilePluginLoader(pluginPaths),
+                new CsGamePluginLoader(pluginPaths)
+            )
+        { }
 
         /// <summary>
-        /// Creates a new instance of <see cref="PluginManager"/>.
+        /// Creates a new instance of <see cref="FileManager"/>.
         /// </summary>
         /// <param name="pluginLoaders">The plugin loaders for this manager.</param>
-        public PluginManager(params IPluginLoader[] pluginLoaders)
+        public FileManager(params IPluginLoader[] pluginLoaders)
         {
             _filePluginLoaders = pluginLoaders.Where(x => x is IPluginLoader<IFilePlugin>).Cast<IPluginLoader<IFilePlugin>>().ToArray();
             _gameAdapterLoaders = pluginLoaders.Where(x => x is IPluginLoader<IGameAdapter>).Cast<IPluginLoader<IGameAdapter>>().ToArray();
@@ -126,7 +114,7 @@ namespace Kore.Managers.Plugins
         /// <param name="pluginLoaders">The plugin loaders for this instance.</param>
         /// <param name="fileLoader">The file loader for this instance.</param>
         /// <param name="fileSaver">The file saver for this instance.</param>
-        internal PluginManager(IPluginLoader[] pluginLoaders, IFileLoader fileLoader, IFileSaver fileSaver)
+        internal FileManager(IPluginLoader[] pluginLoaders, IFileLoader fileLoader, IFileSaver fileSaver)
         {
             _filePluginLoaders = pluginLoaders.Where(x => x is IPluginLoader<IFilePlugin>)
                 .Cast<IPluginLoader<IFilePlugin>>().ToArray();
@@ -140,7 +128,7 @@ namespace Kore.Managers.Plugins
         #region Get Methods
 
         /// <inheritdoc />
-        public IStateInfo GetLoadedFile(UPath filePath)
+        public IFileState GetLoadedFile(UPath filePath)
         {
             lock (_loadedFilesLock)
             {
@@ -183,20 +171,20 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public bool IsSaving(IStateInfo stateInfo)
+        public bool IsSaving(IFileState fileState)
         {
             lock (_saveLock)
             {
-                return _savingStates.Contains(stateInfo);
+                return _savingStates.Contains(fileState);
             }
         }
 
         /// <inheritdoc />
-        public bool IsClosing(IStateInfo stateInfo)
+        public bool IsClosing(IFileState fileState)
         {
             lock (_closeLock)
             {
-                return _closingStates.Contains(stateInfo);
+                return _closingStates.Contains(fileState);
             }
         }
 
@@ -256,26 +244,26 @@ namespace Kore.Managers.Plugins
         #region Load ArchiveFileInfo
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi)
+        public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi)
         {
-            return LoadFile(stateInfo, afi, new LoadFileContext());
+            return LoadFile(fileState, afi, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, Guid pluginId)
+        public Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, Guid pluginId)
         {
-            return LoadFile(stateInfo, afi, new LoadFileContext { PluginId = pluginId });
+            return LoadFile(fileState, afi, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IStateInfo stateInfo, IArchiveFileInfo afi, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(IFileState fileState, IArchiveFileInfo afi, LoadFileContext loadFileContext)
         {
-            // If stateInfo is no archive state
-            if (!(stateInfo.PluginState is IArchiveState _))
+            // If fileState is no archive state
+            if (!(fileState.PluginState is IArchiveState))
                 throw new InvalidOperationException("The state represents no archive.");
 
             // If file is already loaded or loading
-            var absoluteFilePath = UPath.Combine(stateInfo.AbsoluteDirectory, stateInfo.FilePath.ToRelative(), afi.FilePath.ToRelative());
+            var absoluteFilePath = UPath.Combine(fileState.AbsoluteDirectory, fileState.FilePath.ToRelative(), afi.FilePath.ToRelative());
             lock (_loadingLock)
             {
                 if (_loadingFiles.Any(x => x == absoluteFilePath))
@@ -289,11 +277,11 @@ namespace Kore.Managers.Plugins
 
             // 1. Create file system
             var streamManager = CreateStreamManager();
-            var fileSystem = FileSystemFactory.CreateAfiFileSystem(stateInfo, UPath.Root, streamManager);
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(fileState, UPath.Root, streamManager);
 
             // 2. Load file
-            // IArchiveFileInfos have stateInfo as their parent, if loaded like this
-            var loadResult = await LoadFile(fileSystem, afi.FilePath, streamManager, stateInfo, loadFileContext);
+            // IArchiveFileInfos have fileState as their parent, if loaded like this
+            var loadResult = await LoadFile(fileSystem, afi.FilePath, streamManager, fileState, loadFileContext);
             if (!loadResult.IsSuccessful)
             {
                 lock (_loadingLock)
@@ -304,7 +292,7 @@ namespace Kore.Managers.Plugins
 
             // 3. Add archive child to parent
             // ArchiveChildren are only added, if a file is loaded like this
-            stateInfo.ArchiveChildren.Add(loadResult.LoadedState);
+            fileState.ArchiveChildren.Add(loadResult.LoadedFileState);
 
             lock (_loadingLock)
                 _loadingFiles.Remove(absoluteFilePath);
@@ -329,15 +317,15 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState parentFileState)
         {
-            return LoadFile(fileSystem, path, parentStateInfo, new LoadFileContext());
+            return LoadFile(fileSystem, path, parentFileState, new LoadFileContext());
         }
 
         /// <inheritdoc />
-        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IStateInfo parentStateInfo)
+        public Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, Guid pluginId, IFileState parentFileState)
         {
-            return LoadFile(fileSystem, path, parentStateInfo, new LoadFileContext { PluginId = pluginId });
+            return LoadFile(fileSystem, path, parentFileState, new LoadFileContext { PluginId = pluginId });
         }
 
         /// <inheritdoc />
@@ -347,7 +335,7 @@ namespace Kore.Managers.Plugins
         }
 
         /// <inheritdoc />
-        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        public async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IFileState parentFileState, LoadFileContext loadFileContext)
         {
             // Downside of not having ArchiveChildren is not having the states saved below automatically when opened file is saved
 
@@ -369,9 +357,9 @@ namespace Kore.Managers.Plugins
             fileSystem = fileSystem.Clone(streamManager);
 
             // 2. Load file
-            // Only if called by a SubPluginManager the parent state is not null
+            // Only if called by a ScopedFileManager the parent state is not null
             // Does not add ArchiveChildren to parent state
-            var loadedFile = await LoadFile(fileSystem, path, streamManager, parentStateInfo, loadFileContext);
+            var loadedFile = await LoadFile(fileSystem, path, streamManager, parentFileState, loadFileContext);
 
             lock (_loadingLock)
                 _loadingFiles.Remove(absoluteFilePath);
@@ -411,7 +399,7 @@ namespace Kore.Managers.Plugins
 
         #endregion
 
-        private async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IStateInfo parentStateInfo, LoadFileContext loadFileContext)
+        private async Task<LoadResult> LoadFile(IFileSystem fileSystem, UPath path, IStreamManager streamManager, IFileState parentFileState, LoadFileContext loadFileContext)
         {
             // 1. Find plugin
             IFilePlugin plugin = null;
@@ -424,9 +412,9 @@ namespace Kore.Managers.Plugins
             // 2. Load file
             var loadResult = await _fileLoader.LoadAsync(fileSystem, path, new LoadInfo
             {
-                ParentStateInfo = parentStateInfo,
+                ParentFileState = parentFileState,
                 StreamManager = streamManager,
-                PluginManager = this,
+                FileManager = this,
                 Plugin = plugin,
                 Progress = Progress,
                 DialogManager = new InternalDialogManager(DialogManager, loadFileContext.Options),
@@ -439,7 +427,7 @@ namespace Kore.Managers.Plugins
             // 5. Add file to loaded files
             lock (_loadedFilesLock)
                 if (loadResult.IsSuccessful)
-                    _loadedFiles.Add(loadResult.LoadedState);
+                    _loadedFiles.Add(loadResult.LoadedFileState);
 
             return loadResult;
         }
@@ -451,49 +439,49 @@ namespace Kore.Managers.Plugins
         // TODO: Add archive children as saving files as well to reduce race conditions
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo)
+        public Task<SaveResult> SaveFile(IFileState fileState)
         {
-            return SaveFile(stateInfo, stateInfo.FileSystem, stateInfo.FilePath.FullName);
+            return SaveFile(fileState, fileState.FileSystem, fileState.FilePath.FullName);
         }
 
         /// <inheritdoc />
-        public Task<SaveResult> SaveFile(IStateInfo stateInfo, string saveFile)
+        public Task<SaveResult> SaveFile(IFileState fileState, string saveFile)
         {
-            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(stateInfo.StreamManager);
+            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(fileState.StreamManager);
             var savePath = fileSystem.ConvertPathFromInternal(saveFile);
 
             var root = savePath.GetRoot();
             fileSystem = FileSystemFactory.CreateSubFileSystem(fileSystem, root);
 
-            return SaveFile(stateInfo, fileSystem, savePath.GetSubDirectory(root));
+            return SaveFile(fileState, fileSystem, savePath.GetSubDirectory(root));
         }
 
         // TODO: Put in options from external call like in Load
         /// <inheritdoc />
-        public async Task<SaveResult> SaveFile(IStateInfo stateInfo, IFileSystem fileSystem, UPath savePath)
+        public async Task<SaveResult> SaveFile(IFileState fileState, IFileSystem fileSystem, UPath savePath)
         {
-            if (stateInfo.IsDisposed)
+            if (fileState.IsDisposed)
                 return new SaveResult(false, "The given file is already closed.");
 
             lock (_saveLock)
             {
-                if (_savingStates.Contains(stateInfo))
-                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
+                if (_savingStates.Contains(fileState))
+                    return new SaveResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is already saving.");
 
-                if (IsClosing(stateInfo))
-                    return new SaveResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
+                if (IsClosing(fileState))
+                    return new SaveResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is currently closing.");
 
-                _savingStates.Add(stateInfo);
+                _savingStates.Add(fileState);
             }
 
             lock (_loadedFilesLock)
-                if (!_loadedFiles.Contains(stateInfo))
+                if (!_loadedFiles.Contains(fileState))
                     return new SaveResult(false, "The given file is not loaded anymore.");
 
             var isRunning = Progress.IsRunning();
             if (!isRunning) Progress.StartProgress();
 
-            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, savePath, new SaveInfo
+            var saveResult = await _fileSaver.SaveAsync(fileState, fileSystem, savePath, new SaveInfo
             {
                 Progress = Progress,
                 DialogManager = DialogManager,
@@ -503,7 +491,7 @@ namespace Kore.Managers.Plugins
             if (!isRunning) Progress.FinishProgress();
 
             lock (_saveLock)
-                _savingStates.Remove(stateInfo);
+                _savingStates.Remove(fileState);
 
             return saveResult;
         }
@@ -512,32 +500,32 @@ namespace Kore.Managers.Plugins
 
         #region Save Stream
 
-        public async Task<SaveStreamResult> SaveStream(IStateInfo stateInfo)
+        public async Task<SaveStreamResult> SaveStream(IFileState fileState)
         {
-            if (stateInfo.IsDisposed)
+            if (fileState.IsDisposed)
                 return new SaveStreamResult(false, "The given file is already closed.");
 
             lock (_saveLock)
             {
-                if (_savingStates.Contains(stateInfo))
-                    return new SaveStreamResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already saving.");
+                if (_savingStates.Contains(fileState))
+                    return new SaveStreamResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is already saving.");
 
-                if (IsClosing(stateInfo))
-                    return new SaveStreamResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently closing.");
+                if (IsClosing(fileState))
+                    return new SaveStreamResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is currently closing.");
 
-                _savingStates.Add(stateInfo);
+                _savingStates.Add(fileState);
             }
 
             lock (_loadedFilesLock)
-                if (!_loadedFiles.Contains(stateInfo))
+                if (!_loadedFiles.Contains(fileState))
                     return new SaveStreamResult(false, "The given file is not loaded anymore.");
 
             var isRunning = Progress.IsRunning();
             if (!isRunning) Progress.StartProgress();
 
             // Save to memory file system
-            var fileSystem = new MemoryFileSystem(stateInfo.StreamManager);
-            var saveResult = await _fileSaver.SaveAsync(stateInfo, fileSystem, stateInfo.FilePath, new SaveInfo
+            var fileSystem = new MemoryFileSystem(fileState.StreamManager);
+            var saveResult = await _fileSaver.SaveAsync(fileState, fileSystem, fileState.FilePath, new SaveInfo
             {
                 Progress = Progress,
                 DialogManager = DialogManager,
@@ -547,7 +535,7 @@ namespace Kore.Managers.Plugins
             if (!isRunning) Progress.FinishProgress();
 
             lock (_saveLock)
-                _savingStates.Remove(stateInfo);
+                _savingStates.Remove(fileState);
 
             if (!saveResult.IsSuccessful)
                 return new SaveStreamResult(saveResult.Exception);
@@ -564,33 +552,33 @@ namespace Kore.Managers.Plugins
         #region Close File
 
         /// <inheritdoc />
-        public CloseResult Close(IStateInfo stateInfo)
+        public CloseResult Close(IFileState fileState)
         {
-            if (stateInfo.IsDisposed)
+            if (fileState.IsDisposed)
                 return CloseResult.SuccessfulResult;
 
             lock (_closeLock)
             {
-                if (_closingStates.Contains(stateInfo))
-                    return new CloseResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is already closing.");
+                if (_closingStates.Contains(fileState))
+                    return new CloseResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is already closing.");
 
-                if (IsSaving(stateInfo))
-                    return new CloseResult(false, $"File {stateInfo.AbsoluteDirectory / stateInfo.FilePath.ToRelative()} is currently saving.");
+                if (IsSaving(fileState))
+                    return new CloseResult(false, $"File {fileState.AbsoluteDirectory / fileState.FilePath.ToRelative()} is currently saving.");
 
-                _closingStates.Add(stateInfo);
+                _closingStates.Add(fileState);
             }
 
             lock (_loadedFilesLock)
-                if (!_loadedFiles.Contains(stateInfo))
+                if (!_loadedFiles.Contains(fileState))
                     return new CloseResult(false, "The given file is not loaded anymore.");
 
             // Remove state from its parent
-            stateInfo.ParentStateInfo?.ArchiveChildren.Remove(stateInfo);
+            fileState.ParentFileState?.ArchiveChildren.Remove(fileState);
 
-            CloseInternal(stateInfo);
+            CloseInternal(fileState);
 
             lock (_closeLock)
-                _closingStates.Remove(stateInfo);
+                _closingStates.Remove(fileState);
 
             return CloseResult.SuccessfulResult;
         }
@@ -623,19 +611,19 @@ namespace Kore.Managers.Plugins
             }
         }
 
-        private void CloseInternal(IStateInfo stateInfo)
+        private void CloseInternal(IFileState fileState)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
 
             // Close children of this state first
-            foreach (var child in stateInfo.ArchiveChildren)
+            foreach (var child in fileState.ArchiveChildren)
                 CloseInternal(child);
 
             // Close indirect children of this state
             // Indirect children occur when a file is loaded by a FileSystem and got a parent attached manually
-            IList<IStateInfo> indirectChildren;
+            IList<IFileState> indirectChildren;
             lock (_loadedFilesLock)
-                indirectChildren = _loadedFiles.Where(x => x.ParentStateInfo == stateInfo).ToArray();
+                indirectChildren = _loadedFiles.Where(x => x.ParentFileState == fileState).ToArray();
 
             foreach (var indirectChild in indirectChildren)
                 CloseInternal(indirectChild);
@@ -643,12 +631,12 @@ namespace Kore.Managers.Plugins
             lock (_loadedFilesLock)
             {
                 // Close state itself
-                if (_streamMonitor.Manages(stateInfo.StreamManager))
-                    _streamMonitor.RemoveStreamManager(stateInfo.StreamManager);
-                stateInfo.Dispose();
+                if (_streamMonitor.Manages(fileState.StreamManager))
+                    _streamMonitor.RemoveStreamManager(fileState.StreamManager);
+                fileState.Dispose();
 
                 // Remove from the file tracking of this instance
-                _loadedFiles.Remove(stateInfo);
+                _loadedFiles.Remove(fileState);
             }
         }
 

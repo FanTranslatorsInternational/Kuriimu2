@@ -19,8 +19,8 @@ namespace Kore.Batch
         private readonly object _lock = new object();
         private readonly IList<UPath> _openedFiles = new List<UPath>();
 
-        public BatchExtractor(IInternalPluginManager pluginManager, ILogger logger) :
-            base(pluginManager, logger)
+        public BatchExtractor(IInternalFileManager fileManager, ILogger logger) :
+            base(fileManager, logger)
         {
         }
 
@@ -28,24 +28,24 @@ namespace Kore.Batch
         {
             Logger.Information("Extract '{0}'.", filePath.FullName);
 
-            IStateInfo loadedState;
+            IFileState loadedFileState;
             lock (_lock)
             {
                 _openedFiles.Clear();
 
                 // Load file
                 SourceFileSystemWatcher.Opened += SourceFileSystemWatcher_Opened;
-                loadedState = LoadFile(sourceFileSystem, filePath).Result;
+                loadedFileState = LoadFile(sourceFileSystem, filePath).Result;
                 SourceFileSystemWatcher.Opened -= SourceFileSystemWatcher_Opened;
 
                 // If file could not be loaded successfully
-                if (loadedState == null)
+                if (loadedFileState == null)
                     return;
 
                 // If one of the opened files was already batched, stop execution
                 if (_openedFiles.Any(IsFileBatched))
                 {
-                    PluginManager.Close(loadedState);
+                    FileManager.Close(loadedFileState);
 
                     Logger.Information("'{0}' is/was already processed.", filePath.FullName);
                     return;
@@ -56,7 +56,7 @@ namespace Kore.Batch
                     AddBatchedFile(openedFile);
             }
 
-            switch (loadedState.PluginState)
+            switch (loadedFileState.PluginState)
             {
                 case IArchiveState archiveState:
                     await ExtractArchive(archiveState, destinationFileSystem, filePath);
@@ -68,11 +68,11 @@ namespace Kore.Batch
 
                 default:
                     Logger.Error("'{0}' is not supported.", filePath.FullName);
-                    PluginManager.Close(loadedState);
+                    FileManager.Close(loadedFileState);
                     return;
             }
 
-            PluginManager.Close(loadedState);
+            FileManager.Close(loadedFileState);
 
             Logger.Information("Extracted '{0}'.", filePath.FullName);
         }

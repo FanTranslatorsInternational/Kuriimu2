@@ -249,12 +249,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedImage = GetSelectedImage();
 
             // Update button operation availability
-            var isSaveState = _formInfo.StateInfo.PluginState is ISaveFiles;
-            saveButton.Enabled = selectedImage != null && isSaveState;
-            saveAsButton.Enabled = selectedImage != null && isSaveState && _formInfo.StateInfo.ParentStateInfo == null;
+            saveButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
+            saveAsButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave && _formInfo.FileState.ParentFileState == null;
 
             exportButton.Enabled = selectedImage != null;
-            importButton.Enabled = selectedImage != null && isSaveState;
+            importButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
 
             // Update format dropdown availability
             var definition = GetEncodingDefinition();
@@ -296,7 +295,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
             var imageName = string.IsNullOrEmpty(selectedImage.Name) ?
-                _formInfo.StateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
+                _formInfo.FileState.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
                 selectedImage.Name + ".png";
 
             var sfd = new SaveFileDialog
@@ -462,14 +461,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Support
 
-        private ISaveFiles GetSaveState()
-        {
-            return _formInfo.StateInfo.PluginState as ISaveFiles;
-        }
-
         private IList<IKanvasImage> GetStateImages()
         {
-            return (_formInfo.StateInfo.PluginState as IImageState).Images;
+            return (_formInfo.FileState.PluginState as IImageState).Images;
         }
 
         private IKanvasImage GetSelectedImage()
@@ -482,7 +476,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private EncodingDefinition GetEncodingDefinition()
         {
-            return (_formInfo.StateInfo.PluginState as IImageState).EncodingDefinition;
+            return (_formInfo.FileState.PluginState as IImageState).EncodingDefinition;
         }
 
         private int GetSelectedImageFormat()
