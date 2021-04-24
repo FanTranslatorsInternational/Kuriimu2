@@ -20,7 +20,7 @@ namespace plugin_level5.Mobile.Images
         private ImgaHeader _header;
         private Level5CompressionMethod _dataCompressionFormat;
 
-        private IStateInfo _ktxState;
+        private IFileState _ktxState;
         private IImageState _imageState;
 
         public EncodingDefinition EncodingDefinition => _imageState.EncodingDefinition;
@@ -81,10 +81,10 @@ namespace plugin_level5.Mobile.Images
             var loadResult = await pluginManager.LoadFile(new StreamFile(ktxFile, filePath.GetNameWithoutExtension() + ".ktx"), KtxPluginId);
             if (!loadResult.IsSuccessful)
                 throw new InvalidOperationException(loadResult.Message);
-            if (!(loadResult.LoadedState.PluginState is IImageState))
+            if (!(loadResult.LoadedFileState.PluginState is IImageState))
                 throw new InvalidOperationException("The embedded KTX version is not supported.");
 
-            _ktxState = loadResult.LoadedState;
+            _ktxState = loadResult.LoadedFileState;
             return (IImageState)_ktxState.PluginState;
         }
     }
