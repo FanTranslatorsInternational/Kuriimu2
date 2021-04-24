@@ -121,7 +121,7 @@ namespace Kore.FileSystem.Implementations
             // Move files
             foreach (var file in element.Item2)
             {
-                ArchiveState.TryRename(file, destPath / file.FilePath.GetName());
+                ArchiveState.AttemptRename(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -162,7 +162,7 @@ namespace Kore.FileSystem.Implementations
             // Delete files
             foreach (var file in element.Item2)
             {
-                ArchiveState.TryRemoveFile(file);
+                ArchiveState.AttemptRemoveFile(file);
             }
 
             element.Item2.Clear();
@@ -238,7 +238,7 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            ArchiveState.TryRename(file, destPath);
+            ArchiveState.AttemptRename(file, destPath);
 
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
@@ -267,7 +267,7 @@ namespace Kore.FileSystem.Implementations
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            ArchiveState.TryRemoveFile(file);
+            ArchiveState.AttemptRemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -512,7 +512,7 @@ namespace Kore.FileSystem.Implementations
             if (!ArchiveState.CanAddFiles)
                 return null;
 
-            var newAfi = ArchiveState.TryAddFile(fileData, newFilePath);
+            var newAfi = ArchiveState.AttemptAddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());

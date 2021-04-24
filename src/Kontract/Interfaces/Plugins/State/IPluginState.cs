@@ -19,12 +19,12 @@ namespace Kontract.Interfaces.Plugins.State
         
         #region Optional feature casting defaults
 
-        bool TryContentChanged => ((ISaveFiles) this).ContentChanged;
+        bool AttemptContentChanged => ((ISaveFiles) this).ContentChanged;
 
-        Task TrySave(IFileSystem fileSystem, UPath savePath, SaveContext saveContext) =>
+        Task AttemptSave(IFileSystem fileSystem, UPath savePath, SaveContext saveContext) =>
             ((ISaveFiles) this).Save(fileSystem, savePath, saveContext);
 
-        Task TryLoad(IFileSystem fileSystem, UPath filePath, LoadContext loadContext) =>
+        Task AttemptLoad(IFileSystem fileSystem, UPath filePath, LoadContext loadContext) =>
             ((ILoadFiles) this).Load(fileSystem, filePath, loadContext);
 
         #endregion

@@ -27,11 +27,11 @@ namespace Kontract.Interfaces.Plugins.State
         
         #region Optional feature casting defaults
 
-        void TryReplaceFile(IArchiveFileInfo afi, Stream fileData) => ((IReplaceFiles) this).ReplaceFile(afi, fileData);
-        void TryRename(IArchiveFileInfo afi, UPath path) => ((IRenameFiles) this).Rename(afi, path);
-        void TryRemoveFile(IArchiveFileInfo afi) => ((IRemoveFiles) this).RemoveFile(afi);
-        void TryRemoveAll() => ((IRemoveFiles) this).RemoveAll();
-        IArchiveFileInfo TryAddFile(Stream fileData, UPath filePath) => ((IAddFiles) this).AddFile(fileData, filePath);
+        void AttemptReplaceFile(IArchiveFileInfo afi, Stream fileData) => ((IReplaceFiles) this).ReplaceFile(afi, fileData);
+        void AttemptRename(IArchiveFileInfo afi, UPath path) => ((IRenameFiles) this).Rename(afi, path);
+        void AttemptRemoveFile(IArchiveFileInfo afi) => ((IRemoveFiles) this).RemoveFile(afi);
+        void AttemptRemoveAll() => ((IRemoveFiles) this).RemoveAll();
+        IArchiveFileInfo AttemptAddFile(Stream fileData, UPath filePath) => ((IAddFiles) this).AddFile(fileData, filePath);
 
         #endregion
     }

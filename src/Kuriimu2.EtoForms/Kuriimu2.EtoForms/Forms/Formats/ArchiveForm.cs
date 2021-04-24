@@ -772,7 +772,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
                     //TODO this cast smells, should IFileState/IPluginState be generified?
-                    ((IArchiveState)_formInfo.FileState.PluginState).TryReplaceFile(file, currentFileStream);
+                    ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(file, currentFileStream);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
@@ -844,7 +844,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
                     //TODO this cast smells, should IFileState/IPluginState be generified?
-                    ((IArchiveState)_formInfo.FileState.PluginState).TryReplaceFile(afi, currentFileStream);
+                    ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(afi, currentFileStream);
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }
