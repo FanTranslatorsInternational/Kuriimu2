@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Kontract.Interfaces.Managers;
@@ -20,7 +20,7 @@ namespace plugin_inti_creates.Archives
             Metadata = new PluginMetadata("VAP", "onepiecefreak", "An archive for Azure Striker Gunvolt on 3DS.");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new VapState();
         }

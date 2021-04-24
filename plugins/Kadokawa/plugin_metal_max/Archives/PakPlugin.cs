@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_metal_max.Archives
             Metadata = new PluginMetadata("PAK", "onepiecefreak", "The main resource in Metal Max 3.");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new PakState();
         }

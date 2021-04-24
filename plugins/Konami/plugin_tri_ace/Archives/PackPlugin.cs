@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -32,7 +32,7 @@ namespace plugin_tri_ace.Archives
             return br.ReadString(4) == "P@CK";
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new PackState();
         }

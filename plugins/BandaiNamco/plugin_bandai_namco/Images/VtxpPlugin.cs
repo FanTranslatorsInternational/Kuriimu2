@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -38,7 +38,7 @@ namespace plugin_bandai_namco.Images
             return magic == "VTXP" || magic2 == "VTXP" || magic3 == "VTXP";
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new VtxpState();
         }

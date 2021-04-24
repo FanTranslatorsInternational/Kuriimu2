@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_bandai_namco.Archives
             Metadata=new PluginMetadata("SEG","onepiecefreak","The SEG format in Super Robot Taisen Z.");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new SegState();
         }

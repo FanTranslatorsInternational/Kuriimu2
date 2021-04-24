@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -33,7 +33,7 @@ namespace plugin_level5.DS.Images
             return magic == "GTXT" || magic == "GPLT";
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new GtxtState();
         }

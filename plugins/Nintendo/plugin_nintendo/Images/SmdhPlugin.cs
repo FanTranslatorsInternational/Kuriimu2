@@ -9,18 +9,18 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_level5.Switch.Archives
+namespace plugin_nintendo.Images
 {
-    public class G4txPlugin : IFilePlugin, IIdentifyFiles
+    public class SmdhPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("ae6bc510-096b-4dcd-ba9c-b67985d2bed2");
-        public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.g4tx" };
+        public Guid PluginId => Guid.Parse("3c977dce-d992-4eaf-ac17-0871408c68cf");
+        public PluginType PluginType => PluginType.Image;
+        public string[] FileExtensions => new[] { "*.bin" };
         public PluginMetadata Metadata { get; }
 
-        public G4txPlugin()
+        public SmdhPlugin()
         {
-            Metadata = new PluginMetadata("G4TX", "onepiecefreak", "The main image resource container in some Level5 Switch games.");
+            Metadata = new PluginMetadata("SMDH", "onepiecefreak", "The 3DS icon format.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -28,12 +28,12 @@ namespace plugin_level5.Switch.Archives
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br = new BinaryReaderX(fileStream);
-            return br.ReadString(4) == "G4TX";
+            return br.ReadString(4) == "SMDH";
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager fileManager)
         {
-            return new G4txState();
+            return new SmdhState();
         }
     }
 }

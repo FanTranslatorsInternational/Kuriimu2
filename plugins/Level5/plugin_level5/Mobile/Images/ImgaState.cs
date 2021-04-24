@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace plugin_level5.Mobile.Images
 {
     class ImgaState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IPluginManager _pluginManager;
+        private readonly IFileManager _pluginManager;
 
         private Imga _img;
         private ImgaKtx _imgKtx;
@@ -31,7 +31,7 @@ namespace plugin_level5.Mobile.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public ImgaState(IPluginManager pluginManager)
+        public ImgaState(IFileManager pluginManager)
         {
             _img = new Imga();
             _imgKtx = new ImgaKtx();

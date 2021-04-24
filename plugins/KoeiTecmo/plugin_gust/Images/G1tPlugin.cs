@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -35,7 +35,7 @@ namespace plugin_gust.Images
             return (magic1 == "GT1G" || magic1 == "G1TG") && (magic2 == "0600" || magic2 == "0500" || magic2 == "1600");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new G1tState();
         }

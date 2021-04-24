@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
@@ -34,7 +34,7 @@ namespace plugin_level5.Mobile.Archives
             return br.ReadBytes(4).SequenceEqual(MagidId);
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new Arc1State();
         }

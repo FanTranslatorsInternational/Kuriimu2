@@ -1,4 +1,4 @@
-﻿//using System;
+//using System;
 //using System.Threading.Tasks;
 //using Komponent.IO;
 //using Kontract.Interfaces.FileSystem;
@@ -31,7 +31,7 @@
 //            return br.ReadString(4) == "bres";
 //        }
 
-//        public IPluginState CreatePluginState(IPluginManager pluginManager)
+//        public IPluginState CreatePluginState(IFileManager pluginManager)
 //        {
 //            return new BresState();
 //        }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_kadokawa.Archives
             Metadata = new PluginMetadata("ENC", "onepiecefreak", "An archive for Highschool DxD on 3DS.");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new EncState();
         }

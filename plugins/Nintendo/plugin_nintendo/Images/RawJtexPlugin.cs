@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_nintendo.Images
             Metadata = new PluginMetadata("RawJTEX", "onepiecefreak", "The image format used in 3DS games.");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new RawJtexState();
         }
