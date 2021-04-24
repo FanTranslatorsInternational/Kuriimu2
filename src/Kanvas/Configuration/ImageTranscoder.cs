@@ -131,7 +131,7 @@ namespace Kanvas.Configuration
 
             var setMaxProgress = progress?.SetMaxValue(valueCountBySize * _colorEncoding.ColorsPerValue);
             var colors = _colorEncoding
-                .Load(data, new EncodingLoadContext(imageSize, _taskCount))
+                .Load(data, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
             // Apply color shader
@@ -168,7 +168,7 @@ namespace Kanvas.Configuration
             valueCount = data.Length * 8 / _indexEncoding.BitsPerValue;
             setMaxProgress = progresses?[1]?.SetMaxValue(valueCount * _indexEncoding.ColorsPerValue);
             var colors = _indexEncoding
-                .Load(data, palette, new EncodingLoadContext(imageSize, _taskCount))
+                .Load(data, palette, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
             return colors.ToBitmap(imageSize, swizzle);
@@ -190,6 +190,7 @@ namespace Kanvas.Configuration
             // Prepare information and instances
             var paddedSize = GetPaddedSize(image.Size);
             var swizzle = GetPixelRemapper(_colorEncoding, paddedSize);
+            var finalSize = GetFinalSize(paddedSize, swizzle);
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // If we have quantization enabled
@@ -217,7 +218,7 @@ namespace Kanvas.Configuration
             }
 
             // Save color data
-            return _colorEncoding.Save(colors, new EncodingSaveContext(image.Size, _taskCount));
+            return _colorEncoding.Save(colors, new EncodingSaveContext(finalSize, _taskCount));
         }
 
         private (byte[] indexData, byte[] paletteData) EncodeIndexInternal(Bitmap image, IProgressContext progress = null)
@@ -225,6 +226,7 @@ namespace Kanvas.Configuration
             // Prepare information and instances
             var paddedSize = GetPaddedSize(image.Size);
             var swizzle = GetPixelRemapper(_indexEncoding, paddedSize);
+            var finalSize = GetFinalSize(paddedSize, swizzle);
 
             var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, progress);
 
@@ -235,7 +237,7 @@ namespace Kanvas.Configuration
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;
-            var indexData = _indexEncoding.Save(indices, palette, new EncodingSaveContext(size, _taskCount));
+            var indexData = _indexEncoding.Save(indices, palette, new EncodingSaveContext(finalSize, _taskCount));
 
             return (indexData, paletteData);
         }
