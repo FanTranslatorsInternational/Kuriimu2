@@ -155,10 +155,10 @@ namespace Kanvas.Configuration
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load palette
-            var valueCount = data.Length * 8 / _paletteEncoding.BitsPerValue;
+            var valueCount = paletteData.Length * 8 / _paletteEncoding.BitsPerValue;
             var setMaxProgress = progresses?[0]?.SetMaxValue(valueCount * _paletteEncoding.ColorsPerValue);
             var paletteEnumeration = _paletteEncoding
-                .Load(paletteData, new EncodingLoadContext(imageSize, _taskCount))
+                .Load(paletteData, new EncodingLoadContext(new Size(1, valueCount), _taskCount))
                 .AttachProgress(setMaxProgress, "Decode palette colors");
 
             // Apply color shader on palette
@@ -231,7 +231,7 @@ namespace Kanvas.Configuration
             // Save palette colors
             // This step can be skipped if no palette encoding is given.
             //   That saves time in the scenario when the palette is not needed or already exists as encoded data from somewhere else.
-            var paletteData = _paletteEncoding?.Save(palette, new EncodingSaveContext(_taskCount));
+            var paletteData = _paletteEncoding?.Save(palette, new EncodingSaveContext(new Size(1, palette.Count), _taskCount));
 
             // Save image indexColors
             var size = paddedSize.IsEmpty ? image.Size : paddedSize;

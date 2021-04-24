@@ -290,8 +290,9 @@ namespace Kanvas
         /// <returns>Decoded palette.</returns>
         private IList<Color> DecodePalette(byte[] paletteData, IProgressContext context = null)
         {
-            return _encodingDefinition.GetPaletteEncoding(PaletteFormat)
-                .Load(paletteData, new EncodingLoadContext(TaskCount))
+            var paletteEncoding = _encodingDefinition.GetPaletteEncoding(PaletteFormat);
+            return paletteEncoding
+                .Load(paletteData, new EncodingLoadContext(new Size(1, paletteData.Length * 8 / paletteEncoding.BitsPerValue), TaskCount))
                 .ToArray();
         }
 
@@ -389,7 +390,7 @@ namespace Kanvas
         private byte[] EncodePalette(IList<Color> palette, int paletteFormat)
         {
             return _encodingDefinition.GetPaletteEncoding(paletteFormat)
-                .Save(palette, new EncodingSaveContext(TaskCount));
+                .Save(palette, new EncodingSaveContext(new Size(1, palette.Count), TaskCount));
         }
 
         private void AssertImageFormatExists(int imageFormat)
