@@ -217,10 +217,10 @@ namespace Kanvas.Configuration
             return _parent;
         }
 
-        public IImageConfiguration ToPowerOfTwo()
+        public IImageConfiguration ToPowerOfTwo(int steps = 1)
         {
-            Options.Width.ToPowerOfTwo();
-            Options.Height.ToPowerOfTwo();
+            Options.Width.ToPowerOfTwo(steps);
+            Options.Height.ToPowerOfTwo(steps);
 
             return _parent;
         }
@@ -289,9 +289,11 @@ namespace Kanvas.Configuration
             return _parent;
         }
 
-        public IPadSizeOptions ToPowerOfTwo()
+        public IPadSizeOptions ToPowerOfTwo(int steps = 1)
         {
-            Delegate = ToPowerOfTwo;
+            int ToPowerOfTwoInternal(int value) => 2 << (int)Math.Log(value - 1, 2);
+
+            Delegate = value => ToPowerOfTwoInternal(value) << (steps - 1);
 
             return _parent;
         }
@@ -301,11 +303,6 @@ namespace Kanvas.Configuration
             Delegate = i => ToMultiple(i, multiple);
 
             return _parent;
-        }
-
-        private int ToPowerOfTwo(int value)
-        {
-            return 2 << (int)Math.Log(value - 1, 2);
         }
 
         private int ToMultiple(int value, int multiple)

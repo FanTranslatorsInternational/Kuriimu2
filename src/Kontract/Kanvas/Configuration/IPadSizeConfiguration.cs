@@ -10,7 +10,7 @@ namespace Kontract.Kanvas.Configuration
     {
         IImageConfiguration With(ConfigurePadSizeOptions options);
 
-        IImageConfiguration ToPowerOfTwo();
+        IImageConfiguration ToPowerOfTwo(int steps = 1);
 
         IImageConfiguration ToMultiple(int multiple);
     }

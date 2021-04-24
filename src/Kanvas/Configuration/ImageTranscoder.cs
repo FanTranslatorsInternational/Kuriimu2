@@ -155,18 +155,20 @@ namespace Kanvas.Configuration
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load palette
-            var valueCount = paletteData.Length * 8 / _paletteEncoding.BitsPerValue;
-            var setMaxProgress = progresses?[0]?.SetMaxValue(valueCount * _paletteEncoding.ColorsPerValue);
+            var paletteValueCount = paletteData.Length * 8 / _paletteEncoding.BitsPerValue;
+
+            var setMaxProgress = progresses?[0]?.SetMaxValue(paletteValueCount * _paletteEncoding.ColorsPerValue);
             var paletteEnumeration = _paletteEncoding
-                .Load(paletteData, new EncodingLoadContext(new Size(1, valueCount), _taskCount))
+                .Load(paletteData, new EncodingLoadContext(new Size(1, paletteValueCount), _taskCount))
                 .AttachProgress(setMaxProgress, "Decode palette colors");
 
             // Apply color shader on palette
             var palette = colorShader != null ? paletteEnumeration.Select(colorShader.Read).ToArray() : paletteEnumeration.ToArray();
 
             // Load indices
-            valueCount = data.Length * 8 / _indexEncoding.BitsPerValue;
-            setMaxProgress = progresses?[1]?.SetMaxValue(valueCount * _indexEncoding.ColorsPerValue);
+            var colorValueCount = finalSize.Width * finalSize.Height / _colorEncoding.ColorsPerValue;
+
+            setMaxProgress = progresses?[1]?.SetMaxValue(colorValueCount * _indexEncoding.ColorsPerValue);
             var colors = _indexEncoding
                 .Load(data, palette, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
@@ -203,13 +205,13 @@ namespace Kanvas.Configuration
                 var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, scopedProgresses?[0]);
 
                 // Recompose indices to colors
-                var setMaxProgress = scopedProgresses?[1]?.SetMaxValue(image.Width * image.Height);
+                var setMaxProgress = scopedProgresses?[1]?.SetMaxValue(finalSize.Width*finalSize.Height);
                 colors = indices.ToColors(palette).AttachProgress(setMaxProgress, "Encode indices");
             }
             else
             {
                 // Decompose image to colors
-                var setMaxProgress = progress?.SetMaxValue(image.Width * image.Height);
+                var setMaxProgress = progress?.SetMaxValue(finalSize.Width*finalSize.Height);
                 colors = image.ToColors(paddedSize, swizzle, _anchor).AttachProgress(setMaxProgress, "Encode colors");
 
                 // Apply color shader
@@ -236,7 +238,6 @@ namespace Kanvas.Configuration
             var paletteData = _paletteEncoding?.Save(palette, new EncodingSaveContext(new Size(1, palette.Count), _taskCount));
 
             // Save image indexColors
-            var size = paddedSize.IsEmpty ? image.Size : paddedSize;
             var indexData = _indexEncoding.Save(indices, palette, new EncodingSaveContext(finalSize, _taskCount));
 
             return (indexData, paletteData);
