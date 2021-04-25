@@ -25,9 +25,11 @@ namespace Kanvas
         public static IColorEncoding La88(ByteOrder byteOrder = ByteOrder.LittleEndian) => new La(8, 8, byteOrder);
         public static IColorEncoding La44() => new La(4, 4);
 
+        public static IIndexEncoding I2(BitOrder bitOrder = BitOrder.MostSignificantBitFirst) => new Index(2, ByteOrder.LittleEndian, bitOrder);
         public static IIndexEncoding I4(BitOrder bitOrder = BitOrder.MostSignificantBitFirst) => new Index(4, ByteOrder.LittleEndian, bitOrder);
         public static IIndexEncoding I8() => new Index(8);
         public static IIndexEncoding Ia53() => new Index(5, 3);
+        public static IIndexEncoding Ia35() => new Index(3, 5);
 
         public static IColorEncoding Etc1(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(false, zOrder, byteOrder);
         public static IColorEncoding Etc1A4(bool zOrder, ByteOrder byteOrder = ByteOrder.LittleEndian) => new Etc1(true, zOrder, byteOrder);

@@ -17,6 +17,11 @@ namespace Kontract.Kanvas
         int BitDepth { get; }
 
         /// <summary>
+        /// The encoding definition for this image.
+        /// </summary>
+        EncodingDefinition EncodingDefinition { get; }
+
+        /// <summary>
         /// The image information provided by an image plugin.
         /// </summary>
         /// <remarks>This instance may not be changed manually.</remarks>
@@ -51,6 +56,11 @@ namespace Kontract.Kanvas
         /// Decides if the image is locked to its current dimensions and encodings.
         /// </summary>
         bool IsImageLocked { get; }
+
+        /// <summary>
+        /// Determines if the content of the image was changed at least once.
+        /// </summary>
+        bool ContentChanged { get; }
 
         /// <summary>
         /// Gets the image of the set <see cref="ImageInfo"/>.

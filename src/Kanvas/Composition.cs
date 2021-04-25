@@ -22,6 +22,9 @@ namespace Kanvas
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
             colors.ToBitmap(imageSize, imageSize, null, ImageAnchor.TopLeft);
 
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, Size paddedSize) =>
+            colors.ToBitmap(imageSize, imageSize, null, ImageAnchor.TopLeft);
+
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle) =>
             colors.ToBitmap(imageSize, imageSize, swizzle, ImageAnchor.TopLeft);
 

@@ -128,11 +128,6 @@ namespace Kanvas.Swizzle
             return 2 << (int)Math.Log(value - 1, 2);
         }
 
-        private int ToNextPowerOfTwo(int value)
-        {
-            return 2 << (int)Math.Log(value, 2);
-        }
-
         private int ToMultiple(int value, int multiple)
         {
             return (value + (multiple - 1)) / multiple * multiple;

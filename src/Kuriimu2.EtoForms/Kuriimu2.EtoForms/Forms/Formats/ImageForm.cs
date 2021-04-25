@@ -8,7 +8,6 @@ using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Kanvas;
-using Kontract.Models.Image;
 using Kontract.Models.IO;
 using Kuriimu2.EtoForms.Extensions;
 using Kuriimu2.EtoForms.Forms.Interfaces;
@@ -51,15 +50,18 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _asyncOperation.Started += asyncOperation_Started;
             _asyncOperation.Finished += asyncOperation_Finished;
 
-            LoadFormats();
-            LoadPaletteFormats(GetSelectedImage());
-            LoadImageList();
+            if (GetStateImages().Count > 0)
+            {
+                LoadFormats(GetSelectedImage());
+                LoadPaletteFormats(GetSelectedImage());
+                LoadImageList();
 
-            UpdateFormats();
-            UpdatePalettes();
-            UpdateImageList();
+                UpdateFormats();
+                UpdatePalettes();
+                UpdateImageList();
 
-            UpdateImagePreview(GetSelectedImage());
+                UpdateImagePreview(GetSelectedImage());
+            }
 
             UpdateFormInternal();
 
@@ -99,9 +101,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 new ImageElement(GenerateThumbnail(x.GetImage().ToEto()), x.Name ?? $"{i:00}")).ToArray();
         }
 
-        private void LoadFormats()
+        private void LoadFormats(IKanvasImage selectedImage)
         {
-            var definition = GetEncodingDefinition();
+            var definition = selectedImage.EncodingDefinition;
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
             if (definition.HasColorEncodings)
@@ -122,7 +124,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            var definition = GetEncodingDefinition();
+            var definition = image.EncodingDefinition;
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
             if (image.IsIndexed && definition.HasPaletteEncodings)
@@ -256,11 +258,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             importButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
 
             // Update format dropdown availability
-            var definition = GetEncodingDefinition();
+            var definition = selectedImage?.EncodingDefinition;
             var isIndexed = selectedImage?.IsIndexed ?? false;
             var isLocked = selectedImage?.IsImageLocked ?? false;
             palettes.Enabled = !isLocked && isIndexed && definition.HasPaletteEncodings;
-            formats.Enabled = !isLocked && definition.HasColorEncodings || definition.HasIndexEncodings;
+            formats.Enabled = !isLocked && (definition?.HasColorEncodings ?? false) || (definition?.HasIndexEncodings ?? false);
 
             // Update image related availability
             imageView.Enabled = GetStateImages().Any();
@@ -400,6 +402,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _selectedImageIndex = GetSelectedImageIndex();
 
             // Change format information to newly selected image
+            LoadFormats(GetSelectedImage());
+            UpdateFormats();
+
             LoadPaletteFormats(GetSelectedImage());
             UpdatePalettes();
 
@@ -472,11 +477,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return null;
 
             return GetStateImages()[_selectedImageIndex];
-        }
-
-        private EncodingDefinition GetEncodingDefinition()
-        {
-            return (_formInfo.FileState.PluginState as IImageState).EncodingDefinition;
         }
 
         private int GetSelectedImageFormat()

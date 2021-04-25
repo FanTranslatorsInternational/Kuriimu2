@@ -19,7 +19,6 @@ namespace Kanvas
     /// </summary>
     public sealed class KanvasImage : IKanvasImage
     {
-        private readonly EncodingDefinition _encodingDefinition;
         private Bitmap _decodedImage;
         private Bitmap _bestImage;
         private IList<Color> _decodedPalette;
@@ -27,9 +26,12 @@ namespace Kanvas
         private int TaskCount => Environment.ProcessorCount;
 
         /// <inheritdoc />
-        public int BitDepth => _encodingDefinition.ContainsColorEncoding(ImageFormat) ?
-            _encodingDefinition.GetColorEncoding(ImageFormat).BitDepth :
-            _encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding.BitDepth;
+        public int BitDepth => EncodingDefinition.ContainsColorEncoding(ImageFormat) ?
+            EncodingDefinition.GetColorEncoding(ImageFormat).BitDepth :
+            EncodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding.BitDepth;
+
+        /// <inheritdoc />
+        public EncodingDefinition EncodingDefinition { get; }
 
         /// <inheritdoc />
         public ImageInfo ImageInfo { get; }
@@ -52,6 +54,9 @@ namespace Kanvas
         /// <inheritdoc />
         public bool IsImageLocked { get; }
 
+        /// <inheritdoc />
+        public bool ContentChanged => ImageInfo.ContentChanged;
+
         /// <summary>
         /// Creates a new instance of <see cref="KanvasImage"/>.
         /// </summary>
@@ -65,7 +70,7 @@ namespace Kanvas
             if (!encodingDefinition.Supports(imageInfo, out var error))
                 throw new InvalidOperationException(error);
 
-            _encodingDefinition = encodingDefinition;
+            EncodingDefinition = encodingDefinition;
             ImageInfo = imageInfo;
         }
 
@@ -75,17 +80,9 @@ namespace Kanvas
         /// <param name="encodingDefinition">The encoding definition for the image info.</param>
         /// <param name="imageInfo">The image info to represent.</param>
         /// <param name="lockImage">Locks the image to its initial dimension and encodings. This will throw an exception in the methods that may try such changes.</param>
-        public KanvasImage(EncodingDefinition encodingDefinition, ImageInfo imageInfo, bool lockImage)
+        public KanvasImage(EncodingDefinition encodingDefinition, ImageInfo imageInfo, bool lockImage) :
+            this(encodingDefinition, imageInfo)
         {
-            ContractAssertions.IsNotNull(encodingDefinition, nameof(encodingDefinition));
-            ContractAssertions.IsNotNull(imageInfo, nameof(imageInfo));
-
-            if (!encodingDefinition.Supports(imageInfo, out var error))
-                throw new InvalidOperationException(error);
-
-            _encodingDefinition = encodingDefinition;
-            ImageInfo = imageInfo;
-
             IsImageLocked = lockImage;
         }
 
@@ -150,7 +147,7 @@ namespace Kanvas
 
             var paletteFormat = PaletteFormat;
             if (!IsIndexed && IsIndexEncoding(imageFormat))
-                paletteFormat = _encodingDefinition.GetIndexEncoding(imageFormat).PaletteEncodingIndices.First();
+                paletteFormat = EncodingDefinition.GetIndexEncoding(imageFormat).PaletteEncodingIndices.First();
 
             TranscodeInternal(imageFormat, paletteFormat, true, progress);
         }
@@ -247,8 +244,8 @@ namespace Kanvas
             if (IsIndexed)
             {
                 var transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
-                    .Transcode.With(_encodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
-                    .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(PaletteFormat))
+                    .Transcode.With(EncodingDefinition.GetIndexEncoding(ImageFormat).IndexEncoding)
+                    .TranscodePalette.With(EncodingDefinition.GetPaletteEncoding(PaletteFormat))
                     .Build();
 
                 decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.PaletteData, ImageInfo.ImageSize, progress);
@@ -256,7 +253,7 @@ namespace Kanvas
             else
             {
                 var transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
-                    .Transcode.With(_encodingDefinition.GetColorEncoding(ImageFormat))
+                    .Transcode.With(EncodingDefinition.GetColorEncoding(ImageFormat))
                     .Build();
 
                 decodeImageAction = () => transcoder.Decode(ImageInfo.ImageData, ImageInfo.ImageSize, progress);
@@ -290,7 +287,7 @@ namespace Kanvas
         /// <returns>Decoded palette.</returns>
         private IList<Color> DecodePalette(byte[] paletteData, IProgressContext context = null)
         {
-            var paletteEncoding = _encodingDefinition.GetPaletteEncoding(PaletteFormat);
+            var paletteEncoding = EncodingDefinition.GetPaletteEncoding(PaletteFormat);
             return paletteEncoding
                 .Load(paletteData, new EncodingLoadContext(new Size(1, paletteData.Length * 8 / paletteEncoding.BitsPerValue), TaskCount))
                 .ToArray();
@@ -303,17 +300,17 @@ namespace Kanvas
             IImageTranscoder transcoder;
             if (IsIndexEncoding(imageFormat))
             {
-                var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
+                var indexEncoding = EncodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors))
                     .Transcode.With(indexEncoding)
-                    .TranscodePalette.With(_encodingDefinition.GetPaletteEncoding(paletteFormat))
+                    .TranscodePalette.With(EncodingDefinition.GetPaletteEncoding(paletteFormat))
                     .Build();
             }
             else
             {
                 transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
-                    .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
+                    .Transcode.With(EncodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 
@@ -348,7 +345,7 @@ namespace Kanvas
             IImageTranscoder transcoder;
             if (IsIndexEncoding(imageFormat))
             {
-                var indexEncoding = _encodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
+                var indexEncoding = EncodingDefinition.GetIndexEncoding(imageFormat).IndexEncoding;
                 transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
                     .ConfigureQuantization(options => options.WithColorCount(indexEncoding.MaxColors).WithPalette(() => palette))
                     .Transcode.With(indexEncoding)
@@ -357,7 +354,7 @@ namespace Kanvas
             else
             {
                 transcoder = CreateImageConfiguration(ImageFormat, PaletteFormat)
-                    .Transcode.With(_encodingDefinition.GetColorEncoding(imageFormat))
+                    .Transcode.With(EncodingDefinition.GetColorEncoding(imageFormat))
                     .Build();
             }
 
@@ -389,26 +386,26 @@ namespace Kanvas
 
         private byte[] EncodePalette(IList<Color> palette, int paletteFormat)
         {
-            return _encodingDefinition.GetPaletteEncoding(paletteFormat)
+            return EncodingDefinition.GetPaletteEncoding(paletteFormat)
                 .Save(palette, new EncodingSaveContext(new Size(1, palette.Count), TaskCount));
         }
 
         private void AssertImageFormatExists(int imageFormat)
         {
-            if (_encodingDefinition.GetColorEncoding(imageFormat) == null &&
-               _encodingDefinition.GetIndexEncoding(imageFormat) == null)
+            if (EncodingDefinition.GetColorEncoding(imageFormat) == null &&
+                EncodingDefinition.GetIndexEncoding(imageFormat) == null)
                 throw new InvalidOperationException($"The image format '{imageFormat}' is not supported by the plugin.");
         }
 
         private void AssertPaletteFormatExists(int paletteFormat)
         {
-            if (_encodingDefinition.GetPaletteEncoding(paletteFormat) == null)
+            if (EncodingDefinition.GetPaletteEncoding(paletteFormat) == null)
                 throw new InvalidOperationException($"The palette format '{paletteFormat}' is not supported by the plugin.");
         }
 
         private bool IsIndexEncoding(int imageFormat)
         {
-            return _encodingDefinition.GetIndexEncoding(imageFormat) != null;
+            return EncodingDefinition.GetIndexEncoding(imageFormat) != null;
         }
 
         private bool IsPointInRegion(Point point, Size region)
@@ -439,10 +436,10 @@ namespace Kanvas
             if (ImageInfo.RemapPixels.IsSet)
                 config.RemapPixels.With(context => ImageInfo.RemapPixels.Build(context));
 
-            if (IsIndexEncoding(imageFormat) && _encodingDefinition.ContainsPaletteShader(paletteFormat))
-                config.ShadeColors.With(() => _encodingDefinition.GetPaletteShader(paletteFormat));
-            if (!IsIndexEncoding(imageFormat) && _encodingDefinition.ContainsColorShader(imageFormat))
-                config.ShadeColors.With(() => _encodingDefinition.GetColorShader(imageFormat));
+            if (IsIndexEncoding(imageFormat) && EncodingDefinition.ContainsPaletteShader(paletteFormat))
+                config.ShadeColors.With(() => EncodingDefinition.GetPaletteShader(paletteFormat));
+            if (!IsIndexEncoding(imageFormat) && EncodingDefinition.ContainsColorShader(imageFormat))
+                config.ShadeColors.With(() => EncodingDefinition.GetColorShader(imageFormat));
 
             return config;
         }

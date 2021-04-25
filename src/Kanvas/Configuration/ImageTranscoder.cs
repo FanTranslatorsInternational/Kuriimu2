@@ -166,14 +166,14 @@ namespace Kanvas.Configuration
             var palette = colorShader != null ? paletteEnumeration.Select(colorShader.Read).ToArray() : paletteEnumeration.ToArray();
 
             // Load indices
-            var colorValueCount = finalSize.Width * finalSize.Height / _colorEncoding.ColorsPerValue;
+            var colorValueCount = finalSize.Width * finalSize.Height / _indexEncoding.ColorsPerValue;
 
             setMaxProgress = progresses?[1]?.SetMaxValue(colorValueCount * _indexEncoding.ColorsPerValue);
             var colors = _indexEncoding
                 .Load(data, palette, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
 
-            return colors.ToBitmap(imageSize, swizzle);
+            return colors.ToBitmap(imageSize, paddedSize, swizzle, _anchor);
         }
 
         #endregion
@@ -205,13 +205,13 @@ namespace Kanvas.Configuration
                 var (indices, palette) = QuantizeImage(image, paddedSize, swizzle, scopedProgresses?[0]);
 
                 // Recompose indices to colors
-                var setMaxProgress = scopedProgresses?[1]?.SetMaxValue(finalSize.Width*finalSize.Height);
+                var setMaxProgress = scopedProgresses?[1]?.SetMaxValue(finalSize.Width * finalSize.Height);
                 colors = indices.ToColors(palette).AttachProgress(setMaxProgress, "Encode indices");
             }
             else
             {
                 // Decompose image to colors
-                var setMaxProgress = progress?.SetMaxValue(finalSize.Width*finalSize.Height);
+                var setMaxProgress = progress?.SetMaxValue(finalSize.Width * finalSize.Height);
                 colors = image.ToColors(paddedSize, swizzle, _anchor).AttachProgress(setMaxProgress, "Encode colors");
 
                 // Apply color shader
