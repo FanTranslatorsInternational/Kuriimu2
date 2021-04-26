@@ -10,7 +10,11 @@ namespace Kontract.Models
         /// </summary>
         public IReadOnlyList<StreamFile> SavedStream { get; } = new List<StreamFile>();
 
-        public SaveStreamResult(IReadOnlyList<StreamFile> files) : base(true, "")
+        public SaveStreamResult(IReadOnlyList<StreamFile> files) : this(files, "")
+        {
+        }
+
+        public SaveStreamResult(IReadOnlyList<StreamFile> files, string message) : base(true, message)
         {
             SavedStream = files;
         }

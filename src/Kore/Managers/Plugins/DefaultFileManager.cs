@@ -544,7 +544,7 @@ namespace Kore.Managers.Plugins
             var streamFiles = fileSystem.EnumerateAllFiles(UPath.Root).Select(x =>
                 new StreamFile(fileSystem.OpenFile(x, FileMode.Open, FileAccess.Read, FileShare.Read), x)).ToArray();
 
-            return new SaveStreamResult(streamFiles);
+            return new SaveStreamResult(streamFiles, saveResult.Message);
         }
 
         #endregion
