@@ -82,7 +82,7 @@ namespace plugin_nintendo.Images
             var namesOffset = dataSizeOffset + images.Sum(x => x.MipMapCount + 1) * 4;
             var hashEntryOffset = namesOffset + ((images.Sum(x => Encoding.GetEncoding("SJIS").GetByteCount(x.Name) + 1) + 3) & ~3);
             var mipEntriesOffset = hashEntryOffset + images.Count * HashEntrySize;
-            var dataOffset = (mipEntriesOffset + images.Count * MipMapEntrySize + 0x1F) & ~0x1F;
+            var dataOffset = (mipEntriesOffset + images.Count * MipMapEntrySize + 0x7F) & ~0x7F;
 
             // Write tex data
             var namePosition = namesOffset;

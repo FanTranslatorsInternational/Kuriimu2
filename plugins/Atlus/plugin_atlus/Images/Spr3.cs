@@ -49,9 +49,11 @@ namespace plugin_atlus.Images
             var result = new List<IKanvasImage>();
 
             _ctpkStates = new List<IFileState>();
-            foreach (var ctpkOffset in ctpkOffsets)
+            for (var i = 0; i < ctpkOffsets.Length; i++)
             {
-                var ctpkStream = new SubStream(input, ctpkOffset, input.Length - ctpkOffset);
+                var ctpkOffset = ctpkOffsets[i];
+                var nextOffset = i + 1 >= ctpkOffsets.Length ? input.Length : ctpkOffsets[i + 1];
+                var ctpkStream = new SubStream(input, ctpkOffset, nextOffset - ctpkOffset);
 
                 var loadResult = manager.LoadFile(new StreamFile(ctpkStream, "file.ctpk"), CtpkId).Result;
                 if (!loadResult.IsSuccessful)
@@ -72,7 +74,7 @@ namespace plugin_atlus.Images
             var imgOffset = HeaderSize;
             var entryOffsetsOffset = imgOffset + _ctpkStates.Count * OffsetSize;
             var entryOffset = entryOffsetsOffset + _entries.Count * OffsetSize;
-            var dataOffset = entryOffset + _entries.Sum(x => x.Length) + 0x10;
+            var dataOffset = entryOffset + _entries.Sum(x => x.Length);
 
             // Write CTPKs
             var imgOffsets = new List<int>();
