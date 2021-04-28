@@ -371,7 +371,7 @@ namespace plugin_nintendo.Archives
 
     static class NdsSupport
     {
-        public static IEnumerable<IArchiveFileInfo> ReadFnt(BinaryReaderX br, int fntOffset, IList<FatEntry> fileEntries)
+        public static IEnumerable<IArchiveFileInfo> ReadFnt(BinaryReaderX br, int fntOffset, int contentOffset, IList<FatEntry> fileEntries)
         {
             br.BaseStream.Position = fntOffset;
             var mainEntry = br.ReadType<MainFntEntry>();
@@ -379,7 +379,7 @@ namespace plugin_nintendo.Archives
             br.BaseStream.Position = fntOffset;
             var mainEntries = br.ReadMultiple<MainFntEntry>(mainEntry.parentDirectory);
 
-            foreach (var file in ReadSubFnt(br, mainEntries[0], fntOffset, "/", mainEntries, fileEntries))
+            foreach (var file in ReadSubFnt(br, mainEntries[0], fntOffset, contentOffset, "/", mainEntries, fileEntries))
                 yield return file;
         }
 
@@ -449,7 +449,7 @@ namespace plugin_nintendo.Archives
             contentOffset = nextContentOffset;
         }
 
-        private static IEnumerable<IArchiveFileInfo> ReadSubFnt(BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
+        private static IEnumerable<IArchiveFileInfo> ReadSubFnt(BinaryReaderX br, MainFntEntry dirEntry, int fntOffset, int contentOffset, string path, IList<MainFntEntry> directoryEntries, IList<FatEntry> fileEntries)
         {
             var tableOffset = fntOffset + dirEntry.subTableOffset;
             var firstFileId = dirEntry.firstFileId;
@@ -469,7 +469,7 @@ namespace plugin_nintendo.Archives
                     tableOffset = (int)br.BaseStream.Position;
 
                     var currentFileEntry = fileEntries[firstFileId];
-                    yield return CreateAfi(br.BaseStream, currentFileEntry.offset, currentFileEntry.Length, Path.Combine(path, name), firstFileId++);
+                    yield return CreateAfi(br.BaseStream, contentOffset + currentFileEntry.offset, currentFileEntry.Length, Path.Combine(path, name), firstFileId++);
                 }
                 else
                 {
@@ -480,7 +480,7 @@ namespace plugin_nintendo.Archives
                     tableOffset = (int)br.BaseStream.Position;
 
                     var subDirEntry = directoryEntries[dirEntryId & 0x0FFF];
-                    foreach (var file in ReadSubFnt(br, subDirEntry, fntOffset, Path.Combine(path, name), directoryEntries, fileEntries))
+                    foreach (var file in ReadSubFnt(br, subDirEntry, fntOffset, contentOffset, Path.Combine(path, name), directoryEntries, fileEntries))
                         yield return file;
                 }
 

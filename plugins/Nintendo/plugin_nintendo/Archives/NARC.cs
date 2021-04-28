@@ -23,8 +23,7 @@ namespace plugin_nintendo.Archives
 
             // Determine byte order
             br.BaseStream.Position = 4;
-            var byteOrder = (ByteOrder)br.ReadUInt16();
-            br.ByteOrder = byteOrder;
+            br.ByteOrder = br.ReadType<ByteOrder>();
 
             // Read header
             br.BaseStream.Position = 0;
@@ -42,7 +41,7 @@ namespace plugin_nintendo.Archives
 
             _hasNames = br.ReadInt32() >= 8;
             if (_hasNames)
-                return NdsSupport.ReadFnt(br, fntOffset, entries).ToList();
+                return NdsSupport.ReadFnt(br, fntOffset + 8, gmifOffset + 8, entries).ToList();
 
             return entries.Select((x, i) => NdsSupport.CreateAfi(br.BaseStream, x.offset + gmifOffset + 8, x.Length, $"{i:00000000}.bin", i)).ToArray();
         }
