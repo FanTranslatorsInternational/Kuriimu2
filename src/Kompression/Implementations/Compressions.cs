@@ -189,6 +189,11 @@ namespace Kompression.Implementations
                 .DecodeWith(() => new PsLzDecoder())
                 .EncodeWith(() => new PsLzEncoder());
 
+        public static IKompressionConfiguration Deflate =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new DeflateDecoder())
+                .EncodeWith(() => new DeflateEncoder());
+
         public static IKompressionConfiguration ZLib =>
             NewKompressionConfiguration
                 .DecodeWith(() => new ZLibDecoder())
