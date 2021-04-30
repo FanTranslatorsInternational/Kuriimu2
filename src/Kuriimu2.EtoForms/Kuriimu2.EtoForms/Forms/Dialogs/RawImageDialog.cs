@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -102,10 +103,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             try
             {
                 var encoding = CreateEncoding();
+                var swizzle = CreateSwizzle(new SwizzlePreparationContext(encoding, new System.Drawing.Size(width, height)));
 
-                // HINT: Pre-Calculation of the buffer based on the given size is not possible,
-                // since we're missing runtime information for the swizzle
-                var imgData = new byte[_openedFile.Length - offset];
+                var colorCount = swizzle == null ? width * height : swizzle.Width * swizzle.Height;
+                var dataSize = colorCount / encoding.ColorsPerValue * encoding.BitsPerValue / 8;
+                var imgData = new byte[Math.Min(_openedFile.Length - offset, dataSize)];
 
                 _openedFile.Position = offset;
                 _openedFile.Read(imgData, 0, imgData.Length);
