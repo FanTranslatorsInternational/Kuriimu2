@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Eto.Forms;
 using Komponent.Extensions;
 using Kryptography;
@@ -29,8 +28,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 ProcessCipher(extensionType, fileStream, newFileStream);
             }
-            catch
+            catch (Exception e)
             {
+                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
                 return false;
             }
             finally

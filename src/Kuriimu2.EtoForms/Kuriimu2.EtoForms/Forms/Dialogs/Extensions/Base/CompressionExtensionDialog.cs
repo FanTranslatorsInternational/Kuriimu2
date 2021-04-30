@@ -30,7 +30,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             }
             catch (Exception e)
             {
-                Logger.Fatal(e,"Processing compression failed.");
+                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
                 return false;
             }
             finally
@@ -44,9 +44,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
-            foreach (var result in results)
-                if (!result.Item2)
-                    Logger.Error("Not processed successfully: {0}", result.Item1);
+            //foreach (var result in results)
+            //    if (!result.Item2)
+            //        Logger.Error("Not processed successfully: {0}", result.Item1);
 
             // Report finish
             Logger.Information("Done!");
