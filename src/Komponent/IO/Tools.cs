@@ -73,6 +73,8 @@ namespace Komponent.IO
         {
             if (attributes?.VariableLengthAttribute != null)
                 throw new InvalidOperationException("Variable size attributes are not supported for static measurement");
+            if (attributes?.CalculatedLengthAttribute != null)
+                throw new InvalidOperationException("Calculated size attributes are not supported for static measurement");
             if (attributes?.FixedLengthAttribute == null)
                 throw new InvalidOperationException("Strings without set length are not supported for static measurement");
 
@@ -83,7 +85,7 @@ namespace Komponent.IO
         {
             if (attributes?.VariableLengthAttribute != null)
                 throw new InvalidOperationException("Variable size attributes are not supported for static measurement");
-            if(attributes?.CalculatedLengthAttribute!=null)
+            if (attributes?.CalculatedLengthAttribute != null)
                 throw new InvalidOperationException("Calculated size attributes are not supported for static measurement");
             if (attributes?.FixedLengthAttribute == null)
                 throw new InvalidOperationException("Lists without set length are not supported for static measurement");
