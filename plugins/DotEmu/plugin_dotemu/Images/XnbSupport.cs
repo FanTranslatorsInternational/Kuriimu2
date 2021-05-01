@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 using Kanvas;
 using Kanvas.Encoding;
 using Komponent.IO.Attributes;
@@ -28,11 +29,30 @@ namespace plugin_dotemu.Images
         public int dataSize;
     }
 
+    class PremultiplyAlphaShader : IColorShader
+    {
+        public Color Read(Color c)
+        {
+            return c;
+        }
+
+        public Color Write(Color c)
+        {
+            return Color.FromArgb(
+                c.A,
+                PreMultiply(c.R, c.A),
+                PreMultiply(c.G, c.A),
+                PreMultiply(c.B, c.A));
+        }
+
+        private byte PreMultiply(byte a, byte b) => (byte)(a * b / 255);
+    }
+
     class XnbSupport
     {
         public static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
-            [0] = new Rgba(8, 8, 8, 8, "ARGB"),
+            [0] = new Rgba(8, 8, 8, 8, "ABGR"),
             [4] = ImageFormats.Dxt1(),
             [5] = ImageFormats.Dxt3(),
             [6] = ImageFormats.Dxt5()
@@ -42,6 +62,8 @@ namespace plugin_dotemu.Images
         {
             var definition = new EncodingDefinition();
             definition.AddColorEncodings(Formats);
+
+            definition.AddColorShader(0, new PremultiplyAlphaShader());
 
             return definition;
         }
