@@ -97,7 +97,7 @@ namespace plugin_level5.General
 
         private static readonly Dictionary<int, IColorEncoding> SwitchFormats = new Dictionary<int, IColorEncoding>
         {
-            [0] = new Rgba(8, 8, 8, 8, "ARGB")
+            [0] = new Rgba(8, 8, 8, 8, "ABGR")
         };
 
         private static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
