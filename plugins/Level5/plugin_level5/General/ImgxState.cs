@@ -1,29 +1,24 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Kanvas;
-using Komponent.IO.Streams;
-using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Kanvas;
-using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
-using plugin_level5.Compression;
 
-namespace plugin_level5.Mobile.Images
+namespace plugin_level5.General
 {
-    class ImgaState : IImageState, ILoadFiles, ISaveFiles
+    public class ImgxState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IFileManager _pluginManager;
+        private readonly IFileManager _fileManager;
 
-        private Imga _img;
-        private ImgaKtx _imgKtx;
+        private Imgx _img;
+        private ImgxKtx _ktx;
         private int _format;
 
         public EncodingDefinition EncodingDefinition { get; private set; }
@@ -31,11 +26,11 @@ namespace plugin_level5.Mobile.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public ImgaState(IFileManager pluginManager)
+        public ImgxState(IFileManager fileManager)
         {
-            _img = new Imga();
-            _imgKtx = new ImgaKtx();
-            _pluginManager = pluginManager;
+            _img = new Imgx();
+            _ktx = new ImgxKtx();
+            _fileManager = fileManager;
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
@@ -51,16 +46,18 @@ namespace plugin_level5.Mobile.Images
             {
                 // Load KTX by plugin
                 case 0x2B:
-                    var imageInfo = _imgKtx.Load(fileStream, _pluginManager);
+                    var imageInfo = _ktx.Load(fileStream, _fileManager);
 
-                    EncodingDefinition = _imgKtx.EncodingDefinition;
+                    EncodingDefinition = _ktx.EncodingDefinition;
                     Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, imageInfo) };
                     break;
 
-                // Otherwise load normal IMGA
+                // Otherwise load normal IMGx
                 default:
-                    EncodingDefinition = ImgaSupport.GetEncodingDefinition();
-                    Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, _img.Load(fileStream)) };
+                    var loadedImg = _img.Load(fileStream);
+
+                    EncodingDefinition = ImgxSupport.GetEncodingDefinition(_img.Magic, _img.Format, _img.BitDepth, loadContext.DialogManager);
+                    Images = new List<IKanvasImage> { new KanvasImage(EncodingDefinition, loadedImg) };
                     break;
             }
         }
@@ -73,10 +70,10 @@ namespace plugin_level5.Mobile.Images
             {
                 // Save KTX by plugin
                 case 0x2B:
-                    _imgKtx.Save(fileStream, _pluginManager);
+                    _ktx.Save(fileStream, _fileManager);
                     break;
 
-                // Otherwise save normal IMGA
+                // Otherwise save normal IMGx
                 default:
                     _img.Save(fileStream, Images[0]);
                     break;
@@ -87,7 +84,7 @@ namespace plugin_level5.Mobile.Images
 
         private bool IsContentChanged()
         {
-            return Images.Any(x => x.ImageInfo.ContentChanged);
+            return Images.Any(x => x.ContentChanged);
         }
     }
 }

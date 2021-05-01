@@ -3,36 +3,35 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kryptography.Hash.Crc;
-using plugin_level5._3DS.Images;
 using plugin_level5.Compression;
 
-namespace plugin_level5.Vita.Images
+namespace plugin_level5.General
 {
-    public class Imgv
+    class Imgx
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(ImgvHeader));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(ImgxHeader));
 
-        private ImgvHeader _header;
+        private ImgxHeader _header;
+        private byte[] _tileLegacy;
 
-        private Level5CompressionMethod _tileTableCompression;
-        private Level5CompressionMethod _imageDataCompression;
+        private Level5CompressionMethod _tileTableMethod;
+        private Level5CompressionMethod _imgDataMethod;
 
-        public int ImageFormat => _header.imageFormat;
-
+        public string Magic => _header.magic;
         public int BitDepth => _header.bitDepth;
+        public int Format => _header.imageFormat;
 
         public ImageInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input);
 
-            // Read header
-            _header = br.ReadType<ImgvHeader>();
+            // Header
+            _header = br.ReadType<ImgxHeader>();
 
             // Get tile table
             var tileTableComp = new SubStream(input, _header.tableDataOffset, _header.tileTableSize);
@@ -40,16 +39,15 @@ namespace plugin_level5.Vita.Images
             Level5Compressor.Decompress(tileTableComp, tileTable);
 
             tileTableComp.Position = 0;
-            _tileTableCompression = (Level5CompressionMethod)(tileTableComp.ReadByte() & 0x7);
+            _tileTableMethod = (Level5CompressionMethod)(tileTableComp.ReadByte() & 0x7);
 
             // Get image data
-            var imageDataComp = new SubStream(input, _header.tableDataOffset + _header.tileTableSizePadded,
-                _header.imgDataSize);
+            var imageDataComp = new SubStream(input, _header.tableDataOffset + _header.tileTableSizePadded, _header.imgDataSize);
             var imageData = new MemoryStream();
             Level5Compressor.Decompress(imageDataComp, imageData);
 
             imageDataComp.Position = 0;
-            _imageDataCompression = (Level5CompressionMethod)(imageDataComp.ReadByte() & 0x7);
+            _imgDataMethod = (Level5CompressionMethod)(imageDataComp.ReadByte() & 0x7);
 
             // Combine tiles to full image data
             tileTable.Position = imageData.Position = 0;
@@ -67,7 +65,7 @@ namespace plugin_level5.Vita.Images
             }
 
             var imageInfo = new ImageInfo(images.FirstOrDefault(), images.Skip(1).ToArray(), _header.imageFormat, new Size(_header.width, _header.height));
-            imageInfo.RemapPixels.With(context => new ImgvSwizzle(context));
+            imageInfo.RemapPixels.With(context => new ImgxSwizzle(context, _header.magic));
 
             return imageInfo;
         }
@@ -93,14 +91,14 @@ namespace plugin_level5.Vita.Images
 
             // Write tile table
             output.Position = HeaderSize;
-            Level5Compressor.Compress(tileTable, output, _tileTableCompression);
+            Level5Compressor.Compress(tileTable, output, _tileTableMethod);
 
             _header.tileTableSize = (int)output.Length - HeaderSize;
             _header.tileTableSizePadded = (_header.tileTableSize + 3) & ~3;
 
             // Write image tiles
             output.Position = HeaderSize + _header.tileTableSizePadded;
-            Level5Compressor.Compress(imageData, output, _imageDataCompression);
+            Level5Compressor.Compress(imageData, output, _imgDataMethod);
             bw.WriteAlignment(4);
 
             _header.imgDataSize = (int)(output.Length - (HeaderSize + _header.tileTableSizePadded));
@@ -115,13 +113,21 @@ namespace plugin_level5.Vita.Images
             using var tileTable = new BinaryReaderX(tileTableStream);
 
             var tileByteDepth = 64 * bitDepth / 8;
-            var tile = new byte[tileByteDepth];
+            var readEntry = new Func<BinaryReaderX, int>(br => br.ReadInt16());
 
+            // Read legacy head
+            var legacyIndicator = tileTable.PeekUInt16();
+            if (legacyIndicator == 0x453)
+            {
+                _tileLegacy = tileTable.ReadBytes(8);
+                readEntry = br => br.ReadInt32();
+            }
+
+            var tile = new byte[tileByteDepth];
             var result = new MemoryStream();
             while (tileTableStream.Position < tileTableStream.Length)
             {
-                var entry = tileTable.ReadInt16();
-
+                var entry = readEntry(tileTable);
                 if (entry >= 0)
                 {
                     imageDataStream.Position = entry * tileByteDepth;
@@ -146,8 +152,11 @@ namespace plugin_level5.Vita.Images
             using var tileBw = new BinaryWriterX(tileTable, true);
             using var imageBw = new BinaryWriterX(imageData, true);
 
+            if (_tileLegacy != null)
+                tileTable.Write(_tileLegacy, 0, _tileLegacy.Length);
+
             var crc32 = Crc32.Default;
-            var tileDictionary = new Dictionary<uint, short>();
+            var tileDictionary = new Dictionary<uint, int>();
 
             // Add placeholder tile for all 0's
             var zeroTileHash = crc32.ComputeValue(new byte[tileByteDepth]);
@@ -164,10 +173,13 @@ namespace plugin_level5.Vita.Images
                     tile.Position = 0;
                     tile.CopyTo(imageBw.BaseStream);
 
-                    tileDictionary[tileHash] = (short)tileIndex++;
+                    tileDictionary[tileHash] = tileIndex++;
                 }
 
-                tileBw.Write(tileDictionary[tileHash]);
+                if (_tileLegacy != null)
+                    tileBw.Write(tileDictionary[tileHash]);
+                else
+                    tileBw.Write((short)tileDictionary[tileHash]);
 
                 imageOffset += tileByteDepth;
             }
