@@ -85,8 +85,13 @@ namespace Komponent.IO.BinarySupport
         private void WriteTypeString(BinaryWriterX bw, string writeValue, MemberAttributeInfo fieldAttributes, ValueStorage storage)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
+
+            // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
             if (!attributeValues.HasValue)
+            {
+                bw.Write(writeValue);
                 return;
+            }
 
             var (length, encoding) = attributeValues.Value;
             if (encoding.GetByteCount(writeValue) != length)

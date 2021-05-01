@@ -264,13 +264,6 @@ namespace Komponent.IO
             base.Write(chars, index, count);
         }
 
-        public override void Write(string value)
-        {
-            Flush();
-
-            WriteString(value, _encoding, true, false);
-        }
-
         #endregion
 
         #region String Writes
