@@ -47,7 +47,7 @@ namespace plugin_ganbarion.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var crc32 = Crc32.Default;
-            using var bw = new BinaryWriterX(output);
+            using var bw = new BinaryWriterX(output, true);
 
             // Calculate offsets
             var entryOffset = HeaderSize;
