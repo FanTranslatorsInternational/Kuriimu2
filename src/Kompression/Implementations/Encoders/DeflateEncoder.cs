@@ -8,7 +8,8 @@ namespace Kompression.Implementations.Encoders
     {
         public void Encode(Stream input, Stream output)
         {
-            new DeflateStream(input, CompressionLevel.Optimal).CopyTo(output);
+            using var deflateStream = new DeflateStream(output, CompressionLevel.Optimal, true);
+            input.CopyTo(deflateStream);
         }
 
         public void Dispose()
