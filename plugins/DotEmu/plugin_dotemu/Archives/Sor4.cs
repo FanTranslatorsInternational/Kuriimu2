@@ -20,7 +20,7 @@ namespace plugin_dotemu.Archives
             // Read entries
             var entries = new List<Sor4Entry>();
             while (texListStream.Position < texListStream.Length)
-                entries.Add(Sor4Entry.Read(texListBr));
+                entries.Add(texListBr.ReadType<Sor4Entry>());
 
             // Add files
             var result = new List<IArchiveFileInfo>();
@@ -39,7 +39,7 @@ namespace plugin_dotemu.Archives
         public void Save(Stream texStream, Stream texListStream, IList<IArchiveFileInfo> files)
         {
             using var texBw = new BinaryWriterX(texStream);
-            using var texListBw = new BinaryWriterX(texListStream);
+            using var texListBw = new BinaryWriterX(texListStream, Encoding.Unicode);
 
             // Write files
             var dataPosition = 0;
@@ -61,8 +61,7 @@ namespace plugin_dotemu.Archives
             }
 
             // Write entries
-            foreach (var entry in entries)
-                entry.Write(texListBw);
+            texListBw.WriteMultiple(entries);
         }
     }
 }
