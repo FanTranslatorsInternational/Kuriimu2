@@ -213,5 +213,10 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new IecpDecoder())
                 .EncodeWith(() => new IecpEncoder());
+
+        public static IKompressionConfiguration Lz4Headerless =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new Lz4HeaderlessDecoder())
+                .EncodeWith(() => new Lz4HeaderlessEncoder());
     }
 }

@@ -91,6 +91,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 new ExtensionType("IrLz",true),
                 new ExtensionType("Crilayla",true),
                 new ExtensionType("Iecp",true),
+                new ExtensionType("Lz4 Headerless",true),
 
                 new ExtensionType("Deflate",true),
                 new ExtensionType("ZLib",true)
@@ -225,6 +226,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 case "Iecp":
                     return Compressions.Iecp.Build();
+
+                case "Lz4 Headerless":
+                    return Compressions.Lz4Headerless.Build();
 
                 case "Deflate":
                     return Compressions.Deflate.Build();
