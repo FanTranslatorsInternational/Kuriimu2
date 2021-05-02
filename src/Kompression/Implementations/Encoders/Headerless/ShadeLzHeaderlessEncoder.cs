@@ -9,7 +9,7 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    class SpikeChunsoftHeaderlessEncoder : ILzEncoder
+    class ShadeLzHeaderlessEncoder : ILzEncoder
     {
         public void Configure(IInternalMatchOptions matchOptions)
         {

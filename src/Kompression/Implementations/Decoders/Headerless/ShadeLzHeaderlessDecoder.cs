@@ -4,7 +4,7 @@ using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders.Headerless
 {
-    public class SpikeChunsoftHeaderlessDecoder : IDecoder
+    public class ShadeLzHeaderlessDecoder : IDecoder
     {
         public static long CalculateDecompressedSize(Stream input)
         {

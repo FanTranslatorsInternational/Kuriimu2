@@ -44,10 +44,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
-            //foreach (var result in results)
-            //    if (!result.Item2)
-            //        Logger.Error("Not processed successfully: {0}", result.Item1);
-
             // Report finish
             Logger.Information("Done!");
         }
@@ -89,12 +85,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 new ExtensionType("TalesOfLz",true,
                     new ExtensionTypeParameter("Version",typeof(TalesOfVersion))),
                 new ExtensionType("LzEnc",true),
-                new ExtensionType("Spike Chunsoft Lz",true),
-                new ExtensionType("Spike Chunsoft Headerless Lz",true),
+                new ExtensionType("Shade Lz",true),
+                new ExtensionType("Shade Headerless Lz",true),
                 new ExtensionType("PsLz",true),
                 new ExtensionType("IrLz",true),
                 new ExtensionType("Crilayla",true),
                 new ExtensionType("Iecp",true),
+
+                new ExtensionType("Deflate",true),
                 new ExtensionType("ZLib",true)
             };
         }
@@ -210,11 +208,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "LzEnc":
                     return Compressions.LzEnc.Build();
 
-                case "Spike Chunsoft Lz":
-                    return Compressions.SpikeChunsoft.Build();
+                case "Shade Lz":
+                    return Compressions.ShadeLz.Build();
 
-                case "Spike Chunsoft Headerless Lz":
-                    return Compressions.SpikeChunsoftHeaderless.Build();
+                case "Shade Headerless Lz":
+                    return Compressions.ShadeLzHeaderless.Build();
 
                 case "PsLz":
                     return Compressions.PsLz.Build();
@@ -227,6 +225,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 case "Iecp":
                     return Compressions.Iecp.Build();
+
+                case "Deflate":
+                    return Compressions.Deflate.Build();
 
                 case "ZLib":
                     return Compressions.ZLib.Build();
