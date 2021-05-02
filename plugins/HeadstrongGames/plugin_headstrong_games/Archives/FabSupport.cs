@@ -53,6 +53,12 @@ namespace plugin_headstrong_games.Archives
                                 result.Nodes.Add(Read(br));
                             }
                             break;
+
+                        case "TXTR":
+                            result.Nodes.Add(Read(br));
+                            result.Nodes.Add(Read(br));
+                            result.Nodes.Add(Read(br));
+                            break;
                     }
                     break;
 
@@ -66,6 +72,14 @@ namespace plugin_headstrong_games.Archives
                     switch (header.description)
                     {
                         case "FILE":
+                            result.Nodes.Add(Read(br));
+                            result.Nodes.Add(Read(br));
+                            break;
+
+                        case "META":
+                            result.Nodes.Add(Read(br));
+                            result.Nodes.Add(Read(br));
+                            result.Nodes.Add(Read(br));
                             result.Nodes.Add(Read(br));
                             result.Nodes.Add(Read(br));
                             break;
