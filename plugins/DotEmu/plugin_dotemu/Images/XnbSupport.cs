@@ -58,12 +58,19 @@ namespace plugin_dotemu.Images
             [6] = ImageFormats.Dxt5()
         };
 
+        public static readonly IDictionary<int,IColorShader> Shaders=new Dictionary<int, IColorShader>
+        {
+            [0] = new PremultiplyAlphaShader(),
+            [4] = new PremultiplyAlphaShader(),
+            [5] = new PremultiplyAlphaShader(),
+            [6] = new PremultiplyAlphaShader()
+        };
+
         public static EncodingDefinition GetEncodingDefinition()
         {
             var definition = new EncodingDefinition();
             definition.AddColorEncodings(Formats);
-
-            definition.AddColorShader(0, new PremultiplyAlphaShader());
+            definition.AddColorShaders(Shaders);
 
             return definition;
         }
