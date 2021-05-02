@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using K4os.Compression.LZ4.Encoders;
 using Komponent.IO;
+using Kompression.Implementations;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -33,8 +36,10 @@ namespace plugin_headstrong_games.Archives
                 var relevantNode = userNode ?? fileDataNode;
                 var fileStream = relevantNode?.Data;
 
-                // TODO: Detect and wrap compression?
-                result.Add(new FabArchiveFileInfo(fileStream, fileName) { DataNode = relevantNode });
+                if (userNode?.SubType == "LZ4C")
+                    result.Add(new FabArchiveFileInfo(fileStream, fileName, Compressions.Lz4Headerless, PeekDecompressedLength(fileStream)) { DataNode = relevantNode });
+                else
+                    result.Add(new FabArchiveFileInfo(fileStream, fileName) { DataNode = relevantNode });
             }
 
             return result;
@@ -56,6 +61,30 @@ namespace plugin_headstrong_games.Archives
             // Write node tree
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
             _root.Write(bw);
+        }
+
+        private int PeekDecompressedLength(Stream input)
+        {
+            var result = 0;
+            var startPosition = input.Position;
+
+            var buffer = new byte[4];
+            while (input.Position < input.Length)
+            {
+                input.Read(buffer);
+                var decompSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+                input.Read(buffer);
+                var compSize = BinaryPrimitives.ReadInt32LittleEndian(buffer);
+
+                input.Position += compSize;
+
+                if (decompSize < 0)
+                    decompSize = ~decompSize + 1;
+                result += decompSize;
+            }
+
+            input.Position = startPosition;
+            return result;
         }
     }
 }
