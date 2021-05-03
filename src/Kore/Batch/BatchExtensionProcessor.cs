@@ -45,7 +45,7 @@ namespace Kore.Batch
 
         private TResult ExecuteProcessDelegate(TExtension extensionType, string filePath)
         {
-            _log.Information("Process file '{0}'.", filePath);
+            _log.Information("Process {0}.", filePath);
             return _processAction(extensionType, filePath);
         }
     }

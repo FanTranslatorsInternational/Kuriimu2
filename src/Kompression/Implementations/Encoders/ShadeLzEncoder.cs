@@ -7,13 +7,13 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class SpikeChunsoftEncoder : ILzEncoder
+    public class ShadeLzEncoder : ILzEncoder
     {
-        private readonly SpikeChunsoftHeaderlessEncoder _encoder;
+        private readonly ShadeLzHeaderlessEncoder _encoder;
 
-        public SpikeChunsoftEncoder()
+        public ShadeLzEncoder()
         {
-            _encoder = new SpikeChunsoftHeaderlessEncoder();
+            _encoder = new ShadeLzHeaderlessEncoder();
         }
 
         public void Configure(IInternalMatchOptions matchOptions)

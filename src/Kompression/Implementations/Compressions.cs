@@ -173,21 +173,26 @@ namespace Kompression.Implementations
                 .DecodeWith(() => new LzEncDecoder())
                 .EncodeWith(() => new LzEncEncoder());
 
-        public static IKompressionConfiguration SpikeChunsoft =>
+        public static IKompressionConfiguration ShadeLz =>
             NewKompressionConfiguration
-                .DecodeWith(() => new SpikeChunsoftDecoder())
-                .EncodeWith(() => new SpikeChunsoftEncoder());
+                .DecodeWith(() => new ShadeLzDecoder())
+                .EncodeWith(() => new ShadeLzEncoder());
 
-        public static IKompressionConfiguration SpikeChunsoftHeaderless =>
+        public static IKompressionConfiguration ShadeLzHeaderless =>
             NewKompressionConfiguration
-                .DecodeWith(() => new SpikeChunsoftHeaderlessDecoder())
-                .EncodeWith(() => new SpikeChunsoftHeaderlessEncoder());
+                .DecodeWith(() => new ShadeLzHeaderlessDecoder())
+                .EncodeWith(() => new ShadeLzHeaderlessEncoder());
 
         // TODO: Find better naming, seemingly used on PS2 in multiple games
         public static IKompressionConfiguration PsLz =>
             NewKompressionConfiguration
                 .DecodeWith(() => new PsLzDecoder())
                 .EncodeWith(() => new PsLzEncoder());
+
+        public static IKompressionConfiguration Deflate =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new DeflateDecoder())
+                .EncodeWith(() => new DeflateEncoder());
 
         public static IKompressionConfiguration ZLib =>
             NewKompressionConfiguration
@@ -208,5 +213,10 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new IecpDecoder())
                 .EncodeWith(() => new IecpEncoder());
+
+        public static IKompressionConfiguration Lz4Headerless =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new Lz4HeaderlessDecoder())
+                .EncodeWith(() => new Lz4HeaderlessEncoder());
     }
 }

@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    class SpikeChunsoftHeaderlessEncoder : ILzEncoder
+    class ShadeLzHeaderlessEncoder : ILzEncoder
     {
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new SpikeChunsoftPriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(4, -1, 1, 0x1FFF))
-                .AndFindWith((options, limits) => new RleMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(4, 0x1003));
+                .FindMatches().WithinLimitations(4, -1, 1, 0x1FFF)
+                .AndFindRunLength().WithinLimitations(4, 0x1003);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

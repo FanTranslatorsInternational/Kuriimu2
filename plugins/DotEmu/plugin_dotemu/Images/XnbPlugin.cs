@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -9,31 +9,31 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_level5._3DS.Images
+namespace plugin_dotemu.Images
 {
-    public class ImgcPlugin : IFilePlugin, IIdentifyFiles
+    public class XnbPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c");
+        public Guid PluginId => Guid.Parse("08239e71-2ef6-4e88-b0e9-fbc52116ced2");
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.xi" };
+        public string[] FileExtensions => new[] {"*.xnb"};
         public PluginMetadata Metadata { get; }
 
-        public ImgcPlugin()
+        public XnbPlugin()
         {
-            Metadata = new PluginMetadata("XI", "onepiecefreak", "Main image for 3DS Level-5 games.");
+            Metadata = new PluginMetadata("XNB", "onepiecefreak", "Main image resource for Microsoft.XNA.Framework");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            using var br = new BinaryReaderX(fileStream);
 
-            return br.ReadString(4) == "IMGC";
+            using var br = new BinaryReaderX(fileStream);
+            return br.ReadString(3) == "XNB";
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager fileManager)
         {
-            return new ImgcState();
+            return new XnbState();
         }
     }
 }

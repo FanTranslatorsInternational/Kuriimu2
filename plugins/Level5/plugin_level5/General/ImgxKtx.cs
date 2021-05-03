@@ -11,13 +11,13 @@ using Kontract.Models.Image;
 using Kontract.Models.IO;
 using plugin_level5.Compression;
 
-namespace plugin_level5.Mobile.Images
+namespace plugin_level5.General
 {
-    class ImgaKtx
+    class ImgxKtx
     {
         private static readonly Guid KtxPluginId = Guid.Parse("d25919cc-ac22-4f4a-94b2-b0f42d1123d4");
 
-        private ImgaHeader _header;
+        private ImgxHeader _header;
         private Level5CompressionMethod _dataCompressionFormat;
 
         private IFileState _ktxState;
@@ -30,10 +30,10 @@ namespace plugin_level5.Mobile.Images
             using var br = new BinaryReaderX(input);
 
             // Read header
-            _header = br.ReadType<ImgaHeader>();
+            _header = br.ReadType<ImgxHeader>();
 
             // Load KTX
-            _imageState = LoadKtx(input, "content.ktx", pluginManager).Result;
+            _imageState = LoadKtx(input, "file.ktx", pluginManager).Result;
 
             return _imageState.Images[0].ImageInfo;
         }

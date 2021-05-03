@@ -13,6 +13,25 @@ namespace Kontract.Kompression.Configuration
         IMatchLimitations FindWith(Func<FindOptions, FindLimitations, IMatchFinder> matchFinderFactory);
 
         /// <summary>
+        /// Adds a default match finder, which finds sequence patterns.
+        /// </summary>
+        /// <returns>The option object.</returns>
+        IMatchLimitations FindMatches();
+
+        /// <summary>
+        /// Adds a default match finder, which finds repeating units.
+        /// </summary>
+        /// <returns>The option object.</returns>
+        IMatchLimitations FindRunLength();
+
+        /// <summary>
+        /// Adds a default match finder, which finds repeating units of the given value.
+        /// </summary>
+        /// <param name="constant">The value to check for repetition.</param>
+        /// <returns>The option object.</returns>
+        IMatchLimitations FindConstantRunLength(int constant);
+
+        /// <summary>
         /// Sets the factory to create an instance of <see cref="IPriceCalculator"/>.
         /// </summary>
         /// <param name="priceCalculatorFactory">The factory to create an instance of <see cref="IPriceCalculator"/>.</param>

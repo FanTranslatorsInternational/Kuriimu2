@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -9,18 +9,18 @@ using Kontract.Models;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
 
-namespace plugin_level5.Mobile.Images
+namespace plugin_bandai_namco.Images
 {
-    public class ImgaPlugin : IFilePlugin, IIdentifyFiles
+    public class TotxPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId => Guid.Parse("c99875f7-4751-443e-93d5-5782f7e05ce6");
-        public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] { "*.xi" };
+        public Guid PluginId { get; }
+        public PluginType PluginType { get; }
+        public string[] FileExtensions { get; }
         public PluginMetadata Metadata { get; }
 
-        public ImgaPlugin()
+        public TotxPlugin()
         {
-            Metadata = new PluginMetadata("IMGA", "onepiecefreak", "Main image resource in Android games by Level5.");
+            Metadata=new PluginMetadata("TOTX","onepiecefreak","Image resource found in FileArc.bin's of Dragon Ball Heroes games.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -28,12 +28,12 @@ namespace plugin_level5.Mobile.Images
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
             using var br=new BinaryReaderX(fileStream);
-            return br.ReadString(4) == "IMGA";
+            return br.ReadString(4) == "TOTX";
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager fileManager)
         {
-            return new ImgaState(pluginManager);
+            return new TotxState(fileManager);
         }
     }
 }

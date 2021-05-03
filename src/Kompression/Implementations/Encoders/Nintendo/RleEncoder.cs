@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.Encoders.Headerless;
-using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Nintendo
@@ -21,9 +18,7 @@ namespace Kompression.Implementations.Encoders.Nintendo
 
         public void Configure(IInternalMatchOptions matchOptions)
         {
-            matchOptions.CalculatePricesWith(() => new NintendoRlePriceCalculator())
-                .FindWith((options, limits) => new RleMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x3, 0x82));
+            _encoder.Configure(matchOptions);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

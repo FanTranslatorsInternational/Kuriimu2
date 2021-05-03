@@ -85,14 +85,16 @@ namespace Komponent.IO.BinarySupport
         private void WriteTypeString(BinaryWriterX bw, string writeValue, MemberAttributeInfo fieldAttributes, ValueStorage storage)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
+
+            // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
             if (!attributeValues.HasValue)
+            {
+                bw.Write(writeValue);
                 return;
+            }
 
             var (length, encoding) = attributeValues.Value;
-            if (encoding.GetByteCount(writeValue) != length)
-                throw new FieldLengthMismatchException(encoding.GetByteCount(writeValue), length);
-
-            bw.WriteString(writeValue, encoding, false, false);
+            bw.Write(ConvertStringValue(writeValue, encoding, length));
         }
 
         private void WriteTypeList(BinaryWriterX bw, IList writeValue, MemberAttributeInfo fieldAttributes, ValueStorage storage)
@@ -209,6 +211,16 @@ namespace Komponent.IO.BinarySupport
                 default:
                     throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.");
             }
+        }
+
+        private byte[] ConvertStringValue(string value, Encoding encoding, int byteLength)
+        {
+            var buffer = new byte[byteLength];
+            var convertedValue = encoding.GetBytes(value);
+
+            Array.Copy(convertedValue, 0, buffer, 0, Math.Min(byteLength, convertedValue.Length));
+
+            return buffer;
         }
     }
 }

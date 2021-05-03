@@ -9,6 +9,7 @@ namespace plugin_ganbarion.Images
     class Jtex
     {
         private JtexHeader _header;
+        private byte[] _unkRegion;
 
         public ImageInfo Load(Stream input)
         {
@@ -17,13 +18,14 @@ namespace plugin_ganbarion.Images
             // Read header
             _header = br.ReadType<JtexHeader>();
 
+            // Read unknown region
+            _unkRegion = br.ReadBytes(_header.dataOffset - (int)br.BaseStream.Position);
+
             // Create image info
-            input.Position = 0x80;
+            input.Position = _header.dataOffset;
             var imageData = br.ReadBytes(_header.dataSize);
 
-            var size = new Size(_header.width == 0 ? _header.paddedWidth : _header.width, _header.height == 0 ? _header.paddedHeight : _header.height);
-
-            var imageInfo = new ImageInfo(imageData, _header.format, size);
+            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
             imageInfo.PadSize.ToPowerOfTwo();
             imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
 
@@ -37,21 +39,22 @@ namespace plugin_ganbarion.Images
             var paddedSize = imageInfo.PadSize.Build(imageInfo.ImageSize);
 
             // Write image data
-            output.Position = 0x80;
+            output.Position = _header.dataOffset;
             output.Write(imageInfo.ImageData);
 
             // Update header
-            _header.paddedWidth = (short)paddedSize.Width;
-            _header.paddedHeight = (short)paddedSize.Height;
-            _header.dataSize = imageInfo.ImageData.Length;
-            _header.format = (byte)imageInfo.ImageFormat;
             _header.fileSize = (int)output.Length;
-            _header.width = (short)(imageInfo.ImageSize.Width == paddedSize.Width ? 0 : imageInfo.ImageSize.Width);
-            _header.width = (short)(imageInfo.ImageSize.Height == paddedSize.Height ? 0 : imageInfo.ImageSize.Height);
+            _header.width = (short)paddedSize.Width;
+            _header.height = (short)paddedSize.Height;
+            _header.format = (byte)imageInfo.ImageFormat;
+            _header.dataSize = imageInfo.ImageData.Length;
 
             // Write header
             output.Position = 0;
             bw.WriteType(_header);
+
+            // Write unknown region
+            bw.Write(_unkRegion);
         }
     }
 }

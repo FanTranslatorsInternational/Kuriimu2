@@ -58,8 +58,12 @@ namespace plugin_khronos_group.Images
             var glFormat = (GlInternalFormat)format;
             switch (glFormat)
             {
+                case GlInternalFormat.GlCompressedRgb8PunchthroughAlpha1Etc2:
                 case GlInternalFormat.GlCompressedRgba8Etc2Eac:
                     return KtxHeader.InitializeCompressed(size.Width, size.Height, glFormat, GlFormat.GlRgba);
+
+                case GlInternalFormat.GlCompressedRgb8Etc2:
+                    return KtxHeader.InitializeCompressed(size.Width, size.Height, glFormat, GlFormat.GlRgb);
 
                 default:
                     throw new InvalidOperationException($"{glFormat} is not supported for saving.");

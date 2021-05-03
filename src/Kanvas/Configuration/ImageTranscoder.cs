@@ -120,16 +120,16 @@ namespace Kanvas.Configuration
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load colors
-            var valueCount = data.Length * 8 / _colorEncoding.BitsPerValue;
-            var valueCountBySize = finalSize.Width * finalSize.Height / _colorEncoding.ColorsPerValue;
+            var colorCount = data.Length * 8 / _colorEncoding.BitsPerValue * _colorEncoding.ColorsPerValue;
+            var colorCountBySize = finalSize.Width * finalSize.Height;
 
             // HINT: If the data portion does not fit with the actual image size, it will cause progress irregularities.
             //       If the given data is shorter than what is needed for the full image, we throw.
             //       Otherwise enough data is given and the image can be fully decoded, even if excess data is not used.
-            if (valueCount < valueCountBySize)
+            if (colorCount < colorCountBySize)
                 throw new InvalidOperationException("Given data is too short.");
 
-            var setMaxProgress = progress?.SetMaxValue(valueCountBySize * _colorEncoding.ColorsPerValue);
+            var setMaxProgress = progress?.SetMaxValue(colorCountBySize * _colorEncoding.ColorsPerValue);
             var colors = _colorEncoding
                 .Load(data, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");
@@ -155,20 +155,18 @@ namespace Kanvas.Configuration
             var colorShader = _shadeColorsFunc?.Invoke();
 
             // Load palette
-            var paletteValueCount = paletteData.Length * 8 / _paletteEncoding.BitsPerValue;
+            var paletteColorCount = paletteData.Length * 8 / _paletteEncoding.BitsPerValue * _paletteEncoding.ColorsPerValue;
 
-            var setMaxProgress = progresses?[0]?.SetMaxValue(paletteValueCount * _paletteEncoding.ColorsPerValue);
+            var setMaxProgress = progresses?[0]?.SetMaxValue(paletteColorCount * _paletteEncoding.ColorsPerValue);
             var paletteEnumeration = _paletteEncoding
-                .Load(paletteData, new EncodingLoadContext(new Size(1, paletteValueCount), _taskCount))
+                .Load(paletteData, new EncodingLoadContext(new Size(1, paletteColorCount), _taskCount))
                 .AttachProgress(setMaxProgress, "Decode palette colors");
 
             // Apply color shader on palette
             var palette = colorShader != null ? paletteEnumeration.Select(colorShader.Read).ToArray() : paletteEnumeration.ToArray();
 
             // Load indices
-            var colorValueCount = finalSize.Width * finalSize.Height / _indexEncoding.ColorsPerValue;
-
-            setMaxProgress = progresses?[1]?.SetMaxValue(colorValueCount * _indexEncoding.ColorsPerValue);
+            setMaxProgress = progresses?[1]?.SetMaxValue(finalSize.Width * finalSize.Height);
             var colors = _indexEncoding
                 .Load(data, palette, new EncodingLoadContext(finalSize, _taskCount))
                 .AttachProgress(setMaxProgress, "Decode colors");

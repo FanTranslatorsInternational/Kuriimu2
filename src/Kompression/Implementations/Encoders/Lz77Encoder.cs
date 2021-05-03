@@ -2,9 +2,7 @@
 using System.IO;
 using Komponent.IO;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
@@ -16,8 +14,7 @@ namespace Kompression.Implementations.Encoders
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new Lz77PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x1, 0xFF, 1, 0xFF))
+                .FindMatches().WithinLimitations(1, 0xFF, 1, 0xFF)
                 .SkipUnitsAfterMatch(1);
         }
 

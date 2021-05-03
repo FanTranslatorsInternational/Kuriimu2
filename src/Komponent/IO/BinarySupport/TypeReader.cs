@@ -91,13 +91,13 @@ namespace Komponent.IO.BinarySupport
         private object ReadTypeString(BinaryReaderX br, MemberAttributeInfo fieldAttributes, ValueStorage storage)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
-            if (attributeValues.HasValue)
-            {
-                var (length, encoding) = attributeValues.Value;
-                return br.ReadString(length, encoding);
-            }
 
-            return null;
+            // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
+            if (!attributeValues.HasValue)
+                return br.ReadString();
+
+            var (length, encoding) = attributeValues.Value;
+            return br.ReadString(length, encoding);
         }
 
         private object ReadTypeList(BinaryReaderX br, Type readType, MemberAttributeInfo fieldAttributes, ValueStorage storage, string listFieldName)

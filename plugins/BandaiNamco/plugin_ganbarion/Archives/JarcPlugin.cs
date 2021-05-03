@@ -15,20 +15,22 @@ namespace plugin_ganbarion.Archives
     {
         public Guid PluginId => Guid.Parse("26dad045-388d-42f3-a625-ec44dbf2060d");
         public PluginType PluginType => PluginType.Image;
-        public string[] FileExtensions => new[] {"*.jarc"};
+        public string[] FileExtensions => new[] { "*.jarc" };
         public PluginMetadata Metadata { get; }
 
         public JarcPlugin()
         {
-            Metadata=new PluginMetadata("JARC","onepiecefreak","The main archive resource in Ganbarion games on 3DS.");
+            Metadata = new PluginMetadata("JARC", "onepiecefreak", "The main archive resource in Ganbarion games on 3DS.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            using var br=new BinaryReaderX(fileStream);
-            return br.ReadString(4) == "jARC";
+            using var br = new BinaryReaderX(fileStream);
+            var magic = br.ReadString(4);
+
+            return magic == "jARC" || magic == "jCMP";
         }
 
         public IPluginState CreatePluginState(IFileManager pluginManager)

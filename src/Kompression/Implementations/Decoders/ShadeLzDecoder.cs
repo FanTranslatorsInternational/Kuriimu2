@@ -6,13 +6,13 @@ using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders
 {
-    public class SpikeChunsoftDecoder : IDecoder
+    public class ShadeLzDecoder : IDecoder
     {
-        private readonly SpikeChunsoftHeaderlessDecoder _decoder;
+        private readonly ShadeLzHeaderlessDecoder _decoder;
 
-        public SpikeChunsoftDecoder()
+        public ShadeLzDecoder()
         {
-            _decoder = new SpikeChunsoftHeaderlessDecoder();
+            _decoder = new ShadeLzHeaderlessDecoder();
         }
 
         public void Decode(Stream input, Stream output)

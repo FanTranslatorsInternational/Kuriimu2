@@ -34,9 +34,8 @@ namespace Kompression.Implementations.Encoders.Nintendo
 
         public void Configure(IInternalMatchOptions matchOptions)
         {
-            matchOptions.CalculatePricesWith(() => new Yaz0PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(3, 0x111, 1, 0x1000));
+	        matchOptions.CalculatePricesWith(() => new Yaz0PriceCalculator())
+		        .FindMatches().WithinLimitations(3, 0x111, 1, 0x1000);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
