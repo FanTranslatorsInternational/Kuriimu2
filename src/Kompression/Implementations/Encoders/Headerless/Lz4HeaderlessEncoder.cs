@@ -3,9 +3,7 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
@@ -16,8 +14,7 @@ namespace Kompression.Implementations.Encoders.Headerless
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new Lz4PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x4, 0x100, 1, 0xFFFF));
+                .FindMatches().WithinLimitations(0x4, 0x100, 1, 0xFFFF);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -15,12 +13,9 @@ namespace Kompression.Implementations.Encoders
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new PsLzPriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(1, 0xFFFF, 1, 0xFFFF))
-                .AndFindWith((options, limits) => new StaticValueRleMatchFinder(0, limits, options))
-                .WithinLimitations(() => new FindLimitations(1, 0xFFFF))
-                .AndFindWith((options, limits) => new RleMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(1, 0xFFFF));
+                .FindMatches().WithinLimitations(1, 0xFFFF, 1, 0xFFFF)
+                .AndFindRunLength().WithinLimitations(1, 0xFFFF)
+                .AndFindConstantRunLength(0).WithinLimitations(1, 0xFFFF);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

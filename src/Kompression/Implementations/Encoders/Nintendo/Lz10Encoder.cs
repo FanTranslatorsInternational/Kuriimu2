@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.Encoders.Headerless;
-using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Nintendo
