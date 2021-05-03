@@ -98,14 +98,42 @@ namespace Kompression.Configuration
 
         #endregion
 
+        #region Limitations
+
+        /// <inheritdoc cref="WithinLimitations(int,int)"/>
+        public IAdditionalMatchFinder WithinLimitations(int minLength, int maxLength)
+        {
+	        return WithinLimitations(() => new FindLimitations(minLength, maxLength));
+        }
+
+        /// <inheritdoc cref="WithinLimitations(int,int,int,int)"/>
+        public IAdditionalMatchFinder WithinLimitations(int minLength, int maxLength, int minDisplacement, int maxDisplacement)
+        {
+	        return WithinLimitations(() => new FindLimitations(minLength, maxLength, minDisplacement, maxDisplacement));
+        }
+
+        #endregion
+
+        #region General
+
         /// <inheritdoc cref="ParseMatchesWith"/>
         public IMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory)
         {
-            ContractAssertions.IsNotNull(matchParserFactory, nameof(matchParserFactory));
+	        ContractAssertions.IsNotNull(matchParserFactory, nameof(matchParserFactory));
 
-            _matchParserFactory = matchParserFactory;
+	        _matchParserFactory = matchParserFactory;
 
-            return this;
+	        return this;
+        }
+
+        /// <inheritdoc cref="CalculatePricesWith"/>
+        public IInternalMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
+        {
+	        ContractAssertions.IsNotNull(priceCalculatorFactory, nameof(priceCalculatorFactory));
+
+	        _priceCalculatorFactory = priceCalculatorFactory;
+
+	        return this;
         }
 
         /// <inheritdoc cref="ProcessWithTasks"/>
@@ -125,16 +153,6 @@ namespace Kompression.Configuration
             return this;
         }
 
-        /// <inheritdoc cref="CalculatePricesWith"/>
-        public IInternalMatchOptions CalculatePricesWith(Func<IPriceCalculator> priceCalculatorFactory)
-        {
-            ContractAssertions.IsNotNull(priceCalculatorFactory, nameof(priceCalculatorFactory));
-
-            _priceCalculatorFactory = priceCalculatorFactory;
-
-            return this;
-        }
-
         /// <inheritdoc cref="SkipUnitsAfterMatch"/>
         public IInternalMatchOptions SkipUnitsAfterMatch(int skip)
         {
@@ -149,17 +167,7 @@ namespace Kompression.Configuration
             return this;
         }
 
-        /// <inheritdoc cref="WithinLimitations(int,int)"/>
-        public IAdditionalMatchFinder WithinLimitations(int minLength, int maxLength)
-        {
-            return WithinLimitations(() => new FindLimitations(minLength, maxLength));
-        }
-
-        /// <inheritdoc cref="WithinLimitations(int,int,int,int)"/>
-        public IAdditionalMatchFinder WithinLimitations(int minLength, int maxLength, int minDisplacement, int maxDisplacement)
-        {
-            return WithinLimitations(() => new FindLimitations(minLength, maxLength, minDisplacement, maxDisplacement));
-        }
+        #endregion
 
         /// <inheritdoc cref="BuildMatchParser"/>
         public IMatchParser BuildMatchParser()
