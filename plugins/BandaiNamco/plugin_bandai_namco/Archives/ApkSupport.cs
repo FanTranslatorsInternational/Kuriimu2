@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
 using Kompression.Implementations;
 using Kontract.Extensions;
+using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 
@@ -127,6 +129,26 @@ namespace plugin_bandai_namco.Archives
         }
     }
 
+    class ApkArchiveFileInfo : ArchiveFileInfo
+    {
+        public int HeaderIndex { get; }
+
+        public ApkArchiveFileInfo(Stream fileData, string filePath, int headerIndex) : base(fileData, filePath)
+        {
+            HeaderIndex = headerIndex;
+        }
+
+        public ApkArchiveFileInfo(Stream fileData, string filePath, int headerIndex, IKompressionConfiguration configuration, long decompressedSize) : base(fileData, filePath, configuration, decompressedSize)
+        {
+            HeaderIndex = headerIndex;
+        }
+
+        public Stream GetFinalStream()
+        {
+            return base.GetFinalStream();
+        }
+    }
+
     class ApkSupport
     {
         public static IEnumerable<IArchiveFileInfo> EnumerateFiles(IList<Stream> streams, ApkTocEntry entry, UPath path, IList<ApkPackHeader> apkHeaders, IList<string> strings, IList<ApkTocEntry> entries)
@@ -145,10 +167,14 @@ namespace plugin_bandai_namco.Archives
             }
             else
             {
+                var stream = streams[entry.headerIndex];
+                if(stream==null)
+                    yield break;
+
                 if (isCompressed)
-                    yield return new ArchiveFileInfo(new SubStream(streams[entry.headerIndex], entry.offset, entry.compSize), (headerName / path.ToRelative() / name).FullName, Compressions.ZLib, entry.decompSize);
+                    yield return new ApkArchiveFileInfo(new SubStream(stream, entry.offset, entry.compSize), (headerName / path.ToRelative() / name).FullName, entry.headerIndex, Compressions.ZLib, entry.decompSize);
                 else
-                    yield return new ArchiveFileInfo(new SubStream(streams[entry.headerIndex], entry.offset, entry.decompSize), (headerName / path.ToRelative() / name).FullName);
+                    yield return new ApkArchiveFileInfo(new SubStream(stream, entry.offset, entry.decompSize), (headerName / path.ToRelative() / name).FullName, entry.headerIndex);
             }
         }
 
@@ -187,7 +213,7 @@ namespace plugin_bandai_namco.Archives
 
             // Write entries
             output.Position = entryOffset;
-            WriteEntrySection(output, fileTree, strings, dataOffset);
+            WriteEntrySection(output, fileTree, strings, new List<long> { dataOffset });
 
             // Write start section
             output.Position = 0;
@@ -198,9 +224,9 @@ namespace plugin_bandai_namco.Archives
             bw.WriteType(new ApkPackHeader { dataOffset = (int)dataOffset, headerIdent = headerIdent });
         }
 
-        private static int CountEntries(DirectoryEntry entry) => 1 + entry.Files.Count + entry.Directories.Sum(CountEntries);
+        public static int CountEntries(DirectoryEntry entry) => 1 + entry.Files.Count + entry.Directories.Sum(CountEntries);
 
-        private static void WriteStringTable(Stream input, IList<string> strings)
+        public static void WriteStringTable(Stream input, IList<string> strings)
         {
             using var bw = new BinaryWriterX(input, true);
 
@@ -240,7 +266,7 @@ namespace plugin_bandai_namco.Archives
             input.Position = endPosition;
         }
 
-        private static void WriteEntrySection(Stream input, DirectoryEntry rootEntry, IList<string> strings, long dataOffset)
+        public static void WriteEntrySection(Stream input, DirectoryEntry rootEntry, IList<string> strings, IList<long> dataOffsets, bool writeFileData = true)
         {
             using var bw = new BinaryWriterX(input, true);
 
@@ -251,7 +277,7 @@ namespace plugin_bandai_namco.Archives
             bw.WriteType(new ApkTocEntry { flags = 1, stringIndex = strings.IndexOf(""), offset = 1, count = rootEntry.Directories.Count + rootEntry.Files.Count });
 
             // Write entries
-            var entryCount = WriteEntries(input, rootEntry, strings, ref dataOffset);
+            var entryCount = WriteEntries(input, rootEntry, strings, dataOffsets, writeFileData);
             var endPosition = input.Position;
 
             // Write entry header
@@ -260,10 +286,10 @@ namespace plugin_bandai_namco.Archives
 
             // Write section header
             input.Position = position;
-            bw.WriteType(new ApkSectionHeader { magic = ApkSection.PackToc, sectionSize = (int)(endPosition - position - 0x10) });
+            bw.WriteType(new ApkSectionHeader { magic = ApkSection.PackToc, sectionSize = (int)((endPosition - position - 0x10 + 0xF) & ~0xF) });
         }
 
-        private static int WriteEntries(Stream output, DirectoryEntry entry, IList<string> strings, ref long dataOffset, int index = 1)
+        private static int WriteEntries(Stream output, DirectoryEntry entry, IList<string> strings, IList<long> dataOffsets, bool writeFileData, int index = 1)
         {
             using var bw = new BinaryWriterX(output, true);
 
@@ -289,20 +315,31 @@ namespace plugin_bandai_namco.Archives
 
                     // Write sub entries
                     output.Position = nextPosition;
-                    nextIndex = WriteEntries(output, currentEntry, strings, ref dataOffset, nextIndex);
+                    nextIndex = WriteEntries(output, currentEntry, strings, dataOffsets, writeFileData, nextIndex);
                     nextPosition = output.Position;
                 }
-                else if (dirFile.Item2 is IArchiveFileInfo file)
+                else if (dirFile.Item2 is ApkArchiveFileInfo file)
                 {
+                    var headerIndex = Math.Min(dataOffsets.Count - 1, file.HeaderIndex);
+                    var dataOffset = dataOffsets[headerIndex];
+
                     // Write file data
-                    output.Position = dataOffset;
-                    var writtenSize = (file as ArchiveFileInfo).SaveFileData(output);
+                    long writtenSize;
+                    if (writeFileData)
+                    {
+                        output.Position = dataOffset;
+                        writtenSize = file.SaveFileData(output);
+                    }
+                    else
+                    {
+                        writtenSize = file.GetFinalStream().Length;
+                    }
 
                     // Write file entry
                     output.Position = position;
-                    bw.WriteType(new ApkTocEntry { flags = file.UsesCompression ? 0x200 : 0, stringIndex = strings.IndexOf(dirFile.Item1), offset = (int)dataOffset, compSize = file.UsesCompression ? (int)writtenSize : 0, decompSize = (int)file.FileSize });
+                    bw.WriteType(new ApkTocEntry { flags = file.UsesCompression ? 0x200 : 0, headerIndex = file.HeaderIndex, stringIndex = strings.IndexOf(dirFile.Item1), offset = (int)dataOffset, compSize = file.UsesCompression ? (int)writtenSize : 0, decompSize = (int)file.FileSize });
 
-                    dataOffset += (writtenSize + 0xF) & ~0xF;
+                    dataOffsets[headerIndex] += (writtenSize + 0xF) & ~0xF;
                 }
 
                 position += 0x28;
