@@ -83,6 +83,7 @@ jobs:
         dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
