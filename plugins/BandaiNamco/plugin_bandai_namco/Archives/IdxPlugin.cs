@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -28,8 +27,17 @@ namespace plugin_bandai_namco.Archives
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            var sections=ApkSection.ReadAll(fileStream);
-            return sections.Count(x => x.Type == ApkSection.PackHeader) == 5;
+            using var br=new BinaryReaderX(fileStream);
+            fileStream.Position = 0x10;
+
+            var headerCount = 0;
+            while (br.ReadString(8) == ApkSection.PackHeader)
+            {
+                headerCount++;
+                fileStream.Position += 0x28;
+            }
+
+            return headerCount == 5;
         }
 
         public IPluginState CreatePluginState(IFileManager fileManager)
