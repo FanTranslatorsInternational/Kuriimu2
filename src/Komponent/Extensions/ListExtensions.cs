@@ -57,10 +57,25 @@ namespace Komponent.Extensions
             Files = new List<IArchiveFileInfo>();
         }
 
+        /// <summary>
+        /// Adds or merges a directory entry into this one.
+        /// </summary>
+        /// <param name="entry"></param>
         public void AddDirectory(DirectoryEntry entry)
         {
-            entry._parent = this;
-            Directories.Add(entry);
+            var existingDir = Directories.FirstOrDefault(x => x.Name == entry.Name);
+            if (existingDir == null)
+            {
+                entry._parent = this;
+                Directories.Add(entry);
+                return;
+            }
+
+            foreach (var dir in entry.Directories)
+                existingDir.AddDirectory(dir);
+            foreach (var file in entry.Files)
+                if (!existingDir.Files.Contains(file))
+                    existingDir.Files.Add(file);
         }
 
         public void Remove()

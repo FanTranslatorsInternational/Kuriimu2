@@ -76,6 +76,7 @@ jobs:
       
     - name: Publish plugins
       run: |
+        dotnet build ./plugins/Alchemist/Alchemist.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
@@ -83,6 +84,7 @@ jobs:
         dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
@@ -91,6 +93,7 @@ jobs:
         dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/MercurySteam/MercurySteam.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release

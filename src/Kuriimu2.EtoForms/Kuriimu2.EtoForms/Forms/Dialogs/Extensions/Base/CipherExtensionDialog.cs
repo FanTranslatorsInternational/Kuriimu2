@@ -65,6 +65,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     new ExtensionTypeParameter("Key",typeof(string))),
                 new ExtensionType("Positional Xor",true,
                     new ExtensionTypeParameter("Key",typeof(string))),
+                new ExtensionType("Stepping Xor",true,
+                    new ExtensionTypeParameter("Key",typeof(string)),
+                    new ExtensionTypeParameter("Step",typeof(string))),
                 new ExtensionType("Rot",true,
                     new ExtensionTypeParameter("Rotation",typeof(byte))),
                 new ExtensionType("AES ECB",true,
@@ -103,6 +106,15 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "Positional Xor":
                     return new PositionalXorStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
+
+                case "Sequential Xor":
+                    var keyBuffer = selectedExtension.GetParameterValue<string>("Key").Hexlify();
+                    var stepBuffer = selectedExtension.GetParameterValue<string>("Step").Hexlify();
+
+                    var key = keyBuffer.Length >= 1 ? keyBuffer[0] : (byte)0;
+                    var step = stepBuffer.Length >= 1 ? stepBuffer[0] : (byte)0;
+
+                    return new SequentialXorStream(input, key, step);
 
                 case "Rot":
                     return new RotStream(input,
