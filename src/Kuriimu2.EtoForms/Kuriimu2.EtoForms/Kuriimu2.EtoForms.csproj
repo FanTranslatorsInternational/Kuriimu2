@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
+    <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\version.json" />
+	<EmbeddedResource Include="Images\**\*.png" />
+	<EmbeddedResource Include="Images\**\*.ico" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Eto.Forms" Version="2.5.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\..\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Forms\Dialogs\InputBoxDialog.eto.cs">
+      <DependentUpon>InputBoxDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Dialogs\SequenceSearcherDialog.eto.cs">
+      <DependentUpon>SequenceSearcherDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Resources\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Resources\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  
+</Project>

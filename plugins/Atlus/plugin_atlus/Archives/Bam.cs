@@ -12,7 +12,7 @@ namespace plugin_atlus.Archives
         private BamHeader _header;
         private BamSubHeader _subHeader;
 
-        public ArchiveFileInfo Load(Stream input)
+        public IArchiveFileInfo Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -32,7 +32,7 @@ namespace plugin_atlus.Archives
             return new ArchiveFileInfo(subStream, name);
         }
 
-        public void Save(Stream output, ArchiveFileInfo file)
+        public void Save(Stream output, IArchiveFileInfo file)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -43,7 +43,7 @@ namespace plugin_atlus.Archives
             // Write file
             output.Position = fileOffset;
 
-            var writtenSize = file.SaveFileData(output);
+            var writtenSize = (file as ArchiveFileInfo).SaveFileData(output);
             bw.WriteAlignment(0x80);
 
             // Write sub header

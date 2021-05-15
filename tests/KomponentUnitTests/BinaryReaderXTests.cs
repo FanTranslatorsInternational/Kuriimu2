@@ -82,31 +82,6 @@ namespace KomponentUnitTests
         }
 
         [TestMethod]
-        public void AlignmentSeek()
-        {
-            var input = new byte[] {
-                0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-            };
-            var ms = new MemoryStream(input);
-
-            using (var br = new BinaryReaderX(ms))
-            {
-                Assert.AreEqual(0x01, br.ReadByte());
-                br.SeekAlignment(8);
-                Assert.AreEqual(0x8, br.BaseStream.Position);
-                Assert.AreEqual(0x2, br.ReadByte());
-
-                br.BaseStream.Position = 0;
-                Assert.AreEqual(0x01, br.ReadByte());
-                br.SeekAlignment();
-                Assert.AreEqual(0x10, br.BaseStream.Position);
-                Assert.AreEqual(0x3, br.ReadByte());
-            }
-        }
-
-        [TestMethod]
         public void BitReading()
         {
             var input = new byte[] {
@@ -114,7 +89,7 @@ namespace KomponentUnitTests
             };
             var ms = new MemoryStream(input);
 
-            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, NibbleOrder.HighNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
+            using (var br = new BinaryReaderX(ms, true, ByteOrder.LittleEndian, BitOrder.MostSignificantBitFirst, 2))
             {
                 Assert.AreEqual(true, br.ReadBit());
                 br.ResetBitBuffer();
@@ -124,7 +99,7 @@ namespace KomponentUnitTests
                 Assert.AreEqual(0x1F, br.ReadBits<int>(5));
             }
 
-            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.LowestAddressFirst, 2))
+            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, BitOrder.LowestAddressFirst, 2))
             {
                 br.BaseStream.Position = 0;
 
@@ -134,6 +109,27 @@ namespace KomponentUnitTests
                 br.ByteOrder = ByteOrder.BigEndian;
                 br.BaseStream.Position = 4;
                 Assert.AreEqual(0xFF, br.ReadBits<int>(8));
+            }
+        }
+
+        private class TestClass0
+        {
+
+        }
+
+        [TestMethod]
+        public void BitReading2()
+        {
+            var input = new byte[] {
+                0x80, 0x30, 0x30, 0x02, 0x40, 0x00
+            };
+            var ms = new MemoryStream(input);
+
+            using (var br = new BinaryReaderX(ms, true))
+            {
+                Assert.AreEqual(0x08c, br.ReadBits<int>(14));
+                Assert.AreEqual(0x308, br.ReadBits<int>(14));
+                Assert.AreEqual(0x00, br.ReadBits<int>(4));
             }
         }
 
@@ -230,63 +226,6 @@ namespace KomponentUnitTests
 
                     index++;
                 }
-            }
-        }
-
-        [TestMethod]
-        public void NibbleReading()
-        {
-            var input = new byte[] {
-                0x48
-            };
-            var ms = new MemoryStream(input);
-
-            using (var br = new BinaryReaderX(ms))
-            {
-                Assert.AreEqual(8, br.ReadNibble());
-                Assert.AreEqual(4, br.ReadNibble());
-            }
-        }
-
-        [TestMethod]
-        public void SwitchNibbleBitReading()
-        {
-            var input = new byte[] {
-                0x04, 0x1F, 0xF8, 0x80
-            };
-            var ms = new MemoryStream(input);
-
-            using (var br = new BinaryReaderX(ms, ByteOrder.LittleEndian, NibbleOrder.LowNibbleFirst, BitOrder.MostSignificantBitFirst, 2))
-            {
-                Assert.AreEqual(4, br.ReadNibble());
-                Assert.AreEqual(0x1F, br.ReadBits<int>(5));
-                Assert.AreEqual(0, br.ReadNibble());
-                Assert.AreEqual(8, br.ReadNibble());
-            }
-        }
-
-        [Alignment(16)]
-        private class TestClass1
-        {
-            public int var0;
-            public int var1;
-            public byte var2;
-        }
-
-        [TestMethod]
-        public void AlignmentAttributeRead()
-        {
-            var input = new byte[] {
-                0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
-                0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-            };
-            var ms = new MemoryStream(input);
-
-            using (var br = new BinaryReaderX(ms))
-            {
-                var rs = br.ReadType<TestClass1>();
-
-                Assert.AreEqual(0x10, br.BaseStream.Position);
             }
         }
 

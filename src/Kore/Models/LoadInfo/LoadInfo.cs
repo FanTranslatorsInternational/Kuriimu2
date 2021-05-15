@@ -3,16 +3,17 @@ using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Progress;
 using Kore.Managers;
 using Kore.Managers.Plugins;
+using Serilog;
 
 namespace Kore.Models.LoadInfo
 {
     class LoadInfo
     {
-        public IStateInfo ParentStateInfo { get; set; }
+        public IFileState ParentFileState { get; set; }
 
         public IStreamManager StreamManager { get; set; }
 
-        public PluginManager PluginManager { get; set; }
+        public FileManager FileManager { get; set; }
 
         public IFilePlugin Plugin { get; set; }
 
@@ -21,5 +22,7 @@ namespace Kore.Models.LoadInfo
         public InternalDialogManager DialogManager { get; set; }
 
         public bool AllowManualSelection { get; set; }
+
+        public ILogger Logger { get; set; }
     }
 }

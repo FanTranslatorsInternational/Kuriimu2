@@ -6,6 +6,7 @@ using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_ruby_party.Archives
 {

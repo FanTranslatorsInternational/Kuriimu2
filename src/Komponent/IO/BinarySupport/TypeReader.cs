@@ -16,7 +16,7 @@ namespace Komponent.IO.BinarySupport
             return ReadTypeInternal(br, readType, storage);
         }
 
-        private object ReadTypeInternal(BinaryReaderX br, Type readType, ValueStorage storage, FieldInfo fieldInfo = null, bool isTypeChose = false)
+        private object ReadTypeInternal(BinaryReaderX br, Type readType, ValueStorage storage, FieldInfo fieldInfo = null, bool isTypeChosen = false)
         {
             var typeAttributes = new MemberAttributeInfo(readType);
             var fieldAttributes = fieldInfo == null ? null : new MemberAttributeInfo(fieldInfo);
@@ -30,7 +30,7 @@ namespace Komponent.IO.BinarySupport
                            br.ByteOrder;
 
             object returnValue;
-            if (IsTypeChoice(fieldAttributes) && !isTypeChose)
+            if (IsTypeChoice(fieldAttributes) && !isTypeChosen)
             {
                 var chosenType = ChooseType(readType, fieldAttributes, storage);
                 returnValue = ReadTypeInternal(br, chosenType, storage, fieldInfo, true);
@@ -49,7 +49,7 @@ namespace Komponent.IO.BinarySupport
             }
             else if (Tools.IsList(readType))
             {
-                returnValue = ReadTypeList(br, readType, fieldAttributes, storage);
+                returnValue = ReadTypeList(br, readType, fieldAttributes, storage, fieldInfo?.Name);
             }
             else if (readType.IsClass || Tools.IsStruct(readType))
             {
@@ -91,16 +91,16 @@ namespace Komponent.IO.BinarySupport
         private object ReadTypeString(BinaryReaderX br, MemberAttributeInfo fieldAttributes, ValueStorage storage)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
-            if (attributeValues.HasValue)
-            {
-                var (length, encoding) = attributeValues.Value;
-                return br.ReadString(length, encoding);
-            }
 
-            return null;
+            // If no length attributes are given, assume string with 7bit-encoded int length prefixing the string
+            if (!attributeValues.HasValue)
+                return br.ReadString();
+
+            var (length, encoding) = attributeValues.Value;
+            return br.ReadString(length, encoding);
         }
 
-        private object ReadTypeList(BinaryReaderX br, Type readType, MemberAttributeInfo fieldAttributes, ValueStorage storage)
+        private object ReadTypeList(BinaryReaderX br, Type readType, MemberAttributeInfo fieldAttributes, ValueStorage storage, string listFieldName)
         {
             var attributeValues = GetLengthAttributeValues(fieldAttributes, storage);
             if (!attributeValues.HasValue)
@@ -123,7 +123,7 @@ namespace Komponent.IO.BinarySupport
 
             for (var i = 0; i < length; i++)
             {
-                var elementValue = ReadTypeInternal(br, elementType, storage.CreateScope($"[{i}]"));
+                var elementValue = ReadTypeInternal(br, elementType, storage.CreateScope($"{listFieldName}[{i}]"));
                 if (list.IsFixedSize)
                     list[i] = elementValue;
                 else
@@ -153,6 +153,11 @@ namespace Komponent.IO.BinarySupport
             var fields = readType.GetFields().OrderBy(fi => fi.MetadataToken);
             foreach (var field in fields)
             {
+                // If field condition is false, read no value and leave field to default
+                var conditionAttribute = field.GetCustomAttribute<ConditionAttribute>();
+                if (!ResolveCondition(conditionAttribute, storage))
+                    continue;
+
                 var bitInfo = field.GetCustomAttribute<BitFieldAttribute>();
 
                 object fieldValue;
@@ -260,6 +265,35 @@ namespace Komponent.IO.BinarySupport
             }
 
             return (length, stringEncoding);
+        }
+
+        private bool ResolveCondition(ConditionAttribute condition, ValueStorage storage)
+        {
+            // If no condition is given, resolve it to true so the field is read
+            if (condition == null)
+                return true;
+
+            var value = storage.Get(condition.FieldName);
+            switch (condition.Comparer)
+            {
+                case ConditionComparer.Equal:
+                    return Convert.ToUInt64(value) == condition.Value;
+
+                case ConditionComparer.Greater:
+                    return Convert.ToUInt64(value) > condition.Value;
+
+                case ConditionComparer.Smaller:
+                    return Convert.ToUInt64(value) < condition.Value;
+
+                case ConditionComparer.GEqual:
+                    return Convert.ToUInt64(value) >= condition.Value;
+
+                case ConditionComparer.SEqual:
+                    return Convert.ToUInt64(value) <= condition.Value;
+
+                default:
+                    throw new InvalidOperationException($"Unknown comparer {condition.Comparer}.");
+            }
         }
     }
 }

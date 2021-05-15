@@ -1,24 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Headerless
 {
-    public class IrLzHeaderlessEncoder : IEncoder
+    public class IrLzHeaderlessEncoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public IrLzHeaderlessEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new IrLzPriceCalculator())
+                .FindMatches().WithinLimitations(2, 0x11, 1, 0x1000);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            var matches = _matchParser.ParseMatches(input).ToArray();
+            var matchArray = matches.ToArray();
 
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 2 + 1];
@@ -33,10 +33,10 @@ namespace Kompression.Implementations.Encoders.Headerless
                     blockBufferLength = 1;
                 }
 
-                if (lzIndex < matches.Length && input.Position == matches[lzIndex].Position)
+                if (lzIndex < matchArray.Length && input.Position == matchArray[lzIndex].Position)
                 {
-                    blockBufferLength = WriteCompressedBlockToBuffer(matches[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
-                    input.Position += matches[lzIndex++].Length;
+                    blockBufferLength = WriteCompressedBlockToBuffer(matchArray[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
+                    input.Position += matchArray[lzIndex++].Length;
                 }
                 else
                 {
@@ -68,7 +68,6 @@ namespace Kompression.Implementations.Encoders.Headerless
 
         public void Dispose()
         {
-            _matchParser?.Dispose();
         }
     }
 }

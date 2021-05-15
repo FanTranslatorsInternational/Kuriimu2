@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class LzEcdEncoder : IEncoder
+    public class LzEcdEncoder : ILzEncoder
     {
         class Block
         {
@@ -20,22 +22,23 @@ namespace Kompression.Implementations.Encoders
             public int bufferLength;
         }
 
-        private const int WindowBufferLength = 0x400;
-        private readonly IMatchParser _matchParser;
+        private const int WindowBufferLength_ = 0x400;
+        private const int PreBufferSize_ = 0x3BE;
 
-        public LzEcdEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new LzEcdPriceCalculator())
+                .FindMatches().WithinLimitations(3, 0x42, 1, 0x400)
+                .AdjustInput(input => input.Prepend(PreBufferSize_));
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 0x10;
 
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Write any data before the match, to the uncompressed table
@@ -49,7 +52,7 @@ namespace Kompression.Implementations.Encoders
                 }
 
                 // Write match data to the buffer
-                var bufferPosition = (_matchParser.FindOptions.PreBufferSize + match.Position - match.Displacement) % WindowBufferLength;
+                var bufferPosition = (PreBufferSize_ + match.Position - match.Displacement) % WindowBufferLength_;
                 var firstByte = (byte)bufferPosition;
                 var secondByte = (byte)(((bufferPosition >> 2) & 0xC0) | (byte)(match.Length - 3));
 

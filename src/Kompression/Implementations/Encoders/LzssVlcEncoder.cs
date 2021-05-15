@@ -1,22 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzssVlcEncoder : IEncoder
+    public class LzssVlcEncoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public LzssVlcEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new LzssVlcPriceCalculator())
+                .FindMatches().WithinLimitations(1, -1);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var decompressedSize = CreateVlc((int)input.Length);
             var unk1 = CreateVlc(0x19);
@@ -26,8 +25,7 @@ namespace Kompression.Implementations.Encoders
             output.Write(unk1, 0, unk1.Length);
             output.Write(unk2, 0, unk2.Length);
 
-            var matches = _matchParser.ParseMatches(input).ToArray();
-            WriteCompressedData(input, output, matches);
+            WriteCompressedData(input, output, matches.ToArray());
         }
 
         private void WriteCompressedData(Stream input, Stream output, Match[] matches)

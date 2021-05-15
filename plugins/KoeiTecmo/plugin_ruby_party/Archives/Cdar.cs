@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
@@ -14,7 +15,7 @@ namespace plugin_ruby_party.Archives
         private CdarHeader _header;
         private IList<uint> _hashes;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -28,7 +29,7 @@ namespace plugin_ruby_party.Archives
             var entries = br.ReadMultiple<CdarFileEntry>(_header.entryCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < _header.entryCount; i++)
             {
                 var entry = entries[i];
@@ -42,7 +43,7 @@ namespace plugin_ruby_party.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -55,7 +56,7 @@ namespace plugin_ruby_party.Archives
             output.Position = fileOffset;
 
             var entries = new List<CdarFileEntry>();
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 fileOffset = (int)output.Position;
                 var writtenSize = file.SaveFileData(output);

@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Kontract.Interfaces.Managers;
-using Kontract.Interfaces.Progress;
+using Serilog;
 
 namespace Kontract.Models.Context
 {
     /// <summary>
-    /// The class containing all environment instances for a load process in <see cref="IPluginManager"/>.
+    /// The class containing all environment instances for a load process in <see cref="IFileManager"/>.
     /// </summary>
     public class LoadFileContext
     {
@@ -15,8 +16,13 @@ namespace Kontract.Models.Context
         public IList<string> Options { get; set; }
 
         /// <summary>
-        /// The context to report progress through.
+        /// The preset id of the plugin to use to load the file.
         /// </summary>
-        public IProgressContext Progress { get; set; }
+        public Guid PluginId { get; set; } = Guid.Empty;
+
+        /// <summary>
+        /// The logger to use for the load file operation.
+        /// </summary>
+        public ILogger Logger { get; set; }
     }
 }

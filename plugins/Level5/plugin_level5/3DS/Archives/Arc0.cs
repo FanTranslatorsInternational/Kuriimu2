@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,7 +22,7 @@ namespace plugin_level5._3DS.Archives
 
         private Arc0Header _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -52,7 +51,7 @@ namespace plugin_level5._3DS.Archives
 
             // Add Files
             var names = new BinaryReaderX(nameStream);
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var directory in directoryEntries)
             {
                 names.BaseStream.Position = directory.directoryNameStartOffset;
@@ -76,7 +75,7 @@ namespace plugin_level5._3DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress)
+        public void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress)
         {
             // Group files by directory
             var castedFiles = files.Cast<Arc0ArchiveFileInfo>();
@@ -157,7 +156,7 @@ namespace plugin_level5._3DS.Archives
                 .GroupBy(x => x.FilePath.GetDirectory())
                 .ToArray();
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
             var sjis = Encoding.GetEncoding("SJIS");
 
             nameStream = new MemoryStream();
@@ -179,7 +178,7 @@ namespace plugin_level5._3DS.Archives
                     directoryName += "/";
                 nameBw.WriteString(directoryName, sjis, false);
 
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName)));
+                var hash = crc32.ComputeValue(directoryName, sjis);
                 var newDirectoryEntry = new Arc0DirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
@@ -200,7 +199,7 @@ namespace plugin_level5._3DS.Archives
                 foreach (var fileEntry in fileGroupEntries)
                 {
                     fileEntry.Entry.nameOffsetInFolder = (uint)(nameBw.BaseStream.Position - newDirectoryEntry.fileNameStartOffset);
-                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName())));
+                    fileEntry.Entry.crc32 = crc32.ComputeValue(fileEntry.FilePath.GetName(), sjis);
                     fileEntry.Entry.fileOffset = fileOffset;
                     fileEntry.Entry.fileSize = (uint)fileEntry.FileSize;
 

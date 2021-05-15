@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_metal_max", "plugin_metal_max\plugin_metal_max.csproj", "{E18D6503-3993-4A42-ABAE-E5F3E495EAA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_cattle_call", "plugin_cattle_call\plugin_cattle_call.csproj", "{E18D6503-3993-4A42-ABAE-E5F3E495EAA0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_kadokawa", "plugin_kadokawa\plugin_kadokawa.csproj", "{16319611-624A-4422-A1F6-3559E1A53329}"
 EndProject

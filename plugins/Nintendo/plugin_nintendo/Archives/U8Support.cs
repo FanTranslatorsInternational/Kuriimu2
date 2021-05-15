@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
+#pragma warning disable 649
 
 namespace plugin_nintendo.Archives
 {
@@ -63,7 +65,7 @@ namespace plugin_nintendo.Archives
             _root = root;
         }
 
-        public IEnumerable<ArchiveFileInfo> Parse(Stream input, long fileSystemOffset, int fileSystemSize, int fileOffsetStart)
+        public IEnumerable<IArchiveFileInfo> Parse(Stream input, long fileSystemOffset, int fileSystemSize, int fileOffsetStart)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
             br.BaseStream.Position = fileSystemOffset;
@@ -83,7 +85,7 @@ namespace plugin_nintendo.Archives
             return ParseDirectory(input, entries);
         }
 
-        private IEnumerable<ArchiveFileInfo> ParseDirectory(Stream input, IList<U8Entry> entries)
+        private IEnumerable<IArchiveFileInfo> ParseDirectory(Stream input, IList<U8Entry> entries)
         {
             var rootEntry = entries[0];
             var endIndex = rootEntry.size;
@@ -121,7 +123,7 @@ namespace plugin_nintendo.Archives
         private Encoding _nameEncoding;
         private BinaryWriterX _nameBw;
 
-        public IList<(U8Entry, ArchiveFileInfo)> Entries { get; private set; }
+        public IList<(U8Entry, IArchiveFileInfo)> Entries { get; private set; }
 
         public Stream NameStream { get; private set; }
 
@@ -130,7 +132,7 @@ namespace plugin_nintendo.Archives
             _nameEncoding = nameEncoding;
         }
 
-        public void Build(IList<(string path, ArchiveFileInfo afi)> files)
+        public void Build(IList<(string path, IArchiveFileInfo afi)> files)
         {
             // Build directory tree
             var directoryTree = BuildDirectoryTree(files);
@@ -140,11 +142,11 @@ namespace plugin_nintendo.Archives
             _nameBw = new BinaryWriterX(NameStream, true);
 
             // Populate entries
-            Entries = new List<(U8Entry, ArchiveFileInfo)>();
+            Entries = new List<(U8Entry, IArchiveFileInfo)>();
             PopulateEntryList(files, directoryTree, 0);
         }
 
-        private IList<(string, int)> BuildDirectoryTree(IList<(string, ArchiveFileInfo)> files)
+        private IList<(string, int)> BuildDirectoryTree(IList<(string, IArchiveFileInfo)> files)
         {
             var distinctDirectories = files
                 .OrderBy(x => GetDirectory(x.Item1))
@@ -171,7 +173,7 @@ namespace plugin_nintendo.Archives
             return directories;
         }
 
-        private void PopulateEntryList(IList<(string path, ArchiveFileInfo afi)> files,
+        private void PopulateEntryList(IList<(string path, IArchiveFileInfo afi)> files,
             IList<(string, int)> directories, int parentIndex)
         {
             var directoryIndex = 0;
@@ -231,7 +233,9 @@ namespace plugin_nintendo.Archives
                 path = path.Substring(0, path.Length - 1);
 
             var splitted = path.Split("/");
-            return string.Join("/", splitted.Take(splitted.Length - 1));
+            var joined = string.Join("/", splitted.Take(splitted.Length - 1));
+
+            return string.IsNullOrEmpty(joined) ? "/" : joined;
         }
 
         private string GetName(string path)

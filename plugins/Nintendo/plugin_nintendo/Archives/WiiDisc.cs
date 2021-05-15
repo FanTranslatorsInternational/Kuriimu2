@@ -13,7 +13,7 @@ namespace plugin_nintendo.Archives
     // TODO: Make partition reading its own plugin?
     class WiiDisc
     {
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             var wiiDiscStream = new WiiDiscStream(input);
             using var br = new BinaryReaderX(wiiDiscStream, ByteOrder.BigEndian);
@@ -41,7 +41,7 @@ namespace plugin_nintendo.Archives
                 throw new InvalidOperationException("Invalid Wii disc magic word.");
 
             // Read data partitions
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var partition in partitions.Where(x => x.type == 0))
             {
                 br.BaseStream.Position = partition.offset << 2;

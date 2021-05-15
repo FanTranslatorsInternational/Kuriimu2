@@ -1,23 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class TaikoLz80Encoder : IEncoder
+    public class TaikoLz80Encoder : ILzEncoder
     {
-        private IMatchParser _matchParser;
-
-        public TaikoLz80Encoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+	        matchOptions.CalculatePricesWith(() => new TaikoLz80PriceCalculator())
+		        .FindMatches().WithinLimitations(2, 5, 1, 0x10)
+		        .AndFindMatches().WithinLimitations(3, 0x12, 1, 0x400)
+		        .AndFindMatches().WithinLimitations(4, 0x83, 1, 0x8000);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

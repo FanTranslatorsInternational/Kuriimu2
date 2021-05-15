@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 using Kontract.Kanvas.Quantization;
 
 namespace Kanvas
@@ -15,35 +16,60 @@ namespace Kanvas
         public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize) =>
             indices.Select(i => palette[i]).ToBitmap(imageSize);
 
-        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize,
-            IImageSwizzle swizzle) =>
-            indices.Select(i => palette[i]).ToBitmap(imageSize, Size.Empty, swizzle);
+        public static Bitmap ToBitmap(this IEnumerable<int> indices, IList<Color> palette, Size imageSize, IImageSwizzle swizzle) =>
+            indices.Select(i => palette[i]).ToBitmap(imageSize, imageSize, swizzle, ImageAnchor.TopLeft);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize) =>
-            colors.ToBitmap(imageSize, Size.Empty, null);
+            colors.ToBitmap(imageSize, imageSize, null, ImageAnchor.TopLeft);
+
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, Size paddedSize) =>
+            colors.ToBitmap(imageSize, imageSize, null, ImageAnchor.TopLeft);
 
         public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, IImageSwizzle swizzle) =>
-            colors.ToBitmap(imageSize, Size.Empty, swizzle);
+            colors.ToBitmap(imageSize, imageSize, swizzle, ImageAnchor.TopLeft);
 
         /// <summary>
         /// Compose an image from a collection of colors.
         /// </summary>
         /// <param name="colors">The colors to compose in the image.</param>
         /// <param name="imageSize">The dimensions of the composed image.</param>
-        /// <param name="paddedSize">The padded dimensions of the composed image. Used for the swizzle operation.</param>
+        /// <param name="paddedSize">The padded dimensions of the composed image. Used for the swizzle operation. Is equal to <param name="imageSize">, if it was not further modified by the framework.</param></param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
+        /// <param name="anchor">Defines where the image with its real size is anchored in the padded size.</param>
         /// <returns>The composed image.</returns>
-        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, Size paddedSize, IImageSwizzle swizzle)
+        public static Bitmap ToBitmap(this IEnumerable<Color> colors, Size imageSize, Size paddedSize, IImageSwizzle swizzle, ImageAnchor anchor)
         {
             var image = new Bitmap(imageSize.Width, imageSize.Height);
 
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, imageSize), ImageLockMode.WriteOnly,
                 PixelFormat.Format32bppArgb);
 
-            var colorPoints = Zip(colors, GetPointSequence(paddedSize.IsEmpty ? imageSize : paddedSize, swizzle));
+            // Get point sequence modified by swizzle
+            var finalSize = imageSize != paddedSize ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : imageSize;
+            var colorPoints = colors.Zip(GetPointSequence(finalSize, swizzle));
 
-            foreach (var (color, point) in colorPoints)
+            // Get difference between final padded size and real size
+            var widthDiff = finalSize.Width - imageSize.Width;
+            var heightDiff = finalSize.Height - imageSize.Height;
+
+            foreach (var (color, p) in colorPoints)
             {
+                // If point lies outside the difference based on the anchor, return
+                if (anchor == ImageAnchor.BottomLeft || anchor == ImageAnchor.BottomRight)
+                    if (p.Y - heightDiff < 0)
+                        continue;
+
+                if (anchor == ImageAnchor.TopRight || anchor == ImageAnchor.BottomRight)
+                    if (p.X - widthDiff < 0)
+                        continue;
+
+                // If point lies inside the difference based on the anchor, modify it
+                var point = p;
+                if (anchor == ImageAnchor.BottomRight || anchor == ImageAnchor.BottomLeft)
+                    point = new Point(point.X, point.Y - heightDiff);
+                if (anchor == ImageAnchor.TopRight || anchor == ImageAnchor.BottomRight)
+                    point = new Point(point.X - widthDiff, point.Y);
+
                 if (point.X >= imageSize.Width || point.Y >= imageSize.Height)
                     continue;
 
@@ -64,13 +90,16 @@ namespace Kanvas
             indices.Select(x => palette[x]);
 
         public static IEnumerable<Color> ToColors(this Bitmap image) =>
-            image.ToColors(Size.Empty, null);
+            image.ToColors(image.Size, null, ImageAnchor.TopLeft);
 
         public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize) =>
-            image.ToColors(paddedSize, null);
+            image.ToColors(paddedSize, null, ImageAnchor.TopLeft);
 
         public static IEnumerable<Color> ToColors(this Bitmap image, IImageSwizzle swizzle) =>
-            image.ToColors(Size.Empty, swizzle);
+            image.ToColors(image.Size, swizzle, ImageAnchor.TopLeft);
+
+        public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize, ImageAnchor anchor) =>
+            image.ToColors(paddedSize, null, anchor);
 
         /// <summary>
         /// Decomposes an image to a collection of colors.
@@ -78,18 +107,47 @@ namespace Kanvas
         /// <param name="image">The image to decompose.</param>
         /// <param name="paddedSize">The padded dimensions of the image.</param>
         /// <param name="swizzle">The <see cref="IImageSwizzle"/> to resort the colors.</param>
+        /// <param name="anchor">Defines where the image with its real size is anchored in the padded size.</param>
         /// <returns>The collection of colors.</returns>
-        public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize, IImageSwizzle swizzle)
+        public static IEnumerable<Color> ToColors(this Bitmap image, Size paddedSize, IImageSwizzle swizzle, ImageAnchor anchor)
         {
             var bitmapData = image.LockBits(new Rectangle(Point.Empty, image.Size), ImageLockMode.ReadOnly,
                 PixelFormat.Format32bppArgb);
 
-            var imageSize = paddedSize.IsEmpty ? image.Size : paddedSize;
-            var points = GetPointSequence(imageSize, swizzle)
-                .Clamp(Point.Empty, new Point(image.Width - 1, image.Height));
+            var finalSize = image.Size != paddedSize ? paddedSize : swizzle != null ? new Size(swizzle.Width, swizzle.Height) : image.Size;
 
-            foreach (var point in points)
+            // Get difference between final padded size and real size
+            var widthDiff = finalSize.Width - image.Size.Width;
+            var heightDiff = finalSize.Height - image.Size.Height;
+
+            // Get point sequence, modified by swizzle
+            var points = GetPointSequence(finalSize, swizzle)
+                .Clamp(GetMinPoint(widthDiff, heightDiff, anchor), GetMaxPoint(image.Size, widthDiff, heightDiff, anchor));
+
+            foreach (var p in points)
             {
+                // Return default color if swizzled point is out of bounds relative to anchor
+                if (anchor == ImageAnchor.BottomLeft || anchor == ImageAnchor.BottomRight)
+                    if (p.Y - heightDiff < 0)
+                    {
+                        yield return Color.Black;
+                        continue;
+                    }
+
+                if (anchor == ImageAnchor.TopRight || anchor == ImageAnchor.BottomRight)
+                    if (p.X - widthDiff < 0)
+                    {
+                        yield return Color.Black;
+                        continue;
+                    }
+
+                // If point lies inside the difference based on the anchor, modify it
+                var point = p;
+                if (anchor == ImageAnchor.BottomRight || anchor == ImageAnchor.BottomLeft)
+                    point = new Point(point.X, point.Y - heightDiff);
+                if (anchor == ImageAnchor.TopRight || anchor == ImageAnchor.BottomRight)
+                    point = new Point(point.X - widthDiff, point.Y);
+
                 // If point is out of bounds of source image, return default color
                 if (point.X >= bitmapData.Width || point.Y >= bitmapData.Height)
                 {
@@ -165,7 +223,7 @@ namespace Kanvas
         }
 
         private static IEnumerable<Point> Clamp(this IEnumerable<Point> points, Point min, Point max) =>
-            points.Select(p => new Point(Clamp(p.X, min.X, max.X), Clamp(p.Y, min.Y, max.Y)));
+            points.Select(p => new Point(Math.Clamp(p.X, min.X, max.X), Math.Clamp(p.Y, min.Y, max.Y)));
 
         // ReSharper disable once PossibleNullReferenceException
         private static unsafe Color GetColor(BitmapData bitmapData, int index) =>
@@ -177,24 +235,46 @@ namespace Kanvas
             ((int*)bitmapData.Scan0)[index] = color.ToArgb();
         }
 
-        // TODO: Remove when targeting only netcoreapp31
-        private static IEnumerable<(TFirst First, TSecond Second)> Zip<TFirst, TSecond>(IEnumerable<TFirst> first, IEnumerable<TSecond> second)
+        private static Point GetMinPoint(int widthDiff, int heightDiff, ImageAnchor anchor)
         {
-#if NET_CORE_31
-            return first.Zip(second);
-#else
-            return first.Zip(second, (f, s) => (f, s));
-#endif
+            switch (anchor)
+            {
+                case ImageAnchor.TopLeft:
+                    return Point.Empty;
+
+                case ImageAnchor.TopRight:
+                    return new Point(widthDiff, 0);
+
+                case ImageAnchor.BottomLeft:
+                    return new Point(0, heightDiff);
+
+                case ImageAnchor.BottomRight:
+                    return new Point(widthDiff, heightDiff);
+
+                default:
+                    throw new InvalidOperationException($"Unknown image anchor {anchor}.");
+            }
         }
 
-        // TODO: Remove when targeting only netcoreapp31
-        private static int Clamp(int value, int min, int max)
+        private static Point GetMaxPoint(Size imageSize, int widthDiff, int heightDiff, ImageAnchor anchor)
         {
-#if NET_CORE_31
-            return Math.Clamp(value, min, max);
-#else
-            return Math.Max(min, Math.Min(value, max));
-#endif
+            switch (anchor)
+            {
+                case ImageAnchor.TopLeft:
+                    return new Point(imageSize.Width - 1, imageSize.Height - 1);
+
+                case ImageAnchor.TopRight:
+                    return new Point(imageSize.Width + widthDiff - 1, imageSize.Height - 1);
+
+                case ImageAnchor.BottomLeft:
+                    return new Point(imageSize.Width - 1, imageSize.Height + heightDiff - 1);
+
+                case ImageAnchor.BottomRight:
+                    return new Point(imageSize.Width + widthDiff - 1, imageSize.Height + heightDiff - 1);
+
+                default:
+                    throw new InvalidOperationException($"Unknown image anchor {anchor}.");
+            }
         }
     }
 }

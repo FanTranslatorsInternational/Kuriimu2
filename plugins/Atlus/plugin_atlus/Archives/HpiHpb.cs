@@ -6,6 +6,7 @@ using Komponent.IO;
 using Komponent.IO.Streams;
 using Kontract.Extensions;
 using Kontract.Models.Archive;
+using Kryptography.Hash;
 
 namespace Atlus.Archives
 {
@@ -17,7 +18,7 @@ namespace Atlus.Archives
 
         private const int HashSlotCount_ = 0x1000;
 
-        public IList<ArchiveFileInfo> Load(Stream hpiStream, Stream hpbStream)
+        public IList<IArchiveFileInfo> Load(Stream hpiStream, Stream hpbStream)
         {
             using var hpiBr = new BinaryReaderX(hpiStream);
 
@@ -34,11 +35,13 @@ namespace Atlus.Archives
             var stringStream = new SubStream(hpiStream, hpiStream.Position, hpiStream.Length - hpiStream.Position);
             using var stringBr = new BinaryReaderX(stringStream);
 
+            var t = entries.Select(x => (x.offset, x.offset + x.compSize)).OrderByDescending(x => x.offset).ToArray();
+
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
-                var subStream = new SubStream(hpbStream, entry.offset, entry.compSize);
+                var subStream = new SubStream(hpbStream, entry.offset >= hpbStream.Length ? 0 : entry.offset, entry.compSize);
 
                 stringStream.Position = entry.stringOffset;
                 var name = stringBr.ReadCStringSJIS();
@@ -49,9 +52,11 @@ namespace Atlus.Archives
             return result;
         }
 
-        public void Save(Stream hpiStream, Stream hpbStream, IList<ArchiveFileInfo> files)
+        public void Save(Stream hpiStream, Stream hpbStream, IList<IArchiveFileInfo> files)
         {
             var sjis = Encoding.GetEncoding("SJIS");
+            var hash = new SimpleHash(0x25);
+
             using var hpiBw = new BinaryWriterX(hpiStream);
 
             // Calculate offsets
@@ -61,7 +66,7 @@ namespace Atlus.Archives
             var stringOffset = entryOffset + files.Count * FileEntrySize;
 
             // Group files
-            var fileLookup = files.ToLookup(x => HpiHpbSupport.CreateHash(x.FilePath.ToRelative().FullName) % HashSlotCount_);
+            var fileLookup = files.ToLookup(x => hash.ComputeValue(x.FilePath.ToRelative().FullName, sjis) % HashSlotCount_);
 
             // Write files and strings
             hpiStream.Position = stringOffset;

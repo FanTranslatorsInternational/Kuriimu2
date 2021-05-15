@@ -7,6 +7,7 @@ namespace Kompression.IO.Streams
     class PreBufferStream : Stream
     {
         private readonly int _preBufferSize;
+        private readonly byte _value;
         private Stream _baseStream;
 
         /// <inheritdoc cref="CanRead"/>
@@ -25,16 +26,18 @@ namespace Kompression.IO.Streams
         public override long Position { get; set; }
 
         /// <summary>
-        /// Create a new instance of <see cref="ConcatStream"/>.
+        /// Create a new instance of <see cref="PreBufferStream"/>.
         /// </summary>
         /// <param name="baseStream">The stream to be preset with a buffer.</param>
         /// <param name="preBufferSize">The size of the zero filled buffer.</param>
-        public PreBufferStream(Stream baseStream, int preBufferSize)
+        /// <param name="value">The value to fill into the buffer.</param>
+        public PreBufferStream(Stream baseStream, int preBufferSize, byte value = 0)
         {
             ContractAssertions.IsNotNull(baseStream, nameof(baseStream));
 
             _baseStream = baseStream;
             _preBufferSize = preBufferSize;
+            _value = value;
         }
 
         /// <inheritdoc cref="Flush"/>
@@ -84,10 +87,10 @@ namespace Kompression.IO.Streams
                 var toRead = Math.Min(cappedCount, (int)(_preBufferSize - Position));
 
 #if NET_CORE_31
-                Array.Fill<byte>(buffer, 0, offset, toRead);
+                Array.Fill<byte>(buffer, _value, offset, toRead);
 #else
                 for (var i = 0; i < toRead; i++)
-                    buffer[offset + i] = 0;
+                    buffer[offset + i] = _value;
 #endif
 
                 offset += toRead;

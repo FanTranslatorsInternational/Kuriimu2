@@ -29,7 +29,7 @@ namespace Kontract.Kompression.Model.PatternMatch
                 if (length >= minLength && length <= _matches[i].length)
                     return _matches[i].displacement;
 
-                minLength += _matches[i].length;
+                minLength = _matches[i].length;
             }
 
             return -1;

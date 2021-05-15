@@ -4,6 +4,7 @@ using Komponent.IO.Attributes;
 using Kontract.Interfaces.Progress;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_level5._3DS.Archives
 {
@@ -131,23 +132,6 @@ namespace plugin_level5._3DS.Archives
             }
 
             return writtenSize;
-        }
-    }
-
-    static class XpckSupport
-    {
-        public static Guid[] RetrievePluginMapping(string fileName)
-        {
-            var extension = Path.GetExtension(fileName);
-
-            switch (extension)
-            {
-                case ".xi":
-                    return new[] { Guid.Parse("898c9151-71bd-4638-8f90-6d34f0a8600c") };
-
-                default:
-                    return null;
-            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Komponent.IO.BinarySupport
 {
@@ -41,13 +43,42 @@ namespace Komponent.IO.BinarySupport
         private string GetValueName(string fieldName)
         {
             if (fieldName == null)
-                return string.Empty;
+                return _nestedName ?? string.Empty;
 
-            var nestedName = fieldName;
-            if (!string.IsNullOrEmpty(_nestedName))
-                nestedName = _nestedName + "." + fieldName;
+            // Shortcut: Return normal concatenated string, if no back references exist
+            if (!fieldName.Contains(".."))
+            {
+                var nestedName = fieldName;
+                if (!string.IsNullOrEmpty(_nestedName))
+                    nestedName = _nestedName + "." + fieldName;
 
-            return nestedName;
+                return nestedName;
+            }
+
+            // Remove optional starting dot, which would reference current scope
+            if (fieldName.StartsWith("."))
+                fieldName = fieldName.Substring(1, fieldName.Length - 1);
+
+            // Otherwise resolve back references
+            var validParts = new List<string>();
+
+            var nestedNameParts = string.IsNullOrEmpty(_nestedName) ? Array.Empty<string>() : _nestedName.Split('.');
+            foreach (var part in nestedNameParts.Concat(fieldName.Split('.')))
+            {
+                if (string.IsNullOrEmpty(part))
+                {
+                    if (validParts.Count <= 0)
+                        throw new InvalidOperationException("Value is not deep enough.");
+
+                    validParts.RemoveAt(validParts.Count - 1);
+                    continue;
+                }
+
+                validParts.Add(part);
+            }
+
+            // And join all valid parts
+            return string.Join(".", validParts);
         }
     }
 }

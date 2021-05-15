@@ -9,11 +9,6 @@ namespace Kontract.Kompression
     public interface ICompression : IDisposable
     {
         /// <summary>
-        /// Names for the used compression.
-        /// </summary>
-        string[] Names { get; }
-
-        /// <summary>
         /// Decompress a stream of data.
         /// </summary>
         /// <param name="input">The input data to decompress.</param>

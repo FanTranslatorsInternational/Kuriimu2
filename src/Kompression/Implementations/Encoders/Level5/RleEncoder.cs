@@ -1,21 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.Encoders.Headerless;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Level5
 {
-    public class RleEncoder : IEncoder
+    public class RleEncoder : ILzEncoder
     {
         private readonly RleHeaderlessEncoder _encoder;
 
-        public RleEncoder(IMatchParser matchParser)
+        public RleEncoder()
         {
-            _encoder = new RleHeaderlessEncoder(matchParser);
+            _encoder = new RleHeaderlessEncoder();
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            _encoder.Configure(matchOptions);
+        }
+
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             if (input.Length > 0x1FFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -27,7 +33,7 @@ namespace Kompression.Implementations.Encoders.Level5
                 (byte)(input.Length >> 21) };
             output.Write(compressionHeader, 0, 4);
 
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, matches);
         }
 
         public void Dispose()

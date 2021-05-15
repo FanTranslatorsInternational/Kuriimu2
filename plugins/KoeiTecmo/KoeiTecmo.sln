@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_koei_tecmo", "plugin_koei_tecmo\plugin_koei_tecmo.csproj", "{6053BE89-4673-4012-BF21-9D5C1F260DF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_ruby_party", "plugin_ruby_party\plugin_ruby_party.csproj", "{0BF5374E-0E80-45E4-A608-CDF037793599}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_ruby_party", "plugin_ruby_party\plugin_ruby_party.csproj", "{0BF5374E-0E80-45E4-A608-CDF037793599}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_gust", "plugin_gust\plugin_gust.csproj", "{89355BE7-05D9-481D-9220-9BFC3783FA4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{0BF5374E-0E80-45E4-A608-CDF037793599}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BF5374E-0E80-45E4-A608-CDF037793599}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BF5374E-0E80-45E4-A608-CDF037793599}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89355BE7-05D9-481D-9220-9BFC3783FA4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89355BE7-05D9-481D-9220-9BFC3783FA4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89355BE7-05D9-481D-9220-9BFC3783FA4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89355BE7-05D9-481D-9220-9BFC3783FA4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

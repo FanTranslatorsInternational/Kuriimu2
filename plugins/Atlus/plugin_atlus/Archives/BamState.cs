@@ -16,7 +16,7 @@ namespace plugin_atlus.Archives
     {
         private Bam _bam;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public bool ContentChanged => IsContentChanged();
 
@@ -28,7 +28,7 @@ namespace plugin_atlus.Archives
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = new List<ArchiveFileInfo> { _bam.Load(fileStream) };
+            Files = new List<IArchiveFileInfo> { _bam.Load(fileStream) };
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
@@ -39,7 +39,7 @@ namespace plugin_atlus.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }

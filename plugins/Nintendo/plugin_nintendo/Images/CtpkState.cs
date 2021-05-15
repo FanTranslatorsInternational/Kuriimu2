@@ -39,8 +39,8 @@ namespace plugin_nintendo.CTPK
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create);
-            _ctpk.Save(saveStream, Images);
+            var saveStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            _ctpk.Save(saveStream, Images.Select(x => x.ImageInfo).ToArray());
 
             return Task.CompletedTask;
         }

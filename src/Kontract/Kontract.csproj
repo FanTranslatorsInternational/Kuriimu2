@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp31</TargetFrameworks>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
     <LangVersion>8</LangVersion>
     <Version>2.0.8</Version>
 
@@ -18,7 +18,7 @@
     <Copyright>Copyright (c) 2019 Fan Translators International</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</PackageProjectUrl>
-    <PackageIconUrl>https://avatars0.githubusercontent.com/u/36773106?&amp;amp;v=4</PackageIconUrl>
+    <PackageIcon>kuriimu2icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/FanTranslatorsInternational/Kuriimu2</RepositoryUrl>
     <PackageTags>API, Contract, Kuriimu2</PackageTags>
   </PropertyGroup>
@@ -30,15 +30,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Models\PluginMetadata.cs~RF525ad6e8.TMP" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\LICENSE.md" Pack="True" PackagePath="$(PackageLicenseFile)" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp31'">
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <None Include="..\..\kuriimu2icon.png" Pack="True" PackagePath="$(PackageIcon)" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -48,5 +41,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\dist\Release\</OutputPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
+  </ItemGroup>
 
 </Project>

@@ -7,14 +7,15 @@ using Komponent.IO.Streams;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Archive;
 using plugin_level5.Compression;
+#pragma warning disable 649
 
 namespace plugin_level5._3DS.Archives
 {
     interface IXfsa
     {
-        IList<ArchiveFileInfo> Load(Stream input);
+        IList<IArchiveFileInfo> Load(Stream input);
 
-        void Save(Stream output, IList<ArchiveFileInfo> files, IProgressContext progress);
+        void Save(Stream output, IList<IArchiveFileInfo> files, IProgressContext progress);
     }
 
     // TODO: Research unk1
@@ -116,13 +117,13 @@ namespace plugin_level5._3DS.Archives
         public int FileCount
         {
             get => (int)(tmp1 & 0x3FFF);
-            set => tmp1 = (uint)((tmp1 & ~0x3FFF) | (value & 0x3FFF));
+            set => tmp1 = (uint)((tmp1 & ~0x3FFFu) | (value & 0x3FFFu));
         }
 
         public int DirectoryCount
         {
             get => (int)(tmp2 & 0x3FFF);
-            set => tmp2 = (uint)((tmp2 & ~0x3FFF) | (value & 0x3FFF));
+            set => tmp2 = (uint)((tmp2 & ~0x3FFFu) | (value & 0x3FFFu));
         }
     }
 
@@ -138,13 +139,13 @@ namespace plugin_level5._3DS.Archives
         public int FirstFileIndex
         {
             get => (int)(tmp1 & 0x7FFF);
-            set => tmp1 = (uint)((tmp1 & ~0x7FFF) | (value & 0x7FFF));
+            set => tmp1 = (uint)((tmp1 & ~0x7FFFu) | (value & 0x7FFFu));
         }
 
         public int FirstDirectoryIndex
         {
             get => (int)(tmp1 >> 15);
-            set => tmp1 = (uint)((tmp1 & 0x7FFF) | (value << 15));
+            set => tmp1 = (tmp1 & 0x7FFFu) | ((uint)value << 15);
         }
     }
 

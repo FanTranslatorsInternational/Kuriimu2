@@ -1,4 +1,6 @@
-﻿using Komponent.IO.Attributes;
+﻿using System.Diagnostics.CodeAnalysis;
+using Komponent.IO.Attributes;
+#pragma warning disable 649
 
 namespace plugin_level5._3DS.Fonts
 {
@@ -32,6 +34,19 @@ namespace plugin_level5._3DS.Fonts
         {
             var csi = (XfCharSizeInfo)obj;
             return offsetX == csi?.offsetX && offsetY == csi.offsetY && glyphWidth == csi.glyphWidth && glyphHeight == csi.glyphHeight;
+        }
+
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override int GetHashCode()
+        {
+            var hash = 13;
+
+            hash = hash * 7 + offsetX.GetHashCode();
+            hash = hash * 7 + offsetY.GetHashCode();
+            hash = hash * 7 + glyphWidth.GetHashCode();
+            hash = hash * 7 + glyphHeight.GetHashCode();
+
+            return hash;
         }
     }
 

@@ -9,13 +9,11 @@ namespace Kompression.Implementations.Decoders
 {
     public class TalesOf01Decoder : IDecoder
     {
-        private int _preBufferSize;
         private Lzss01HeaderlessDecoder _decoder;
 
-        public TalesOf01Decoder(int preBufferSize)
+        public TalesOf01Decoder()
         {
-            _preBufferSize = preBufferSize;
-            _decoder = new Lzss01HeaderlessDecoder(preBufferSize);
+            _decoder = new Lzss01HeaderlessDecoder();
         }
 
         public void Decode(Stream input, Stream output)

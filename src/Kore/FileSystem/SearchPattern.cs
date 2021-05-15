@@ -41,7 +41,7 @@ namespace Kore.FileSystem
     /// </summary>
     public struct SearchPattern
     {
-        private static readonly char[] SpecialChars = { '?', '*' };
+        private static readonly char[] WildcardChars = { '?', '*' };
 
         private readonly string _exactMatch;
         private readonly Regex _regexMatch;
@@ -111,9 +111,10 @@ namespace Kore.FileSystem
                 throw new ArgumentException($"The search pattern `{searchPattern}` cannot start by an absolute path `/`");
             }
 
+            // Normalize path separators
             searchPattern = searchPattern.Replace('\\', '/');
 
-            // If the path contains any directory, we need to concatenate the directory part with the input path
+            // If the path contains any directory, we need to concatenate the directory part with the input path (?)
             if (searchPattern.IndexOf('/') > 0)
             {
                 var pathPattern = new UPath(searchPattern);
@@ -130,58 +131,45 @@ namespace Kore.FileSystem
                     return;
                 }
             }
-
-            var startIndex = 0;
-            StringBuilder builder = null;
-            try
+            
+            var regexBuilder = new StringBuilder("^");
+            bool containsWildcards = false;
+            
+            // Loop through parts of searchPattern separated by wildcards
+            for (int index = 0, nextWildcard = 0; nextWildcard != -1; index = nextWildcard + 1)
             {
-                int nextIndex;
-                while ((nextIndex = searchPattern.IndexOfAny(SpecialChars, startIndex)) >= 0)
+                // Next wildcard occurence
+                nextWildcard = searchPattern.IndexOfAny(WildcardChars, index);
+                
+                // Escape & append text up to next wildcard
+                // If no new wildcard, append up to end of string
+                var endOfPart = nextWildcard != -1 ? nextWildcard : searchPattern.Length;
+                regexBuilder.Append(Regex.Escape(searchPattern.Substring(index, endOfPart - index)));
+
+                // Convert & append wildcard, if applicable
+                if (nextWildcard != -1)
                 {
-                    if (builder == null)
+                    var wc = searchPattern[nextWildcard];
+                    var regexPatternPart = wc switch
                     {
-                        builder = new StringBuilder();
-                        builder.Append("^");
-                    }
-
-                    var lengthToEscape = nextIndex - startIndex;
-                    if (lengthToEscape > 0)
-                    {
-                        var toEscape = Regex.Escape(searchPattern.Substring(startIndex, lengthToEscape));
-                        builder.Append(toEscape);
-                    }
-
-                    var c = searchPattern[nextIndex];
-                    var regexPatternPart = c == '*' ? ".*" : ".";
-                    builder.Append(regexPatternPart);
-
-                    startIndex = nextIndex + 1;
-                }
-                if (builder == null)
-                {
-                    _exactMatch = searchPattern;
-                }
-                else
-                {
-                    var length = searchPattern.Length - startIndex;
-                    if (length > 0)
-                    {
-                        var toEscape = Regex.Escape(searchPattern.Substring(startIndex, length));
-                        builder.Append(toEscape);
-                    }
-
-                    builder.Append("$");
-
-                    var regexPattern = builder.ToString();
-                    _regexMatch = new Regex(regexPattern);
+                        '*' => ".*",
+                        '?' => ".",
+                        _ => throw new ArgumentException($"Unknown wildcard: {wc}")
+                    };
+                    regexBuilder.Append(regexPatternPart);
+                    containsWildcards = true;
                 }
             }
-            finally
+            
+            regexBuilder.Append("$");
+            
+            if (!containsWildcards)
             {
-                if (builder != null)
-                {
-                    builder.Length = 0;
-                }
+                _exactMatch = searchPattern;
+            }
+            else
+            {
+                _regexMatch = new Regex(regexBuilder.ToString());
             }
         }
     }

@@ -17,7 +17,7 @@ namespace plugin_level5._3DS.Archives
         private bool _hasDeletedFiles;
         private bool _hasAddedFiles;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsChanged();
 
         public Arc0State()
@@ -41,7 +41,7 @@ namespace plugin_level5._3DS.Archives
             return Task.CompletedTask;
         }
 
-        public void ReplaceFile(ArchiveFileInfo afi, Stream fileData)
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
         {
             afi.SetFileData(fileData);
         }
@@ -51,12 +51,12 @@ namespace plugin_level5._3DS.Archives
             return _hasDeletedFiles || _hasAddedFiles || Files.Any(x => x.ContentChanged);
         }
 
-        public void Rename(ArchiveFileInfo afi, UPath path)
+        public void Rename(IArchiveFileInfo afi, UPath path)
         {
             afi.FilePath = path;
         }
 
-        public void RemoveFile(ArchiveFileInfo afi)
+        public void RemoveFile(IArchiveFileInfo afi)
         {
             Files.Remove(afi);
             _hasDeletedFiles = true;
@@ -68,7 +68,7 @@ namespace plugin_level5._3DS.Archives
             _hasDeletedFiles = true;
         }
 
-        public ArchiveFileInfo AddFile(Stream fileData, UPath filePath)
+        public IArchiveFileInfo AddFile(Stream fileData, UPath filePath)
         {
             var newAfi = new Arc0ArchiveFileInfo(fileData, filePath.FullName, new Arc0FileEntry());
             Files.Add(newAfi);

@@ -14,11 +14,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,7 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Archives\GcDisc.cs~RF24b82a33.TMP" />
     <None Remove="Images\BclimState.cs~RF49d39620.TMP" />
+    <None Remove="Images\Smdh.cs~RF145cc694.TMP" />
   </ItemGroup>
 
   <ItemGroup>

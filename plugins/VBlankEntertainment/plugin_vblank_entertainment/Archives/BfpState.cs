@@ -12,7 +12,7 @@ namespace plugin_vblank_entertainment.Archives
     {
         private Bfp _bfp;
 
-        public IList<ArchiveFileInfo> Files { get; private set; }
+        public IList<IArchiveFileInfo> Files { get; private set; }
 
         public BfpState()
         {

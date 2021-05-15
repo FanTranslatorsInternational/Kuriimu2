@@ -24,14 +24,27 @@ namespace Kompression.PatternMatch.MatchFinders.Support
         /// Creates a new instance of <see cref="HistoryMatchState"/>.
         /// </summary>
         /// <param name="input">The input this match represents.</param>
-        /// <param name="startPosition">The position at which to start pre process.</param>
         /// <param name="limits">The limits to search sequences in.</param>
         /// <param name="unitSize">The size of a unit to be matched.</param>
-        public HistoryMatchState(byte[] input, int startPosition, FindLimitations limits, UnitSize unitSize)
+        public HistoryMatchState(byte[] input, FindLimitations limits, UnitSize unitSize)
         {
             _limits = limits;
 
-            _valueLength = Math.Min(3, limits.MinLength);
+            // Determine unit size dependant delegates
+            _unitSize = (int)unitSize;
+            switch (unitSize)
+            {
+                case UnitSize.Byte:
+                    _calculateMatchSize = CalculateMatchSizeByte;
+                    break;
+
+                case UnitSize.Short:
+                    _calculateMatchSize = CalculateMatchSizeShort;
+                    break;
+            }
+
+            // Determine value reading delegate, based on given limitations
+            _valueLength = Math.Min(3, limits.MinLength) / _unitSize * _unitSize;
             switch (_valueLength)
             {
                 case 3:
@@ -47,19 +60,8 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                     break;
             }
 
-            _unitSize = (int)unitSize;
-            switch (unitSize)
-            {
-                case UnitSize.Byte:
-                    _calculateMatchSize = CalculateMatchSizeByte;
-                    break;
-
-                case UnitSize.Short:
-                    _calculateMatchSize = CalculateMatchSizeShort;
-                    break;
-            }
-
-            PrepareOffsetTable(input, startPosition);
+            // Prepare chained list of offsets per value
+            PrepareOffsetTable(input);
         }
 
         /// <summary>
@@ -76,8 +78,6 @@ namespace Kompression.PatternMatch.MatchFinders.Support
             var maxLength = _limits.MaxLength <= 0 ? input.Length : _limits.MaxLength;
             var maxDisplacement = _limits.MaxDisplacement <= 0 ? input.Length : _limits.MaxDisplacement;
 
-            var minValueLength = Math.Min(3, _limits.MinLength);
-
             var cappedLength = Math.Min(input.Length - position, maxLength);
 
             if (cappedLength < _limits.MinLength)
@@ -90,7 +90,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
                 matchOffset = _offsetTable[matchOffset])
             {
                 // If longest match already goes to end of file
-                if(position + longestMatchSize >= input.Length)
+                if (position + longestMatchSize >= input.Length)
                     break;
 
                 // Check if match and current position have min distance to each other
@@ -104,7 +104,7 @@ namespace Kompression.PatternMatch.MatchFinders.Support
 
                 // Calculate the length of a match
                 var nMaxSize = cappedLength;
-                var matchSize = _calculateMatchSize(input, position, matchOffset, minValueLength, nMaxSize);
+                var matchSize = _calculateMatchSize(input, position, matchOffset, _valueLength, nMaxSize);
 
                 if (matchSize > longestMatchSize)
                 {
@@ -120,12 +120,12 @@ namespace Kompression.PatternMatch.MatchFinders.Support
             return new AggregateMatch(result);
         }
 
-        private void PrepareOffsetTable(byte[] input, int startPosition)
+        private void PrepareOffsetTable(byte[] input)
         {
             _offsetTable = Enumerable.Repeat(-1, input.Length).ToArray();
             var valueTable = Enumerable.Repeat(-1, (int)Math.Pow(256, _valueLength)).ToArray();
 
-            for (var i = startPosition; i < input.Length - _valueLength; i+=_unitSize)
+            for (var i = 0; i < input.Length - _valueLength; i += _unitSize)
             {
                 var value = _readValue(input, i);
 

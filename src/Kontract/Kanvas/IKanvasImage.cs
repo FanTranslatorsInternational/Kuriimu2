@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using Kontract.Interfaces.Progress;
 using Kontract.Models.Image;
@@ -8,12 +9,17 @@ namespace Kontract.Kanvas
     /// <summary>
     /// Exposes properties and methods to retrieve and manipulate an image given by an image plugin;
     /// </summary>
-    public interface IKanvasImage
+    public interface IKanvasImage : IDisposable
     {
         /// <summary>
         /// The bit depth of the current image encoding used.
         /// </summary>
         int BitDepth { get; }
+
+        /// <summary>
+        /// The encoding definition for this image.
+        /// </summary>
+        EncodingDefinition EncodingDefinition { get; }
 
         /// <summary>
         /// The image information provided by an image plugin.
@@ -45,6 +51,16 @@ namespace Kontract.Kanvas
         /// The name of the image.
         /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Decides if the image is locked to its current dimensions and encodings.
+        /// </summary>
+        bool IsImageLocked { get; }
+
+        /// <summary>
+        /// Determines if the content of the image was changed at least once.
+        /// </summary>
+        bool ContentChanged { get; }
 
         /// <summary>
         /// Gets the image of the set <see cref="ImageInfo"/>.

@@ -1,89 +1,90 @@
 ﻿using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.FileSystem.Implementations;
 
 namespace Kore.Factories
 {
-    // TODO: Make internal again
     /// <summary>
     /// Contains methods to create specific <see cref="IFileSystem"/> implementations.
     /// </summary>
     public static class FileSystemFactory
     {
-        private static readonly Regex DriveRegex = new Regex(@"^[a-zA-Z]:[/\\]?");
-        private static readonly Regex MountRegex = new Regex(@"^/mnt/[a-zA-Z][/]?");
-
         /// <summary>
-        /// Create a <see cref="PhysicalFileSystem"/> based on the directory in <paramref name="path"/>.
+        /// Create a <see cref="PhysicalFileSystem"/>.
         /// </summary>
-        /// <param name="path">The path of the physical file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="PhysicalFileSystem"/> for this folder.</returns>
-        public static IFileSystem CreatePhysicalFileSystem(UPath path, IStreamManager streamManager)
+        public static IFileSystem CreatePhysicalFileSystem(IStreamManager streamManager)
         {
-            if (!IsRooted(path))
-                throw new InvalidOperationException($"Path {path} is not rooted to a drive.");
-
-            var internalPath = ReplaceWindowsDrive(path);
-            var physicalPath = ReplaceMountPoint(path);
-
-            if (!Directory.Exists(physicalPath.FullName))
-                Directory.CreateDirectory(physicalPath.FullName);
-
-            var fileSystem = (IFileSystem)new PhysicalFileSystem(streamManager);
-            if (IsOnlyDrive(internalPath))
-            {
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 6));
-            }
-            else
-            {
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(0, 7));
-                fileSystem = new SubFileSystem(fileSystem, internalPath.FullName.Substring(6));
-            }
-
-            return fileSystem;
+            return new PhysicalFileSystem(streamManager);
         }
 
         /// <summary>
-        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// Creates a <see cref="SubFileSystem"/> from the physical path given.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="subPath">The path on a physical drive to root the file system to.</param>
+        /// <param name="streamManager">The <see cref="IStreamManager"/> for the file system.</param>
+        /// <returns>The rooted physical file system.</returns>
+        public static IFileSystem CreateSubFileSystem(string subPath, IStreamManager streamManager)
+        {
+            var physicalFileSystem = new PhysicalFileSystem(streamManager);
+            return CreateSubFileSystem(physicalFileSystem, physicalFileSystem.ConvertPathFromInternal(subPath));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="SubFileSystem"/> relative to a given path.
+        /// </summary>
+        /// <param name="fileSystem">The file system to root to the path.</param>
+        /// <param name="subPath">The path to root the file system to.</param>
+        /// <returns>The re-rooted file system.</returns>
+        public static IFileSystem CreateSubFileSystem(IFileSystem fileSystem, UPath subPath)
+        {
+            if (!fileSystem.DirectoryExists(subPath))
+                fileSystem.CreateDirectory(subPath);
+
+            return new SubFileSystem(fileSystem, subPath);
+        }
+
+        /// <summary>
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IFileState"/>.
+        /// </summary>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState)
         {
-            return CreateAfiFileSystem(stateInfo, UPath.Root);
+            return CreateAfiFileSystem(fileState, UPath.Root);
         }
 
         /// <summary>
-        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IStateInfo"/>.
+        /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IFileState"/>.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState, UPath path)
         {
-            if (!(stateInfo.PluginState is IArchiveState))
+            if (!(fileState.PluginState is IArchiveState))
                 throw new InvalidOperationException("This state is not an archive.");
 
-            return CreateAfiFileSystem(stateInfo, path, stateInfo.StreamManager);
+            return CreateAfiFileSystem(fileState, path, fileState.StreamManager);
         }
 
         /// <summary>
         /// Create a <see cref="AfiFileSystem"/> based on the given <see cref="IArchiveState"/>.
         /// </summary>
-        /// <param name="stateInfo"><see cref="IStateInfo"/> to create the file system from.</param>
+        /// <param name="fileState"><see cref="IFileState"/> to create the file system from.</param>
         /// <param name="path">The path of the virtual file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this state.</returns>
-        public static IFileSystem CreateAfiFileSystem(IStateInfo stateInfo, UPath path, IStreamManager streamManager)
+        public static IFileSystem CreateAfiFileSystem(IFileState fileState, UPath path, IStreamManager streamManager)
         {
-            var fileSystem = (IFileSystem)new AfiFileSystem(stateInfo, streamManager);
+            var fileSystem = (IFileSystem)new AfiFileSystem(fileState, streamManager);
             if (path != UPath.Empty && path != UPath.Root)
                 fileSystem = new SubFileSystem(fileSystem, path);
 
@@ -93,19 +94,20 @@ namespace Kore.Factories
         /// <summary>
         /// Creates a <see cref="MemoryFileSystem"/> based on the given <see cref="Stream"/>.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> to add to the file system.</param>
-        /// <param name="streamName">The path of the stream in the file system.</param>
+        /// <param name="streamFile">The in-memory file to add to the file system.</param>
         /// <param name="streamManager">The stream manager for this file system.</param>
         /// <returns>The created <see cref="IFileSystem"/> for this stream.</returns>
-        public static IFileSystem CreateMemoryFileSystem(Stream stream, UPath streamName, IStreamManager streamManager)
+        public static IFileSystem CreateMemoryFileSystem(StreamFile streamFile, IStreamManager streamManager)
         {
+            var stream = streamFile.Stream;
+            var directory = streamFile.Path.GetDirectory();
+
             // 1. Create file system
             var fileSystem = new MemoryFileSystem(streamManager);
-            var directory = streamName.GetDirectory();
-            if (!directory.IsEmpty && !fileSystem.DirectoryExists(streamName.GetDirectory()))
-                fileSystem.CreateDirectory(streamName.GetDirectory());
+            if (!directory.IsEmpty && !fileSystem.DirectoryExists(directory))
+                fileSystem.CreateDirectory(directory);
 
-            var createdStream = fileSystem.OpenFile(streamName, FileMode.CreateNew, FileAccess.Write);
+            var createdStream = fileSystem.OpenFile(streamFile.Path.ToAbsolute(), FileMode.CreateNew, FileAccess.Write, FileShare.Write);
 
             // 2. Copy data
             var bkPos = stream.Position;
@@ -132,57 +134,6 @@ namespace Kore.Factories
                 newFileSystem = new SubFileSystem(newFileSystem, path);
 
             return newFileSystem;
-        }
-
-        /// <summary>
-        /// Checks if the path rooted to either a windows drive or <see cref="IFileSystem"/> compatible mount point.
-        /// </summary>
-        /// <param name="path">The path to check.</param>
-        /// <returns>If the path is rooted.</returns>
-        private static bool IsRooted(UPath path)
-        {
-            return MountRegex.IsMatch(path.FullName) || DriveRegex.IsMatch(path.FullName);
-        }
-
-        /// <summary>
-        /// Replaces a windows drive root (eg C:/) with a <see cref="IFileSystem"/> compatible mount point.
-        /// </summary>
-        /// <param name="path">The path to modify.</param>
-        /// <returns>The modified path.</returns>
-        private static UPath ReplaceWindowsDrive(UPath path)
-        {
-            if (!DriveRegex.IsMatch(path.FullName))
-                return path;
-
-            var driveLetter = path.FullName[0];
-            return new UPath(DriveRegex.Replace(path.FullName, $"/mnt/{char.ToLower(driveLetter)}/"));
-        }
-
-        /// <summary>
-        /// Replaces a <see cref="IFileSystem"/> compatible mount point with a windows drive root (eg C:/)
-        /// </summary>
-        /// <param name="path">The path to modify.</param>
-        /// <returns>The modified path.</returns>
-        private static UPath ReplaceMountPoint(UPath path)
-        {
-            if (!MountRegex.IsMatch(path.FullName))
-                return path;
-
-            var driveLetter = path.FullName[5];
-            return new UPath(MountRegex.Replace(path.FullName, $"{char.ToUpper(driveLetter)}:/"));
-        }
-
-        /// <summary>
-        /// Checks if the path is only the mount drive or mount point.
-        /// </summary>
-        /// <param name="path">The path to check.</param>
-        /// <returns></returns>
-        private static bool IsOnlyDrive(UPath path)
-        {
-            var driveMatch = DriveRegex.Match(path.FullName).Value;
-            var mountMatch = MountRegex.Match(path.FullName).Value;
-
-            return driveMatch == path.FullName || mountMatch == path.FullName;
         }
     }
 }

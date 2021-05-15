@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,7 +20,7 @@ namespace plugin_level5._3DS.Archives
 
         private XpckHeader _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -40,7 +39,7 @@ namespace plugin_level5._3DS.Archives
             // Files
             using var nameList = new BinaryReaderX(decNames);
 
-            var files = new List<ArchiveFileInfo>();
+            var files = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 nameList.BaseStream.Position = entry.nameOffset;
@@ -57,17 +56,14 @@ namespace plugin_level5._3DS.Archives
                 }
                 else
                 {
-                    files.Add(new XpckArchiveFileInfo(fileData, name, entry)
-                    {
-                        PluginIds = XpckSupport.RetrievePluginMapping(name)
-                    });
+                    files.Add(new XpckArchiveFileInfo(fileData, name, entry));
                 }
             }
 
             return files;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<XpckArchiveFileInfo>().ToArray();
             using var bw = new BinaryWriterX(output);
@@ -88,8 +84,7 @@ namespace plugin_level5._3DS.Archives
             // Write files
             _header.DataOffset = (ushort)((_headerSize + files.Count * _entrySize + nameStreamComp.Length + 3) & ~3);
 
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
-            var ascii = Encoding.ASCII;
+            var crc32 = Crc32.Default;
 
             var fileOffset = (int)_header.DataOffset;
             foreach (var file in castedFiles.OrderBy(x => x.FileEntry.FileOffset))
@@ -99,7 +94,7 @@ namespace plugin_level5._3DS.Archives
 
                 file.FileEntry.FileOffset = fileOffset - _header.DataOffset;
                 file.FileEntry.FileSize = (int)writtenSize;
-                file.FileEntry.hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(ascii.GetBytes(file.FilePath.ToRelative().FullName)));
+                file.FileEntry.hash = crc32.ComputeValue(file.FilePath.ToRelative().FullName);
 
                 fileOffset = (int)output.Length;
             }

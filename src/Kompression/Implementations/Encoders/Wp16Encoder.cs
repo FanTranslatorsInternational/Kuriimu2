@@ -1,17 +1,19 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    class Wp16Encoder : IEncoder
+    class Wp16Encoder : ILzEncoder
     {
-        private IMatchParser _matchParser;
+        private const int PreBufferSize_ = 0xFFE;
 
         class Block
         {
@@ -23,12 +25,15 @@ namespace Kompression.Implementations.Encoders
             public int bufferLength;
         }
 
-        public Wp16Encoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new Wp16PriceCalculator())
+                .FindMatches().WithinLimitations(4, 0x42, 2, 0xFFE)
+                .AdjustInput(input => input.Prepend(PreBufferSize_))
+                .HasUnitSize(UnitSize.Short);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var block = new Block();
 
@@ -36,7 +41,6 @@ namespace Kompression.Implementations.Encoders
             output.Write(start, 0, 4);
             output.Write(((int)input.Length).GetArrayLittleEndian(), 0, 4);
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

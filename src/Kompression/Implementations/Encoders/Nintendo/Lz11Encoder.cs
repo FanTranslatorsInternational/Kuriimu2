@@ -1,22 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders.Nintendo
 {
-    public class Lz11Encoder : IEncoder
+    public class Lz11Encoder : ILzEncoder
     {
-        private readonly IMatchParser _matchParser;
-
-        public Lz11Encoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+	        matchOptions.CalculatePricesWith(() => new Lz11PriceCalculator())
+		        .FindMatches().WithinLimitations(3, 0x10110, 1, 0x1000);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             if (input.Length > 0xFFFFFF)
                 throw new InvalidOperationException("Data to compress is too long.");
@@ -24,11 +24,10 @@ namespace Kompression.Implementations.Encoders.Nintendo
             var compressionHeader = new byte[] { 0x11, (byte)(input.Length & 0xFF), (byte)((input.Length >> 8) & 0xFF), (byte)((input.Length >> 16) & 0xFF) };
             output.Write(compressionHeader, 0, 4);
 
-            var matches = _matchParser.ParseMatches(input).ToArray();
-            WriteCompressedData(input, output, matches);
+            WriteCompressedData(input, output, matches.ToArray());
         }
 
-        private void WriteCompressedData(Stream input, Stream output, Match[] lzResults)
+        private void WriteCompressedData(Stream input, Stream output, Match[] matches)
         {
             int bufferedBlocks = 0, blockBufferLength = 1, lzIndex = 0;
             byte[] blockBuffer = new byte[8 * 4 + 1];
@@ -43,10 +42,10 @@ namespace Kompression.Implementations.Encoders.Nintendo
                     blockBufferLength = 1;
                 }
 
-                if (lzIndex < lzResults.Length && input.Position == lzResults[lzIndex].Position)
+                if (lzIndex < matches.Length && input.Position == matches[lzIndex].Position)
                 {
-                    blockBufferLength = WriteCompressedBlockToBuffer(lzResults[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
-                    input.Position += lzResults[lzIndex++].Length;
+                    blockBufferLength = WriteCompressedBlockToBuffer(matches[lzIndex], blockBuffer, blockBufferLength, bufferedBlocks);
+                    input.Position += matches[lzIndex++].Length;
                 }
                 else
                 {

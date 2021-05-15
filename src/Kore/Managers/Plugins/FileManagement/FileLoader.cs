@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
@@ -46,21 +46,25 @@ namespace Kore.Managers.Plugins.FileManagement
             var temporaryStreamProvider = loadInfo.StreamManager.CreateTemporaryStreamProvider();
 
             // 2. Identify the plugin to use
-            var plugin = loadInfo.Plugin ??
-                         await IdentifyPluginAsync(fileSystem, filePath, loadInfo.StreamManager, loadInfo.AllowManualSelection) ??
-                         new HexPlugin();
+            var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
+            if (plugin == null)
+            {
+                return LoadResult.CancelledResult;
+            }
 
             // 3. Create state from identified plugin
-            var subPluginManager = new SubPluginManager(loadInfo.PluginManager);
-            var state = plugin.CreatePluginState(subPluginManager);
+            var subPluginManager = new ScopedFileManager(loadInfo.FileManager);
+            var createResult = TryCreateState(plugin, subPluginManager, loadInfo, out var state);
+            if (!createResult.IsSuccessful)
+                return createResult;
 
             // 4. Create new state info
-            var stateInfo = new StateInfo(plugin, state, loadInfo.ParentStateInfo, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
+            var stateInfo = new DefaultFileState(plugin, state, loadInfo.ParentFileState, fileSystem, filePath, loadInfo.StreamManager, subPluginManager);
             subPluginManager.RegisterStateInfo(stateInfo);
 
             // 5. Load data from state
             var loadContext = new LoadContext(temporaryStreamProvider, loadInfo.Progress, loadInfo.DialogManager);
-            var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, loadContext);
+            var loadStateResult = await TryLoadStateAsync(state, fileSystem, filePath, loadContext, loadInfo, plugin);
             if (!loadStateResult.IsSuccessful)
             {
                 loadInfo.StreamManager.ReleaseAll();
@@ -78,38 +82,49 @@ namespace Kore.Managers.Plugins.FileManagement
         /// </summary>
         /// <param name="fileSystem">The file system to retrieve the file from.</param>
         /// <param name="filePath">The path of the file to identify.</param>
-        /// <param name="streamManager">The stream manager.</param>
-        /// <param name="identifyPluginManually">Defines if the plugin should be identified by a manual selection.</param>
+        /// <param name="loadInfo">The context for the load operation.</param>
         /// <returns>The identified <see cref="IFilePlugin"/>.</returns>
-        private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, IStreamManager streamManager, bool identifyPluginManually)
+        private async Task<IFilePlugin> IdentifyPluginAsync(IFileSystem fileSystem, UPath filePath, LoadInfo loadInfo)
         {
-            // 1. Get all plugins that implement IIdentifyFile
+            // 1. Get all plugins that support identification
             var identifiablePlugins = _filePluginLoaders.GetIdentifiableFilePlugins();
 
+            // 2. Identify the file with identifiable plugins
+            var matchedPlugins = new List<IFilePlugin>();
             foreach (var identifiablePlugin in identifiablePlugins)
             {
-                // 2. Identify the file with the next plugin
-                bool identifyResult;
+                //TODO this cast smells, all IIdentifyFiles should be IFilePlugins (right?)
+                var filePlugin = identifiablePlugin as IFilePlugin;
+
                 try
                 {
-                    identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, streamManager));
+                    var identifyResult = await Task.Run(async () => await TryIdentifyFileAsync(identifiablePlugin, fileSystem, filePath, loadInfo.StreamManager));
+                    if (identifyResult)
+                        matchedPlugins.Add(filePlugin);
                 }
-                catch
+                catch (Exception e)
                 {
-                    identifyResult = false;
+                    // Log exceptions and carry on
+                    loadInfo.Logger?.Fatal(e, "Tried to identify file '{0}' with plugin '{1}'.", filePath.FullName, filePlugin?.PluginId);
                 }
-
-                // 3. Return first plugin that could identify
-                if (identifyResult)
-                    return identifiablePlugin as IFilePlugin;
             }
 
-            // 4. Return null, if no plugin could identify and manual selection is disabled
-            if (!identifyPluginManually)
-                return null;
+            // 3. Return only matched plugin or manually select one of the matched plugins
+            var allPlugins = _filePluginLoaders.GetAllFilePlugins().ToArray();
+            
+            if (matchedPlugins.Count == 1)
+                return matchedPlugins.First();
+            
+            if (matchedPlugins.Count > 1)
+                return GetManualSelection(
+                    "Multiple plugins think they can open this file, please choose one:",
+                    allPlugins, null, matchedPlugins);
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
-            return GetManualSelection();
+            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
+            return loadInfo.AllowManualSelection ? GetManualSelection(
+                "Could not automatically determine plugin for opening this file, please choose manually:", 
+                allPlugins, "By default only plugins that couldn't automatically determine if they support the file are shown", nonIdentifiablePlugins) : null;
         }
 
         /// <summary>
@@ -132,20 +147,43 @@ namespace Kore.Managers.Plugins.FileManagement
             return identifyResult;
         }
 
+        // TODO: Maybe do not pass whole messages, since this message may not be universal for all UI's. Instead pass other atomic parameters  to signalize this behaviour.
         /// <summary>
         /// Select a plugin manually.
         /// </summary>
         /// <returns>The manually selected plugin.</returns>
-        private IFilePlugin GetManualSelection()
+        private IFilePlugin GetManualSelection(string message, IReadOnlyList<IFilePlugin> filePluginList, string filterNote, IReadOnlyList<IFilePlugin> filteredPluginList)
         {
-            // 1. Get all plugins that don't implement IIdentifyFile
-            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-
-            // 2. Request manual selection by the user
-            var selectionArgs = new ManualSelectionEventArgs(nonIdentifiablePlugins);
+            // 1. Request manual selection by the user
+            var selectionArgs = new ManualSelectionEventArgs(message, filePluginList, filterNote, filteredPluginList);
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;
+        }
+
+        /// <summary>
+        /// Try to create a new plugin state.
+        /// </summary>
+        /// <param name="plugin">The plugin from which to create a new state.</param>
+        /// <param name="fileManager">The plugin manager to pass to the state creation.</param>
+        /// <param name="pluginState">The created state.</param>
+        /// <param name="loadInfo">The load info for this loading operation.</param>
+        /// <returns>If the creation was successful.</returns>
+        private LoadResult TryCreateState(IFilePlugin plugin, IFileManager fileManager, LoadInfo loadInfo, out IPluginState pluginState)
+        {
+            pluginState = null;
+
+            try
+            {
+                pluginState = plugin.CreatePluginState(fileManager);
+            }
+            catch (Exception e)
+            {
+                loadInfo.Logger?.Fatal(e, "The plugin state for '{0}' could not be initialized.", plugin.PluginId);
+                return new LoadResult(e);
+            }
+
+            return new LoadResult(true);
         }
 
         /// <summary>
@@ -155,22 +193,25 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="fileSystem">The file system to retrieve further files from.</param>
         /// <param name="filePath">The path of the identified file.</param>
         /// <param name="loadContext">The load context.</param>
+        /// <param name="loadInfo">The load info for this loading operation.</param>
+        /// <param name="plugin">The plugin from which the state should be loaded.</param>
         /// <returns>If the loading was successful.</returns>
         private async Task<LoadResult> TryLoadStateAsync(IPluginState pluginState, IFileSystem fileSystem, UPath filePath,
-            LoadContext loadContext)
+            LoadContext loadContext, LoadInfo loadInfo, IFilePlugin plugin)
         {
-            // 1. Check if state implements ILoadFile
-            if (!(pluginState is ILoadFiles loadableState))
+            // 1. Check if state supports loading
+            if (!pluginState.CanLoad)
                 return new LoadResult(false, "The state is not loadable.");
 
             // 2. Try loading the state
             try
             {
-                await Task.Run(async () => await loadableState.Load(fileSystem, filePath, loadContext));
+                await Task.Run(async () => await pluginState.AttemptLoad(fileSystem, filePath, loadContext));
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return new LoadResult(ex);
+                loadInfo.Logger?.Fatal(e, "The plugin state for '{0}' could not be loaded.", plugin.PluginId);
+                return new LoadResult(e);
             }
 
             return new LoadResult(true);

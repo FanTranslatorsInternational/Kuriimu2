@@ -1,73 +1,125 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Kanvas.Encoding.Base;
-using Kanvas.Encoding.BlockCompressions.ATC;
-using Kanvas.Encoding.BlockCompressions.ATC.Models;
-using Kanvas.Encoding.BlockCompressions.BCn.Models;
-using Komponent.IO;
-using Kontract.Models.IO;
+using BCnEncoder.Decoder;
+using BCnEncoder.Encoder;
+using BCnEncoder.Shared;
+using Kanvas.MoreEnumerable;
+using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Encoding
 {
-    /// <summary>
-    /// Defines the Atc encoding.
-    /// </summary>
-    public class Atc : BlockCompressionEncoding<AtcBlockData>
+    public class Atc : IColorEncoding
     {
-        private readonly AtcTranscoder _transcoder;
-        private readonly bool _hasSecondBlock;
+        private readonly AtcFormat _format;
 
-        public override int BitDepth { get; }
+        /// <inheritdoc cref="BitDepth"/>
+        public int BitDepth { get; }
 
-        public override int BitsPerValue { get; protected set; }
+        /// <inheritdoc cref="BitsPerValue"/>
+        public int BitsPerValue { get; }
 
-        public override int ColorsPerValue => 16;
+        /// <inheritdoc cref="ColorsPerValue"/>
+        public int ColorsPerValue => 16;
 
-        public override string FormatName { get; }
+        /// <inheritdoc cref="FormatName"/>
+        public string FormatName { get; }
 
-        public Atc(AtcFormat format, ByteOrder byteOrder) : base(byteOrder)
+        public Atc(AtcFormat format)
         {
-            _transcoder = new AtcTranscoder(format);
-            _hasSecondBlock = HasSecondBlock(format);
+            _format = format;
 
-            BitDepth = BitsPerValue = _hasSecondBlock ? 128 : 64;
+            var hasSecondBlock = HasSecondBlock(format);
 
-            FormatName = format.ToString();
+            BitsPerValue = hasSecondBlock ? 128 : 64;
+            BitDepth = hasSecondBlock ? 8 : 4;
+
+            FormatName = format.ToString().Replace("_", " ");
         }
 
-        protected override AtcBlockData ReadNextBlock(BinaryReaderX br)
+        /// <inheritdoc cref="Load"/>
+        public IEnumerable<Color> Load(byte[] input, EncodingLoadContext loadContext)
         {
-            var block1 = br.ReadUInt64();
-            var block2 = _hasSecondBlock ? br.ReadUInt64() : ulong.MaxValue;
+            var compressionFormat = GetCompressionFormat();
+            var decoder = GetDecoder();
 
-            return new AtcBlockData
-            {
-                Block1 = block1,
-                Block2 = block2
-            };
+            var blockSize = BitsPerValue / 8;
+            return Enumerable.Range(0, input.Length/blockSize).AsParallel()
+                .AsOrdered()
+                .WithDegreeOfParallelism(loadContext.TaskCount)
+                .SelectMany(x =>
+                {
+                    var decodedBlock = decoder.DecodeBlock(input.AsSpan(x * blockSize, blockSize), compressionFormat);
+
+                    decodedBlock.TryGetMemory(out var memory);
+                    return memory.ToArray().Select(y => Color.FromArgb(y.a, y.r, y.g, y.b));
+                });
         }
 
-        protected override void WriteNextBlock(BinaryWriterX bw, AtcBlockData block)
+        /// <inheritdoc cref="Save"/>
+        public byte[] Save(IEnumerable<Color> colors, EncodingSaveContext saveContext)
         {
-            bw.Write(block.Block1);
-            if (_hasSecondBlock) bw.Write(block.Block2);
-        }
+            var compressionFormat = GetCompressionFormat();
+            var encoder = GetEncoder(compressionFormat);
 
-        protected override IList<Color> DecodeNextBlock(AtcBlockData block)
-        {
-            return _transcoder.DecodeBlocks(block).ToList();
-        }
+            var blockSize = BitsPerValue / 8;
+            var widthBlocks = ((saveContext.Size.Width + 3) & ~3) >> 2;
+            var heightBlocks = ((saveContext.Size.Height + 3) & ~3) >> 2;
+            var buffer = new byte[widthBlocks * heightBlocks * blockSize];
 
-        protected override AtcBlockData EncodeNextBlock(IList<Color> colors)
-        {
-            return _transcoder.EncodeColors(colors);
+            colors.Batch(ColorsPerValue).Select((x, i) => (x, i))
+                .AsParallel()
+                .WithDegreeOfParallelism(saveContext.TaskCount)
+                .ForAll(element =>
+                {
+                    var encodedBlock = encoder.EncodeBlock(element.x.Select(y => new ColorRgba32(y.R, y.G, y.B, y.A)).ToArray());
+                    Array.Copy(encodedBlock, 0, buffer, element.i * blockSize, blockSize);
+                });
+
+            return buffer;
         }
 
         private bool HasSecondBlock(AtcFormat format)
         {
-            return format == AtcFormat.ATCA_Exp ||
-                   format == AtcFormat.ATCA_Int;
+            return format == AtcFormat.Atc_Explicit ||
+                   format == AtcFormat.Atc_Interpolated;
         }
+
+        private BcDecoder GetDecoder()
+        {
+            return new BcDecoder();
+        }
+
+        private BcEncoder GetEncoder(CompressionFormat compressionFormat)
+        {
+            return new BcEncoder(compressionFormat);
+        }
+
+        private CompressionFormat GetCompressionFormat()
+        {
+            switch (_format)
+            {
+                case AtcFormat.Atc:
+                    return CompressionFormat.Atc;
+
+                case AtcFormat.Atc_Explicit:
+                    return CompressionFormat.AtcExplicitAlpha;
+
+                case AtcFormat.Atc_Interpolated:
+                    return CompressionFormat.AtcInterpolatedAlpha;
+
+                default:
+                    throw new InvalidOperationException($"Unsupported AtcFormat {_format}.");
+            }
+        }
+    }
+
+    public enum AtcFormat
+    {
+        Atc,
+        Atc_Explicit,
+        Atc_Interpolated
     }
 }

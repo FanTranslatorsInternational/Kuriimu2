@@ -1,8 +1,6 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -13,7 +11,7 @@ namespace plugin_level5.DS.Images
 {
     class Limg
     {
-        private static int _headerSize = Tools.MeasureType(typeof(LimgHeader));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(LimgHeader));
 
         private static int _colorEntrySize = 0x2;
         private static int _tileEntrySize = 0x40;
@@ -52,14 +50,15 @@ namespace plugin_level5.DS.Images
             var imageStream = new SubStream(input, _header.imageDataOffset, input.Length - _header.imageDataOffset);
             var imageData = CombineTiles(imageStream, tileIndices, encoding.IndexEncoding.BitDepth);
 
-            return new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
+            var imageInfo= new ImageInfo(imageData, _header.imgFormat, new Size(_header.width, _header.height))
             {
                 PaletteData = palette,
-                PaletteFormat = 0,
-
-                Configuration = new ImageConfiguration()
-                    .RemapPixelsWith(size => new NitroSwizzle(size.Width, size.Height))
+                PaletteFormat = 0
             };
+
+            imageInfo.RemapPixels.With(context => new NitroSwizzle(context));
+
+            return imageInfo;
         }
 
         public void Save(Stream output, ImageInfo imageInfo)
@@ -71,7 +70,7 @@ namespace plugin_level5.DS.Images
             var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.IndexEncoding.BitDepth);
 
             // Write palette
-            bw.BaseStream.Position = _headerSize + _unkHeader.Length;
+            bw.BaseStream.Position = HeaderSize + _unkHeader.Length;
 
             _header.paletteOffset = (uint)bw.BaseStream.Position;
             _header.colorCount = (short)(imageInfo.PaletteData.Length / _colorEntrySize);
@@ -141,14 +140,14 @@ namespace plugin_level5.DS.Images
             var tiles = new short[imageData.Length / tileSize];
 
             var tileDictionary = new Dictionary<uint, int>();
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
 
             var offset = 0;
             var tileIndex = 0;
             for (var i = 0; i < imageData.Length / tileSize; i++)
             {
                 var tileStream = new SubStream(new MemoryStream(imageData), offset, tileSize);
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(tileStream));
+                var hash = crc32.ComputeValue(tileStream);
 
                 if (!tileDictionary.ContainsKey(hash))
                 {

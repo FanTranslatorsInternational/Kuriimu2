@@ -22,7 +22,7 @@ namespace plugin_nintendo.Archives
         private CiaTmd _tmd;
         private CiaMeta _meta;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -43,7 +43,7 @@ namespace plugin_nintendo.Archives
             br.SeekAlignment(0x40);
 
             // Declare NCCH partitions
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
 
             var ncchStreams = new List<SubStream>();
             var ncchPartitionOffset = br.BaseStream.Position;
@@ -81,17 +81,17 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var ciaAfis = files.Cast<CiaArchiveFileInfo>().ToArray();
-            var sha = new Sha256();
+            var hash = new Sha256();
 
             // Update content chunks
             foreach (var ciaAfi in ciaAfis)
             {
                 var ncchStream = ciaAfi.GetFileData().Result;
 
-                ciaAfi.ContentChunkRecord.sha256 = sha.Compute(ncchStream);
+                ciaAfi.ContentChunkRecord.sha256 = hash.Compute(ncchStream);
                 ciaAfi.ContentChunkRecord.contentSize = ncchStream.Length;
             }
             _tmd.contentChunkRecords = ciaAfis.Select(x => x.ContentChunkRecord).ToArray();
@@ -109,7 +109,7 @@ namespace plugin_nintendo.Archives
 
                 var offset = contentInfoRecord.contentChunkIndex * _contentChunkRecordSize;
                 var size = contentInfoRecord.contentChunkCount * _contentChunkRecordSize;
-                contentInfoRecord.sha256 = sha.Compute(new SubStream(contentChunkStream, offset, size));
+                contentInfoRecord.sha256 = hash.Compute(new SubStream(contentChunkStream, offset, size));
             }
 
             // Write content info records
@@ -119,7 +119,7 @@ namespace plugin_nintendo.Archives
 
             // Update content info hash
             contentInfoStream.Position = 0;
-            _tmd.header.sha256 = sha.Compute(contentInfoStream);
+            _tmd.header.sha256 = hash.Compute(contentInfoStream);
 
             // --- Write CIA ---
             using var bw = new BinaryWriterX(output);

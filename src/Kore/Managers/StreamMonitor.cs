@@ -9,6 +9,7 @@ using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Models.IO;
 using Kore.Factories;
+using Serilog;
 
 namespace Kore.Managers
 {
@@ -17,6 +18,7 @@ namespace Kore.Managers
         private const string TempFolder_ = "tmp";
 
         private readonly object _elapsedLocked = new object();
+        private readonly object _streamManagersLock = new object();
         private bool _isCollecting;
 
         private readonly Timer _temporaryContainerCollectionTimer;
@@ -24,6 +26,14 @@ namespace Kore.Managers
         private readonly IList<IStreamManager> _streamManagers;
         private readonly ConcurrentDictionary<IFileSystem, (IStreamManager, UPath)> _temporaryFileSystemMapping;
         private readonly ConcurrentDictionary<IStreamManager, (IFileSystem, UPath)> _streamManagerMapping;
+
+        private ILogger _logger;
+
+        public ILogger Logger
+        {
+            get => _logger;
+            set => SetLogger(value);
+        }
 
         public StreamMonitor()
         {
@@ -39,8 +49,10 @@ namespace Kore.Managers
 
         public IStreamManager CreateStreamManager()
         {
-            var streamManager = new StreamManager();
-            _streamManagers.Add(streamManager);
+            var streamManager = new StreamManager { Logger = _logger };
+
+            lock (_streamManagersLock)
+                _streamManagers.Add(streamManager);
 
             return streamManager;
         }
@@ -50,7 +62,7 @@ namespace Kore.Managers
             var streamManager = CreateStreamManager();
 
             var tempDirectory = CreateTemporaryDirectory();
-            var temporaryFileSystem = FileSystemFactory.CreatePhysicalFileSystem(tempDirectory, streamManager);
+            var temporaryFileSystem = FileSystemFactory.CreateSubFileSystem(tempDirectory, streamManager);
 
             _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, x => (streamManager, tempDirectory));
             _streamManagerMapping.GetOrAdd(streamManager, x => (temporaryFileSystem, tempDirectory));
@@ -64,6 +76,26 @@ namespace Kore.Managers
                 return element.Item1;
 
             throw new InvalidOperationException("The file system was not created by this instance.");
+        }
+
+        public bool Manages(IStreamManager manager)
+        {
+            lock (_streamManagersLock)
+                return _streamManagers.Contains(manager);
+        }
+
+        public void RemoveStreamManager(IStreamManager streamManager)
+        {
+            if (_streamManagerMapping.ContainsKey(streamManager))
+                throw new InvalidOperationException("The given stream manager is used for a temporary file system. Release the temporary file system instead.");
+
+            lock (_streamManagersLock)
+            {
+                if (!_streamManagers.Contains(streamManager))
+                    throw new InvalidOperationException("The given stream manager is not monitored by this instance.");
+
+                _streamManagers.Remove(streamManager);
+            }
         }
 
         public void ReleaseTemporaryFileSystem(IFileSystem temporaryFileSystem)
@@ -136,7 +168,18 @@ namespace Kore.Managers
         private string GetCurrentDirectory()
         {
             var process = Process.GetCurrentProcess().MainModule;
-            return process == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+            return process == null || process.FileVersionInfo.InternalName == ".NET Host" ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+        }
+
+        private void SetLogger(ILogger logger)
+        {
+            _logger = logger;
+
+            lock (_streamManagersLock)
+            {
+                foreach (var manager in _streamManagers)
+                    manager.Logger = logger;
+            }
         }
     }
 }

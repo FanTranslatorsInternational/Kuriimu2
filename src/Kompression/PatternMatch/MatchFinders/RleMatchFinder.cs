@@ -28,7 +28,7 @@ namespace Kompression.PatternMatch.MatchFinders
         }
 
         /// <inheritdoc />
-        public void PreProcess(byte[] input, int startPosition)
+        public void PreProcess(byte[] input)
         {
         }
 

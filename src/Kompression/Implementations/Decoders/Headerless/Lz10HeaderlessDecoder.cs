@@ -1,17 +1,23 @@
 ﻿using System.IO;
 using Kompression.Exceptions;
 using Kompression.IO;
+using Kontract.Kompression.Configuration;
 
 namespace Kompression.Implementations.Decoders.Headerless
 {
-    public class Lz10HeaderlessDecoder
+    public class Lz10HeaderlessDecoder : IDecoder
     {
+        public void Decode(Stream input, Stream output)
+        {
+            Decode(input, output, -1);
+        }
+
         public void Decode(Stream input, Stream output, int decompressedSize)
         {
             var circularBuffer = new CircularBuffer(0x1000);
 
             int flags = 0, mask = 1;
-            while (output.Length < decompressedSize)
+            while (ShouldContinue(input, output, decompressedSize))
             {
                 if (mask == 1)
                 {
@@ -61,6 +67,14 @@ namespace Kompression.Implementations.Decoders.Headerless
                 throw new DisplacementException(displacement, output.Length, input.Position - 2);
 
             circularBuffer.Copy(output, displacement, length);
+        }
+
+        private bool ShouldContinue(Stream input, Stream output, int decompressedSize)
+        {
+            if (decompressedSize < 0)
+                return input.Position < input.Length;
+
+            return output.Length < decompressedSize;
         }
 
         public void Dispose()

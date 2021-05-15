@@ -9,8 +9,8 @@ namespace plugin_yuusha_shisu.TALK
     public class TALK
     {
         private TALKContent _content;
-        private List<DrawingFrame> _drawingFrames;
-        private List<ColorStruct> _colorStructs;
+        private IList<DrawingFrame> _drawingFrames;
+        private IList<ColorStruct> _colorStructs;
 
         public TextEntry Load(Stream input)
         {

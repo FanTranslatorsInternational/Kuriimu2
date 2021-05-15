@@ -3,6 +3,7 @@ using System.IO;
 using Kontract.Interfaces.Progress;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_inti_creates.Archives
 {

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +17,7 @@ namespace plugin_nintendo.Archives
         private static int _entrySize = Tools.MeasureType(typeof(XbbFileEntry));
         private static int _hashEntrySize = Tools.MeasureType(typeof(XbbHashEntry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -33,7 +31,7 @@ namespace plugin_nintendo.Archives
             var hashEntries = br.ReadMultiple<XbbHashEntry>(header.entryCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.offset, entry.size);
@@ -47,7 +45,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var entryPosition = _headerSize;
             var hashEntryPosition = entryPosition + files.Count * _entrySize;
@@ -75,24 +73,24 @@ namespace plugin_nintendo.Archives
             var xbbHash = new XbbHash();
             var fileEntries = new List<XbbFileEntry>();
             var hashEntries = new List<XbbHashEntry>();
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var offset = bw.BaseStream.Position;
                 var writtenSize = file.SaveFileData(bw.BaseStream, null);
                 bw.WriteAlignment(0x80);
 
-                var hash = xbbHash.Compute(Encoding.ASCII.GetBytes(file.FilePath.ToRelative().FullName));
+                var hash = xbbHash.ComputeValue(file.FilePath.ToRelative().FullName);
                 fileEntries.Add(new XbbFileEntry
                 {
                     offset = (int)offset,
                     size = (int)writtenSize,
                     nameOffset = nameDictionary[file.FilePath],
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(hash)
+                    hash = hash
                 });
 
                 hashEntries.Add(new XbbHashEntry
                 {
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(hash),
+                    hash = hash,
                     index = fileEntries.Count - 1
                 });
             }

@@ -10,7 +10,7 @@ using Kontract.Models.IO;
 
 namespace Kontract.Models.Archive
 {
-    public interface IArchiveFileInfo
+    public interface IArchiveFileInfo : IDisposable
     {
         /// <summary>
         /// Determines if the FileData is compressed, and has to be handled as such
@@ -39,7 +39,12 @@ namespace Kontract.Models.Archive
         long FileSize { get; }
 
         /// <summary>
-        /// Gets the file data from this file info.
+        /// Determines if the file is invalid or closed and not eligible for use.
+        /// </summary>
+        bool IsFileDataInvalid { get; }
+
+        /// <summary>
+        /// Gets the (decompressed) file data from this file info.
         /// </summary>
         /// <param name="temporaryStreamProvider">A provider for temporary streams.</param>
         /// <param name="progress">The context to report progress to.</param>

@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
-using Kontract.Kompression;
+using Kompression.Implementations.PriceCalculators;
 using Kontract.Kompression.Configuration;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
     // TODO: Refactor block class
-    public class LzeEncoder : IEncoder
+    public class LzeEncoder : ILzEncoder
     {
         class Block
         {
@@ -21,21 +22,20 @@ namespace Kompression.Implementations.Encoders
             public int bufferLength;
         }
 
-        private readonly IMatchParser _matchParser;
-
-        public LzeEncoder(IMatchParser matchParser)
+        public void Configure(IInternalMatchOptions matchOptions)
         {
-            _matchParser = matchParser;
+            matchOptions.CalculatePricesWith(() => new LzePriceCalculator())
+                .FindMatches().WithinLimitations(3, 0x12, 5, 0x1004)
+                .AndFindMatches().WithinLimitations(2, 0x41, 1, 4);
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var originalOutputPosition = output.Position;
             output.Position += 6;
 
             var block = new Block();
 
-            var matches = _matchParser.ParseMatches(input);
             foreach (var match in matches)
             {
                 // Compress raw data

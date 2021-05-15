@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_bandai_namco", "plugin_bandai_namco\plugin_bandai_namco.csproj", "{2B791BDB-AA3B-47A1-BD39-FED868123A1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_bandai_namco", "plugin_bandai_namco\plugin_bandai_namco.csproj", "{2B791BDB-AA3B-47A1-BD39-FED868123A1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_ganbarion", "plugin_ganbarion\plugin_ganbarion.csproj", "{37FEA5B4-1294-48CE-97FC-889BA204282A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{2B791BDB-AA3B-47A1-BD39-FED868123A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B791BDB-AA3B-47A1-BD39-FED868123A1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B791BDB-AA3B-47A1-BD39-FED868123A1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37FEA5B4-1294-48CE-97FC-889BA204282A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37FEA5B4-1294-48CE-97FC-889BA204282A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37FEA5B4-1294-48CE-97FC-889BA204282A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37FEA5B4-1294-48CE-97FC-889BA204282A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

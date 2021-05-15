@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Text;
 using Kryptography.Hash.Crc;
@@ -34,7 +35,7 @@ namespace KryptographyUnitTests
             var crc = Crc32.Create(Crc32Formula.Normal);
             var hash = crc.Compute(_check);
 
-            Assert.AreEqual(HashResult, hash);
+            Assert.AreEqual(HashResult, BinaryPrimitives.ReadUInt32BigEndian(hash));
         }
 
         [TestMethod]
@@ -43,7 +44,7 @@ namespace KryptographyUnitTests
             var crc = Crc32.Create(Crc32Formula.Reflected);
             var hash = crc.Compute(_check);
 
-            Assert.AreEqual(HashResult, hash);
+            Assert.AreEqual(HashResult, BinaryPrimitives.ReadUInt32BigEndian(hash));
         }
 
         [TestMethod]
@@ -52,7 +53,7 @@ namespace KryptographyUnitTests
             var crc = Crc32.Create(Crc32Formula.Normal, DefaultPolynomial);
             var hash = crc.Compute(_check);
 
-            Assert.AreEqual(HashResult, hash);
+            Assert.AreEqual(HashResult, BinaryPrimitives.ReadUInt32BigEndian(hash));
         }
 
         [TestMethod]
@@ -61,7 +62,7 @@ namespace KryptographyUnitTests
             var crc = Crc32.Create(Crc32Formula.Reflected, DefaultReflectedPolynomial);
             var hash = crc.Compute(_check);
 
-            Assert.AreEqual(HashResult, hash);
+            Assert.AreEqual(HashResult, BinaryPrimitives.ReadUInt32BigEndian(hash));
         }
     }
 }

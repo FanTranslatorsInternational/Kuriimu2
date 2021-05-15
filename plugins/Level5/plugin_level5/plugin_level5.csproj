@@ -14,17 +14,21 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Properties\**" />
     <EmbeddedResource Remove="Properties\**" />
     <None Remove="Properties\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="General\ImgxSupport.cs~RF389b60c9.TMP" />
   </ItemGroup>
 
   <ItemGroup>

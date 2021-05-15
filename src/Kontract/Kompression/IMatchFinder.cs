@@ -23,8 +23,7 @@ namespace Kontract.Kompression
         /// Pre-processes the input for use in match finding operations.
         /// </summary>
         /// <param name="input">The input to preprocess.</param>
-        /// <param name="startPosition">Position from which to pre process the input.</param>
-        void PreProcess(byte[] input, int startPosition);
+        void PreProcess(byte[] input);
 
         /// <summary>
         /// Finds matches at a certain position with the given limitations.

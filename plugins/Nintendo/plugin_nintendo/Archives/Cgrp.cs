@@ -21,7 +21,7 @@ namespace plugin_nintendo.Archives
 
         private List<CgrpExtendedInfoEntry> _extendedInfo;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -59,7 +59,7 @@ namespace plugin_nintendo.Archives
 
             // Add files
             var dataPartition = header.partitions.First(x => x.partitionId == 0x7801);
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             var fileId = 0;
             foreach (var entry in fileEntries)
             {
@@ -71,7 +71,7 @@ namespace plugin_nintendo.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var castedFiles = files.Cast<CgrpArchiveFileInfo>().ToList();
             using var bw = new BinaryWriterX(output);

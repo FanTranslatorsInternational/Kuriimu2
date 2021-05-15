@@ -9,6 +9,7 @@ using Kontract.Models.IO;
 
 namespace Komponent.IO
 {
+    // TODO: Remove nibble order?
     public class BinaryWriterX : BinaryWriter
     {
         private int _nibble = -1;
@@ -17,7 +18,6 @@ namespace Komponent.IO
         private long _buffer;
 
         public ByteOrder ByteOrder { get; set; }
-        public NibbleOrder NibbleOrder { get; set; }
         public BitOrder BitOrder { get; set; }
 
         private Encoding _encoding = Encoding.UTF8;
@@ -52,12 +52,10 @@ namespace Komponent.IO
 
         public BinaryWriterX(Stream input,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -67,12 +65,10 @@ namespace Komponent.IO
         public BinaryWriterX(Stream input,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -82,12 +78,10 @@ namespace Komponent.IO
         public BinaryWriterX(Stream input,
             Encoding encoding,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -100,12 +94,10 @@ namespace Komponent.IO
             Encoding encoding,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -272,13 +264,6 @@ namespace Komponent.IO
             base.Write(chars, index, count);
         }
 
-        public override void Write(string value)
-        {
-            Flush();
-
-            WriteString(value, _encoding, true, false);
-        }
-
         #endregion
 
         #region String Writes
@@ -358,35 +343,21 @@ namespace Komponent.IO
 
         #region Generic type writing
 
-        public void WriteType<T>(T obj)
-        {
-            var typeWriter = new TypeWriter();
-            typeWriter.WriteType(this, obj);
-        }
-
         public void WriteMultiple<T>(IEnumerable<T> list)
         {
             foreach (var element in list)
                 WriteType(element);
         }
 
+        public void WriteType(object value)
+        {
+            var typeWriter = new TypeWriter();
+            typeWriter.WriteType(this, value);
+        }
+
         #endregion
 
         #region Custom Methods
-
-        public void WriteNibble(int val)
-        {
-            FlushBuffer();
-
-            val &= 15;
-            if (_nibble == -1)
-                _nibble = NibbleOrder == NibbleOrder.LowNibbleFirst ? val : val * 16;
-            else
-            {
-                _nibble += NibbleOrder == NibbleOrder.LowNibbleFirst ? val * 16 : val;
-                FlushNibble();
-            }
-        }
 
         // Bit Fields
         public void WriteBit(bool value)
@@ -394,9 +365,9 @@ namespace Komponent.IO
             FlushNibble();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-                _buffer |= ((value) ? 1 : 0) << _bitPosition++;
+                _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
+                _buffer |= (value ? 1L : 0L) << (BlockSize * 8 - _bitPosition++ - 1);
 
             if (_bitPosition >= BlockSize * 8)
                 Flush();
@@ -407,9 +378,9 @@ namespace Komponent.IO
             FlushNibble();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-                _buffer |= ((value) ? 1 : 0) << _bitPosition++;
+                _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
-                _buffer |= ((value) ? 1 : 0) << (BlockSize * 8 - _bitPosition++ - 1);
+                _buffer |= (value ? 1L : 0L) << (BlockSize * 8 - _bitPosition++ - 1);
 
             if (writeBuffer)
                 Flush();
@@ -423,7 +394,7 @@ namespace Komponent.IO
             {
                 if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
                 {
-                    for (int i = 0; i < bitCount; i++)
+                    for (var i = 0; i < bitCount; i++)
                     {
                         WriteBit((value & 1) == 1, _bitPosition + 1 >= BlockSize * 8);
                         value >>= 1;
@@ -431,7 +402,7 @@ namespace Komponent.IO
                 }
                 else
                 {
-                    for (int i = bitCount - 1; i >= 0; i--)
+                    for (var i = bitCount - 1; i >= 0; i--)
                     {
                         WriteBit(((value >> i) & 1) == 1, _bitPosition + 1 >= BlockSize * 8);
                     }

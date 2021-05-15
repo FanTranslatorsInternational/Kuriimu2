@@ -7,14 +7,13 @@ using Kontract.Models.Archive;
 
 namespace plugin_tri_ace.Archives
 {
-    // TODO: Test plugin
     // Game: Beyond The Labyrinth
     class Pack
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(PackHeader));
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(PackFileEntry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -25,7 +24,7 @@ namespace plugin_tri_ace.Archives
             var entries = br.ReadMultiple<PackFileEntry>(header.fileCount + 1);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < header.fileCount; i++)
             {
                 var entry = entries[i];
@@ -42,7 +41,7 @@ namespace plugin_tri_ace.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -69,10 +68,12 @@ namespace plugin_tri_ace.Archives
                 });
             }
 
+            // Write end file/blob
             entries.Add(new PackFileEntry
             {
                 offset = (int)output.Position
             });
+            bw.WritePadding(0x80);
 
             // Write entries
             output.Position = entryOffset;

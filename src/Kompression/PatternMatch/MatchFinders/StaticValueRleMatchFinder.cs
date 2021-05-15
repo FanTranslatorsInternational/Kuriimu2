@@ -12,7 +12,7 @@ namespace Kompression.PatternMatch.MatchFinders
         public FindLimitations FindLimitations { get; }
         public FindOptions FindOptions { get; }
 
-        public StaticValueRleMatchFinder(byte valueToMatch, FindLimitations limits, FindOptions options)
+        public StaticValueRleMatchFinder(int valueToMatch, FindLimitations limits, FindOptions options)
         {
             _valueToMatch = valueToMatch;
 
@@ -20,7 +20,7 @@ namespace Kompression.PatternMatch.MatchFinders
             FindOptions = options;
         }
 
-        public void PreProcess(byte[] input, int startPosition)
+        public void PreProcess(byte[] input)
         {
         }
 

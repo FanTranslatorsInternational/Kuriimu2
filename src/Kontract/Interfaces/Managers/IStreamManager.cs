@@ -1,13 +1,20 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Kontract.Interfaces.Providers;
+using Serilog;
 
 namespace Kontract.Interfaces.Managers
 {
     /// <summary>
     /// Exposes methods to manage streams in a certain scope.
     /// </summary>
-    public interface IStreamManager
+    public interface IStreamManager : IDisposable
     {
+        /// <summary>
+        /// The logger of this stream manager.
+        /// </summary>
+        ILogger Logger { get; set; }
+
         /// <summary>
         /// The amount of stream registered.
         /// </summary>

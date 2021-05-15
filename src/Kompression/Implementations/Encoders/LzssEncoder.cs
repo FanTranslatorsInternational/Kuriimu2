@@ -1,24 +1,30 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Kompression.Implementations.Encoders.Headerless;
-using Kontract.Kompression;
 using Kontract.Kompression.Configuration;
+using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
 {
-    public class LzssEncoder : IEncoder
+    public class LzssEncoder : ILzEncoder
     {
         private Lz10HeaderlessEncoder _encoder;
 
-        public LzssEncoder(IMatchParser matchParser)
+        public LzssEncoder()
         {
-            _encoder = new Lz10HeaderlessEncoder(matchParser);
+            _encoder = new Lz10HeaderlessEncoder();
         }
 
-        public void Encode(Stream input, Stream output)
+        public void Configure(IInternalMatchOptions matchOptions)
+        {
+            _encoder.Configure(matchOptions);
+        }
+
+        public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
         {
             var outputStartPos = output.Position;
             output.Position += 0x10;
-            _encoder.Encode(input, output);
+            _encoder.Encode(input, output, matches);
 
             var outputPos = output.Position;
             output.Position = outputStartPos;

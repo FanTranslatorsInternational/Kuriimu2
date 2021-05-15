@@ -9,6 +9,7 @@ using Kontract.Models.IO;
 
 namespace Komponent.IO
 {
+    // TODO: Remove nibble order?
     public sealed class BinaryReaderX : BinaryReader
     {
         private int _nibble = -1;
@@ -19,8 +20,6 @@ namespace Komponent.IO
 
         public ByteOrder ByteOrder { get; set; }
         public BitOrder BitOrder { get; set; }
-        public NibbleOrder NibbleOrder { get; set; }
-        public bool IsFirstNibble => _nibble == -1;
 
         private Encoding _encoding = Encoding.UTF8;
 
@@ -55,12 +54,10 @@ namespace Komponent.IO
 
         public BinaryReaderX(Stream input,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -70,12 +67,10 @@ namespace Komponent.IO
         public BinaryReaderX(Stream input,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, Encoding.UTF8, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
 
@@ -85,12 +80,10 @@ namespace Komponent.IO
         public BinaryReaderX(Stream input,
             Encoding encoding,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
             _encoding = encoding;
@@ -102,15 +95,12 @@ namespace Komponent.IO
             Encoding encoding,
             bool leaveOpen,
             ByteOrder byteOrder = ByteOrder.LittleEndian,
-            NibbleOrder nibbleOrder = NibbleOrder.LowNibbleFirst,
             BitOrder bitOrder = BitOrder.MostSignificantBitFirst,
             int blockSize = 4) : base(input, encoding, leaveOpen)
         {
             ByteOrder = byteOrder;
-            NibbleOrder = nibbleOrder;
             BitOrder = bitOrder;
             BlockSize = blockSize;
-
             _encoding = encoding;
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -239,12 +229,6 @@ namespace Komponent.IO
             return base.ReadBytes(count);
         }
 
-        public override string ReadString()
-        {
-            var length = ReadByte();
-            return ReadString(length);
-        }
-
         #endregion
 
         #region String Reads
@@ -277,6 +261,11 @@ namespace Komponent.IO
             return encoding.GetString(ReadBytes(length));
         }
 
+        #endregion
+
+        #region Peeks
+
+        // String
         public string PeekString(int length = 4)
         {
             return PeekString(0, length, _encoding);
@@ -302,6 +291,42 @@ namespace Komponent.IO
             BaseStream.Seek(startOffset, SeekOrigin.Begin);
 
             return encoding.GetString(bytes);
+        }
+
+        // Byte
+        public byte PeekByte(long offset)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadByte();
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public byte[] PeekBytes(int length = 1, long offset = 0)
+        {
+            var startOffset = BaseStream.Position;
+
+            BaseStream.Position = offset;
+            var value = ReadBytes(length);
+
+            BaseStream.Position = startOffset;
+
+            return value;
+        }
+
+        public ushort PeekUInt16()
+        {
+            var startOffset = BaseStream.Position;
+
+            var value = ReadUInt16();
+
+            BaseStream.Position = startOffset;
+
+            return value;
         }
 
         #endregion
@@ -365,37 +390,24 @@ namespace Komponent.IO
 
         #region Read generic type
 
-        public T ReadType<T>()
+        public T ReadType<T>() => (T)ReadType(typeof(T));
+
+        public object ReadType(Type type)
         {
             var typeReader = new TypeReader();
-            return (T)typeReader.ReadType(this, typeof(T));
+            return typeReader.ReadType(this, type);
         }
 
-        public List<T> ReadMultiple<T>(int count) => Enumerable.Range(0, count).Select(_ => ReadType<T>()).ToList();
+        public IList<T> ReadMultiple<T>(int count) => ReadMultipleInternal(count, typeof(T)).Cast<T>().ToArray();
+
+        public IList<object> ReadMultiple(int count, Type type) => ReadMultipleInternal(count, type).ToArray();
+
+        private IEnumerable<object> ReadMultipleInternal(int count, Type type) =>
+            Enumerable.Range(0, count).Select(_ => ReadType(type));
 
         #endregion
 
         #region Custom Methods
-
-        public int ReadNibble()
-        {
-            ResetBitBuffer();
-
-            if (_nibble == -1)
-            {
-                _nibble = ReadByte();
-                return NibbleOrder == NibbleOrder.LowNibbleFirst ?
-                    _nibble % 16 :
-                    _nibble / 16;
-            }
-
-            var val = NibbleOrder == NibbleOrder.LowNibbleFirst ?
-                _nibble / 16 :
-                _nibble % 16;
-
-            _nibble = -1;
-            return val;
-        }
 
         public byte[] ScanBytes(int pos, int length = 1)
         {
@@ -436,6 +448,20 @@ namespace Komponent.IO
             return result.ToArray();
         }
 
+        public byte[] ReadBytesUntil(params byte[] stop)
+        {
+            var result = new List<byte>();
+
+            byte b = ReadByte();
+            while (stop.All(s => s != b) && BaseStream.Position < BaseStream.Length)
+            {
+                result.Add(b);
+                b = ReadByte();
+            }
+
+            return result.ToArray();
+        }
+
         // Bit Fields
         public bool ReadBit()
         {
@@ -450,9 +476,7 @@ namespace Komponent.IO
                 FillBuffer();
 
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
-            {
                 return (int)((_buffer >> _bitPosition++) & 0x1);
-            }
 
             return (int)((_buffer >> (_currentBlockSize * 8 - _bitPosition++ - 1)) & 0x1);
         }
@@ -492,7 +516,7 @@ namespace Komponent.IO
                 }
                 else
                 {
-                    result |= (long)(ReadBitInteger() << i);
+                    result |= (long)ReadBitInteger() << i;
                 }
             }
 

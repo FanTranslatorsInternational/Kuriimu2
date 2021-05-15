@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -14,7 +15,7 @@ namespace plugin_level5.DS.Archives
         private readonly int _headerSize = Tools.MeasureType(typeof(Lpc2Header));
         private readonly int _fileEntrySize = Tools.MeasureType(typeof(Lpc2FileEntry));
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -26,7 +27,7 @@ namespace plugin_level5.DS.Archives
             var entries = br.ReadMultiple<Lpc2FileEntry>(header.fileCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 br.BaseStream.Position = header.nameOffset + entry.nameOffset;
@@ -42,7 +43,7 @@ namespace plugin_level5.DS.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -71,7 +72,7 @@ namespace plugin_level5.DS.Archives
 
             // Write file data
             var dataOffset = (int)bw.BaseStream.Position;
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
                 file.SaveFileData(bw.BaseStream, null);
 
             // Write file entries

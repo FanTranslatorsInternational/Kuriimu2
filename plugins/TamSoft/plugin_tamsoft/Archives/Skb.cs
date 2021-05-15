@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -12,7 +13,7 @@ namespace plugin_tamsoft.Archives
     {
         private byte[] _header;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -30,7 +31,7 @@ namespace plugin_tamsoft.Archives
             var sizes = br.ReadMultiple<int>(entryCount);
 
             // Add files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < entryCount; i++)
             {
                 var subStream = new SubStream(input, offsets[i], sizes[i]);
@@ -42,7 +43,7 @@ namespace plugin_tamsoft.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -55,7 +56,7 @@ namespace plugin_tamsoft.Archives
             var sizes = new List<int>();
 
             output.Position = fileOffset;
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 fileOffset = (int)output.Position;
                 var writtenSize = file.SaveFileData(output);

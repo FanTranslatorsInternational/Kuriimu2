@@ -8,7 +8,7 @@ namespace Kore.Models.LoadInfo
 {
     class VirtualLoadInfo
     {
-        public IStateInfo ParentStateInfo { get; }
+        public IFileState ParentFileState { get; }
 
         public IArchiveState ArchiveState { get; }
 
@@ -16,20 +16,20 @@ namespace Kore.Models.LoadInfo
 
         public IFilePlugin Plugin { get; }
 
-        public VirtualLoadInfo(IStateInfo parentStateInfo, IArchiveState archiveState, ArchiveFileInfo afi)
+        public VirtualLoadInfo(IFileState parentFileState, IArchiveState archiveState, ArchiveFileInfo afi)
         {
-            ContractAssertions.IsNotNull(parentStateInfo, nameof(parentStateInfo));
+            ContractAssertions.IsNotNull(parentFileState, nameof(parentFileState));
             ContractAssertions.IsNotNull(archiveState, nameof(archiveState));
             ContractAssertions.IsNotNull(afi, nameof(afi));
             ContractAssertions.IsElementContained(archiveState.Files, afi, nameof(archiveState), nameof(afi));
 
-            ParentStateInfo = parentStateInfo;
+            ParentFileState = parentFileState;
             ArchiveState = archiveState;
             Afi = afi;
         }
 
-        public VirtualLoadInfo(IStateInfo parentStateInfo, IArchiveState archiveState, ArchiveFileInfo afi, IFilePlugin plugin) :
-            this(parentStateInfo, archiveState, afi)
+        public VirtualLoadInfo(IFileState parentFileState, IArchiveState archiveState, ArchiveFileInfo afi, IFilePlugin plugin) :
+            this(parentFileState, archiveState, afi)
         {
             ContractAssertions.IsNotNull(plugin, nameof(plugin));
 

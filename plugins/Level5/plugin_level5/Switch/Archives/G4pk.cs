@@ -1,6 +1,6 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -23,7 +23,7 @@ namespace plugin_level5.Switch.Archives
         private G4pkHeader _header;
         private IList<short> _unkIds;
 
-        public IList<ArchiveFileInfo> Load(Stream input)
+        public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -45,7 +45,7 @@ namespace plugin_level5.Switch.Archives
             var stringOffsets = br.ReadMultiple<short>(_header.table3EntryCount / 2);
 
             //Files
-            var result = new List<ArchiveFileInfo>();
+            var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 br.BaseStream.Position = stringOffset + stringOffsets[i];
@@ -58,7 +58,7 @@ namespace plugin_level5.Switch.Archives
             return result;
         }
 
-        public void Save(Stream output, IList<ArchiveFileInfo> files)
+        public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -69,7 +69,7 @@ namespace plugin_level5.Switch.Archives
             var stringPosition = (stringOffsetPosition + _stringOffsetSize + 3) & ~3;
 
             // Write strings
-            var crc32 = Crc32.Create(Crc32Formula.Normal);
+            var crc32 = Crc32.Default;
 
             bw.BaseStream.Position = stringOffsetPosition;
             var fileHashes = new List<uint>();
@@ -81,7 +81,7 @@ namespace plugin_level5.Switch.Archives
                 bw.Write((short)relativeStringOffset);
 
                 // Add hash
-                fileHashes.Add(BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(Encoding.ASCII.GetBytes(files[i].FilePath.ToRelative().FullName))));
+                fileHashes.Add(crc32.ComputeValue(files[i].FilePath.ToRelative().FullName));
 
                 // Write string
                 bw.BaseStream.Position = stringOffsetPosition + relativeStringOffset;
@@ -96,7 +96,7 @@ namespace plugin_level5.Switch.Archives
             bw.BaseStream.Position = fileDataPosition;
             var fileOffset = new List<int>();
             var fileSizes = new List<int>();
-            foreach (var file in files)
+            foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 fileOffset.Add((int)((bw.BaseStream.Position - _headerSize) >> 2));
 

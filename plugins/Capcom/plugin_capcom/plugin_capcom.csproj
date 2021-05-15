@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -13,15 +14,16 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <OutputPath>..\..\..\dist\Debug\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Debug\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <OutputPath>..\..\..\dist\Release\netcoreapp31\win-x64\plugins</OutputPath>
+    <OutputPath>..\..\..\dist\Release\netcoreapp31\plugins</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Komponent" Version="2.0.8" />
+    <PackageReference Include="Kryptography" Version="2.0.8" />
     <PackageReference Include="Kompression" Version="2.0.8" />
     <PackageReference Include="Kontract" Version="2.0.8" />
   </ItemGroup>

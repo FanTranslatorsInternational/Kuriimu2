@@ -103,8 +103,12 @@ namespace Kompression.IO
         /// <remarks>For main use in Lempel-Ziv compressions.</remarks>
         public void Copy(Stream output, int displacement, int length)
         {
-            if (displacement <= 0 || displacement > Length)
-                throw new ArgumentOutOfRangeException(nameof(displacement));
+            if (displacement <= 0)
+                throw new ArgumentException($"Displacement 0x{displacement:X8} is outside valid data.");
+            if (displacement > Position)
+                throw new ArgumentException($"Cannot go 0x{displacement:X8} bytes back from position 0x{Position:X8}.");
+            if (displacement > Length)
+                throw new ArgumentException($"Cannot go 0x{displacement:X8} bytes back in buffer with length 0x{Length:X8}.");
 
             var displacedBufferPosition = Position - displacement;
             var endBufferPosition = Position;

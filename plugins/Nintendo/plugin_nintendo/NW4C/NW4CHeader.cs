@@ -6,16 +6,24 @@ namespace plugin_nintendo.NW4C
     /// <summary>
     /// The general file header for NW4C formats.
     /// </summary>
-    public class NW4CHeader
+    class NW4CHeader
     {
         [FixedLength(4)]
-        public string Magic;
+        public string magic;
         [Endianness(ByteOrder = ByteOrder.BigEndian)]
-        public ByteOrder ByteOrder;
-        public short HeaderSize;
-        public int Version;
-        public int FileSize;
-        public short SectionCount;
-        public short Padding;
+        public ByteOrder byteOrder;
+        public short headerSize;
+        public int version;
+        public int fileSize;
+        public short sectionCount;
+        public short padding;
+    }
+
+    class NW4CSection<TSection>
+    {
+        [FixedLength(4)]
+        public string magic;
+        public int sectionSize;
+        public TSection sectionData;
     }
 }

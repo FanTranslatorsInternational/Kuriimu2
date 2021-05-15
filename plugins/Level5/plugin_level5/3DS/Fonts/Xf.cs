@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using Komponent.Extensions;
 using Komponent.Font;
 using Komponent.IO;
 using Kontract.Models.Font;
@@ -220,7 +221,8 @@ namespace plugin_level5._3DS.Fonts
 
             // Draw textures
             var img = new Bitmap(imageSize.Width, imageSize.Height);
-            var gfx = Graphics.FromImage(img);
+            var chn = new Bitmap(imageSize.Width, imageSize.Height);
+            var gfx = Graphics.FromImage(chn);
             for (var i = 0; i < textureInfos.Count; i++)
             {
                 var destPoints = new[]
@@ -233,6 +235,7 @@ namespace plugin_level5._3DS.Fonts
                 var attr = new ImageAttributes();
                 attr.SetColorMatrix(_inverseColorMatrices[i]);
                 gfx.DrawImage(textureInfos[i].FontTexture, destPoints, rect, GraphicsUnit.Pixel, attr);
+                img.PutChannel(chn);
             }
 
             // Save fnt.bin

@@ -6,14 +6,24 @@ namespace Kontract.Models
     public class LoadResult
     {
         /// <summary>
-        /// Declares if the save process was successful.
+        /// Determines the status of the load.
         /// </summary>
-        public bool IsSuccessful { get; }
+        private LoadStatus Status { get; }
+        
+        /// <summary>
+        /// Declares if the load process was successful.
+        /// </summary>
+        public bool IsSuccessful => Status == LoadStatus.Successful;
+        
+        /// <summary>
+        /// Declares if the load process was cancelled.
+        /// </summary>
+        public bool IsCancelled => Status == LoadStatus.Cancelled;
 
         /// <summary>
         /// Contains the result if the load process was successful.
         /// </summary>
-        public IStateInfo LoadedState { get; }
+        public IFileState LoadedFileState { get; }
 
         /// <summary>
         /// Contains a human readable message about the state of the save process.
@@ -26,17 +36,24 @@ namespace Kontract.Models
         /// </summary>
         public Exception Exception { get; }
 
-        public LoadResult(IStateInfo stateInfo) :
-            this(true)
+        private LoadResult(LoadStatus status)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
+            Status = status;
+        }
+        
+        public static LoadResult CancelledResult => new LoadResult(LoadStatus.Cancelled);
 
-            LoadedState = stateInfo;
+        public LoadResult(IFileState fileState) :
+            this(LoadStatus.Successful)
+        {
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
+
+            LoadedFileState = fileState;
         }
 
         public LoadResult(bool isSuccessful)
         {
-            IsSuccessful = isSuccessful;
+            Status = isSuccessful ? LoadStatus.Successful : LoadStatus.Errored;
         }
 
         public LoadResult(bool isSuccessful, string message) :
@@ -46,12 +63,20 @@ namespace Kontract.Models
         }
 
         public LoadResult(Exception exception) :
-            this(false)
+            this(LoadStatus.Errored)
         {
             ContractAssertions.IsNotNull(exception, nameof(exception));
 
             Message = exception.Message;
             Exception = exception;
         }
+        
+    }
+
+    public enum LoadStatus
+    {
+        Successful,
+        Cancelled,
+        Errored
     }
 }

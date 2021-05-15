@@ -5,21 +5,6 @@ using Kontract.Kanvas;
 
 namespace Kontract.Models.Image
 {
-    public class IndexEncodingDefinition
-    {
-        public IIndexEncoding IndexEncoding { get; }
-        public IList<int> PaletteEncodingIndices { get; }
-
-        public IndexEncodingDefinition(IIndexEncoding indexEncoding, IList<int> paletteEncodingIndices)
-        {
-            ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
-            ContractAssertions.IsNotNull(paletteEncodingIndices, nameof(paletteEncodingIndices));
-
-            IndexEncoding = indexEncoding;
-            PaletteEncodingIndices = paletteEncodingIndices;
-        }
-    }
-
     public static class EncodingDefinitionExtensions
     {
         public static EncodingDefinition ToColorDefinition(this IDictionary<int, IColorEncoding> mappings)
@@ -47,11 +32,29 @@ namespace Kontract.Models.Image
         }
     }
 
+    public class IndexEncodingDefinition
+    {
+        public IIndexEncoding IndexEncoding { get; }
+        public IList<int> PaletteEncodingIndices { get; }
+
+        public IndexEncodingDefinition(IIndexEncoding indexEncoding, IList<int> paletteEncodingIndices)
+        {
+            ContractAssertions.IsNotNull(indexEncoding, nameof(indexEncoding));
+            ContractAssertions.IsNotNull(paletteEncodingIndices, nameof(paletteEncodingIndices));
+
+            IndexEncoding = indexEncoding;
+            PaletteEncodingIndices = paletteEncodingIndices;
+        }
+    }
+
     public class EncodingDefinition
     {
         private readonly Dictionary<int, IColorEncoding> _colorEncodings;
         private readonly Dictionary<int, IndexEncodingDefinition> _indexEncodings;
         private readonly Dictionary<int, IColorEncoding> _paletteEncodings;
+
+        private readonly Dictionary<int, IColorShader> _colorShaders;
+        private readonly Dictionary<int, IColorShader> _paletteShaders;
 
         public static EncodingDefinition Empty { get; } = new EncodingDefinition();
 
@@ -74,6 +77,9 @@ namespace Kontract.Models.Image
             _colorEncodings = new Dictionary<int, IColorEncoding>();
             _paletteEncodings = new Dictionary<int, IColorEncoding>();
             _indexEncodings = new Dictionary<int, IndexEncodingDefinition>();
+
+            _colorShaders = new Dictionary<int, IColorShader>();
+            _paletteShaders = new Dictionary<int, IColorShader>();
         }
 
         public bool ContainsColorEncoding(int imageFormat)
@@ -106,24 +112,48 @@ namespace Kontract.Models.Image
             return ContainsIndexEncoding(indexFormat) ? _indexEncodings[indexFormat] : null;
         }
 
-        public bool Supports(ImageInfo imageInfo)
+        public bool ContainsColorShader(int imageFormat)
         {
+            return _colorShaders.ContainsKey(imageFormat);
+        }
+
+        public IColorShader GetColorShader(int imageFormat)
+        {
+            return _colorShaders[imageFormat];
+        }
+
+        public bool ContainsPaletteShader(int paletteFormat)
+        {
+            return _paletteShaders.ContainsKey(paletteFormat);
+        }
+
+        public IColorShader GetPaletteShader(int paletteFormat)
+        {
+            return _paletteShaders[paletteFormat];
+        }
+
+        public bool Supports(ImageInfo imageInfo, out string error)
+        {
+            error = string.Empty;
+
             var isColorEncoding = _colorEncodings.ContainsKey(imageInfo.ImageFormat);
             var isIndexColorEncoding = _indexEncodings.ContainsKey(imageInfo.ImageFormat);
             if (!isColorEncoding && !isIndexColorEncoding)
+            {
+                error = $"Format {imageInfo.ImageFormat} is not supported by the encoding definition.";
                 return false;
-            //throw new InvalidOperationException($"Image format {imageInfo.ImageFormat} is not supported by the plugin.");
+            }
 
             if (isIndexColorEncoding && !imageInfo.HasPaletteInformation)
+            {
+                error = "The image requires palette data, but it doesn't contain any.";
                 return false;
-            //throw new InvalidOperationException($"The image format {image.ImageFormat} is indexed, but the image is not.");
-
-            if (isColorEncoding && imageInfo.HasPaletteInformation)
-                return false;
-            //throw new InvalidOperationException($"The image format {image.ImageFormat} is not indexed, but the image is.");
+            }
 
             return true;
         }
+
+        #region Add color formats
 
         public void AddColorEncoding(int imageFormat, IColorEncoding colorEncoding)
         {
@@ -145,6 +175,10 @@ namespace Kontract.Models.Image
                 AddColorEncoding(colorEncoding.Key, colorEncoding.Value);
         }
 
+        #endregion
+
+        #region Add palette formats
+
         public void AddPaletteEncoding(int paletteFormat, IColorEncoding paletteEncoding)
         {
             if (_paletteEncodings.ContainsKey(paletteFormat))
@@ -164,6 +198,10 @@ namespace Kontract.Models.Image
             foreach (var paletteEncoding in paletteEncodings)
                 AddPaletteEncoding(paletteEncoding.Key, paletteEncoding.Value);
         }
+
+        #endregion
+
+        #region Add index formats
 
         public void AddIndexEncoding(int indexFormat, IIndexEncoding indexEncoding, IList<int> paletteFormatIndices)
         {
@@ -187,10 +225,57 @@ namespace Kontract.Models.Image
             if (_indexEncodings.ContainsKey(indexFormat) || _colorEncodings.ContainsKey(indexFormat) || !indexDefinition.PaletteEncodingIndices.Any())
                 return;
 
-            if (indexDefinition.PaletteEncodingIndices.Any(x => !_paletteEncodings.ContainsKey(x)))
-                throw new InvalidOperationException("Some palette encodings are not supported.");
+            var missingPaletteEncodings = indexDefinition.PaletteEncodingIndices.Where(x => !_paletteEncodings.ContainsKey(x)).ToArray();
+            if (missingPaletteEncodings.Length > 0)
+                throw new InvalidOperationException($"Palette encodings {string.Join(", ", missingPaletteEncodings)} are not supported by the encoding definition.");
 
             _indexEncodings.Add(indexFormat, indexDefinition);
         }
+
+        #endregion
+
+        #region Add color shaders
+
+        public void AddColorShader(int imageFormat, IColorShader colorShader)
+        {
+            if (_colorShaders.ContainsKey(imageFormat))
+                return;
+
+            _colorShaders.Add(imageFormat, colorShader);
+        }
+
+        public void AddColorShaders(IList<(int, IColorShader)> colorShaders)
+        {
+            foreach (var colorShader in colorShaders)
+                AddColorShader(colorShader.Item1, colorShader.Item2);
+        }
+
+        public void AddColorShaders(IDictionary<int, IColorShader> colorShaders)
+        {
+            foreach (var colorShader in colorShaders)
+                AddColorShader(colorShader.Key, colorShader.Value);
+        }
+
+        public void AddPaletteShader(int imageFormat, IColorShader paletteShader)
+        {
+            if (_paletteShaders.ContainsKey(imageFormat))
+                return;
+
+            _paletteShaders.Add(imageFormat, paletteShader);
+        }
+
+        public void AddPaletteShaders(IList<(int, IColorShader)> paletteShaders)
+        {
+            foreach (var paletteShader in paletteShaders)
+                AddPaletteShader(paletteShader.Item1, paletteShader.Item2);
+        }
+
+        public void AddPaletteShaders(IDictionary<int, IColorShader> paletteShaders)
+        {
+            foreach (var paletteShader in paletteShaders)
+                AddPaletteShader(paletteShader.Key, paletteShader.Value);
+        }
+
+        #endregion
     }
 }

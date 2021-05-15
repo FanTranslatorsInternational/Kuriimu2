@@ -1,39 +1,29 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using Kanvas.Swizzle.Models;
 using Kontract.Kanvas;
+using Kontract.Kanvas.Model;
 
 namespace Kanvas.Swizzle
 {
     /// <summary>
     /// The swizzle used on the Nintendo 3DS.
     /// </summary>
-    public class CTRSwizzle : IImageSwizzle
+    public class CtrSwizzle : IImageSwizzle
     {
-        private readonly CtrTransformation _transform;
         private readonly MasterSwizzle _swizzle;
+        private readonly CtrTransformation _transform;
 
-        /// <inheritdoc />
         public int Width { get; }
-
-        /// <inheritdoc />
         public int Height { get; }
 
-        /// <summary>
-        /// Creates a new instance of <see cref="CTRSwizzle"/>.
-        /// </summary>
-        /// <param name="width">The width of the image to swizzle.</param>
-        /// <param name="height">The height of the image to swizzle.</param>
-        /// <param name="transform">The transformation mode for this swizzle.</param>
-        /// <param name="toPowerOfTwo">Should the dimensions be padded to a power of 2.</param>
-        public CTRSwizzle(int width, int height, CtrTransformation transform, bool toPowerOfTwo)
+        public CtrSwizzle(SwizzlePreparationContext context, CtrTransformation transform = CtrTransformation.None)
         {
-            Width = (toPowerOfTwo) ? 2 << (int)Math.Log(width - 1, 2) : width;
-            Height = (toPowerOfTwo) ? 2 << (int)Math.Log(height - 1, 2) : height;
-
             _transform = transform;
-            var stride = transform == CtrTransformation.None || transform == CtrTransformation.YFlip ? Width : Height;
+
+            var stride = _transform == CtrTransformation.None || _transform == CtrTransformation.YFlip ? context.Size.Width : context.Size.Height;
             _swizzle = new MasterSwizzle(stride, new Point(0, 0), new[] { (1, 0), (0, 1), (2, 0), (0, 2), (4, 0), (0, 4) });
+
+            (Width, Height) = ((context.Size.Width + 7) & ~7, (context.Size.Height + 7) & ~7);
         }
 
         /// <inheritdoc />
@@ -45,11 +35,17 @@ namespace Kanvas.Swizzle
             switch (_transform)
             {
                 // Transpose
-                case CtrTransformation.Transpose: return new Point(newPoint.Y, newPoint.X);
+                case CtrTransformation.Transpose:
+                    return new Point(newPoint.Y, newPoint.X);
+
                 // Rotate90
-                case CtrTransformation.Rotate90: return new Point(newPoint.Y, Height - 1 - newPoint.X);
+                case CtrTransformation.Rotate90:
+                    return new Point(newPoint.Y, Height - 1 - newPoint.X);
+
                 // YFlip
-                case CtrTransformation.YFlip: return new Point(newPoint.X, Height - 1 - newPoint.Y);
+                case CtrTransformation.YFlip:
+                    return new Point(newPoint.X, Height - 1 - newPoint.Y);
+
                 default: return newPoint;
             }
         }

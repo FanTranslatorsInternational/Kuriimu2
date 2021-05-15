@@ -4,6 +4,7 @@ using System.Linq;
 using Komponent.IO;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
+#pragma warning disable 649
 
 namespace plugin_kadokawa.Archives
 {

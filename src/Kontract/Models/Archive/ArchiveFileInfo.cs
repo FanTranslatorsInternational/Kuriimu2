@@ -19,8 +19,8 @@ namespace Kontract.Models.Archive
         private UPath _filePath;
 
         private Lazy<Stream> _decompressedStream;
-        private long _decompressedSize;
-        private bool _hasSetFileData;
+        private Lazy<Stream> _compressedStream;
+        private Func<long> _getFileSizeAction;
 
         /// <inheritdoc />
         public bool UsesCompression => _configuration != null;
@@ -48,7 +48,10 @@ namespace Kontract.Models.Archive
         }
 
         /// <inheritdoc />
-        public virtual long FileSize => UsesCompression ? _decompressedSize : FileData?.Length ?? 0;
+        public virtual long FileSize => _getFileSizeAction();
+
+        /// <inheritdoc />
+        public bool IsFileDataInvalid => !FileData.CanRead && !FileData.CanWrite;
 
         /// <summary>
         /// Creates a new instance of <see cref="ArchiveFileInfo"/>.
@@ -64,6 +67,8 @@ namespace Kontract.Models.Archive
             FilePath = filePath;
 
             ContentChanged = false;
+
+            _getFileSizeAction = GetFileDataLength;
         }
 
         /// <summary>
@@ -80,17 +85,17 @@ namespace Kontract.Models.Archive
             ContractAssertions.IsNotNull(configuration, nameof(configuration));
 
             _configuration = configuration;
-            _decompressedSize = decompressedSize;
+
+            _getFileSizeAction = () => decompressedSize;
             _decompressedStream = new Lazy<Stream>(() => DecompressStream(fileData, configuration));
+            _compressedStream = new Lazy<Stream>(GetBaseStream);
         }
 
         /// <inheritdoc />
-        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
+        public virtual Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null,
+            IProgressContext progress = null)
         {
-            if (UsesCompression)
-                return Task.Run(GetDecompressedStream);
-
-            return Task.FromResult(GetBaseStream());
+            return UsesCompression ? Task.Run(GetDecompressedStream) : Task.FromResult(GetBaseStream());
         }
 
         /// <inheritdoc />
@@ -102,14 +107,15 @@ namespace Kontract.Models.Archive
             FileData.Close();
             FileData = fileData;
 
-            _hasSetFileData = true;
+            _getFileSizeAction = GetFileDataLength;
+
             ContentChanged = true;
 
             if (!UsesCompression)
                 return;
 
-            _decompressedSize = fileData.Length;
             _decompressedStream = new Lazy<Stream>(GetBaseStream);
+            _compressedStream = new Lazy<Stream>(() => CompressStream(fileData, _configuration));
         }
 
         /// <summary>
@@ -132,27 +138,7 @@ namespace Kontract.Models.Archive
         /// <returns>The size of the file written.</returns>
         public virtual long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            Stream dataToCopy;
-            if (UsesCompression)
-            {
-                if (!compress)
-                {
-                    // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
-                    // get decompressed data
-                    dataToCopy = _decompressedStream.Value;
-                }
-                else
-                {
-                    // Otherwise compress data or use the original compressed data, if never set
-                    dataToCopy = _hasSetFileData ?
-                        CompressStream(FileData, _configuration) :
-                        GetBaseStream();
-                }
-            }
-            else
-            {
-                dataToCopy = GetBaseStream();
-            }
+            var dataToCopy = GetFinalStream(compress);
 
             progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
@@ -167,9 +153,36 @@ namespace Kontract.Models.Archive
         }
 
         /// <inheritdoc />
+        public void Dispose()
+        {
+            FileData?.Dispose();
+            _decompressedStream = null;
+        }
+
+        /// <inheritdoc />
         public override string ToString()
         {
             return FilePath.FullName;
+        }
+
+        #region Stream methods
+
+        /// <summary>
+        /// Get the final stream of FileData.
+        ///     1. This is the compressed stream if a compression is set,
+        ///     2. The decompressed stream if a compression is set but compression was disabled for this operation, or
+        ///     3. The original FileData stream.
+        /// </summary>
+        /// <returns>The final stream.</returns>
+        protected Stream GetFinalStream(bool compress = true)
+        {
+            if (!UsesCompression)
+                return GetBaseStream();
+
+            // If ArchiveFileInfo uses compression but file data should not be saved as compressed,
+            //   get decompressed data (decompress it for the first time here, if necessary)
+            // Otherwise use already compressed data
+            return compress ? GetCompressedStream() : GetDecompressedStream();
         }
 
         /// <summary>
@@ -193,6 +206,22 @@ namespace Kontract.Models.Archive
             decompressedStream.Position = 0;
             return decompressedStream;
         }
+
+        /// <summary>
+        /// Gets the compressed stream from the <see cref="Lazy{T}"/> instance.
+        /// </summary>
+        /// <returns>The compressed stream of this instance.</returns>
+        protected Stream GetCompressedStream()
+        {
+            var compressedStream = _compressedStream.Value;
+
+            compressedStream.Position = 0;
+            return compressedStream;
+        }
+
+        #endregion
+
+        #region De-/Compression
 
         /// <summary>
         /// Compresses the given stream.
@@ -235,5 +264,16 @@ namespace Kontract.Models.Archive
 
             return ms;
         }
+
+        #endregion
+
+        #region Size delegates
+
+        private long GetFileDataLength()
+        {
+            return FileData?.Length ?? 0;
+        }
+
+        #endregion
     }
 }
