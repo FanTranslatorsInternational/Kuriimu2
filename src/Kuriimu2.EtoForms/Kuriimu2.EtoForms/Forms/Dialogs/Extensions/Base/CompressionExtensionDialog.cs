@@ -238,7 +238,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 // TODO: Plugin extensibility?
                 default:
-                    return default;
+                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
             }
         }
     }

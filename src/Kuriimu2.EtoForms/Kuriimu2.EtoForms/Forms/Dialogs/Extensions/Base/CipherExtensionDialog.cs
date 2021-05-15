@@ -65,7 +65,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     new ExtensionTypeParameter("Key",typeof(string))),
                 new ExtensionType("Positional Xor",true,
                     new ExtensionTypeParameter("Key",typeof(string))),
-                new ExtensionType("Stepping Xor",true,
+                new ExtensionType("Sequential Xor",true,
                     new ExtensionTypeParameter("Key",typeof(string)),
                     new ExtensionTypeParameter("Step",typeof(string))),
                 new ExtensionType("Rot",true,
@@ -150,7 +150,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 // TODO: Plugin extensibility?
                 // TODO: Add nintendo NCA stream stuff
                 default:
-                    return null;
+                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
             }
         }
     }

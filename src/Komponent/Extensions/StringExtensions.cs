@@ -6,6 +6,9 @@ namespace Komponent.Extensions
     {
         public static byte[] Hexlify(this string hex, int length = -1)
         {
+            if (hex.StartsWith("0x"))
+                hex = hex[2..];
+
             var charCount = hex.Length;
 
             var result = new byte[length < 0 ? charCount / 2 : (length + 1) & ~1];
