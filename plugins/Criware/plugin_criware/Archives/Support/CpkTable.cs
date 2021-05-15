@@ -15,6 +15,9 @@ namespace plugin_criware.Archives.Support
     /// </summary>
     public class CpkTable
     {
+        // HINT: This is a pre-calculated XOR-Pad, based on the actual algorithm for de-/encryption.
+        // It is easier to apply a single XOR operation in parallel, instead of sequentially applying XOR on a single byte
+        // and then advancing 2 stepping values, which is how the algorithm works.
         private static readonly byte[] XorKey =
         {
             0x5F, 0xCB, 0xA7, 0xB3, 0xAF, 0x5B, 0x77, 0xC3, 0xFF, 0xEB, 0x47, 0xD3, 0x4F, 0x7B, 0x17, 0xE3, 0x9F, 0x0B,
@@ -26,6 +29,11 @@ namespace plugin_criware.Archives.Support
         private static readonly int HeaderSize = Tools.MeasureType(typeof(CpkTableHeader));
         private static readonly int TableInfoSize = Tools.MeasureType(typeof(CpkTableInfo));
 
+        private IList<CpkColumnInfo> _columns;
+
+        /// <summary>
+        /// The magic ID the table has.
+        /// </summary>
         public string Id { get; }
 
         /// <summary>
@@ -38,8 +46,10 @@ namespace plugin_criware.Archives.Support
         /// </summary>
         public IList<CpkRow> Rows { get; }
 
-        private CpkTable(string id, string name, IList<CpkRow> rows)
+        private CpkTable(string id, string name, IList<CpkColumnInfo> columns, IList<CpkRow> rows)
         {
+            _columns = columns;
+
             Id = id;
             Name = name;
             Rows = rows;
@@ -97,14 +107,14 @@ namespace plugin_criware.Archives.Support
             for (var i = 0; i < tableInfo.rowCount; i++)
                 rows[i] = ReadRow(tableBr, stringBr, dataBr, columns);
 
-            return new CpkTable(tableMagic, name, rows);
+            return new CpkTable(tableMagic, name, columns, rows);
         }
 
         #endregion
 
         #region Write
 
-        public void Write(Stream output, long offset, bool writeHeader = true)
+        public void Write(Stream output, long offset, int align, bool writeHeader = true)
         {
             output.Position = offset;
             using var bw = new BinaryWriterX(output, true, ByteOrder.BigEndian);
@@ -121,6 +131,7 @@ namespace plugin_criware.Archives.Support
 
             var tablePosition = tableOffset;
             var dataPosition = dataOffset;
+            var endOffset = dataPosition + CalculateDataTableSize(columns, Rows);
 
             var stringWriter = new StringWriter(bw, stringOffset);
 
@@ -158,6 +169,16 @@ namespace plugin_criware.Archives.Support
                 foreach (var rowValue in row.Values.Where(x => rowColumnNames.Contains(x.Key)))
                     rowValue.Value.Write(bw, stringWriter, ref tablePosition, ref dataPosition, dataOffset);
 
+            // Write copyright (c)CRI for CpkHeader
+            if (Name == "CpkHeader")
+            {
+                bw.BaseStream.Position = endOffset + 6;
+                bw.WriteAlignment(align);
+
+                bw.BaseStream.Position -= 6;
+                bw.WriteString("(c)CRI", Encoding.ASCII, false, false);
+            }
+
             // Write table info
             var tableInfo = new CpkTableInfo
             {
@@ -189,11 +210,11 @@ namespace plugin_criware.Archives.Support
             bw.WriteType(header);
         }
 
-        public int CalculateSize()
+        public int CalculateSize(bool writeHeader = true)
         {
             var columns = CreateColumns(Rows);
 
-            var size = HeaderSize + TableInfoSize + CalculateTableSize(columns, Rows);
+            var size = (writeHeader ? HeaderSize : 0) + TableInfoSize + CalculateTableSize(columns, Rows);
             size = (size + CalculateStringTableSize(Name, columns, Rows) + 0xF) & ~0xF;
             size = (size + CalculateDataTableSize(columns, Rows) + 0xF) & ~0xF;
 
@@ -269,16 +290,34 @@ namespace plugin_criware.Archives.Support
 
         private CpkColumnStorage GetStorage(string name, IList<CpkRow> rows)
         {
-            if (rows.All(x => x.Values[name].IsDefault()))
-                return CpkColumnStorage.Default;
+            // Storage type priorities: Row < Const < Default
 
-            if (rows.Count <= 1)
+            // Only downgrade storage types as per priority
+            // Upgrading any storage type from Row to Const/Default, or from Const to Default may override specifically set behaviour for the CPK
+            // This will miss out on potential space efficiency, but we should keep the original storage types as much as possible
+
+            var column = _columns.FirstOrDefault(x => x.Name == name);
+            if (column == null)
+                throw new InvalidOperationException($"Column {name} is not specified in table with ID {Id}.");
+
+            // If storage is Row, just return that, since it has the lowest priority
+            if (column.Storage == CpkColumnStorage.Row)
                 return CpkColumnStorage.Row;
 
-            var defaultValue = rows[0].Values[name].Get<object>();
-            return rows.Any(x => !x.Values[name].Get<object>().Equals(defaultValue)) ?
-                CpkColumnStorage.Row :
-                CpkColumnStorage.Const;
+            var isDefault = rows.All(x => x.Values[name].IsDefault());
+
+            var constValue = rows[0].Values[name].Get<object>();
+            var isConst = rows.All(x => x.Values[name].Get<object>()?.Equals(constValue) ?? constValue == null);
+
+            // Check for downgrade from Default to Const or Row
+            if (column.Storage == CpkColumnStorage.Default && !isDefault)
+                return isConst ? CpkColumnStorage.Const : CpkColumnStorage.Row;
+
+            // Check for downgrade from Const
+            if (column.Storage == CpkColumnStorage.Const && !isConst)
+                return CpkColumnStorage.Row;
+
+            return column.Storage;
         }
 
         private int CalculateTableSize(IList<CpkColumnInfo> columns, IList<CpkRow> rows)
