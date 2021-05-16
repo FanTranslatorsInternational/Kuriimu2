@@ -6,6 +6,7 @@ using Komponent.Extensions;
 using Kryptography;
 using Kryptography.AES;
 using Kryptography.Blowfish;
+using Kryptography.InitCreates;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
@@ -86,7 +87,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     new ExtensionTypeParameter("LESectorId", typeof(bool)),
                     new ExtensionTypeParameter("SectorSize", typeof(int))),
                 new ExtensionType("Blowfish",true,
-                    new ExtensionTypeParameter("Key", typeof(string)))
+                    new ExtensionTypeParameter("Key", typeof(string))),
+                new ExtensionType("IntiCreates",false,
+                    new ExtensionTypeParameter("Password",typeof(string)))
             };
         }
 
@@ -146,6 +149,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "Blowfish":
                     return new BlowfishStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
+
+                case "IntiCreates":
+                    return new IntiCreatesStream(input,
+                        selectedExtension.GetParameterValue<string>("Password"));
 
                 // TODO: Plugin extensibility?
                 // TODO: Add nintendo NCA stream stuff
