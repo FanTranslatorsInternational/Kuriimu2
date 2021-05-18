@@ -83,7 +83,7 @@ namespace plugin_lemon_interactive.Archives
         /// <returns></returns>
         private bool IsContentChanged()
         {
-            return true; //Files.Any(x => x.ContentChanged);
+            return Files.Any(x => x.ContentChanged);
         }
     }
 }
