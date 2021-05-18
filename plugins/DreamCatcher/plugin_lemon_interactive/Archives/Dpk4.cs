@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Komponent.IO.Streams;
+using Kontract.Extensions;
 using Kontract.Models.Archive;
 
 namespace plugin_lemon_interactive.Archives
@@ -39,30 +40,26 @@ namespace plugin_lemon_interactive.Archives
         /// <param name="files"></param>
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            using var bw = new BinaryWriterX(output);
+            using var bw = new BinaryWriterX(output, true);
             var headerSize = Tools.MeasureType(typeof(Dpk4Header));
 
             // Jump to initial file offset
-            bw.BaseStream.Position = headerSize + files.Aggregate(0, (offset, file) =>
-            {
-                var path = file.FilePath.FullName[1..];
-                return offset + 16 + path.Length + 1 + ((path.Length + 1) % 4 == 0 ? 0 : 4 - (path.Length + 1) % 4);
-            });
+            bw.BaseStream.Position = headerSize + files.Aggregate(0, (offset, file) => (offset + 16 + file.FilePath.ToRelative().FullName.Length + 1 + 3) & ~3);
 
             // Write files
             var entries = new List<Dpk4FileEntry>();
             foreach (var file in files.Cast<ArchiveFileInfo>())
             {
-                var path = file.FilePath.FullName[1..].Replace("/", "\\");
-                var writtenSize = file.SaveFileData(output);
-                var entrySize = 16 + path.Length + 1 + ((path.Length + 1) % 4 == 0 ? 0 : 4 - (path.Length + 1) % 4);
+                var path = file.FilePath.ToRelative().FullName.Replace("/", "\\");
+                var fileOffset = (int)bw.BaseStream.Position;
+                var writtenSize = file.SaveFileData(bw.BaseStream);
 
                 entries.Add(new Dpk4FileEntry
                 {
-                    entrySize = entrySize,
+                    entrySize = (16 + path.Length + 1 + 3) & ~3,
                     size = (int)file.FileSize,
                     compressedSize = (int)writtenSize,
-                    offset = (int)bw.BaseStream.Position,
+                    offset = fileOffset,
                     fileName = path + "\0"
                 });
             }
