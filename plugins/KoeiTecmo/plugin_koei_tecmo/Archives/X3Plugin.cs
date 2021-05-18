@@ -20,7 +20,7 @@ namespace plugin_koei_tecmo.Archives
 
         public X3Plugin()
         {
-            Metadata = new PluginMetadata("X3", "onepiecefreak", "The X3 archive for games from Koei-Tecmo.");
+            Metadata = new PluginMetadata("X3", "onepiecefreak", "The main resource package in KoeiTecmo games.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
