@@ -40,7 +40,7 @@ namespace plugin_lemon_interactive.Archives
         /// <param name="files"></param>
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            using var bw = new BinaryWriterX(output, true);
+            using var bw = new BinaryWriterX(output);
             var headerSize = Tools.MeasureType(typeof(Dpk4Header));
 
             // Jump to initial file offset
