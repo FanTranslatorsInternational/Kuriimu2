@@ -58,6 +58,18 @@ namespace plugin_primula.Archives
             var pointerOffset = HeaderSize + (0x20 * files.Count);
             var dataOffset = HeaderSize + (0x20 * files.Count) + (files.Count * 8);
 
+            // Write header
+            var _header = new Pac2Header { fileCount = files.Count, };
+            bw.WriteType(_header);
+
+            // Write filenames
+            foreach (var file in files)
+            {
+                var fileName = Encoding.ASCII.GetBytes(file.FilePath.ToString().TrimStart('/'));                
+                bw.Write(fileName);
+                bw.WritePadding(0x20 - fileName.Length);
+            }
+
             // Write files
             var entries = new List<Pac2Entry>();
 
@@ -77,7 +89,11 @@ namespace plugin_primula.Archives
 
             // Write pointers
             output.Position = pointerOffset;
-            bw.WriteMultiple(entries);
+            foreach (var entry in entries)
+            {
+                bw.Write(entry.Position - dataOffset);
+                bw.Write(entry.Size);
+            }
         }
     }
 }
