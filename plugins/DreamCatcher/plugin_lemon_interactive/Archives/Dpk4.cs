@@ -40,39 +40,45 @@ namespace plugin_lemon_interactive.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
+            var headerSize = Tools.MeasureType(typeof(Dpk4Header));
 
-            // Calculate offsets
-            var fileOffset = (4 + files.Count * FileEntrySize + 0x3F) & ~0x3F;
+            // Jump to initial file offset
+            bw.BaseStream.Position = headerSize + files.Aggregate(0, (offset, file) =>
+            {
+                var path = file.FilePath.FullName[1..];
+                return offset + 16 + path.Length + 1 + ((path.Length + 1) % 4 == 0 ? 0 : 4 - (path.Length + 1) % 4);
+            });
 
             // Write files
             var entries = new List<Dpk4FileEntry>();
-
-            bw.BaseStream.Position = fileOffset;
             foreach (var file in files.Cast<ArchiveFileInfo>())
             {
-                fileOffset = (int)bw.BaseStream.Position;
+                var path = file.FilePath.FullName[1..].Replace("/", "\\");
                 var writtenSize = file.SaveFileData(output);
+                var entrySize = 16 + path.Length + 1 + ((path.Length + 1) % 4 == 0 ? 0 : 4 - (path.Length + 1) % 4);
 
-                if (file != files.Last())
-                    bw.WriteAlignment(0x40);
-
-                //var entry = new Dpk4FileEntry
-                //{
-                //    offset = fileOffset,
-                //    size = (uint)writtenSize,
-                //    compressedSize = (int)file.FileSize
-                //};
-                //if (file.UsesCompression)
-                //    entry.size |= 0x80000000;
-
-                //entries.Add(entry);
+                entries.Add(new Dpk4FileEntry
+                {
+                    entrySize = entrySize,
+                    size = (int)file.FileSize,
+                    compressedSize = (int)writtenSize,
+                    offset = (int)bw.BaseStream.Position,
+                    fileName = path + "\0"
+                });
             }
 
-            // Write entries
-            bw.BaseStream.Position = 0;
+            // Create header
+            var header = new Dpk4Header { fileSize = (uint)bw.BaseStream.Position };
 
-            bw.Write(files.Count);
+            // Write entries
+            bw.BaseStream.Position = headerSize;
             bw.WriteMultiple(entries);
+            header.fileTableSize = (int)bw.BaseStream.Position - headerSize;
+            header.fileCount = entries.Count;
+
+            // Header
+            bw.BaseStream.Position = 0;
+            bw.WriteType(header);
         }
 
         /// <summary>

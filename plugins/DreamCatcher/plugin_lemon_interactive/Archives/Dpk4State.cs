@@ -14,7 +14,7 @@ namespace plugin_lemon_interactive.Archives
     /// <summary>
     /// 
     /// </summary>
-    class Dpk4State : IArchiveState, ILoadFiles, /*ISaveFiles,*/ IReplaceFiles
+    class Dpk4State : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
         /// <summary>
         /// 
@@ -83,7 +83,7 @@ namespace plugin_lemon_interactive.Archives
         /// <returns></returns>
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return true; //Files.Any(x => x.ContentChanged);
         }
     }
 }
