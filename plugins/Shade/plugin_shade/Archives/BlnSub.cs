@@ -70,7 +70,7 @@ namespace plugin_shade.Archives
             // Every file not compressed with the headered Spike Chunsoft compression, is compressed headerless
             var compressionMagic = ShadeSupport.PeekInt32LittleEndian(stream);
             if (compressionMagic != 0xa755aafc)
-                return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.ShadeLzHeaderless, SpikeChunsoftHeaderlessDecoder.CalculateDecompressedSize(stream));
+                return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.ShadeLzHeaderless, ShadeLzHeaderlessDecoder.CalculateDecompressedSize(stream));
 
             stream.Position = 0;
             return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.ShadeLz, ShadeSupport.PeekDecompressedSize(stream));
