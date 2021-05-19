@@ -9,29 +9,28 @@ namespace plugin_atlus.Archives
 {
     class DsPspBin
     {
-        private static readonly int HeaderSize = Tools.MeasureType(typeof(DsPspBinHeader));
-        private static readonly int PointerSize = Tools.MeasureType(typeof(DsPspBinEntry));
-
-        private DsPspBinHeader _header;
-
         public IList<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true);
 
             // Read fileCount
-            _header = br.ReadType<DsPspBinHeader>();
+            int fileCount = br.ReadInt32();
 
             // Read pointers
-            int entryPosition = (_header.FileCount * PointerSize);
-            var entries = br.ReadMultiple<DsPspBinEntry>(_header.FileCount);
+            int entryPosition = fileCount * sizeof(int);
+            var sizeList = new List<int>();
+            for (int i = 0; i < fileCount; i++)
+            {
+                sizeList.Add(br.ReadInt32());
+            }
 
             // Add files
             var result = new List<IArchiveFileInfo>();
-            for (int i = 0; i < _header.FileCount; i++)
+            for (int i = 0; i < fileCount; i++)
             {
-                var fileStream = new SubStream(input, entryPosition, entries[i].Size);
-                string name = i.ToString("X8") + ".bin";
-                entryPosition += entries[i].Size;
+                var fileStream = new SubStream(input, entryPosition, sizeList[i]);
+                string name = $"{i:X8}.bin";
+                entryPosition += sizeList[i];
                 result.Add(new ArchiveFileInfo(fileStream, name));
             }
 
@@ -41,31 +40,25 @@ namespace plugin_atlus.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
+            int fileCount = files.Count;
 
             // Calculations
-            int entryPosition = (_header.FileCount * PointerSize);
+            int entryPosition = fileCount * sizeof(int);
 
             // Write fileCount
-            var header = new DsPspBinHeader { FileCount = files.Count };
-            bw.WriteType(header);
+            bw.Write(fileCount);
 
-            // Write sizes
-            var entries = new List<DsPspBinEntry>();
-
+            // Write data
             output.Position = entryPosition;
+            var sizeList = new List<int>();
             foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var writtenSize = file.SaveFileData(output);
-
-                entries.Add(new DsPspBinEntry
-                {                    
-                    Size = (int)writtenSize
-                });                
+                sizeList.Add((int)writtenSize);
             }
 
-            // Write pointers
             output.Position = 0x4;
-            bw.WriteMultiple<DsPspBinEntry>(entries);
+            bw.WriteMultiple(sizeList);
         }
     }
 }

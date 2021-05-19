@@ -7,13 +7,4 @@ using Komponent.IO.Attributes;
 
 namespace plugin_atlus.Archives
 {
-    class DsPspBinHeader
-    {        
-        public int FileCount;
-    }
-
-    class DsPspBinEntry
-    {        
-        public int Size;
-    }
 }
