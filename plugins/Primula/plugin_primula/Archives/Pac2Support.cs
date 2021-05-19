@@ -14,7 +14,7 @@ namespace plugin_primula.Archives
 
     class Pac2Entry
     {
-        public int Position { get; set; }
-        public int Size { get; set; }
+        public int Position;
+        public int Size;
     }
 }
