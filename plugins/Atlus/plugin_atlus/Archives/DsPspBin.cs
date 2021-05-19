@@ -18,11 +18,7 @@ namespace plugin_atlus.Archives
 
             // Read pointers
             int entryPosition = fileCount * sizeof(int);
-            var sizeList = new List<int>();
-            for (int i = 0; i < fileCount; i++)
-            {
-                sizeList.Add(br.ReadInt32());
-            }
+            var sizeList = br.ReadMultiple<int>(fileCount);
 
             // Add files
             var result = new List<IArchiveFileInfo>();
@@ -40,13 +36,12 @@ namespace plugin_atlus.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             using var bw = new BinaryWriterX(output);
-            int fileCount = files.Count;
 
             // Calculations
-            int entryPosition = fileCount * sizeof(int);
+            int entryPosition = files.Count * sizeof(int);
 
             // Write fileCount
-            bw.Write(fileCount);
+            bw.Write(files.Count);
 
             // Write data
             output.Position = entryPosition;
