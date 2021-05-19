@@ -50,7 +50,7 @@ namespace plugin_primula.Archives
             // Calculate offsets
             var fileNameOffset = HeaderSize;
             var pointerOffset = HeaderSize + (0x20 * files.Count);
-            var dataOffset = HeaderSize + (0x20 * files.Count) + (files.Count * 8);
+            var dataOffset = pointerOffset + (EntrySize * files.Count);
 
             // Write header
             var header = new Pac2Header { fileCount = files.Count };
