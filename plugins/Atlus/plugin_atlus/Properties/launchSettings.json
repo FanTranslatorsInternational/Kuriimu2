@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "plugin_atlus": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\principal\\Romhacking\\Programación\\Kuriimu2\\dist\\Debug\\netcoreapp31\\Kuriimu2.EtoForms.Wpf.exe",
+      "workingDirectory": "C:\\Users\\principal\\Romhacking\\Programación\\Kuriimu2\\dist\\Debug\\netcoreapp31"
+    }
+  }
+}
