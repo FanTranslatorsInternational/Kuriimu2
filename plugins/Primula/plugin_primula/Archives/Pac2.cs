@@ -21,14 +21,13 @@ namespace plugin_primula.Archives
             var header = br.ReadType<Pac2Header>();
 
             // Read entries
-            var entries = new List<Pac2Entry>();
             var fileNames = new List<string>();
             for (int i = 0; i < header.fileCount; i++)
             {
                 fileNames.Add(Encoding.ASCII.GetString(br.ReadBytes(0x20)).Trim('\0'));                
             }
 
-            br.ReadMultiple<Pac2Entry>(header.fileCount);
+            var entries = br.ReadMultiple<Pac2Entry>(header.fileCount);
             var dataOrigin = input.Position;
 
             // Add files
