@@ -22,7 +22,7 @@ namespace plugin_atlus.Archives
             _header = br.ReadType<DsPspBinHeader>();
 
             // Read pointers
-            int entryPosition = (_header.FileCount * PointerSize) + 0x8;
+            int entryPosition = (_header.FileCount * PointerSize);
             var entries = br.ReadMultiple<DsPspBinEntry>(_header.FileCount);
 
             // Add files
@@ -43,7 +43,7 @@ namespace plugin_atlus.Archives
             using var bw = new BinaryWriterX(output);
 
             // Calculations
-            int entryPosition = (_header.FileCount * PointerSize) + 0x8;
+            int entryPosition = (_header.FileCount * PointerSize);
 
             // Write fileCount
             var header = new DsPspBinHeader { FileCount = files.Count };
