@@ -11,6 +11,7 @@ namespace plugin_primula.Archives
     class Pac2
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(Pac2Header));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(Pac2Entry));
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
@@ -27,23 +28,17 @@ namespace plugin_primula.Archives
                 fileNames.Add(Encoding.ASCII.GetString(br.ReadBytes(0x20)).Trim('\0'));                
             }
 
-            for (int i = 0; i < header.fileCount; i++)
-            {
-                entries.Add(new Pac2Entry()
-                {
-                    Position = br.ReadInt32() + (HeaderSize + 0x20 * header.fileCount) + header.fileCount * 8,
-                    Size = br.ReadInt32(),
-                });
-            }
+            br.ReadMultiple<Pac2Entry>(header.fileCount);
+            var dataOrigin = input.Position;
 
             // Add files
             var result = new List<IArchiveFileInfo>();
             for (int i = 0; i < header.fileCount; i++)
             {
                 var name = fileNames[i];
-                var fileStream = new SubStream(input, entries[i].Position, entries[i].Size);
+                var fileStream = new SubStream(input, entries[i].Position + dataOrigin, entries[i].Size);
 
-                result.Add(new Pac2ArchiveFileInfo(fileStream, name));
+                result.Add(new ArchiveFileInfo(fileStream, name));
             }
 
             return result;
@@ -59,8 +54,8 @@ namespace plugin_primula.Archives
             var dataOffset = HeaderSize + (0x20 * files.Count) + (files.Count * 8);
 
             // Write header
-            var _header = new Pac2Header { fileCount = files.Count, };
-            bw.WriteType(_header);
+            var header = new Pac2Header { fileCount = files.Count };
+            bw.WriteType(header);
 
             // Write filenames
             foreach (var file in files)
@@ -74,26 +69,23 @@ namespace plugin_primula.Archives
             var entries = new List<Pac2Entry>();
 
             output.Position = dataOffset;
+            var basePos = 0;
             foreach (var file in files.Cast<ArchiveFileInfo>())
             {
                 var writtenSize = file.SaveFileData(output);
 
                 entries.Add(new Pac2Entry
                 {
-                    Position = dataOffset,
+                    Position = basePos,
                     Size = (int)writtenSize
                 });
 
-                dataOffset += (int)writtenSize;
+                basePos += (int)writtenSize;
             }
 
             // Write pointers
             output.Position = pointerOffset;
-            foreach (var entry in entries)
-            {
-                bw.Write(entry.Position - dataOffset);
-                bw.Write(entry.Size);
-            }
+            bw.WriteMultiple<Pac2Entry>(entries);            
         }
     }
 }
