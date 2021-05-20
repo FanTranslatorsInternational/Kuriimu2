@@ -20,11 +20,6 @@ namespace plugin_inti_creates.Images
         {
             input = new IntiCreatesCipherStream(input, "obj90210");
 
-            var f = File.OpenWrite(@"D:\Users\Kirito\Desktop\t.bin");
-            input.Position = 0;
-            input.CopyTo(f);
-            f.Close();
-
             // Decompress ZLib data
             var ms = new MemoryStream();
             Compressions.ZLib.Build().Decompress(new SubStream(input, 4, input.Length - 4), ms);
