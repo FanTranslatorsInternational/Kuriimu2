@@ -27,8 +27,13 @@ namespace plugin_cattle_call.Images
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            using var br=new BinaryReaderX(fileStream);
-            return br.ReadString(4) == "F3XT";
+            using var br = new BinaryReaderX(fileStream);
+            var magic1 = br.ReadString(4);
+
+            fileStream.Position++;
+            var magic2 = br.ReadString(4);
+
+            return magic1 == "F3XT" || magic2 == "F3XT";
         }
 
         public IPluginState CreatePluginState(IFileManager fileManager)
