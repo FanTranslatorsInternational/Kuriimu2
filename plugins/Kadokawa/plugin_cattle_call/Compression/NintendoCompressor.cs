@@ -41,6 +41,11 @@ namespace plugin_cattle_call.Compression
             return (NintendoCompressionMethod)method;
         }
 
+        public static bool IsValidCompressionMethod(NintendoCompressionMethod method)
+        {
+            return Enum.IsDefined(typeof(NintendoCompressionMethod), method);
+        }
+
         public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)
         {
             switch (method)
