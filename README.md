@@ -23,20 +23,10 @@ Just select the latest successful build and download its artifact.
 You need to be logged in at github to download artifacts from a successful build.<br>
 Those builds are considered beta and can contain bugs and unfinished features.
 
-## Usage
-Kuriimu2 consists of many libraries and user interfaces. A build from "Actions" contains a ready-to-run GUI for you to execute.
+## Wiki
+For documentation on developing for Kuriimu2, like creating plugins, or an explanation of our general archiveitecture,<br>
+please refer to our [Wiki](https://github.com/FanTranslatorsInternational/Kuriimu2/wiki).
 
-## Status
-![Kuriimu2 EtoForms](https://github.com/FanTranslatorsInternational/Kuriimu2/workflows/Kuriimu2%20EtoForms/badge.svg?branch=master&event=push)
-
-### Architecture
-1. Kontract - The main API host for all interfaces and base classes. Defines interfaces like ITextAdapter, IFontAdapter, ILoadFiles, etc...
-1. Komponent - A series of tools used by plugins, Kore and sometimes the UI, contains BinaryReader/WriterX and a bunch of other utility classes and helpers.
-1. Kanvas - The image library. Handles all things images, ETC1/A4, DXT, PVRTC, ATC, IndexedColor, etc...
-1. Kryptography - Contains all compression, encryption, and hashing classes.
-1. Kore - The main API that the UI and CLI uses to load plugins and do all Plugin-bound functions. Batch import/export and other features.
-1. Kuriimu2 - The UI that is the main user-side program.
-
-### Plugins
-* Plugins currently make use of a dev-side nuget package that contains all five of the main libraries.
-  * The libraries will be separated later on down the road.
+## Known issues
+### Linux
+1. Drag&Drop is currently unsupported on various ArchLinux distributions, including Manjaro.

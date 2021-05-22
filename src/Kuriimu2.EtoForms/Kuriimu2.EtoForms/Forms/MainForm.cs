@@ -96,6 +96,8 @@ namespace Kuriimu2.EtoForms.Forms
         {
             InitializeComponent();
 
+            Application.Instance.UnhandledException += MainForm_UnhandledException;
+
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
@@ -144,6 +146,12 @@ namespace Kuriimu2.EtoForms.Forms
             includeDevBuildCommand.Executed += IncludeDevBuildCommand_Executed;
 
             #endregion
+        }
+
+        private void MainForm_UnhandledException(object sender, Eto.UnhandledExceptionEventArgs e)
+        {
+            _logger.Fatal((Exception)e.ExceptionObject, "An unhandled exception occurred.");
+            ReportStatus(false,"Unhandled exception caught. Refer to the log for more information.");
         }
 
         #region Open File
