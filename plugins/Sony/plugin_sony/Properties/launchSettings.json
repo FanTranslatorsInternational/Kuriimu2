@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "plugin_sony": {
+      "commandName": "Executable",
+      "executablePath": "D:\\Users\\Kirito\\Desktop\\Kuriimu2\\dist\\Debug\\netcoreapp31\\Kuriimu2.EtoForms.Wpf.exe",
+      "workingDirectory": "D:\\Users\\Kirito\\Desktop\\Kuriimu2\\dist\\Debug\\netcoreapp31"
+    }
+  }
+}

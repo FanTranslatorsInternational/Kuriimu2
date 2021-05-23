@@ -51,7 +51,7 @@ namespace plugin_sony.Archives.PSARC
             try
             {
                 using var br = new BinaryReaderX(fileStream, ByteOrder.BigEndian);
-                var header = br.ReadType<Header>();
+                var header = br.ReadType<PsarcHeader>();
                 isPsarc = header.Magic == "PSAR" && (header.Compression == "zlib" || header.Compression == "lzma");
             }
             catch (Exception) { }

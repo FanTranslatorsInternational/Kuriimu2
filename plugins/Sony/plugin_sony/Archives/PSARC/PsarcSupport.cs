@@ -1,5 +1,6 @@
 ﻿using Komponent.IO.Attributes;
 using Kontract.Models.Archive;
+using Kontract.Models.IO;
 
 namespace plugin_sony.Archives.PSARC
 {
@@ -24,7 +25,7 @@ namespace plugin_sony.Archives.PSARC
     /// <summary>
     /// 
     /// </summary>
-    public class Header
+    public class PsarcHeader
     {
         [FixedLength(4)]
         public string Magic;
@@ -44,7 +45,9 @@ namespace plugin_sony.Archives.PSARC
     /// <summary>
     /// 
     /// </summary>
-    public sealed class Entry
+    [BitFieldInfo(BlockSize = 1)]
+    [Endianness(ByteOrder = ByteOrder.BigEndian)]
+    public sealed class PsarcEntry
     {
         [FixedLength(16)]
         public byte[] MD5Hash;
