@@ -210,7 +210,7 @@ namespace Kore.Managers.Plugins.FileManagement
             }
             catch (Exception e)
             {
-                loadInfo.Logger?.Fatal(e, "The plugin state for '{0}' could not be loaded.", plugin.PluginId);
+                loadInfo.Logger?.Fatal(e, "The plugin state for {0} could not be loaded.", plugin.PluginId);
                 return new LoadResult(e);
             }
 

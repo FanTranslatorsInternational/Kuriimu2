@@ -148,12 +148,6 @@ namespace Kuriimu2.EtoForms.Forms
             #endregion
         }
 
-        private void MainForm_UnhandledException(object sender, Eto.UnhandledExceptionEventArgs e)
-        {
-            _logger.Fatal((Exception)e.ExceptionObject, "An unhandled exception occurred.");
-            ReportStatus(false,"Unhandled exception caught. Refer to the log for more information.");
-        }
-
         #region Open File
 
         private void openFileCommand_Executed(object sender, EventArgs e)
@@ -660,6 +654,16 @@ namespace Kuriimu2.EtoForms.Forms
                 e.Cancel = true;
                 break;
             }
+        }
+
+        private void MainForm_UnhandledException(object sender, Eto.UnhandledExceptionEventArgs e)
+        {
+            _logger.Fatal((Exception)e.ExceptionObject, "An unhandled exception occurred.");
+
+            if (e.IsTerminating)
+                MessageBox.Show("An unhandled exception occurred. Refer to the log for more information. The application will be closed.", "Unhandled exception", MessageBoxType.Error);
+            else
+                ReportStatus(false, "Unhandled exception occurred. Refer to the log for more information.");
         }
 
         #endregion
