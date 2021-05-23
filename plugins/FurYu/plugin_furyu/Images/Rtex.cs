@@ -30,7 +30,7 @@ namespace plugin_alchemist.Images
 
             // Create image info
             var imageInfo = new ImageInfo(decompStream.ToArray(), _header.format, new Size(_header.width, _header.height));
-            imageInfo.PadSize.ToMultiple(8);
+            imageInfo.PadSize.ToPowerOfTwo();
 
             imageInfo.RemapPixels.With(context => new CtrSwizzle(context, CtrTransformation.YFlip));
 

@@ -41,6 +41,7 @@ namespace plugin_alchemist.Images
         private static readonly IDictionary<int, IColorEncoding> Formats = new Dictionary<int, IColorEncoding>
         {
             [0x04] = ImageFormats.Rgba8888(),
+            [0x1F] = ImageFormats.Rgb565(),
             [0x34] = ImageFormats.La44()
         };
 

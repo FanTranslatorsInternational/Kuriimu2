@@ -76,7 +76,7 @@ jobs:
       
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/Alchemist/Alchemist.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
