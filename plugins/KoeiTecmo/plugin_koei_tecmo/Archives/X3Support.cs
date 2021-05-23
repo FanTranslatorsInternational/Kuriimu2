@@ -66,9 +66,12 @@ namespace plugin_koei_tecmo.Archives
         private const int BlockSize_ = 0x8000;
 
         private static readonly ICompression ZLib = Compressions.ZLib.Build();
-        private readonly Stream _baseStream;
-        private readonly IList<Stream> _blocks;
 
+        private readonly byte[] _buffer = new byte[4];
+        private readonly Stream _baseStream;
+        private readonly Stream _decompBuffer;
+
+        private IList<Stream> _blocks;
         private long _position;
 
         public override bool CanRead => _baseStream.CanRead;
@@ -80,6 +83,9 @@ namespace plugin_koei_tecmo.Archives
         public X3CompressedStream(Stream baseStream)
         {
             _baseStream = baseStream;
+            _decompBuffer = new MemoryStream();
+
+            EnsureBlocks();
 
             using var br = new BinaryReaderX(baseStream, true);
             var bkPos = baseStream.Position;
@@ -132,6 +138,11 @@ namespace plugin_koei_tecmo.Archives
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+            if (_position >= Length)
+                return 0;
+
+            EnsureBlocks();
+
             var origPosition = _position;
             count = (int)Math.Min(count, Length - _position);
 
@@ -146,14 +157,14 @@ namespace plugin_koei_tecmo.Archives
                 var length = Math.Min(Math.Min(count, BlockSize_ - blockPosition), BlockSize_);
 
                 // Decompress block
-                var decompStream = new MemoryStream();
-
                 _blocks[block].Position = 0;
-                ZLib.Decompress(_blocks[block], decompStream);
+                _decompBuffer.Position = 0;
 
-                length = (int)Math.Min(length, decompStream.Length);
-                decompStream.Position = blockPosition;
-                decompStream.Read(buffer, offset, length);
+                ZLib.Decompress(_blocks[block], _decompBuffer);
+
+                length = (int)Math.Min(length, _decompBuffer.Position);
+                _decompBuffer.Position = 0;
+                _decompBuffer.Read(buffer, offset, length);
 
                 // Update values
                 count -= length;
@@ -167,6 +178,30 @@ namespace plugin_koei_tecmo.Archives
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotSupportedException();
+        }
+
+        private void EnsureBlocks()
+        {
+            if (_blocks != null)
+                return;
+
+            var bkPos = _baseStream.Position;
+            _baseStream.Position = 4;
+
+            // Read compressed blocks
+            _blocks = new List<Stream>();
+            while (_baseStream.Position < _baseStream.Length)
+            {
+                _baseStream.Read(_buffer);
+                var blockSize = BinaryPrimitives.ReadInt32LittleEndian(_buffer);
+                if (blockSize == 0)
+                    break;
+
+                _blocks.Add(new SubStream(_baseStream, _baseStream.Position, blockSize));
+                _baseStream.Position += blockSize;
+            }
+
+            _baseStream.Position = bkPos;
         }
 
         public static Stream Compress(Stream input)
@@ -198,9 +233,10 @@ namespace plugin_koei_tecmo.Archives
 
                 result.Position = endPos;
                 count -= length;
+                input.Position += length;
             }
 
-            BinaryPrimitives.WriteInt32LittleEndian(buffer,0);
+            BinaryPrimitives.WriteInt32LittleEndian(buffer, 0);
             result.Write(buffer);
 
             result.Position = 0;
