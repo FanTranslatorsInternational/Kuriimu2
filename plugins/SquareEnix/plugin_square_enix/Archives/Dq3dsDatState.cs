@@ -11,16 +11,16 @@ using Kontract.Models.IO;
 
 namespace plugin_square_enix.Archives
 {
-    class Dq3DatState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class Dq3dsDatState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private Dq3Dat _arc;
+        private Dq3dsDat _arc;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
         public bool ContentChanged => IsContentChanged();
 
-        public Dq3DatState()
+        public Dq3dsDatState()
         {
-            _arc = new Dq3Dat();
+            _arc = new Dq3dsDat();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,14 +12,29 @@ using Kryptography;
 
 namespace plugin_square_enix.Archives
 {
-    class Dq3Dat
+    class Dq3dsDat
     {
-        private static readonly byte[] Key = { 0x4E, 0x69, 0x29, 0x75 };
+        /* Dq1: 46786315
+         * Dq2: 46786315
+         * Dq3: 4E692975
+         */
+        private static readonly byte[][] Keys =
+        {
+            new byte[] {0x46, 0x78, 0x63, 0x15},
+            new byte[] {0x4E, 0x69, 0x29, 0x75}
+        };
+
+        private byte[] _selectedKey;
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
+            // Determine key
+            _selectedKey = DetermineKey(input);
+            if (_selectedKey == null)
+                throw new InvalidOperationException("Key could not be determined automatically.");
+
             // Wrap decryption
-            input = new XorStream(input, Key);
+            input = new XorStream(input, _selectedKey);
 
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -46,6 +62,9 @@ namespace plugin_square_enix.Archives
                 var name = names[i];
                 var size = sizes[i];
 
+                if (result.Any(x => x.FilePath.ToRelative().FullName == name))
+                    continue;
+
                 result.Add(new ArchiveFileInfo(new SubStream(input, offset, size), name));
 
                 offset += size;
@@ -57,7 +76,7 @@ namespace plugin_square_enix.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             // Wrap encryption
-            output = new XorStream(output, Key);
+            output = new XorStream(output, _selectedKey);
 
             using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
 
@@ -85,6 +104,20 @@ namespace plugin_square_enix.Archives
                 bw.Write((short)Encoding.UTF8.GetByteCount(name));
                 bw.WriteString(name, Encoding.UTF8, false, false);
             }
+        }
+
+        private byte[] DetermineKey(Stream input)
+        {
+            foreach (var key in Keys)
+            {
+                using var xorStream = new XorStream(input, key) { Position = 2 };
+                var value = xorStream.ReadByte();
+
+                if (value == 0)
+                    return key;
+            }
+
+            return null;
         }
     }
 }
