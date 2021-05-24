@@ -14,24 +14,21 @@ namespace Kuriimu2.Cmd.Contexts
 {
     abstract class BaseFileContext : BaseContext
     {
-        protected IInternalPluginManager PluginManager { get; }
-
-        protected IProgressContext Progress { get; }
+        protected IInternalFileManager PluginManager { get; }
 
         protected ContextNode ContextNode { get; }
 
-        public BaseFileContext(IInternalPluginManager pluginManager, IProgressContext progressContext) :
+        protected BaseFileContext(IInternalFileManager pluginManager, IProgressContext progressContext) :
             base(progressContext)
         {
             ContractAssertions.IsNotNull(progressContext, nameof(progressContext));
 
             PluginManager = pluginManager;
-            Progress = progressContext;
 
             ContextNode = new ContextNode();
         }
 
-        public BaseFileContext(IInternalPluginManager pluginManager, ContextNode parentContextNode, IProgressContext progressContext) :
+        protected BaseFileContext(IInternalFileManager pluginManager, ContextNode parentContextNode, IProgressContext progressContext) :
             base(progressContext)
         {
             PluginManager = pluginManager;
@@ -131,13 +128,13 @@ namespace Kuriimu2.Cmd.Contexts
                 return this;
             }
 
-            if (loadResult.LoadedState.PluginState is IHexState)
+            if (loadResult.LoadedFileState.PluginState is IHexState)
             {
                 Console.WriteLine("No plugin supports this file.");
                 return this;
             }
 
-            var newNode = ContextNode.Add(this, loadResult.LoadedState);
+            var newNode = ContextNode.Add(this, loadResult.LoadedFileState);
 
             Console.WriteLine($"Loaded '{fileArgument}' successfully.");
 
@@ -182,7 +179,7 @@ namespace Kuriimu2.Cmd.Contexts
             return SaveFileInternal(selectedState, savePathArgument);
         }
 
-        private async Task SaveFileInternal(IStateInfo selectedState, string savePathArgument)
+        private async Task SaveFileInternal(IFileState selectedState, string savePathArgument)
         {
             if (!(selectedState.PluginState is ISaveFiles))
             {
@@ -309,7 +306,7 @@ namespace Kuriimu2.Cmd.Contexts
         private ContextNode _parentNode;
         private IContext _parentContext;
 
-        public IStateInfo StateInfo { get; }
+        public IFileState StateInfo { get; }
 
         public IContext RootContext => GetRootContext();
 
@@ -320,7 +317,7 @@ namespace Kuriimu2.Cmd.Contexts
             Children = new List<ContextNode>();
         }
 
-        private ContextNode(IContext parentContext, ContextNode parentNode, IStateInfo parentState) : this()
+        private ContextNode(IContext parentContext, ContextNode parentNode, IFileState parentState) : this()
         {
             ContractAssertions.IsNotNull(parentContext, nameof(parentContext));
             ContractAssertions.IsNotNull(parentNode, nameof(parentNode));
@@ -331,7 +328,7 @@ namespace Kuriimu2.Cmd.Contexts
             StateInfo = parentState;
         }
 
-        public ContextNode Add(IContext parentContext, IStateInfo stateInfo)
+        public ContextNode Add(IContext parentContext, IFileState stateInfo)
         {
             var newNode = new ContextNode(parentContext, this, stateInfo);
             Children.Add(newNode);

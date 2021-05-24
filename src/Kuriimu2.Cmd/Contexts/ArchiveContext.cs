@@ -18,7 +18,7 @@ namespace Kuriimu2.Cmd.Contexts
 {
     class ArchiveContext : BaseFileContext
     {
-        private readonly IStateInfo _stateInfo;
+        private readonly IFileState _stateInfo;
         private readonly IArchiveState _archiveState;
         private readonly IFileSystem _archiveFileSystem;
         private readonly IContext _parentContext;
@@ -39,7 +39,7 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back-to-main")
         };
 
-        public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalPluginManager pluginManager, IProgressContext progressContext) :
+        public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalFileManager pluginManager, IProgressContext progressContext) :
             base(pluginManager, contextNode, progressContext)
         {
             ContractAssertions.IsNotNull(contextNode, nameof(contextNode));

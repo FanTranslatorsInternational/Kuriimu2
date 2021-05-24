@@ -22,7 +22,7 @@ namespace Kuriimu2.Cmd.Contexts
                 Console.WriteLine($"{command.Name} {string.Join(' ', command.Arguments.Select(x => $"[{x}]"))}");
         }
 
-        public BaseContext(IProgressContext progressContext)
+        protected BaseContext(IProgressContext progressContext)
         {
             ContractAssertions.IsNotNull(progressContext,nameof(progressContext));
 

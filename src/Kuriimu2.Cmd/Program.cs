@@ -37,7 +37,7 @@ namespace Kuriimu2.Cmd
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
             var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
             var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-            var pluginManager = new PluginManager("plugins")
+            var pluginManager = new FileManager("plugins")
             {
                 DialogManager = dialogManager,
                 Progress = progressContext,

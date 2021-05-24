@@ -25,7 +25,7 @@ namespace Kuriimu2.Cmd.Contexts
             new Command("back")
         };
 
-        public ExtensionContext(IInternalPluginManager pluginManager, IContext parentContext, IProgressContext progressContext) :
+        public ExtensionContext(IInternalFileManager pluginManager, IContext parentContext, IProgressContext progressContext) :
             base(progressContext)
         {
             ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
@@ -68,8 +68,8 @@ namespace Kuriimu2.Cmd.Contexts
                 }
             }
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, new StreamManager());
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, new StreamManager());
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(directory.FullName, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(directory.FullName, new StreamManager());
 
             _batchExtractor.ScanSubDirectories = true;
             _batchExtractor.PluginId = pluginId;
