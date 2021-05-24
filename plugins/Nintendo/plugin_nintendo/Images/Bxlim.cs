@@ -144,6 +144,9 @@ namespace plugin_nintendo.Images
                 ? (IImageSwizzle)new CtrSwizzle(context, (CtrTransformation)_bflimHeader.swizzleTileMode)
                 : new CafeSwizzle(context, _bflimHeader.swizzleTileMode));
 
+            if (IsCtr)
+                imageInfo.PadSize.ToPowerOfTwo();
+
             return imageInfo;
         }
     }
