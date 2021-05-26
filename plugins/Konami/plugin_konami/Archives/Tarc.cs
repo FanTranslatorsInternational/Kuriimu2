@@ -13,6 +13,7 @@ namespace plugin_konami.Archives
     class Tarc
     {
         private TarcHeader _header;
+        private bool _hasNames;
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
@@ -20,6 +21,7 @@ namespace plugin_konami.Archives
 
             // Read header
             _header = br.ReadType<TarcHeader>();
+            _hasNames = _header.nameOffset != 0;
 
             // Read entries
             input.Position = _header.entryOffset;
@@ -27,12 +29,18 @@ namespace plugin_konami.Archives
 
             // Add files
             var result = new List<IArchiveFileInfo>();
-            foreach (var entry in entries)
+            for (var i = 0; i < _header.fileCount; i++)
             {
+                var entry = entries[i];
+
                 var subStream = new SubStream(input, entry.fileOffset, entry.compSize);
 
-                input.Position = entry.nameOffset;
-                var fileName = br.ReadCStringASCII();
+                var fileName = $"{i:00000000}.bin";
+                if (_hasNames)
+                {
+                    input.Position = entry.nameOffset;
+                    fileName = br.ReadCStringASCII();
+                }
 
                 result.Add(CreateAfi(subStream, fileName, entry));
             }
@@ -59,8 +67,9 @@ namespace plugin_konami.Archives
 
             // Calculate offsets
             var entryOffset = 0x30;
-            var stringOffset = entryOffset + files.Count * 0x20;
-            var fileOffset = (stringOffset + stringMap.Keys.Sum(x => x.Length + 1) + 0xF) & ~0xF;
+            var entrySize = files.Count * 0x20;
+            var stringOffset = _hasNames ? entryOffset + entrySize : 0;
+            var fileOffset = _hasNames ? (stringOffset + stringMap.Keys.Sum(x => x.Length + 1) + 0xF) & ~0xF : entryOffset + entrySize;
 
             // Write files
             var entries = new List<TarcEntry>();
@@ -75,17 +84,20 @@ namespace plugin_konami.Archives
                 file.Entry.fileOffset = filePosition;
                 file.Entry.compSize = (int)writtenSize;
                 file.Entry.decompSize = (int)file.FileSize;
-                file.Entry.nameOffset = stringMap[file.FilePath.ToRelative().FullName]+stringOffset;
+                file.Entry.nameOffset = _hasNames ? stringMap[file.FilePath.ToRelative().FullName] + stringOffset : 0;
                 entries.Add(file.Entry);
 
                 filePosition += (int)((writtenSize + 0xF) & ~0xF);
             }
 
             // Write strings
-            output.Position = stringOffset;
-            foreach (var name in stringMap.Keys)
-                bw.WriteString(name, Encoding.ASCII, false);
-            var stringSecSize = (int)output.Position - stringOffset;
+            if (_hasNames)
+            {
+                output.Position = stringOffset;
+                foreach (var name in stringMap.Keys)
+                    bw.WriteString(name, Encoding.ASCII, false);
+            }
+            var stringSecSize = _hasNames ? (int)output.Position - stringOffset : 0;
 
             // Write entries
             output.Position = entryOffset;

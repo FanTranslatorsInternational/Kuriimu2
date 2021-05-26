@@ -13,11 +13,14 @@ namespace plugin_konami.Archives
         public int fileSize;
         public int fileCount;
         public int unk1;
+
         public int unk2;
         public int entryOffset;
         public int entrySecSize;
         public int nameOffset;
+
         public int nameSecSize;
+        public int unk3;
     }
 
     [Alignment(0x10)]
