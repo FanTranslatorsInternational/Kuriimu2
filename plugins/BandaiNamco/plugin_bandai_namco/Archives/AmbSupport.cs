@@ -87,6 +87,9 @@ namespace plugin_bandai_namco.Archives
             if (magicSamples.Any(x => x.Contains("#AMB")))
                 return ".amb";
 
+            if (magicSamples.Any(x => x.Contains("CGFX")))
+                return ".cgfx";
+
             return ".bin";
         }
 
