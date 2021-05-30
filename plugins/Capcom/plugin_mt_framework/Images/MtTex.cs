@@ -19,6 +19,8 @@ namespace plugin_mt_framework.Images
         private MtTexHeader _header;
         private MobileMtTexHeader _mobileHeader;
 
+        private byte[] _unkRegion;
+
         public IList<ImageInfo> Load(Stream input, MtTexPlatform platform)
         {
             _platform = platform;
@@ -40,10 +42,10 @@ namespace plugin_mt_framework.Images
                     return new[] { LoadWii(br) };
 
                 case MtTexPlatform.N3DS:
-                    return new[] { Load3ds(br) };
+                    return Load3ds(br);
 
                 case MtTexPlatform.PS3:
-                    return new[] { LoadPs3(br) };
+                    return LoadPs3(br);
 
                 case MtTexPlatform.Switch:
                     return new[] { LoadSwitch(br) };
@@ -64,11 +66,11 @@ namespace plugin_mt_framework.Images
             switch (_platform)
             {
                 case MtTexPlatform.N3DS:
-                    Save3ds(bw, imageInfos[0]);
+                    Save3ds(bw, imageInfos);
                     break;
 
                 case MtTexPlatform.PS3:
-                    SavePs3(bw, imageInfos[0]);
+                    SavePs3(bw, imageInfos);
                     break;
 
                 case MtTexPlatform.Switch:
@@ -90,75 +92,92 @@ namespace plugin_mt_framework.Images
             // TODO: Those TEX are just a container for the bres format by Nintendo (http://wiki.tockdom.com/wiki/BRRES_(File_Format))
         }
 
-        private ImageInfo Load3ds(BinaryReaderX br)
+        private IList<ImageInfo> Load3ds(BinaryReaderX br)
         {
+            var dataOffset = HeaderSize_;
+            var bitDepth = MtTexSupport.CtrFormats[_header.format].BitDepth;
+
+            // Skip unknown region (assume region to be 0x6C)
+            if (_header.unk1 == 0x40)
+            {
+                _unkRegion = br.ReadBytes(0x6C);
+                dataOffset += 0x6C;
+            }
+
             // Skip mip offsets
             IList<int> mipOffsets = Array.Empty<int>();
             if (_header.version != 0xA4)
-                mipOffsets = br.ReadMultiple<int>(_header.mipCount);
-
-            // Read image data
-            var bitDepth = MtTexSupport.CtrFormats[_header.format].BitDepth;
-            var dataSize = _header.width * _header.height * bitDepth / 8;
-
-            if (_header.version != 0xA4) br.BaseStream.Position = HeaderSize_ + _header.mipCount * 4 + mipOffsets[0];
-            var imageData = br.ReadBytes(dataSize);
-
-            // Read mips
-            var mipData = new List<byte[]>();
-            for (var i = 1; i < _header.mipCount; i++)
             {
-                var mipSize = (_header.width >> i) * (_header.height >> i) * bitDepth / 8;
-
-                if (_header.version != 0xA4) br.BaseStream.Position = HeaderSize_ + _header.mipCount * 4 + mipOffsets[i];
-                mipData.Add(br.ReadBytes(mipSize));
+                mipOffsets = br.ReadMultiple<int>(_header.mipCount * _header.imgCount);
+                dataOffset += _header.mipCount * _header.imgCount * 4;
             }
 
-            // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
+            // Read images
+            var imageInfos = new List<ImageInfo>();
+            for (var i = 0; i < _header.imgCount; i++)
+            {
+                // Read mips
+                var mipData = new List<byte[]>();
+                for (var m = 0; m < _header.mipCount; m++)
+                {
+                    var mipSize = (_header.width >> m) * (_header.height >> m) * bitDepth / 8;
 
-            if (_header.mipCount > 1)
-                imageInfo.MipMapData = mipData;
+                    if (_header.version != 0xA4)
+                        br.BaseStream.Position = dataOffset + mipOffsets[i * _header.mipCount + m];
 
-            imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
+                    mipData.Add(br.ReadBytes(mipSize));
+                }
 
-            return imageInfo;
+                // Create image info
+                var imageInfo = new ImageInfo(mipData[0], _header.format, new Size(_header.width, _header.height));
+
+                if (_header.mipCount > 1)
+                    imageInfo.MipMapData = mipData.Skip(1).ToArray();
+
+                imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
+
+                imageInfos.Add(imageInfo);
+            }
+
+            return imageInfos;
         }
 
-        private ImageInfo LoadPs3(BinaryReaderX br)
+        private IList<ImageInfo> LoadPs3(BinaryReaderX br)
         {
+            var bitDepth = MtTexSupport.Ps3Formats[_header.format].BitDepth;
+            var colorsPerValue = MtTexSupport.Ps3Formats[_header.format].ColorsPerValue;
+
             // Skip mip offsets
             var mipOffsets = br.ReadMultiple<int>(_header.mipCount);
 
-            // Read image data
-            var bitDepth = MtTexSupport.Ps3Formats[_header.format].BitDepth;
-            var colorsPerValue = MtTexSupport.Ps3Formats[_header.format].ColorsPerValue;
-            var dataSize = _header.width * _header.height * bitDepth / 8;
-
-            br.BaseStream.Position = mipOffsets[0];
-            var imageData = br.ReadBytes(dataSize);
-
-            // Read mips
-            var mipData = new List<byte[]>();
-            for (var i = 1; i < _header.mipCount; i++)
+            // Read images
+            var imageInfos = new List<ImageInfo>();
+            for (var i = 0; i < _header.imgCount; i++)
             {
-                var mipSize = (_header.width >> i) * (_header.height >> i) * bitDepth / 8;
+                // Read mips
+                var mipData = new List<byte[]>();
+                for (var m = 1; m < _header.mipCount; m++)
+                {
+                    var mipSize = (_header.width >> m) * (_header.height >> m) * bitDepth / 8;
 
-                br.BaseStream.Position = mipOffsets[i];
-                mipData.Add(br.ReadBytes(mipSize));
+                    br.BaseStream.Position = mipOffsets[i * _header.mipCount + m];
+                    mipData.Add(br.ReadBytes(mipSize));
+                }
+
+                // Create image info
+                var imageInfo = new ImageInfo(mipData[0], _header.format, new Size(_header.width, _header.height));
+
+                if (_header.mipCount > 1)
+                    imageInfo.MipMapData = mipData.Skip(1).ToArray();
+
+                // TODO: Remove block swizzle with pre-swizzle implementation in Kanvas
+                if (colorsPerValue > 1)
+                    imageInfo.RemapPixels.With(context => new BcSwizzle(context));
+
+                imageInfos.Add(imageInfo);
             }
 
-            // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
-
-            if (_header.mipCount > 1)
-                imageInfo.MipMapData = mipData;
-
-            // TODO: Remove block swizzle with pre-swizzle implementation in Kanvas
-            if (colorsPerValue > 1)
-                imageInfo.RemapPixels.With(context => new BcSwizzle(context));
-
-            return imageInfo;
+            return imageInfos;
         }
 
         private ImageInfo LoadSwitch(BinaryReaderX br)
@@ -254,69 +273,101 @@ namespace plugin_mt_framework.Images
 
         #region Save
 
-        private void Save3ds(BinaryWriterX bw, ImageInfo imageInfo)
+        private void Save3ds(BinaryWriterX bw, IList<ImageInfo> imageInfos)
         {
+            // Check for image information being equal
+            if (imageInfos.Select(x => x.ImageFormat).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to be in the same image encoding.");
+            if (imageInfos.Select(x => x.ImageSize).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to have the same dimensions.");
+
             bw.BaseStream.Position = HeaderSize_;
+
+            // Write unknown region
+            if (_unkRegion != null)
+                bw.Write(_unkRegion);
 
             // Write mip offsets
             if (_header.version != 0xA4)
             {
                 var mipPosition = 0;
-                bw.Write(mipPosition);
-                mipPosition += imageInfo.ImageData.Length;
+                foreach (var imageInfo in imageInfos)
+                {
+                    bw.Write(mipPosition);
+                    mipPosition += imageInfo.ImageData.Length;
 
-                if (imageInfo.MipMapCount > 1)
+                    if (imageInfo.MipMapCount <= 0)
+                        continue;
+
                     foreach (var mipData in imageInfo.MipMapData)
                     {
                         bw.Write(mipPosition);
                         mipPosition += mipData.Length;
                     }
+                }
             }
 
             // Write image data
-            bw.Write(imageInfo.ImageData);
+            foreach (var imageInfo in imageInfos)
+            {
+                bw.Write(imageInfo.ImageData);
 
-            foreach (var mipData in imageInfo.MipMapData)
-                bw.Write(mipData);
+                foreach (var mipData in imageInfo.MipMapData)
+                    bw.Write(mipData);
+            }
 
             // Update header
-            _header.format = (byte)imageInfo.ImageFormat;
-            _header.width = (short)imageInfo.ImageSize.Width;
-            _header.height = (short)imageInfo.ImageSize.Height;
-            _header.mipCount = (byte)(imageInfo.MipMapCount + 1);
+            _header.format = (byte)imageInfos[0].ImageFormat;
+            _header.width = (short)imageInfos[0].ImageSize.Width;
+            _header.height = (short)imageInfos[0].ImageSize.Height;
+            _header.mipCount = (byte)(imageInfos[0].MipMapCount + 1);
 
             // Write header
             bw.BaseStream.Position = 0;
             bw.WriteType(_header);
         }
 
-        private void SavePs3(BinaryWriterX bw, ImageInfo imageInfo)
+        private void SavePs3(BinaryWriterX bw, IList<ImageInfo> imageInfos)
         {
+            // Check for image information being equal
+            if (imageInfos.Select(x => x.ImageFormat).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to be in the same image encoding.");
+            if (imageInfos.Select(x => x.ImageSize).Distinct().Count() > 1)
+                throw new InvalidOperationException("All images have to have the same dimensions.");
+
             bw.BaseStream.Position = HeaderSize_;
 
             // Write mip offsets
-            var mipPosition = HeaderSize_ + (imageInfo.MipMapCount + 1) * 4;
-            bw.Write(mipPosition);
-            mipPosition += imageInfo.ImageData.Length;
+            var mipPosition = HeaderSize_ + (imageInfos.Count + imageInfos.Sum(x => x.MipMapCount)) * 4;
+            foreach (var imageInfo in imageInfos)
+            {
+                bw.Write(mipPosition);
+                mipPosition += imageInfo.ImageData.Length;
 
-            if (imageInfo.MipMapCount > 1)
+                if (imageInfo.MipMapCount <= 0)
+                    continue;
+
                 foreach (var mipData in imageInfo.MipMapData)
                 {
                     bw.Write(mipPosition);
                     mipPosition += mipData.Length;
                 }
+            }
 
             // Write image data
-            bw.Write(imageInfo.ImageData);
+            foreach (var imageInfo in imageInfos)
+            {
+                bw.Write(imageInfo.ImageData);
 
-            foreach (var mipData in imageInfo.MipMapData)
-                bw.Write(mipData);
+                foreach (var mipData in imageInfo.MipMapData)
+                    bw.Write(mipData);
+            }
 
             // Update header
-            _header.format = (byte)imageInfo.ImageFormat;
-            _header.width = (short)imageInfo.ImageSize.Width;
-            _header.height = (short)imageInfo.ImageSize.Height;
-            _header.mipCount = (byte)(imageInfo.MipMapCount + 1);
+            _header.format = (byte)imageInfos[0].ImageFormat;
+            _header.width = (short)imageInfos[0].ImageSize.Width;
+            _header.height = (short)imageInfos[0].ImageSize.Height;
+            _header.mipCount = (byte)(imageInfos[0].MipMapCount + 1);
 
             // Write header
             bw.BaseStream.Position = 0;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Kanvas;
+using Kanvas.Encoding;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kanvas;
@@ -34,7 +35,7 @@ namespace plugin_mt_framework.Images
         public short height;
 
         [BitField(8)]
-        public byte unk2;
+        public byte imgCount;
         [BitField(8)]
         public byte format;
         [BitField(16)]
@@ -88,7 +89,7 @@ namespace plugin_mt_framework.Images
             [0x0E] = ImageFormats.A4(BitOrder.LeastSignificantBitFirst),
             [0x0F] = ImageFormats.L4(BitOrder.LeastSignificantBitFirst),
             [0x10] = ImageFormats.La44(),
-            [0x11] = ImageFormats.Rgb888()
+            [0x11] = ImageFormats.Bgr888()
         };
 
         public static readonly IDictionary<int, IColorEncoding> Ps3Formats = new Dictionary<int, IColorEncoding>
