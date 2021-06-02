@@ -218,5 +218,10 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new Lz4HeaderlessDecoder())
                 .EncodeWith(() => new Lz4HeaderlessEncoder());
+
+        public static IKompressionConfiguration Danganronpa3 =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new Dr3Decoder())
+                .EncodeWith(() => new Dr3Encoder());
     }
 }
