@@ -33,7 +33,8 @@ namespace plugin_grezzo.Images
             {
                 foreach (var texture in chunks[i].textures)
                 {
-                    var format = (texture.dataType << 16) | texture.imageFormat;
+                    //imageFormat is ignored if ETC1(a4)
+                    var format = texture.isETC1 ? texture.imageFormat : (texture.dataType << 16) | texture.imageFormat;
 
                     input.Position = header.texDataOffset + texture.dataOffset;
                     var imageInfo = new CtxbImageInfo(br.ReadBytes(texture.dataLength), format, new Size(texture.width, texture.height), i, texture)
@@ -76,8 +77,9 @@ namespace plugin_grezzo.Images
                     height = (short)imageInfo.ImageSize.Height,
                     dataType = (ushort)(imageInfo.ImageFormat >> 16),
                     imageFormat = (ushort)imageInfo.ImageFormat,
-                    unk1 = imageInfo.Entry.unk1,
-                    unk2 = imageInfo.Entry.unk2,
+                    mipLvl = imageInfo.Entry.mipLvl,
+                    isETC1 = ((imageInfo.ImageFormat & 0xFFFF) == 0x675A || (imageInfo.ImageFormat & 0xFFFF) == 0x675B) ? true : false,
+                    isCubemap = false,
                     name = imageInfo.Entry.name.PadRight(0x10).Substring(0, 0x10)
                 }));
 
