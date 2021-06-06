@@ -47,7 +47,7 @@ namespace plugin_grezzo.Images
                     for (var j = 1; j < texture.mipLvl; j++)
                         mipMaps[j-1] = br.ReadBytes((texture.width >> j) * (texture.width >> j) * bitDepth / 8);
 
-                    var imageInfo = new CtxbImageInfo(br.ReadBytes(dataLength), format, new Size(texture.width, texture.height), i, texture)
+                    var imageInfo = new CtxbImageInfo(imageData, format, new Size(texture.width, texture.height), i, texture)
                     {
                         MipMapData = mipMaps,
                         Name = texture.name,
@@ -78,6 +78,7 @@ namespace plugin_grezzo.Images
             foreach (var imageInfo in images.Cast<CtxbImageInfo>())
             {
                 var dataOffset = texDataPosition - texDataOffset;
+                var dataLength = imageInfo.ImageData.Length;
 
                 output.Position = texDataOffset;
                 output.Write(imageInfo.ImageData);
@@ -86,6 +87,7 @@ namespace plugin_grezzo.Images
                 for (var i = 0; i < imageInfo.MipMapCount; i++)
                 {
                     output.Write(imageInfo.MipMapData[i]);
+                    dataLength += imageInfo.MipMapData[i].Length;
                     texDataPosition += imageInfo.MipMapData[i].Length;
                 }
 
@@ -94,7 +96,7 @@ namespace plugin_grezzo.Images
                 entries.Add((imageInfo.ChunkIndex, new CtxbEntry
                 {
                     dataOffset = dataOffset,
-                    dataLength = texDataPosition - texDataOffset,
+                    dataLength = dataLength,
                     width = (short)imageInfo.ImageSize.Width,
                     height = (short)imageInfo.ImageSize.Height,
                     dataType = (ushort)(imageInfo.ImageFormat >> 16),
