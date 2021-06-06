@@ -33,13 +33,24 @@ namespace plugin_grezzo.Images
             {
                 foreach (var texture in chunks[i].textures)
                 {
-                    //imageFormat is ignored if ETC1(a4)
-                    var format = texture.isETC1 ? texture.imageFormat : (texture.dataType << 16) | texture.imageFormat;
-
                     input.Position = header.texDataOffset + texture.dataOffset;
-                    var imageInfo = new CtxbImageInfo(br.ReadBytes(texture.dataLength), format, new Size(texture.width, texture.height), i, texture)
+
+                    // imageFormat is ignored if ETC1(a4)
+                    var format = texture.isETC1 ? texture.imageFormat : (texture.dataType << 16) | texture.imageFormat;
+                    var bitDepth = CtxbSupport.CtxbFormats[(uint)format].BitDepth;
+
+                    var dataLength = texture.width * texture.height * bitDepth / 8;
+                    var imageData = br.ReadBytes(dataLength);
+
+                    // Read mip maps
+                    var mipMaps = new byte[texture.mipLvl-1][];
+                    for (var j = 1; j < texture.mipLvl; j++)
+                        mipMaps[j-1] = br.ReadBytes((texture.width >> j) * (texture.width >> j) * bitDepth / 8);
+
+                    var imageInfo = new CtxbImageInfo(br.ReadBytes(dataLength), format, new Size(texture.width, texture.height), i, texture)
                     {
-                        Name = texture.name
+                        MipMapData = mipMaps,
+                        Name = texture.name,
                     };
 
                     imageInfo.RemapPixels.With(context => new CtrSwizzle(context));
@@ -66,24 +77,33 @@ namespace plugin_grezzo.Images
             var entries = new List<(int, CtxbEntry)>();
             foreach (var imageInfo in images.Cast<CtxbImageInfo>())
             {
+                var dataOffset = texDataPosition - texDataOffset;
+
                 output.Position = texDataOffset;
                 output.Write(imageInfo.ImageData);
 
+                // Write mipmaps
+                for (var i = 0; i < imageInfo.MipMapCount; i++)
+                {
+                    output.Write(imageInfo.MipMapData[i]);
+                    texDataPosition += imageInfo.MipMapData[i].Length;
+                }
+
+                texDataPosition += imageInfo.ImageData.Length;
+
                 entries.Add((imageInfo.ChunkIndex, new CtxbEntry
                 {
-                    dataOffset = texDataPosition - texDataOffset,
-                    dataLength = imageInfo.ImageData.Length,
+                    dataOffset = dataOffset,
+                    dataLength = texDataPosition - texDataOffset,
                     width = (short)imageInfo.ImageSize.Width,
                     height = (short)imageInfo.ImageSize.Height,
                     dataType = (ushort)(imageInfo.ImageFormat >> 16),
                     imageFormat = (ushort)imageInfo.ImageFormat,
                     mipLvl = imageInfo.Entry.mipLvl,
                     isETC1 = ((imageInfo.ImageFormat & 0xFFFF) == 0x675A || (imageInfo.ImageFormat & 0xFFFF) == 0x675B) ? true : false,
-                    isCubemap = false,
+                    isCubemap = imageInfo.Entry.isCubemap,
                     name = imageInfo.Entry.name.PadRight(0x10).Substring(0, 0x10)
                 }));
-
-                texDataPosition += imageInfo.ImageData.Length;
             }
 
             // Write chunk entries

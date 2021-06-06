@@ -66,7 +66,7 @@ namespace plugin_grezzo.Images
 
     public class CtxbSupport
     {
-        private static readonly IDictionary<uint, IColorEncoding> CtxbFormats = new Dictionary<uint, IColorEncoding>
+        public static readonly IDictionary<uint, IColorEncoding> CtxbFormats = new Dictionary<uint, IColorEncoding>
         {
             // composed of dataType and PixelFormat
             // short+short
