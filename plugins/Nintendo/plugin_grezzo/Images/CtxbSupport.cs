@@ -33,8 +33,9 @@ namespace plugin_grezzo.Images
     class CtxbEntry
     {
         public int dataLength;
-        public short unk1;
-        public short unk2;
+        public short mipLvl;
+        public bool isETC1;
+        public bool isCubemap;
         public short width;
         public short height;
         public ushort imageFormat;
@@ -65,7 +66,7 @@ namespace plugin_grezzo.Images
 
     public class CtxbSupport
     {
-        private static readonly IDictionary<uint, IColorEncoding> CtxbFormats = new Dictionary<uint, IColorEncoding>
+        public static readonly IDictionary<uint, IColorEncoding> CtxbFormats = new Dictionary<uint, IColorEncoding>
         {
             // composed of dataType and PixelFormat
             // short+short
@@ -82,8 +83,6 @@ namespace plugin_grezzo.Images
             [0x14016758] = ImageFormats.La88(),
             [0x0000675A] = ImageFormats.Etc1(true),
             [0x0000675B] = ImageFormats.Etc1A4(true),
-            [0x1401675A] = ImageFormats.Etc1(true),
-            [0x1401675B] = ImageFormats.Etc1A4(true)
         };
 
         public static EncodingDefinition GetEncodingDefinition()
