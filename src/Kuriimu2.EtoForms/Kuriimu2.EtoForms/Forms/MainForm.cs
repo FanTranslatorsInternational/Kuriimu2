@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
@@ -318,7 +319,7 @@ namespace Kuriimu2.EtoForms.Forms
             Application.Instance.Invoke(() =>
             {
                 tabPage.Image = new Icon(new IconFrame(1, ImageResources.Actions.Close));
-                tabPage.MouseUp += tabPage_Click;
+                tabPage.MouseUp += tabPage_MouseUp;
             });
 
             // Select tab page in tab control
@@ -538,8 +539,9 @@ namespace Kuriimu2.EtoForms.Forms
             var stateEntry = _stateDictionary[fileState];
             _tabDictionary.Remove(stateEntry.TabPage);
 
-            stateEntry.TabPage.Dispose();
+            tabControl.Pages.Remove(stateEntry.TabPage);
             _stateDictionary.Remove(fileState);
+            stateEntry.TabPage.Dispose();
         }
 
         private DialogResult ConfirmSavingChanges(IFileState fileState = null)
@@ -672,17 +674,17 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void openBatchExtractorCommand_Executed(object sender, EventArgs e)
         {
-            new BatchExtractDialog(_fileManager).ShowModal();
+            new BatchExtractDialog(_fileManager).ShowModal(this);
         }
 
         private void openBatchInjectorCommand_Executed(object sender, EventArgs e)
         {
-            new BatchInjectDialog(_fileManager).ShowModal();
+            new BatchInjectDialog(_fileManager).ShowModal(this);
         }
 
         private void openTextSequenceSearcherCommand_Execute(object sender, EventArgs e)
         {
-            new SequenceSearcherDialog().ShowModal();
+            new SequenceSearcherDialog().ShowModal(this);
         }
 
         #endregion
@@ -691,34 +693,34 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void openHashCommand_Executed(object sender, EventArgs e)
         {
-            new HashExtensionDialog().ShowModal();
+            new HashExtensionDialog().ShowModal(this);
         }
 
         private void openCompressionCommand_Executed(object sender, EventArgs e)
         {
-            new CompressExtensionDialog().ShowModal();
+            new CompressExtensionDialog().ShowModal(this);
         }
 
         private void openDecompressionCommand_Executed(object sender, EventArgs e)
         {
-            new DecompressExtensionDialog().ShowModal();
+            new DecompressExtensionDialog().ShowModal(this);
         }
 
         private void openEncryptionCommand_Executed(object sender, EventArgs e)
         {
-            new EncryptExtensionsDialog().ShowModal();
+            new EncryptExtensionsDialog().ShowModal(this);
         }
 
         private void openDecryptionCommand_Executed(object sender, EventArgs e)
         {
-            new DecryptExtensionDialog().ShowModal();
+            new DecryptExtensionDialog().ShowModal(this);
         }
 
         #endregion
 
         private void openRawImageViewerCommand_Executed(object sender, EventArgs e)
         {
-            new RawImageDialog().ShowModal();
+            new RawImageDialog().ShowModal(this);
         }
 
         private void IncludeDevBuildCommand_Executed(object sender, EventArgs e)
@@ -734,7 +736,7 @@ namespace Kuriimu2.EtoForms.Forms
                 e.Result = selectedPlugin;
         }
 
-        private async void tabPage_Click(object sender, MouseEventArgs e)
+        private async void tabPage_MouseUp(object sender, MouseEventArgs e)
         {
             if (!e.Buttons.HasFlag(MouseButtons.Primary) && !e.Buttons.HasFlag(MouseButtons.Middle))
                 return;
@@ -742,6 +744,16 @@ namespace Kuriimu2.EtoForms.Forms
             var page = (TabPage)sender;
             if (page == null)
                 return;
+
+            // ISSUE: For multiple rows of tabs, primary clicking a tab not in the bottom row, will move the row the clicked tab is in to the bottom
+            // However, the mouse or click event will be invoked on the tab overlapping the mouse position AFTER the row was moved to the bottom, leading to the event being invoked on the wrong sender
+            // The event is invoked AFTER the SelectedPage of the TabControl was updated, so we circumvent the issue by retrieving the SelectedPage from the TabControl here.
+            // We also need to adjust the mouse location, since it is relative to the wrong sender as well.
+            if (Platform.IsWpf && e.Buttons.HasFlag(MouseButtons.Primary))
+            {
+                e = new MouseEventArgs(e.Buttons, e.Modifiers, new PointF(tabControl.SelectedPage.PointFromScreen(page.PointToScreen(e.Location)).X, e.Location.Y), e.Delta, e.Pressure);
+                page = tabControl.SelectedPage;
+            }
 
             var tabEntry = _tabDictionary[page];
             var parentStateInfo = tabEntry.StateInfo.ParentFileState;
@@ -757,7 +769,8 @@ namespace Kuriimu2.EtoForms.Forms
                 UpdateFormText();
 
                 // There's 5 pixels of spacing on the right side of the close icon
-                var closeButtonRect = new RectangleF(9, 4, page.Image.Width - 5, page.Image.Height);
+                var textPosition = (page.Width - SystemFonts.Default().MeasureString(page.Text).Width) / 2;
+                var closeButtonRect = new RectangleF(textPosition - page.Image.Width + 5, 4, page.Image.Width - 3, page.Image.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }

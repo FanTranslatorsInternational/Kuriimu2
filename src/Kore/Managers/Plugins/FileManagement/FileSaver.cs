@@ -148,8 +148,6 @@ namespace Kore.Managers.Plugins.FileManagement
             if (fileState.HasParent)
             {
                 // Put source filesystem into final destination
-                destinationFileSystem = new SubFileSystem(destinationFileSystem, fileState.FilePath.ToAbsolute().GetDirectory());
-
                 var replaceResult = await TryReplaceFiles(sourceFileSystem, destinationFileSystem, fileState.ParentFileState.StreamManager);
                 return replaceResult;
             }
@@ -170,14 +168,14 @@ namespace Kore.Managers.Plugins.FileManagement
             IStreamManager stateStreamManager)
         {
             // 1. Check that all saved files exist in the parent filesystem already or can at least be created if missing
-            foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
+            foreach (var file in temporaryContainer.EnumerateAllFiles(UPath.Root))
             {
                 if (!destinationFileSystem.FileExists(file) && !destinationFileSystem.CanCreateFiles)
                     return new SaveResult(false, $"'{file}' did not exist in '{destinationFileSystem.ConvertPathToInternal(UPath.Root)}'.");
             }
 
             // 2. Set new file data into parent file system
-            foreach (var file in temporaryContainer.EnumeratePaths(UPath.Root))
+            foreach (var file in temporaryContainer.EnumerateAllFiles(UPath.Root))
             {
                 try
                 {

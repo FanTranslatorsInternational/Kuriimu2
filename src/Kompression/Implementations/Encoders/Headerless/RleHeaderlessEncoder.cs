@@ -12,7 +12,7 @@ namespace Kompression.Implementations.Encoders.Headerless
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new NintendoRlePriceCalculator())
-                .FindMatches().WithinLimitations(3, 0x82);
+                .FindRunLength().WithinLimitations(3, 0x82);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)
