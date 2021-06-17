@@ -223,7 +223,7 @@ namespace plugin_criware.Archives
             for (var i = 0; i < sectorCount; i++)
             {
                 // Read
-                var sectorLength = (int)Math.Min(_sectorSize, Length - _position);
+                var sectorLength = (int)Math.Min(_sectorSize, Length - _position / _sectorSize * _sectorSize);
                 _baseStream.Read(_sector, 0, sectorLength);
 
                 if (sectorLength != _sectorSize)
@@ -263,7 +263,7 @@ namespace plugin_criware.Archives
             for (var i = 0; i < sectorCount; i++)
             {
                 // Read
-                var sectorLength = (int)Math.Min(_sectorSize, Length - _position);
+                var sectorLength = (int)Math.Min(_sectorSize, Length - _position / _sectorSize * _sectorSize);
                 _baseStream.Read(_sector, 0, sectorLength);
 
                 if (sectorLength != _sectorSize)
@@ -289,7 +289,6 @@ namespace plugin_criware.Archives
                 count -= length;
             }
 
-            _position += result;
             _baseStream.Position = startPos;
         }
 
