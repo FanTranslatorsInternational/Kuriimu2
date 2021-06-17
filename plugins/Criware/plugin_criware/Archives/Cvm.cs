@@ -59,12 +59,6 @@ namespace plugin_criware.Archives
                 decStream = new RofsCryptoStream(isoStream, _detectedPassword, 0, 0x800);
             }
 
-            decStream.Position = 0x8000;
-            using var f = File.OpenWrite(@"D:\Users\Kirito\Desktop\samples\archive\new\criware\rofs\test.dec");
-            new SubStream(decStream, 0, 0x1E000 + 0xA000).CopyTo(f);
-            f.Close();
-            decStream.Position = 0;
-
             using var decBr = new BinaryReaderX(decStream);
 
             // Read ISO primary descriptor
