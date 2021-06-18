@@ -25,6 +25,7 @@
     <PackageReference Include="Komponent" Version="2.0.8" />
     <PackageReference Include="Kontract" Version="2.0.8" />
     <PackageReference Include="Kanvas" Version="2.0.8" />
+    <PackageReference Include="Kompression" Version="2.0.8" />
   </ItemGroup>
 
 </Project>
