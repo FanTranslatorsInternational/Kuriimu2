@@ -93,6 +93,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 new ExtensionType("Iecp",true),
                 new ExtensionType("Lz4 Headerless",true),
                 new ExtensionType("Danganronpa 3",true),
+                new ExtensionType("StingLz",true),
 
                 new ExtensionType("Deflate",true),
                 new ExtensionType("ZLib",true)
@@ -233,6 +234,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 case "Danganronpa 3":
                     return Compressions.Danganronpa3.Build();
+
+                case "StingLz":
+                    return Compressions.StingLz.Build();
 
                 case "Deflate":
                     return Compressions.Deflate.Build();

@@ -339,7 +339,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             try
             {
-                using var newImage = new System.Drawing.Bitmap(filePath.FullName);
+                var newImage = new System.Drawing.Bitmap(filePath.FullName);
                 await _asyncOperation.StartAsync(cts => GetSelectedImage().SetImage(newImage, _formInfo.Progress));
             }
             catch (Exception ex)

@@ -27,9 +27,6 @@ namespace Kompression.Configuration
         /// <param name="encoderAction">The <see cref="IEncoder"/> to use with the compression action.</param>
         public Compressor(Func<IDecoder> decoderAction, Func<IEncoder> encoderAction)
         {
-            ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
-            ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
-
             _decoderAction = decoderAction;
             _encoderAction = encoderAction;
         }
@@ -42,8 +39,6 @@ namespace Kompression.Configuration
         /// <param name="matchOptions">The <see cref="IInternalMatchOptions"/> to configure the matching options.</param>
         public Compressor(Func<IDecoder> decoderAction, Func<ILzEncoder> encoderAction, IInternalMatchOptions matchOptions)
         {
-            ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
-            ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
             ContractAssertions.IsNotNull(matchOptions, nameof(matchOptions));
 
             _decoderAction = decoderAction;
@@ -59,8 +54,6 @@ namespace Kompression.Configuration
         /// <param name="huffmanOptions">The <see cref="IInternalHuffmanOptions"/> to configure the huffman options.</param>
         public Compressor(Func<IDecoder> decoderAction, Func<IHuffmanEncoder> encoderAction, IInternalHuffmanOptions huffmanOptions)
         {
-            ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
-            ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
             ContractAssertions.IsNotNull(huffmanOptions, nameof(huffmanOptions));
 
             _decoderAction = decoderAction;
@@ -77,8 +70,6 @@ namespace Kompression.Configuration
         /// <param name="huffmanOptions">The <see cref="IInternalHuffmanOptions"/> to configure the huffman options.</param>
         public Compressor(Func<IDecoder> decoderAction, Func<ILzHuffmanEncoder> encoderAction, IInternalMatchOptions matchOptions, IInternalHuffmanOptions huffmanOptions)
         {
-            ContractAssertions.IsNotNull(decoderAction, nameof(decoderAction));
-            ContractAssertions.IsNotNull(encoderAction, nameof(encoderAction));
             ContractAssertions.IsNotNull(matchOptions, nameof(matchOptions));
             ContractAssertions.IsNotNull(huffmanOptions, nameof(huffmanOptions));
 
@@ -91,10 +82,10 @@ namespace Kompression.Configuration
         /// <inheritdoc cref="Decompress"/>
         public void Decompress(Stream input, Stream output)
         {
-            var decoder = _decoderAction();
+            var decoder = _decoderAction?.Invoke();
 
             if (decoder == null)
-                throw new InvalidOperationException("The decoder is not set.");
+                throw new InvalidOperationException("No compression decoder was set.");
 
             decoder.Decode(input, output);
         }
@@ -133,13 +124,15 @@ namespace Kompression.Configuration
 
                 lzHuffmanEncoder.Encode(input, output, matchParser?.ParseMatches(input), treeBuilder);
             }
-            else
+            else if (_lzEncoderAction != null)
             {
                 var encoder = _encoderAction();
                 ContractAssertions.IsNotNull(encoder, nameof(encoder));
 
                 encoder.Encode(input, output);
             }
+            else
+                throw new InvalidOperationException("No compression encoder was set.");
         }
 
         #region Dispose

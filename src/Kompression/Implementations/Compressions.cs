@@ -223,5 +223,10 @@ namespace Kompression.Implementations
             NewKompressionConfiguration
                 .DecodeWith(() => new Dr3Decoder())
                 .EncodeWith(() => new Dr3Encoder());
+
+        public static IKompressionConfiguration StingLz =>
+            NewKompressionConfiguration
+                .DecodeWith(() => new StingLzDecoder())
+                .EncodeWith(() => new StingLzEncoder());
     }
 }
