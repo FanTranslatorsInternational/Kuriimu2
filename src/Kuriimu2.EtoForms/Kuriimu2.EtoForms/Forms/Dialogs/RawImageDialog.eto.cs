@@ -12,10 +12,13 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private TextBox widthText;
         private TextBox heightText;
         private TextBox offsetText;
+        private TextBox palOffsetText;
         private ComboBox encodings;
+        private ComboBox palEncodings;
         private ComboBox swizzles;
 
         private GroupBox encodingParameters;
+        private GroupBox palEncodingParameters;
         private GroupBox swizzleParameters;
 
         private Label statusLabel;
@@ -38,10 +41,13 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             widthText = new TextBox { Text = "1" };
             heightText = new TextBox { Text = "1" };
             offsetText = new TextBox { Text = "0" };
+            palOffsetText = new TextBox { Text = "0" };
             encodings = new ComboBox();
+            palEncodings = new ComboBox();
             swizzles = new ComboBox();
 
             encodingParameters = new GroupBox { Text = "Encoding Parameters" };
+            palEncodingParameters= new GroupBox { Text = "Encoding Palette Parameters" };
             swizzleParameters = new GroupBox { Text = "Swizzle Parameters" };
 
             statusLabel = new Label { TextColor = KnownColors.DarkRed };
@@ -88,7 +94,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                             new TableRow { Cells = { new Label { Text="Width:"}, widthText } },
                             new TableRow { Cells = { new Label { Text="Height:"}, heightText } },
                             new TableRow { Cells = { new Label { Text="Offset:"}, offsetText } },
-                            new TableRow { Cells = { new Label { Text="Encodings:"}, encodings } },
+                            new TableRow { Cells = { new Label { Text="Encoding:"}, encodings } },
+                            new TableRow { Cells = { new Label { Text="Palette Offset:"}, palOffsetText } },
+                            new TableRow { Cells = { new Label { Text="Palette Encoding:"}, palEncodings } },
                             new TableRow { Cells = { new Label { Text="Swizzles:"}, swizzles } },
                         }
                     },
@@ -103,6 +111,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 Items =
                 {
                     encodingParameters,
+                    palEncodingParameters,
                     swizzleParameters
                 }
             };

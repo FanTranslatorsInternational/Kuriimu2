@@ -27,9 +27,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private Stream _openedFile;
 
         private readonly ParameterBuilder _encodingsBuilder;
+        private readonly ParameterBuilder _palEncodingBuilder;
         private readonly ParameterBuilder _swizzlesBuilder;
 
         private ExtensionType SelectedColorEncodingExtension => (encodings.SelectedValue as ExtensionTypeElement)?.Value;
+
+        private ExtensionType SelectedPaletteEncodingExtension => (palEncodings.SelectedValue as ExtensionTypeElement)?.Value;
 
         private ExtensionType SelectedSwizzleExtension => (swizzles.SelectedValue as ExtensionTypeElement)?.Value;
 
@@ -38,23 +41,28 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             InitializeComponent();
 
             _encodingsBuilder = new ParameterBuilder(encodingParameters);
+            _palEncodingBuilder = new ParameterBuilder(palEncodingParameters);
             _swizzlesBuilder = new ParameterBuilder(swizzleParameters);
 
             _encodingsBuilder.ValueChanged += _encodingsBuilder_ValueChanged;
             _swizzlesBuilder.ValueChanged += _swizzlesBuilder_ValueChanged;
 
             encodings.DataStore = GetEncodings().Select(x => new ExtensionTypeElement(x)).ToList();
+            palEncodings.DataStore = GetPaletteEncodings().Select(x => new ExtensionTypeElement(x)).ToList();
             swizzles.DataStore = GetSwizzles().Select(x => new ExtensionTypeElement(x)).ToList();
 
             encodings.SelectedValueChanged += Encodings_SelectedValueChanged;
+            palEncodings.SelectedValueChanged += PalEncodings_SelectedValueChanged;
             swizzles.SelectedValueChanged += Swizzles_SelectedValueChanged;
 
             encodings.SelectedValue = encodings.DataStore.First();
+            palEncodings.SelectedValue = palEncodings.DataStore.First();
             swizzles.SelectedValue = swizzles.DataStore.First();
 
             widthText.TextChanged += WidthText_TextChanged;
             heightText.TextChanged += HeightText_TextChanged;
             offsetText.TextChanged += OffsetText_TextChanged;
+            palOffsetText.TextChanged += PalOffsetText_TextChanged; ;
 
             #region Commands
 
@@ -78,6 +86,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             if (!int.TryParse(offsetText.Text, out var offset) &&
                 !int.TryParse(offsetText.Text.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
                     out offset) ||
+                !int.TryParse(palOffsetText.Text, out var palOffset) &&
+                !int.TryParse(palOffsetText.Text.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
+                    out palOffset) ||
                 !int.TryParse(widthText.Text, out var width) ||
                 !int.TryParse(heightText.Text, out var height))
             {
@@ -102,23 +113,52 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             try
             {
-                var encoding = CreateEncoding();
-                var swizzle = CreateSwizzle(new SwizzlePreparationContext(encoding, new System.Drawing.Size(width, height)));
+                var encoding = CreateEncoding(SelectedColorEncodingExtension);
+                var indexEncoding = CreateIndexEncoding(SelectedColorEncodingExtension);
+                var paletteEncoding = CreateEncoding(SelectedPaletteEncodingExtension);
+                var colorEncodingInfo = (IEncodingInfo)encoding ?? indexEncoding;
+
+                var swizzle = CreateSwizzle(new SwizzlePreparationContext(colorEncodingInfo, new System.Drawing.Size(width, height)));
 
                 var colorCount = swizzle == null ? width * height : swizzle.Width * swizzle.Height;
-                var dataSize = colorCount / encoding.ColorsPerValue * encoding.BitsPerValue / 8;
-                var imgData = new byte[Math.Min(_openedFile.Length - offset, dataSize)];
+                var dataSize = colorCount / colorEncodingInfo.ColorsPerValue * colorEncodingInfo.BitsPerValue / 8;
+                var imgData = new byte[Math.Max(0, Math.Min(_openedFile.Length - offset, dataSize))];
 
                 _openedFile.Position = offset;
                 _openedFile.Read(imgData, 0, imgData.Length);
 
                 var imageConfiguration = new ImageConfiguration();
                 if (SelectedSwizzleExtension.Name != "None")
-                    imageConfiguration.RemapPixels.With(context => CreateSwizzle(context));
+                    imageConfiguration.RemapPixels.With(CreateSwizzle);
 
-                var transcoder = imageConfiguration.Transcode.With(encoding).Build();
-                imageView.Image = transcoder.Decode(imgData, new System.Drawing.Size(width, height)).ToEto();
+                System.Drawing.Bitmap image;
+                if (encoding != null)
+                {
+                    var transcoder = imageConfiguration
+                        .Transcode.With(encoding)
+                        .Build();
+                    image = transcoder.Decode(imgData, new System.Drawing.Size(width, height));
+                }
+                else
+                {
+                    colorCount = 1 << colorEncodingInfo.BitsPerValue;
+                    dataSize = colorCount / paletteEncoding.ColorsPerValue * paletteEncoding.BitsPerValue / 8;
+                    var palData = new byte[Math.Max(0, Math.Min(_openedFile.Length - palOffset, dataSize))];
+
+                    _openedFile.Position = palOffset;
+                    _openedFile.Read(palData, 0, palData.Length);
+
+                    var transcoder = imageConfiguration
+                        .Transcode.With(indexEncoding)
+                        .TranscodePalette.With(paletteEncoding)
+                        .Build();
+                    image = transcoder.Decode(imgData, palData, new System.Drawing.Size(width, height));
+                }
+
+                imageView.Image = image.ToEto();
                 imageView.Invalidate();
+
+                SetStatus("");
             }
             catch (Exception e)
             {
@@ -134,6 +174,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             _encodingsBuilder.SetParameters(SelectedColorEncodingExtension?.Parameters.Values.ToArray());
         }
 
+        private void UpdatePaletteEncodingProperties()
+        {
+            _palEncodingBuilder.SetParameters(SelectedPaletteEncodingExtension?.Parameters.Values.ToArray());
+        }
+
         private void UpdateSwizzleProperties()
         {
             _swizzlesBuilder.SetParameters(SelectedSwizzleExtension?.Parameters.Values.ToArray());
@@ -142,12 +187,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private void UpdateParameters(bool toggle)
         {
             encodingParameters.Enabled = toggle;
+            palEncodingParameters.Enabled = toggle;
             swizzleParameters.Enabled = toggle;
         }
 
         private void UpdateForm(bool toggle)
         {
             encodings.Enabled = toggle;
+            palEncodings.Enabled = toggle;
             swizzles.Enabled = toggle;
             openFileCommand.Enabled = toggle;
             processCommand.Enabled = toggle;
@@ -200,6 +247,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("A4", true,
                     new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
 
+                new ExtensionType("I2", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                new ExtensionType("I4", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                new ExtensionType("I8", true),
+                new ExtensionType("IA35", true),
+                new ExtensionType("IA53", true),
+
                 new ExtensionType("ETC1", true,
                     new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
                 new ExtensionType("ETC1A4", true,
@@ -226,47 +281,97 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
                 new ExtensionType("BC7", true),
 
+                new ExtensionType("PVRTC 2Bpp", true),
+                new ExtensionType("PVRTC 4Bpp", true),
+                new ExtensionType("PVRTCA 2Bpp", true),
+                new ExtensionType("PVRTCA 4Bpp", true),
+                new ExtensionType("PVRTC2 2Bpp", true),
+                new ExtensionType("PVRTC2 4Bpp", true),
+
                 new ExtensionType("ASTC 4x4", true)
             };
         }
 
-        private IColorEncoding CreateEncoding()
+        private IList<ExtensionType> GetPaletteEncodings()
         {
-            switch (SelectedColorEncodingExtension.Name)
+            return new List<ExtensionType>
+            {
+                new ExtensionType("RGBA8888", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RGB888", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RGB565", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RGB555", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RGBA5551", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RGBA4444", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("RG88", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("R8", true),
+                new ExtensionType("G8", true),
+                new ExtensionType("B8", true),
+
+                new ExtensionType("LA88", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA"),
+                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                new ExtensionType("LA44", true,
+                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                new ExtensionType("L8", true),
+                new ExtensionType("A8", true),
+                new ExtensionType("L4", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                new ExtensionType("A4", true,
+                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst))
+            };
+        }
+
+        private IColorEncoding CreateEncoding(ExtensionType extType)
+        {
+            switch (extType.Name)
             {
                 case "RGBA8888":
-                    var componentOrder1 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder1 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder1 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder1 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(8, 8, 8, 8, componentOrder1, byteOrder1);
 
                 case "RGB888":
-                    var componentOrder2 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder2 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder2 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder2 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(8, 8, 8, componentOrder2, byteOrder2);
 
                 case "RGB565":
-                    var componentOrder3 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder3 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder3 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder3 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(5, 6, 5, componentOrder3, byteOrder3);
 
                 case "RGB555":
-                    var componentOrder4 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder4 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder4 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder4 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(5, 5, 5, componentOrder4, byteOrder4);
 
                 case "RGBA5551":
-                    var componentOrder5 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder5 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder5 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder5 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(5, 5, 5, 1, componentOrder5, byteOrder5);
 
                 case "RGBA4444":
-                    var componentOrder6 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder6 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder6 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder6 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(4, 4, 4, 4, componentOrder6, byteOrder6);
 
                 case "RG88":
-                    var componentOrder7 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder7 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder7 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder7 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new Rgba(8, 8, 0, componentOrder7, byteOrder7);
 
                 case "R8":
@@ -279,12 +384,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new Rgba(0, 0, 8);
 
                 case "LA88":
-                    var componentOrder8 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder8 = SelectedColorEncodingExtension.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder8 = extType.GetParameterValue<string>("ComponentOrder");
+                    var byteOrder8 = extType.GetParameterValue<ByteOrder>("ByteOrder");
                     return new La(8, 8, componentOrder8, byteOrder8);
 
                 case "LA44":
-                    var componentOrder9 = SelectedColorEncodingExtension.GetParameterValue<string>("ComponentOrder");
+                    var componentOrder9 = extType.GetParameterValue<string>("ComponentOrder");
                     return new La(4, 4, componentOrder9);
 
                 case "L8":
@@ -294,16 +399,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return ImageFormats.A8();
 
                 case "L4":
-                    return ImageFormats.L4(SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
+                    return ImageFormats.L4(extType.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "A4":
-                    return ImageFormats.A4(SelectedColorEncodingExtension.GetParameterValue<BitOrder>("BitOrder"));
+                    return ImageFormats.A4(extType.GetParameterValue<BitOrder>("BitOrder"));
 
                 case "ETC1":
-                    return ImageFormats.Etc1(SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order"));
+                    return ImageFormats.Etc1(extType.GetParameterValue<bool>("Z-Order"));
 
                 case "ETC1A4":
-                    return ImageFormats.Etc1A4(SelectedColorEncodingExtension.GetParameterValue<bool>("Z-Order"));
+                    return ImageFormats.Etc1A4(extType.GetParameterValue<bool>("Z-Order"));
 
                 case "ETC2 RGB":
                     return ImageFormats.Etc2();
@@ -339,14 +444,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return ImageFormats.Ati1A();
 
                 case "ATI2":
-                    var wiiU = SelectedColorEncodingExtension.GetParameterValue<bool>("Alpha/Luminance");
+                    var wiiU = extType.GetParameterValue<bool>("Alpha/Luminance");
                     return wiiU ? ImageFormats.Ati2() : ImageFormats.Ati2AL();
 
                 case "ATC":
                     return ImageFormats.Atc();
 
                 case "ATCA":
-                    var atcAlpha = SelectedColorEncodingExtension.GetParameterValue<AtcAlpha>("AlphaMode");
+                    var atcAlpha = extType.GetParameterValue<AtcAlpha>("AlphaMode");
                     return atcAlpha == AtcAlpha.Explicit ?
                         ImageFormats.AtcExplicit() :
                         ImageFormats.AtcInterpolated();
@@ -354,8 +459,52 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 case "BC7":
                     return ImageFormats.Bc7();
 
+                case "PVRTC 2Bpp":
+                    return ImageFormats.Pvrtc_2bpp();
+
+                case "PVRTC 4Bpp":
+                    return ImageFormats.Pvrtc_4bpp();
+
+                case "PVRTCA 2Bpp":
+                    return ImageFormats.PvrtcA_2bpp();
+
+                case "PVRTCA 4Bpp":
+                    return ImageFormats.PvrtcA_4bpp();
+
+                case "PVRTC2 2Bpp":
+                    return ImageFormats.Pvrtc2_2bpp();
+
+                case "PVRTC2 4Bpp":
+                    return ImageFormats.Pvrtc2_4bpp();
+
                 case "ASTC 4x4":
                     return ImageFormats.Astc4x4();
+
+                default:
+                    return null;
+            }
+        }
+
+        private IIndexEncoding CreateIndexEncoding(ExtensionType extType)
+        {
+            switch (extType.Name)
+            {
+                case "I2":
+                    var bitOrder1 = extType.GetParameterValue<BitOrder>("BitOrder");
+                    return ImageFormats.I2(bitOrder1);
+
+                case "I4":
+                    var bitOrder2 = extType.GetParameterValue<BitOrder>("BitOrder");
+                    return ImageFormats.I4(bitOrder2);
+
+                case "I8":
+                    return ImageFormats.I8();
+
+                case "IA53":
+                    return ImageFormats.Ia53();
+
+                case "IA35":
+                    return ImageFormats.Ia35();
 
                 default:
                     return null;
@@ -377,6 +526,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     new ExtensionTypeParameter("SwizzleTileMode", typeof(int))),
                 new ExtensionType("Switch", true,
                     new ExtensionTypeParameter("SwizzleMode", typeof(int))),
+                new ExtensionType("PS2", true),
 
                 new ExtensionType("Custom", true,
                     new ExtensionTypeParameter("BitMapping", typeof(string), "{1,0},{0,1}"),
@@ -402,6 +552,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 case "Switch":
                     var swizzleMode = SelectedSwizzleExtension.GetParameterValue<int>("SwizzleMode");
                     return new NxSwizzle(context, swizzleMode);
+
+                case "PS2":
+                    return new Ps2Swizzle(context);
 
                 case "Custom":
                     var pointSequenceRegex = new Regex(@"\{([\d]+),([\d]+)\}[,]?");
@@ -472,6 +625,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             UpdateImage();
         }
 
+        private void PalOffsetText_TextChanged(object sender, EventArgs e)
+        {
+            UpdateImage();
+        }
+
         private void ProcessCommand_Executed(object sender, EventArgs e)
         {
             UpdateImage();
@@ -480,6 +638,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private void Encodings_SelectedValueChanged(object sender, EventArgs e)
         {
             UpdateEncodingProperties();
+            UpdateImage();
+        }
+
+        private void PalEncodings_SelectedValueChanged(object sender, EventArgs e)
+        {
+            UpdatePaletteEncodingProperties();
             UpdateImage();
         }
 
