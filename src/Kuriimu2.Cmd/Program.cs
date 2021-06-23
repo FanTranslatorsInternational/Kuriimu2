@@ -59,10 +59,10 @@ namespace Kuriimu2.Cmd
 
         private static void PrintWelcomeText()
         {
-            Console.WriteLine("Welcome to Kuriimu2");
-            Console.WriteLine($"Version: {_localManifest.Version}-{_localManifest.BuildNumber}");
-            Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
-            Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
+            Console.WriteLine($"Welcome to Kuriimu2 {_localManifest.Version}-{_localManifest.BuildNumber}");
+            Console.WriteLine();
+            Console.WriteLine("Authors: onepiecefreak, IcySon55, Neobeo, and other contributors");
+            Console.WriteLine("Github: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
 
         private static void CheckForUpdate()

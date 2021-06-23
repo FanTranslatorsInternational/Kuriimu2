@@ -47,7 +47,7 @@ namespace Kore.Batch
 
             SourceFileSystemWatcher = sourceFileSystem.Watch(UPath.Root);
 
-            var files = EnumerateFiles(sourceFileSystem).ToArray();
+            var files = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
 
             var isManualSelection = FileManager.AllowManualSelection;
             FileManager.AllowManualSelection = false;
@@ -150,23 +150,6 @@ namespace Kore.Batch
             finally
             {
                 stopwatch.Stop();
-            }
-        }
-
-        private IEnumerable<UPath> EnumerateFiles(IFileSystem sourceFileSystem)
-        {
-            if (ScanSubDirectories)
-                foreach (var dirs in sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.AllDirectories, SearchTarget.Directory))
-                {
-                    foreach (var file in sourceFileSystem.EnumeratePaths(dirs, "*", SearchOption.TopDirectoryOnly, SearchTarget.File))
-                    {
-                        yield return file;
-                    }
-                }
-
-            foreach (var file in sourceFileSystem.EnumeratePaths(UPath.Root, "*", SearchOption.TopDirectoryOnly, SearchTarget.File))
-            {
-                yield return file;
             }
         }
     }

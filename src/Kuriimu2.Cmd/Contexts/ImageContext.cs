@@ -26,16 +26,6 @@ namespace Kuriimu2.Cmd.Contexts
         private readonly IImageState _imageState;
         private readonly IContext _parentContext;
 
-        protected override IList<Command> Commands { get; } = new List<Command>
-        {
-            new Command("print","image-index"),
-            new Command("extract", "image-index", "file-path"),
-            new Command("extract-all", "directory-path"),
-            new Command("inject", "image-index", "file-path"),
-            new Command("list"),
-            new Command("back")
-        };
-
         public ImageContext(IFileState stateInfo, IContext parentContext, IProgressContext progressContext) :
             base(progressContext)
         {
@@ -46,6 +36,19 @@ namespace Kuriimu2.Cmd.Contexts
             _imageState = _stateInfo.PluginState as IImageState;
             _parentContext = parentContext;
 
+        }
+
+        protected override IList<Command> InitializeCommands()
+        {
+            return new[]
+            {
+                new Command("print", "image-index"),
+                new Command("extract", "image-index", "file-path"),
+                new Command("extract-all", "directory-path"),
+                new Command("inject", "image-index", "file-path"),
+                new Command("list"),
+                new Command("back")
+            };
         }
 
         protected override Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)

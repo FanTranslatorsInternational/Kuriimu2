@@ -81,9 +81,28 @@ namespace Kuriimu2.Cmd.Contexts
             return null;
         }
 
+        protected override IList<Command> InitializeCommands()
+        {
+            return new[]
+            {
+                new Command("open", "file"),
+                new Command("open-with", "file", "plugin-id"),
+                new Command("save", "file-index"),
+                new Command("save-as", "file-index", "save-path"),
+                new Command("save-all"),
+                new Command("save-this"),
+                new Command("close", "file-index"),
+                new Command("close-all"),
+                new Command("select", "file-index"),
+                new Command("list-open")
+            };
+        }
+
         protected abstract bool FileExists(string filePath);
 
         protected abstract bool IsLoaded(string filePath);
+
+        #region Load
 
         protected abstract Task<LoadResult> LoadFileInternal(string filePath, Guid pluginId);
 
@@ -140,6 +159,10 @@ namespace Kuriimu2.Cmd.Contexts
 
             return CreateFileContext(newNode);
         }
+
+        #endregion
+
+        #region Save
 
         private Task SaveFile(string fileIndexArgument, string savePathArgument)
         {
@@ -215,6 +238,10 @@ namespace Kuriimu2.Cmd.Contexts
             Console.WriteLine($"Saved '{selectedState.FilePath.ToRelative()}' successfully.");
         }
 
+        #endregion
+
+        #region Close
+
         private void CloseFile(string fileIndexArgument)
         {
             if (!int.TryParse(fileIndexArgument, out var fileIndex))
@@ -247,6 +274,8 @@ namespace Kuriimu2.Cmd.Contexts
 
             Console.WriteLine("Closed all files successfully.");
         }
+
+        #endregion
 
         private IContext SelectFile(string fileIndexArgument)
         {
@@ -303,8 +332,8 @@ namespace Kuriimu2.Cmd.Contexts
     [DebuggerDisplay("{StateInfo.FilePath}")]
     class ContextNode
     {
+        private readonly IContext _parentContext;
         private ContextNode _parentNode;
-        private IContext _parentContext;
 
         public IFileState StateInfo { get; }
 

@@ -11,11 +11,6 @@ namespace Kuriimu2.Cmd.Contexts
         private readonly IFileState _stateInfo;
         private readonly IContext _parentContext;
 
-        protected override IList<Command> Commands { get; } = new List<Command>
-        {
-            new Command("back")
-        };
-
         public TextContext(IFileState stateInfo, IContext parentContext, IProgressContext progressContext) :
             base(progressContext)
         {
@@ -24,6 +19,14 @@ namespace Kuriimu2.Cmd.Contexts
 
             _stateInfo = stateInfo;
             _parentContext = parentContext;
+        }
+
+        protected override IList<Command> InitializeCommands()
+        {
+            return new[]
+            {
+                new Command("back")
+            };
         }
 
         protected override Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)

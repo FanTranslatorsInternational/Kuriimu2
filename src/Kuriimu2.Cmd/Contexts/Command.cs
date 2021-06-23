@@ -8,10 +8,12 @@ namespace Kuriimu2.Cmd.Contexts
 
         public string[] Arguments { get; }
 
-        public Command(string name,params string[] argumentNames)
+        public bool Enabled { get; set; } = true;
+
+        public Command(string name, params string[] argumentNames)
         {
-            ContractAssertions.IsNotNull(name,nameof(name));
-            ContractAssertions.IsNotNull(argumentNames,nameof(argumentNames));
+            ContractAssertions.IsNotNull(name, nameof(name));
+            ContractAssertions.IsNotNull(argumentNames, nameof(argumentNames));
 
             Name = name;
             Arguments = argumentNames;

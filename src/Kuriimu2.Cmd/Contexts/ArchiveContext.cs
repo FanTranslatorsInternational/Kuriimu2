@@ -13,6 +13,7 @@ using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Factories;
 using Kore.Managers.Plugins;
+using MoreLinq.Extensions;
 
 namespace Kuriimu2.Cmd.Contexts
 {
@@ -22,22 +23,6 @@ namespace Kuriimu2.Cmd.Contexts
         private readonly IArchiveState _archiveState;
         private readonly IFileSystem _archiveFileSystem;
         private readonly IContext _parentContext;
-
-        protected override IList<Command> Commands { get; } = new List<Command>
-        {
-            new Command("open", "file"),
-            new Command("open-with", "file", "plugin-id"),
-            new Command("save", "file-index"),
-            new Command("save-all"),
-            new Command("save-this"),
-            new Command("close","file-index"),
-            new Command("close-all"),
-            new Command("select","file-index"),
-            new Command("list"),
-            new Command("list-open"),
-            new Command("back"),
-            new Command("back-to-main")
-        };
 
         public ArchiveContext(ContextNode contextNode, IContext parentContext, IInternalFileManager pluginManager, IProgressContext progressContext) :
             base(pluginManager, contextNode, progressContext)
@@ -49,6 +34,20 @@ namespace Kuriimu2.Cmd.Contexts
             _archiveState = _stateInfo.PluginState as IArchiveState;
             _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_stateInfo);
             _parentContext = parentContext;
+        }
+
+        protected override IList<Command> InitializeCommands()
+        {
+            var baseCommands = base.InitializeCommands();
+
+            baseCommands.Where(x => x.Name == "save-as").ForEach(x => x.Enabled = false);
+
+            return baseCommands.Concat(new List<Command>
+            {
+                new Command("list"),
+                new Command("back"),
+                new Command("back-to-main")
+            }).ToArray();
         }
 
         protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)

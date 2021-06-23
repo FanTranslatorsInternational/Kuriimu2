@@ -58,8 +58,6 @@ namespace Kore.Batch
 
                 var afiFileStream = destinationFileSystem.OpenFile(path);
                 afi.SetFileData(afiFileStream);
-
-                afiFileStream.Close();
             }
         }
 
