@@ -520,6 +520,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             return new List<ExtensionType>
             {
                 new ExtensionType("None", true),
+                new ExtensionType("Bc", true),
                 new ExtensionType("NDS", true),
                 new ExtensionType("3DS", true),
                 new ExtensionType("WiiU", true,
@@ -527,6 +528,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("Switch", true,
                     new ExtensionTypeParameter("SwizzleMode", typeof(int))),
                 new ExtensionType("PS2", true),
+                new ExtensionType("Vita", true),
 
                 new ExtensionType("Custom", true,
                     new ExtensionTypeParameter("BitMapping", typeof(string), "{1,0},{0,1}"),
@@ -539,6 +541,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             switch (SelectedSwizzleExtension.Name)
             {
+                case "Bc":
+                    return new BcSwizzle(context);
+
                 case "NDS":
                     return new NitroSwizzle(context);
 
@@ -555,6 +560,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
                 case "PS2":
                     return new Ps2Swizzle(context);
+
+                case "Vita":
+                    return new VitaSwizzle(context);
 
                 case "Custom":
                     var pointSequenceRegex = new Regex(@"\{([\d]+),([\d]+)\}[,]?");

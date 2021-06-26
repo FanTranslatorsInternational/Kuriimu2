@@ -31,12 +31,12 @@ namespace plugin_gust.Images
 
     class G1tEntry
     {
-        public byte unk1;
+        public byte mipUnk;
         public byte format;
         public byte dimension;
         public byte zero0;
 
-        public byte unk2;
+        public byte swizzle;
         public byte unk3;
         public byte unk4;
         public byte extHeader;
@@ -59,13 +59,21 @@ namespace plugin_gust.Images
             get => (int)Math.Pow(2, dimension & 0x0F);
             set => dimension = (byte)((dimension & 0xF0) | (((int)Math.Log(value - 1, 2) + 1) & 0x0F));
         }
+
+        public int MipCount
+        {
+            get => mipUnk >> 4;
+            set => mipUnk = (byte)((mipUnk & 0x0F) | (value << 4));
+        }
     }
 
     enum G1tPlatform
     {
         N3DS,
         Vita,
-        PlayStation
+        PlayStation,
+        PC,
+        Switch
     }
 
     class G1tImageInfo : ImageInfo
@@ -120,6 +128,22 @@ namespace plugin_gust.Images
             [0x5F] = ImageFormats.Rgba8888(ByteOrder.BigEndian)
         };
 
+        private static readonly IDictionary<int, IColorEncoding> PcFormats = new Dictionary<int, IColorEncoding>
+        {
+            [0x01] = new Rgba(8, 8, 8, 8, "ARGB")
+        };
+
+        private static readonly IDictionary<int, IColorEncoding> SwitchFormats = new Dictionary<int, IColorEncoding>
+        {
+            [0x01] = new Rgba(8, 8, 8, 8, "ARGB"),
+
+            [0x59] = ImageFormats.Dxt1(),
+
+            [0x5B] = ImageFormats.Dxt5(),
+
+            [0x5F] = ImageFormats.Bc7()
+        };
+
         public static G1tPlatform DeterminePlatform(Stream input, IDialogManager manager)
         {
             using var br = new BinaryReaderX(input, true);
@@ -140,8 +164,8 @@ namespace plugin_gust.Images
             }
 
             // Match formats to platform
-            var givenFormats = new List<ICollection<int>> { CitraFormats.Keys, VitaFormats.Keys, PlayStationFormats.Keys };
-            var givenPlatforms = new List<G1tPlatform> { G1tPlatform.N3DS, G1tPlatform.Vita, G1tPlatform.PlayStation };
+            var givenFormats = new List<ICollection<int>> { CitraFormats.Keys, VitaFormats.Keys, PlayStationFormats.Keys, PcFormats.Keys, SwitchFormats.Keys };
+            var givenPlatforms = new List<G1tPlatform> { G1tPlatform.N3DS, G1tPlatform.Vita, G1tPlatform.PlayStation, G1tPlatform.PC, G1tPlatform.Switch };
 
             foreach (var format in formats)
             {
@@ -158,8 +182,9 @@ namespace plugin_gust.Images
                 // If format is found multiple times, just continue to see if another format can identify uniquely
             }
 
-            // If a platform could still not be uniquely identified, ask the user for the platform to use
-            var platformNames = Enum.GetNames(typeof(G1tPlatform));
+            // If a platform could still not be uniquely identified, ask the user for the platform to use that could make sense
+            var possiblePlatforms = givenFormats.Select((x, i) => (x, i)).Where(x => formats.All(y => x.x.Contains(y))).Select(x => givenPlatforms[x.i]);
+            var platformNames = possiblePlatforms.Select(x => Enum.GetName(typeof(G1tPlatform), x)).ToArray();
             var field = new DialogField(DialogFieldType.DropDown, "Platform", platformNames[0], platformNames);
 
             manager.ShowDialog(new[] { field });
@@ -185,6 +210,14 @@ namespace plugin_gust.Images
                     definition.AddColorEncodings(PlayStationFormats);
                     break;
 
+                case G1tPlatform.PC:
+                    definition.AddColorEncodings(PcFormats);
+                    break;
+
+                case G1tPlatform.Switch:
+                    definition.AddColorEncodings(SwitchFormats);
+                    break;
+
                 default:
                     throw new InvalidOperationException($"Unsupported platform {platform}.");
             }
@@ -205,6 +238,12 @@ namespace plugin_gust.Images
                 case G1tPlatform.PlayStation:
                     return PlayStationFormats[format].BitDepth;
 
+                case G1tPlatform.PC:
+                    return PcFormats[format].BitDepth;
+
+                case G1tPlatform.Switch:
+                    return SwitchFormats[format].BitDepth;
+
                 default:
                     throw new InvalidOperationException($"Unsupported platform {platform}.");
             }
@@ -220,11 +259,23 @@ namespace plugin_gust.Images
                 case G1tPlatform.Vita:
                     return new VitaSwizzle(context);
 
+                //case G1tPlatform.Switch:
+                //    return new NxSwizzle(context);
+
                 // TODO: Remove with prepend swizzle
                 case G1tPlatform.PlayStation:
                     if (PlayStationFormats[format].ColorsPerValue > 1)
                         return new BcSwizzle(context);
 
+                    return null;
+
+                case G1tPlatform.Switch:
+                    if (SwitchFormats[format].ColorsPerValue > 1)
+                        return new BcSwizzle(context);
+
+                    return null;
+
+                case G1tPlatform.PC:
                     return null;
 
                 default:

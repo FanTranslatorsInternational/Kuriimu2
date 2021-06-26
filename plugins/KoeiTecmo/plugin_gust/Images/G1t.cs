@@ -47,10 +47,23 @@ namespace plugin_gust.Images
                 var entry = br.ReadType<G1tEntry>();
 
                 // Read image data
-                var imageData = br.ReadBytes(entry.Width * entry.Height * G1tSupport.GetBitDepth(entry.format, platform) / 8);
+                var dataSize = entry.Width * entry.Height * G1tSupport.GetBitDepth(entry.format, platform) / 8;
+                var imageData = br.ReadBytes(dataSize);
+
+                // Read mips
+                var mips = new List<byte[]>();
+                for (var i = 1; i < entry.MipCount; i++)
+                {
+                    dataSize = (entry.Width >> i) * (entry.Height >> i) * G1tSupport.GetBitDepth(entry.format, platform) / 8;
+                    mips.Add(br.ReadBytes(dataSize));
+                }
 
                 // Create image info
-                var imageInfo = new G1tImageInfo(imageData, entry.format, new Size(entry.Width, entry.Height), entry);
+                var imageInfo = new G1tImageInfo(imageData, entry.format, new Size(entry.Width, entry.Height), entry)
+                {
+                    MipMapData = mips
+                };
+
                 imageInfo.RemapPixels.With(context => G1tSupport.GetSwizzle(context, entry.format, platform));
                 imageInfo.PadSize.ToPowerOfTwo();
 
@@ -87,6 +100,11 @@ namespace plugin_gust.Images
 
                 // Write image data
                 bw.Write(imageInfo.ImageData);
+
+                // Write mips
+                if (imageInfo.MipMapCount > 0)
+                    foreach (var mip in imageInfo.MipMapData)
+                        bw.Write(mip);
             }
 
             // Write offsets
