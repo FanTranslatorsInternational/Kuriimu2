@@ -8,7 +8,6 @@ namespace plugin_nintendo.Images
 {
     class RawJtexHeader
     {
-        public uint dataOffset;
         public int format;
         public int width;
         public int height;
