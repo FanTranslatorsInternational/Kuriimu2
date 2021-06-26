@@ -124,7 +124,7 @@ namespace Kompression.Configuration
 
                 lzHuffmanEncoder.Encode(input, output, matchParser?.ParseMatches(input), treeBuilder);
             }
-            else if (_lzEncoderAction != null)
+            else if (_encoderAction != null)
             {
                 var encoder = _encoderAction();
                 ContractAssertions.IsNotNull(encoder, nameof(encoder));

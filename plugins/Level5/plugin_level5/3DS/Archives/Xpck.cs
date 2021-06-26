@@ -11,14 +11,14 @@ using plugin_level5.Compression;
 
 namespace plugin_level5._3DS.Archives
 {
-    // TODO: Recreate name table and enable adding files
     // Game: Yo-kai Watch, Time Travelers, more Level5 games in general on 3DS
     public class Xpck
     {
-        private static int _headerSize = Tools.MeasureType(typeof(XpckHeader));
-        private static int _entrySize = Tools.MeasureType(typeof(XpckFileInfo));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(XpckHeader));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(XpckFileInfo));
 
         private XpckHeader _header;
+        private bool _allowZlib;    // ZLib is only supported for Switch and newer; older platforms may not implement ZLib
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
@@ -33,6 +33,7 @@ namespace plugin_level5._3DS.Archives
 
             // File names
             var compNameTable = new SubStream(input, _header.FilenameTableOffset, _header.FilenameTableSize);
+            _allowZlib = Level5Compressor.PeekCompressionMethod(compNameTable) == Level5CompressionMethod.ZLib;
             var decNames = new MemoryStream();
             Level5Compressor.Decompress(compNameTable, decNames);
 
@@ -79,10 +80,10 @@ namespace plugin_level5._3DS.Archives
             }
 
             var nameStreamComp = new MemoryStream();
-            Compress(nameStream, nameStreamComp, Level5CompressionMethod.Lz10);
+            Compress(nameStream, nameStreamComp, _allowZlib ? Level5CompressionMethod.ZLib : Level5CompressionMethod.Lz10);
 
             // Write files
-            _header.DataOffset = (ushort)((_headerSize + files.Count * _entrySize + nameStreamComp.Length + 3) & ~3);
+            _header.DataOffset = (ushort)((HeaderSize + files.Count * EntrySize + nameStreamComp.Length + 3) & ~3);
 
             var crc32 = Crc32.Default;
 
@@ -103,10 +104,10 @@ namespace plugin_level5._3DS.Archives
 
             // Entries
             _header.FileCount = (ushort)files.Count;
-            _header.FileInfoOffset = (ushort)_headerSize;
-            _header.FileInfoSize = (ushort)(_entrySize * files.Count);
+            _header.FileInfoOffset = (ushort)HeaderSize;
+            _header.FileInfoSize = (ushort)(EntrySize * files.Count);
 
-            bw.BaseStream.Position = _headerSize;
+            bw.BaseStream.Position = HeaderSize;
             foreach (var file in castedFiles)
                 bw.WriteType(file.FileEntry);
 
