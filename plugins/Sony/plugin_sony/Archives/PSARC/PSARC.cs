@@ -19,82 +19,69 @@ namespace plugin_sony.Archives.PSARC
 
         public const ushort ZLibHeader = 0x78DA;
         //public const ushort LzmaHeader = 0x????;
+
         public const ushort AllStarsEncryptionA = 0x0001;
         public const ushort AllStarsEncryptionB = 0x0002;
 
-        public PsarcHeader PsarcHeader;
+        private PsarcHeader _header;
         public bool AllStarsEncryptedArchive;
 
         public List<IArchiveFileInfo> Load(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
-            PsarcHeader = br.ReadType<PsarcHeader>();
 
-            // Determine block length
-            uint blockIterator = 256;
-            do
-            {
-                blockIterator *= 256;
-                BlockLength = (ushort)(BlockLength + 1);
-            } while (blockIterator < PsarcHeader.BlockSize);
-
-            // Read manifest entry
-            var manifestEntry = br.ReadType<PsarcEntry>();
+            // Read header
+            _header = br.ReadType<PsarcHeader>();
 
             // Read file entries
-            var fileEntries = br.ReadMultiple<PsarcEntry>(PsarcHeader.TocEntryCount - 1);
+            var fileEntries = br.ReadMultiple<PsarcEntry>(_header.TocEntryCount);
 
-            // Blocks
-            var numBlocks = (PsarcHeader.TocSize - (int)br.BaseStream.Position) / BlockLength;
-            for (var i = 0; i < numBlocks; i++)
-                CompressedBlockSizes.Add(br.ReadBytes(BlockLength).Reverse().Select((x, j) => x << 8 * j).Sum());
+            // Read block sizes
+            var blockCount = (_header.TocSize - (int)br.BaseStream.Position) / 2;
+            var blockSizes = br.ReadMultiple<ushort>(blockCount);
+            var blockInfos = new List<(int, int)>();
+
+            // Create block infos
+            var blockOffset = _header.TocSize;
+            foreach (var blockSize in blockSizes.Select(x => x == 0 ? _header.BlockSize : x))
+            {
+                blockInfos.Add((blockOffset, blockSize));
+                blockOffset += blockSize;
+            }
 
             // Check for SDAT Encryption
-            if (PsarcHeader.TocEntryCount > 0)
-            {
-                br.BaseStream.Position = manifestEntry.Offset;
-                var compression = br.ReadUInt16();
-                br.BaseStream.Position -= 2;
-                AllStarsEncryptedArchive = compression == AllStarsEncryptionA || compression == AllStarsEncryptionB;
-            }
+            input.Position = fileEntries[0].Offset;
+            var compression = br.PeekUInt16();
+            AllStarsEncryptedArchive = compression == AllStarsEncryptionA || compression == AllStarsEncryptionB;
 
-            // Load Filenames
-            var filenames = new List<string>();
-            if (!AllStarsEncryptedArchive)
-            {
-                var manifestStream = new PsarcBlockStream(input, manifestEntry, PsarcHeader.BlockSize, CompressedBlockSizes);
-                using var brNames = new BinaryReaderX(manifestStream, Encoding.UTF8);
-                for (var i = 1; i < PsarcHeader.TocEntryCount; i++)
-                    filenames.Add(Encoding.UTF8.GetString(brNames.ReadBytesUntil(0x0, (byte)'\n')));
-            }
-            else
+            // Read file names
+            IList<string> fileNames;
+            if (AllStarsEncryptedArchive)
             {
                 // Temporary until we can decrypt AllStars PSARCs.
-                for (var i = 1; i < PsarcHeader.TocEntryCount; i++)
-                    filenames.Add($"{i:00000000}.bin");
-            }
-
-            // Files
-            var files = new List<IArchiveFileInfo>();
-            if (!AllStarsEncryptedArchive)
-            {
-                for (int i = 0; i < fileEntries.Count; i++)
-                    files.Add(new PsarcFileInfo(new PsarcBlockStream(input, fileEntries[i], PsarcHeader.BlockSize, CompressedBlockSizes), filenames[i]));
+                fileNames = Enumerable.Range(1, _header.TocEntryCount - 1).Select(x => $"{x:00000000}.bin").ToArray();
             }
             else
             {
-                for (int i = 0; i < fileEntries.Count; i++)
-                {
-                    var entry = fileEntries[i];
-                    var compressedSize = 0L;
-                    for (var j = entry.FirstBlockIndex; j < entry.FirstBlockIndex + Math.Ceiling((double)entry.UncompressedSize / PsarcHeader.BlockSize); j++)
-                        compressedSize += CompressedBlockSizes[j] == 0 ? PsarcHeader.BlockSize : CompressedBlockSizes[j];
+                var manifestStream = new PsarcStream(input, _header.BlockSize, fileEntries[0], blockInfos);
+                using var brNames = new BinaryReaderX(manifestStream, Encoding.UTF8);
 
-                    files.Add(new ArchiveFileInfo(new SubStream(input, entry.Offset, compressedSize), filenames[i]));
-                }
+                fileNames = new List<string>();
+                for (var i = 1; i < _header.TocEntryCount; i++)
+                    fileNames.Add(Encoding.UTF8.GetString(brNames.ReadBytesUntil(0x0, (byte)'\n')));
             }
 
-            return files;
+            // Add Files
+            var result = new List<IArchiveFileInfo>();
+            for (var i = 1; i < fileEntries.Count; i++)
+            {
+                var fileStream = new PsarcStream(input, _header.BlockSize, fileEntries[i], blockInfos);
+                var fileName = fileNames[i - 1];
+
+                result.Add(new ArchiveFileInfo(fileStream, fileName));
+            }
+
+            return result;
         }
 
         //public void Save(Stream output)
