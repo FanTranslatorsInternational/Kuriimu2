@@ -145,13 +145,13 @@ jobs:
       
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update ./update_repo
-        
+
     - name: Move update files to update repo
       run: |
         mv -Force ./update/Windows/* ./update_repo/Windows
         mv -Force ./update/Linux/* ./update_repo/Linux
         mv -Force ./update/Mac/* ./update_repo/Mac
-        
+
     - name: Commit changes to update repo
       run: |
         cd ./update_repo
