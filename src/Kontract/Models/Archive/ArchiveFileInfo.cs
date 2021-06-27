@@ -50,6 +50,9 @@ namespace Kontract.Models.Archive
         /// <inheritdoc />
         public virtual long FileSize => _getFileSizeAction();
 
+        /// <inheritdoc />
+        public bool IsFileDataInvalid => !FileData.CanRead && !FileData.CanWrite;
+
         /// <summary>
         /// Creates a new instance of <see cref="ArchiveFileInfo"/>.
         /// </summary>

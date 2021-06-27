@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -31,7 +31,7 @@ namespace plugin_spike_chunsoft.Archives
             return br.ReadUInt32() == 0xd7d6a6b8;
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new NonaryMainState();
         }

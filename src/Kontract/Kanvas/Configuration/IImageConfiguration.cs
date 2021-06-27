@@ -1,14 +1,17 @@
 ﻿using System;
+using Kontract.Kanvas.Model;
 
 namespace Kontract.Kanvas.Configuration
 {
     public interface IImageConfiguration
     {
-        public ITranscodeConfiguration Transcode { get; }
+        ITranscodeConfiguration Transcode { get; }
 
-        public IPadSizeConfiguration PadSize { get; }
+        IPadSizeConfiguration PadSize { get; }
 
-        public IRemapPixelsConfiguration RemapPixels { get; }
+        IRemapPixelsConfiguration RemapPixels { get; }
+
+        IImageConfiguration IsAnchoredAt(ImageAnchor anchor);
 
         IImageConfiguration WithDegreeOfParallelism(int taskCount);
 

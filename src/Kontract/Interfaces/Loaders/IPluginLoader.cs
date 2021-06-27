@@ -1,12 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Kontract.Models;
 
 namespace Kontract.Interfaces.Loaders
 {
     /// <summary>
-    /// Exposes methods to load and get plugins.
+    /// Exposes methods to retrieve non-generic information about loaded plugins.
+    /// This interface is only intended as a base marker interface, please inherit from the generic version.
     /// </summary>
+    /// <see cref="IPluginLoader{TPlugin}"/>
     public interface IPluginLoader
     {
         /// <summary>

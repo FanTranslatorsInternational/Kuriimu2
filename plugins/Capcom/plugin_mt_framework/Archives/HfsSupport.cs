@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Komponent.IO.Attributes;
-using Komponent.IO.Streams;
 using Kryptography.Hash;
 
 namespace plugin_mt_framework.Archives
@@ -16,51 +15,34 @@ namespace plugin_mt_framework.Archives
         public int fileSize;
     }
 
-    class HfsHash : IHash
+    class HfsHash : BaseHash<byte[]>
     {
         private static readonly byte[] InitValues = { 0x87, 0x55, 0x07, 0xB5, 0x4B, 0x04, 0xA5, 0xAE, 0xC7, 0x67, 0xBE, 0xCB, 0x01, 0x50, 0x58, 0x44 };
         private static readonly int[] RotValues = { 1, 6, 3, 4, 2, 5, 7, 4, 6, 2, 1, 5, 3, 1, 7, 3 };
 
-        public byte[] Compute(Span<byte> input)
+        protected override byte[] CreateInitialValue()
         {
-            var result = new byte[16];
-            Array.Copy(InitValues, result, 16);
+            var buffer = new byte[16];
+            Array.Copy(InitValues, buffer, 16);
 
-            ComputeInternal(input, 0, input.Length, result);
-
-            Finalize(result);
-
-            return result;
+            return buffer;
         }
 
-        public byte[] Compute(Stream input)
-        {
-            var result = new byte[16];
-            Array.Copy(InitValues, result, 16);
-
-            var buffer = new byte[4096];
-            int readSize;
-            do
-            {
-                readSize = input.Read(buffer, 0, 4096);
-                ComputeInternal(buffer, 0, readSize, result);
-            } while (readSize > 0);
-
-            Finalize(result);
-
-            return result;
-        }
-
-        private void ComputeInternal(Span<byte> buffer, int offset, int size, byte[] result)
-        {
-            for (var i = offset; i < size; i++)
-                result[i % 16] += buffer[i];
-        }
-
-        private void Finalize(byte[] result)
+        protected override void FinalizeResult(ref byte[] result)
         {
             for (var i = 0; i < 16; i++)
                 result[i] = Rot(result[i], RotValues[i]);
+        }
+
+        protected override void ComputeInternal(Span<byte> input, ref byte[] result)
+        {
+            for (var i = 0; i < input.Length; i++)
+                result[i % 16] += input[i];
+        }
+
+        protected override byte[] ConvertResult(byte[] result)
+        {
+            return result;
         }
 
         private static byte Rot(byte value, int rot) => (byte)((value >> rot) | (value << (8 - rot)));

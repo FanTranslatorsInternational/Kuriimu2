@@ -23,6 +23,8 @@ namespace plugin_criware.Archives
 
         private CpkTable _etocTable;
 
+        private CpkTable _gtocTable;
+
         private int _align;
 
         public IList<IArchiveFileInfo> Load(Stream input)
@@ -40,18 +42,24 @@ namespace plugin_criware.Archives
             var tocOffset = headerRow.Get<long>("TocOffset");
             var itocOffset = headerRow.Get<long>("ItocOffset");
             var etocOffset = headerRow.Get<long>("EtocOffset");
+            var gtocOffset = headerRow.Get<long>("GtocOffset");
+
+            var result = new List<IArchiveFileInfo>();
 
             // Read tables
             if (etocOffset > 0)
                 ReadEtocTable(br, etocOffset);
 
+            if (gtocOffset > 0)
+                ReadGtocTable(br, gtocOffset);
+
             if (tocOffset > 0)
-                return ReadTocTable(br, tocOffset, contentOffset).ToList();
+                result.AddRange(ReadTocTable(br, tocOffset, contentOffset));
 
             if (itocOffset > 0)
-                return ReadItocTable(br, itocOffset).ToList();
+                result.AddRange(ReadItocTable(br, itocOffset));
 
-            return Array.Empty<IArchiveFileInfo>();
+            return result;
         }
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
@@ -59,27 +67,39 @@ namespace plugin_criware.Archives
             var headerTableSize = _header.CalculateSize();
             long tableOffset = headerTableSize;
 
+            var fileOffset = tableOffset +
+                CpkSupport.Align(_tocTable?.CalculateSize() ?? 0, _align) +
+                CpkSupport.Align(_etocTable?.CalculateSize() ?? 0, _align) +
+                CpkSupport.Align(_itocTable?.CalculateSize() ?? 0, _align) +
+                CpkSupport.Align(_gtocTable?.CalculateSize() ?? 0, _align);
+
             // Write files and toc table
             if (_tocTable != null)
             {
-                WriteTocTable(output, files, tableOffset);
-                tableOffset = output.Length;
+                WriteTocTable(output, files, tableOffset, fileOffset);
+                tableOffset = CpkSupport.Align(tableOffset, _align) + _tocTable.CalculateSize();
             }
 
             if (_itocTable != null)
             {
-                WriteItocTable(output, files, tableOffset);
-                tableOffset = output.Length;
+                WriteItocTable(output, files, tableOffset, fileOffset);
+                tableOffset = CpkSupport.Align(tableOffset, _align) + _itocTable.CalculateSize();
             }
 
             if (_etocTable != null)
             {
                 WriteEtocTable(output, tableOffset);
-                tableOffset = output.Length;
+                tableOffset = CpkSupport.Align(tableOffset, _align) + _etocTable.CalculateSize();
+            }
+
+            if (_gtocTable != null)
+            {
+                WriteGtocTable(output, tableOffset);
+                tableOffset = CpkSupport.Align(tableOffset, _align) + _gtocTable.CalculateSize();
             }
 
             // Write header
-            _header.Write(output, 0);
+            _header.Write(output, 0, _align);
         }
 
         #region Read tables
@@ -116,6 +136,9 @@ namespace plugin_criware.Archives
             // Read toc table
             _itocTable = CpkTable.Create(br.BaseStream, itocOffset);
 
+            if (_itocTable.Name != "CpkItocInfo")
+                yield break;
+
             // Read data tables
             var itocRow = _itocTable.Rows[0];
             _dataLTable = CpkTable.Create(new MemoryStream(itocRow.Get<byte[]>("DataL")), "DataL");
@@ -145,11 +168,16 @@ namespace plugin_criware.Archives
             _etocTable = CpkTable.Create(br.BaseStream, etocOffset);
         }
 
+        private void ReadGtocTable(BinaryReaderX br, long gtocOffset)
+        {
+            _gtocTable = CpkTable.Create(br.BaseStream, gtocOffset);
+        }
+
         #endregion
 
         #region Write tables
 
-        private void WriteTocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset)
+        private void WriteTocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
         {
             // Update file information
             foreach (var file in files.Cast<CpkArchiveFileInfo>())
@@ -161,11 +189,11 @@ namespace plugin_criware.Archives
 
             var tocTableSize = _tocTable.CalculateSize();
             var tocOffset = CpkSupport.Align(tableOffset, _align);
-            long fileOffset = CpkSupport.Align(tocOffset + tocTableSize, _align);
-            long filePosition = fileOffset;
+            fileOffset = CpkSupport.Align(fileOffset, _align);
+            var filePosition = fileOffset;
 
             // Write files and update remaining file information
-            foreach (var file in files.Cast<CpkArchiveFileInfo>())
+            foreach (var file in files.Cast<CpkArchiveFileInfo>().OrderBy(x => x.Row.Get<int>("ID")))
             {
                 // Update offset
                 file.Row.Set("FileOffset", filePosition - tocOffset);
@@ -180,7 +208,7 @@ namespace plugin_criware.Archives
                 filePosition = output.Position;
 
                 // Update compressed size
-                // HINT: This code allows for the scenario that the table size was calculated to have a const value for FileSize,
+                // HINT: This code allows for the scenario that the table size was calculated to have a const value for FileSize, instead of a row value,
                 // since it works on previous data. Setting FileSize before calculating the table size however, would require
                 // caching all compressed files either in memory or in a temporary file.
                 // Since it is very unlikely that every compressed file has either the same size or every file is not compressed,
@@ -189,7 +217,7 @@ namespace plugin_criware.Archives
             }
 
             // Write table
-            _tocTable.Write(output, tocOffset);
+            _tocTable.Write(output, tocOffset, _align);
 
             // Update header
             _header.Rows[0].Set("TocOffset", (long)tocOffset);
@@ -198,7 +226,21 @@ namespace plugin_criware.Archives
             _header.Rows[0].Set("ContentSize", filePosition - fileOffset);
         }
 
-        private void WriteItocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset)
+        private void WriteItocTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
+        {
+            switch (_itocTable.Name)
+            {
+                case "CpkItocInfo":
+                    WriteItocFileTable(output, files, tableOffset, fileOffset);
+                    break;
+
+                case "CpkExtendId":
+                    WriteItocExtendedIdTable(output, tableOffset);
+                    break;
+            }
+        }
+
+        private void WriteItocFileTable(Stream output, IList<IArchiveFileInfo> files, long tableOffset, long fileOffset)
         {
             // Update file information
             foreach (var file in files.Cast<CpkArchiveFileInfo>())
@@ -206,8 +248,7 @@ namespace plugin_criware.Archives
 
             var tocTableSize = _itocTable.CalculateSize();
             var tocOffset = CpkSupport.Align(tableOffset, _align);
-            long fileOffset = CpkSupport.Align(tocOffset + tocTableSize, _align);
-            long filePosition = fileOffset;
+            var filePosition = fileOffset;
 
             // Write files and update remaining file information
             foreach (var file in files.Cast<CpkArchiveFileInfo>().OrderBy(x => int.Parse(x.FilePath.GetNameWithoutExtension())))
@@ -244,11 +285,11 @@ namespace plugin_criware.Archives
 
             // Store written data tables
             var dataLStream = new MemoryStream();
-            _dataLTable.Write(dataLStream, 0, false);
+            _dataLTable.Write(dataLStream, 0, _align, false);
             WriteAlignment(dataLStream, 0x10);
 
             var dataHStream = new MemoryStream();
-            _dataHTable.Write(dataHStream, 0, false);
+            _dataHTable.Write(dataHStream, 0, _align, false);
             WriteAlignment(dataHStream, 0x10);
 
             // Update and write table
@@ -257,7 +298,7 @@ namespace plugin_criware.Archives
             _itocTable.Rows[0].Set("FilesL", _dataLTable.Rows.Count);
             _itocTable.Rows[0].Set("FilesH", _dataHTable.Rows.Count);
 
-            _itocTable.Write(output, tocOffset);
+            _itocTable.Write(output, tocOffset, _align);
 
             // Update header
             _header.Rows[0].Set("ItocOffset", (long)tocOffset);
@@ -266,16 +307,40 @@ namespace plugin_criware.Archives
             _header.Rows[0].Set("ContentSize", filePosition - fileOffset);
         }
 
+        private void WriteItocExtendedIdTable(Stream output, long tableOffset)
+        {
+            // Update extended ids
+            for (var i = 0; i < _itocTable.Rows.Count; i++)
+            {
+                var row = _itocTable.Rows[i];
+
+                row.Set("ID", i);
+                row.Set("TocIndex", _tocTable.Rows.IndexOf(_tocTable.Rows.FirstOrDefault(x => x.Get<int>("ID") == i)));
+            }
+
+            WriteTable(output, _itocTable, tableOffset, "ItocOffset", "ItocSize");
+        }
+
         private void WriteEtocTable(Stream output, long tableOffset)
         {
-            var tocTableSize = _etocTable.CalculateSize();
+            WriteTable(output, _etocTable, tableOffset, "EtocOffset", "EtocSize");
+        }
+
+        private void WriteGtocTable(Stream output, long tableOffset)
+        {
+            WriteTable(output, _gtocTable, tableOffset, "GtocOffset", "GtocSize");
+        }
+
+        private void WriteTable(Stream output, CpkTable table, long tableOffset, string offsetName, string sizeName)
+        {
+            var tocTableSize = table.CalculateSize();
             var tocOffset = CpkSupport.Align(tableOffset, _align);
 
-            _etocTable.Write(output, tocOffset);
+            table.Write(output, tocOffset, _align);
             WriteAlignment(output, 0x10);
 
-            _header.Rows[0].Set("EtocOffset", tocOffset);
-            _header.Rows[0].Set("EtocSize", (long)tocTableSize);
+            _header.Rows[0].Set(offsetName, tocOffset);
+            _header.Rows[0].Set(sizeName, (long)tocTableSize);
         }
 
         private void WriteAlignment(Stream input, int alignment)

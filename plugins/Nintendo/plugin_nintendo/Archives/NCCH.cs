@@ -96,7 +96,7 @@ namespace plugin_nintendo.Archives
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            var sha256 = new Kryptography.Hash.Sha256();
+            var hash = new Kryptography.Hash.Sha256();
             using var bw = new BinaryWriterX(output);
 
             bw.BaseStream.Position = _ncchHeaderSize;
@@ -111,7 +111,7 @@ namespace plugin_nintendo.Archives
                 bw.WriteAlignment(MediaSize_);
 
                 _ncchHeader.exHeaderSize = (int)(exHeaderFile.FileSize / 2);
-                _ncchHeader.exHeaderHash = sha256.Compute(new SubStream(output, exHeaderPosition, _ncchHeader.exHeaderSize));
+                _ncchHeader.exHeaderHash = hash.Compute(new SubStream(output, exHeaderPosition, _ncchHeader.exHeaderSize));
             }
             else
             {
@@ -130,7 +130,7 @@ namespace plugin_nintendo.Archives
 
                 _ncchHeader.logoRegionOffset = (int)(logoRegionPosition / MediaSize_);
                 _ncchHeader.logoRegionSize = (int)((bw.BaseStream.Position - logoRegionPosition) / MediaSize_);
-                _ncchHeader.logoRegionHash = sha256.Compute(new SubStream(output, logoRegionPosition, writtenSize));
+                _ncchHeader.logoRegionHash = hash.Compute(new SubStream(output, logoRegionPosition, writtenSize));
             }
             else
             {
@@ -167,7 +167,7 @@ namespace plugin_nintendo.Archives
                 _ncchHeader.exeFsOffset = (int)(exeFsPosition / MediaSize_);
                 _ncchHeader.exeFsSize = (int)(exeFsSize / MediaSize_);
                 _ncchHeader.exeFsHashRegionSize = _exeFsHeaderSize / MediaSize_;
-                _ncchHeader.exeFsSuperBlockHash = sha256.Compute(new SubStream(output, exeFsPosition, _exeFsHeaderSize));
+                _ncchHeader.exeFsSuperBlockHash = hash.Compute(new SubStream(output, exeFsPosition, _exeFsHeaderSize));
 
                 bw.WriteAlignment(0x1000);
             }
@@ -202,7 +202,7 @@ namespace plugin_nintendo.Archives
                 _ncchHeader.romFsOffset = (int)(romFsPosition / MediaSize_);
                 _ncchHeader.romFsSize = (int)(romFsSize1 / MediaSize_);
                 _ncchHeader.romFsHashRegionSize = 1;    // Only the first 0x200 of the RomFs get into the hash region apparently
-                _ncchHeader.romFsSuperBlockHash = sha256.Compute(new SubStream(output, romFsPosition, MediaSize_));
+                _ncchHeader.romFsSuperBlockHash = hash.Compute(new SubStream(output, romFsPosition, MediaSize_));
             }
             else
             {

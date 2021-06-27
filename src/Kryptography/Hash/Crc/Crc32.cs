@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Buffers.Binary;
 
 #if NET_CORE_31
 using System.Buffers.Binary;
@@ -8,12 +8,30 @@ using System.Buffers.Binary;
 // https://github.com/Michaelangel007/crc32
 namespace Kryptography.Hash.Crc
 {
-    public class Crc32 : IHash
+    public class Crc32 : BaseHash<uint>
     {
         #region Statics and Constants
 
+        #region Default Polynomial
+
         public const uint DefaultPolynomial = 0x04C11DB7;
         public const uint DefaultReflectedPolynomial = 0xEDB88320;
+
+        #endregion
+
+        #region Static instances
+
+        public static Crc32 Default => Create(Crc32Formula.Normal, DefaultPolynomial);
+
+        public static Crc32 Crc32B => Default;
+
+        public static Crc32 Crc32C => Create(Crc32Formula.Normal, 0x1EDC6F41);
+
+        public static Crc32 JamCrc => Create(Crc32Formula.Normal, DefaultPolynomial, 0xFFFFFFFF, 0);
+
+        #endregion
+
+        #region Tables
 
         private static readonly uint[] _defaultCrc32Table = {
             0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
@@ -84,9 +102,7 @@ namespace Kryptography.Hash.Crc
             0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
         };
 
-        public static Crc32 Default => Create(Crc32Formula.Normal, DefaultPolynomial);
-
-        public static Crc32 JamCrc => Create(Crc32Formula.Normal, DefaultPolynomial, 0xFFFFFFFF, 0);
+        #endregion
 
         public static Crc32 Create(Crc32Formula formula, uint polynomial, uint initValue = 0xFFFFFFFF, uint xorOut = 0xFFFFFFFF)
         {
@@ -146,47 +162,41 @@ namespace Kryptography.Hash.Crc
             _xorOut = xorOut;
         }
 
-        public byte[] Compute(Stream input)
+        #region Override methods
+
+        protected override uint CreateInitialValue()
         {
-            var returnCrc = _initValue;
-
-            byte[] buffer = new byte[4096];
-            int readSize;
-            do
-            {
-                readSize = input.Read(buffer, 0, 4096);
-                returnCrc = ComputeInternal(buffer, 0, readSize, returnCrc);
-            } while (readSize > 0);
-
-            if (_formula == Crc32Formula.Reflected)
-                return MakeResult(~returnCrc);
-
-            return MakeResult(~ReverseBits(returnCrc));
+            return _initValue;
         }
 
-        public byte[] Compute(Span<byte> input)
+        protected override void FinalizeResult(ref uint result)
         {
-            var result = ComputeInternal(input, 0, input.Length, _initValue);
-
             if (_formula == Crc32Formula.Reflected)
-                return MakeResult(result ^ _xorOut);
-
-            return MakeResult(ReverseBits(result) ^ _xorOut);
+                result ^= _xorOut;
+            else
+                result = ReverseBits(result) ^ _xorOut;
         }
 
-        private uint ComputeInternal(Span<byte> toHash, int offset, int length, uint initialCrc)
+        protected override void ComputeInternal(Span<byte> input, ref uint result)
         {
-            var returnCrc = initialCrc;
-            for (var i = offset; i < offset + length; i++)
+            foreach (var value in input)
             {
                 if (_formula == Crc32Formula.Reflected)
-                    returnCrc = (returnCrc >> 8) ^ _polynomialTable[(returnCrc & 0xff) ^ toHash[i]];
+                    result = (result >> 8) ^ _polynomialTable[(result & 0xff) ^ value];
                 else
-                    returnCrc = (returnCrc << 8) ^ _polynomialTable[(returnCrc >> 24) ^ ReverseBits(toHash[i])];
+                    result = (result << 8) ^ _polynomialTable[(result >> 24) ^ ReverseBits(value)];
             }
-
-            return returnCrc;
         }
+
+        protected override byte[] ConvertResult(uint result)
+        {
+            var buffer = new byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(buffer, result);
+
+            return buffer;
+        }
+
+        #endregion
 
         private byte ReverseBits(byte toReverse)
         {
@@ -209,22 +219,6 @@ namespace Kryptography.Hash.Crc
             }
 
             return result;
-        }
-
-        private byte[] MakeResult(uint result)
-        {
-            var returnBuffer = new byte[4];
-
-#if NET_CORE_31
-            BinaryPrimitives.WriteUInt32BigEndian(returnBuffer, result);
-#else
-            returnBuffer[0] = (byte)(result >> 24);
-            returnBuffer[1] = (byte)(result >> 16);
-            returnBuffer[2] = (byte)(result >> 8);
-            returnBuffer[3] = (byte)result;
-#endif
-
-            return returnBuffer;
         }
     }
 }

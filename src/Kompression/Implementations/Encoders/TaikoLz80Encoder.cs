@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -13,13 +11,10 @@ namespace Kompression.Implementations.Encoders
     {
         public void Configure(IInternalMatchOptions matchOptions)
         {
-            matchOptions.CalculatePricesWith(() => new TaikoLz80PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(2, 5, 1, 0x10))
-                .AndFindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(3, 0x12, 1, 0x400))
-                .AndFindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(4, 0x83, 1, 0x8000));
+	        matchOptions.CalculatePricesWith(() => new TaikoLz80PriceCalculator())
+		        .FindMatches().WithinLimitations(2, 5, 1, 0x10)
+		        .AndFindMatches().WithinLimitations(3, 0x12, 1, 0x400)
+		        .AndFindMatches().WithinLimitations(4, 0x83, 1, 0x8000);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

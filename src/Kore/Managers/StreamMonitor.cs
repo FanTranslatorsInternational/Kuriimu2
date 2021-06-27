@@ -62,7 +62,7 @@ namespace Kore.Managers
             var streamManager = CreateStreamManager();
 
             var tempDirectory = CreateTemporaryDirectory();
-            var temporaryFileSystem = FileSystemFactory.CreatePhysicalFileSystem(tempDirectory, streamManager);
+            var temporaryFileSystem = FileSystemFactory.CreateSubFileSystem(tempDirectory, streamManager);
 
             _temporaryFileSystemMapping.GetOrAdd(temporaryFileSystem, x => (streamManager, tempDirectory));
             _streamManagerMapping.GetOrAdd(streamManager, x => (temporaryFileSystem, tempDirectory));
@@ -168,7 +168,7 @@ namespace Kore.Managers
         private string GetCurrentDirectory()
         {
             var process = Process.GetCurrentProcess().MainModule;
-            return process == null ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
+            return process == null || process.FileVersionInfo.InternalName == ".NET Host" ? AppDomain.CurrentDomain.BaseDirectory : Path.GetDirectoryName(process.FileName);
         }
 
         private void SetLogger(ILogger logger)

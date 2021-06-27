@@ -25,7 +25,12 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.302
-  
+
+    - name: Setup NuGet sources
+      run: |
+        nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
+        nuget sources add -name EtoFeed -source https://www.myget.org/F/eto/api/v3/index.json -verbosity detailed
+
     - name: Get manifest version
       id: set_version
       uses: notiz-dev/github-action-json-property@release
@@ -43,9 +48,6 @@ jobs:
         echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": "${{ github.run_id }}", "application_name": "Kuriimu2.app" }' > ./update/Mac/manifest.json
         echo '{"source_type": "Github Action", "version": "${{ steps.set_version.outputs.prop }}", "build_number": ${{ github.run_id }} }' > ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms/Resources/version.json
       
-    - name: Setup NuGet sources
-      run: nuget sources add -name LocalFeed -source D:\a\Kuriimu2\Kuriimu2\nuget -verbosity detailed
-      
     - name: Publish EtoForms application with dotnet
       run: |
         dotnet publish ./src/Kuriimu2.EtoForms/Kuriimu2.EtoForms.Wpf/Kuriimu2.EtoForms.Wpf.csproj --output ./dist/final/Wpf --configuration Release --framework netcoreapp31 --runtime win-x64 /p:PublishSingleFile=true
@@ -54,7 +56,7 @@ jobs:
         mv ./dist/final/Wpf/Kuriimu2.EtoForms.Wpf.exe ./dist/final/Wpf/Kuriimu2.exe
         mv ./dist/final/Gtk/Kuriimu2.EtoForms.Gtk ./dist/final/Gtk/Kuriimu2
         mkdir ./dist/final/Mac
-        mv ./dist/Release/netcoreapp31/osx-x64/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
+        mv ./dist/Release/netcoreapp31/Kuriimu2.EtoForms.Mac.app ./dist/final/Mac/Kuriimu2.app
         mv ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2.EtoForms.Mac ./dist/final/Mac/Kuriimu2.app/Contents/MacOS/Kuriimu2
         rm ./dist/final/Wpf/*.pdb
         rm ./dist/final/Gtk/*.pdb
@@ -74,21 +76,31 @@ jobs:
       
     - name: Publish plugins
       run: |
+        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Kadokawa/plugin_cattle_call/plugin_cattle_call.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/KhronosGroup/KhronosGroup.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/MercurySteam/MercurySteam.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Shade/Shade.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sega/plugin_sega/plugin_sega.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/StingEntertainment/StingEntertainment.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
         rm ./dist/final/plugins/*.pdb
@@ -132,7 +144,7 @@ jobs:
         openssl dgst -sha512 -sign privatekey.pem -out ./update/Mac/latest.sig ./update/Mac/latest.zip
       shell: bash
       env:
-        PRIVATE_KEY: ${{secrets.PRIVATE_KEY_3}}
+        PRIVATE_KEY: ${{secrets.PRIVATE_KEY_ETOFORMS}}
       
     - name: Clone update repository
       run: git clone https://github.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update ./update_repo

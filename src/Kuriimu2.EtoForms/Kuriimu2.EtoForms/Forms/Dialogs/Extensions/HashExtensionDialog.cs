@@ -4,6 +4,7 @@ using System.Linq;
 using Eto.Forms;
 using Kryptography.Hash;
 using Kryptography.Hash.Crc;
+using Kryptography.Hash.Fnv;
 using Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base;
 using Kuriimu2.EtoForms.Forms.Models;
 
@@ -39,9 +40,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             return new List<ExtensionType>
             {
                 new ExtensionType("Crc32", true),
+                new ExtensionType("Crc32 Namco", true),
                 new ExtensionType("Crc32 Custom", true,
                     new ExtensionTypeParameter("Polynomial", typeof(uint))),
-                new ExtensionType("Crc16 X25", true)
+                new ExtensionType("Crc16 X25", true),
+                new ExtensionType("Fnv1", true),
+                new ExtensionType("Fnv1a", true),
+                new ExtensionType("SimpleHash", true,
+                    new ExtensionTypeParameter("Seed", typeof(uint))),
+                new ExtensionType("Xbb", true),
+                new ExtensionType("Sha256", true)
             };
         }
 
@@ -52,11 +60,29 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
                 case "Crc32":
                     return Crc32.Default;
 
+                case "Crc32 Namco":
+                    return Crc32Namco.Create();
+
                 case "Crc32 Custom":
                     return Crc32.Create(Crc32Formula.Normal, extensionType.GetParameterValue<uint>("Polynomial"));
 
                 case "Crc16 X25":
                     return Crc16.X25;
+
+                case "Fnv1":
+                    return Fnv1.Create();
+
+                case "Fnv1a":
+                    return Fnv1a.Create();
+
+                case "SimpleHash":
+                    return new SimpleHash(extensionType.GetParameterValue<uint>("Seed"));
+
+                case "Xbb":
+                    return new XbbHash();
+
+                case "Sha256":
+                    return new Sha256();
 
                 // TODO: Plugin extensibility?
                 default:

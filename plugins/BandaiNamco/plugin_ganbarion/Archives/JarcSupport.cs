@@ -5,6 +5,17 @@ using Kontract.Models.Archive;
 
 namespace plugin_ganbarion.Archives
 {
+    class JcmpHeader
+    {
+        [FixedLength(4)]
+        public string magic="jCMP";
+
+        public int fileSize;
+        public int unk1;
+        public int compSize;
+        public int decompSize;
+    }
+
     class JarcHeader
     {
         [FixedLength(4)]

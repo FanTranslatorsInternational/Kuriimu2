@@ -29,19 +29,19 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         protected ILogger Logger { get; }
 
-        public BaseBatchDialog(IInternalPluginManager pluginManager)
+        public BaseBatchDialog(IInternalFileManager fileManager)
         {
-            ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
+            ContractAssertions.IsNotNull(fileManager, nameof(fileManager));
 
             InitializeComponent();
 
             Logger = new LoggerConfiguration().WriteTo.Sink(new RichTextAreaSink(log)).CreateLogger();
-            _batchProcessor = InitializeBatchProcessor(pluginManager, Logger);
+            _batchProcessor = InitializeBatchProcessor(fileManager, Logger);
 
             _avgTimer = new System.Timers.Timer(300);
             _avgTimer.Elapsed += avgTimer_Elapsed;
 
-            var loadedPlugins = LoadPlugins(pluginManager);
+            var loadedPlugins = LoadPlugins(fileManager);
             plugins.DataStore = loadedPlugins;
 
             plugins.SelectedIndex = 0;
@@ -61,11 +61,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         #region Initialization
 
-        protected abstract BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, ILogger logger);
+        protected abstract BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger);
 
-        private IList<PluginElement> LoadPlugins(IInternalPluginManager pluginManager)
+        private IList<PluginElement> LoadPlugins(IInternalFileManager fileManager)
         {
-            return pluginManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x=>x.ToString()).ToArray();
+            return fileManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x=>x.ToString()).ToArray();
         }
 
         #endregion
@@ -146,8 +146,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
             _batchProcessor.PluginId = selectedPlugin.IsEmpty ? Guid.Empty : selectedPlugin.Plugin.PluginId;
             _batchProcessor.ScanSubDirectories = subDirectoryBox.Checked ?? false;
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedInputPath.Text, new StreamManager());
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedOutputPath.Text, new StreamManager());
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedInputPath.Text, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(selectedOutputPath.Text, new StreamManager());
 
             await _batchProcessor.Process(sourceFileSystem, destinationFileSystem);
 

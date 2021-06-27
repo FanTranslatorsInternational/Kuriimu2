@@ -10,7 +10,7 @@ using Kontract.Kanvas;
 
 namespace Kanvas.Encoding.Descriptors
 {
-    class IndexPixelDescriptor : IPixelIndexDescriptor
+    public class IndexPixelDescriptor : IPixelIndexDescriptor
     {
         private int[] _indexTable;
         private int[] _componentIndexTable;
@@ -20,6 +20,9 @@ namespace Kanvas.Encoding.Descriptors
 
         private Func<long, int>[] _readActions;
         private Func<long, int, long>[] _writeActions;
+
+        private Func<int, int>[] _readBitDepthDelegates;
+        private Func<int, int>[] _writeBitDepthDelegates;
 
         public IndexPixelDescriptor(string componentOrder, int i, int a)
         {
@@ -33,7 +36,7 @@ namespace Kanvas.Encoding.Descriptors
         {
             var componentBuilder = new StringBuilder();
             var depthBuilder = new StringBuilder();
-            var componentLetters = new[] { "I", "A" };
+            var componentLetters = new[] { "I", "A", "X" };
 
             void AppendComponent(int level)
             {
@@ -57,7 +60,7 @@ namespace Kanvas.Encoding.Descriptors
 
         public Color GetColor(long value, IList<Color> palette)
         {
-            var colorBuffer = new int[2];
+            var colorBuffer = new int[3];
 
             colorBuffer[_indexTable[0]] = _readActions[0](value);
             colorBuffer[_indexTable[1]] = _readActions[1](value);
@@ -73,7 +76,7 @@ namespace Kanvas.Encoding.Descriptors
         public long GetValue(int index, IList<Color> palette)
         {
             var result = 0L;
-            var colorBuffer = new[] { index, palette[index].A };
+            var colorBuffer = new[] { index, palette[index].A, 0 };
 
             var componentIndex = _componentIndexTable[0];
             result = _writeActions[componentIndex](result, colorBuffer[_indexTable[componentIndex]]);
@@ -89,7 +92,7 @@ namespace Kanvas.Encoding.Descriptors
             ContractAssertions.IsNotNull(componentOrder, nameof(componentOrder));
             ContractAssertions.IsInRange(componentOrder.Length, nameof(componentOrder), 1, 2);
 
-            if (!Regex.IsMatch(componentOrder, "^[ia]{1,2}$"))
+            if (!Regex.IsMatch(componentOrder, "^[iax]{1,2}$"))
                 throw new InvalidOperationException($"'{componentOrder}' contains invalid characters.");
 
             if (componentOrder.Distinct().Count() != componentOrder.Length)
@@ -99,14 +102,6 @@ namespace Kanvas.Encoding.Descriptors
         private void AssertBitDepth(int bitDepth)
         {
             ContractAssertions.IsInRange(bitDepth, nameof(bitDepth), 1, 16);
-
-            if (!IsPowerOf2(bitDepth))
-                throw new InvalidOperationException("Bit depth has to be a power of 2.");
-        }
-
-        private bool IsPowerOf2(int value)
-        {
-            return value != 0 && (value & (value - 1)) == 0;
         }
 
         private void SetupLookupTables(string componentOrder, int i, int a)
@@ -119,29 +114,53 @@ namespace Kanvas.Encoding.Descriptors
                 _shiftTable[tableIndex] = shiftValue;
                 _maskTable[tableIndex] = (1 << depth) - 1;
 
+                if (depth <= 8)
+                {
+	                if (depth == 0)
+	                {
+		                _readBitDepthDelegates[tableIndex] = value => 0;
+		                _writeBitDepthDelegates[tableIndex] = value => 0;
+	                }
+	                else
+	                {
+		                _readBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, depth);
+		                _writeBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth);
+	                }
+                }
+                else
+                {
+	                _readBitDepthDelegates[tableIndex] = value => Conversion.DownscaleBitDepth(value, depth, 8);
+	                _writeBitDepthDelegates[tableIndex] = value => Conversion.UpscaleBitDepth(value, 8, depth);
+                }
+
                 shiftValue += depth;
             }
 
             // Index lookup table holds the indices to the depth Values in order of reading
-            _indexTable = new int[2];
+            _indexTable = new int[3];
 
             // Depth lookup table holds depth of components in order of reading
-            _depthTable = new int[2];
+            _depthTable = new int[3];
 
-            // Depth index table holds index into depth table in order IA
-            _componentIndexTable = new int[2];
+            // Depth index table holds index into depth table in order IAX
+            _componentIndexTable = new int[3];
 
             // Shift lookup table holds the shift Values for each depth in order of reading
-            _shiftTable = new int[2];
+            _shiftTable = new int[3];
 
             // Mask lookup table holds the bit mask to AND the shifted value with in order of reading
-            _maskTable = new int[2];
+            _maskTable = new int[3];
 
             // Table for the read/write action per index lookup
-            _readActions = new Func<long, int>[2];
-            _writeActions = new Func<long, int, long>[2];
+            _readActions = new Func<long, int>[3];
+            _writeActions = new Func<long, int, long>[3];
 
-            bool iSet = false, aSet = false;
+            // Delegates to convert from one bit depth to another
+            // Based on input and output bit depth, certain conditions can optimize the process
+            _readBitDepthDelegates = new Func<int, int>[3];
+            _writeBitDepthDelegates = new Func<int, int>[3];
+
+            bool iSet = false, aSet = false, xSet = false;
             var shift = 0;
             var length = componentOrder.Length;
             for (var j = length - 1; j >= 0; j--)
@@ -151,10 +170,10 @@ namespace Kanvas.Encoding.Descriptors
                 {
                     case 'i':
                     case 'I':
-                        _readActions[tableIndex] = value =>
-                            ReadIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
+                        _readActions[tableIndex] = value => 
+	                        ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]);
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteIndexComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
+                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
 
                         SetTableValues(tableIndex, 0, i, ref shift);
                         iSet = true;
@@ -163,38 +182,66 @@ namespace Kanvas.Encoding.Descriptors
                     case 'a':
                     case 'A':
                         _readActions[tableIndex] = value =>
-                            ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex]);
+	                        _readBitDepthDelegates[tableIndex](ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]));
                         _writeActions[tableIndex] = (result, value) =>
-                            WriteComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex], _depthTable[tableIndex], ref result);
+                            WriteComponent(_writeBitDepthDelegates[tableIndex](value), _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
 
                         SetTableValues(tableIndex, 1, a, ref shift);
                         aSet = true;
+                        break;
+
+                    case 'x':
+                    case 'X':
+                        _readActions[tableIndex] = value =>
+                            _readBitDepthDelegates[tableIndex](ReadComponent(value, _shiftTable[tableIndex], _maskTable[tableIndex]));
+                        _writeActions[tableIndex] = (result, value) =>
+	                        WriteComponent(_writeBitDepthDelegates[tableIndex](value), _shiftTable[tableIndex], _maskTable[tableIndex], ref result);
+
+                        SetTableValues(tableIndex, 2, GetBitDepthOfMissingComponent(componentOrder, i, a), ref shift);
+                        xSet = true;
                         break;
                 }
             }
 
             if (!iSet) SetTableValues(length++, 0, 0, ref shift);
-            if (!aSet) SetTableValues(length, 1, 0, ref shift);
+            if (!aSet) SetTableValues(length++, 1, 0, ref shift);
+            if (!xSet) SetTableValues(length, 2, 0, ref shift);
         }
 
-        private int ReadComponent(long value, int shift, int mask, int depth)
-        {
-            return Conversion.ChangeBitDepth((int)((value >> shift) & mask), depth, 8);
-        }
-
-        private int ReadIndexComponent(long value, int shift, int mask)
+        private int ReadComponent(long value, int shift, int mask)
         {
             return (int)((value >> shift) & mask);
         }
 
-        private long WriteComponent(int value, int shift, int mask, int depth, ref long result)
-        {
-            return result |= (long)(Conversion.ChangeBitDepth(value, 8, depth) & mask) << shift;
-        }
-
-        private long WriteIndexComponent(int value, int shift, int mask, ref long result)
+        private long WriteComponent(int value, int shift, int mask, ref long result)
         {
             return result |= (long)(value & mask) << shift;
+        }
+
+        private int GetBitDepthOfMissingComponent(string componentOrder, int i, int a)
+        {
+            bool iSet = false, aSet = false;
+            foreach (var component in componentOrder)
+            {
+                switch (component)
+                {
+                    case 'i':
+                    case 'I':
+                        iSet = true;
+                        break;
+
+                    case 'a':
+                    case 'A':
+                        aSet = true;
+                        break;
+                }
+            }
+
+            if (!iSet) return i;
+            if (!aSet) return a;
+
+            // HINT: This case should never occur!
+            throw new InvalidOperationException("No color component was marked as missing, but a missing color component was expected.");
         }
     }
 }

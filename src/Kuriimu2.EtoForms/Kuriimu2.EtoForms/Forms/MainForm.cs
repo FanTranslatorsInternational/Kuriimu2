@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
@@ -45,12 +46,12 @@ namespace Kuriimu2.EtoForms.Forms
 
         private readonly IProgressContext _progress;
         private readonly ILogger _logger;
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _fileManager;
 
-        private readonly IDictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary =
-            new Dictionary<IStateInfo, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)>();
-        private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)> _tabDictionary =
-            new Dictionary<TabPage, (IKuriimuForm KuriimuForm, IStateInfo StateInfo, Color TabColor)>();
+        private readonly IDictionary<IFileState, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)> _stateDictionary =
+            new Dictionary<IFileState, (IKuriimuForm KuriimuForm, TabPage TabPage, Color TabColor)>();
+        private readonly IDictionary<TabPage, (IKuriimuForm KuriimuForm, IFileState StateInfo, Color TabColor)> _tabDictionary =
+            new Dictionary<TabPage, (IKuriimuForm KuriimuForm, IFileState StateInfo, Color TabColor)>();
 
         private readonly Manifest _localManifest;
 
@@ -64,13 +65,11 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Constants
 
-        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-
         private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update/main/{0}/manifest.json";
         private const string ApplicationType = "EtoForms.{0}";
 
         private const string LoadError = "Load Error";
+        private const string LoadCancelled = "Load cancelled";
         private const string InvalidFile = "The selected file is invalid.";
         private const string NoPluginSelected = "No plugin was selected.";
 
@@ -93,24 +92,19 @@ namespace Kuriimu2.EtoForms.Forms
 
         #endregion
 
-        #region Loaded image resources
-
-        private readonly Bitmap MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
-        private readonly Bitmap MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
-
-        #endregion
-
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
             InitializeComponent();
+
+            Application.Instance.UnhandledException += MainForm_UnhandledException;
 
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
             _logger = new LoggerConfiguration().WriteTo.File($"{GetBaseDirectory()}/Kuriimu2.log").CreateLogger();
             _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 20));
-            _pluginManager = new PluginManager($"{GetBaseDirectory()}/plugins")
+            _fileManager = new FileManager($"{GetBaseDirectory()}/plugins")
             {
                 AllowManualSelection = true,
 
@@ -118,10 +112,10 @@ namespace Kuriimu2.EtoForms.Forms
                 DialogManager = new DialogManagerDialog(this),
                 Logger = _logger
             };
-            _pluginManager.OnManualSelection += pluginManager_OnManualSelection;
+            _fileManager.OnManualSelection += fileManager_OnManualSelection;
 
-            if (_pluginManager.LoadErrors.Any())
-                DisplayPluginErrors(_pluginManager.LoadErrors);
+            if (_fileManager.LoadErrors.Any())
+                DisplayPluginErrors(_fileManager.LoadErrors);
 
             // HINT: The form cannot directly handle DragDrop for some reason and needs a catalyst (on every platform beside WinForms)
             // HINT: Some kind of form spanning control, which handles the drop action instead
@@ -186,8 +180,8 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                     plugin == null ?
-                        _pluginManager.LoadFile(fileToOpen) :
-                        _pluginManager.LoadFile(fileToOpen, plugin.PluginId));
+                        _fileManager.LoadFile(fileToOpen) :
+                        _fileManager.LoadFile(fileToOpen, plugin.PluginId));
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
                 await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
@@ -206,16 +200,16 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Check if file is already loading
-            if (_pluginManager.IsLoading(filePath))
+            if (_fileManager.IsLoading(filePath))
             {
                 ReportStatus(false, $"{filePath} is already opening.");
                 return true;
             }
 
             // Check if file is already opened
-            if (_pluginManager.IsLoaded(filePath))
+            if (_fileManager.IsLoaded(filePath))
             {
-                var selectedTabPage = _stateDictionary[_pluginManager.GetLoadedFile(filePath)].TabPage;
+                var selectedTabPage = _stateDictionary[_fileManager.GetLoadedFile(filePath)].TabPage;
                 Application.Instance.Invoke(() => tabControl.SelectedPage = selectedTabPage);
 
                 return true;
@@ -225,7 +219,7 @@ namespace Kuriimu2.EtoForms.Forms
             IFilePlugin chosenPlugin = null;
             if (manualIdentification)
             {
-                chosenPlugin = ChoosePlugin(_pluginManager.GetFilePlugins().ToArray());
+                chosenPlugin = ChoosePlugin("Choose plugin to open file with:", _fileManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
                     ReportStatus(false, NoPluginSelected);
@@ -235,6 +229,13 @@ namespace Kuriimu2.EtoForms.Forms
 
             // Load file
             var loadResult = await loadFileFunc(chosenPlugin);
+            if (loadResult.IsCancelled)
+            {
+                // Load was canceled
+                ReportStatus(false, LoadCancelled);
+                return false;
+            }
+
             if (!loadResult.IsSuccessful)
             {
 #if DEBUG
@@ -248,49 +249,47 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Open tab page
-            var wasAdded = Application.Instance.Invoke(() => AddTabPage(loadResult.LoadedState, tabColor));
+            var wasAdded = Application.Instance.Invoke(() => AddTabPage(loadResult.LoadedFileState, tabColor));
             if (!wasAdded)
             {
-                _pluginManager.Close(loadResult.LoadedState);
+                _fileManager.Close(loadResult.LoadedFileState);
                 return false;
             }
 
-            // Update title if only one file is open
-            if (tabControl.Pages.Count == 1)
-                UpdateFormText();
+            Application.Instance.Invoke(UpdateFormText);
 
             return true;
         }
 
-        private bool AddTabPage(IStateInfo stateInfo, Color tabColor)
+        private bool AddTabPage(IFileState fileState, Color tabColor)
         {
-            var communicator = CreateFormCommunicator(stateInfo);
+            var communicator = CreateFormCommunicator(fileState);
 
             IKuriimuForm kuriimuForm;
             try
             {
-                switch (stateInfo.PluginState)
+                switch (fileState.PluginState)
                 {
                     // TODO: Implement other forms
                     //case ITextState _:
-                    //    kuriimuForm = new TextForm(stateInfo, communicator, _pluginManager.GetGameAdapters().ToArray(),
+                    //    kuriimuForm = new TextForm(fileState, communicator, _fileManager.GetGameAdapters().ToArray(),
                     //        _progressContext);
                     //    break;
 
                     case IImageState _:
-                        kuriimuForm = new ImageForm(new FormInfo(stateInfo, communicator, _progress, _logger));
+                        kuriimuForm = new ImageForm(new FormInfo(fileState, communicator, _progress, _logger));
                         break;
 
                     case IArchiveState _:
-                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(stateInfo, communicator, _progress, _logger), _pluginManager);
+                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _fileManager);
                         break;
 
                     case IHexState _:
-                        kuriimuForm = new HexForm(new FormInfo(stateInfo, communicator, _progress, _logger));
+                        kuriimuForm = new HexForm(new FormInfo(fileState, communicator, _progress, _logger));
                         break;
 
                     default:
-                        throw new UnknownPluginStateException(stateInfo.PluginState);
+                        throw new UnknownPluginStateException(fileState.PluginState);
                 }
             }
             catch (Exception e)
@@ -308,25 +307,25 @@ namespace Kuriimu2.EtoForms.Forms
             var tabPage = new TabPage((Panel)kuriimuForm)
             {
                 Padding = new Padding(0, 2, 2, 1),
-                Text = stateInfo.FilePath.ToRelative().GetName()
+                Text = fileState.FilePath.ToRelative().GetName()
             };
 
             // Add tab page to tab control
             Application.Instance.Invoke(() => tabControl.Pages.Add(tabPage));
 
-            _stateDictionary[stateInfo] = (kuriimuForm, tabPage, tabColor);
-            _tabDictionary[tabPage] = (kuriimuForm, stateInfo, tabColor);
+            _stateDictionary[fileState] = (kuriimuForm, tabPage, tabColor);
+            _tabDictionary[tabPage] = (kuriimuForm, fileState, tabColor);
 
             Application.Instance.Invoke(() =>
             {
-                tabPage.Image = new Icon(new IconFrame(1, MenuDeleteResource));
-                tabPage.MouseUp += tabPage_Click;
+                tabPage.Image = new Icon(new IconFrame(1, ImageResources.Actions.Close));
+                tabPage.MouseUp += tabPage_MouseUp;
             });
 
             // Select tab page in tab control
             Application.Instance.Invoke(() => tabControl.SelectedPage = tabPage);
 
-            UpdateTab(stateInfo);
+            UpdateTab(fileState);
 
             return true;
         }
@@ -335,7 +334,7 @@ namespace Kuriimu2.EtoForms.Forms
         {
             var ofd = new OpenFileDialog();
 
-            foreach (var filter in GetFileFilters(_pluginManager.GetFilePluginLoaders()))
+            foreach (var filter in GetFileFilters(_fileManager.GetFilePluginLoaders()))
                 ofd.Filters.Add(filter);
 
             return ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : null;
@@ -372,14 +371,14 @@ namespace Kuriimu2.EtoForms.Forms
                 await SaveFile(entry.StateInfo, true, invokeUpdateForm);
         }
 
-        private async Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs, bool invokeUpdateForm)
+        private async Task<bool> SaveFile(IFileState fileState, bool saveAs, bool invokeUpdateForm)
         {
             ReportStatus(true, string.Empty);
 
             // Check if file is already attempted to be saved
-            if (_pluginManager.IsSaving(stateInfo))
+            if (_fileManager.IsSaving(fileState))
             {
-                ReportStatus(false, $"{stateInfo.FilePath.ToRelative()} is already saving.");
+                ReportStatus(false, $"{fileState.FilePath.ToRelative()} is already saving.");
                 return false;
             }
 
@@ -387,7 +386,7 @@ namespace Kuriimu2.EtoForms.Forms
             var savePath = UPath.Empty;
             if (saveAs)
             {
-                savePath = SelectNewFile(stateInfo.FilePath.GetName());
+                savePath = SelectNewFile(fileState.FilePath.GetName());
                 if (savePath.IsNull || savePath.IsEmpty)
                 {
                     ReportStatus(false, "The selected file is invalid.");
@@ -397,8 +396,8 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             var saveResult = savePath.IsEmpty ?
-                await _pluginManager.SaveFile(stateInfo) :
-                await _pluginManager.SaveFile(stateInfo, savePath);
+                await _fileManager.SaveFile(fileState) :
+                await _fileManager.SaveFile(fileState, savePath.FullName);
 
             if (!saveResult.IsSuccessful)
             {
@@ -415,13 +414,13 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Update current state form if enabled
-            UpdateTab(stateInfo, invokeUpdateForm, false);
+            UpdateTab(fileState, invokeUpdateForm, false);
 
             // Update children
-            UpdateChildrenTabs(stateInfo);
+            UpdateChildrenTabs(fileState);
 
             // Update parents
-            UpdateTab(stateInfo.ParentStateInfo, true);
+            UpdateTab(fileState.ParentFileState, true);
 
             ReportStatus(true, "File saved successfully.");
 
@@ -444,19 +443,19 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Close File
 
-        private async Task<bool> CloseFile(IStateInfo stateInfo, bool ignoreChildWarning = false, bool ignoreChangesWarning = false, bool ignoreRunningOperations = false)
+        private async Task<bool> CloseFile(IFileState fileState, bool ignoreChildWarning = false, bool ignoreChangesWarning = false, bool ignoreRunningOperations = false)
         {
             ReportStatus(true, string.Empty);
 
             // Check if operations are running
-            if (!ignoreRunningOperations && _stateDictionary[stateInfo].KuriimuForm.HasRunningOperations())
+            if (!ignoreRunningOperations && _stateDictionary[fileState].KuriimuForm.HasRunningOperations())
             {
                 ReportStatus(false, "Operations are still running and the file cannot be closed.");
                 return false;
             }
 
             // Security question, so the user knows that every sub file will be closed
-            if (stateInfo.ArchiveChildren.Any() && !ignoreChildWarning)
+            if (fileState.ArchiveChildren.Any() && !ignoreChildWarning)
             {
                 var result = MessageBox.Show(DependantFilesText, DependantFiles, MessageBoxButtons.YesNo);
 
@@ -471,13 +470,13 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Save unchanged files, if wanted
-            if (stateInfo.StateChanged && !ignoreChangesWarning)
+            if (fileState.StateChanged && !ignoreChangesWarning)
             {
-                var result = ConfirmSavingChanges(stateInfo);
+                var result = ConfirmSavingChanges(fileState);
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        await _pluginManager.SaveFile(stateInfo);
+                        await _fileManager.SaveFile(fileState);
 
                         // TODO: Somehow propagate save error to user?
 
@@ -493,11 +492,11 @@ namespace Kuriimu2.EtoForms.Forms
             }
 
             // Collect all opened children states
-            var childrenStates = CollectChildrenStates(stateInfo).ToArray();
+            var childrenStates = CollectChildrenStates(fileState).ToArray();
 
             // Close all related states
-            var parentState = stateInfo.ParentStateInfo;
-            var closeResult = _pluginManager.Close(stateInfo);
+            var parentState = fileState.ParentFileState;
+            var closeResult = _fileManager.Close(fileState);
 
             // If closing of the state was not successful
             if (!closeResult.IsSuccessful)
@@ -509,17 +508,19 @@ namespace Kuriimu2.EtoForms.Forms
             // Remove all tabs related to the state, if closing was successful
             foreach (var childState in childrenStates)
                 CloseTab(childState);
-            CloseTab(stateInfo);
+            CloseTab(fileState);
 
             // Update parents before state is disposed
             UpdateTab(parentState, true);
 
+            Application.Instance.Invoke(UpdateFormText);
+
             return true;
         }
 
-        private IEnumerable<IStateInfo> CollectChildrenStates(IStateInfo stateInfo)
+        private IEnumerable<IFileState> CollectChildrenStates(IFileState fileState)
         {
-            foreach (var child in stateInfo.ArchiveChildren)
+            foreach (var child in fileState.ArchiveChildren)
             {
                 yield return child;
 
@@ -528,23 +529,24 @@ namespace Kuriimu2.EtoForms.Forms
             }
         }
 
-        private void CloseTab(IStateInfo stateInfo)
+        private void CloseTab(IFileState fileState)
         {
             // We only close the tab related to the state itself, not its archive children
             // Closing archive children is done by CloseFile, to enable proper rollback if closing the state itself was unsuccessful
-            if (!_stateDictionary.ContainsKey(stateInfo))
+            if (!_stateDictionary.ContainsKey(fileState))
                 return;
 
-            var stateEntry = _stateDictionary[stateInfo];
+            var stateEntry = _stateDictionary[fileState];
             _tabDictionary.Remove(stateEntry.TabPage);
 
+            tabControl.Pages.Remove(stateEntry.TabPage);
+            _stateDictionary.Remove(fileState);
             stateEntry.TabPage.Dispose();
-            _stateDictionary.Remove(stateInfo);
         }
 
-        private DialogResult ConfirmSavingChanges(IStateInfo stateInfo = null)
+        private DialogResult ConfirmSavingChanges(IFileState fileState = null)
         {
-            var text = stateInfo == null ? UnsavedChangesGenericText : string.Format(UnsavedChangesToFileText, stateInfo.FilePath);
+            var text = fileState == null ? UnsavedChangesGenericText : string.Format(UnsavedChangesToFileText, fileState.FilePath);
             return MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
         }
 
@@ -569,14 +571,14 @@ namespace Kuriimu2.EtoForms.Forms
             Title = string.Format(FormTitlePlugin, _localManifest.Version, _localManifest.BuildNumber, pluginAssemblyName, pluginName, pluginId.ToString("D"));
         }
 
-        private void UpdateTab(IStateInfo stateInfo, bool invokeUpdateForm = false, bool iterateParents = true)
+        private void UpdateTab(IFileState fileState, bool invokeUpdateForm = false, bool iterateParents = true)
         {
-            if (stateInfo == null || !_stateDictionary.ContainsKey(stateInfo))
+            if (fileState == null || !_stateDictionary.ContainsKey(fileState))
                 return;
 
             // Update this tab pages information
-            var stateEntry = _stateDictionary[stateInfo];
-            Application.Instance.Invoke(() => stateEntry.TabPage.Text = (stateInfo.StateChanged ? "* " : "") + stateInfo.FilePath.GetName());
+            var stateEntry = _stateDictionary[fileState];
+            Application.Instance.Invoke(() => stateEntry.TabPage.Text = (fileState.StateChanged ? "* " : "") + fileState.FilePath.GetName());
 
             // If the call was not made by the requesting state, propagate an update action to it
             if (invokeUpdateForm)
@@ -584,13 +586,13 @@ namespace Kuriimu2.EtoForms.Forms
 
             // Update the information of the states parents
             if (iterateParents)
-                UpdateTab(stateInfo.ParentStateInfo, true);
+                UpdateTab(fileState.ParentFileState, true);
         }
 
-        private void UpdateChildrenTabs(IStateInfo stateInfo)
+        private void UpdateChildrenTabs(IFileState fileState)
         {
             // Iterate through children
-            foreach (var child in stateInfo.ArchiveChildren)
+            foreach (var child in fileState.ArchiveChildren)
             {
                 UpdateTab(child, true, false);
                 UpdateChildrenTabs(child);
@@ -656,23 +658,33 @@ namespace Kuriimu2.EtoForms.Forms
             }
         }
 
+        private void MainForm_UnhandledException(object sender, Eto.UnhandledExceptionEventArgs e)
+        {
+            _logger.Fatal((Exception)e.ExceptionObject, "An unhandled exception occurred.");
+
+            if (e.IsTerminating)
+                MessageBox.Show("An unhandled exception occurred. Refer to the log for more information. The application will be closed.", "Unhandled exception", MessageBoxType.Error);
+            else
+                ReportStatus(false, "Unhandled exception occurred. Refer to the log for more information.");
+        }
+
         #endregion
 
         #region Tools
 
         private void openBatchExtractorCommand_Executed(object sender, EventArgs e)
         {
-            new BatchExtractDialog(_pluginManager).ShowModal();
+            new BatchExtractDialog(_fileManager).ShowModal(this);
         }
 
         private void openBatchInjectorCommand_Executed(object sender, EventArgs e)
         {
-            new BatchInjectDialog(_pluginManager).ShowModal();
+            new BatchInjectDialog(_fileManager).ShowModal(this);
         }
 
         private void openTextSequenceSearcherCommand_Execute(object sender, EventArgs e)
         {
-            new SequenceSearcherDialog().ShowModal();
+            new SequenceSearcherDialog().ShowModal(this);
         }
 
         #endregion
@@ -681,34 +693,34 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void openHashCommand_Executed(object sender, EventArgs e)
         {
-            new HashExtensionDialog().ShowModal();
+            new HashExtensionDialog().ShowModal(this);
         }
 
         private void openCompressionCommand_Executed(object sender, EventArgs e)
         {
-            new CompressExtensionDialog().ShowModal();
+            new CompressExtensionDialog().ShowModal(this);
         }
 
         private void openDecompressionCommand_Executed(object sender, EventArgs e)
         {
-            new DecompressExtensionDialog().ShowModal();
+            new DecompressExtensionDialog().ShowModal(this);
         }
 
         private void openEncryptionCommand_Executed(object sender, EventArgs e)
         {
-            new EncryptExtensionsDialog().ShowModal();
+            new EncryptExtensionsDialog().ShowModal(this);
         }
 
         private void openDecryptionCommand_Executed(object sender, EventArgs e)
         {
-            new DecryptExtensionDialog().ShowModal();
+            new DecryptExtensionDialog().ShowModal(this);
         }
 
         #endregion
 
         private void openRawImageViewerCommand_Executed(object sender, EventArgs e)
         {
-            new RawImageDialog().ShowModal();
+            new RawImageDialog().ShowModal(this);
         }
 
         private void IncludeDevBuildCommand_Executed(object sender, EventArgs e)
@@ -717,14 +729,14 @@ namespace Kuriimu2.EtoForms.Forms
             Settings.Default.Save();
         }
 
-        private void pluginManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
+        private void fileManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
-            var selectedPlugin = ChoosePlugin(e.FilePlugins);
+            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins, e.FilterNote, e.FilteredPlugins);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
         }
 
-        private async void tabPage_Click(object sender, MouseEventArgs e)
+        private async void tabPage_MouseUp(object sender, MouseEventArgs e)
         {
             if (!e.Buttons.HasFlag(MouseButtons.Primary) && !e.Buttons.HasFlag(MouseButtons.Middle))
                 return;
@@ -733,8 +745,18 @@ namespace Kuriimu2.EtoForms.Forms
             if (page == null)
                 return;
 
+            // ISSUE: For multiple rows of tabs, primary clicking a tab not in the bottom row, will move the row the clicked tab is in to the bottom
+            // However, the mouse or click event will be invoked on the tab overlapping the mouse position AFTER the row was moved to the bottom, leading to the event being invoked on the wrong sender
+            // The event is invoked AFTER the SelectedPage of the TabControl was updated, so we circumvent the issue by retrieving the SelectedPage from the TabControl here.
+            // We also need to adjust the mouse location, since it is relative to the wrong sender as well.
+            if (Platform.IsWpf && e.Buttons.HasFlag(MouseButtons.Primary))
+            {
+                e = new MouseEventArgs(e.Buttons, e.Modifiers, new PointF(tabControl.SelectedPage.PointFromScreen(page.PointToScreen(e.Location)).X, e.Location.Y), e.Delta, e.Pressure);
+                page = tabControl.SelectedPage;
+            }
+
             var tabEntry = _tabDictionary[page];
-            var parentStateInfo = tabEntry.StateInfo.ParentStateInfo;
+            var parentStateInfo = tabEntry.StateInfo.ParentFileState;
 
             if (e.Buttons.HasFlag(MouseButtons.Middle))
             {
@@ -744,18 +766,27 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (e.Buttons.HasFlag(MouseButtons.Primary))
             {
-                var deleteImage = MenuDeleteResource;
-                var closeButtonRect = new RectangleF(9, 4, deleteImage.Width, deleteImage.Height);
+                UpdateFormText();
+
+                // There's 5 pixels of spacing on the right side of the close icon
+                var textPosition = (page.Width - SystemFonts.Default().MeasureString(page.Text).Width) / 2;
+                var closeButtonRect = new RectangleF(textPosition - page.Image.Width + 5, 4, page.Image.Width - 3, page.Image.Height);
                 if (!closeButtonRect.Contains(e.Location))
                     return;
             }
 
             // Select parent tab
+            TabPage parentTab = null;
             if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
-                tabControl.SelectedPage = _stateDictionary[parentStateInfo].TabPage;
+                parentTab = _stateDictionary[parentStateInfo].TabPage;
 
             // Close file
-            await CloseFile(tabEntry.StateInfo);
+            if (!await CloseFile(tabEntry.StateInfo))
+                return;
+
+            // Switch to parent tab
+            if (parentTab != null)
+                tabControl.SelectedPage = parentTab;
         }
 
         #endregion
@@ -834,11 +865,11 @@ namespace Kuriimu2.EtoForms.Forms
             return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
-        private IFilePlugin ChoosePlugin(IReadOnlyList<IFilePlugin> filePlugins)
+        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote = null, IReadOnlyList<IFilePlugin> filteredPlugins = null)
         {
             return Application.Instance.Invoke(() =>
             {
-                var pluginDialog = new ChoosePluginDialog(filePlugins);
+                var pluginDialog = new ChoosePluginDialog(message, filePlugins, filterNote, filteredPlugins);
                 return pluginDialog.ShowModal(this);
             });
         }
@@ -847,56 +878,56 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Form Communication
 
-        private IArchiveFormCommunicator CreateFormCommunicator(IStateInfo stateInfo)
+        private IArchiveFormCommunicator CreateFormCommunicator(IFileState fileState)
         {
-            var communicator = new FormCommunicator(stateInfo, this);
+            var communicator = new FormCommunicator(fileState, this);
             return communicator;
         }
 
-        public Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId)
+        public Task<bool> OpenFile(IFileState fileState, IArchiveFileInfo file, Guid pluginId)
         {
-            var absoluteFilePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
+            var absoluteFilePath = fileState.AbsoluteDirectory / fileState.FilePath.ToRelative() / file.FilePath.ToRelative();
             var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
                 pluginId == Guid.Empty ?
-                    _pluginManager.LoadFile(stateInfo, file) :
-                    _pluginManager.LoadFile(stateInfo, file, pluginId));
-            var tabColor = _stateDictionary[stateInfo].TabColor;
+                    _fileManager.LoadFile(fileState, file) :
+                    _fileManager.LoadFile(fileState, file, pluginId));
+            var tabColor = _stateDictionary[fileState].TabColor;
 
             return Task.Run(() => OpenFile(absoluteFilePath, false, loadAction, tabColor));
         }
 
-        public Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs)
+        public Task<bool> SaveFile(IFileState fileState, bool saveAs)
         {
-            return SaveFile(stateInfo, saveAs, false);
+            return SaveFile(fileState, saveAs, false);
         }
 
-        public Task<bool> CloseFile(IStateInfo stateInfo, IArchiveFileInfo file)
+        public Task<bool> CloseFile(IFileState fileState, IArchiveFileInfo file)
         {
-            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
-            if (!_pluginManager.IsLoaded(absolutePath))
+            var absolutePath = fileState.AbsoluteDirectory / fileState.FilePath / file.FilePath.ToRelative();
+            if (!_fileManager.IsLoaded(absolutePath))
                 return Task.FromResult(true);
 
-            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            var loadedFile = _fileManager.GetLoadedFile(absolutePath);
             return CloseFile(loadedFile);
         }
 
-        public void RenameFile(IStateInfo stateInfo, IArchiveFileInfo file, UPath newPath)
+        public void RenameFile(IFileState fileState, IArchiveFileInfo file, UPath newPath)
         {
-            var absolutePath = stateInfo.AbsoluteDirectory / stateInfo.FilePath / file.FilePath.ToRelative();
-            if (!_pluginManager.IsLoaded(absolutePath))
+            var absolutePath = fileState.AbsoluteDirectory / fileState.FilePath / file.FilePath.ToRelative();
+            if (!_fileManager.IsLoaded(absolutePath))
                 return;
 
-            var loadedFile = _pluginManager.GetLoadedFile(absolutePath);
+            var loadedFile = _fileManager.GetLoadedFile(absolutePath);
             loadedFile.RenameFilePath(newPath);
 
             UpdateTab(loadedFile, true, false);
         }
 
-        public void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren)
+        public void Update(IFileState fileState, bool updateParents, bool updateChildren)
         {
-            UpdateTab(stateInfo, false, updateParents);
+            UpdateTab(fileState, false, updateParents);
             if (updateChildren)
-                UpdateChildrenTabs(stateInfo);
+                UpdateChildrenTabs(fileState);
         }
 
         public void ReportStatus(bool isSuccessful, string message)

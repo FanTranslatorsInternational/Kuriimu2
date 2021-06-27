@@ -6,9 +6,7 @@ using Komponent.IO;
 using Komponent.IO.Streams;
 using Kompression.Implementations.Decoders;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 using Kontract.Models.IO;
 
@@ -21,8 +19,7 @@ namespace Kompression.Implementations.Encoders
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new CrilaylaPriceCalculator())
-                .FindWith((options, limit) => new HistoryMatchFinder(limit, options))
-                .WithinLimitations(() => new FindLimitations(3, -1, 3, 0x2002))
+                .FindMatches().WithinLimitations(3, -1, 3, 0x2002)
                 .AdjustInput(input => input.Skip(SkipSize_).Reverse());
         }
 

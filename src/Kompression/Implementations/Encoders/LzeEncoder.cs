@@ -4,9 +4,7 @@ using System.IO;
 using System.Text;
 using Kompression.Extensions;
 using Kompression.Implementations.PriceCalculators;
-using Kompression.PatternMatch.MatchFinders;
 using Kontract.Kompression.Configuration;
-using Kontract.Kompression.Model;
 using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.Implementations.Encoders
@@ -27,10 +25,8 @@ namespace Kompression.Implementations.Encoders
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new LzePriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x3, 0x12, 5, 0x1004))
-                .AndFindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x2, 0x41, 1, 4));
+                .FindMatches().WithinLimitations(3, 0x12, 5, 0x1004)
+                .AndFindMatches().WithinLimitations(2, 0x41, 1, 4);
         }
 
         public void Encode(Stream input, Stream output, IEnumerable<Match> matches)

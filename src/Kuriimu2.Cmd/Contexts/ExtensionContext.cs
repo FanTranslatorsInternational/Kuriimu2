@@ -17,15 +17,9 @@ namespace Kuriimu2.Cmd.Contexts
         private readonly IContext _parentContext;
 
         private readonly BatchExtractor _batchExtractor;
+        private readonly BatchInjector _batchInjector;
 
-        protected override IList<Command> Commands { get; } = new List<Command>
-        {
-            new Command("batch-extract","dir-path"),
-            new Command("batch-extract-with","dir-path","plugin-id"),
-            new Command("back")
-        };
-
-        public ExtensionContext(IInternalPluginManager pluginManager, IContext parentContext, IProgressContext progressContext) :
+        public ExtensionContext(IInternalFileManager pluginManager, IContext parentContext, IProgressContext progressContext) :
             base(progressContext)
         {
             ContractAssertions.IsNotNull(pluginManager, nameof(pluginManager));
@@ -35,6 +29,19 @@ namespace Kuriimu2.Cmd.Contexts
 
             _parentContext = parentContext;
             _batchExtractor = new BatchExtractor(pluginManager, logger);
+            _batchInjector = new BatchInjector(pluginManager, logger);
+        }
+
+        protected override IList<Command> InitializeCommands()
+        {
+            return new[]
+            {
+                new Command("batch-extract", "input-dir", "output-dir"),
+                new Command("batch-extract-with", "input-dir", "output-dir", "plugin-id"),
+                new Command("batch-inject", "input-dir", "output-dir"),
+                new Command("batch-inject-with", "input-dir", "output-dir", "plugin-id"),
+                new Command("back")
+            };
         }
 
         protected override async Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
@@ -42,11 +49,19 @@ namespace Kuriimu2.Cmd.Contexts
             switch (command.Name)
             {
                 case "batch-extract":
-                    await BatchExtract(arguments[0], null);
+                    await BatchExtract(arguments[0], arguments[1], null);
                     return this;
 
                 case "batch-extract-with":
-                    await BatchExtract(arguments[0], arguments[1]);
+                    await BatchExtract(arguments[0], arguments[1], arguments[2]);
+                    return this;
+
+                case "batch-inject":
+                    await BatchInject(arguments[0], arguments[1], null);
+                    return this;
+
+                case "batch-inject-with":
+                    await BatchInject(arguments[0], arguments[1], arguments[2]);
                     return this;
 
                 case "back":
@@ -56,24 +71,41 @@ namespace Kuriimu2.Cmd.Contexts
             return null;
         }
 
-        private async Task BatchExtract(UPath directory, string pluginIdArgument)
+        private async Task BatchExtract(UPath inputDirectory, UPath outputDirectory, string pluginIdArgument)
         {
-            var pluginId = Guid.Empty;
-            if (!string.IsNullOrEmpty(pluginIdArgument))
-            {
-                if (!Guid.TryParse(pluginIdArgument, out pluginId))
-                {
-                    Console.WriteLine($"'{pluginIdArgument}' is not a valid plugin ID.");
-                    return;
-                }
-            }
+            if (!TryParseGuidArgument(pluginIdArgument, out var pluginId))
+                return;
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, new StreamManager());
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directory, new StreamManager());
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(inputDirectory.FullName, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(outputDirectory.FullName, new StreamManager());
 
             _batchExtractor.ScanSubDirectories = true;
             _batchExtractor.PluginId = pluginId;
             await _batchExtractor.Process(sourceFileSystem, destinationFileSystem);
+        }
+
+        private async Task BatchInject(UPath inputDirectory, UPath outputDirectory, string pluginIdArgument)
+        {
+            if (!TryParseGuidArgument(pluginIdArgument, out var pluginId))
+                return;
+
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(inputDirectory.FullName, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(outputDirectory.FullName, new StreamManager());
+
+            _batchInjector.ScanSubDirectories = true;
+            _batchInjector.PluginId = pluginId;
+            await _batchInjector.Process(sourceFileSystem, destinationFileSystem);
+        }
+
+        private bool TryParseGuidArgument(string pluginIdArgument, out Guid pluginId)
+        {
+            pluginId = Guid.Empty;
+            if (string.IsNullOrEmpty(pluginIdArgument) ||
+                Guid.TryParse(pluginIdArgument, out pluginId))
+                return true;
+
+            Console.WriteLine($"'{pluginIdArgument}' is not a valid plugin ID.");
+            return false;
         }
     }
 }

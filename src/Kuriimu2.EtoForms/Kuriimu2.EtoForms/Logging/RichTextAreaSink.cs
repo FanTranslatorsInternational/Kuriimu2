@@ -1,4 +1,5 @@
-﻿using Eto.Drawing;
+﻿using System;
+using Eto.Drawing;
 using Eto.Forms;
 using Kuriimu2.EtoForms.Support;
 using Serilog.Core;
@@ -46,8 +47,10 @@ namespace Kuriimu2.EtoForms.Logging
 
         private void LogInternal(Color logColor, string message)
         {
-            _richTextArea.TextColor = logColor;
-            _richTextArea.Append(message);
+            var position = _richTextArea.Text.Length;
+
+            _richTextArea.Buffer.Insert(_richTextArea.Text.Length, message + Environment.NewLine);
+            _richTextArea.Buffer.SetForeground(new Range<int>(position, _richTextArea.Text.Length), logColor);
         }
     }
 }

@@ -15,7 +15,7 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Mac64" Version="2.5.8" />
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.6.0-ci-20210612.931419801" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

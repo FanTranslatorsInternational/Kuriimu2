@@ -229,12 +229,6 @@ namespace Komponent.IO
             return base.ReadBytes(count);
         }
 
-        public override string ReadString()
-        {
-            var length = ReadByte();
-            return ReadString(length);
-        }
-
         #endregion
 
         #region String Reads

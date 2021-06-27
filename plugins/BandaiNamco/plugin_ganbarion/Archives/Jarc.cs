@@ -47,7 +47,7 @@ namespace plugin_ganbarion.Archives
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var crc32 = Crc32.Default;
-            using var bw = new BinaryWriterX(output);
+            using var bw = new BinaryWriterX(output, true);
 
             // Calculate offsets
             var entryOffset = HeaderSize;
@@ -69,7 +69,7 @@ namespace plugin_ganbarion.Archives
                     fileOffset = dataPosition,
                     nameOffset = namePosition,
                     fileSize = (int)file.FileSize,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(Encoding.ASCII.GetBytes(file.FilePath.ToRelative().FullName))),
+                    hash = crc32.ComputeValue(file.FilePath.ToRelative().FullName),
                     unk1 = file.Entry.unk1
                 });
 

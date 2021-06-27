@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -44,15 +43,11 @@ namespace plugin_bandai_namco.Archives
             var chunks = br.ReadMultiple<L7cChunkEntry>(_header.chunkCount);
 
             // Add files
-            var lowerParts = new List<int>();
-
             var result = new List<IArchiveFileInfo>();
             for (var i = 0; i < _header.fileCount; i++)
             {
                 var file = fileEntries[i];
                 var info = fileInfos.First(x => x.id == i);
-
-                lowerParts.Add(file.offset & 0x1FFF);
 
                 var chunkEntries = chunks.Skip(file.chunkIndex).Take(file.chunkCount).ToArray();
                 var subStream = new SubStream(input, file.offset, file.compSize);
@@ -119,9 +114,16 @@ namespace plugin_bandai_namco.Archives
             // Write files
             foreach (var file in entry.Files.Cast<L7cArchiveFileInfo>())
             {
-                file.SaveFileData(output);
+                // Write file data
+                file.Entry.offset = (int)output.Position;
+                var writtenSize = file.SaveFileData(output);
 
+                // Update file entry
+                file.Entry.decompSize = (int)file.FileSize;
+                file.Entry.compSize = (int)writtenSize;
                 file.Entry.chunkIndex = chunkIndex;
+                file.Entry.chunkCount = file.Chunks.Count;
+
                 chunkIndex += file.Entry.chunkCount;
                 yield return file.Entry;
 
@@ -131,7 +133,7 @@ namespace plugin_bandai_namco.Archives
                     output.WriteByte(0);
             }
 
-            // Write directory contents first
+            // Write directory contents
             foreach (var dir in entry.Directories)
             {
                 foreach (var fileEntry in WriteFiles(dir, output, chunkIndex))
@@ -144,8 +146,7 @@ namespace plugin_bandai_namco.Archives
 
         private IEnumerable<L7cFileInfoEntry> EnumerateFileInfos(DirectoryEntry entry, BinaryWriterX stringBw, IDictionary<string, int> stringDict = null, int entryId = 0, int directoryNameOffset = 0)
         {
-            if (stringDict == null)
-                stringDict = new Dictionary<string, int>();
+            stringDict ??= new Dictionary<string, int>();
 
             // Enumerate files
             foreach (var file in entry.Files)
@@ -165,7 +166,7 @@ namespace plugin_bandai_namco.Archives
                     id = entryId++,
                     folderNameOffset = directoryNameOffset,
                     fileNameOffset = fileNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(file.FilePath.ToRelative().FullName.ToLower()))),
+                    hash = Crc32Namco.ComputeValue(file.FilePath.ToRelative().FullName.ToLower(), Encoding.UTF8),
                     timestamp = DateTime.Now.ToFileTime()
                 };
 
@@ -188,7 +189,7 @@ namespace plugin_bandai_namco.Archives
                 {
                     id = -1,
                     folderNameOffset = directoryNameOffset,
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(Crc32Namco.Compute(Encoding.UTF8.GetBytes(directory.AbsolutePath.FullName.ToLower()))),
+                    hash = Crc32Namco.ComputeValue(directory.AbsolutePath.FullName.ToLower(), Encoding.UTF8),
                     timestamp = DateTime.Now.ToFileTime()
                 };
 

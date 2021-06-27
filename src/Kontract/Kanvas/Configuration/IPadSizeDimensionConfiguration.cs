@@ -6,7 +6,7 @@
     {
         IPadSizeOptions To(CreatePaddedSizeDimension func);
 
-        IPadSizeOptions ToPowerOfTwo();
+        IPadSizeOptions ToPowerOfTwo(int steps = 1);
 
         IPadSizeOptions ToMultiple(int multiple);
     }

@@ -3,6 +3,7 @@ using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Controls.ImageView;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Resources;
 using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
@@ -26,16 +27,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private Label height;
         private ComboBox formats;
         private ComboBox palettes;
-        private ListBox images;
+        private ListBox imageList;
 
         private void InitializeComponent()
         {
             #region Commands
 
-            saveCommand = new Command();
-            saveAsCommand = new Command();
-            exportCommand = new Command();
-            importCommand = new Command();
+            saveCommand = new Command { Image = ImageResources.Actions.Save };
+            saveAsCommand = new Command { Image = ImageResources.Actions.SaveAs };
+            exportCommand = new Command { Image = ImageResources.Actions.ImageExport };
+            importCommand = new Command { Image = ImageResources.Actions.ImageImport };
 
             #endregion
 
@@ -45,35 +46,35 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
+                ToolTip = "Save",
                 Command = saveCommand,
-                Image = MenuSaveResource
             };
 
             saveAsButton = new ButtonToolStripItem
             {
+                ToolTip = "Save As",
                 Command = saveAsCommand,
-                Image = MenuSaveAsResource
             };
 
             exportButton = new ButtonToolStripItem
             {
+                ToolTip = "Export image",
                 Command = exportCommand,
-                Image = MenuExportResource
             };
 
             importButton = new ButtonToolStripItem
             {
+                ToolTip = "Import image data",
                 Command = importCommand,
-                Image = MenuImportResource
             };
 
             #endregion
 
             #region Default
 
-            images = new ListBox
+            imageList = new ListBox
             {
-                ItemImageBinding = Binding.Property<Image>(nameof(ImageElement.Image)),
+                ItemImageBinding = Binding.Property<Image>(nameof(ImageElement.Thumbnail)),
                 ItemTextBinding = Binding.Property<string>(nameof(ImageElement.Text)),
             };
 
@@ -96,6 +97,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var mainToolStrip = new ToolStrip
             {
+                Padding = 3,
                 Items =
                 {
                     saveButton,
@@ -157,7 +159,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Orientation = Orientation.Vertical,
                 Items =
                 {
-                    new StackLayoutItem(images, true) { HorizontalAlignment = HorizontalAlignment.Stretch },
+                    new StackLayoutItem(imageList, true) { HorizontalAlignment = HorizontalAlignment.Stretch },
                     new StackLayoutItem(imagePalette, true)
                 }
             };
@@ -186,7 +188,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             {
                 Rows =
                 {
-                    new TableRow(new Panel { Content = mainToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow(mainToolStrip),
                     mainLayout
                 }
             };

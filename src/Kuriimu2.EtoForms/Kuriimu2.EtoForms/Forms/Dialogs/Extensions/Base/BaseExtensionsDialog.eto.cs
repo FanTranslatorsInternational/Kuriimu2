@@ -34,7 +34,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             #region Controls
 
             parameterBox = new GroupBox { Text = "Parameters" };
-            log = new RichTextArea { ReadOnly = true, BackgroundColor = KnownColors.Black, TextColor = KnownColors.NeonGreen };
+            log = new RichTextArea { ReadOnly = true, BackgroundColor = KnownColors.Black };
 
             typeLabel = new Label { Text = "TypeExtension:" };
             extensions = new ComboBox();

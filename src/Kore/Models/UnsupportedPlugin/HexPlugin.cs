@@ -18,7 +18,7 @@ namespace Kore.Models.UnsupportedPlugin
             Metadata = new PluginMetadata("Default", "onepiecefreak", "No description");
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager fileManager)
         {
             return new HexState();
         }

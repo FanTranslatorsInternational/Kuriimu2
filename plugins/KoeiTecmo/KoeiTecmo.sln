@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_koei_tecmo", "plugin_koei_tecmo\plugin_koei_tecmo.csproj", "{6053BE89-4673-4012-BF21-9D5C1F260DF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_ruby_party", "plugin_ruby_party\plugin_ruby_party.csproj", "{0BF5374E-0E80-45E4-A608-CDF037793599}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_ruby_party", "plugin_ruby_party\plugin_ruby_party.csproj", "{0BF5374E-0E80-45E4-A608-CDF037793599}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

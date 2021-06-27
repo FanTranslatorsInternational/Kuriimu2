@@ -83,7 +83,7 @@ namespace plugin_nintendo.Archives
 
             // Read FNT
             var fntOffset = _ndsHeader?.fntOffset ?? _dsiHeader.fntOffset;
-            foreach (var file in NdsSupport.ReadFnt(br, fntOffset, fileEntries))
+            foreach (var file in NdsSupport.ReadFnt(br, fntOffset, 0, fileEntries))
                 result.Add(file);
 
             // Add banner

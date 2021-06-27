@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -20,17 +20,18 @@ namespace plugin_yuusha_shisu.Images
 
         public BtxPlugin()
         {
-            Metadata = new PluginMetadata("BTX", "IcySon55", "Death of a Hero");
+            Metadata = new PluginMetadata("BTX", "IcySon55;onepiecefreak", "The image resource for Death of a Hero");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            using (var br = new BinaryReaderX(fileStream))
-                return br.ReadString(4) == "btx\0";
+
+            using var br = new BinaryReaderX(fileStream);
+            return br.ReadString(4) == "btx\0";
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new BtxState();
         }

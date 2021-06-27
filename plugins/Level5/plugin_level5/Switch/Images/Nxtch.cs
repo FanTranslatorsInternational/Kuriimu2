@@ -28,8 +28,11 @@ namespace plugin_level5.Switch.Images
             // Read unknown data
             _unkData = br.ReadBytes(0x100 - (int)input.Position);
 
+            input.Position = 0x74;
+            var swizzleMode = br.ReadInt32();
+
             // Read image data
-            var baseOffset = input.Position;
+            var baseOffset = 0x100;
 
             input.Position = baseOffset + mipOffsets[0];
             var dataSize = mipOffsets.Count > 1 ? mipOffsets[1] - mipOffsets[0] : input.Length - baseOffset;
@@ -49,9 +52,7 @@ namespace plugin_level5.Switch.Images
             {
                 MipMapData = mipData
             };
-
-            imageInfo.PadSize.Height.ToPowerOfTwo().Width.ToMultiple(16);
-            imageInfo.RemapPixels.With(context => new NxSwizzle(context));
+            imageInfo.RemapPixels.With(context => new NxSwizzle(context, swizzleMode));
 
             return imageInfo;
         }

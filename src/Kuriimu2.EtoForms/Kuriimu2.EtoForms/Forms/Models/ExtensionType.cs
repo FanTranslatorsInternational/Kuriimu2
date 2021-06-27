@@ -53,6 +53,9 @@ namespace Kuriimu2.EtoForms.Forms.Models
             if (typeof(TValue).IsEnum)
                 return (TValue)Enum.Parse(typeof(TValue), (string)parameter.Value);
 
+            if (parameter.Value == null && typeof(TValue).IsValueType)
+                return default;
+
             return (TValue)Convert.ChangeType(parameter.Value, typeof(TValue));
         }
 

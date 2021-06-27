@@ -1,8 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.IO;
 using Komponent.IO;
 using Kontract.Models.Archive;
@@ -128,7 +124,7 @@ namespace plugin_level5.DS.Archives
         {
             var crc16 = Crc16.X25;
             return values
-                .Select(x => new GfsaString(x, BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(Encoding.ASCII.GetBytes(x)))))
+                .Select(x => new GfsaString(x, crc16.ComputeValue(x)))
                 .ToArray();
         }
 
@@ -155,7 +151,7 @@ namespace plugin_level5.DS.Archives
             {
                 directoryEntries.Add(new GfsaDirectoryEntry
                 {
-                    hash = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(Encoding.ASCII.GetBytes(group.Key))),
+                    hash = crc16.ComputeValue(group.Key),
                     fileIndex = fileIndex,
                     fileCount = (short)group.Count()
                 });
@@ -180,7 +176,7 @@ namespace plugin_level5.DS.Archives
                 {
                     var entry = new GfsaFileEntry
                     {
-                        hash = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(Encoding.ASCII.GetBytes(file.FilePath.GetName()))),
+                        hash = crc16.ComputeValue(file.FilePath.GetName()),
                         Offset = fileOffset,
                         Size = (int)file.CompressedSize
                     };

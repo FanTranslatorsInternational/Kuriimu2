@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
@@ -68,41 +68,15 @@ namespace plugin_shade.Archives
         private ArchiveFileInfo CreateAfi(Stream stream, int index, BlnSubEntry entry)
         {
             // Every file not compressed with the headered Spike Chunsoft compression, is compressed headerless
-            var compressionMagic = PeekInt32LittleEndian(stream);
+            var compressionMagic = ShadeSupport.PeekInt32LittleEndian(stream);
             if (compressionMagic != 0xa755aafc)
-                return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.SpikeChunsoftHeaderless, SpikeChunsoftHeaderlessDecoder.CalculateDecompressedSize(stream));
+                return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, false), entry, Kompression.Implementations.Compressions.ShadeLzHeaderless, ShadeLzHeaderlessDecoder.CalculateDecompressedSize(stream));
 
             stream.Position = 0;
-            return new BlnSubArchiveFileInfo(stream, CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.SpikeChunsoft, PeekDecompressedSize(stream));
+            return new BlnSubArchiveFileInfo(stream, ShadeSupport.CreateFileName(index, stream, true), entry, Kompression.Implementations.Compressions.ShadeLz, ShadeSupport.PeekDecompressedSize(stream));
 
         }
 
-        private string CreateFileName(int index, Stream input, bool isCompressed)
-        {
-            input.Position = isCompressed ? 0xC : 0;
-            var extension = BlnSubSupport.GuessExtension(input);
-
-            return $"{index:00000000}.{extension}";
-        }
-
-        private long PeekDecompressedSize(Stream stream)
-        {
-            var bkPos = stream.Position;
-
-            stream.Position = 4;
-            var decompressedSize = PeekInt32LittleEndian(stream);
-
-            stream.Position = bkPos;
-            return decompressedSize;
-        }
-
-        private uint PeekInt32LittleEndian(Stream input)
-        {
-            var buffer = new byte[4];
-            input.Read(buffer, 0, 4);
-            input.Position -= 4;
-
-            return (uint)((buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0]);
-        }
+        
     }
 }

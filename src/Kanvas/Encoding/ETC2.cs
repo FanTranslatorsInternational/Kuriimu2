@@ -28,8 +28,8 @@ namespace Kanvas.Encoding
         {
             _format = format;
 
-            BitDepth = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.RGBA ? 8 : 4;
-            BitsPerValue = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.RGBA ? 128 : 64;
+            BitDepth = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.ETC2_RGBA ? 8 : 4;
+            BitsPerValue = _format == Etc2Format.EAC_RG11 || _format == Etc2Format.ETC2_RGBA ? 128 : 64;
 
             FormatName = format.ToString().Replace("_", " ");
         }
@@ -77,9 +77,9 @@ namespace Kanvas.Encoding
 
     public enum Etc2Format
     {
-        RGB = 22,
-        RGBA,
-        RGB_A1,
+        ETC2_RGB = 22,
+        ETC2_RGBA,
+        ETC2_RGB_A1,
         EAC_R11,
         EAC_RG11
     }

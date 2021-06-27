@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -16,12 +16,12 @@ namespace plugin_level5._3DS.Fonts
 {
     public class XfState : IFontState, ILoadFiles, ISaveFiles, IAddCharacters, IRemoveCharacters
     {
-        private readonly IPluginManager _pluginManager;
+        private readonly IFileManager _pluginManager;
         private readonly Xf _xf;
 
         private bool _isChanged;
-        private IStateInfo _archiveStateInfo;
-        private IStateInfo _imageStateInfo;
+        private IFileState _archiveStateInfo;
+        private IFileState _imageStateInfo;
 
         private List<CharacterInfo> _characters;
 
@@ -32,7 +32,7 @@ namespace plugin_level5._3DS.Fonts
 
         public bool ContentChanged => IsChanged();
 
-        public XfState(IPluginManager pluginManager)
+        public XfState(IFileManager pluginManager)
         {
             _pluginManager = pluginManager;
             _xf = new Xf();
@@ -45,7 +45,7 @@ namespace plugin_level5._3DS.Fonts
             if (!loadResult.IsSuccessful)
                 return;
 
-            _archiveStateInfo = loadResult.LoadedState;
+            _archiveStateInfo = loadResult.LoadedFileState;
             var archiveState = _archiveStateInfo.PluginState as IArchiveState;
 
             // Load font image from archive
@@ -54,7 +54,7 @@ namespace plugin_level5._3DS.Fonts
             if (!loadResult.IsSuccessful)
                 return;
 
-            _imageStateInfo = loadResult.LoadedState;
+            _imageStateInfo = loadResult.LoadedFileState;
             var imageState = _imageStateInfo.PluginState as IImageState;
 
             // Load KanvasImage

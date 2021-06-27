@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Eto.Drawing;
 using Eto.Forms;
 using Kuriimu2.EtoForms.Controls;
@@ -59,33 +59,33 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             #region Initialization
 
-            searchTextBox = new TextBox
+            searchTextBox = new SearchBox
             {
                 Size=new Size(268,-1)
             };
 
             #region Commands
 
-            searchClearCommand = new Command { MenuText = "Clear" };
+            searchClearCommand = new Command { MenuText = "Clear", Image = ImageResources.Actions.Delete };
 
             cancelCommand = new Command { MenuText = "Cancel" };
 
-            openCommand = new Command { MenuText = "Open" };
-            openWithCommand = new Command { MenuText = "Open with" };
+            openCommand = new Command { MenuText = "Open", Image = ImageResources.Actions.Open };
+            openWithCommand = new Command { MenuText = "Open with", Image = ImageResources.Actions.OpenWith };
 
-            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey };
-            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey };
+            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey, Image = ImageResources.Actions.Save };
+            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey, Image = ImageResources.Actions.SaveAs };
 
-            extractDirectoryCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
-            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
-            renameDirectoryCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
-            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
-            addDirectoryCommand = new Command { MenuText = "Add", Image = MenuAddResource };
+            extractDirectoryCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FolderExport };
+            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FolderImport };
+            renameDirectoryCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
+            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
+            addDirectoryCommand = new Command { MenuText = "Add", Image = ImageResources.Actions.Add };
 
-            extractFileCommand = new Command { MenuText = "Extract", Image = MenuExportResource };
-            replaceFileCommand = new Command { MenuText = "Replace", Image = MenuImportResource };
-            renameFileCommand = new Command { MenuText = "Rename", Image = MenuEditResource };
-            deleteFileCommand = new Command { MenuText = "Delete", Image = MenuDeleteResource };
+            extractFileCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FileExport };
+            replaceFileCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FileImport };
+            renameFileCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
+            deleteFileCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
 
             #endregion
 
@@ -123,7 +123,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             #region Files
 
-            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand };
+            //NOTE Image has to be set explicitly, I think the Command is not used anymore as soon as sub-items are added
+            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand, Image = openWithCommand.Image };
             var fileContext = new ContextMenu
             {
                 Items =
@@ -176,9 +177,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             searchClearButton = new Button
             {
-                Text = "X",
-                Size=new Size(22,-1),
-                Command = searchClearCommand
+                Image = ImageResources.Actions.Clear,
+                ToolTip = "Reset search",
+                Command = searchClearCommand,
+                Size = new Size(22,-1)
             };
 
             cancelButton = new Button
@@ -189,38 +191,38 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
+                ToolTip = "Save",
                 Command = saveCommand,
-                Image = MenuSaveResource
             };
 
             saveAsButton = new ButtonToolStripItem
             {
+                ToolTip = "Save As",
                 Command = saveAsCommand,
-                Image = MenuSaveAsResource
             };
 
             extractButton = new ButtonToolStripItem
             {
+                ToolTip = "Extract file(s)",
                 Command = extractFileCommand,
-                Image = MenuExportResource
             };
 
             replaceButton = new ButtonToolStripItem
             {
+                ToolTip = "Replace file(s)",
                 Command = replaceFileCommand,
-                Image = MenuImportResource
             };
 
             renameButton = new ButtonToolStripItem
             {
+                ToolTip = "Rename file",
                 Command = renameFileCommand,
-                Image = MenuExportResource
             };
 
             deleteButton = new ButtonToolStripItem
             {
+                ToolTip = "Delete file",
                 Command = deleteFileCommand,
-                Image = MenuDeleteResource
             };
 
             #endregion
@@ -231,7 +233,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var archiveToolStrip = new ToolStrip
             {
-                BackgroundColor = KnownColors.White,
+                Padding = 3,
                 Items =
                 {
                     saveButton,
@@ -241,7 +243,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var mainContent = new TableLayout
             {
-                Spacing=new Size(3,3),
+                Spacing = new Size(3,3),
                 Rows =
                 {
                     // Searchbar and file toolstrip
@@ -264,8 +266,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                             // file toolstrip
                             new ToolStrip
                             {
-                                Size = new SizeF(-1, ToolStripItem.Height + 6),
-                                BackgroundColor = KnownColors.White,
                                 Items =
                                 {
                                     extractButton,
@@ -294,7 +294,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Spacing = new Size(3, 3),
                 Rows =
                 {
-                    new TableRow(new Panel { Content = archiveToolStrip, Size = new Size(-1, (int)ToolStripItem.Height + 6) }),
+                    new TableRow(archiveToolStrip),
                     new TableRow { Cells = { new TableCell(mainContent) { ScaleWidth = true } }, ScaleHeight = true }
                 }
             };

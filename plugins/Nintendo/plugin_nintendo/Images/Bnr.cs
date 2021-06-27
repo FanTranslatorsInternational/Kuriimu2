@@ -1,8 +1,5 @@
-﻿using System.Buffers.Binary;
-using System.Drawing;
+﻿using System.Drawing;
 using System.IO;
-using System.Text;
-using Kanvas.Configuration;
 using Kanvas.Swizzle;
 using Komponent.IO;
 using Komponent.IO.Streams;
@@ -111,24 +108,24 @@ namespace plugin_nintendo.Images
             var crc16 = Crc16.ModBus;
 
             var hashRegion = new SubStream(output, 0x20, 0x820);
-            _header.crc16_v1 = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(hashRegion));
+            _header.crc16_v1 = crc16.ComputeValue(hashRegion);
 
             if (_header.version >= 2)
             {
                 hashRegion = new SubStream(output, 0x20, 0x920);
-                _header.crc16_v2 = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(hashRegion));
+                _header.crc16_v2 = crc16.ComputeValue(hashRegion);
             }
 
             if (_header.version >= 3)
             {
                 hashRegion = new SubStream(output, 0x20, 0xA20);
-                _header.crc16_v3 = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(hashRegion));
+                _header.crc16_v3 = crc16.ComputeValue(hashRegion);
             }
 
             if (_header.version >= 0x103)
             {
                 hashRegion = new SubStream(output, 0x1240, 0x1180);
-                _header.crc16_v103 = BinaryPrimitives.ReadUInt16BigEndian(crc16.Compute(hashRegion));
+                _header.crc16_v103 = crc16.ComputeValue(hashRegion);
             }
         }
     }

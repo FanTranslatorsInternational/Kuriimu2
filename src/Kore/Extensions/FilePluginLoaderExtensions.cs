@@ -7,14 +7,19 @@ namespace Kore.Extensions
 {
     public static class FilePluginLoaderExtensions
     {
+        public static IEnumerable<IFilePlugin> GetAllFilePlugins(this IEnumerable<IPluginLoader<IFilePlugin>> filePluginLoaders)
+        {
+            return filePluginLoaders.SelectMany(x => x.Plugins);
+        }
+        
         public static IEnumerable<IIdentifyFiles> GetIdentifiableFilePlugins(this IEnumerable<IPluginLoader<IFilePlugin>> filePluginLoaders)
         {
-            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => x is IIdentifyFiles).Cast<IIdentifyFiles>();
+            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => x.CanIdentifyFiles).Cast<IIdentifyFiles>();
         }
 
         public static IEnumerable<IFilePlugin> GetNonIdentifiableFilePlugins(this IEnumerable<IPluginLoader<IFilePlugin>> filePluginLoaders)
         {
-            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => !(x is IIdentifyFiles));
+            return filePluginLoaders.SelectMany(x => x.Plugins).Where(x => !x.CanIdentifyFiles);
         }
     }
 }

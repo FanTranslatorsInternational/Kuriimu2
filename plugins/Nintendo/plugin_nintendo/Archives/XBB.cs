@@ -1,6 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -81,18 +79,18 @@ namespace plugin_nintendo.Archives
                 var writtenSize = file.SaveFileData(bw.BaseStream, null);
                 bw.WriteAlignment(0x80);
 
-                var hash = xbbHash.Compute(Encoding.ASCII.GetBytes(file.FilePath.ToRelative().FullName));
+                var hash = xbbHash.ComputeValue(file.FilePath.ToRelative().FullName);
                 fileEntries.Add(new XbbFileEntry
                 {
                     offset = (int)offset,
                     size = (int)writtenSize,
                     nameOffset = nameDictionary[file.FilePath],
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(hash)
+                    hash = hash
                 });
 
                 hashEntries.Add(new XbbHashEntry
                 {
-                    hash = BinaryPrimitives.ReadUInt32BigEndian(hash),
+                    hash = hash,
                     index = fileEntries.Count - 1
                 });
             }

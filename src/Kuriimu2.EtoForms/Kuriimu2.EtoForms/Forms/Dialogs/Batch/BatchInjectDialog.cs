@@ -9,13 +9,13 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         protected override string SourceEmptyText { get; } = "Select a directory with files to inject.";
         protected override string DestinationEmptyText { get; } = "Select a directory with directories to inject to the files.";
 
-        public BatchInjectDialog(IInternalPluginManager pluginManager) : base(pluginManager)
+        public BatchInjectDialog(IInternalFileManager fileManager) : base(fileManager)
         {
         }
 
-        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalPluginManager pluginManager, ILogger logger)
+        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger)
         {
-            return new BatchInjector(pluginManager, logger);
+            return new BatchInjector(fileManager, logger);
         }
     }
 }

@@ -1,29 +1,22 @@
-Release 1.2.0
-
-The actual first release of Kuriimu2.
+An intermediate release supporting all image plugins from Kukkii.
 
 General changes:
-- A complete rewrite of the underlying framework compared to Kuriimu, Kukkii, and Karameru
-- A single application window to rule them all.
-- Ability to open multiple files at once
-- Nested opening and saving, as requested by many
-	- Open files from opened archives, change them and save them all in button press or mouse-click
-- Logging, progress reporting, and more
-- Tools to process encryptions, checksums, and compressions
-- Tool to view binary data as an image
+- Major cleanup of GUI features (credits to @HoldYourWaffle)
+- Many bug fixes in the underlying frameworks
+- Add Batch injection in the Command Line
+- Add palette support to Raw Image Viewer
+- Add more swizzles to Raw Image Viewer
 
 API Changes:
-- Includes a full-fledged archive API
-- Includes a full-fledged image API
-- The plugin interfaces are considered mostly final
+- None
 
 Plugin changes:
-- Includes all archive plugins with equal or better support from Karameru
-	- Some exceptions apply, see below
-- Includes half of all image plugins with equal or better support from Kanvas
+- Includes all image plugins with equal or better support from Kukkii
+- Add/Change plugins as requested by over 3 years worth of issues on the Kuriimu github
+	- Closed >130 issues on Kuriimu by adding new plugins, disregarding obsolete bugs, and enhancing current plugins
 
 Future plans:
-- 1.2.1: Finish porting of image plugins
+- 1.2.2: Introducing dark mode and localizations
 - 1.3.0: Introduce text API and port all text plugins from Kuriimu
 
 Overview of our current and future file format support:

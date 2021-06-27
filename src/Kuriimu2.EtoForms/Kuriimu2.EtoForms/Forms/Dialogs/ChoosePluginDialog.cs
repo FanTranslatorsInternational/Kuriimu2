@@ -4,30 +4,41 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Eto.Forms;
 using Kontract.Interfaces.Plugins.Identifier;
+using Kore.Models.UnsupportedPlugin;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
     partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
-        private readonly IReadOnlyList<IFilePlugin> _filePlugins;
+        private readonly string _message;
+        private readonly string _filterNote;
+        private readonly IReadOnlyList<IFilePlugin> _filteredPlugins;
+        private readonly IReadOnlyList<IFilePlugin> _allPlugins;
 
         private IFilePlugin _selectedFilePlugin;
 
-        public ChoosePluginDialog(IReadOnlyList<IFilePlugin> filePlugins)
+        public ChoosePluginDialog(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote, IReadOnlyList<IFilePlugin> filteredPlugins)
         {
+            _message = message;
+            _allPlugins = filePlugins;
+            _filterNote = filterNote;
+            _filteredPlugins = filteredPlugins;
+            
             InitializeComponent();
+            ListPlugins(filteredPlugins ?? filePlugins);
 
-            _filePlugins = filePlugins;
-            AddPlugins();
-
-            okButtonCommand.Executed += OkButtonCommand_Executed;
+            continueButtonCommand.Executed += ContinueButtonCommandExecuted;
+            viewRawButtonCommand.Executed += ViewRawButtonCommandExecuted;
             cancelButtonCommand.Executed += CancelButtonCommand_Executed;
+            showAllCheckbox.CheckedChanged += ShowAllCheckbox_Changed;
         }
 
-        private void AddPlugins()
+        private void ListPlugins(IReadOnlyList<IFilePlugin> plugins)
         {
-            foreach (var groupedPlugins in _filePlugins.GroupBy(x => x.GetType().Assembly))
+            pluginListPanel.Items.Clear();
+            
+            foreach (var groupedPlugins in plugins.GroupBy(x => x.GetType().Assembly))
             {
                 var pluginStore = new ObservableCollection<object>();
                 foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? "<undefined>"))
@@ -70,6 +81,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     },
                     new GridColumn
                     {
+                        HeaderText = "Description",
+                        DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.Description)}
+                    },
+                    new GridColumn
+                    {
                         HeaderText = "GUID",
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.PluginId.ToString("D"))},
                         Sortable = true,
@@ -88,7 +104,17 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         protected override void OnShown(EventArgs e)
         {
             _selectedFilePlugin = null;
-            okButton.Enabled = false;
+            continueButton.Enabled = false;
+        }
+
+        private void ContinueButtonCommandExecuted(object sender, EventArgs e)
+        {
+            Close(_selectedFilePlugin);
+        }
+
+        private void ViewRawButtonCommandExecuted(object sender, EventArgs e)
+        {
+            Close(new HexPlugin());
         }
 
         private void CancelButtonCommand_Executed(object sender, EventArgs e)
@@ -96,9 +122,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             Close(null);
         }
 
-        private void OkButtonCommand_Executed(object sender, EventArgs e)
+        private void ShowAllCheckbox_Changed(object sender, EventArgs e)
         {
-            Close(_selectedFilePlugin);
+            ListPlugins(showAllCheckbox.Checked.Value ? _allPlugins : _filteredPlugins);
         }
 
         private void GridView_SelectedRowsChanged(object sender, EventArgs e)
@@ -107,7 +133,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             if (gridView.SelectedItem == null) return;
 
             _selectedFilePlugin = ((ChoosePluginElement)gridView.SelectedItem).Plugin;
-            okButton.Enabled = true;
+            continueButton.Enabled = true;
         }
 
         private void GridView_CellDoubleClick(object sender, GridCellMouseEventArgs e)

@@ -1,5 +1,7 @@
 ﻿using System.IO;
+using System.Linq;
 using Eto.Drawing;
+using Kanvas;
 
 namespace Kuriimu2.EtoForms.Extensions
 {
@@ -7,7 +9,7 @@ namespace Kuriimu2.EtoForms.Extensions
     {
         public static Bitmap ToEto(this System.Drawing.Bitmap image)
         {
-            // HINT Substitute solution; Convert to PNG and load it with Eto
+            // HINT: Substitute solution; Convert to PNG and load it with Eto
             var ms = new MemoryStream();
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
 

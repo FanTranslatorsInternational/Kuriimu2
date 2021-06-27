@@ -1,14 +1,10 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Kanvas.Configuration;
 using Kanvas.Swizzle;
-using Kanvas.Swizzle.Models;
 using Komponent.IO;
-using Kontract.Kanvas;
 using Kontract.Models.Image;
 using Kryptography.Hash.Crc;
 
@@ -41,7 +37,7 @@ namespace plugin_nintendo.Images
             // Read names
             var names = new string[_header.texCount];
             for (var i = 0; i < _header.texCount; i++)
-                names[i] = br.ReadCStringASCII();
+                names[i] = br.ReadCStringSJIS();
 
             // Read hash entries
             br.BaseStream.Position = _header.crc32SecOffset;
@@ -84,9 +80,9 @@ namespace plugin_nintendo.Images
             var texEntryOffset = 0x20;
             var dataSizeOffset = texEntryOffset + images.Count * TexEntrySize;
             var namesOffset = dataSizeOffset + images.Sum(x => x.MipMapCount + 1) * 4;
-            var hashEntryOffset = namesOffset + ((images.Sum(x => Encoding.ASCII.GetByteCount(x.Name) + 1) + 3) & ~3);
+            var hashEntryOffset = namesOffset + ((images.Sum(x => Encoding.GetEncoding("SJIS").GetByteCount(x.Name) + 1) + 3) & ~3);
             var mipEntriesOffset = hashEntryOffset + images.Count * HashEntrySize;
-            var dataOffset = (mipEntriesOffset + images.Count * MipMapEntrySize + 0x1F) & ~0x1F;
+            var dataOffset = (mipEntriesOffset + images.Count * MipMapEntrySize + 0x7F) & ~0x7F;
 
             // Write tex data
             var namePosition = namesOffset;
@@ -120,7 +116,7 @@ namespace plugin_nintendo.Images
                     type = info.Entry.type
                 });
 
-                namePosition += Encoding.ASCII.GetByteCount(info.Name) + 1;
+                namePosition += Encoding.GetEncoding("SJIS").GetByteCount(info.Name) + 1;
                 texSecPosition += info.ImageData.Length + info.MipMapData.Sum(x => x.Length);
                 sizePosition += (info.MipMapCount + 1) * 4;
 
@@ -128,7 +124,7 @@ namespace plugin_nintendo.Images
                 hashEntries.Add(new HashEntry
                 {
                     id = infoIndex++,
-                    crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(Encoding.ASCII.GetBytes(info.Name)))
+                    crc32 = crc32.ComputeValue(info.Name)
                 });
 
                 // Add new mip entry
@@ -156,7 +152,7 @@ namespace plugin_nintendo.Images
             // Write names
             output.Position = namesOffset;
             foreach (var info in images)
-                bw.WriteString(info.Name, Encoding.ASCII, false);
+                bw.WriteString(info.Name, Encoding.GetEncoding("SJIS"), false);
 
             // Write hash entries
             output.Position = hashEntryOffset;

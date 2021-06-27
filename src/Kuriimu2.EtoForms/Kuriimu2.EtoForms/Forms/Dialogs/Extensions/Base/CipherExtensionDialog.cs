@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Eto.Forms;
 using Komponent.Extensions;
 using Kryptography;
 using Kryptography.AES;
 using Kryptography.Blowfish;
+using Kryptography.InitCreates;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
@@ -29,8 +29,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 ProcessCipher(extensionType, fileStream, newFileStream);
             }
-            catch
+            catch (Exception e)
             {
+                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
                 return false;
             }
             finally
@@ -65,6 +66,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     new ExtensionTypeParameter("Key",typeof(string))),
                 new ExtensionType("Positional Xor",true,
                     new ExtensionTypeParameter("Key",typeof(string))),
+                new ExtensionType("Sequential Xor",true,
+                    new ExtensionTypeParameter("Key",typeof(string)),
+                    new ExtensionTypeParameter("Step",typeof(string))),
                 new ExtensionType("Rot",true,
                     new ExtensionTypeParameter("Rotation",typeof(byte))),
                 new ExtensionType("AES ECB",true,
@@ -83,7 +87,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     new ExtensionTypeParameter("LESectorId", typeof(bool)),
                     new ExtensionTypeParameter("SectorSize", typeof(int))),
                 new ExtensionType("Blowfish",true,
-                    new ExtensionTypeParameter("Key", typeof(string)))
+                    new ExtensionTypeParameter("Key", typeof(string))),
+                new ExtensionType("IntiCreates",false,
+                    new ExtensionTypeParameter("Password",typeof(string)))
             };
         }
 
@@ -103,6 +109,15 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "Positional Xor":
                     return new PositionalXorStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
+
+                case "Sequential Xor":
+                    var keyBuffer = selectedExtension.GetParameterValue<string>("Key").Hexlify();
+                    var stepBuffer = selectedExtension.GetParameterValue<string>("Step").Hexlify();
+
+                    var key = keyBuffer.Length >= 1 ? keyBuffer[0] : (byte)0;
+                    var step = stepBuffer.Length >= 1 ? stepBuffer[0] : (byte)0;
+
+                    return new SequentialXorStream(input, key, step);
 
                 case "Rot":
                     return new RotStream(input,
@@ -135,10 +150,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                     return new BlowfishStream(input,
                         selectedExtension.GetParameterValue<string>("Key").Hexlify());
 
+                case "IntiCreates":
+                    return new IntiCreatesStream(input,
+                        selectedExtension.GetParameterValue<string>("Password"));
+
                 // TODO: Plugin extensibility?
                 // TODO: Add nintendo NCA stream stuff
                 default:
-                    return null;
+                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
             }
         }
     }

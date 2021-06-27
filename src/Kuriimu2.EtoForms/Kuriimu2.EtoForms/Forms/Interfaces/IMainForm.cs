@@ -8,12 +8,12 @@ namespace Kuriimu2.EtoForms.Forms.Interfaces
 {
     interface IMainForm
     {
-        Task<bool> OpenFile(IStateInfo stateInfo, IArchiveFileInfo file, Guid pluginId);
-        Task<bool> SaveFile(IStateInfo stateInfo, bool saveAs);
-        Task<bool> CloseFile(IStateInfo stateInfo, IArchiveFileInfo file);
-        void RenameFile(IStateInfo stateInfo, IArchiveFileInfo file, UPath newPath);
+        Task<bool> OpenFile(IFileState fileState, IArchiveFileInfo file, Guid pluginId);
+        Task<bool> SaveFile(IFileState fileState, bool saveAs);
+        Task<bool> CloseFile(IFileState fileState, IArchiveFileInfo file);
+        void RenameFile(IFileState fileState, IArchiveFileInfo file, UPath newPath);
 
-        void Update(IStateInfo stateInfo, bool updateParents, bool updateChildren);
+        void Update(IFileState fileState, bool updateParents, bool updateChildren);
 
         void ReportStatus(bool isSuccessful, string message);
     }

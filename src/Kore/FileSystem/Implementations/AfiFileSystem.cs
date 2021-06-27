@@ -21,36 +21,37 @@ namespace Kore.FileSystem.Implementations
     /// </summary>
     class AfiFileSystem : FileSystem
     {
-        private readonly IStateInfo _stateInfo;
+        private readonly IFileState _fileState;
         private readonly ITemporaryStreamProvider _temporaryStreamProvider;
 
         private readonly IDictionary<UPath, IArchiveFileInfo> _fileDictionary;
         private readonly IDictionary<UPath, (IList<UPath>, IList<IArchiveFileInfo>)> _directoryDictionary;
 
-        protected IArchiveState ArchiveState => _stateInfo.PluginState as IArchiveState;
+        // TODO this cast smells, should IFileState/IPluginState be generified?
+        protected IArchiveState ArchiveState => _fileState.PluginState as IArchiveState;
 
-        protected UPath SubPath => _stateInfo.AbsoluteDirectory / _stateInfo.FilePath.ToRelative();
+        protected UPath SubPath => _fileState.AbsoluteDirectory / _fileState.FilePath.ToRelative();
 
         /// <summary>
         /// Creates a new instance of <see cref="AfiFileSystem"/>.
         /// </summary>
-        /// <param name="stateInfo">The <see cref="IStateInfo"/> to retrieve files from.</param>
+        /// <param name="fileState">The <see cref="IFileState"/> to retrieve files from.</param>
         /// <param name="streamManager">The stream manager to scope streams in.</param>
-        public AfiFileSystem(IStateInfo stateInfo, IStreamManager streamManager) : base(streamManager)
+        public AfiFileSystem(IFileState fileState, IStreamManager streamManager) : base(streamManager)
         {
-            ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
-            if (!(stateInfo.PluginState is IArchiveState))
+            ContractAssertions.IsNotNull(fileState, nameof(fileState));
+            if (!(fileState.PluginState is IArchiveState))
                 throw new InvalidOperationException("The state is no archive.");
 
-            _stateInfo = stateInfo;
+            _fileState = fileState;
             _temporaryStreamProvider = streamManager.CreateTemporaryStreamProvider();
 
             _fileDictionary = ArchiveState.Files.ToDictionary(x => x.FilePath, y => y);
             _directoryDictionary = CreateDirectoryLookup();
         }
 
-        private AfiFileSystem(IStateInfo stateInfo, IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
-            this(stateInfo, streamManager)
+        private AfiFileSystem(IFileState fileState, IStreamManager streamManager, IList<FileSystemWatcher> watchers) :
+            this(fileState, streamManager)
         {
             foreach (var watcher in watchers)
                 GetOrCreateDispatcher().Add(watcher);
@@ -59,7 +60,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         public override IFileSystem Clone(IStreamManager streamManager)
         {
-            return new AfiFileSystem(_stateInfo, streamManager);
+            return new AfiFileSystem(_fileState, streamManager);
         }
 
         // ----------------------------------------------
@@ -70,10 +71,10 @@ namespace Kore.FileSystem.Implementations
         public override bool CanCreateDirectories => false;
 
         /// <inheritdoc />
-        public override bool CanDeleteDirectories => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteDirectories => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
-        public override bool CanMoveDirectories => ArchiveState is IRenameFiles;
+        public override bool CanMoveDirectories => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
         protected override void CreateDirectoryImpl(UPath path)
@@ -118,10 +119,9 @@ namespace Kore.FileSystem.Implementations
             CreateDirectoryInternal(destPath);
 
             // Move files
-            var renameState = ArchiveState as IRenameFiles;
             foreach (var file in element.Item2)
             {
-                renameState?.Rename(file, destPath / file.FilePath.GetName());
+                ArchiveState.AttemptRename(file, destPath / file.FilePath.GetName());
                 _directoryDictionary[destPath].Item2.Add(file);
             }
         }
@@ -160,9 +160,10 @@ namespace Kore.FileSystem.Implementations
                 _directoryDictionary[parent].Item1.Remove(path);
 
             // Delete files
-            var removeState = ArchiveState as IRemoveFiles;
             foreach (var file in element.Item2)
-                removeState?.RemoveFile(file);
+            {
+                ArchiveState.AttemptRemoveFile(file);
+            }
 
             element.Item2.Clear();
         }
@@ -172,7 +173,7 @@ namespace Kore.FileSystem.Implementations
         // ----------------------------------------------
 
         /// <inheritdoc />
-        public override bool CanCreateFiles => ArchiveState is IAddFiles;
+        public override bool CanCreateFiles => ArchiveState.CanAddFiles;
 
         /// <inheritdoc />
         // TODO: Maybe finding out how to properly do copying when AFI can either return a normal stream or a temporary one
@@ -183,15 +184,15 @@ namespace Kore.FileSystem.Implementations
         public override bool CanReplaceFiles => false;
 
         /// <inheritdoc />
-        public override bool CanMoveFiles => ArchiveState is IRenameFiles;
+        public override bool CanMoveFiles => ArchiveState.CanRenameFiles;
 
         /// <inheritdoc />
-        public override bool CanDeleteFiles => ArchiveState is IRemoveFiles;
+        public override bool CanDeleteFiles => ArchiveState.CanDeleteFiles;
 
         /// <inheritdoc />
         protected override bool FileExistsImpl(UPath path)
         {
-            return _fileDictionary.ContainsKey(path);
+            return GetAfi(path) != null;
         }
 
         /// <inheritdoc />
@@ -216,7 +217,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            return _fileDictionary[path].FileSize;
+            return GetAfi(path).FileSize;
         }
 
         /// <inheritdoc />
@@ -227,7 +228,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(srcPath);
             }
 
-            var file = _fileDictionary[srcPath];
+            var file = GetAfi(srcPath);
             _fileDictionary.Remove(srcPath);
 
             // Remove file from source directory
@@ -237,8 +238,7 @@ namespace Kore.FileSystem.Implementations
             GetOrCreateDispatcher().RaiseDeleted(srcPath);
 
             // Rename file
-            var renameState = ArchiveState as IRenameFiles;
-            renameState?.Rename(file, destPath);
+            ArchiveState.AttemptRename(file, destPath);
 
             GetOrCreateDispatcher().RaiseRenamed(destPath, srcPath);
 
@@ -260,15 +260,14 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(path);
             }
 
-            var file = _fileDictionary[path];
+            var file = GetAfi(path);
 
             // Remove file from directory
             var srcDir = path.GetDirectory();
             _directoryDictionary[srcDir].Item2.Remove(file);
 
             // Remove file
-            var removingState = ArchiveState as IRemoveFiles;
-            removingState?.RemoveFile(_fileDictionary[path]);
+            ArchiveState.AttemptRemoveFile(file);
 
             GetOrCreateDispatcher().RaiseDeleted(path);
         }
@@ -295,14 +294,14 @@ namespace Kore.FileSystem.Implementations
             switch (mode)
             {
                 case FileMode.Open:
-                    afi = _fileDictionary[path];
+                    afi = GetAfi(path);
                     break;
 
                 case FileMode.Create:
                     if (fileExists)
                     {
-                        afi = _fileDictionary[path];
-                        afi.SetFileData(new MemoryStream());
+                        afi = GetAfi(path);
+                        afi?.SetFileData(new MemoryStream());
                     }
                     else
                     {
@@ -318,7 +317,7 @@ namespace Kore.FileSystem.Implementations
                     break;
 
                 case FileMode.OpenOrCreate:
-                    afi = fileExists ? _fileDictionary[path] : CreateFileInternal(new MemoryStream(), path);
+                    afi = fileExists ? GetAfi(path) : CreateFileInternal(new MemoryStream(), path);
 
                     if (fileExists)
                         GetOrCreateDispatcher().RaiseCreated(path);
@@ -353,7 +352,7 @@ namespace Kore.FileSystem.Implementations
                 throw FileSystemExceptionHelper.NewFileNotFoundException(savePath);
             }
 
-            _fileDictionary[savePath].SetFileData(saveData);
+            GetAfi(savePath)?.SetFileData(saveData);
 
             GetOrCreateDispatcher().RaiseCreated(savePath);
         }
@@ -380,7 +379,7 @@ namespace Kore.FileSystem.Implementations
         /// <inheritdoc />
         protected override FileEntry GetFileEntryImpl(UPath path)
         {
-            var afi = _fileDictionary[path];
+            var afi = GetAfi(path);
             return new AfiFileEntry(afi);
         }
 
@@ -510,10 +509,10 @@ namespace Kore.FileSystem.Implementations
 
         private IArchiveFileInfo CreateFileInternal(Stream fileData, UPath newFilePath)
         {
-            if (!(_stateInfo.PluginState is IAddFiles addState))
+            if (!ArchiveState.CanAddFiles)
                 return null;
 
-            var newAfi = addState.AddFile(fileData, newFilePath);
+            var newAfi = ArchiveState.AttemptAddFile(fileData, newFilePath);
             _fileDictionary[newFilePath] = newAfi;
 
             CreateDirectoryInternal(newFilePath.GetDirectory());
@@ -550,6 +549,27 @@ namespace Kore.FileSystem.Implementations
         }
 
         #endregion
+
+        private IArchiveFileInfo GetAfi(UPath filePath)
+        {
+            if (!_fileDictionary.ContainsKey(filePath))
+                return null;
+
+            var afi = _fileDictionary[filePath];
+
+            // If the file data stream is closed, this may point to a stale reference from before an external operation modified the IFileState
+            // Do expensive FirstOrDefault operation to search the requested file in the ArchiveState itself
+            if (afi.IsFileDataInvalid)
+                afi = ArchiveState.Files.FirstOrDefault(x => x.FilePath == filePath);
+
+            // Update the file dictionary, regardless of validity of the file data stream
+            if (afi == null)
+                _fileDictionary.Remove(filePath);
+            else
+                _fileDictionary[filePath] = afi;
+
+            return afi;
+        }
     }
 
     public class AfiFileEntry : FileEntry

@@ -22,21 +22,11 @@ namespace Kuriimu2.Cmd.Contexts
 {
     class ImageContext : BaseContext
     {
-        private readonly IStateInfo _stateInfo;
+        private readonly IFileState _stateInfo;
         private readonly IImageState _imageState;
         private readonly IContext _parentContext;
 
-        protected override IList<Command> Commands { get; } = new List<Command>
-        {
-            new Command("print","image-index"),
-            new Command("extract", "image-index", "file-path"),
-            new Command("extract-all", "directory-path"),
-            new Command("inject", "image-index", "file-path"),
-            new Command("list"),
-            new Command("back")
-        };
-
-        public ImageContext(IStateInfo stateInfo, IContext parentContext, IProgressContext progressContext) :
+        public ImageContext(IFileState stateInfo, IContext parentContext, IProgressContext progressContext) :
             base(progressContext)
         {
             ContractAssertions.IsNotNull(stateInfo, nameof(stateInfo));
@@ -46,6 +36,19 @@ namespace Kuriimu2.Cmd.Contexts
             _imageState = _stateInfo.PluginState as IImageState;
             _parentContext = parentContext;
 
+        }
+
+        protected override IList<Command> InitializeCommands()
+        {
+            return new[]
+            {
+                new Command("print", "image-index"),
+                new Command("extract", "image-index", "file-path"),
+                new Command("extract-all", "directory-path"),
+                new Command("inject", "image-index", "file-path"),
+                new Command("list"),
+                new Command("back")
+            };
         }
 
         protected override Task<IContext> ExecuteNextInternal(Command command, IList<string> arguments)
@@ -93,13 +96,13 @@ namespace Kuriimu2.Cmd.Contexts
                 return;
             }
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(filePath.GetDirectory(), new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(filePath.GetDirectory().FullName, new StreamManager());
             ExtractImageInternal(_imageState.Images[imageIndex], destinationFileSystem, filePath.GetName());
         }
 
         private void ExtractAllImage(UPath directoryPath)
         {
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(directoryPath, new StreamManager());
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(directoryPath.FullName, new StreamManager());
 
             for (var i = 0; i < _imageState.Images.Count; i++)
             {

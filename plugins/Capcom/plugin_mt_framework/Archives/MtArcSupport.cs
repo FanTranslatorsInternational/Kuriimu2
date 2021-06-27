@@ -3,14 +3,12 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kryptography.Blowfish;
-using Kryptography.Hash;
 using Kryptography.Hash.Crc;
 #pragma warning disable 649
 
@@ -237,7 +235,7 @@ namespace plugin_mt_framework.Archives
 
     class MtArcSupport
     {
-        private static readonly IHash Hash = Crc32.Default;
+        private static readonly Crc32 Hash = Crc32.Default;
 
         public static MtArcPlatform DeterminePlatform(Stream input)
         {
@@ -296,7 +294,7 @@ namespace plugin_mt_framework.Archives
 
         private static uint GetHash(string input)
         {
-            return ~BinaryPrimitives.ReadUInt32BigEndian(Hash.Compute(Encoding.ASCII.GetBytes(input)));
+            return ~Hash.ComputeValue(input);
         }
 
         private static Dictionary<uint, string> _extensionMap = new Dictionary<uint, string>
@@ -322,6 +320,11 @@ namespace plugin_mt_framework.Archives
             [GetHash("rSoundRequest")] = ".srqr",
             [GetHash("rSoundSourceADPCM")] = ".mca",
             [GetHash("rTexture")] = ".tex",
+            [GetHash("rBodyEdit")] = ".bed",
+            [GetHash("rEditConvert")] = ".edc",
+            [GetHash("rEffect2D")] = ".e2d",
+            [GetHash("rFaceEdit")] = ".fed",
+            [GetHash("rFacialAnimation")] = ".fca",
 
             [0x22FA09] = ".hpe",
             [0x26E7FF] = ".ccl",
@@ -339,7 +342,6 @@ namespace plugin_mt_framework.Archives
             [0x737E28B] = ".rst",
             [0x7437CCE] = ".base",
             [0x79B5F3E] = ".pci",
-            [0x7B8BCDE] = ".fca",
             [0x7F768AF] = ".gii",
             [0x89BEF2C] = ".sap",
             [0xA74682F] = ".rnp",
@@ -375,7 +377,6 @@ namespace plugin_mt_framework.Archives
             [0x2749C8A8] = ".mrl",
             [0x271D08FE] = ".ssq",
             [0x272B80EA] = ".prp",
-            [0x276DE8B7] = ".e2d",
             [0x2A37242D] = ".gpl",
             [0x2A4F96A8] = ".rbd",
             [0x2B0670A5] = ".map",
@@ -392,7 +393,6 @@ namespace plugin_mt_framework.Archives
             [0x33B21191] = ".esp",
             [0x354284E7] = ".lvl",
             [0x358012E8] = ".vib",
-            [0x36019854] = ".bed",
             [0x39A0D1D6] = ".sms",
             [0x39C52040] = ".lcm",
             [0x3A947AC1] = ".cql",
@@ -426,7 +426,6 @@ namespace plugin_mt_framework.Archives
             [0x5802B3FF] = ".ahc",
             [0x58A15856] = ".mod",
             [0x59D80140] = ".ablparam",
-            [0x5A61A7C8] = ".fed",
             [0x5A7FEA62] = ".ik",
             [0x5B334013] = ".bap",
             [0x5EA7A3E9] = ".sky",

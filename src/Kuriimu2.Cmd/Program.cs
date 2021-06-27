@@ -37,7 +37,7 @@ namespace Kuriimu2.Cmd
             var progressContext = new ProgressContext(new ConsoleProgressOutput(14));
             var dialogManager = new ConsoleDialogManager(_argumentGetter, progressContext);
             var logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-            var pluginManager = new PluginManager("plugins")
+            var pluginManager = new FileManager("plugins")
             {
                 DialogManager = dialogManager,
                 Progress = progressContext,
@@ -59,10 +59,10 @@ namespace Kuriimu2.Cmd
 
         private static void PrintWelcomeText()
         {
-            Console.WriteLine("Welcome to Kuriimu2");
-            Console.WriteLine($"Version: {_localManifest.Version}-{_localManifest.BuildNumber}");
-            Console.WriteLine("\tAuthors: onepiecefreak, IcySon55, Neobeo, and other contributors");
-            Console.WriteLine("\tGithub link: https://github.com/FanTranslatorsInternational/Kuriimu2");
+            Console.WriteLine($"Welcome to Kuriimu2 {_localManifest.Version}-{_localManifest.BuildNumber}");
+            Console.WriteLine();
+            Console.WriteLine("Authors: onepiecefreak, IcySon55, Neobeo, and other contributors");
+            Console.WriteLine("Github: https://github.com/FanTranslatorsInternational/Kuriimu2");
         }
 
         private static void CheckForUpdate()

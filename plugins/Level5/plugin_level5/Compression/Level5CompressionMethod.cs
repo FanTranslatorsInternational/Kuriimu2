@@ -6,6 +6,7 @@
         Lz10 = 1,
         Huffman4Bit = 2,
         Huffman8Bit = 3,
-        Rle = 4
+        Rle = 4,
+        ZLib = 5
     }
 }

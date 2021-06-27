@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="General\ImgxSupport.cs~RF389b60c9.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Kanvas" Version="2.0.8" />
     <PackageReference Include="Komponent" Version="2.0.8" />
     <PackageReference Include="Kompression" Version="2.0.8" />

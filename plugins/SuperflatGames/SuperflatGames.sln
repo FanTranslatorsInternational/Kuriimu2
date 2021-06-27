@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "superflat_games", "superflat_games\superflat_games.csproj", "{DC4C228E-63AC-4242-9260-F7E189EA04F2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DC4C228E-63AC-4242-9260-F7E189EA04F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC4C228E-63AC-4242-9260-F7E189EA04F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC4C228E-63AC-4242-9260-F7E189EA04F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC4C228E-63AC-4242-9260-F7E189EA04F2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E1693B7-7806-4BF4-B995-1B461FE8DEC8}
+	EndGlobalSection
+EndGlobal

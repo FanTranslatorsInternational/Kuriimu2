@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -20,7 +20,7 @@ namespace plugin_koei_tecmo.Archives
 
         public X3Plugin()
         {
-            Metadata = new PluginMetadata("X3", "onepiecefreak", "The X3 archive for games from Koei-Tecmo.");
+            Metadata = new PluginMetadata("X3", "onepiecefreak", "The main resource package in KoeiTecmo games.");
         }
 
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
@@ -31,7 +31,7 @@ namespace plugin_koei_tecmo.Archives
             return br.ReadInt32() == 0x0133781D;
         }
 
-        public IPluginState CreatePluginState(IPluginManager pluginManager)
+        public IPluginState CreatePluginState(IFileManager pluginManager)
         {
             return new X3State();
         }

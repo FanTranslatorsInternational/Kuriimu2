@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
+using Kompression.Implementations;
 using Kontract.Interfaces.Progress;
 using Kontract.Interfaces.Providers;
 using Kontract.Kompression;
-using Kontract.Kompression.Configuration;
 using Kontract.Models.Archive;
 using Kryptography.Hash.Crc;
 #pragma warning disable 649
@@ -63,7 +62,9 @@ namespace plugin_bandai_namco.Archives
 
     class L7cArchiveFileInfo : ArchiveFileInfo
     {
-        private readonly ChunkStream _chunkStream;
+        private readonly Stream _origStream;
+        private readonly bool _usesCompression;
+
         private static readonly Crc32 Crc32 = Crc32.Default;
 
         public IList<L7cChunkEntry> Chunks { get; private set; }
@@ -71,70 +72,47 @@ namespace plugin_bandai_namco.Archives
         public L7cFileEntry Entry { get; }
 
         public L7cArchiveFileInfo(Stream fileData, string filePath, IList<L7cChunkEntry> chunks, L7cFileEntry entry) :
-            base(fileData, filePath)
+            base(new ChunkStream(fileData, entry.decompSize, ChunkInfo.ParseEntries(chunks)), filePath)
         {
-            _chunkStream = new ChunkStream(fileData, entry.decompSize, ChunkInfo.ParseEntries(chunks));
+            _origStream = fileData;
+            _usesCompression = ((ChunkStream)FileData).UsesCompression;
 
             Chunks = chunks;
             Entry = entry;
         }
 
-        public override Task<Stream> GetFileData(ITemporaryStreamProvider temporaryStreamProvider = null, IProgressContext progress = null)
-        {
-            return Task.FromResult(ContentChanged ? FileData : _chunkStream);
-        }
-
         public override long SaveFileData(Stream output, bool compress, IProgressContext progress = null)
         {
-            Entry.offset = (int)output.Position;
-            Entry.chunkIndex = 0;
-
+            // Write unchanged file
             if (!ContentChanged)
             {
-                Entry.chunkCount = Chunks.Count;
-
-                FileData.Position = 0;
-                FileData.CopyTo(output);
+                _origStream.Position = 0;
+                _origStream.CopyTo(output);
 
                 ContentChanged = false;
-                return FileData.Length;
+                return _origStream.Length;
             }
 
-            Entry.chunkCount = 1;
-            Entry.decompSize = (int)FileData.Length;
+            // Write newly chunked file
+            FileData.Position = 0;
+            var chunkedStreamData = ChunkStream.CreateChunked(FileData, _usesCompression, out var newChunks);
+            chunkedStreamData.CopyTo(output);
+            Chunks = newChunks;
 
             FileData.Position = 0;
-            Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(Crc32.Compute(FileData));
-
-            var finalStream = FileData;
-            if (_chunkStream.UsesCompression)
-            {
-                FileData.Position = 0;
-                finalStream = new MemoryStream();
-                Kompression.Implementations.Compressions.TaikoLz80.Build().Compress(FileData, finalStream);
-            }
-
-            Entry.compSize = (int)finalStream.Length;
-
-            finalStream.Position = 0;
-            finalStream.CopyTo(output);
-
-            var compFlag = _chunkStream.UsesCompression ? 0x80000000 : 0;
-            Chunks = new[]
-            {
-                new L7cChunkEntry
-                {
-                    chunkSize = (int) (compFlag | ((uint) finalStream.Length & 0xFFFFFF))
-                }
-            };
+            Entry.crc32 = Crc32.ComputeValue(FileData);
 
             ContentChanged = false;
-            return finalStream.Length;
+            return chunkedStreamData.Length;
         }
     }
 
     class ChunkStream : Stream
     {
+        private const int BlockSize_ = 0x10000;
+
+        private static readonly ICompression TaikoLz = Compressions.TaikoLz80.Build();
+
         private Stream _baseStream;
 
         private IList<ChunkInfo> _chunks;
@@ -313,6 +291,50 @@ namespace plugin_bandai_namco.Archives
 
             return _position - summedLength;
         }
+
+        public static Stream CreateChunked(Stream input, bool compress, out IList<L7cChunkEntry> chunks)
+        {
+            var result = new MemoryStream();
+            chunks = new List<L7cChunkEntry>();
+            var flag = compress ? 0x80000000 : 0;
+
+            // Write compressed blocks
+            input.Position = 0;
+            var count = input.Length;
+
+            var chunkId = 0;
+            while (count > 0)
+            {
+                var length = Math.Min(count, BlockSize_);
+                var startPos = result.Position;
+
+                var block = new SubStream(input, input.Position, length);
+
+                if (compress)
+                {
+                    // TODO: Do not rely on buffer stream. Compression should be position agnostic
+                    var buffer = new MemoryStream();
+                    TaikoLz.Compress(block, buffer);
+
+                    buffer.Position = 0;
+                    buffer.CopyTo(result);
+                }
+                else
+                    block.CopyTo(result);
+
+                chunks.Add(new L7cChunkEntry
+                {
+                    chunkSize = (int)(flag | (result.Length - startPos)),
+                    chunkId = (ushort)chunkId++
+                });
+
+                count -= length;
+                input.Position += length;
+            }
+
+            result.Position = 0;
+            return result;
+        }
     }
 
     class ChunkInfo
@@ -329,11 +351,11 @@ namespace plugin_bandai_namco.Archives
             switch ((entry.chunkSize >> 24) & 0xFF)
             {
                 case 0x80:
-                    Compression = Kompression.Implementations.Compressions.TaikoLz80.Build();
+                    Compression = Compressions.TaikoLz80.Build();
                     break;
 
                 case 0x81:
-                    Compression = Kompression.Implementations.Compressions.TaikoLz81.Build();
+                    Compression = Compressions.TaikoLz81.Build();
                     break;
             }
         }

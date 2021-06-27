@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -104,7 +103,7 @@ namespace plugin_level5._3DS.Archives
             WriteCompressedTableEntries(bw.BaseStream, directoryHashes);
             bw.WriteAlignment(4);
 
-            // Write file entry hashes
+            // Write file entries
             _header.fileCount = fileEntries.Count;
             _header.fileEntriesCount = fileEntries.Count;
             _header.fileEntriesOffset = (int)bw.BaseStream.Position;
@@ -122,11 +121,10 @@ namespace plugin_level5._3DS.Archives
 
             // Write file data
             _header.dataOffset = (int)bw.BaseStream.Position;
-
             foreach (var fileEntry in fileEntries)
             {
                 bw.BaseStream.Position = _header.dataOffset + fileEntry.Entry.fileOffset;
-                fileEntry.SaveFileData(bw.BaseStream, null);
+                fileEntry.SaveFileData(bw.BaseStream);
             }
 
             // Write header
@@ -179,7 +177,7 @@ namespace plugin_level5._3DS.Archives
                     directoryName += "/";
                 nameBw.WriteString(directoryName, sjis, false);
 
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(directoryName)));
+                var hash = crc32.ComputeValue(directoryName, sjis);
                 var newDirectoryEntry = new Arc0DirectoryEntry
                 {
                     crc32 = string.IsNullOrEmpty(fileGroup.Key.ToRelative().FullName) ? 0xFFFFFFFF : hash,
@@ -200,7 +198,7 @@ namespace plugin_level5._3DS.Archives
                 foreach (var fileEntry in fileGroupEntries)
                 {
                     fileEntry.Entry.nameOffsetInFolder = (uint)(nameBw.BaseStream.Position - newDirectoryEntry.fileNameStartOffset);
-                    fileEntry.Entry.crc32 = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(sjis.GetBytes(fileEntry.FilePath.GetName())));
+                    fileEntry.Entry.crc32 = crc32.ComputeValue(fileEntry.FilePath.GetName(), sjis);
                     fileEntry.Entry.fileOffset = fileOffset;
                     fileEntry.Entry.fileSize = (uint)fileEntry.FileSize;
 

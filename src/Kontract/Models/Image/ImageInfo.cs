@@ -67,6 +67,11 @@ namespace Kontract.Models.Image
         /// </summary>
         public RemapPixelsConfiguration RemapPixels { get; } = new RemapPixelsConfiguration();
 
+        /// <summary>
+        /// Defines where the image with its real size is anchored in the padded size.
+        /// </summary>
+        public ImageAnchor IsAnchoredAt { get; set; } = ImageAnchor.TopLeft;
+
         // TODO: Make not settable
         // TODO: Use KanvasImage in Kontract
         /// <summary>
@@ -140,10 +145,10 @@ namespace Kontract.Models.Image
             _heightConfig = new PadSizeDimensionConfiguration(this);
         }
 
-        public void ToPowerOfTwo()
+        public void ToPowerOfTwo(int steps = 1)
         {
-            Width.ToPowerOfTwo();
-            Height.ToPowerOfTwo();
+            Width.ToPowerOfTwo(steps);
+            Height.ToPowerOfTwo(steps);
         }
 
         public void ToMultiple(int multiple)
@@ -181,9 +186,11 @@ namespace Kontract.Models.Image
             return _parent;
         }
 
-        public PadSizeConfiguration ToPowerOfTwo()
+        public PadSizeConfiguration ToPowerOfTwo(int steps = 1)
         {
-            Delegate = ToPowerOfTwo;
+            int ToPowerOfTwoInternal(int value) => 2 << (int)Math.Log(value - 1, 2);
+
+            Delegate = value => ToPowerOfTwoInternal(value) << (steps - 1);
 
             return _parent;
         }
@@ -193,11 +200,6 @@ namespace Kontract.Models.Image
             Delegate = i => ToMultiple(i, multiple);
 
             return _parent;
-        }
-
-        private int ToPowerOfTwo(int value)
-        {
-            return 2 << (int)Math.Log(value - 1, 2);
         }
 
         private int ToMultiple(int value, int multiple)

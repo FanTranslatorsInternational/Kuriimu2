@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <None Remove="Archives\FntPlugin.cs~RF84f28e50.TMP" />
+    <None Remove="Images\OsbSupport.cs~RFbb40b5d.TMP" />
   </ItemGroup>
 
   <ItemGroup>

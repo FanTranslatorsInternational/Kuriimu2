@@ -8,7 +8,6 @@ using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Kanvas;
-using Kontract.Models.Image;
 using Kontract.Models.IO;
 using Kuriimu2.EtoForms.Extensions;
 using Kuriimu2.EtoForms.Forms.Interfaces;
@@ -25,6 +24,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private int _selectedImageIndex;
 
+        private IList<ImageElement> _currentImages;
+        private IList<ImageEncodingElement> _currentFormats;
+        private IList<ImageEncodingElement> _currentPaletteFormats;
+
         #region Constants
 
         private const string PngFileFilter_ = "Portable Network Graphics (*.png)|*.png";
@@ -34,20 +37,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private const string ExportPaletteTitle_ = "Export palette...";
         private const string ImportPaletteTitle_ = "Import palette...";
-
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-        private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
-        private const string MenuExportResourceName = "Kuriimu2.EtoForms.Images.image-export.png";
-        private const string MenuImportResourceName = "Kuriimu2.EtoForms.Images.image-import.png";
-
-        #endregion
-
-        #region Loaded image resources
-
-        private readonly Image MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
-        private readonly Image MenuSaveAsResource = Bitmap.FromResource(MenuSaveAsResourceName);
-        private readonly Image MenuExportResource = Bitmap.FromResource(MenuExportResourceName);
-        private readonly Image MenuImportResource = Bitmap.FromResource(MenuImportResourceName);
 
         #endregion
 
@@ -61,17 +50,22 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _asyncOperation.Started += asyncOperation_Started;
             _asyncOperation.Finished += asyncOperation_Finished;
 
-            UpdateImageList();
-            UpdateFormats();
-            UpdatePalettes(GetSelectedImage());
+            if (GetStateImages().Count > 0)
+            {
+                LoadFormats(GetSelectedImage());
+                LoadPaletteFormats(GetSelectedImage());
+                LoadImageList();
 
-            UpdateImagePreview(GetSelectedImage());
+                UpdateFormats();
+                UpdatePalettes();
+                UpdateImageList();
+
+                UpdateImagePreview(GetSelectedImage());
+            }
 
             UpdateFormInternal();
 
-            images.SelectedIndexChanged += Images_SelectedIndexChanged;
-            formats.SelectedValueChanged += Formats_SelectedValueChanged;
-            palettes.SelectedValueChanged += Palettes_SelectedValueChanged;
+            #region Set Events
 
             imagePalette.ChoosingColor += ImagePalette_ChoosingColor;
             imagePalette.PaletteChanged += ImagePalette_PaletteChanged;
@@ -81,9 +75,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             exportCommand.Executed += ExportCommand_Executed;
             importCommand.Executed += ImportCommand_Executed;
+
+            #endregion
         }
 
         #region Forminterface methods
+
+        public void UpdateForm()
+        {
+            UpdateFormInternal();
+        }
 
         public bool HasRunningOperations()
         {
@@ -92,17 +93,17 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-        #region Update
+        #region Load methods
 
-        private void UpdateImageList()
+        private void LoadImageList()
         {
-            images.DataStore = GetStateImages().Select((x, i) =>
+            _currentImages = GetStateImages().Select((x, i) =>
                 new ImageElement(GenerateThumbnail(x.GetImage().ToEto()), x.Name ?? $"{i:00}")).ToArray();
         }
 
-        private void UpdateFormats()
+        private void LoadFormats(IKanvasImage selectedImage)
         {
-            var definition = GetEncodingDefinition();
+            var definition = selectedImage.EncodingDefinition;
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
             if (definition.HasColorEncodings)
@@ -112,10 +113,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 elements = elements.Concat(
                     definition.IndexEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
 
-            formats.DataStore = elements;
+            _currentFormats = elements.ToArray();
         }
 
-        private void UpdatePalettes(IKanvasImage image)
+        private void LoadPaletteFormats(IKanvasImage image)
         {
             if (image == null)
             {
@@ -123,10 +124,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            var definition = GetEncodingDefinition();
+            var definition = image.EncodingDefinition;
 
             IEnumerable<ImageEncodingElement> elements = Array.Empty<ImageEncodingElement>();
-            if (definition.HasPaletteEncodings)
+            if (image.IsIndexed && definition.HasPaletteEncodings)
             {
                 var paletteEncodings = definition.PaletteEncodings;
                 var encodingIndices = definition.GetIndexEncoding(image.ImageFormat).PaletteEncodingIndices;
@@ -138,7 +139,43 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 elements = elements.Concat(paletteEncodings.Select(x => new ImageEncodingElement(x.Key, x.Value)));
             }
 
-            palettes.DataStore = elements;
+            _currentPaletteFormats = elements.ToArray();
+        }
+
+        #endregion
+
+        #region Update
+
+        private void UpdateFormats()
+        {
+            formats.SelectedValueChanged -= Formats_SelectedValueChanged;
+
+            formats.DataStore = _currentFormats;
+
+            formats.SelectedValueChanged += Formats_SelectedValueChanged;
+        }
+
+        private void UpdatePalettes()
+        {
+            palettes.SelectedValueChanged -= Palettes_SelectedValueChanged;
+
+            palettes.DataStore = _currentPaletteFormats;
+
+            palettes.SelectedValueChanged += Palettes_SelectedValueChanged;
+        }
+
+        private void UpdateImageList()
+        {
+            imageList.SelectedIndexChanged -= ImageList_SelectedIndexChanged;
+
+            imageList.DataStore = _currentImages;
+
+            imageList.SelectedIndexChanged += ImageList_SelectedIndexChanged;
+        }
+
+        private void UpdateSelectedImagePreview()
+        {
+            UpdateImagePreview(GetSelectedImage());
         }
 
         private void UpdateImagePreview(IKanvasImage image)
@@ -146,14 +183,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (image == null)
                 return;
 
-            var definition = GetEncodingDefinition();
-
             // Set dropdown values
-            formats.Text = definition.GetColorEncoding(image.ImageFormat)?.FormatName ??
-                           definition.GetIndexEncoding(image.ImageFormat).IndexEncoding.FormatName;
-
-            if (image.IsIndexed)
-                palettes.Text = definition.GetPaletteEncoding(image.PaletteFormat).FormatName;
+            UpdateSelectedImageFormats();
 
             // Set size
             width.Text = image.ImageSize.Width.ToString();
@@ -162,65 +193,81 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Set image
             imageView.Image = image.GetImage().ToEto();
             imageView.Invalidate();
+        }
 
-            // Update palette image
-            if (image.IsIndexed)
-                UpdatePaletteImage();
+        private void UpdateSelectedPaletteImage()
+        {
+            UpdatePaletteImage(GetSelectedImage());
+        }
+
+        private void UpdatePaletteImage(IKanvasImage image)
+        {
+            if (!image.IsIndexed)
+            {
+                imagePalette.Palette = null;
+                return;
+            }
+
+            imagePalette.Palette = image.GetPalette(_formInfo.Progress);
+        }
+
+        private void UpdateSelectedThumbnail()
+        {
+            _currentImages[_selectedImageIndex].UpdateThumbnail(GenerateThumbnail(GetSelectedImage().GetImage().ToEto()));
+        }
+
+        private void UpdateSelectedImageFormats()
+        {
+            formats.SelectedValueChanged -= Formats_SelectedValueChanged;
+            palettes.SelectedValueChanged -= Palettes_SelectedValueChanged;
+
+            formats.SelectedValue = _currentFormats.FirstOrDefault(x => x.ImageIdent == GetSelectedImage().ImageFormat);
+            palettes.SelectedValue = _currentPaletteFormats.FirstOrDefault(x => x.ImageIdent == GetSelectedImage().PaletteFormat);
+
+            formats.SelectedValueChanged += Formats_SelectedValueChanged;
+            palettes.SelectedValueChanged += Palettes_SelectedValueChanged;
         }
 
         private void ToggleForm(bool toggle)
         {
-            formats.Enabled = toggle;
-            palettes.Enabled = toggle;
-            images.Enabled = toggle;
-            imageView.Enabled = toggle;
-
+            // Toggle button operation availability
             saveButton.Enabled = toggle;
             saveAsButton.Enabled = toggle;
             exportButton.Enabled = toggle;
             importButton.Enabled = toggle;
 
-            imagePalette.Enabled = toggle;
-        }
+            // Toggle format dropdown availability
+            formats.Enabled = toggle;
+            palettes.Enabled = toggle;
 
-        public void UpdateForm()
-        {
-            UpdateFormInternal();
+            // Toggle image related availability
+            imageList.Enabled = toggle;
+            imageView.Enabled = toggle;
+            imagePalette.Enabled = toggle;
         }
 
         private void UpdateFormInternal()
         {
             var selectedImage = GetSelectedImage();
 
-            var isSaveState = _formInfo.StateInfo.PluginState is ISaveFiles;
-            saveButton.Enabled = selectedImage != null && isSaveState;
-            saveAsButton.Enabled = selectedImage != null && isSaveState && _formInfo.StateInfo.ParentStateInfo == null;
+            // Update button operation availability
+            saveButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
+            saveAsButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave && _formInfo.FileState.ParentFileState == null;
 
             exportButton.Enabled = selectedImage != null;
-            importButton.Enabled = selectedImage != null && isSaveState;
+            importButton.Enabled = selectedImage != null && _formInfo.FileState.PluginState.CanSave;
 
-            var definition = GetEncodingDefinition();
+            // Update format dropdown availability
+            var definition = selectedImage?.EncodingDefinition;
             var isIndexed = selectedImage?.IsIndexed ?? false;
             var isLocked = selectedImage?.IsImageLocked ?? false;
             palettes.Enabled = !isLocked && isIndexed && definition.HasPaletteEncodings;
-            formats.Enabled = !isLocked && definition.HasColorEncodings || definition.HasIndexEncodings;
+            formats.Enabled = !isLocked && (definition?.HasColorEncodings ?? false) || (definition?.HasIndexEncodings ?? false);
 
+            // Update image related availability
             imageView.Enabled = GetStateImages().Any();
-            images.Enabled = GetStateImages().Any();
-
+            imageList.Enabled = GetStateImages().Any();
             imagePalette.Enabled = isIndexed;
-        }
-
-        private void UpdatePaletteImage()
-        {
-            var selectedImage = GetSelectedImage();
-            if (!selectedImage.IsIndexed)
-            {
-                imagePalette.Palette = null;
-                return;
-            }
-
-            imagePalette.Palette = selectedImage.GetPalette(_formInfo.Progress);
         }
 
         #endregion
@@ -250,8 +297,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var selectedImage = GetSelectedImage();
             var imageName = string.IsNullOrEmpty(selectedImage.Name) ?
-                _formInfo.StateInfo.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
-                selectedImage.Name;
+                _formInfo.FileState.FilePath.GetNameWithoutExtension() + "." + _selectedImageIndex.ToString("00") + ".png" :
+                selectedImage.Name + ".png";
 
             var sfd = new SaveFileDialog
             {
@@ -292,7 +339,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             try
             {
-                using var newImage = new System.Drawing.Bitmap(filePath.FullName);
+                var newImage = new System.Drawing.Bitmap(filePath.FullName);
                 await _asyncOperation.StartAsync(cts => GetSelectedImage().SetImage(newImage, _formInfo.Progress));
             }
             catch (Exception ex)
@@ -300,8 +347,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 _formInfo.FormCommunicator.ReportStatus(false, ex.Message);
             }
 
-            UpdateImagePreview(GetSelectedImage());
-            UpdateImageList();
+            UpdateSelectedThumbnail();
+            UpdateSelectedImagePreview();
 
             UpdateFormInternal();
 
@@ -321,7 +368,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedFormat = GetSelectedImageFormat();
             await _asyncOperation.StartAsync(cts => selectedImage.TranscodeImage(selectedFormat, _formInfo.Progress));
 
-            UpdateImagePreview(GetSelectedImage());
+            LoadPaletteFormats(GetSelectedImage());
+            UpdatePalettes();
+
+            UpdateSelectedThumbnail();
+            UpdateSelectedImagePreview();
+            UpdateSelectedPaletteImage();
+
             UpdateFormInternal();
 
             _formInfo.FormCommunicator.Update(true, false);
@@ -335,18 +388,31 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedFormat = GetSelectedPaletteFormat();
             await _asyncOperation.StartAsync(cts => selectedImage.TranscodePalette(selectedFormat, _formInfo.Progress));
 
-            UpdateImagePreview(GetSelectedImage());
+            UpdateSelectedThumbnail();
+            UpdateSelectedImagePreview();
+            UpdateSelectedPaletteImage();
+
             UpdateFormInternal();
 
             _formInfo.FormCommunicator.Update(true, false);
         }
 
-        private void Images_SelectedIndexChanged(object sender, EventArgs e)
+        private void ImageList_SelectedIndexChanged(object sender, EventArgs e)
         {
             _selectedImageIndex = GetSelectedImageIndex();
 
-            UpdateImagePreview(GetSelectedImage());
-            UpdatePalettes(GetSelectedImage());
+            // Change format information to newly selected image
+            LoadFormats(GetSelectedImage());
+            UpdateFormats();
+
+            LoadPaletteFormats(GetSelectedImage());
+            UpdatePalettes();
+
+            UpdateSelectedImageFormats();
+
+            // Update remaining form
+            UpdateSelectedImagePreview();
+
             UpdateFormInternal();
         }
 
@@ -400,14 +466,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Support
 
-        private ISaveFiles GetSaveState()
-        {
-            return _formInfo.StateInfo.PluginState as ISaveFiles;
-        }
-
         private IList<IKanvasImage> GetStateImages()
         {
-            return (_formInfo.StateInfo.PluginState as IImageState).Images;
+            return (_formInfo.FileState.PluginState as IImageState).Images;
         }
 
         private IKanvasImage GetSelectedImage()
@@ -416,11 +477,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return null;
 
             return GetStateImages()[_selectedImageIndex];
-        }
-
-        private EncodingDefinition GetEncodingDefinition()
-        {
-            return (_formInfo.StateInfo.PluginState as IImageState).EncodingDefinition;
         }
 
         private int GetSelectedImageFormat()
@@ -435,7 +491,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private int GetSelectedImageIndex()
         {
-            return images.SelectedIndex;
+            return imageList.SelectedIndex;
         }
 
         private Bitmap GenerateThumbnail(Image input)
@@ -470,7 +526,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private async Task SetColorInPalette(int index, System.Drawing.Color newColor)
         {
-            if(_asyncOperation.IsRunning)
+            if (_asyncOperation.IsRunning)
                 return;
 
             var selectedImage = GetSelectedImage();
@@ -499,10 +555,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            UpdateFormInternal();
+            UpdateSelectedThumbnail();
+            UpdateSelectedImagePreview();
 
-            UpdateImagePreview(selectedImage);
-            UpdateImageList();
+            UpdateFormInternal();
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -34,7 +34,7 @@ namespace plugin_sony.Archives.PSARC
         /// </summary>
         /// <param name="pluginManager"></param>
         /// <returns></returns>
-        public IPluginState CreatePluginState(IPluginManager pluginManager) => new PsarcState();
+        public IPluginState CreatePluginState(IFileManager pluginManager) => new PsarcState();
 
         /// <summary>
         /// 
@@ -51,7 +51,7 @@ namespace plugin_sony.Archives.PSARC
             try
             {
                 using var br = new BinaryReaderX(fileStream, ByteOrder.BigEndian);
-                var header = br.ReadType<Header>();
+                var header = br.ReadType<PsarcHeader>();
                 isPsarc = header.Magic == "PSAR" && (header.Compression == "zlib" || header.Compression == "lzma");
             }
             catch (Exception) { }

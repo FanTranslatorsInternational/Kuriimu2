@@ -7,7 +7,6 @@ using Kontract.Models.Archive;
 
 namespace plugin_kadokawa.Archives
 {
-    // TODO: Add CTX Image Guid
     class Enc
     {
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(EncFileEntry));

@@ -13,13 +13,19 @@ namespace plugin_bandai_namco.Archives
         private static readonly int HeaderSize = Tools.MeasureType(typeof(AmbHeader));
         private static readonly int FileEntrySize = Tools.MeasureType(typeof(AmbFileEntry));
 
+        private ByteOrder _byteOrder;
         private AmbHeader _header;
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
-            using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
+            using var br = new BinaryReaderX(input, true);
+
+            // Determine byte order (by determining header length == 0x20)
+            input.Position = 4;
+            _byteOrder = br.ByteOrder = br.ReadByte() == 0x20 ? ByteOrder.LittleEndian : ByteOrder.BigEndian;
 
             // Read header
+            input.Position = 0;
             _header = br.ReadType<AmbHeader>();
 
             // Read entries
@@ -41,7 +47,7 @@ namespace plugin_bandai_namco.Archives
 
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-            using var bw = new BinaryWriterX(output, ByteOrder.BigEndian);
+            using var bw = new BinaryWriterX(output, _byteOrder);
 
             // Calculate offsets
             var fileEntryOffset = HeaderSize;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.IO;
+using Komponent.IO.Streams;
 using Kontract.Kompression.Configuration;
 
 namespace plugin_level5.Compression
@@ -44,6 +45,9 @@ namespace plugin_level5.Compression
                 case Level5CompressionMethod.Rle:
                     return Kompression.Implementations.Compressions.Level5.Rle;
 
+                case Level5CompressionMethod.ZLib:
+                    return Kompression.Implementations.Compressions.ZLib;
+
                 default:
                     throw new NotSupportedException($"Unknown compression method {method}");
             }
@@ -59,44 +63,37 @@ namespace plugin_level5.Compression
                 return;
             }
 
+            if (method == Level5CompressionMethod.ZLib)
+                input = new SubStream(input, 4, input.Length - 4);
+
             var configuration = GetKompressionConfiguration(method);
             configuration.Build().Decompress(input, output);
         }
 
         public static void Compress(Stream input, Stream output, Level5CompressionMethod method)
         {
-            IKompressionConfiguration configuration;
-            switch (method)
+            var configuration = GetKompressionConfiguration(method);
+            if (configuration == null)
             {
-                case Level5CompressionMethod.NoCompression:
-                    var compressionHeader = new[] {
-                        (byte)(input.Length << 3),
-                        (byte)(input.Length >> 5),
-                        (byte)(input.Length >> 13),
-                        (byte)(input.Length >> 21) };
-                    output.Write(compressionHeader, 0, 4);
+                var compressionHeader = new[] {
+                    (byte)(input.Length << 3),
+                    (byte)(input.Length >> 5),
+                    (byte)(input.Length >> 13),
+                    (byte)(input.Length >> 21) };
+                output.Write(compressionHeader, 0, 4);
 
-                    input.CopyTo(output);
-                    return;
+                input.CopyTo(output);
+                return;
+            }
 
-                case Level5CompressionMethod.Lz10:
-                    configuration = Kompression.Implementations.Compressions.Level5.Lz10;
-                    break;
-
-                case Level5CompressionMethod.Huffman4Bit:
-                    configuration = Kompression.Implementations.Compressions.Level5.Huffman4Bit;
-                    break;
-
-                case Level5CompressionMethod.Huffman8Bit:
-                    configuration = Kompression.Implementations.Compressions.Level5.Huffman8Bit;
-                    break;
-
-                case Level5CompressionMethod.Rle:
-                    configuration = Kompression.Implementations.Compressions.Level5.Rle;
-                    break;
-
-                default:
-                    throw new NotSupportedException($"Unknown compression method {method}");
+            if (method == Level5CompressionMethod.ZLib)
+            {
+                var compressionHeader = new[] {
+                    (byte) ((input.Length << 3) | 5),
+                    (byte) (input.Length >> 5),
+                    (byte) (input.Length >> 13),
+                    (byte) (input.Length >> 21) };
+                output.Write(compressionHeader, 0, 4);
             }
 
             configuration.Build().Compress(input, output);

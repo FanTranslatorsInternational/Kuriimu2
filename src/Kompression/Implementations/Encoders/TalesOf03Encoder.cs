@@ -26,10 +26,8 @@ namespace Kompression.Implementations.Encoders
         public void Configure(IInternalMatchOptions matchOptions)
         {
             matchOptions.CalculatePricesWith(() => new TalesOf03PriceCalculator())
-                .FindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(3, 0x11, 1, 0x1000))
-                .AndFindWith((options, limits) => new HistoryMatchFinder(limits, options))
-                .WithinLimitations(() => new FindLimitations(0x4, 0x112))
+                .FindMatches().WithinLimitations(3, 0x11, 1, 0x1000)
+                .AndFindMatches().WithinLimitations(4, 0x112)
                 .AdjustInput(input => input.Prepend(PreBufferSize_));
         }
 

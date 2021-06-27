@@ -8,6 +8,7 @@ using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
+using Kontract.Interfaces.Plugins.State;
 using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
@@ -25,7 +26,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
     public partial class ArchiveForm : Panel, IKuriimuForm
     {
         private readonly ArchiveFormInfo _formInfo;
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _fileManager;
 
         private readonly IList<IArchiveFileInfo> _openingFiles;
         private readonly HashSet<UPath> _changedDirectories;
@@ -45,45 +46,19 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Constants
 
-        private const string TreeArchiveResourceName = "Kuriimu2.EtoForms.Images.tree-archive-file.png";
-        private const string TreeDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory.png";
-        private const string TreeOpenDirectoryResourceName = "Kuriimu2.EtoForms.Images.tree-directory-open.png";
-        private const string MenuSaveResourceName = "Kuriimu2.EtoForms.Images.menu-save.png";
-        private const string MenuSaveAsResourceName = "Kuriimu2.EtoForms.Images.menu-save-as.png";
-        private const string MenuExportResourceName = "Kuriimu2.EtoForms.Images.menu-export.png";
-        private const string MenuImportResourceName = "Kuriimu2.EtoForms.Images.menu-import.png";
-        private const string MenuEditResourceName = "Kuriimu2.EtoForms.Images.menu-edit.png";
-        private const string MenuDeleteResourceName = "Kuriimu2.EtoForms.Images.menu-delete.png";
-        private const string MenuAddResourceName = "Kuriimu2.EtoForms.Images.menu-add.png";
-
         private static readonly Color ColorDefaultState = KnownColors.Black;
         private static readonly Color ColorChangedState = KnownColors.Orange;
 
         #endregion
 
-        #region Loaded image resources
-
-        private readonly Image TreeArchiveResource = Bitmap.FromResource(TreeArchiveResourceName);
-        private readonly Image TreeDirectoryResource = Bitmap.FromResource(TreeDirectoryResourceName);
-        private readonly Image TreeOpenDirectoryResource = Bitmap.FromResource(TreeOpenDirectoryResourceName);
-        private readonly Image MenuSaveResource = Bitmap.FromResource(MenuSaveResourceName);
-        private readonly Image MenuSaveAsResource = Bitmap.FromResource(MenuSaveAsResourceName);
-        private readonly Image MenuExportResource = Bitmap.FromResource(MenuExportResourceName);
-        private readonly Image MenuImportResource = Bitmap.FromResource(MenuImportResourceName);
-        private readonly Image MenuEditResource = Bitmap.FromResource(MenuEditResourceName);
-        private readonly Image MenuDeleteResource = Bitmap.FromResource(MenuDeleteResourceName);
-        private readonly Image MenuAddResource = Bitmap.FromResource(MenuAddResourceName);
-
-        #endregion
-
-        public ArchiveForm(ArchiveFormInfo formInfo, PluginManager pluginManager)
+        public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
             InitializeComponent();
 
             _formInfo = formInfo;
-            _pluginManager = pluginManager;
+            _fileManager = fileManager;
 
-            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_formInfo.StateInfo);
+            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_formInfo.FileState);
             _openingFiles = new List<IArchiveFileInfo>();
 
             _changedDirectories = new HashSet<UPath>();
@@ -145,7 +120,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             {
                 // Update root name
                 if (folders.Count > 0)
-                    ((TreeGridItem)folders[0]).Values[1] = _formInfo.StateInfo.FilePath.ToRelative().FullName;
+                    ((TreeGridItem)folders[0]).Values[1] = _formInfo.FileState.FilePath.ToRelative().FullName;
 
                 // Update form information
                 UpdateProperties();
@@ -157,11 +132,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateProperties()
         {
-            var canSave = _formInfo.CanSave;
+            var canSave = _formInfo.FileState.PluginState.CanSave;
 
             // Menu
             saveButton.Enabled = canSave && !_asyncOperation.IsRunning;
-            saveAsButton.Enabled = canSave && _formInfo.StateInfo.ParentStateInfo == null && !_asyncOperation.IsRunning;
+            saveAsButton.Enabled = canSave && _formInfo.FileState.ParentFileState == null && !_asyncOperation.IsRunning;
 
             // Toolbar
             extractButton.Enabled = !_asyncOperation.IsRunning;
@@ -177,7 +152,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             // If an update is triggered ba a parent, and therefore got this instance saved
             // We need to clear the changed directories
-            if (!_formInfo.StateInfo.StateChanged)
+            if (!_formInfo.FileState.StateChanged)
                 _changedDirectories.Clear();
 
             folderView.ReloadItem(folders[0]);
@@ -216,7 +191,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 openWithMenuItem.Items.Clear();
                 foreach (var pluginId in selectedItem.ArchiveFileInfo.PluginIds ?? Array.Empty<Guid>())
                 {
-                    var filePluginLoader = _pluginManager.GetFilePluginLoaders().FirstOrDefault(x => x.Exists(pluginId));
+                    var filePluginLoader = _fileManager.GetFilePluginLoaders().FirstOrDefault(x => x.Exists(pluginId));
                     var filePlugin = filePluginLoader?.GetPlugin(pluginId);
 
                     if (filePlugin == null)
@@ -271,7 +246,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             folders.Clear();
 
             // Load tree into tree items
-            var rootItem = new TreeGridItem(TreeArchiveResource, _formInfo.StateInfo.FilePath.ToRelative().FullName) { Expanded = true };
+            var rootItem = new TreeGridItem(ImageResources.Misc.Archive, _formInfo.FileState.FilePath.ToRelative().FullName) { Expanded = true };
             foreach (var directory in _archiveFileSystem.EnumerateAllDirectories(UPath.Root, _searchTerm.Get())
                 .Concat(_archiveFileSystem.EnumerateAllFiles(UPath.Root, _searchTerm.Get()).Select(x => x.GetDirectory()))
                 .Distinct())
@@ -284,7 +259,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (existingDirectory != null)
                         return existingDirectory;
 
-                    var directoryItem = new TreeGridItem(TreeDirectoryResource, currentDirectory);
+                    var directoryItem = new TreeGridItem(ImageResources.Misc.Directory, currentDirectory);
                     node.Children.Add(directoryItem);
 
                     return directoryItem;
@@ -317,7 +292,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void folderView_Expanded(object sender, TreeGridViewItemEventArgs e)
         {
             var gridItem = (TreeGridItem)e.Item;
-            gridItem.Values[0] = TreeOpenDirectoryResource;
+            gridItem.Values[0] = ImageResources.Misc.DirectoryOpen;
 
             folderView.ReloadItem(gridItem, false);
         }
@@ -325,7 +300,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void folderView_Collapsed(object sender, TreeGridViewItemEventArgs e)
         {
             var gridItem = (TreeGridItem)e.Item;
-            gridItem.Values[0] = TreeDirectoryResource;
+            gridItem.Values[0] = ImageResources.Misc.Directory;
 
             folderView.ReloadItem(gridItem, false);
         }
@@ -363,7 +338,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
 
             var element = (FileElement)e.Item;
-            var isChanged = element.ArchiveFileInfo.ContentChanged || _formInfo.StateInfo.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == element.ArchiveFileInfo.FilePath);
+            var isChanged = element.ArchiveFileInfo.ContentChanged || _formInfo.FileState.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == element.ArchiveFileInfo.FilePath);
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
         }
 
@@ -559,7 +534,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
 
             _changedDirectories.Clear();
-            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_formInfo.StateInfo);
+            _archiveFileSystem = FileSystemFactory.CreateAfiFileSystem(_formInfo.FileState);
             _selectedPath = UPath.Root;
 
             await Application.Instance.InvokeAsync(() =>
@@ -591,18 +566,21 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 return;
             }
 
-            // Select folder
-            var extractPath = SelectFolder();
-            if (extractPath.IsNull || extractPath.IsEmpty)
+            // Select folder or file
+            var selectedPath = files.Count > 1 ? SelectFolder() : SaveFile(files[0].FilePath.GetName());
+            if (selectedPath.IsNull || selectedPath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, "No target selected.");
                 return;
             }
+            
+            // Use containing directory as root if a file was selected
+            var extractRoot = files.Count > 1 ? selectedPath : selectedPath.GetDirectory();
 
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath, _formInfo.StateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem(extractRoot.FullName, _formInfo.FileState.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(async cts =>
@@ -621,7 +599,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     Stream newFileStream;
                     try
                     {
-                        newFileStream = destinationFileSystem.OpenFile(file.FilePath.GetName(), FileMode.Create, FileAccess.Write);
+                        // Use in-archive filename if a folder was selected, use selected filename if a file was selected
+                        var extractName = files.Count > 1 ? file.FilePath.GetName() : selectedPath.GetName();
+                        newFileStream = destinationFileSystem.OpenFile(extractName, FileMode.Create, FileAccess.Write);
                     }
                     catch (IOException)
                     {
@@ -655,7 +635,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private async Task ExtractDirectory(TreeGridItem item)
         {
             var itemPath = GetAbsolutePath(item);
-            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
+            var filePaths = _archiveFileSystem.EnumerateAllFiles(itemPath, _searchTerm.Get()).Select(x => x.GetSubDirectory(itemPath).ToRelative()).ToArray();
 
             if (filePaths.Length <= 0)
             {
@@ -675,10 +655,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
             var subFolder = item == folders[0] ? GetRootName() : GetAbsolutePath(item).ToRelative();
-            var destinationFileSystem = FileSystemFactory.CreatePhysicalFileSystem(extractPath / subFolder, _formInfo.StateInfo.StreamManager);
+            var destinationFileSystem = FileSystemFactory.CreateSubFileSystem((extractPath / subFolder).FullName, _formInfo.FileState.StreamManager);
 
             _formInfo.Progress.StartProgress();
-            await _asyncOperation.StartAsync(async cts =>
+            await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
                 foreach (var filePath in filePaths)
@@ -702,7 +682,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
                     }
 
-                    var currentFileStream = await afi.GetFileData();
+                    var currentFileStream = afi.GetFileData().Result;
 
                     currentFileStream.CopyTo(newFileStream);
 
@@ -744,7 +724,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UPath replaceFileName;
             if (files.Count == 1)
             {
-                var selectedPath = SelectFile(files[0].FilePath.GetName());
+                var selectedPath = OpenFile(files[0].FilePath.GetName());
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
                     _formInfo.FormCommunicator.ReportStatus(false, "No file selected.");
@@ -770,13 +750,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replaceDirectory, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(replaceDirectory.FullName, _formInfo.FileState.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
-                var replaceState = _formInfo.StateInfo.PluginState as IReplaceFiles;
                 foreach (var file in files)
                 {
                     if (cts.IsCancellationRequested)
@@ -792,7 +771,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    replaceState?.ReplaceFile(file, currentFileStream);
+                    //TODO this cast smells, should IFileState/IPluginState be generified?
+                    ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(file, currentFileStream);
 
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
@@ -842,13 +822,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             // Extract elements
             _formInfo.FormCommunicator.ReportStatus(true, string.Empty);
 
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(replacePath, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(replacePath.FullName, _formInfo.FileState.StreamManager);
 
             _formInfo.Progress.StartProgress();
             await _asyncOperation.StartAsync(cts =>
             {
                 var count = 0;
-                var replaceState = _formInfo.StateInfo.PluginState as IReplaceFiles;
                 foreach (var filePath in filePaths)
                 {
                     if (cts.IsCancellationRequested)
@@ -864,7 +843,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         continue;
 
                     var currentFileStream = sourceFileSystem.OpenFile(filePath);
-                    replaceState?.ReplaceFile(afi, currentFileStream);
+                    //TODO this cast smells, should IFileState/IPluginState be generified?
+                    ((IArchiveState)_formInfo.FileState.PluginState).AttemptReplaceFile(afi, currentFileStream);
 
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }
@@ -1150,7 +1130,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             // Add elements
             var subFolder = GetAbsolutePath(item);
-            var sourceFileSystem = FileSystemFactory.CreatePhysicalFileSystem(selectedPath, _formInfo.StateInfo.StreamManager);
+            var sourceFileSystem = FileSystemFactory.CreateSubFileSystem(selectedPath.FullName, _formInfo.FileState.StreamManager);
 
             var elements = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
             if (elements.Length <= 0)
@@ -1227,26 +1207,37 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private bool IsFileLocked(IArchiveFileInfo afi, bool lockOnLoaded)
         {
-            var absolutePath = _formInfo.StateInfo.AbsoluteDirectory / _formInfo.StateInfo.FilePath.ToRelative() / afi.FilePath.ToRelative();
+            var absolutePath = _formInfo.FileState.AbsoluteDirectory / _formInfo.FileState.FilePath.ToRelative() / afi.FilePath.ToRelative();
 
-            var isLoaded = _pluginManager.IsLoaded(absolutePath);
+            var isLoaded = _fileManager.IsLoaded(absolutePath);
             if (!isLoaded)
                 return false;
 
             if (lockOnLoaded)
                 return true;
 
-            var openedState = _pluginManager.GetLoadedFile(absolutePath);
+            var openedState = _fileManager.GetLoadedFile(absolutePath);
             return openedState.StateChanged;
         }
 
-        private UPath SelectFile(string fileName)
+        private UPath OpenFile(string fileName)
         {
-            var ofd = new OpenFileDialog
+            return SelectFile<OpenFileDialog>(fileName);
+        }
+        
+        private UPath SaveFile(string fileName)
+        {
+            return SelectFile<SaveFileDialog>(fileName);
+        }
+        
+        private UPath SelectFile<DialogType>(string fileName) where DialogType : FileDialog, new()
+        {
+            var ofd = new DialogType
             {
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
                 FileName = fileName
             };
+            
             var result = ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : UPath.Empty;
 
             if (result != UPath.Empty)

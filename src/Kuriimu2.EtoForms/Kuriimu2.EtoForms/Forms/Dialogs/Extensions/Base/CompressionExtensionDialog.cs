@@ -30,7 +30,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             }
             catch (Exception e)
             {
-                Logger.Fatal(e,"Processing compression failed.");
+                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
                 return false;
             }
             finally
@@ -44,10 +44,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
-            foreach (var result in results)
-                if (!result.Item2)
-                    Logger.Error("Not processed successfully: {0}", result.Item1);
-
             // Report finish
             Logger.Information("Done!");
         }
@@ -89,12 +85,17 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 new ExtensionType("TalesOfLz",true,
                     new ExtensionTypeParameter("Version",typeof(TalesOfVersion))),
                 new ExtensionType("LzEnc",true),
-                new ExtensionType("Spike Chunsoft Lz",true),
-                new ExtensionType("Spike Chunsoft Headerless Lz",true),
+                new ExtensionType("Shade Lz",true),
+                new ExtensionType("Shade Headerless Lz",true),
                 new ExtensionType("PsLz",true),
                 new ExtensionType("IrLz",true),
                 new ExtensionType("Crilayla",true),
                 new ExtensionType("Iecp",true),
+                new ExtensionType("Lz4 Headerless",true),
+                new ExtensionType("Danganronpa 3",true),
+                new ExtensionType("StingLz",true),
+
+                new ExtensionType("Deflate",true),
                 new ExtensionType("ZLib",true)
             };
         }
@@ -210,11 +211,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "LzEnc":
                     return Compressions.LzEnc.Build();
 
-                case "Spike Chunsoft Lz":
-                    return Compressions.SpikeChunsoft.Build();
+                case "Shade Lz":
+                    return Compressions.ShadeLz.Build();
 
-                case "Spike Chunsoft Headerless Lz":
-                    return Compressions.SpikeChunsoftHeaderless.Build();
+                case "Shade Headerless Lz":
+                    return Compressions.ShadeLzHeaderless.Build();
 
                 case "PsLz":
                     return Compressions.PsLz.Build();
@@ -228,12 +229,24 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 case "Iecp":
                     return Compressions.Iecp.Build();
 
+                case "Lz4 Headerless":
+                    return Compressions.Lz4Headerless.Build();
+
+                case "Danganronpa 3":
+                    return Compressions.Danganronpa3.Build();
+
+                case "StingLz":
+                    return Compressions.StingLz.Build();
+
+                case "Deflate":
+                    return Compressions.Deflate.Build();
+
                 case "ZLib":
                     return Compressions.ZLib.Build();
 
                 // TODO: Plugin extensibility?
                 default:
-                    return default;
+                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
             }
         }
     }

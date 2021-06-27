@@ -15,12 +15,7 @@ namespace Kontract.Kanvas.Model
         /// <summary>
         /// The dimensions of the image to load.
         /// </summary>
-        public Size Size { get; } = Size.Empty;
-
-        public EncodingLoadContext(int taskCount)
-        {
-            TaskCount = taskCount;
-        }
+        public Size Size { get; }
 
         public EncodingLoadContext(Size size, int taskCount)
         {

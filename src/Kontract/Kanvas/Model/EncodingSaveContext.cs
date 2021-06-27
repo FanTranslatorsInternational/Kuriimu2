@@ -15,12 +15,7 @@ namespace Kontract.Kanvas.Model
         /// <summary>
         /// The dimensions of the image to save.
         /// </summary>
-        public Size Size { get; } = Size.Empty;
-
-        public EncodingSaveContext(int taskCount)
-        {
-            TaskCount = taskCount;
-        }
+        public Size Size { get; }
 
         public EncodingSaveContext(Size size, int taskCount)
         {

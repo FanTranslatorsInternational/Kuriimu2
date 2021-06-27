@@ -1,5 +1,4 @@
-﻿using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Kanvas.Swizzle;
@@ -12,7 +11,7 @@ namespace plugin_level5.DS.Images
 {
     class Limg
     {
-        private static int _headerSize = Tools.MeasureType(typeof(LimgHeader));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(LimgHeader));
 
         private static int _colorEntrySize = 0x2;
         private static int _tileEntrySize = 0x40;
@@ -71,7 +70,7 @@ namespace plugin_level5.DS.Images
             var (tileIndices, imageStream) = SplitTiles(imageInfo.ImageData, encoding.IndexEncoding.BitDepth);
 
             // Write palette
-            bw.BaseStream.Position = _headerSize + _unkHeader.Length;
+            bw.BaseStream.Position = HeaderSize + _unkHeader.Length;
 
             _header.paletteOffset = (uint)bw.BaseStream.Position;
             _header.colorCount = (short)(imageInfo.PaletteData.Length / _colorEntrySize);
@@ -148,7 +147,7 @@ namespace plugin_level5.DS.Images
             for (var i = 0; i < imageData.Length / tileSize; i++)
             {
                 var tileStream = new SubStream(new MemoryStream(imageData), offset, tileSize);
-                var hash = BinaryPrimitives.ReadUInt32BigEndian(crc32.Compute(tileStream));
+                var hash = crc32.ComputeValue(tileStream);
 
                 if (!tileDictionary.ContainsKey(hash))
                 {
