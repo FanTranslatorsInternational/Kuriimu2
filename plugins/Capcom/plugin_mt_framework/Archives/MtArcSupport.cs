@@ -98,7 +98,47 @@ namespace plugin_mt_framework.Archives
         public override string FileName
         {
             get => fileName.TrimEnd('\0');
-            set => fileName = value.PadRight(0x40, '\0');
+            set => fileName = value;
+        }
+
+        public override uint ExtensionHash
+        {
+            get => extensionHash;
+            set => extensionHash = value;
+        }
+
+        public override int Offset
+        {
+            get => offset;
+            set => offset = value;
+        }
+
+        public override int CompSize
+        {
+            get => compSize;
+            set => compSize = value;
+        }
+        protected override int DecompSize
+        {
+            get => decompSize;
+            set => decompSize = value;
+        }
+    }
+
+    class MtEntryExtendedName : BaseMtEntry
+    {
+        [FixedLength(0x80)]
+        public string fileName;
+
+        public uint extensionHash;
+        public int compSize;
+        public int decompSize;
+        public int offset;
+
+        public override string FileName
+        {
+            get => fileName.TrimEnd('\0');
+            set => fileName = value;
         }
 
         public override uint ExtensionHash
@@ -139,7 +179,7 @@ namespace plugin_mt_framework.Archives
         public override string FileName
         {
             get => fileName.TrimEnd('\0');
-            set => fileName = value.PadRight(0x40, '\0');
+            set => fileName = value;
         }
 
         public override uint ExtensionHash

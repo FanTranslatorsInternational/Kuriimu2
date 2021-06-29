@@ -118,14 +118,16 @@ namespace plugin_mt_framework.Archives
                 br.ReadInt32();
 
             // Read entries
-            var entries = br.ReadMultiple<MtEntry>(_header.entryCount);
+            var entries = _header.version == 7 ?
+                (IList<IMtEntry>)br.ReadMultiple<MtEntryExtendedName>(_header.entryCount) :
+                (IList<IMtEntry>)br.ReadMultiple<MtEntry>(_header.entryCount);
 
             // Add files
             var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
-                var fileName = entry.FileName.TrimEnd('\0') + MtArcSupport.DetermineExtension(entry.ExtensionHash);
+                var fileName = entry.FileName + MtArcSupport.DetermineExtension(entry.ExtensionHash);
 
                 result.Add(CreateAfi(fileStream, fileName, entry, _platform));
             }
@@ -148,7 +150,7 @@ namespace plugin_mt_framework.Archives
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
-                var fileName = entry.FileName.TrimEnd('\0') + MtArcSupport.DetermineExtension(entry.ExtensionHash);
+                var fileName = entry.FileName + MtArcSupport.DetermineExtension(entry.ExtensionHash);
 
                 result.Add(CreateAfi(fileStream, fileName, entry, _platform));
             }
@@ -171,7 +173,7 @@ namespace plugin_mt_framework.Archives
             foreach (var entry in entries)
             {
                 var fileStream = new SubStream(input, entry.Offset, entry.CompSize);
-                var fileName = entry.FileName.TrimEnd('\0') + MtArcSupport.DetermineExtension(entry.ExtensionHash);
+                var fileName = entry.FileName + MtArcSupport.DetermineExtension(entry.ExtensionHash);
 
                 // It seems every file is compressed with ZLib on Switch
                 // Reasoning: Example file game.arc contains of at least one file "om120a" where compressed and uncompressed size are equal but the file is still compressed
