@@ -126,6 +126,7 @@ namespace plugin_mt_framework.Images
         {
             [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
             [0x13] = ImageFormats.Dxt1(),
+            [0x14] = ImageFormats.Dxt1(),
             [0x17] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1A(),
             [0x1F] = ImageFormats.Ati2()
@@ -185,6 +186,7 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.PS3;
 
                 case 0xa0:
+                case 0xa3:
                     return MtTexPlatform.Switch;
 
                 default:
