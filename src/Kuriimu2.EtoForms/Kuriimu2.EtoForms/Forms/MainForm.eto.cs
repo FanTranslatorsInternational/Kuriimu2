@@ -8,6 +8,38 @@ namespace Kuriimu2.EtoForms.Forms
 {
     public partial class MainForm : Form
     {
+        #region Localization Keys
+
+        private static string FileKey_ = "File";
+        private static string ToolsKey_ = "Tools";
+        private static string CiphersKey_ = "Ciphers";
+        private static string CompressionKey_ = "Compression";
+        private static string SettingsKey_ = "Settings";
+
+        private static string OpenKey_ = "Open";
+        private static string OpenWithKey_ = "OpenWith";
+        private static string SaveAllKey_ = "SaveAll";
+
+        private static string TextSequenceSearcherKey_ = "TextSequenceSearcher";
+        private static string BatchExtractorKey_ = "BatchExtractor";
+        private static string BatchInjectorKey_ = "BatchInjector";
+
+        private static string HashesKey_ = "Hashes";
+       
+        private static string EncryptKey_ = "Encrypt";
+        private static string DecryptKey_ = "Decrypt";
+
+        private static string DecompressKey_ = "Decompress";
+        private static string CompressKey_ = "Compress";
+
+        private static string RawImageViewerKey_ = "RawImageViewer";
+
+        private static string IncludeDeveloperBuildsKey_ = "IncludeDevBuilds";
+
+        private static string AboutKuriimuKey_ = "AboutKuriimu2";
+
+        #endregion
+
         #region Commands
 
         private Command openFileCommand;
@@ -48,29 +80,29 @@ namespace Kuriimu2.EtoForms.Forms
         {
             #region Commands
 
-            openFileCommand = new Command { MenuText = "Open", Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
+            openFileCommand = new Command { MenuText = Application.Instance.Localize(this, OpenKey_), Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
             // TODO: Separate open *with* icon?
-            openFileWithCommand = new Command { MenuText = "Open with Plugin", Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
-            saveAllFileCommand = new Command { MenuText = "Save All", Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
+            openFileWithCommand = new Command { MenuText = Application.Instance.Localize(this, OpenWithKey_), Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
+            saveAllFileCommand = new Command { MenuText = Application.Instance.Localize(this, SaveAllKey_), Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
 
-            openTextSequenceSearcherCommand = new Command { MenuText = "Text Sequence Searcher", Image = ImageResources.Actions.Text };
-            openBatchExtractorCommand = new Command { MenuText = "Batch Extractor", Image = ImageResources.Actions.BatchExtract };
-            openBatchInjectorCommand = new Command { MenuText = "Batch Injector", Image = ImageResources.Actions.BatchArchive };
+            openTextSequenceSearcherCommand = new Command { MenuText = Application.Instance.Localize(this, TextSequenceSearcherKey_), Image = ImageResources.Actions.Text };
+            openBatchExtractorCommand = new Command { MenuText = Application.Instance.Localize(this, BatchExtractorKey_), Image = ImageResources.Actions.BatchExtract };
+            openBatchInjectorCommand = new Command { MenuText = Application.Instance.Localize(this, BatchInjectorKey_), Image = ImageResources.Actions.BatchArchive };
 
-            openHashcommand = new Command { MenuText = "Hashes", Image = ImageResources.Actions.Hashes };
+            openHashcommand = new Command { MenuText = Application.Instance.Localize(this, HashesKey_), Image = ImageResources.Actions.Hashes };
 
-            openEncryptionCommand = new Command { MenuText = "Encrypt" };
-            openDecryptionCommand = new Command { MenuText = "Decrypt" };
+            openEncryptionCommand = new Command { MenuText = Application.Instance.Localize(this, EncryptKey_) };
+            openDecryptionCommand = new Command { MenuText = Application.Instance.Localize(this, DecryptKey_) };
 
-            openDecompressionCommand = new Command { MenuText = "Decompress" };
-            openCompressionCommand = new Command { MenuText = "Compress" };
+            openDecompressionCommand = new Command { MenuText = Application.Instance.Localize(this, DecompressKey_) };
+            openCompressionCommand = new Command { MenuText = Application.Instance.Localize(this, CompressKey_) };
 
-            openRawImageViewerCommand = new Command { MenuText = "Raw Image Viewer", Image = ImageResources.Actions.ImageViewer };
+            openRawImageViewerCommand = new Command { MenuText = Application.Instance.Localize(this, RawImageViewerKey_), Image = ImageResources.Actions.ImageViewer };
             //openImageTranscoderCommand = new Command { MenuText = "Image Trascoder" };
 
             includeDevBuildCommand = new Command();
 
-            openAboutCommand = new Command { MenuText = "About Kuriimu", Image = ImageResources.Actions.About };
+            openAboutCommand = new Command { MenuText = Application.Instance.Localize(this, AboutKuriimuKey_), Image = ImageResources.Actions.About };
 
             #endregion
 
@@ -85,7 +117,7 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = "File",
+                    new ButtonMenuItem { Text = Application.Instance.Localize(this, FileKey_),
                         Items =
                         {
                             openFileCommand, 
@@ -95,7 +127,7 @@ namespace Kuriimu2.EtoForms.Forms
                         } 
                     },
                     
-                    new ButtonMenuItem { Text = "Tools",
+                    new ButtonMenuItem { Text = Application.Instance.Localize(this, ToolsKey_),
                         Items =
                         {
                             openBatchExtractorCommand,
@@ -106,7 +138,7 @@ namespace Kuriimu2.EtoForms.Forms
                         }
                     },
                     
-                    new ButtonMenuItem { Text = "Ciphers",
+                    new ButtonMenuItem { Text = Application.Instance.Localize(this, CiphersKey_),
                         Items =
                         {
                             openDecryptionCommand,
@@ -114,7 +146,7 @@ namespace Kuriimu2.EtoForms.Forms
                         }
                     },
                     
-                    new ButtonMenuItem { Text = "Compression",
+                    new ButtonMenuItem { Text = Application.Instance.Localize(this, CompressionKey_),
                         Items =
                         {
                             openDecompressionCommand, 
@@ -124,12 +156,12 @@ namespace Kuriimu2.EtoForms.Forms
                     
                     //new ButtonMenuItem(openImageTranscoderCommand),
                     
-                    new ButtonMenuItem { Text = "Settings",
+                    new ButtonMenuItem { Text = Application.Instance.Localize(this, SettingsKey_),
                         Items =
                         {
                             new CheckMenuItem
                             {
-                                Text = "Include Developer Builds", 
+                                Text = Application.Instance.Localize(this, IncludeDeveloperBuildsKey_), 
                                 Checked = Settings.Default.IncludeDevBuilds, 
                                 Command = includeDevBuildCommand
                             }

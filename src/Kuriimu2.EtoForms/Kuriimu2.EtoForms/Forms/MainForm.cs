@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -55,6 +56,8 @@ namespace Kuriimu2.EtoForms.Forms
 
         private readonly Manifest _localManifest;
 
+        private Localizer _localizer;
+
         #region HotKeys
 
         private const Keys OpenHotKey = Keys.Control | Keys.O;
@@ -95,6 +98,9 @@ namespace Kuriimu2.EtoForms.Forms
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
+            _localizer = InitializeLocalizer();
+            Application.Instance.LocalizeString += Instance_LocalizeString;
+
             InitializeComponent();
 
             Application.Instance.UnhandledException += MainForm_UnhandledException;
@@ -668,6 +674,11 @@ namespace Kuriimu2.EtoForms.Forms
                 ReportStatus(false, "Unhandled exception occurred. Refer to the log for more information.");
         }
 
+        private void Instance_LocalizeString(object sender, LocalizeEventArgs e)
+        {
+            e.LocalizedText = _localizer.GetLocalization(e.Text.Replace("&", ""));
+        }
+
         #endregion
 
         #region Tools
@@ -844,6 +855,17 @@ namespace Kuriimu2.EtoForms.Forms
                 return "Mac";
 
             throw new InvalidOperationException($"Platform {Application.Instance.Platform.ID} is not supported.");
+        }
+
+        private Localizer InitializeLocalizer()
+        {
+            if (string.IsNullOrEmpty(Settings.Default.Locale))
+            {
+                Settings.Default.Locale = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+                Settings.Default.Save();
+            }
+
+            return new Localizer(Settings.Default.Locale);
         }
 
         private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)

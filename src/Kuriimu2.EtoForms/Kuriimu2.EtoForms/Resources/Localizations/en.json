@@ -1,0 +1,30 @@
+﻿{
+  "File": "File",
+  "Tools": "Tools",
+  "Ciphers": "Ciphers",
+  "Compression": "Compression",
+  "Settings": "Settings",
+
+  "Open": "Open",
+  "OpenWith": "Open with Plugin",
+  "SaveAll": "Save All",
+
+  "TextSequenceSearcher": "Text Sequence Searcher",
+  "BatchExtractor": "Batch Extractor",
+  "BatchInjector": "Batch Injector",
+
+  "Hashes": "Hashes",
+
+  "Encrypt": "Encrypt",
+  "Decrypt": "Decrypt",
+
+  "Decompress": "Decompress",
+  "Compress": "Compress",
+
+  "RawImageViewer": "Raw Image Viewer",
+
+  "IncludeDevBuilds": "Include Developer Builds",
+
+  "Help": "Help", 
+  "AboutKuriimu2": "About Kuriimu2"
+}

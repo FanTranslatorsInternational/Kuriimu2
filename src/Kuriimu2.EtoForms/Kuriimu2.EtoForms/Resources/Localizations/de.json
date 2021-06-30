@@ -1,0 +1,30 @@
+﻿{
+  "File": "Datei",
+  "Tools": "Werkzeuge",
+  "Ciphers": "Verschlüsselung",
+  "Compression": "Kompression",
+  "Settings": "Einstellungen",
+
+  "Open": "Öffnen",
+  "OpenWith": "Öffnen mit Plugin",
+  "SaveAll": "Alles speichern",
+
+  "TextSequenceSearcher": "Text Sequence Searcher",
+  "BatchExtractor": "Batch Extractor",
+  "BatchInjector": "Batch Injector",
+
+  "Hashes": "Prüfsummen",
+
+  "Encrypt": "Verschlüsseln",
+  "Decrypt": "Entschlüsseln",
+
+  "Decompress": "Komprimieren",
+  "Compress": "Dekomprimieren",
+
+  "RawImageViewer": "Raw Image Viewer",
+
+  "IncludeDevBuilds": "Entwicklerversionen einbeziehen",
+
+  "Help": "Hilfe",
+  "AboutKuriimu2": "Über Kuriimu2"
+}

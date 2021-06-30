@@ -8,13 +8,20 @@
   <ItemGroup>
     <None Remove="Forms\Dialogs\ChoosePluginDialog.cs~RF1f91fb8c.TMP" />
     <None Remove="Forms\Formats\ArchiveForm.cs~RF20c8c282.TMP" />
+    <None Remove="Resources\Localizations\de.json" />
+    <None Remove="Resources\Localizations\en.json" />
     <None Remove="Resources\version.json" />
   </ItemGroup>
 	
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Localizations\de.json" />
     <EmbeddedResource Include="Resources\version.json" />
 	<EmbeddedResource Include="Images\**\*.png" />
 	<EmbeddedResource Include="Images\**\*.ico" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Localizations\en.json" />
   </ItemGroup>
   
   <ItemGroup>
@@ -53,5 +60,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
+  
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
   
 </Project>
