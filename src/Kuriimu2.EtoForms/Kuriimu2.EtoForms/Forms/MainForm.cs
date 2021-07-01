@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
@@ -58,7 +57,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Localizer _localizer;
 
-        #region HotKeys
+        #region Hot Keys
 
         private const Keys OpenHotKey = Keys.Control | Keys.O;
         private const Keys OpenWithHotKey = Keys.Control | Keys.Shift | Keys.O;
@@ -71,27 +70,47 @@ namespace Kuriimu2.EtoForms.Forms
         private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-EtoForms-Update/main/{0}/manifest.json";
         private const string ApplicationType = "EtoForms.{0}";
 
-        private const string LoadError = "Load Error";
-        private const string LoadCancelled = "Load cancelled";
-        private const string InvalidFile = "The selected file is invalid.";
-        private const string NoPluginSelected = "No plugin was selected.";
-
-        private const string SaveError = "Save Error";
-
-        private const string ExceptionCatched = "Exception catched";
-        private const string PluginsNotAvailable = "Plugins not available";
+        private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
 
         private const string FormTitle = "Kuriimu2 {0}-{1}";
         private const string FormTitlePlugin = "Kuriimu2 {0}-{1} - {2} - {3} - {4}";
 
-        private const string UnsavedChanges = "Unsaved changes";
-        private const string UnsavedChangesToFileText = "Changes were made to '{0}' or its opened sub files. Do you want to save those changes?";
-        private const string UnsavedChangesGenericText = "Changes were made to one or more files. Do you want to save those changes?";
+        #endregion
 
-        private const string DependantFiles = "Dependant files";
-        private const string DependantFilesText = "Every file opened from this one and below will be closed too. Continue?";
+        #region Localization Keys
 
-        private const string ManifestResourceName = "Kuriimu2.EtoForms.Resources.version.json";
+        private const string LoadErrorCaptionKey_ = "LoadErrorCaption";
+        private const string SaveErrorCaptionKey_ = "SaveErrorCaption";
+        private const string UnsavedChangesCaptionKey_ = "UnsavedChangesCaption";
+        private const string DependantFilesCaptionKey_ = "DependantFilesCaption";
+        private const string ExceptionCatchedCaptionKey_ = "ExceptionCatchedCaption";
+        private const string UnhandledExceptionCaptionKey_ = "UnhandledExceptionCaption";
+
+        private const string LoadCancelledStatusKey_ = "LoadCancelledStatus";
+        private const string NoPluginSelectedStatusKey_ = "NoPluginSelectedStatus";
+        private const string NoFileSelectedStatusKey_ = "NoFileSelectedStatus";
+        private const string FileAlreadyOpeningStatusKey_ = "FileAlreadyOpeningStatus";
+        private const string FileAlreadySavingStatusKey_ = "FileAlreadySavingStatus";
+        private const string FileSavedSuccessfullyStatusKey_ = "FileSavedSuccessfullyStatus";
+        private const string FileNotSavedSuccessfullyStatusKey_ = "FileNotSavedSuccessfullyStatus";
+        private const string OperationsStillRunningStatusKey_ = "OperationsStillRunningStatus";
+        private const string UpdateAvailableCaptionKey_ = "UpdateAvailableCaption";
+
+        private const string PluginsNotAvailableCaptionKey_ = "PluginsNotAvailableCaption";
+        private const string ChooseOpenFilePluginKey_ = "ChooseOpenFilePlugin";
+        private const string SelectedFileInvalidKey_ = "SelectedFileInvalid";
+        private const string UnsavedChangesToFileKey_ = "UnsavedChangesToFile";
+        private const string UnsavedChangesGenericKey_ = "UnsavedChangesGeneric";
+        private const string DependantFilesKey_ = "DependantFiles";
+        private const string UnhandledExceptionCloseAppKey_ = "UnhandledExceptionCloseApp";
+        private const string UnhandledExceptionNotCloseAppKey_ = "UnhandledExceptionNotCloseApp";
+        private const string UpdateAvailableKey_ = "UpdateAvailable";
+        private const string FollowingPluginsNotLoadedKey_ = "FollowingPluginsNotLoaded";
+
+        private const string AllFilesFilterKey_ = "AllFilesFilter";
+
+        private const string UnsupportedOperatingSystemExceptionKey_ = "UnsupportedOperatingSystemException";
+        private const string UnsupportedPlatformExceptionKey_ = "UnsupportedPlatformException";
 
         #endregion
 
@@ -173,7 +192,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             if (fileToOpen == null)
             {
-                ReportStatus(false, "No file was selected.");
+                ReportStatus(false, Localize(NoFileSelectedStatusKey_));
                 return;
             }
 
@@ -201,14 +220,14 @@ namespace Kuriimu2.EtoForms.Forms
             // Check if path is invalid
             if (filePath.IsNull || filePath.IsEmpty)
             {
-                MessageBox.Show(InvalidFile, LoadError, MessageBoxButtons.OK, MessageBoxType.Error);
+                MessageBox.Show(Localize(SelectedFileInvalidKey_), Localize(LoadErrorCaptionKey_), MessageBoxButtons.OK, MessageBoxType.Error);
                 return false;
             }
 
             // Check if file is already loading
             if (_fileManager.IsLoading(filePath))
             {
-                ReportStatus(false, $"{filePath} is already opening.");
+                ReportStatus(false, Localize(FileAlreadyOpeningStatusKey_, filePath));
                 return true;
             }
 
@@ -225,10 +244,10 @@ namespace Kuriimu2.EtoForms.Forms
             IFilePlugin chosenPlugin = null;
             if (manualIdentification)
             {
-                chosenPlugin = ChoosePlugin("Choose plugin to open file with:", _fileManager.GetFilePlugins().ToArray());
+                chosenPlugin = ChoosePlugin(Localize(ChooseOpenFilePluginKey_), _fileManager.GetFilePlugins().ToArray());
                 if (chosenPlugin == null)
                 {
-                    ReportStatus(false, NoPluginSelected);
+                    ReportStatus(false, Localize(NoPluginSelectedStatusKey_));
                     return false;
                 }
             }
@@ -238,7 +257,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (loadResult.IsCancelled)
             {
                 // Load was canceled
-                ReportStatus(false, LoadCancelled);
+                ReportStatus(false, Localize(LoadCancelledStatusKey_));
                 return false;
             }
 
@@ -250,7 +269,7 @@ namespace Kuriimu2.EtoForms.Forms
                 var message = loadResult.Message;
 #endif
 
-                MessageBox.Show(message, LoadError, MessageBoxButtons.OK, MessageBoxType.Error);
+                MessageBox.Show(message, Localize(LoadErrorCaptionKey_), MessageBoxButtons.OK, MessageBoxType.Error);
                 return false;
             }
 
@@ -301,7 +320,7 @@ namespace Kuriimu2.EtoForms.Forms
             catch (Exception e)
             {
 #if DEBUG
-                MessageBox.Show(e.ToString(), ExceptionCatched);
+                MessageBox.Show(e.ToString(), Localize(ExceptionCatchedCaptionKey_));
 #else
                 MessageBox.Show(e.Message, ExceptionCatched);
 #endif
@@ -350,7 +369,7 @@ namespace Kuriimu2.EtoForms.Forms
         {
             var filters = new List<FileFilter>
             {
-                new FileFilter("All Files", ".*")
+                new FileFilter(Localize(AllFilesFilterKey_), ".*")
             };
 
             foreach (var plugin in pluginLoaders.SelectMany(x => x.Plugins).Where(x => x.FileExtensions != null))
@@ -384,7 +403,7 @@ namespace Kuriimu2.EtoForms.Forms
             // Check if file is already attempted to be saved
             if (_fileManager.IsSaving(fileState))
             {
-                ReportStatus(false, $"{fileState.FilePath.ToRelative()} is already saving.");
+                ReportStatus(false, Localize(FileAlreadySavingStatusKey_, fileState.FilePath.ToRelative()));
                 return false;
             }
 
@@ -395,7 +414,7 @@ namespace Kuriimu2.EtoForms.Forms
                 savePath = SelectNewFile(fileState.FilePath.GetName());
                 if (savePath.IsNull || savePath.IsEmpty)
                 {
-                    ReportStatus(false, "The selected file is invalid.");
+                    ReportStatus(false, Localize(SelectedFileInvalidKey_));
 
                     return false;
                 }
@@ -413,8 +432,8 @@ namespace Kuriimu2.EtoForms.Forms
                 var message = saveResult.Message;
 #endif
 
-                ReportStatus(false, "File not saved successfully.");
-                MessageBox.Show(message, SaveError, MessageBoxButtons.OK, MessageBoxType.Error);
+                ReportStatus(false, Localize(FileNotSavedSuccessfullyStatusKey_));
+                MessageBox.Show(message, Localize(SaveErrorCaptionKey_), MessageBoxButtons.OK, MessageBoxType.Error);
 
                 return false;
             }
@@ -428,7 +447,7 @@ namespace Kuriimu2.EtoForms.Forms
             // Update parents
             UpdateTab(fileState.ParentFileState, true);
 
-            ReportStatus(true, "File saved successfully.");
+            ReportStatus(true, Localize(FileSavedSuccessfullyStatusKey_));
 
             return true;
         }
@@ -456,14 +475,14 @@ namespace Kuriimu2.EtoForms.Forms
             // Check if operations are running
             if (!ignoreRunningOperations && _stateDictionary[fileState].KuriimuForm.HasRunningOperations())
             {
-                ReportStatus(false, "Operations are still running and the file cannot be closed.");
+                ReportStatus(false, Localize(OperationsStillRunningStatusKey_));
                 return false;
             }
 
             // Security question, so the user knows that every sub file will be closed
             if (fileState.ArchiveChildren.Any() && !ignoreChildWarning)
             {
-                var result = MessageBox.Show(DependantFilesText, DependantFiles, MessageBoxButtons.YesNo);
+                var result = MessageBox.Show(Localize(DependantFilesKey_), Localize(DependantFilesCaptionKey_), MessageBoxButtons.YesNo);
 
                 switch (result)
                 {
@@ -552,8 +571,8 @@ namespace Kuriimu2.EtoForms.Forms
 
         private DialogResult ConfirmSavingChanges(IFileState fileState = null)
         {
-            var text = fileState == null ? UnsavedChangesGenericText : string.Format(UnsavedChangesToFileText, fileState.FilePath);
-            return MessageBox.Show(text, UnsavedChanges, MessageBoxButtons.YesNoCancel);
+            var text = fileState == null ? Localize(UnsavedChangesGenericKey_) : Localize(UnsavedChangesToFileKey_, fileState.FilePath);
+            return MessageBox.Show(text, Localize(UnsavedChangesCaptionKey_), MessageBoxButtons.YesNoCancel);
         }
 
         #endregion
@@ -666,12 +685,13 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void MainForm_UnhandledException(object sender, Eto.UnhandledExceptionEventArgs e)
         {
+            // HINT: Logging messages do not get localized!
             _logger.Fatal((Exception)e.ExceptionObject, "An unhandled exception occurred.");
 
             if (e.IsTerminating)
-                MessageBox.Show("An unhandled exception occurred. Refer to the log for more information. The application will be closed.", "Unhandled exception", MessageBoxType.Error);
+                MessageBox.Show(Localize(UnhandledExceptionCloseAppKey_), Localize(UnhandledExceptionCaptionKey_), MessageBoxType.Error);
             else
-                ReportStatus(false, "Unhandled exception occurred. Refer to the log for more information.");
+                ReportStatus(false, Localize(UnhandledExceptionNotCloseAppKey_));
         }
 
         private void Instance_LocalizeString(object sender, LocalizeEventArgs e)
@@ -816,8 +836,8 @@ namespace Kuriimu2.EtoForms.Forms
                 return;
 
             var result = MessageBox.Show(
-                    $"Do you want to update from '{_localManifest.Version}-{_localManifest.BuildNumber}' to '{remoteManifest.Version}-{remoteManifest.BuildNumber}'?",
-                    "Update available", MessageBoxButtons.YesNo);
+                    Localize(UpdateAvailableKey_, _localManifest.Version, _localManifest.BuildNumber, remoteManifest.Version, remoteManifest.BuildNumber),
+                    Localize(UpdateAvailableCaptionKey_), MessageBoxButtons.YesNo);
             if (result == DialogResult.No)
                 return;
 
@@ -840,7 +860,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return "~/Applications/Kuriimu2";
 
-            throw new InvalidOperationException($"Unsupported operating system: {RuntimeInformation.OSDescription}.");
+            throw new InvalidOperationException(Localize(UnsupportedOperatingSystemExceptionKey_, RuntimeInformation.OSDescription));
         }
 
         private string GetCurrentPlatform()
@@ -854,7 +874,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (Application.Instance.Platform.IsMac)
                 return "Mac";
 
-            throw new InvalidOperationException($"Platform {Application.Instance.Platform.ID} is not supported.");
+            throw new InvalidOperationException(Localize(UnsupportedPlatformExceptionKey_, Application.Instance.Platform.ID));
         }
 
         private Localizer InitializeLocalizer()
@@ -868,14 +888,19 @@ namespace Kuriimu2.EtoForms.Forms
             return new Localizer(Settings.Default.Locale);
         }
 
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
+
         private void DisplayPluginErrors(IReadOnlyList<PluginLoadError> errors)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("Following plugins could not be loaded:");
+            sb.AppendLine(Localize(FollowingPluginsNotLoadedKey_) + ":");
             foreach (var error in errors)
                 sb.AppendLine(error.AssemblyPath);
 
-            MessageBox.Show(sb.ToString(), PluginsNotAvailable, MessageBoxButtons.OK, MessageBoxType.Error);
+            MessageBox.Show(sb.ToString(), Localize(PluginsNotAvailableCaptionKey_), MessageBoxButtons.OK, MessageBoxType.Error);
         }
 
         private Manifest LoadLocalManifest()

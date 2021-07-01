@@ -80,29 +80,29 @@ namespace Kuriimu2.EtoForms.Forms
         {
             #region Commands
 
-            openFileCommand = new Command { MenuText = Application.Instance.Localize(this, OpenKey_), Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
+            openFileCommand = new Command { MenuText = Localize(OpenKey_), Shortcut = OpenHotKey, Image = ImageResources.Actions.Open };
             // TODO: Separate open *with* icon?
-            openFileWithCommand = new Command { MenuText = Application.Instance.Localize(this, OpenWithKey_), Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
-            saveAllFileCommand = new Command { MenuText = Application.Instance.Localize(this, SaveAllKey_), Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
+            openFileWithCommand = new Command { MenuText = Localize(OpenWithKey_), Shortcut = OpenWithHotKey, Image = ImageResources.Actions.OpenWith };
+            saveAllFileCommand = new Command { MenuText = Localize(SaveAllKey_), Shortcut = SaveAllHotKey, Image = ImageResources.Actions.SaveAll };
 
-            openTextSequenceSearcherCommand = new Command { MenuText = Application.Instance.Localize(this, TextSequenceSearcherKey_), Image = ImageResources.Actions.Text };
-            openBatchExtractorCommand = new Command { MenuText = Application.Instance.Localize(this, BatchExtractorKey_), Image = ImageResources.Actions.BatchExtract };
-            openBatchInjectorCommand = new Command { MenuText = Application.Instance.Localize(this, BatchInjectorKey_), Image = ImageResources.Actions.BatchArchive };
+            openTextSequenceSearcherCommand = new Command { MenuText = Localize(TextSequenceSearcherKey_), Image = ImageResources.Actions.Text };
+            openBatchExtractorCommand = new Command { MenuText = Localize(BatchExtractorKey_), Image = ImageResources.Actions.BatchExtract };
+            openBatchInjectorCommand = new Command { MenuText = Localize(BatchInjectorKey_), Image = ImageResources.Actions.BatchArchive };
 
-            openHashcommand = new Command { MenuText = Application.Instance.Localize(this, HashesKey_), Image = ImageResources.Actions.Hashes };
+            openHashcommand = new Command { MenuText = Localize(HashesKey_), Image = ImageResources.Actions.Hashes };
 
-            openEncryptionCommand = new Command { MenuText = Application.Instance.Localize(this, EncryptKey_) };
-            openDecryptionCommand = new Command { MenuText = Application.Instance.Localize(this, DecryptKey_) };
+            openEncryptionCommand = new Command { MenuText = Localize(EncryptKey_) };
+            openDecryptionCommand = new Command { MenuText = Localize(DecryptKey_) };
 
-            openDecompressionCommand = new Command { MenuText = Application.Instance.Localize(this, DecompressKey_) };
-            openCompressionCommand = new Command { MenuText = Application.Instance.Localize(this, CompressKey_) };
+            openDecompressionCommand = new Command { MenuText = Localize(DecompressKey_) };
+            openCompressionCommand = new Command { MenuText = Localize(CompressKey_) };
 
-            openRawImageViewerCommand = new Command { MenuText = Application.Instance.Localize(this, RawImageViewerKey_), Image = ImageResources.Actions.ImageViewer };
+            openRawImageViewerCommand = new Command { MenuText = Localize(RawImageViewerKey_), Image = ImageResources.Actions.ImageViewer };
             //openImageTranscoderCommand = new Command { MenuText = "Image Trascoder" };
 
             includeDevBuildCommand = new Command();
 
-            openAboutCommand = new Command { MenuText = Application.Instance.Localize(this, AboutKuriimuKey_), Image = ImageResources.Actions.About };
+            openAboutCommand = new Command { MenuText = Localize(AboutKuriimuKey_), Image = ImageResources.Actions.About };
 
             #endregion
 
@@ -117,7 +117,7 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = Application.Instance.Localize(this, FileKey_),
+                    new ButtonMenuItem { Text = Localize(FileKey_),
                         Items =
                         {
                             openFileCommand, 
@@ -127,7 +127,7 @@ namespace Kuriimu2.EtoForms.Forms
                         } 
                     },
                     
-                    new ButtonMenuItem { Text = Application.Instance.Localize(this, ToolsKey_),
+                    new ButtonMenuItem { Text = Localize(ToolsKey_),
                         Items =
                         {
                             openBatchExtractorCommand,
@@ -138,7 +138,7 @@ namespace Kuriimu2.EtoForms.Forms
                         }
                     },
                     
-                    new ButtonMenuItem { Text = Application.Instance.Localize(this, CiphersKey_),
+                    new ButtonMenuItem { Text = Localize(CiphersKey_),
                         Items =
                         {
                             openDecryptionCommand,
@@ -146,7 +146,7 @@ namespace Kuriimu2.EtoForms.Forms
                         }
                     },
                     
-                    new ButtonMenuItem { Text = Application.Instance.Localize(this, CompressionKey_),
+                    new ButtonMenuItem { Text = Localize(CompressionKey_),
                         Items =
                         {
                             openDecompressionCommand, 
@@ -156,12 +156,12 @@ namespace Kuriimu2.EtoForms.Forms
                     
                     //new ButtonMenuItem(openImageTranscoderCommand),
                     
-                    new ButtonMenuItem { Text = Application.Instance.Localize(this, SettingsKey_),
+                    new ButtonMenuItem { Text = Localize(SettingsKey_),
                         Items =
                         {
                             new CheckMenuItem
                             {
-                                Text = Application.Instance.Localize(this, IncludeDeveloperBuildsKey_), 
+                                Text = Localize(IncludeDeveloperBuildsKey_), 
                                 Checked = Settings.Default.IncludeDevBuilds, 
                                 Command = includeDevBuildCommand
                             }

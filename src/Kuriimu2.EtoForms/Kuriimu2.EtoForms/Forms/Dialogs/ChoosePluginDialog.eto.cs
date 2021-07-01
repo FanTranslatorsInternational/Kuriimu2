@@ -68,7 +68,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                         {
                             new Label
                             {
-                                Text = _message,
+                                Text = _message + ":",
                                 TextAlignment = TextAlignment.Center,
                             }
                         } 

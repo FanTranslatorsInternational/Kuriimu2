@@ -1,4 +1,5 @@
 ﻿{
+  // Kuriimu2 GUI texts
   "File": "Datei",
   "Tools": "Werkzeuge",
   "Ciphers": "Verschlüsselung",
@@ -9,9 +10,9 @@
   "OpenWith": "Öffnen mit Plugin",
   "SaveAll": "Alles speichern",
 
-  "TextSequenceSearcher": "Text Sequence Searcher",
-  "BatchExtractor": "Batch Extractor",
-  "BatchInjector": "Batch Injector",
+  "TextSequenceSearcher": "Textsuche",
+  "BatchExtractor": "Alles entpacken",
+  "BatchInjector": "Alles ersetzen",
 
   "Hashes": "Prüfsummen",
 
@@ -21,10 +22,43 @@
   "Decompress": "Komprimieren",
   "Compress": "Dekomprimieren",
 
-  "RawImageViewer": "Raw Image Viewer",
+  "RawImageViewer": "Rohbildansicht",
 
   "IncludeDevBuilds": "Entwicklerversionen einbeziehen",
 
   "Help": "Hilfe",
-  "AboutKuriimu2": "Über Kuriimu2"
+  "AboutKuriimu2": "Über Kuriimu2",
+
+  "LoadErrorCaption": "Fehler beim Laden",
+  "SaveErrorCaption": "Fehler beim Speichern",
+  "UnsavedChangesCaption": "Ungespeicherte Änderungen",
+  "DependantFilesCaption": "Dateiabhängigkeiten",
+  "ExceptionCatchedCaption": "Ausnahme abgefangen",
+  "UnhandledExceptionCaption": "Unbehandelte Ausnahme",
+  "UpdateAvailableCaption": "Updates verfügbar",
+  "PluginsNotAvailableCaption": "Fehlerhafte Plugins",
+
+  "LoadCancelledStatus": "Laden abgebrochen.",
+  "NoPluginSelectedStatus": "Kein Plugin ausgewählt.",
+  "NoFileSelectedStatus": "Keine Datei ausgewählt.",
+  "FileAlreadyOpeningStatus": "{0} wird bereits geöffnet.",
+  "FileAlreadySavingStatus": "{0} wird bereits gespeichert.",
+  "FileSavedSuccessfullyStatus": "Datei erfolgreich gespeichert.",
+  "FileNotSavedSuccessfullyStatus": "Datei nicht erfolgreich gespeichert.",
+  "OperationsStillRunningStatus": "Es werden noch immer Operationen ausgeführt und die Datei kann nicht geschlossen werden.",
+
+  "ChooseOpenFilePlugin": "Wähle ein Plugin, um die Datei zu öffnen",
+  "SelectedFileInvalid": "Die ausgewählte Datei ist ungültig.",
+  "UnsavedChangesToFile": "Es wurden Änderungen an {0} oder dessen beinhaltete Dateien gemacht. Möchtest du diese Änderungen speichern?",
+  "UnsavedChangesGeneric": "Es wurden Änderungen an einer oder mehr Dateien gemacht. Möchtest du diese Änderungen speichern?",
+  "DependantFiles": "Diese und dessen beinhaltete Dateien werden geschlossen. Fortfahren?",
+  "UnhandledExceptionCloseApp": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen. Die Anwendung wird geschlossen.",
+  "UnhandledExceptionNotCloseApp": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen.",
+  "UpdateAvailable": "Möchtest du von {0}-{1} nach {2}-{3} aktualisieren?",
+  "FollowingPluginsNotLoaded": "Folgende Plugins konnten nicht geladen werden",
+
+  "AllFilesFilter": "Alle Dateien",
+
+  "UnsupportedOperatingSystemException": "Nicht unterstütztes Betriebssystem: {0}.",
+  "UnsupportedPlatformException": "Nicht unterstützte Plattform: {0}."
 }

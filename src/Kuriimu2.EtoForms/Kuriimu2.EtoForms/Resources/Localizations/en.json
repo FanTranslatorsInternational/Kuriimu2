@@ -1,4 +1,5 @@
 ﻿{
+  // Kuriimu2 Main GUI texts
   "File": "File",
   "Tools": "Tools",
   "Ciphers": "Ciphers",
@@ -9,9 +10,9 @@
   "OpenWith": "Open with Plugin",
   "SaveAll": "Save All",
 
-  "TextSequenceSearcher": "Text Sequence Searcher",
-  "BatchExtractor": "Batch Extractor",
-  "BatchInjector": "Batch Injector",
+  "TextSequenceSearcher": "Text Searcher",
+  "BatchExtractor": "Extract All",
+  "BatchInjector": "Replace All",
 
   "Hashes": "Hashes",
 
@@ -25,6 +26,39 @@
 
   "IncludeDevBuilds": "Include Developer Builds",
 
-  "Help": "Help", 
-  "AboutKuriimu2": "About Kuriimu2"
+  "Help": "Help",
+  "AboutKuriimu2": "About Kuriimu2",
+
+  "LoadErrorCaption": "Load Error",
+  "SaveErrorCaption": "Save Error",
+  "UnsavedChangesCaption": "Unsaved changes",
+  "DependantFilesCaption": "Dependant files",
+  "ExceptionCatchedCaption": "Exception catched",
+  "UnhandledExceptionCaption": "Unhandled exception",
+  "UpdateAvailableCaption": "Update available",
+  "PluginsNotAvailableCaption": "Plugins not available",
+
+  "LoadCancelledStatus": "Load cancelled.",
+  "NoPluginSelectedStatus": "No plugin selected.",
+  "NoFileSelectedStatus": "No file selected.",
+  "FileAlreadyOpeningStatus": "{0} is already opening.",
+  "FileAlreadySavingStatus": "{0} is already saving.",
+  "FileSavedSuccessfullyStatus": "File saved successfully.",
+  "FileNotSavedSuccessfullyStatus": "File not saved successfully.",
+  "OperationsStillRunningStatus": "Operations are still running and the file cannot be closed.",
+
+  "ChooseOpenFilePlugin": "Choose plugin to open file with",
+  "SelectedFileInvalid": "The selected file is invalid.",
+  "UnsavedChangesToFile": "Changes were made to {0} or its opened sub files. Do you want to save those changes?",
+  "UnsavedChangesGeneric": "Changes were made to one or more files. Do you want to save those changes?",
+  "DependantFiles": "Every file opened from this one and below will be closed too. Continue?",
+  "UnhandledExceptionCloseApp": "An unhandled exception occurred. Refer to the log for more information. The application will be closed.",
+  "UnhandledExceptionNotCloseApp": "An unhandled exception occurred. Refer to the log for more information.",
+  "UpdateAvailable": "Do you want to update from {0}-{1} to {2}-{3}?",
+  "FollowingPluginsNotLoaded": "Following plugins could not be loaded",
+
+  "AllFilesFilter": "All Files",
+
+  "UnsupportedOperatingSystemException": "Unsupported operating system: {0}.",
+  "UnsupportedPlatformException": "Unsupported platform: {0}."
 }
