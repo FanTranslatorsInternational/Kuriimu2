@@ -7,7 +7,9 @@
   "Settings": "Einstellungen",
 
   "Open": "Öffnen",
-  "OpenWith": "Öffnen mit Plugin",
+  "OpenWith": "Öffnen mit...",
+  "Save": "Speichern",
+  "SaveAs": "Speichern unter...",
   "SaveAll": "Alles speichern",
 
   "TextSequenceSearcher": "Textsuche",
@@ -43,6 +45,9 @@
   "NoFileSelectedStatus": "Keine Datei ausgewählt.",
   "FileAlreadyOpeningStatus": "{0} wird bereits geöffnet.",
   "FileAlreadySavingStatus": "{0} wird bereits gespeichert.",
+  "FileSuccessfullyLoaded": "Datei erfolgreich geladen.",
+  "FileNotSuccessfullyLoaded": "Datei nicht erfolgreich geladen.",
+  "FileNotSuccessfullyLoadedWithPlugin": "Datei nicht erfolgreich mit Plugin {0} geladen.",
   "FileSavedSuccessfullyStatus": "Datei erfolgreich gespeichert.",
   "FileNotSavedSuccessfullyStatus": "Datei nicht erfolgreich gespeichert.",
   "OperationsStillRunningStatus": "Es werden noch immer Operationen ausgeführt und die Datei kann nicht geschlossen werden.",
@@ -60,5 +65,58 @@
   "AllFilesFilter": "Alle Dateien",
 
   "UnsupportedOperatingSystemException": "Nicht unterstütztes Betriebssystem: {0}.",
-  "UnsupportedPlatformException": "Nicht unterstützte Plattform: {0}."
+  "UnsupportedPlatformException": "Nicht unterstützte Plattform: {0}.",
+
+  // Kuriimu2 Archive Form
+  "ClearSearch": "Leeren",
+  "CancelOperation": "Abbrechen",
+
+  "Extract": "Entpacken",
+  "Replace": "Ersetzen",
+  "Rename": "Umbenennen",
+  "Delete": "Löschen",
+  "Add": "Hinzufügen",
+
+  "ExtractFile": "Datei(en) entpacken",
+  "ReplaceFile": "Datei(en) ersetzen",
+  "RenameFile": "Datei umbenennen",
+  "Delete file": "Datei löschen",
+
+  "FileName": "Name",
+  "FileSize": "Größe",
+
+  "NoTargetSelectedStatus": "Kein Ziel ausgewählt.",
+
+  "NoFilesToExtractStatus": "Keine Dateien zum Entpacken.",
+  "NoFilesToReplaceStatus": "Keine Dateien zum Ersetzen.",
+  "NoFilesToRenameStatus": "Keine Dateien zum Umbenennen.",
+  "NoFilesToDeleteStatus": "Keine Dateien zum Löschen.",
+  "NoFilesToAddStatus": "Keine Dateien zum Hinzufügen.",
+
+  "ExtractFileProgress": "Entpacke Dateien",
+  "ReplaceFileProgress": "Ersetze Dateien",
+  "RenameFileProgress": "Bename Dateien um",
+  "DeleteFileProgress": "Lösche Dateien",
+  "AddFileProgress": "Füge Dateien hinzu",
+
+  "ExtractFileCancelledStatus": "Entpacken abgebrochen.",
+  "ReplaceFileCancelledStatus": "Ersetzen abgebrochen.",
+  "RenameFileCancelledStatus": "Umbennen abgebrochen.",
+  "DeleteFileCancelledStatus": "Löschen abgebrochen.",
+  "AddFileCancelledStatus": "Hinzufügen abgebrochen.",
+
+  "ExtractFileSuccessfulStatus": "Datei(en) erfolgreich entpackt.",
+  "ReplaceFileSuccessfulStatus": "Datei(en) erfolgreich ersetzt.",
+  "RenameFileSuccessfulStatus": "Datei(en) erfolgreich umbenannt.",
+  "DeleteFileSuccessfulStatus": "Datei(en) erfolgreich gelöscht.",
+  "AddFileSuccessfulStatus": "Datei(en) erfolgreich hinzugefügt.",
+
+  "UnableToAddFilesStatus": "Einige Dateien konnten nicht erfolgreich hinzugefügt werden. Siehe den Log für mehr Informationen.",
+
+  "NoNameGivenStatus": "Kein neuer Name angegeben.",
+
+  "RenameFileTitle": "Datei umbenennen",
+  "RenameDirectoryTitle": "Ordner umbenennen",
+
+  "RenameItemCaption": "Wähle einen neuen Namen für {0}."
 }

@@ -7,7 +7,9 @@
   "Settings": "Settings",
 
   "Open": "Open",
-  "OpenWith": "Open with Plugin",
+  "OpenWith": "Open with...",
+  "Save": "Save",
+  "SaveAs": "Save as...",
   "SaveAll": "Save All",
 
   "TextSequenceSearcher": "Text Searcher",
@@ -43,6 +45,9 @@
   "NoFileSelectedStatus": "No file selected.",
   "FileAlreadyOpeningStatus": "{0} is already opening.",
   "FileAlreadySavingStatus": "{0} is already saving.",
+  "FileSuccessfullyLoaded": "File loaded successfully.",
+  "FileNotSuccessfullyLoaded": "File not loaded successfully.",
+  "FileNotSuccessfullyLoadedWithPlugin": "File not loaded successfully with plugin {0}.",
   "FileSavedSuccessfullyStatus": "File saved successfully.",
   "FileNotSavedSuccessfullyStatus": "File not saved successfully.",
   "OperationsStillRunningStatus": "Operations are still running and the file cannot be closed.",
@@ -60,5 +65,58 @@
   "AllFilesFilter": "All Files",
 
   "UnsupportedOperatingSystemException": "Unsupported operating system: {0}.",
-  "UnsupportedPlatformException": "Unsupported platform: {0}."
+  "UnsupportedPlatformException": "Unsupported platform: {0}.",
+
+  // Kuriimu2 Archive Form
+  "ClearSearch": "Clear",
+  "CancelOperation": "Cancel",
+
+  "Extract": "Extract",
+  "Replace": "Replace",
+  "Rename": "Rename",
+  "Delete": "Delete",
+  "Add": "Add",
+
+  "ExtractFile": "Extract file(s)",
+  "ReplaceFile": "Replace file(s)",
+  "RenameFile": "Rename file",
+  "DeleteFile": "Delete file",
+
+  "FileName": "Name",
+  "FileSize": "Size",
+
+  "NoTargetSelectedStatus": "No target selected.",
+
+  "NoFilesToExtractStatus": "No files to extract.",
+  "NoFilesToReplaceStatus": "No files to replace.",
+  "NoFilesToRenameStatus": "No files to rename.",
+  "NoFilesToDeleteStatus": "No files to delete.",
+  "NoFilesToAddStatus": "No files to add.",
+
+  "ExtractFileProgress": "Extract files",
+  "ReplaceFileProgress": "Replace files",
+  "RenameFileProgress": "Rename files",
+  "DeleteFileProgress": "Delete files",
+  "AddFileProgress": "Add files",
+
+  "ExtractFileCancelledStatus": "File extraction cancelled.",
+  "ReplaceFileCancelledStatus": "File replacement cancelled.",
+  "RenameFileCancelledStatus": "File renaming cancelled.",
+  "DeleteFileCancelledStatus": "File deletion cancelled.",
+  "AddFileCancelledStatus": "File adding cancelled.",
+
+  "ExtractFileSuccessfulStatus": "File(s) extracted successfully.",
+  "ReplaceFileSuccessfulStatus": "File(s) replaced successfully.",
+  "RenameFileSuccessfulStatus": "File(s) renamed successfully.",
+  "DeleteFileSuccessfulStatus": "File(s) deleted successfully.",
+  "AddFileSuccessfulStatus": "File(s) adding successfully.",
+
+  "UnableToAddFilesStatus": "Some files could not be added successfully. Refer to the log for more information.",
+
+  "NoNameGivenStatus": "No new name given.",
+
+  "RenameFileTitle": "Rename file",
+  "RenameDirectoryTitle": "Rename directory",
+
+  "RenameItemCaption": "Select a new name for {0}."
 }

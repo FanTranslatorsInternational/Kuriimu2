@@ -91,6 +91,8 @@ namespace Kuriimu2.EtoForms.Forms
         private const string NoFileSelectedStatusKey_ = "NoFileSelectedStatus";
         private const string FileAlreadyOpeningStatusKey_ = "FileAlreadyOpeningStatus";
         private const string FileAlreadySavingStatusKey_ = "FileAlreadySavingStatus";
+        private const string FileSuccessfullyLoadedKey_ = "FileSuccessfullyLoaded";
+        private const string FileNotSuccessfullyLoadedKey_ = "FileNotSuccessfullyLoaded";
         private const string FileSavedSuccessfullyStatusKey_ = "FileSavedSuccessfullyStatus";
         private const string FileNotSavedSuccessfullyStatusKey_ = "FileNotSavedSuccessfullyStatus";
         private const string OperationsStillRunningStatusKey_ = "OperationsStillRunningStatus";
@@ -201,6 +203,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private async void OpenPhysicalFiles(IList<string> filesToOpen, bool manualIdentification)
         {
+            var result = false;
             foreach (var fileToOpen in filesToOpen)
             {
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
@@ -209,8 +212,11 @@ namespace Kuriimu2.EtoForms.Forms
                         _fileManager.LoadFile(fileToOpen, plugin.PluginId));
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
-                await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
+                result = await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
             }
+
+            if (filesToOpen.Count == 1)
+                ReportStatus(result, result ? Localize(FileSuccessfullyLoadedKey_) : Localize(FileNotSuccessfullyLoadedKey_));
         }
 
         private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)

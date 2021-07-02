@@ -9,6 +9,34 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class ArchiveForm : Panel
     {
+        #region Localization Keys
+
+        private const string OpenKey_ = "Open";
+        private const string OpenWithKey_ = "OpenWith";
+        private const string SaveKey_ = "Save";
+        private const string SaveAsKey_ = "SaveAs";
+
+        private const string ClearSearchKey_ = "ClearSearch";
+        private const string CancelOperationKey_ = "CancelOperation";
+
+        private const string ExtractKey_ = "Extract";
+        private const string ReplaceKey_ = "Replace";
+        private const string RenameKey_ = "Rename";
+        private const string DeleteKey_ = "Delete";
+        private const string AddKey_ = "Add";
+
+        private const string ExtractFileKey_ = "ExtractFiles";
+        private const string ReplaceFileKey_ = "ReplaceFiles";
+        private const string RenameFileKey_ = "RenameFile";
+        private const string DeleteFileKey_ = "DeleteFile";
+
+        private const string FileNameKey_ = "FileName";
+        private const string FileSizeKey_ = "FileSize";
+
+        #endregion
+
+        #region Controls
+
         private TextBox searchTextBox;
         private Button searchClearButton;
 
@@ -29,6 +57,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private ButtonToolStripItem deleteButton;
 
         private ButtonMenuItem openWithMenuItem;
+
+        #endregion
 
         #region Commands
 
@@ -61,31 +91,31 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             searchTextBox = new SearchBox
             {
-                Size=new Size(268,-1)
+                Size = new Size(268,-1)
             };
 
             #region Commands
 
-            searchClearCommand = new Command { MenuText = "Clear", Image = ImageResources.Actions.Delete };
+            searchClearCommand = new Command { MenuText = Localize(ClearSearchKey_), Image = ImageResources.Actions.Delete };
 
-            cancelCommand = new Command { MenuText = "Cancel" };
+            cancelCommand = new Command { MenuText = Localize(CancelOperationKey_) };
 
-            openCommand = new Command { MenuText = "Open", Image = ImageResources.Actions.Open };
-            openWithCommand = new Command { MenuText = "Open with", Image = ImageResources.Actions.OpenWith };
+            openCommand = new Command { MenuText = Localize(OpenKey_), Image = ImageResources.Actions.Open };
+            openWithCommand = new Command { MenuText = Localize(OpenWithKey_), Image = ImageResources.Actions.OpenWith };
 
-            saveCommand = new Command { MenuText = "Save", Shortcut = SaveHotKey, Image = ImageResources.Actions.Save };
-            saveAsCommand = new Command { MenuText = "Save As", Shortcut = SaveAsHotKey, Image = ImageResources.Actions.SaveAs };
+            saveCommand = new Command { MenuText = Localize(SaveKey_), Shortcut = SaveHotKey, Image = ImageResources.Actions.Save };
+            saveAsCommand = new Command { MenuText = Localize(SaveAsKey_), Shortcut = SaveAsHotKey, Image = ImageResources.Actions.SaveAs };
 
-            extractDirectoryCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FolderExport };
-            replaceDirectoryCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FolderImport };
-            renameDirectoryCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
-            deleteDirectoryCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
-            addDirectoryCommand = new Command { MenuText = "Add", Image = ImageResources.Actions.Add };
+            extractDirectoryCommand = new Command { MenuText = Localize(ExtractKey_), Image = ImageResources.Actions.FolderExport };
+            replaceDirectoryCommand = new Command { MenuText = Localize(ReplaceKey_), Image = ImageResources.Actions.FolderImport };
+            renameDirectoryCommand = new Command { MenuText = Localize(RenameKey_), Image = ImageResources.Actions.Rename };
+            deleteDirectoryCommand = new Command { MenuText = Localize(DeleteKey_), Image = ImageResources.Actions.Delete };
+            addDirectoryCommand = new Command { MenuText = Localize(AddKey_), Image = ImageResources.Actions.Add };
 
-            extractFileCommand = new Command { MenuText = "Extract", Image = ImageResources.Actions.FileExport };
-            replaceFileCommand = new Command { MenuText = "Replace", Image = ImageResources.Actions.FileImport };
-            renameFileCommand = new Command { MenuText = "Rename", Image = ImageResources.Actions.Rename };
-            deleteFileCommand = new Command { MenuText = "Delete", Image = ImageResources.Actions.Delete };
+            extractFileCommand = new Command { MenuText = Localize(ExtractKey_), Image = ImageResources.Actions.FileExport };
+            replaceFileCommand = new Command { MenuText = Localize(ReplaceKey_), Image = ImageResources.Actions.FileImport };
+            renameFileCommand = new Command { MenuText = Localize(RenameKey_), Image = ImageResources.Actions.Rename };
+            deleteFileCommand = new Command { MenuText = Localize(DeleteKey_), Image = ImageResources.Actions.Delete };
 
             #endregion
 
@@ -124,7 +154,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             #region Files
 
             //NOTE Image has to be set explicitly, I think the Command is not used anymore as soon as sub-items are added
-            openWithMenuItem = new ButtonMenuItem { Text = "Open with", Command = openWithCommand, Image = openWithCommand.Image };
+            openWithMenuItem = new ButtonMenuItem { Text = Localize(OpenWithKey_), Command = openWithCommand, Image = openWithCommand.Image };
             var fileContext = new ContextMenu
             {
                 Items =
@@ -155,14 +185,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     new GridColumn
                     {
                         DataCell = new TextBoxCell(nameof(FileElement.Name)),
-                        HeaderText = "Name",
+                        HeaderText = Localize(FileNameKey_),
                         Sortable = true,
                         AutoSize = true
                     },
                     new GridColumn
                     {
                         DataCell = new TextBoxCell(nameof(FileElement.Size)),
-                        HeaderText = "Size",
+                        HeaderText = Localize(FileSizeKey_),
                         Sortable = true,
                         AutoSize = true
                     }
@@ -178,50 +208,50 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             searchClearButton = new Button
             {
                 Image = ImageResources.Actions.Clear,
-                ToolTip = "Reset search",
+                ToolTip = Localize(ClearSearchKey_),
                 Command = searchClearCommand,
                 Size = new Size(22,-1)
             };
 
             cancelButton = new Button
             {
-                Text = "Cancel",
+                Text = Localize(CancelOperationKey_),
                 Command = cancelCommand
             };
 
             saveButton = new ButtonToolStripItem
             {
-                ToolTip = "Save",
+                ToolTip = Localize(SaveKey_),
                 Command = saveCommand,
             };
 
             saveAsButton = new ButtonToolStripItem
             {
-                ToolTip = "Save As",
+                ToolTip = Localize(SaveAsKey_),
                 Command = saveAsCommand,
             };
 
             extractButton = new ButtonToolStripItem
             {
-                ToolTip = "Extract file(s)",
+                ToolTip = Localize(ExtractFileKey_),
                 Command = extractFileCommand,
             };
 
             replaceButton = new ButtonToolStripItem
             {
-                ToolTip = "Replace file(s)",
+                ToolTip = Localize(ReplaceFileKey_),
                 Command = replaceFileCommand,
             };
 
             renameButton = new ButtonToolStripItem
             {
-                ToolTip = "Rename file",
+                ToolTip = Localize(RenameFileKey_),
                 Command = renameFileCommand,
             };
 
             deleteButton = new ButtonToolStripItem
             {
-                ToolTip = "Delete file",
+                ToolTip = Localize(DeleteFileKey_),
                 Command = deleteFileCommand,
             };
 

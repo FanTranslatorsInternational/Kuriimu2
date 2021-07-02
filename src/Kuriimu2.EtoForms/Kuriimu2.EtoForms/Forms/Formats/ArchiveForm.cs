@@ -9,7 +9,6 @@ using Eto.Forms;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
-using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Factories;
@@ -48,6 +47,55 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private static readonly Color ColorDefaultState = KnownColors.Black;
         private static readonly Color ColorChangedState = KnownColors.Orange;
+
+        #endregion
+
+        #region Localization Keys
+
+        private const string FileNotSuccessfullyLoadedKey_ = "FileNotSuccessfullyLoaded";
+        private const string FileNotSuccessfullyLoadedWithPluginKey_ = "FileNotSuccessfullyLoadedWithPlugin";
+        private const string FileAlreadyOpeningStatusKey_ = "FileAlreadyOpeningStatus";
+
+        private const string NoTargetSelectedStatusKey_ = "NoTargetSelectedStatus";
+
+        private const string NoFilesToExtractStatusKey_ = "NoFilesToExtractStatus";
+        private const string NoFilesToReplaceStatusKey_ = "NoFilesToReplaceStatus";
+        private const string NoFilesToRenameStatusKey_ = "NoFilesToRenameStatus";
+        private const string NoFilesToDeleteStatusKey_ = "NoFilesToDeleteStatus";
+        private const string NoFilesToAddStatusKey_ = "NoFilesToAddStatus";
+
+        private const string ExtractFileProgressKey_ = "ExtractFileProgress";
+        private const string ReplaceFileProgressKey_ = "ReplaceFileProgress";
+        private const string RenameFileProgressKey_ = "RenameFileProgress";
+        private const string DeleteFileProgressKey_ = "DeleteFileProgress";
+        private const string AddFileProgressKey_ = "AddFileProgress";
+
+        private const string ExtractFileCancelledStatusKey_ = "ExtractFileCancelledStatus";
+        private const string ReplaceFileCancelledStatusKey_ = "ReplaceFileCancelledStatus";
+        private const string RenameFileCancelledStatusKey_ = "RenameFileCancelledStatus";
+        private const string DeleteFileCancelledStatusKey_ = "DeleteFileCancelledStatus";
+        private const string AddFileCancelledStatusKey_ = "AddFileCancelledStatus";
+
+        private const string ExtractFileSuccessfulStatusKy_ = "ExtractFileSuccessfulStatus";
+        private const string ReplaceFileSuccessfulStatusKy_ = "ReplaceFileSuccessfulStatus";
+        private const string RenameFileSuccessfulStatusKy_ = "RenameFileSuccessfulStatus";
+        private const string DeleteFileSuccessfulStatusKy_ = "DeleteFileSuccessfulStatus";
+        private const string AddFileSuccessfulStatusKy_ = "AddFileSuccessfulStatus";
+
+        private const string UnableToAddFilesStatusKey_ = "UnableToAddFilesStatus";
+
+        private const string NoNameGivenStatusKey_ = "NoNameGivenStatus";
+
+        private const string RenameFileTitleKey_ = "RenameFileTitle";
+        private const string RenameDirectoryTitleKey_ = "RenameDirectoryTitle";
+
+        private const string RenameItemCaptionKey_ = "RenameItemCaption";
+
+        #endregion
+
+        #region Log messages
+
+        private const string CouldNotAddFileLog_ = "Could not add file: {0}";
 
         #endregion
 
@@ -129,7 +177,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             });
         }
 
-        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateProperties()
         {
             var canSave = _formInfo.FileState.PluginState.CanSave;
@@ -169,7 +216,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             }
         }
 
-        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateFileContextMenu()
         {
             var selectedItem = fileView.SelectedItems.FirstOrDefault();
@@ -214,7 +260,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             });
         }
 
-        [SuppressMessage("ReSharper", "SuspiciousTypeConversion.Global")]
         private void UpdateDirectoryContextMenu()
         {
             var canExtractFiles = !_asyncOperation.IsRunning;
@@ -393,7 +438,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var (fileElement, pluginId) = ((FileElement, Guid))((Command)sender).Tag;
             if (!await OpenFile(fileElement.ArchiveFileInfo, pluginId))
-                _formInfo.FormCommunicator.ReportStatus(false, $"File could not be opened with plugin '{pluginId}'.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(FileNotSuccessfullyLoadedWithPluginKey_, pluginId));
         }
 
         private async void extractFileCommand_Executed(object sender, EventArgs e)
@@ -473,7 +518,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     {
                         if (_openingFiles.Contains(file))
                         {
-                            _formInfo.FormCommunicator.ReportStatus(false, $"{file.FilePath.ToRelative()} is already opening.");
+                            _formInfo.FormCommunicator.ReportStatus(false, Localize(FileAlreadyOpeningStatusKey_, file.FilePath.ToRelative()));
                             continue;
                         }
 
@@ -496,13 +541,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 // Use automatic identification if no preset plugin could open the file
                 if (_openingFiles.Contains(file))
                 {
-                    _formInfo.FormCommunicator.ReportStatus(false, $"{file.FilePath.ToRelative()} is already opening.");
+                    _formInfo.FormCommunicator.ReportStatus(false, Localize(FileAlreadyOpeningStatusKey_, file.FilePath.ToRelative()));
                     continue;
                 }
 
                 _openingFiles.Add(file);
                 if (!await OpenFile(file))
-                    _formInfo.FormCommunicator.ReportStatus(false, "File couldn't be opened.");
+                    _formInfo.FormCommunicator.ReportStatus(false, Localize(FileNotSuccessfullyLoadedKey_));
 
                 _openingFiles.Remove(file);
             }
@@ -562,7 +607,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             if (files.Count <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to extract.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToExtractStatusKey_));
                 return;
             }
 
@@ -570,10 +615,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedPath = files.Count > 1 ? SelectFolder() : SaveFile(files[0].FilePath.GetName());
             if (selectedPath.IsNull || selectedPath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No target selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                 return;
             }
-            
+
             // Use containing directory as root if a file was selected
             var extractRoot = files.Count > 1 ? selectedPath : selectedPath.GetDirectory();
 
@@ -591,7 +636,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Extract files", count++, files.Count);
+                    _formInfo.Progress.ReportProgress(Localize(ExtractFileProgressKey_), count++, files.Count);
 
                     if (IsFileLocked(file, false))
                         continue;
@@ -614,13 +659,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     newFileStream.Close();
                 }
             });
-            _formInfo.Progress.ReportProgress("Extract files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(ExtractFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File extraction cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(ExtractFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(ExtractFileSuccessfulStatusKy_));
         }
 
         #endregion
@@ -639,7 +684,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             if (filePaths.Length <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to extract.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToExtractStatusKey_));
                 return;
             }
 
@@ -647,7 +692,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var extractPath = SelectFolder();
             if (extractPath.IsNull || extractPath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                 return;
             }
 
@@ -666,7 +711,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Extract files", count++, filePaths.Length);
+                    _formInfo.Progress.ReportProgress(Localize(ExtractFileProgressKey_), count++, filePaths.Length);
 
                     var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
                     if (IsFileLocked(afi, false))
@@ -689,13 +734,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     newFileStream.Close();
                 }
             });
-            _formInfo.Progress.ReportProgress("Extract files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(ExtractFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File extraction cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(ExtractFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) extracted successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(ExtractFileSuccessfulStatusKy_));
         }
 
         #endregion
@@ -715,7 +760,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             if (files.Count <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to replace.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToReplaceStatusKey_));
                 return;
             }
 
@@ -727,7 +772,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 var selectedPath = OpenFile(files[0].FilePath.GetName());
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
-                    _formInfo.FormCommunicator.ReportStatus(false, "No file selected.");
+                    _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                     return;
                 }
 
@@ -739,7 +784,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 var selectedPath = SelectFolder();
                 if (selectedPath.IsNull || selectedPath.IsEmpty)
                 {
-                    _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                    _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                     return;
                 }
 
@@ -761,7 +806,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Replace files", count++, files.Count);
+                    _formInfo.Progress.ReportProgress(Localize(ReplaceFileProgressKey_), count++, files.Count);
 
                     if (IsFileLocked(file, true))
                         continue;
@@ -777,13 +822,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
             });
-            _formInfo.Progress.ReportProgress("Replace files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(ReplaceFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File replacement cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(ReplaceFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) replaced successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(ReplaceFileSuccessfulStatusKy_));
 
             UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
             UpdateDirectories();
@@ -807,7 +852,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             if (filePaths.Length <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to replace.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToReplaceStatusKey_));
                 return;
             }
 
@@ -815,7 +860,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var replacePath = SelectFolder();
             if (replacePath.IsNull || replacePath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                 return;
             }
 
@@ -833,7 +878,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Replace files", count++, filePaths.Length);
+                    _formInfo.Progress.ReportProgress(Localize(ReplaceFileProgressKey_), count++, filePaths.Length);
 
                     var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
                     if (IsFileLocked(afi, true))
@@ -849,13 +894,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }
             });
-            _formInfo.Progress.ReportProgress("Replace files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(ReplaceFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File replacement cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(ReplaceFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) replaced successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(ReplaceFileSuccessfulStatusKy_));
 
             UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
             UpdateDirectories();
@@ -880,7 +925,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             if (files.Count <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to rename.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToRenameStatusKey_));
                 return;
             }
 
@@ -896,13 +941,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Rename files", count++, files.Count);
+                    _formInfo.Progress.ReportProgress(Localize(RenameFileProgressKey_), count++, files.Count);
 
                     // Select new name
                     var newName = Application.Instance.Invoke(() =>
                     {
-                        var inputBox = new InputBoxDialog($"Select a new name for '{file.FilePath.GetName()}'",
-                            "Rename file", file.FilePath.GetName());
+                        var inputBox = new InputBoxDialog(Localize(RenameItemCaptionKey_, file.FilePath.GetName()),
+                            Localize(RenameFileTitleKey_), file.FilePath.GetName());
                         return inputBox.ShowModal(this);
                     });
 
@@ -918,13 +963,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     AddChangedDirectory(file.FilePath.GetDirectory());
                 }
             });
-            _formInfo.Progress.ReportProgress("Rename files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(RenameFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File renaming cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(RenameFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) renamed successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(RenameFileSuccessfulStatusKy_));
 
             UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
             UpdateDirectories();
@@ -946,18 +991,18 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             if (filePaths.Length <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to rename.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToRenameStatusKey_));
                 return;
             }
 
             // Select new directory name
-            var inputBox = new InputBoxDialog($"Select a new name for '{GetItemName(item)}'",
-                "Rename directory", GetItemName(item));
+            var inputBox = new InputBoxDialog(Localize(RenameItemCaptionKey_,GetItemName(item)),
+                Localize(RenameDirectoryTitleKey_), GetItemName(item));
             var newName = inputBox.ShowModal(this);
 
             if (string.IsNullOrEmpty(newName))
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No new name given.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoNameGivenStatusKey_));
                 return;
             }
 
@@ -975,7 +1020,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Rename files", count++, filePaths.Length);
+                    _formInfo.Progress.ReportProgress(Localize(RenameFileProgressKey_), count++, filePaths.Length);
 
                     // Rename possibly open file in main form
                     var afi = ((AfiFileEntry)_archiveFileSystem.GetFileEntry(itemPath / filePath)).ArchiveFileInfo;
@@ -987,13 +1032,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     AddChangedDirectory(afi.FilePath.GetDirectory());
                 }
             });
-            _formInfo.Progress.ReportProgress("Rename files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(RenameFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File renaming cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(RenameFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) renamed successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(RenameFileSuccessfulStatusKy_));
 
             SetItemName(item, newName);
 
@@ -1018,7 +1063,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             if (files.Count <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to delete.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToDeleteStatusKey_));
                 return;
             }
 
@@ -1034,18 +1079,18 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Delete files", count++, files.Count);
+                    _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), count++, files.Count);
 
                     _archiveFileSystem.DeleteFile(file.FilePath);
                 }
             });
-            _formInfo.Progress.ReportProgress("Delete files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File deletion cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(DeleteFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(DeleteFileSuccessfulStatusKy_));
 
             UpdateDirectories();
             UpdateFiles(UPath.Root);
@@ -1069,7 +1114,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             if (filePaths.Length <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(true, "No files to delete.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(NoFilesToDeleteStatusKey_));
                 return;
             }
 
@@ -1085,7 +1130,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Delete files", count++, filePaths.Length);
+                    _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), count++, filePaths.Length);
 
                     _archiveFileSystem.DeleteFile(itemPath / filePath);
                 }
@@ -1093,13 +1138,13 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             _archiveFileSystem.DeleteDirectory(itemPath, true);
 
-            _formInfo.Progress.ReportProgress("Delete files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(DeleteFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File deletion cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(DeleteFileCancelledStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) deleted successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(DeleteFileSuccessfulStatusKy_));
 
             LoadDirectories();
             UpdateFiles(UPath.Root);
@@ -1124,7 +1169,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var selectedPath = SelectFolder();
             if (selectedPath.IsNull || selectedPath.IsEmpty)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No folder selected.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoTargetSelectedStatusKey_));
                 return;
             }
 
@@ -1135,7 +1180,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var elements = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
             if (elements.Length <= 0)
             {
-                _formInfo.FormCommunicator.ReportStatus(false, "No files to add.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(NoFilesToAddStatusKey_));
                 return;
             }
 
@@ -1151,11 +1196,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     if (cts.IsCancellationRequested)
                         break;
 
-                    _formInfo.Progress.ReportProgress("Add files", count++, elements.Length);
+                    _formInfo.Progress.ReportProgress(Localize(AddFileProgressKey_), count++, elements.Length);
 
                     // Do not add file if it already exists
                     // This would be replacement and is not part of this operation
-                    if(_archiveFileSystem.FileExists(subFolder / filePath.ToRelative()))
+                    if (_archiveFileSystem.FileExists(subFolder / filePath.ToRelative()))
                         continue;
 
                     // TODO: This will currently copy files to memory, instead of just using a reference to any more memory efficient stream (like FileStream)
@@ -1167,7 +1212,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     }
                     catch (Exception e)
                     {
-                        _formInfo.Logger.Fatal(e, "Could not add the file {0}", filePath);
+                        // HINT: Log messages are not localized
+                        _formInfo.Logger.Fatal(e, CouldNotAddFileLog_, filePath);
                         filesNotAdded = true;
 
                         continue;
@@ -1178,15 +1224,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     sourceFile.Close();
                 }
             });
-            _formInfo.Progress.ReportProgress("Add files", 1, 1);
+            _formInfo.Progress.ReportProgress(Localize(AddFileProgressKey_), 1, 1);
             _formInfo.Progress.FinishProgress();
 
             if (_asyncOperation.WasCancelled)
-                _formInfo.FormCommunicator.ReportStatus(false, "File adding cancelled.");
+                _formInfo.FormCommunicator.ReportStatus(false, Localize(AddFileCancelledStatusKey_));
             else if (filesNotAdded)
-                _formInfo.FormCommunicator.ReportStatus(true, "Some file(s) could not be added successfully. Refer to the log for more information.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(UnableToAddFilesStatusKey_));
             else
-                _formInfo.FormCommunicator.ReportStatus(true, "File(s) added successfully.");
+                _formInfo.FormCommunicator.ReportStatus(true, Localize(AddFileSuccessfulStatusKy_));
 
             UpdateFiles(GetAbsolutePath((TreeGridItem)folderView.SelectedItem));
 
@@ -1196,6 +1242,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         #endregion
 
         #region Support
+
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
 
         private UPath GetAbsolutePath(TreeGridItem item)
         {
@@ -1224,12 +1275,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             return SelectFile<OpenFileDialog>(fileName);
         }
-        
+
         private UPath SaveFile(string fileName)
         {
             return SelectFile<SaveFileDialog>(fileName);
         }
-        
+
         private UPath SelectFile<DialogType>(string fileName) where DialogType : FileDialog, new()
         {
             var ofd = new DialogType
@@ -1237,7 +1288,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
                 FileName = fileName
             };
-            
+
             var result = ofd.ShowDialog(this) == DialogResult.Ok ? ofd.FileName : UPath.Empty;
 
             if (result != UPath.Empty)
