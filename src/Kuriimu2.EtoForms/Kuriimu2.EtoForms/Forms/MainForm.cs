@@ -203,7 +203,6 @@ namespace Kuriimu2.EtoForms.Forms
 
         private async void OpenPhysicalFiles(IList<string> filesToOpen, bool manualIdentification)
         {
-            var result = false;
             foreach (var fileToOpen in filesToOpen)
             {
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
@@ -212,11 +211,8 @@ namespace Kuriimu2.EtoForms.Forms
                         _fileManager.LoadFile(fileToOpen, plugin.PluginId));
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
-                result = await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
+                await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
             }
-
-            if (filesToOpen.Count == 1)
-                ReportStatus(result, result ? Localize(FileSuccessfullyLoadedKey_) : Localize(FileNotSuccessfullyLoadedKey_));
         }
 
         private async Task<bool> OpenFile(UPath filePath, bool manualIdentification, Func<IFilePlugin, Task<LoadResult>> loadFileFunc, Color tabColor)
@@ -250,7 +246,9 @@ namespace Kuriimu2.EtoForms.Forms
             IFilePlugin chosenPlugin = null;
             if (manualIdentification)
             {
-                chosenPlugin = ChoosePlugin(Localize(ChooseOpenFilePluginKey_), _fileManager.GetFilePlugins().ToArray());
+                var allPlugins = _fileManager.GetFilePlugins().ToArray();
+
+                chosenPlugin = ChoosePlugin(allPlugins, allPlugins, SelectionStatus.All);
                 if (chosenPlugin == null)
                 {
                     ReportStatus(false, Localize(NoPluginSelectedStatusKey_));
@@ -768,7 +766,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void fileManager_OnManualSelection(object sender, ManualSelectionEventArgs e)
         {
-            var selectedPlugin = ChoosePlugin(e.Message, e.FilePlugins, e.FilterNote, e.FilteredPlugins);
+            var selectedPlugin = ChoosePlugin(e.FilePlugins.ToArray(), e.FilteredFilePlugins.ToArray(), e.SelectionStatus);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
         }
@@ -918,11 +916,11 @@ namespace Kuriimu2.EtoForms.Forms
             return JsonConvert.DeserializeObject<Manifest>(new StreamReader(resourceStream).ReadToEnd());
         }
 
-        private IFilePlugin ChoosePlugin(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote = null, IReadOnlyList<IFilePlugin> filteredPlugins = null)
+        private IFilePlugin ChoosePlugin(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
             return Application.Instance.Invoke(() =>
             {
-                var pluginDialog = new ChoosePluginDialog(message, filePlugins, filterNote, filteredPlugins);
+                var pluginDialog = new ChoosePluginDialog(allFilePlugins, filteredFilePlugins, status);
                 return pluginDialog.ShowModal(this);
             });
         }

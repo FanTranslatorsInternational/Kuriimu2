@@ -15,6 +15,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private TextSequenceSearcher _sequenceSearcher;
 
+        #region Localization Keys
+
+        private const string SelectSearchDirectoryKey_ = "SelectSearchDirectory";
+
+        private const string SelectEncodingCaptionKey_ = "SelectEncodingCaption";
+        private const string SelectSearchDirectoryCaptionKey_ = "SelectSearchDirectoryCaption";
+        private const string SelectSearchTextCaptionKey_ = "SelectSearchTextCaption";
+
+        #endregion
+
         public SequenceSearcherDialog()
         {
             InitializeComponent();
@@ -56,7 +66,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             var fbd = new SelectFolderDialog
             {
-                Title = "Select the directory to search through.",
+                Title = Localize(SelectSearchDirectoryKey_),
                 Directory = Settings.Default.SequenceSearchDirectory
             };
 
@@ -111,19 +121,19 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             if (encodings.SelectedIndex < 0)
             {
-                MessageBox.Show("Select an encoding.", MessageBoxButtons.OK);
+                MessageBox.Show(Localize(SelectEncodingCaptionKey_), MessageBoxButtons.OK);
                 return false;
             }
 
             if (string.IsNullOrEmpty(inputText.Text))
             {
-                MessageBox.Show("Select a directory to search in.", MessageBoxButtons.OK);
+                MessageBox.Show(Localize(SelectSearchDirectoryCaptionKey_), MessageBoxButtons.OK);
                 return false;
             }
 
             if (string.IsNullOrEmpty(searchText.Text))
             {
-                MessageBox.Show("Select a text to search for.", MessageBoxButtons.OK);
+                MessageBox.Show(Localize(SelectSearchTextCaptionKey_), MessageBoxButtons.OK);
                 return false;
             }
 
@@ -138,5 +148,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         }
 
         #endregion
+
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
     }
 }

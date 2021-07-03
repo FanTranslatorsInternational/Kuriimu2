@@ -5,15 +5,15 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
     partial class InputBoxDialog : Dialog<string>
     {
-        public InputBoxDialog(string labelText, string formText = "", string defaultValue = "")
+        public InputBoxDialog(string labelText, string titleText = "", string defaultValue = "")
         {
             InitializeComponent();
 
             if (!string.IsNullOrEmpty(labelText))
-                label.Text = labelText + ":";
+                label.Text = labelText;
 
-            if (!string.IsNullOrEmpty(formText))
-                Title = formText;
+            if (!string.IsNullOrEmpty(titleText))
+                Title = titleText;
 
             if (!string.IsNullOrEmpty(defaultValue))
                 input.Text = defaultValue;
@@ -31,6 +31,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private void OkCommand_Executed(object sender, EventArgs e)
         {
             Close(input.Text);
+        }
+
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
         }
     }
 }

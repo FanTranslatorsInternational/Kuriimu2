@@ -32,6 +32,32 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         #endregion
 
+        #region Localization Keys
+
+        private const string RawImageViewerKey_ = "RawImageViewer";
+
+        private const string EncodingParametersKey_ = "RawImageViewerEncodingParameters";
+        private const string EncodingPaletteParametersKey_ = "RawImageViewerEncodingPaletteParameters";
+        private const string SwizzleParametersKey_ = "RawImageViewerSwizzleParameters";
+
+        private const string OpenKey_ = "Open";
+        private const string CloseKey_ = "Close";
+        private const string ExtractKey_ = "Extract";
+        private const string FileKey_ = "File";
+
+        private const string WidthKey_ = "Width";
+        private const string HeightKey_ = "Height";
+        private const string FormatKey_ = "Format";
+        private const string PaletteKey_ = "Palette";
+
+        private const string OffsetKey_ = "Offset";
+        private const string PaletteOffsetKey_ = "PaletteOffset";
+        private const string SwizzleKey_ = "Swizzle";
+
+        private const string ProcessKey_ = "Process";
+
+        #endregion
+
         private void InitializeComponent()
         {
             #region Controls
@@ -46,9 +72,9 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             palEncodings = new ComboBox();
             swizzles = new ComboBox();
 
-            encodingParameters = new GroupBox { Text = "Encoding Parameters" };
-            palEncodingParameters= new GroupBox { Text = "Encoding Palette Parameters" };
-            swizzleParameters = new GroupBox { Text = "Swizzle Parameters" };
+            encodingParameters = new GroupBox { Text = Localize(EncodingParametersKey_) };
+            palEncodingParameters= new GroupBox { Text = Localize(EncodingPaletteParametersKey_) };
+            swizzleParameters = new GroupBox { Text = Localize(SwizzleParametersKey_) };
 
             statusLabel = new Label { TextColor = KnownColors.DarkRed };
 
@@ -56,14 +82,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             #region Commands
 
-            openFileCommand = new Command { MenuText = "Open" };
-            closeFileCommand = new Command { MenuText = "Close", Enabled = false };
-            extractImageCommand = new Command { MenuText = "Extract", Enabled = false };
+            openFileCommand = new Command { MenuText = Localize(OpenKey_) };
+            closeFileCommand = new Command { MenuText = Localize(CloseKey_), Enabled = false };
+            extractImageCommand = new Command { MenuText = Localize(ExtractKey_), Enabled = false };
             processCommand = new Command { Enabled = false };
 
             #endregion
 
-            Title = "Raw Image Viewer";
+            Title = Localize(RawImageViewerKey_);
             Size = new Size(500, 600);
             Padding = new Padding(4);
 
@@ -71,7 +97,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             {
                 Items =
                 {
-                    new ButtonMenuItem { Text = "File", Items = { openFileCommand, closeFileCommand, new SeparatorMenuItem(), extractImageCommand } },
+                    new ButtonMenuItem { Text = Localize(FileKey_), Items = { openFileCommand, closeFileCommand, new SeparatorMenuItem(), extractImageCommand } },
                 }
             };
 
@@ -80,33 +106,33 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             var baseParameterLayout = new StackLayout
             {
                 Orientation = Orientation.Vertical,
-                HorizontalContentAlignment=HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Stretch,
 
-                Spacing=3,
+                Spacing = 3,
 
                 Items =
                 {
                     new TableLayout
                     {
-                        Spacing=new Size(3,3),
+                        Spacing = new Size(3,3),
                         Rows =
                         {
-                            new TableRow { Cells = { new Label { Text="Width:"}, widthText } },
-                            new TableRow { Cells = { new Label { Text="Height:"}, heightText } },
-                            new TableRow { Cells = { new Label { Text="Offset:"}, offsetText } },
-                            new TableRow { Cells = { new Label { Text="Encoding:"}, encodings } },
-                            new TableRow { Cells = { new Label { Text="Palette Offset:"}, palOffsetText } },
-                            new TableRow { Cells = { new Label { Text="Palette Encoding:"}, palEncodings } },
-                            new TableRow { Cells = { new Label { Text="Swizzles:"}, swizzles } },
+                            new TableRow { Cells = { new Label { Text = Localize(WidthKey_) }, widthText } },
+                            new TableRow { Cells = { new Label { Text = Localize(HeightKey_) }, heightText } },
+                            new TableRow { Cells = { new Label { Text = Localize(OffsetKey_) }, offsetText } },
+                            new TableRow { Cells = { new Label { Text = Localize(FormatKey_) }, encodings } },
+                            new TableRow { Cells = { new Label { Text = Localize(PaletteOffsetKey_) }, palOffsetText } },
+                            new TableRow { Cells = { new Label { Text = Localize(PaletteKey_) }, palEncodings } },
+                            new TableRow { Cells = { new Label { Text = Localize(SwizzleKey_) }, swizzles } },
                         }
                     },
-                    new Button { Text = "Process", Command = processCommand }
+                    new Button { Text = Localize(ProcessKey_), Command = processCommand }
                 }
             };
 
             var encodingParameterLayout = new StackLayout
             {
-                Orientation=Orientation.Vertical,
+                Orientation = Orientation.Vertical,
 
                 Items =
                 {

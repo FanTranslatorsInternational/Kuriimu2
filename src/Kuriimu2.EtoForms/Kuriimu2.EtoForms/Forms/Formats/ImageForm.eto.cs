@@ -10,10 +10,31 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class ImageForm:Panel
     {
+        #region Localization Keys
+
+        private const string SaveKey_ = "Save";
+        private const string SaveAsKey_ = "SaveAs";
+
+        private const string ExportImageKey_ = "ExportImage";
+        private const string ImportImageKey_ = "ImportImage";
+
+        private const string WidthKey_ = "Width";
+        private const string HeightKey_ = "Height";
+        private const string FormatKey_ = "Format";
+        private const string PaletteKey_ = "Palette";
+
+        #endregion
+
+        #region Commands
+
         private Command saveCommand;
         private Command saveAsCommand;
         private Command exportCommand;
         private Command importCommand;
+
+        #endregion
+
+        #region Controls
 
         private ButtonToolStripItem saveButton;
         private ButtonToolStripItem saveAsButton;
@@ -28,6 +49,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private ComboBox formats;
         private ComboBox palettes;
         private ListBox imageList;
+
+        #endregion
 
         private void InitializeComponent()
         {
@@ -46,25 +69,25 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             saveButton = new ButtonToolStripItem
             {
-                ToolTip = "Save",
+                ToolTip = Localize(SaveKey_),
                 Command = saveCommand,
             };
 
             saveAsButton = new ButtonToolStripItem
             {
-                ToolTip = "Save As",
+                ToolTip = Localize(SaveAsKey_),
                 Command = saveAsCommand,
             };
 
             exportButton = new ButtonToolStripItem
             {
-                ToolTip = "Export image",
+                ToolTip = Localize(ExportImageKey_),
                 Command = exportCommand,
             };
 
             importButton = new ButtonToolStripItem
             {
-                ToolTip = "Import image data",
+                ToolTip = Localize(ImportImageKey_),
                 Command = importCommand,
             };
 
@@ -81,10 +104,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             imageView = new ImageViewEx { BackgroundColor = KnownColors.DarkGreen };
             imagePalette = new PaletteView { Size = new Size(200, -1),  };
 
-            var widthLabel = new Label { Text = "Width:" };
-            var heightLabel = new Label { Text = "Height:" };
-            var formatLabel = new Label { Text = "Format:" };
-            var paletteLabel = new Label { Text = "Palette:" };
+            var widthLabel = new Label { Text = Localize(WidthKey_) };
+            var heightLabel = new Label { Text = Localize(HeightKey_) };
+            var formatLabel = new Label { Text = Localize(FormatKey_) };
+            var paletteLabel = new Label { Text = Localize(PaletteKey_) };
 
             width = new Label();
             height = new Label();

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Interfaces.Managers;
@@ -15,6 +14,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private Dialog<DialogResult> _dialog;
 
+        #region Localization Keys
+
+        private const string CancelDialogKey_ = "CancelDialog";
+        private const string UnsupportedDialogFieldTypeKey_ = "UnsupportedDialogFieldType";
+        private const string DialogOkButtonKey_ = "DialogOkButton";
+
+        #endregion
+
         public DialogManagerDialog(Control owner)
         {
             _owner = owner;
@@ -26,7 +33,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             {
                 _dialog = new Dialog<DialogResult> { Padding = new Padding(5), Content = CreateContent(fields) };
                 if (_dialog.ShowModal(_owner) != DialogResult.Ok)
-                    throw new InvalidOperationException("Dialog was cancelled.");
+                    throw new InvalidOperationException(Localize(CancelDialogKey_));
             });
         }
 
@@ -84,14 +91,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return txt;
 
                 default:
-                    throw new InvalidOperationException($"Unsupported dialog field type {field.Text}.");
+                    throw new InvalidOperationException(Localize(UnsupportedDialogFieldTypeKey_, field.Text));
             }
         }
 
         // TODO: Create right-aligned button control structure
         private Control CreateOkButton()
         {
-            var okButton = new Button { Text = "OK" };
+            var okButton = new Button { Text = Localize(DialogOkButtonKey_) };
             okButton.Click += okButton_Click;
 
             return okButton;
@@ -127,5 +134,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         }
 
         #endregion
+
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
     }
 }

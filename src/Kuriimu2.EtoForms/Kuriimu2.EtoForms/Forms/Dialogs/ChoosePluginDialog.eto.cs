@@ -20,6 +20,18 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         #endregion
 
+        #region Localization Keys
+
+        private const string ChoosePluginTitleKey_ = "ChoosePluginTitle";
+
+        private const string ChoosePluginContinueKey_ = "ChoosePluginContinue";
+        private const string ChoosePluginRawBytesKey_ = "ChoosePluginRawBytes";
+        private const string ChoosePluginCancelKey_ = "ChoosePluginCancel";
+
+        private const string ChoosePluginShowAllKey_ = "ChoosePluginShowAll";
+
+        #endregion
+
         private void InitializeComponent()
         {
             #region Commands
@@ -30,7 +42,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             #endregion
 
-            Title = "Choose plugin";
+            Title = Localize(ChoosePluginTitleKey_);
             Size = new Size(550, 500);
             Padding = new Padding(3);
 
@@ -42,14 +54,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 VerticalContentAlignment = VerticalAlignment.Stretch
             };
             
-            continueButton = new Button { Text = "Continue", Command = continueButtonCommand };
-            viewRawButton = new Button {Text = "View raw bytes", Command = viewRawButtonCommand };
+            continueButton = new Button { Text = Localize(ChoosePluginContinueKey_), Command = continueButtonCommand };
+            viewRawButton = new Button { Text = Localize(ChoosePluginRawBytesKey_), Command = viewRawButtonCommand };
             viewRawButton.Width = viewRawButton.MinimumSize.Width + 16; // add some ooga-booga padding
-            cancelButton = new Button { Text = "Cancel", Command = cancelButtonCommand };
+            cancelButton = new Button { Text = Localize(ChoosePluginCancelKey_), Command = cancelButtonCommand };
             
             showAllCheckbox = new CheckBox()
             {
-                Text = "Show all plugins",
+                Text = Localize(ChoosePluginShowAllKey_),
                 ToolTip = _filterNote,
                 Checked = _filteredPlugins == null,
                 Enabled = _filteredPlugins != null
@@ -68,7 +80,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                         {
                             new Label
                             {
-                                Text = _message + ":",
+                                Text = _message,
                                 TextAlignment = TextAlignment.Center,
                             }
                         } 

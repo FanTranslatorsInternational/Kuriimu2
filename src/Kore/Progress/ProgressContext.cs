@@ -83,6 +83,11 @@ namespace Kore.Progress
             _output.SetProgress(_state);
         }
 
+        public void ReportProgress(long partialValue, long maxValue)
+        {
+            ReportProgress(_state.Message, partialValue, maxValue);
+        }
+
         public void ReportProgress(string message, long partialValue, long maxValue)
         {
             lock (_lock)

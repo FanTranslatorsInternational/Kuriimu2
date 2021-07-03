@@ -28,15 +28,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private IList<ImageEncodingElement> _currentFormats;
         private IList<ImageEncodingElement> _currentPaletteFormats;
 
-        #region Constants
+        #region Localization Keys
 
-        private const string PngFileFilter_ = "Portable Network Graphics (*.png)|*.png";
+        private const string ExportPngTitleKey_ = "ExportPngTitle";
+        private const string ImportPngTitleKey_ = "ImportPngTitle";
 
-        private const string ExportPngTitle_ = "Export Png...";
-        private const string ImportPngTitle_ = "Import Png...";
+        private const string ImageSuccessfullyImportedStatusKey_ = "ImageSuccessfullyImportedStatus";
 
-        private const string ExportPaletteTitle_ = "Export palette...";
-        private const string ImportPaletteTitle_ = "Import palette...";
+        private const string PngFileFilterKey_ = "PngFileFilter";
 
         #endregion
 
@@ -302,10 +301,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             var sfd = new SaveFileDialog
             {
-                Title = ExportPngTitle_,
+                Title = Localize(ExportPngTitleKey_),
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
                 FileName = imageName,
-                Filters = { new FileFilter("Portable Network Graphic (*.png)", "*.png") }
+                Filters = { new FileFilter(Localize(PngFileFilterKey_), "*.png") }
             };
 
             if (sfd.ShowDialog(this) != DialogResult.Ok)
@@ -322,9 +321,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             var ofd = new OpenFileDialog
             {
-                Title = ImportPngTitle_,
+                Title = Localize(ImportPngTitleKey_),
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
-                Filters = { new FileFilter("Portable Network Graphic (*.png)", "*.png") }
+                Filters = { new FileFilter(Localize(PngFileFilterKey_), "*.png") }
             };
 
             if (ofd.ShowDialog(this) != DialogResult.Ok)
@@ -353,7 +352,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             UpdateFormInternal();
 
             _formInfo.FormCommunicator.Update(true, false);
-            _formInfo.FormCommunicator.ReportStatus(true, "Image successfully imported.");
+            _formInfo.FormCommunicator.ReportStatus(true, Localize(ImageSuccessfullyImportedStatusKey_));
         }
 
         #endregion
@@ -466,6 +465,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Support
 
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
+
         private IList<IKanvasImage> GetStateImages()
         {
             return (_formInfo.FileState.PluginState as IImageState).Images;
@@ -544,7 +548,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 await _asyncOperation.StartAsync(cts =>
                 {
                     selectedImage.SetColorInPalette(index, newColor);
-                    _formInfo.Progress.ReportProgress("Done", 1, 1);
+                    _formInfo.Progress.ReportProgress(1, 1);
                 });
             }
             catch (Exception ex)

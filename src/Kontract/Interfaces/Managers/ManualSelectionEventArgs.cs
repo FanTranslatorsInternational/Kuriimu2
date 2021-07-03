@@ -1,24 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Kontract.Interfaces.Plugins.Identifier;
 
 namespace Kontract.Interfaces.Managers
 {
     public class ManualSelectionEventArgs : EventArgs
     {
-        public string Message { get; }
-        public IReadOnlyList<IFilePlugin> FilePlugins { get; }
-        public string FilterNote { get; }
-        public IReadOnlyList<IFilePlugin> FilteredPlugins { get; }
+        public IEnumerable<IFilePlugin> FilePlugins { get; }
+        public IEnumerable<IFilePlugin> FilteredFilePlugins { get; }
+        public SelectionStatus SelectionStatus { get; }
 
         public IFilePlugin Result { get; set; }
 
-        public ManualSelectionEventArgs(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote, IReadOnlyList<IFilePlugin> filteredPlugins)
+        public ManualSelectionEventArgs(IEnumerable<IFilePlugin> allFilePlugins, IEnumerable<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
-            Message = message;
-            FilterNote = filterNote;
-            FilteredPlugins = filteredPlugins;
-            FilePlugins = filePlugins;
+            FilePlugins = allFilePlugins;
+            FilteredFilePlugins = filteredFilePlugins;
+            SelectionStatus = status;
         }
+    }
+
+    public enum SelectionStatus
+    {
+        All,
+        MultipleMatches,
+        NonIdentifiable
     }
 }

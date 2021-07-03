@@ -22,6 +22,21 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         #endregion
 
+        #region Localization Keys
+
+        private const string SearchSubfoldersKey_ = "SearchSubfolders";
+        private const string TextSequenceSearcherTitleKey_ = "TextSequenceSearcherTitle";
+
+        private const string FindKey_ = "Find";
+        private const string FindInKey_ = "FindIn";
+        private const string FindWhatKey_ = "FindWhat";
+        private const string BrowseKey_ = "Browse";
+        private const string EncodingKey_ = "Encoding";
+
+        private const string CancelOperationKey_ = "CancelOperation";
+
+        #endregion
+
         private void InitializeComponent()
         {
             #region Controls
@@ -29,7 +44,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             inputText = new TextBox { ReadOnly = true, Size = new Size(300, -1) };
             searchText = new TextBox();
             encodings = new ComboBox { Size=new Size(200,-1)};
-            searchSubfoldersBox = new CheckBox { Text="Search Subfolders" };
+            searchSubfoldersBox = new CheckBox { Text = Localize(SearchSubfoldersKey_) };
             resultList = new ListBox { Size=new Size(-1, 250) };
             warningLabel = new Label();
 
@@ -43,7 +58,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             #endregion
 
-            Title = "Text Sequence Searcher";
+            Title = Localize(TextSequenceSearcherTitleKey_);
             Size = new Size(500, 400);
             Padding = new Padding(6);
 
@@ -59,25 +74,25 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     {
                         Cells =
                         {
-                            new Label{Text="Find in:",VerticalAlignment=VerticalAlignment.Center},
+                            new Label{Text=Localize(FindInKey_),VerticalAlignment=VerticalAlignment.Center},
                             inputText,
-                            new Button{Text="Browse...", Command=browseCommand}
+                            new Button{Text=Localize(BrowseKey_), Command=browseCommand}
                         }
                     },
                     new TableRow
                     {
                         Cells =
                         {
-                            new Label{Text="Find what:",VerticalAlignment=VerticalAlignment.Center},
+                            new Label{Text=Localize(FindWhatKey_),VerticalAlignment=VerticalAlignment.Center},
                             searchText,
-                            new Button{Text="Find", Command=executeCommand}
+                            new Button{Text=Localize(FindKey_), Command=executeCommand}
                         }
                     },
                     new TableRow
                     {
                         Cells =
                         {
-                            new Label{Text="Encoding:",VerticalAlignment=VerticalAlignment.Center},
+                            new Label{Text=Localize(EncodingKey_),VerticalAlignment=VerticalAlignment.Center},
                             new StackLayout
                             {
                                 Orientation=Orientation.Horizontal,
@@ -91,7 +106,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                                     searchSubfoldersBox
                                 }
                             },
-                            new Button{Text="Cancel", Command=cancelCommand}
+                            new Button{Text=Localize(CancelOperationKey_), Command=cancelCommand}
                         }
                     }
                 }

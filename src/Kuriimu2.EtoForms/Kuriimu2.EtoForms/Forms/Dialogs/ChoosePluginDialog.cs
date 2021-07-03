@@ -3,30 +3,63 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Eto.Forms;
+using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kore.Models.UnsupportedPlugin;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
+    // TODO: For SelectionStatus.All, we may provide a ctor that only takes a list of all file plugins instead to reduce external overhead
     partial class ChoosePluginDialog : Dialog<IFilePlugin>
     {
         private readonly string _message;
         private readonly string _filterNote;
-        private readonly IReadOnlyList<IFilePlugin> _filteredPlugins;
-        private readonly IReadOnlyList<IFilePlugin> _allPlugins;
+
+        private readonly IList<IFilePlugin> _allPlugins;
+        private readonly IList<IFilePlugin> _filteredPlugins;
 
         private IFilePlugin _selectedFilePlugin;
 
-        public ChoosePluginDialog(string message, IReadOnlyList<IFilePlugin> filePlugins, string filterNote, IReadOnlyList<IFilePlugin> filteredPlugins)
+        #region Localizuation Keys
+
+        private const string ChooseOpenFilePluginKey_ = "ChooseOpenFilePlugin";
+        private const string MultiplePluginMatchesSelectionKey_ = "MultiplePluginMatchesSelection";
+        private const string NonIdentifiablePluginSelectionKey_ = "NonIdentifiablePluginSelection";
+        private const string NonIdentifiablePluginSelectionNoteKey_ = "NonIdentifiablePluginSelectionNote";
+
+        private const string PluginNameColumnKey_ = "PluginNameColumn";
+        private const string PluginTypeColumnKey_ = "PluginTypeColumn";
+        private const string PluginDescriptionColumnKey_ = "PluginDescriptionColumn";
+        private const string PluginIdColumnKey_ = "PluginIdColumn";
+
+        #endregion
+
+        public ChoosePluginDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
-            _message = message;
-            _allPlugins = filePlugins;
-            _filterNote = filterNote;
-            _filteredPlugins = filteredPlugins;
-            
+            _allPlugins = allFilePlugins.ToArray();
+            _filteredPlugins = filteredFilePlugins.ToArray();
+
+            switch (status)
+            {
+                case SelectionStatus.All:
+                    _message = Localize(ChooseOpenFilePluginKey_);
+                    showAllCheckbox.Enabled = false;
+                    showAllCheckbox.Checked = true;
+                    break;
+
+                case SelectionStatus.MultipleMatches:
+                    _message = Localize(MultiplePluginMatchesSelectionKey_);
+                    break;
+
+                case SelectionStatus.NonIdentifiable:
+                    _message = Localize(NonIdentifiablePluginSelectionKey_);
+                    _filterNote = Localize(NonIdentifiablePluginSelectionNoteKey_);
+                    break;
+            }
+
             InitializeComponent();
-            ListPlugins(filteredPlugins ?? filePlugins);
+            ListPlugins(_filteredPlugins);
 
             continueButtonCommand.Executed += ContinueButtonCommandExecuted;
             viewRawButtonCommand.Executed += ViewRawButtonCommandExecuted;
@@ -34,14 +67,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             showAllCheckbox.CheckedChanged += ShowAllCheckbox_Changed;
         }
 
-        private void ListPlugins(IReadOnlyList<IFilePlugin> plugins)
+        private void ListPlugins(IEnumerable<IFilePlugin> plugins)
         {
             pluginListPanel.Items.Clear();
-            
+
             foreach (var groupedPlugins in plugins.GroupBy(x => x.GetType().Assembly))
             {
                 var pluginStore = new ObservableCollection<object>();
-                foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? "<undefined>"))
+                foreach (var plugin in groupedPlugins.OrderBy(x => x.Metadata?.Name ?? string.Empty))
                     pluginStore.Add(new ChoosePluginElement(plugin));
 
                 pluginListPanel.Items.Add(new Expander
@@ -67,26 +100,26 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 {
                     new GridColumn
                     {
-                        HeaderText = "Name",
+                        HeaderText = Localize(PluginNameColumnKey_),
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.Name)},
                         Sortable = true,
                         AutoSize = true
                     },
                     new GridColumn
                     {
-                        HeaderText = "Type",
+                        HeaderText = Localize(PluginTypeColumnKey_),
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.Type.ToString())},
                         Sortable = true,
                         AutoSize = true
                     },
                     new GridColumn
                     {
-                        HeaderText = "Description",
+                        HeaderText = Localize(PluginDescriptionColumnKey_),
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.Description)}
                     },
                     new GridColumn
                     {
-                        HeaderText = "GUID",
+                        HeaderText = Localize(PluginIdColumnKey_),
                         DataCell = new TextBoxCell{Binding = Binding.Property<ChoosePluginElement,string>(p=>p.PluginId.ToString("D"))},
                         Sortable = true,
                         AutoSize = true
@@ -145,5 +178,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         }
 
         #endregion
+
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
     }
 }

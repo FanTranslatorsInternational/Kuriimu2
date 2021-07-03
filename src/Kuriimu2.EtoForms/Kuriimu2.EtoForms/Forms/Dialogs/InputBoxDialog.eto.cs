@@ -15,11 +15,17 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         #endregion
 
+        #region Initialization Keys
+
+        private const string InputBoxOkButtonKey_ = "InputBoxOkButton";
+
+        #endregion
+
         private void InitializeComponent()
         {
             #region Commands
 
-            okCommand = new Command { MenuText = "Ok" };
+            okCommand = new Command();
 
             #endregion
 
@@ -30,7 +36,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
             label = new Label();
             input = new TextBox();
-            okButton = new Button { Text="Ok", Command = okCommand };
+            okButton = new Button { Text=Localize(InputBoxOkButtonKey_), Command = okCommand };
 
             Content = new StackLayout
             {

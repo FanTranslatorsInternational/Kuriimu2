@@ -111,20 +111,15 @@ namespace Kore.Managers.Plugins.FileManagement
 
             // 3. Return only matched plugin or manually select one of the matched plugins
             var allPlugins = _filePluginLoaders.GetAllFilePlugins().ToArray();
-            
+
             if (matchedPlugins.Count == 1)
                 return matchedPlugins.First();
-            
+
             if (matchedPlugins.Count > 1)
-                return GetManualSelection(
-                    "Multiple plugins think they can open this file, please choose one:",
-                    allPlugins, null, matchedPlugins);
+                return GetManualSelection(allPlugins, matchedPlugins, SelectionStatus.MultipleMatches);
 
             // 5. If no plugin could identify the file, get manual feedback on all plugins that don't implement IIdentifyFiles
-            var nonIdentifiablePlugins = _filePluginLoaders.GetNonIdentifiableFilePlugins().ToArray();
-            return loadInfo.AllowManualSelection ? GetManualSelection(
-                "Could not automatically determine plugin for opening this file, please choose manually:", 
-                allPlugins, "By default only plugins that couldn't automatically determine if they support the file are shown", nonIdentifiablePlugins) : null;
+            return loadInfo.AllowManualSelection ? GetManualSelection(allPlugins, allPlugins.Where(x => !x.CanIdentifyFiles), SelectionStatus.NonIdentifiable) : null;
         }
 
         /// <summary>
@@ -147,15 +142,14 @@ namespace Kore.Managers.Plugins.FileManagement
             return identifyResult;
         }
 
-        // TODO: Maybe do not pass whole messages, since this message may not be universal for all UI's. Instead pass other atomic parameters  to signalize this behaviour.
         /// <summary>
         /// Select a plugin manually.
         /// </summary>
         /// <returns>The manually selected plugin.</returns>
-        private IFilePlugin GetManualSelection(string message, IReadOnlyList<IFilePlugin> filePluginList, string filterNote, IReadOnlyList<IFilePlugin> filteredPluginList)
+        private IFilePlugin GetManualSelection(IEnumerable<IFilePlugin> allFilePlugins, IEnumerable<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
             // 1. Request manual selection by the user
-            var selectionArgs = new ManualSelectionEventArgs(message, filePluginList, filterNote, filteredPluginList);
+            var selectionArgs = new ManualSelectionEventArgs(allFilePlugins, filteredFilePlugins, status);
             OnManualSelection?.Invoke(this, selectionArgs);
 
             return selectionArgs.Result;

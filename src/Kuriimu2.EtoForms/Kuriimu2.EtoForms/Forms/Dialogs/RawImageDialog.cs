@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -24,6 +23,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 {
     partial class RawImageDialog : Dialog
     {
+        private string _openedPath;
         private Stream _openedFile;
 
         private readonly ParameterBuilder _encodingsBuilder;
@@ -35,6 +35,30 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         private ExtensionType SelectedPaletteEncodingExtension => (palEncodings.SelectedValue as ExtensionTypeElement)?.Value;
 
         private ExtensionType SelectedSwizzleExtension => (swizzles.SelectedValue as ExtensionTypeElement)?.Value;
+
+        #region Localization Keys
+
+        private const string NoSwizzleKey_ = "NoSwizzle";
+        private const string CustomSwizzleKey_ = "CustomSwizzle";
+
+        private const string ComponentOrderKey_ = "ComponentOrder";
+        private const string ByteOrderKey_ = "ByteOrder";
+        private const string BitOrderKey_ = "BitOrder";
+        private const string ZOrderKey_ = "ZOrder";
+        private const string AlphaLuminanceKey_ = "AlphaLuminance";
+        private const string AlphaModeKey_ = "AlphaMode";
+        private const string SwizzleModeKey_ = "SwizzleMode";
+        private const string BitMappingKey_ = "BitMapping";
+        private const string InitPointKey_ = "InitPoint";
+        private const string YTransformKey_ = "YTransform";
+
+        private const string InvalidInputValuesStatusKey_ = "InvalidInputValuesStatus";
+        private const string InvalidCustomSwizzleStatusKey_ = "InvalidCustomSwizzleStatus";
+
+        private const string NoFileSelectedStatusKey_ = "NoFileSelectedStatus";
+        private const string SelectedFileNotExistStatusKey_ = "SelectedFileNotExistStatus";
+
+        #endregion
 
         public RawImageDialog()
         {
@@ -84,27 +108,27 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 return;
 
             if (!int.TryParse(offsetText.Text, out var offset) &&
-                !int.TryParse(offsetText.Text.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
+                !int.TryParse(offsetText.Text.Replace("0x", string.Empty), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
                     out offset) ||
                 !int.TryParse(palOffsetText.Text, out var palOffset) &&
-                !int.TryParse(palOffsetText.Text.Replace("0x", ""), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
+                !int.TryParse(palOffsetText.Text.Replace("0x", string.Empty), NumberStyles.HexNumber, CultureInfo.CurrentCulture,
                     out palOffset) ||
                 !int.TryParse(widthText.Text, out var width) ||
                 !int.TryParse(heightText.Text, out var height))
             {
-                SetStatus("Input values are invalid.");
+                SetStatus(Localize(InvalidInputValuesStatusKey_));
                 return;
             }
 
             if (offset < 0 || offset >= _openedFile.Length || width <= 0 || height <= 0)
             {
-                SetStatus("Input values are invalid.");
+                SetStatus(Localize(InvalidInputValuesStatusKey_));
                 return;
             }
 
-            if (SelectedSwizzleExtension.Name == "Custom" && CheckCustomSwizzle())
+            if (SelectedSwizzleExtension.Name == Localize(CustomSwizzleKey_) && CheckCustomSwizzle())
             {
-                SetStatus("Custom swizzle is invalid.");
+                SetStatus(Localize(InvalidCustomSwizzleStatusKey_));
                 return;
             }
 
@@ -128,7 +152,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 _openedFile.Read(imgData, 0, imgData.Length);
 
                 var imageConfiguration = new ImageConfiguration();
-                if (SelectedSwizzleExtension.Name != "None")
+                if (SelectedSwizzleExtension.Name != Localize(NoSwizzleKey_))
                     imageConfiguration.RemapPixels.With(CreateSwizzle);
 
                 System.Drawing.Bitmap image;
@@ -158,7 +182,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 imageView.Image = image.ToEto();
                 imageView.Invalidate();
 
-                SetStatus("");
+                SetStatus();
             }
             catch (Exception e)
             {
@@ -211,54 +235,54 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             return new List<ExtensionType>
             {
                 new ExtensionType("RGBA8888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB565", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB555", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA5551", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA4444", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RG88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RG"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("R8", true),
                 new ExtensionType("G8", true),
                 new ExtensionType("B8", true),
 
                 new ExtensionType("LA88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "LA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("LA44", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "LA")),
                 new ExtensionType("L8", true),
                 new ExtensionType("A8", true),
                 new ExtensionType("L4", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
                 new ExtensionType("A4", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
 
                 new ExtensionType("I2", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
                 new ExtensionType("I4", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
                 new ExtensionType("I8", true),
                 new ExtensionType("IA35", true),
                 new ExtensionType("IA53", true),
 
                 new ExtensionType("ETC1", true,
-                    new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
+                    new ExtensionTypeParameter(Localize(ZOrderKey_), typeof(bool), false)),
                 new ExtensionType("ETC1A4", true,
-                    new ExtensionTypeParameter("Z-Order", typeof(bool), false)),
+                    new ExtensionTypeParameter(Localize(ZOrderKey_), typeof(bool), false)),
 
                 new ExtensionType("ETC2 RGB", true),
                 new ExtensionType("ETC2 RGBA", true),
@@ -273,11 +297,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                 new ExtensionType("ATI1L", true),
                 new ExtensionType("ATI1A", true),
                 new ExtensionType("ATI2", true,
-                    new ExtensionTypeParameter("Alpha/Luminance", typeof(bool), false)),
+                    new ExtensionTypeParameter(Localize(AlphaLuminanceKey_), typeof(bool), false)),
 
                 new ExtensionType("ATC", true),
                 new ExtensionType("ATCA", true,
-                    new ExtensionTypeParameter("AlphaMode", typeof(AtcAlpha), AtcAlpha.Explicit)),
+                    new ExtensionTypeParameter(Localize(AlphaModeKey_), typeof(AtcAlpha), AtcAlpha.Explicit)),
 
                 new ExtensionType("BC7", true),
 
@@ -297,41 +321,41 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             return new List<ExtensionType>
             {
                 new ExtensionType("RGBA8888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB888", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB565", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGB555", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGB"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGB"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA5551", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RGBA4444", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RGBA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RGBA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("RG88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "RG"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "RG"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("R8", true),
                 new ExtensionType("G8", true),
                 new ExtensionType("B8", true),
 
                 new ExtensionType("LA88", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA"),
-                    new ExtensionTypeParameter("ByteOrder", typeof(ByteOrder), ByteOrder.LittleEndian)),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "LA"),
+                    new ExtensionTypeParameter(Localize(ByteOrderKey_), typeof(ByteOrder), ByteOrder.LittleEndian)),
                 new ExtensionType("LA44", true,
-                    new ExtensionTypeParameter("ComponentOrder", typeof(string), "LA")),
+                    new ExtensionTypeParameter(Localize(ComponentOrderKey_), typeof(string), "LA")),
                 new ExtensionType("L8", true),
                 new ExtensionType("A8", true),
                 new ExtensionType("L4", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst)),
                 new ExtensionType("A4", true,
-                    new ExtensionTypeParameter("BitOrder", typeof(BitOrder), BitOrder.MostSignificantBitFirst))
+                    new ExtensionTypeParameter(Localize(BitOrderKey_), typeof(BitOrder), BitOrder.MostSignificantBitFirst))
             };
         }
 
@@ -340,38 +364,38 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             switch (extType.Name)
             {
                 case "RGBA8888":
-                    var componentOrder1 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder1 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder1 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder1 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(8, 8, 8, 8, componentOrder1, byteOrder1);
 
                 case "RGB888":
-                    var componentOrder2 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder2 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder2 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder2 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(8, 8, 8, componentOrder2, byteOrder2);
 
                 case "RGB565":
-                    var componentOrder3 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder3 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder3 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder3 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(5, 6, 5, componentOrder3, byteOrder3);
 
                 case "RGB555":
-                    var componentOrder4 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder4 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder4 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder4 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(5, 5, 5, componentOrder4, byteOrder4);
 
                 case "RGBA5551":
-                    var componentOrder5 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder5 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder5 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder5 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(5, 5, 5, 1, componentOrder5, byteOrder5);
 
                 case "RGBA4444":
-                    var componentOrder6 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder6 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder6 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder6 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(4, 4, 4, 4, componentOrder6, byteOrder6);
 
                 case "RG88":
-                    var componentOrder7 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder7 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder7 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder7 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new Rgba(8, 8, 0, componentOrder7, byteOrder7);
 
                 case "R8":
@@ -384,12 +408,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new Rgba(0, 0, 8);
 
                 case "LA88":
-                    var componentOrder8 = extType.GetParameterValue<string>("ComponentOrder");
-                    var byteOrder8 = extType.GetParameterValue<ByteOrder>("ByteOrder");
+                    var componentOrder8 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
+                    var byteOrder8 = extType.GetParameterValue<ByteOrder>(Localize(ByteOrderKey_));
                     return new La(8, 8, componentOrder8, byteOrder8);
 
                 case "LA44":
-                    var componentOrder9 = extType.GetParameterValue<string>("ComponentOrder");
+                    var componentOrder9 = extType.GetParameterValue<string>(Localize(ComponentOrderKey_));
                     return new La(4, 4, componentOrder9);
 
                 case "L8":
@@ -399,16 +423,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return ImageFormats.A8();
 
                 case "L4":
-                    return ImageFormats.L4(extType.GetParameterValue<BitOrder>("BitOrder"));
+                    return ImageFormats.L4(extType.GetParameterValue<BitOrder>(Localize(BitOrderKey_)));
 
                 case "A4":
-                    return ImageFormats.A4(extType.GetParameterValue<BitOrder>("BitOrder"));
+                    return ImageFormats.A4(extType.GetParameterValue<BitOrder>(Localize(BitOrderKey_)));
 
                 case "ETC1":
-                    return ImageFormats.Etc1(extType.GetParameterValue<bool>("Z-Order"));
+                    return ImageFormats.Etc1(extType.GetParameterValue<bool>(Localize(ZOrderKey_)));
 
                 case "ETC1A4":
-                    return ImageFormats.Etc1A4(extType.GetParameterValue<bool>("Z-Order"));
+                    return ImageFormats.Etc1A4(extType.GetParameterValue<bool>(Localize(ZOrderKey_)));
 
                 case "ETC2 RGB":
                     return ImageFormats.Etc2();
@@ -444,14 +468,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return ImageFormats.Ati1A();
 
                 case "ATI2":
-                    var wiiU = extType.GetParameterValue<bool>("Alpha/Luminance");
+                    var wiiU = extType.GetParameterValue<bool>(Localize(AlphaLuminanceKey_));
                     return wiiU ? ImageFormats.Ati2() : ImageFormats.Ati2AL();
 
                 case "ATC":
                     return ImageFormats.Atc();
 
                 case "ATCA":
-                    var atcAlpha = extType.GetParameterValue<AtcAlpha>("AlphaMode");
+                    var atcAlpha = extType.GetParameterValue<AtcAlpha>(Localize(AlphaModeKey_));
                     return atcAlpha == AtcAlpha.Explicit ?
                         ImageFormats.AtcExplicit() :
                         ImageFormats.AtcInterpolated();
@@ -490,11 +514,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             switch (extType.Name)
             {
                 case "I2":
-                    var bitOrder1 = extType.GetParameterValue<BitOrder>("BitOrder");
+                    var bitOrder1 = extType.GetParameterValue<BitOrder>(Localize(BitOrderKey_));
                     return ImageFormats.I2(bitOrder1);
 
                 case "I4":
-                    var bitOrder2 = extType.GetParameterValue<BitOrder>("BitOrder");
+                    var bitOrder2 = extType.GetParameterValue<BitOrder>(Localize(BitOrderKey_));
                     return ImageFormats.I4(bitOrder2);
 
                 case "I8":
@@ -519,21 +543,21 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             return new List<ExtensionType>
             {
-                new ExtensionType("None", true),
-                new ExtensionType("Bc", true),
+                new ExtensionType(Localize(NoSwizzleKey_), true),
+                new ExtensionType("BC", true),
                 new ExtensionType("NDS", true),
                 new ExtensionType("3DS", true),
                 new ExtensionType("WiiU", true,
-                    new ExtensionTypeParameter("SwizzleTileMode", typeof(int))),
+                    new ExtensionTypeParameter(Localize(SwizzleModeKey_), typeof(int))),
                 new ExtensionType("Switch", true,
-                    new ExtensionTypeParameter("SwizzleMode", typeof(int))),
+                    new ExtensionTypeParameter(Localize(SwizzleModeKey_), typeof(int))),
                 new ExtensionType("PS2", true),
                 new ExtensionType("Vita", true),
 
-                new ExtensionType("Custom", true,
-                    new ExtensionTypeParameter("BitMapping", typeof(string), "{1,0},{0,1}"),
-                    new ExtensionTypeParameter("InitPoint", typeof(string), "{0,0}"),
-                    new ExtensionTypeParameter("YTransform", typeof(string), ""))
+                new ExtensionType(Localize(CustomSwizzleKey_), true,
+                    new ExtensionTypeParameter(Localize(BitMappingKey_), typeof(string), "{1,0},{0,1}"),
+                    new ExtensionTypeParameter(Localize(InitPointKey_), typeof(string), "{0,0}"),
+                    new ExtensionTypeParameter(Localize(YTransformKey_), typeof(string), ""))
             };
         }
 
@@ -551,11 +575,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     return new CtrSwizzle(context);
 
                 case "WiiU":
-                    var swizzleTileMode = SelectedSwizzleExtension.GetParameterValue<byte>("SwizzleTileMode");
+                    var swizzleTileMode = SelectedSwizzleExtension.GetParameterValue<byte>(Localize(SwizzleModeKey_));
                     return new CafeSwizzle(context, swizzleTileMode);
 
                 case "Switch":
-                    var swizzleMode = SelectedSwizzleExtension.GetParameterValue<int>("SwizzleMode");
+                    var swizzleMode = SelectedSwizzleExtension.GetParameterValue<int>(Localize(SwizzleModeKey_));
                     return new NxSwizzle(context, swizzleMode);
 
                 case "PS2":
@@ -568,16 +592,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     var pointSequenceRegex = new Regex(@"\{([\d]+),([\d]+)\}[,]?");
 
                     // Bit mapping
-                    var mappingText = SelectedSwizzleExtension.GetParameterValue<string>("BitMapping").Replace(" ", "");
+                    var mappingText = SelectedSwizzleExtension.GetParameterValue<string>(Localize(BitMappingKey_)).Replace(" ", "");
                     var mappingPoints = pointSequenceRegex.Matches(mappingText).Select(m => (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)));
 
                     // Init point
-                    var initPointText = SelectedSwizzleExtension.GetParameterValue<string>("InitPoint").Replace(" ", "");
+                    var initPointText = SelectedSwizzleExtension.GetParameterValue<string>(Localize(InitPointKey_)).Replace(" ", "");
                     var initPointMatch = pointSequenceRegex.Match(initPointText);
                     var finalInitPoint = new System.Drawing.Point(int.Parse(initPointMatch.Groups[1].Value), int.Parse(initPointMatch.Groups[2].Value));
 
                     // Y Transform
-                    var transformText = SelectedSwizzleExtension.GetParameterValue<string>("YTransform").Replace(" ", "");
+                    var transformText = SelectedSwizzleExtension.GetParameterValue<string>(Localize(YTransformKey_)).Replace(" ", "");
                     var transformPoints = pointSequenceRegex.Matches(transformText).Select(m => (int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value)));
 
                     var masterSwizzle = new MasterSwizzle(context.Size.Width, finalInitPoint, mappingPoints.ToArray(), transformPoints.ToArray());
@@ -590,7 +614,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private bool CheckCustomSwizzle()
         {
-            var swizzleText = SelectedSwizzleExtension.GetParameterValue<string>("BitMapping");
+            var swizzleText = SelectedSwizzleExtension.GetParameterValue<string>(Localize(BitMappingKey_));
             var escapedSwizzleText = swizzleText.Replace(" ", "");
 
             var regex = new Regex(@"^({\d+,\d+}[,]?)+$");
@@ -675,21 +699,27 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         #region Support
 
+        private string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
+
         private void OpenFile()
         {
             var ofd = new OpenFileDialog();
             if (ofd.ShowDialog(this) != DialogResult.Ok)
             {
-                SetStatus("No file selected.");
+                SetStatus(Localize(NoFileSelectedStatusKey_));
                 return;
             }
 
             if (!File.Exists(ofd.FileName))
             {
-                SetStatus("Selected file does not exist.");
+                SetStatus(Localize(SelectedFileNotExistStatusKey_));
                 return;
             }
 
+            _openedPath = ofd.FileName;
             _openedFile = File.OpenRead(ofd.FileName);
             closeFileCommand.Enabled = true;
             extractImageCommand.Enabled = true;
@@ -702,12 +732,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             var sfd = new SaveFileDialog
             {
                 Directory = Settings.Default.LastDirectory == string.Empty ? new Uri(Path.GetFullPath(".")) : new Uri(Settings.Default.LastDirectory),
-                FileName = "extract.png"
+                FileName = $"{Path.GetFileName(_openedPath)}.png"
             };
 
             if (sfd.ShowDialog(this) != DialogResult.Ok)
             {
-                SetStatus("No file selected.");
+                SetStatus(Localize(NoFileSelectedStatusKey_));
                 return;
             }
 
@@ -716,6 +746,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         private void CloseFile()
         {
+            _openedPath = null;
+
             _openedFile?.Close();
             _openedFile = null;
 
@@ -725,7 +757,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
             imageView.Image = null;
         }
 
-        private void SetStatus(string message)
+        private void SetStatus(string message = "")
         {
             statusLabel.Text = message;
         }

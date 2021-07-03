@@ -11,6 +11,7 @@
   "Save": "Speichern",
   "SaveAs": "Speichern unter...",
   "SaveAll": "Alles speichern",
+  "Close": "Schließen",
 
   "TextSequenceSearcher": "Textsuche",
   "BatchExtractor": "Alles entpacken",
@@ -52,7 +53,6 @@
   "FileNotSavedSuccessfullyStatus": "Datei nicht erfolgreich gespeichert.",
   "OperationsStillRunningStatus": "Es werden noch immer Operationen ausgeführt und die Datei kann nicht geschlossen werden.",
 
-  "ChooseOpenFilePlugin": "Wähle ein Plugin, um die Datei zu öffnen",
   "SelectedFileInvalid": "Die ausgewählte Datei ist ungültig.",
   "UnsavedChangesToFile": "Es wurden Änderungen an {0} oder dessen beinhaltete Dateien gemacht. Möchtest du diese Änderungen speichern?",
   "UnsavedChangesGeneric": "Es wurden Änderungen an einer oder mehr Dateien gemacht. Möchtest du diese Änderungen speichern?",
@@ -118,5 +118,92 @@
   "RenameFileTitle": "Datei umbenennen",
   "RenameDirectoryTitle": "Ordner umbenennen",
 
-  "RenameItemCaption": "Wähle einen neuen Namen für {0}."
+  "RenameItemCaption": "Wähle einen neuen Namen für {0}:",
+
+  // Kuriimu2 Image form
+  "ExportImage": "Bild exportieren",
+  "ImportImage": "Bild importieren",
+
+  "Width": "Breite:",
+  "Height": "Höhe:",
+  "Format": "Format:",
+  "Palette": "Palette:",
+
+  "ExportPngTitle": "PNG exportieren...",
+  "ImportPngTitle": "PNG importieren...",
+
+  "ImageSuccessfullyImportedStatus": "Bild erfolgreich importiert.",
+
+  "PngFileFilter": "Portable Network Graphics (*.png)",
+
+  // Kuriimu2 Text Sequence Searcher
+  "TextSequenceSearcherTitle": "Textsuche",
+  "SearchSubfolders": "Durchsuche Unterordner",
+
+  "Find": "Suche",
+  "FindIn": "Suche in:",
+  "FindWhat": "Suchtext:",
+  "Browse": "Durchsuchen...",
+  "Encoding": "Textkodierung:",
+
+  "SelectSearchDirectory": "Wähle den Ordner, in dem gesucht werden soll",
+
+  "SelectEncodingCaption": "Wähle eine Textkodierung.",
+  "SelectSearchDirectoryCaption": "Wähle einen Ordner, in dem gesucht werden soll.",
+  "SelectSearchTextCaption": "Wähle einen Text, nach dem gesucht werden soll.",
+
+  // Kuriimu2 ChoosePluginDialog
+  "ChooseOpenFilePlugin": "Wähle ein Plugin, um die Datei zu öffnen:",
+  "MultiplePluginMatchesSelection": "Mehrere Plugins können diese Datei identifizieren. Bitte wähle eins aus:",
+  "NonIdentifiablePluginSelection": "Kein Plugin konnte die Datei automatisch identifizieren. Bitte wähle manuell ein Plugin aus:",
+  "NonIdentifiablePluginSelectionNote": "Standardmäßig werden nur Plugins angezeigt, die generell keine Plugins identifizieren können.",
+
+  "PluginNameColumn": "Name",
+  "PluginTypeColumn": "Typ",
+  "PluginDescriptionColumn": "Beschreibung",
+  "PluginIdColumn": "GUID",
+
+  "ChoosePluginTitle": "Pluginauswahl",
+  "ChoosePluginContinue": "Fortsetzen",
+  "ChoosePluginRawBytes": "Öffne Rohdaten",
+  "ChoosePluginCancel": "Abbrechen",
+  "ChoosePluginShowAll": "Zeige alle Plugins",
+
+  // Kuriimu2 DialogManager
+  "CancelDialog": "Dialog abgebrochen.",
+  "UnsupportedDialogFieldType": "Nicht unterstütztes Dialogfeld {0}.",
+  "DialogOkButton": "Ok",
+
+  // Kuriimu2 InputBox
+  "InputBoxOkButton": "Ok",
+
+  // Kuriimu2 RawImageViewer
+  "NoSwizzle": "Keiner",
+  "CustomSwizzle": "Benutzerdefiniert",
+
+  "ComponentOrder": "ComponentOrder",
+  "ByteOrder": "ByteOrder",
+  "BitOrder": "BitOrder",
+  "ZOrder": "Z-Order",
+  "AlphaLuminance": "Alpha/Helligkeit",
+  "AlphaMode": "AlphaMode",
+  "SwizzleMode": "SwizzleMode",
+  "BitMapping": "BitMapping",
+  "InitPoint": "InitPoint",
+  "YTransform": "YTransform",
+
+  "InvalidInputValuesStatus": "Eingabewerte sind ungültig.",
+  "InvalidCustomSwizzleStatus": "Benutzerdefinierter Swizzle ist ungültig.",
+
+  "SelectedFileNotExistStatus": "Ausgewählte Datei existiert nicht.",
+
+  "RawImageViewerEncodingParameters": "Kodierungsparameter",
+  "RawImageViewerEncodingPaletteParameters": "Palettenkodierungsparameter",
+  "RawImageViewerSwizzleParameters": "Swizzleparameter",
+
+  "Offset": "Offset:",
+  "PaletteOffset": "Palettenoffset:",
+  "Swizzle": "Swizzle:",
+
+  "Process": "Ausführen"
 }
