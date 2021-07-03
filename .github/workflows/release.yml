@@ -112,30 +112,37 @@ jobs:
     # Publish plugins
     - name: Publish plugins
       run: |
-        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/DreamCatcher/DreamCatcher.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Felistella/Felistella.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/FurYu/FurYu.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/HeadstrongGames/HeadstrongGames.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/HuneX/HuneX.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/IntiCreates/IntiCreates.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Kadokawa/plugin_kadokawa/plugin_kadokawa.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Kadokawa/Kadokawa.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/KhronosGroup/KhronosGroup.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/KoeiTecmo/KoeiTecmo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Konami/Konami.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Level5/Level5.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/MercurySteam/MercurySteam.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/MostWantedEntertainment/MostWantedEntertainment.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Primula/Primula.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sega/plugin_sega/plugin_sega.csproj --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Shade/Shade.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sega/plugin_sega/plugin_sega.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/SpikeChunsoft/SpikeChunsoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/StingEntertainment/StingEntertainment.sln --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/SuperflatGames/SuperflatGames.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/TamSoft/TamSoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/VBlankEntertainment/VBlankEntertainment.sln --output ./dist/final/plugins --configuration Release
         rm ./dist/final/plugins/*.pdb

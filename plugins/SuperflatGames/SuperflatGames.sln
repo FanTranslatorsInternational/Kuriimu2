@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "superflat_games", "superflat_games\superflat_games.csproj", "{DC4C228E-63AC-4242-9260-F7E189EA04F2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_superflat_games", "plugin_superflat_games\plugin_superflat_games.csproj", "{DC4C228E-63AC-4242-9260-F7E189EA04F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

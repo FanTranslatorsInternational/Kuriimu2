@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "most_wanted_ent", "most_wanted_ent\most_wanted_ent.csproj", "{471601A1-144D-4B1C-A663-97BFD33F7220}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_most_wanted_ent", "plugin_most_wanted_ent\plugin_most_wanted_ent.csproj", "{471601A1-144D-4B1C-A663-97BFD33F7220}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
