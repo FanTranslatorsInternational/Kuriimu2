@@ -11,6 +11,7 @@ namespace Kuriimu2.EtoForms.Controls
 
         private Color _textColor = KnownColors.Black;
         private Color _progressColor = KnownColors.LimeGreen;
+        private Color _borderColor = KnownColors.ControlDark;
 
         public int Minimum { get; set; }
 
@@ -64,6 +65,18 @@ namespace Kuriimu2.EtoForms.Controls
             }
         }
 
+        public virtual Color BorderColor
+        {
+            get => _borderColor;
+            set
+            {
+                var update = _borderColor != value;
+                _borderColor = value;
+
+                if (update) Invalidate();
+            }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             var controlRect = new RectangleF(
@@ -79,11 +92,11 @@ namespace Kuriimu2.EtoForms.Controls
                 e.ClipRectangle.Height - 1);
 
             // Draw background
-            e.Graphics.FillRectangle(new SolidBrush(KnownColors.Control), controlRect);
+            e.Graphics.FillRectangle(new SolidBrush(BackgroundColor), controlRect);
             e.Graphics.FillRectangle(new SolidBrush(ProgressColor), progressRect);
 
             // Draw border
-            e.Graphics.DrawRectangle(new Pen(KnownColors.ControlDark), controlRect);
+            e.Graphics.DrawRectangle(new Pen(_borderColor), controlRect);
 
             // Measure string
             var font = new Font(FontFamilies.Sans, 9);
