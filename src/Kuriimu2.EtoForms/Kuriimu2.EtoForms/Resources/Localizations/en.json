@@ -3,7 +3,7 @@
   "File": "File",
   "Tools": "Tools",
   "Ciphers": "Ciphers",
-  "Compression": "Compression",
+  "Compressions": "Compressions",
   "Settings": "Settings",
 
   "Open": "Open",
@@ -214,7 +214,7 @@
   "BatchAvailablePlugins": "Plugins",
   "BatchSelectInput": "Select input...",
   "BatchSelectOutput": "Select output...",
-  "BatchExecute": "Execute",
+  "Execute": "Execute",
 
   "BatchSelectPluginStatus": "Select a plugin.",
 
@@ -222,5 +222,25 @@
   "BatchExtractDestinationEmpty": "Select a directory to extract the files to.",
 
   "BatchInjectSourceEmpty": "Select a directory with files to inject.",
-  "BatchInjectDestinationEmpty": "Select a directory with directories to inject to the files."
+  "BatchInjectDestinationEmpty": "Select a directory with directories to inject to the files.",
+
+  // Kuriimu2 Extension Dialogs
+  "ExtensionParameters": "Parameters",
+  "AutoExecute": "Auto-Execute on Drop",
+
+  "SelectFolder": "Select folder...",
+  "SelectFile": "Select file...",
+
+  "Compression": "Compression",
+  "Decompression": "Decompression",
+  "Encryption": "Encryption",
+  "Decryption": "Decryption",
+
+  "SelectTypeExtension": "Select a {0}.",
+  "SelectFileOrFolder": "Select a file or directory to process.",
+  "FileFailed": "{0} failed: {1}",
+  "ProcessFinishedCaption": "The results are written to {0}.",
+  "ProcessFinishedTitle": "Done!",
+  "CipherNotSupported": "Unsupported cipher {0}.",
+  "CompressionNotSupported": "Unsupported cipher {0}."
 }

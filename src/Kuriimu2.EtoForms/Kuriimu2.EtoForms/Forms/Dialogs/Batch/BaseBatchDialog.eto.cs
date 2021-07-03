@@ -29,7 +29,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         private const string BatchAvailablePluginsKey_ = "BatchAvailablePlugins";
         private const string BatchSelectInputKey_ = "BatchSelectInput";
         private const string BatchSelectOutputKey_ = "BatchSelectOutput";
-        private const string BatchExecuteKey_ = "BatchExecute";
+        private const string BatchExecuteKey_ = "Execute";
 
         #endregion
 
@@ -54,7 +54,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
             #endregion
 
-            Title = string.Empty;
             Padding = new Padding(6);
             Size = new Size(700, 300);
 

@@ -15,7 +15,15 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
     {
         protected abstract void ProcessCipher(CipherStreamFactory cipherStreamFactory, Stream input, Stream output);
 
-        protected override string TypeExtensionName => "Cipher";
+        #region Localization Keys
+
+        private const string CipherNotSupportedKey_ = "CipherNotSupported";
+
+        private const string ProcessFinishedTitleKey_ = "ProcessFinishedTitle";
+        private const string ProcessFinishedCaptionKey_ = "ProcessFinishedTitle";
+        private const string FileFailedKey_ = "FileFailed";
+
+        #endregion
 
         protected override bool ProcessFile(CipherStreamFactory extensionType, string filePath)
         {
@@ -31,7 +39,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             }
             catch (Exception e)
             {
-                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
+                // HINT: Log messages will be localized here, since they are shown to the user directly
+                Logger.Error(Localize(FileFailedKey_,filePath,e.Message));
                 return false;
             }
             finally
@@ -55,7 +64,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             reportFile.Close();
 
             // Report finish
-            MessageBox.Show($"The results are written to '{reportFilePath}'.", "Done", MessageBoxButtons.OK);
+            MessageBox.Show(Localize(ProcessFinishedCaptionKey_,reportFilePath), Localize(ProcessFinishedTitleKey_), MessageBoxButtons.OK);
         }
 
         protected override IList<ExtensionType> LoadExtensionTypes()
@@ -157,7 +166,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
                 // TODO: Plugin extensibility?
                 // TODO: Add nintendo NCA stream stuff
                 default:
-                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
+                    throw new InvalidOperationException(Localize(CipherNotSupportedKey_,selectedExtension.Name));
             }
         }
     }

@@ -12,7 +12,15 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
 {
     class HashExtensionDialog : BaseExtensionsDialog<IHash, byte[]>
     {
-        protected override string TypeExtensionName => "Hash";
+        private const string HashesKey_ = "Hashes";
+
+        private const string ProcessFinishedTitleKey_ = "ProcessFinishedTitle";
+        private const string ProcessFinishedCaptionKey_ = "ProcessFinishedTitle";
+
+        protected override string GetExtensionName()
+        {
+            return Localize(HashesKey_);
+        }
 
         protected override byte[] ProcessFile(IHash extensionType, string filePath)
         {
@@ -32,7 +40,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions
             reportFile.Close();
 
             // Report finish
-            MessageBox.Show($"The results are written to '{reportFilePath}'.", "Done", MessageBoxButtons.OK);
+            MessageBox.Show(Localize(ProcessFinishedTitleKey_,reportFilePath), Localize(ProcessFinishedCaptionKey_), MessageBoxButtons.OK);
         }
 
         protected override IList<ExtensionType> LoadExtensionTypes()

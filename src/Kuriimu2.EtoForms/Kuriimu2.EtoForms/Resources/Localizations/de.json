@@ -3,7 +3,7 @@
   "File": "Datei",
   "Tools": "Werkzeuge",
   "Ciphers": "Verschlüsselung",
-  "Compression": "Kompression",
+  "Compressions": "Kompressionen",
   "Settings": "Einstellungen",
 
   "Open": "Öffnen",
@@ -222,5 +222,25 @@
   "BatchExtractDestinationEmpty": "Wähle einen Ordner, in den entpackt wird.",
 
   "BatchInjectSourceEmpty": "Wähle einen Ordner mit Dateien, die eingefügt werden sollen.",
-  "BatchInjectDestinationEmpty": "Wähle einen Ordner mit Unterordnern, die eingefügt werden sollen."
+  "BatchInjectDestinationEmpty": "Wähle einen Ordner mit Unterordnern, die eingefügt werden sollen.",
+
+  // Kuriimu2 Extension Dialogs
+  "ExtensionParameters": "Parameter",
+  "AutoExecute": "Führe automatisch beim Ablegen aus",
+
+  "SelectFolder": "Wähle Ordner...",
+  "SelectFile": "Wähle Datei...",
+
+  "Compression": "Kompression",
+  "Decompression": "Dekompression",
+  "Encryption": "Verschlüsselung",
+  "Decryption": "Entschlüsselung",
+
+  "SelectTypeExtension": "Wähle eine {0}.",
+  "SelectFileOrFolder": "Wähle eine Datei oder einen Ordner zum Bearbeiten.",
+  "FileFailed": "{0} fehlgeschlagen: {1}",
+  "CipherProcessFinishedCaption": "Ergebnisse werden nach {0} geschrieben.",
+  "ProcessFinishedTitle": "Erledigt!",
+  "CipherNotSupported": "Nicht unterstützte Verschlüsselung {0}.",
+  "CompressionNotSupported": "Nicht unterstützte Kompression {0}."
 }

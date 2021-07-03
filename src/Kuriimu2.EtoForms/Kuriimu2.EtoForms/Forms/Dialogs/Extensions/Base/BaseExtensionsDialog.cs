@@ -13,11 +13,8 @@ using Serilog;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 {
-    // HINT: This class can't derive and act as the dialog directly, since in Eto.Forms, once closed a dialog seemingly can't be opened after being closed.
     abstract partial class BaseExtensionsDialog<TExtension, TResult> : Dialog
     {
-        private const string TitleName = "{0} Extensions";
-
         private readonly BatchExtensionProcessor<TExtension, TResult> _batchProcessor;
         private readonly ParameterBuilder _parameterBuilder;
 
@@ -25,7 +22,12 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         protected ILogger Logger { get; }
 
-        protected abstract string TypeExtensionName { get; }
+        #region Localization Keys
+
+        private const string SelectTypeExtensionKey_ = "SelectTypeExtension";
+        private const string SelectFileOrFolderKey_ = "SelectFileOrFolder";
+
+        #endregion
 
         public BaseExtensionsDialog()
         {
@@ -35,7 +37,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             _batchProcessor = new BatchExtensionProcessor<TExtension, TResult>(ProcessFile, Logger);
             _parameterBuilder = new ParameterBuilder(parameterBox);
 
-            Title = string.Format(TitleName, TypeExtensionName);
+            Title = GetExtensionName();
             typeLabel.Text = Title + ":";
 
             extensions.SelectedValueChanged += Extensions_SelectedValueChanged;
@@ -54,6 +56,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
             #endregion
         }
+
+        protected abstract string GetExtensionName();
 
         protected abstract IList<ExtensionType> LoadExtensionTypes();
 
@@ -151,21 +155,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
         private bool VerifyInput()
         {
+            // HINT: Log messages will be localized here, since they are shown to the user directly
             if (extensions.SelectedIndex < 0)
             {
-                Logger.Error("Select a {0}.", TypeExtensionName);
+                Logger.Error(Localize(SelectTypeExtensionKey_,GetExtensionName()));
                 return false;
             }
 
             if (string.IsNullOrEmpty(selectedPath.Text))
             {
-                Logger.Error("Select a file or directory to process.");
-                return false;
-            }
-
-            if (!subDirectoryBox.Checked.HasValue)
-            {
-                Logger.Error("Checkbox for sub directories has no state.");
+                Logger.Error(Localize(SelectFileOrFolderKey_));
                 return false;
             }
 
@@ -197,5 +196,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         }
 
         #endregion
+
+        protected string Localize(string name,params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
     }
 }

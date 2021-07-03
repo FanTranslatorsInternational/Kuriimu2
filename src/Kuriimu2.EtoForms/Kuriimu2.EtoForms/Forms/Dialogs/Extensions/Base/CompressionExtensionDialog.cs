@@ -14,7 +14,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
     {
         protected abstract void ProcessCompression(ICompression compression, Stream input, Stream output);
 
-        protected override string TypeExtensionName => "Compression";
+        #region Localization Keys
+
+        private const string CompressionNotSupportedKey_ = "CompressionNotSupported";
+
+        private const string FileFailedKey_ = "FileFailed";
+        private const string ProcessFinishedTitleKey_ = "ProcessFinishedTitle";
+
+        #endregion
 
         protected override bool ProcessFile(ICompression extensionType, string filePath)
         {
@@ -30,7 +37,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
             }
             catch (Exception e)
             {
-                Logger.Error("{filePath} failed: {message}", filePath, e.Message);
+                Logger.Error(Localize(FileFailedKey_, filePath, e.Message));
                 return false;
             }
             finally
@@ -45,7 +52,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
         protected override void FinalizeProcess(IList<(string, bool)> results, string rootDir)
         {
             // Report finish
-            Logger.Information("Done!");
+            Logger.Information(Localize(ProcessFinishedTitleKey_));
         }
 
         protected override IList<ExtensionType> LoadExtensionTypes()
@@ -246,7 +253,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base
 
                 // TODO: Plugin extensibility?
                 default:
-                    throw new InvalidOperationException($"{selectedExtension.Name} is not supported.");
+                    throw new InvalidOperationException(Localize(CompressionNotSupportedKey_, selectedExtension.Name));
             }
         }
     }
