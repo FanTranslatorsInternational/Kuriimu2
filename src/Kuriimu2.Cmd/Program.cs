@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Kontract.Interfaces.Managers;
 using Kontract.Models;
 using Kore.Managers.Plugins;
@@ -20,8 +21,8 @@ namespace Kuriimu2.Cmd
 {
     class Program
     {
-        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/main/manifest.json";
-        public const string ApplicationType = "CommandLine";
+        private const string ManifestUrl = "https://raw.githubusercontent.com/FanTranslatorsInternational/Kuriimu2-CommandLine-Update/main/{0}/manifest.json";
+        public const string ApplicationType = "CommandLine.{0}";
 
         private static Manifest _localManifest;
         private static IArgumentGetter _argumentGetter;
@@ -67,12 +68,26 @@ namespace Kuriimu2.Cmd
 
         private static void CheckForUpdate()
         {
-            var remoteManifest = UpdateUtilities.GetRemoteManifest(ManifestUrl);
+            var remoteManifest = UpdateUtilities.GetRemoteManifest(string.Format(ManifestUrl, GetCurrentPlatform()));
             if (!UpdateUtilities.IsUpdateAvailable(remoteManifest, _localManifest, true))
                 return;
 
             Console.WriteLine();
             Console.WriteLine($"A new version is available: {remoteManifest.Version}-{remoteManifest.BuildNumber}");
+        }
+
+        private static string GetCurrentPlatform()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return "Linux";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return "Windows";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return "Mac";
+
+            throw new InvalidOperationException($"Unsupported platform {RuntimeInformation.OSDescription}.");
         }
 
         private static Manifest LoadLocalManifest()
