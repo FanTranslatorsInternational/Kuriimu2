@@ -61,6 +61,6 @@
     </None>
   </ItemGroup>
   
-  <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4de_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>
   
 </Project>

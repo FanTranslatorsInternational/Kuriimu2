@@ -21,15 +21,27 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         #endregion
 
+        #region Localization Keys
+
+        private const string SearchSubFoldersKey_="SearchSubfolders";
+        private const string AvgTimePerFileKey_ = "AvgTimePerFile";
+
+        private const string BatchAvailablePluginsKey_ = "BatchAvailablePlugins";
+        private const string BatchSelectInputKey_ = "BatchSelectInput";
+        private const string BatchSelectOutputKey_ = "BatchSelectOutput";
+        private const string BatchExecuteKey_ = "BatchExecute";
+
+        #endregion
+
         private void InitializeComponent()
         {
             #region Controls
 
             plugins = new ComboBox();
             selectedInputPath = new TextBox { ReadOnly = true };
-            subDirectoryBox = new CheckBox { Text = "Sub Directories" };
+            subDirectoryBox = new CheckBox { Text = Localize(SearchSubFoldersKey_) };
             selectedOutputPath = new TextBox { ReadOnly = true };
-            timerLabel = new Label { Text = "Avg time per file:" };
+            timerLabel = new Label { Text = Localize(AvgTimePerFileKey_) };
             log = new RichTextArea { ReadOnly = true, BackgroundColor = KnownColors.Black, TextColor = KnownColors.NeonGreen };
 
             #endregion
@@ -42,16 +54,16 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
             #endregion
 
-            Title = "BatchDialog";
+            Title = string.Empty;
             Padding = new Padding(6);
             Size = new Size(700, 300);
 
             #region Content
 
-            var pluginLabel = new Label { Text = "Plugins" };
-            var selectInputButton = new Button { Text = "Select Input...", Command = selectInputCommand, Size = new Size(130, -1) };
-            var selectOutputButton = new Button { Text = "Select Output...", Command = selectOutputCommand, Size = new Size(130, -1) };
-            var executeButton = new Button { Text = "Execute", Command = executeCommand, Size = new Size(130, -1) };
+            var pluginLabel = new Label { Text = Localize(BatchAvailablePluginsKey_) };
+            var selectInputButton = new Button { Text = Localize(BatchSelectInputKey_), Command = selectInputCommand, Size = new Size(130, -1) };
+            var selectOutputButton = new Button { Text = Localize(BatchSelectOutputKey_), Command = selectOutputCommand, Size = new Size(130, -1) };
+            var executeButton = new Button { Text = Localize(BatchExecuteKey_), Command = executeCommand, Size = new Size(130, -1) };
 
             var inputLayout = new StackLayout
             {

@@ -6,11 +6,23 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 {
     class BatchInjectDialog : BaseBatchDialog
     {
-        protected override string SourceEmptyText { get; } = "Select a directory with files to inject.";
-        protected override string DestinationEmptyText { get; } = "Select a directory with directories to inject to the files.";
+        #region Localization Keys
+
+        private const string BatchInjectorKey_ = "BatchInjector";
+        
+        private const string BatchInjectSourceEmptyKey_ = "BatchInjectSourceEmpty";
+        private const string BatchInjectDestinationEmptyKey_ = "BatchInjectDestinationEmpty";
+
+        #endregion
+
+        protected override string SourceEmptyText { get; }
+        protected override string DestinationEmptyText { get; }
 
         public BatchInjectDialog(IInternalFileManager fileManager) : base(fileManager)
         {
+            Title = Localize(BatchInjectorKey_);
+            SourceEmptyText = Localize(BatchInjectSourceEmptyKey_);
+            DestinationEmptyText = Localize(BatchInjectDestinationEmptyKey_);
         }
 
         protected override BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger)

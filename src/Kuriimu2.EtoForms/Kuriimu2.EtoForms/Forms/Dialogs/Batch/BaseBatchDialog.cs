@@ -29,6 +29,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         protected ILogger Logger { get; }
 
+        #region Localization Keys
+
+        private const string AvgTimePerFileTimedKey_ = "AvgTimePerFileTimed";
+
+        private const string BatchSelectPluginStatusKey_ = "BatchSelectPluginStatus";
+
+        #endregion
+
         public BaseBatchDialog(IInternalFileManager fileManager)
         {
             ContractAssertions.IsNotNull(fileManager, nameof(fileManager));
@@ -65,7 +73,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         private IList<PluginElement> LoadPlugins(IInternalFileManager fileManager)
         {
-            return fileManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x=>x.ToString()).ToArray();
+            return fileManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x => x.ToString()).ToArray();
         }
 
         #endregion
@@ -75,7 +83,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         private void avgTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             var avgTime = _batchProcessor.AverageFileTime;
-            Application.Instance.Invoke(() => timerLabel.Text = "Avg time per file: " + avgTime.Milliseconds + "ms");
+            Application.Instance.Invoke(() => timerLabel.Text = Localize(AvgTimePerFileTimedKey_, avgTime.Milliseconds));
         }
 
         private void SelectInputCommand_Executed(object sender, EventArgs e)
@@ -156,9 +164,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         private bool VerifyInput()
         {
+            // HINT: Those log messages get localized, since they are directly output to the user.
             if (plugins.SelectedIndex < 0)
             {
-                Logger.Error("Select a plugin entry.");
+                Logger.Error(Localize(BatchSelectPluginStatusKey_));
                 return false;
             }
 
@@ -187,6 +196,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         #endregion
 
         #region Support
+
+        protected string Localize(string name, params object[] args)
+        {
+            return string.Format(Application.Instance.Localize(this, name), args);
+        }
 
         private string SelectFolder(string selectedPath)
         {

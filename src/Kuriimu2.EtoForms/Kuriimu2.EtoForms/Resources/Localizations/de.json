@@ -205,5 +205,22 @@
   "PaletteOffset": "Palettenoffset:",
   "Swizzle": "Swizzle:",
 
-  "Process": "Ausführen"
+  "Process": "Ausführen",
+
+  // Kuriimu2 BatchDialog
+  "AvgTimePerFile": "Durchschn. Zeit pro Datei:",
+  "AvgTimePerFileTimed": "Durchschn. Zeit pro Datei: {0}ms",
+
+  "BatchAvailablePlugins": "Plugins",
+  "BatchSelectInput": "Wähle Eingabe...",
+  "BatchSelectOutput": "Wähle Ausgabe...",
+  "BatchExecute": "Ausführen",
+
+  "BatchSelectPluginStatus": "Wähle ein Plugin.",
+
+  "BatchExtractSourceEmpty": "Wähle einen Ordner mit Dateien, die entpackt werden sollen.",
+  "BatchExtractDestinationEmpty": "Wähle einen Ordner, in den entpackt wird.",
+
+  "BatchInjectSourceEmpty": "Wähle einen Ordner mit Dateien, die eingefügt werden sollen.",
+  "BatchInjectDestinationEmpty": "Wähle einen Ordner mit Unterordnern, die eingefügt werden sollen."
 }

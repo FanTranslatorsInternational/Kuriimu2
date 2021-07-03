@@ -205,5 +205,22 @@
   "PaletteOffset": "Palette Offset:",
   "Swizzle": "Swizzle:",
 
-  "Process": "Process"
+  "Process": "Process",
+
+  // Kuriimu2 BatchDialog
+  "AvgTimePerFile": "Avg time per file:",
+  "AvgTimePerFileTimed": "Avg time per file: {0}ms",
+
+  "BatchAvailablePlugins": "Plugins",
+  "BatchSelectInput": "Select input...",
+  "BatchSelectOutput": "Select output...",
+  "BatchExecute": "Execute",
+
+  "BatchSelectPluginStatus": "Select a plugin.",
+
+  "BatchExtractSourceEmpty": "Select a directory with files to extract.",
+  "BatchExtractDestinationEmpty": "Select a directory to extract the files to.",
+
+  "BatchInjectSourceEmpty": "Select a directory with files to inject.",
+  "BatchInjectDestinationEmpty": "Select a directory with directories to inject to the files."
 }
