@@ -331,7 +331,7 @@ namespace Kuriimu2.EtoForms.Forms
 #if DEBUG
                 MessageBox.Show(e.ToString(), Localize(ExceptionCatchedCaptionKey_));
 #else
-                MessageBox.Show(e.Message, ExceptionCatched);
+                MessageBox.Show(e.Message, Localize(ExceptionCatchedCaptionKey_));
 #endif
 
                 return false;
