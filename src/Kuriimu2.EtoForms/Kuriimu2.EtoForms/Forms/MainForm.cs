@@ -79,6 +79,9 @@ namespace Kuriimu2.EtoForms.Forms
 
         #region Localization Keys
 
+        private const string ChangeLanguageCaptionKey_ = "ChangeLanguageCaption";
+        private const string ChangeLanguageTitleKey_ = "ChangeLanguageTitle";
+
         private const string LoadErrorCaptionKey_ = "LoadErrorCaption";
         private const string SaveErrorCaptionKey_ = "SaveErrorCaption";
         private const string UnsavedChangesCaptionKey_ = "UnsavedChangesCaption";
@@ -99,7 +102,6 @@ namespace Kuriimu2.EtoForms.Forms
         private const string UpdateAvailableCaptionKey_ = "UpdateAvailableCaption";
 
         private const string PluginsNotAvailableCaptionKey_ = "PluginsNotAvailableCaption";
-        private const string ChooseOpenFilePluginKey_ = "ChooseOpenFilePlugin";
         private const string SelectedFileInvalidKey_ = "SelectedFileInvalid";
         private const string UnsavedChangesToFileKey_ = "UnsavedChangesToFile";
         private const string UnsavedChangesGenericKey_ = "UnsavedChangesGeneric";
@@ -172,6 +174,9 @@ namespace Kuriimu2.EtoForms.Forms
             openRawImageViewerCommand.Executed += openRawImageViewerCommand_Executed;
 
             includeDevBuildCommand.Executed += IncludeDevBuildCommand_Executed;
+
+            englishCommand.Executed += (sender, args) => ChangeLocale("en");
+            germanCommand.Executed += (sender, args) => ChangeLocale("de");
 
             #endregion
         }
@@ -762,6 +767,14 @@ namespace Kuriimu2.EtoForms.Forms
         {
             Settings.Default.IncludeDevBuilds = !Settings.Default.IncludeDevBuilds;
             Settings.Default.Save();
+        }
+
+        private void ChangeLocale(string locale)
+        {
+            Settings.Default.Locale = locale;
+            Settings.Default.Save();
+
+            MessageBox.Show(Localize(ChangeLanguageCaptionKey_), Localize(ChangeLanguageTitleKey_));
         }
 
         private void fileManager_OnManualSelection(object sender, ManualSelectionEventArgs e)

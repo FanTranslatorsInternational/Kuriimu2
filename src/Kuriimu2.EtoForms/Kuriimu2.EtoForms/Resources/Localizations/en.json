@@ -28,6 +28,9 @@
   "RawImageViewer": "Raw Image Viewer",
 
   "IncludeDevBuilds": "Include Developer Builds",
+  "ChangeLanguage": "Change language",
+  "ChangeLanguageCaption": "The changes will only take effect after a restart.",
+  "ChangeLanguageTitle": "Changed settings", 
 
   "Help": "Help",
   "AboutKuriimu2": "About Kuriimu2",

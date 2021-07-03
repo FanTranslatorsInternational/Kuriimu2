@@ -10,33 +10,34 @@ namespace Kuriimu2.EtoForms.Forms
     {
         #region Localization Keys
 
-        private static string FileKey_ = "File";
-        private static string ToolsKey_ = "Tools";
-        private static string CiphersKey_ = "Ciphers";
-        private static string CompressionKey_ = "Compression";
-        private static string SettingsKey_ = "Settings";
+        private const string FileKey_ = "File";
+        private const string ToolsKey_ = "Tools";
+        private const string CiphersKey_ = "Ciphers";
+        private const string CompressionKey_ = "Compression";
+        private const string SettingsKey_ = "Settings";
 
-        private static string OpenKey_ = "Open";
-        private static string OpenWithKey_ = "OpenWith";
-        private static string SaveAllKey_ = "SaveAll";
+        private const string OpenKey_ = "Open";
+        private const string OpenWithKey_ = "OpenWith";
+        private const string SaveAllKey_ = "SaveAll";
 
-        private static string TextSequenceSearcherKey_ = "TextSequenceSearcher";
-        private static string BatchExtractorKey_ = "BatchExtractor";
-        private static string BatchInjectorKey_ = "BatchInjector";
+        private const string TextSequenceSearcherKey_ = "TextSequenceSearcher";
+        private const string BatchExtractorKey_ = "BatchExtractor";
+        private const string BatchInjectorKey_ = "BatchInjector";
 
-        private static string HashesKey_ = "Hashes";
+        private const string HashesKey_ = "Hashes";
        
-        private static string EncryptKey_ = "Encrypt";
-        private static string DecryptKey_ = "Decrypt";
+        private const string EncryptKey_ = "Encrypt";
+        private const string DecryptKey_ = "Decrypt";
 
-        private static string DecompressKey_ = "Decompress";
-        private static string CompressKey_ = "Compress";
+        private const string DecompressKey_ = "Decompress";
+        private const string CompressKey_ = "Compress";
 
-        private static string RawImageViewerKey_ = "RawImageViewer";
+        private const string RawImageViewerKey_ = "RawImageViewer";
 
-        private static string IncludeDeveloperBuildsKey_ = "IncludeDevBuilds";
+        private const string IncludeDeveloperBuildsKey_ = "IncludeDevBuilds";
+        private const string ChangeLanguageKey_ = "ChangeLanguage";
 
-        private static string AboutKuriimuKey_ = "AboutKuriimu2";
+        private const string AboutKuriimuKey_ = "AboutKuriimu2";
 
         #endregion
 
@@ -65,6 +66,13 @@ namespace Kuriimu2.EtoForms.Forms
         private Command includeDevBuildCommand;
 
         private Command openAboutCommand;
+
+        #endregion
+
+        #region Language Commands
+
+        private Command englishCommand;
+        private Command germanCommand;
 
         #endregion
 
@@ -103,6 +111,13 @@ namespace Kuriimu2.EtoForms.Forms
             includeDevBuildCommand = new Command();
 
             openAboutCommand = new Command { MenuText = Localize(AboutKuriimuKey_), Image = ImageResources.Actions.About };
+
+            #endregion
+
+            #region Language Commands
+
+            englishCommand = new Command { MenuText = "English" };
+            germanCommand = new Command { MenuText = "Deutsch" };
 
             #endregion
 
@@ -164,6 +179,15 @@ namespace Kuriimu2.EtoForms.Forms
                                 Text = Localize(IncludeDeveloperBuildsKey_), 
                                 Checked = Settings.Default.IncludeDevBuilds, 
                                 Command = includeDevBuildCommand
+                            },
+                            new ButtonMenuItem
+                            {
+                                Text = Localize(ChangeLanguageKey_),
+                                Items =
+                                {
+                                    englishCommand,
+                                    germanCommand
+                                }
                             }
                         } 
                     }

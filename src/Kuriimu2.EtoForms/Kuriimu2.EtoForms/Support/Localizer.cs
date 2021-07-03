@@ -21,11 +21,6 @@ namespace Kuriimu2.EtoForms.Support
             LoadLocalization(locale);
         }
 
-        public void ChangeLocale(string locale)
-        {
-            LoadLocalization(locale);
-        }
-
         public string GetLocalization(string name, params object[] args)
         {
             if (_localizations == null)

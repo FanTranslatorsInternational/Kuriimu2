@@ -28,6 +28,9 @@
   "RawImageViewer": "Rohbildansicht",
 
   "IncludeDevBuilds": "Entwicklerversionen einbeziehen",
+  "ChangeLanguage": "Sprache ändern",
+  "ChangeLanguageCaption": "Die Änderungen werden erst nach einem Neustart effektiv.",
+  "ChangeLanguageTitle": "Geänderte Einstellungen",
 
   "Help": "Hilfe",
   "AboutKuriimu2": "Über Kuriimu2",
