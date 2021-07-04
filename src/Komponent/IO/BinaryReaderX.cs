@@ -434,6 +434,7 @@ namespace Komponent.IO
             return output;
         }
 
+        // TODO: Optimize by looking into the stream for the stop byte and doing only one copy action at the end
         public byte[] ReadBytesUntil(byte stop)
         {
             var result = new List<byte>();

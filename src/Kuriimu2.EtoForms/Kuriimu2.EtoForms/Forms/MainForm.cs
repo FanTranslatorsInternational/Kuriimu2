@@ -304,11 +304,13 @@ namespace Kuriimu2.EtoForms.Forms
             {
                 switch (fileState.PluginState)
                 {
-                    // TODO: Implement other forms
-                    //case ITextState _:
-                    //    kuriimuForm = new TextForm(fileState, communicator, _fileManager.GetGameAdapters().ToArray(),
-                    //        _progressContext);
-                    //    break;
+#if DEBUG
+
+                    case ITextState _:
+                        kuriimuForm = new TextForm(new FormInfo(fileState, communicator, _progress, _logger));
+                        break;
+
+#endif
 
                     case IImageState _:
                         kuriimuForm = new ImageForm(new FormInfo(fileState, communicator, _progress, _logger));

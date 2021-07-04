@@ -1,118 +1,74 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Xml.Serialization;
+using System.Text;
+using Kontract.Models.Text.ControlCodeProcessor;
 
 namespace Kontract.Models.Text
 {
     /// <summary>
-    /// The base text entry class.
+    /// The base class for texts.
     /// </summary>
-    public class TextEntry : INotifyPropertyChanged
+    public class TextEntry
     {
-        private string _name = string.Empty;
-        private string _originalText = string.Empty;
-        private string _editedText = string.Empty;
-        private string _notes = string.Empty;
-
-        /// <inheritdoc />
         /// <summary>
-        /// The event handler for properties being changed.
+        /// The name for this entry.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public string Name { get; } = string.Empty;
 
         /// <summary>
-        /// The event handler for this entry getting edited.
+        /// The text data in bytes for this entry.
         /// </summary>
-        public event EventHandler Edited;
+        public byte[] TextData { get; set; }
 
         /// <summary>
-        /// The entry's name.
+        /// The encoding for the text data.
         /// </summary>
-        public virtual string Name
+        public Encoding Encoding { get; set; }
+
+        /// <summary>
+        /// (Optional) The processor to parse control codes given in the text data.
+        /// </summary>
+        public IControlCodeProcessor ControlCodeProcessor { get; set; }
+
+        /// <summary>
+        /// Creates an empty <see cref="TextEntry"/> without a name.
+        /// </summary>
+        public TextEntry()
         {
-            get => _name;
-            set
-            {
-                if (_name == value) return;
-                _name = value;
-                OnPropertyChanged(nameof(Name));
-                OnEdited();
-            }
         }
 
         /// <summary>
-        /// Stores the original text for the entry.
+        /// Creates a new <see cref="TextEntry"/>.
         /// </summary>
-        public virtual string OriginalText
+        /// <param name="name">The name of the entry.</param>
+        public TextEntry(string name)
         {
-            get => _originalText;
-            set
-            {
-                if (_originalText == value) return;
-                _originalText = value;
-                OnPropertyChanged(nameof(OriginalText));
-                OnEdited();
-            }
+            Name = name;
         }
 
         /// <summary>
-        /// Stores the edited text for the entry.
+        /// Retrieves the decoded and processed text of this entry.
         /// </summary>
-        public virtual string EditedText
+        /// <returns>The processed text of this entry.</returns>
+        public ProcessedText GetText()
         {
-            get => _editedText;
-            set
-            {
-                if (_editedText == value) return;
-                _editedText = value;
-                OnPropertyChanged(nameof(EditedText));
-                OnEdited();
-            }
+            var processor = ControlCodeProcessor ?? new DefaultControlCodeProcessor();
+            var enc = Encoding ?? Encoding.ASCII;
+            var data = TextData ?? Array.Empty<byte>();
+
+            return processor.Read(data, enc);
         }
 
         /// <summary>
-        /// Stores the note text for the entry.
+        /// Sets the <see cref="TextData"/> of this entry.
         /// </summary>
-        public virtual string Notes
+        /// <param name="text">The text to encode and process.</param>
+        public void SetText(ProcessedText text)
         {
-            get => _notes;
-            set
-            {
-                if (_notes == value) return;
-                _notes = value;
-                OnPropertyChanged(nameof(Notes));
-                OnEdited();
-            }
-        }
+            var processor = ControlCodeProcessor ?? new DefaultControlCodeProcessor();
+            var enc = Encoding ?? Encoding.ASCII;
+            text ??= new ProcessedText(string.Empty);
 
-        /// <summary>
-        /// Limits the allowed text length that the entry can contain.
-        /// 0 for unlimited.
-        /// </summary>
-        [XmlAttribute("max_length")]
-        public virtual int MaxLength { get; set; }
-
-        /// <summary>
-        /// Determines whether this entry can be edited.
-        /// </summary>
-        [XmlIgnore]
-        public virtual bool CanEdit { get; } = true;
-
-        /// <summary>
-        /// Allows the properties to notify the UI when their values have changed.
-        /// </summary>
-        /// <param name="propertyName">The name of the property that was changed.</param>
-        public void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Raises the Edited event.
-        /// </summary>
-        protected virtual void OnEdited()
-        {
-            Edited?.Invoke(this, EventArgs.Empty);
+            TextData = processor.Write(text, enc);
         }
     }
 }

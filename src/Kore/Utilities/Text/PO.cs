@@ -18,32 +18,33 @@ namespace Kore.Utilities.Text
             TextEntries = entries;
         }
 
+        // TODO: Reintroduce save procedure
         public void Save(Stream output)
         {
-            using (var writer = new StreamWriter(output, Encoding.UTF8))
-            {
-                foreach (PoEntry entry in TextEntries)
-                {
-                    if (entry.Comments?.Any() ?? false)
-                        entry.Comments.ForEach(x => writer.WriteLine($"# {x}"));
-                    if (entry.ExtractedComments?.Any() ?? false)
-                        entry.ExtractedComments.ForEach(x => writer.WriteLine($"#. {x}"));
-                    if (entry.SourceReference?.Any() ?? false)
-                        entry.SourceReference.ForEach(x => writer.WriteLine($"#: {x}"));
-                    if (entry.Flags?.Any() ?? false)
-                        entry.Flags.ForEach(x => writer.WriteLine($"#, {x}"));
+            //using (var writer = new StreamWriter(output, Encoding.UTF8))
+            //{
+            //    foreach (PoEntry entry in TextEntries)
+            //    {
+            //        if (entry.Comments?.Any() ?? false)
+            //            entry.Comments.ForEach(x => writer.WriteLine($"# {x}"));
+            //        if (entry.ExtractedComments?.Any() ?? false)
+            //            entry.ExtractedComments.ForEach(x => writer.WriteLine($"#. {x}"));
+            //        if (entry.SourceReference?.Any() ?? false)
+            //            entry.SourceReference.ForEach(x => writer.WriteLine($"#: {x}"));
+            //        if (entry.Flags?.Any() ?? false)
+            //            entry.Flags.ForEach(x => writer.WriteLine($"#, {x}"));
 
-                    if (!string.IsNullOrWhiteSpace(entry.Context))
-                        writer.WriteLine($"msgctxt {entry.Context}");
-                    if (!string.IsNullOrWhiteSpace(entry.OriginalText))
-                        writer.WriteLine($"msgid {entry.OriginalText}");
-                    if (!string.IsNullOrWhiteSpace(entry.EditedText))
-                        writer.WriteLine($"msgstr {entry.EditedText}");
+            //        if (!string.IsNullOrWhiteSpace(entry.Context))
+            //            writer.WriteLine($"msgctxt {entry.Context}");
+            //        if (!string.IsNullOrWhiteSpace(entry.OriginalText))
+            //            writer.WriteLine($"msgid {entry.OriginalText}");
+            //        if (!string.IsNullOrWhiteSpace(entry.EditedText))
+            //            writer.WriteLine($"msgstr {entry.EditedText}");
 
-                    writer.WriteLine();
-                    writer.WriteLine();
-                }
-            }
+            //        writer.WriteLine();
+            //        writer.WriteLine();
+            //    }
+            //}
         }
 
         /// <summary>
