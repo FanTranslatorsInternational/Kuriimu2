@@ -106,6 +106,8 @@ namespace plugin_mt_framework.Text
                 var entry = string.IsNullOrEmpty(label) ? new TextEntry() : new TextEntry(label);
                 entry.Encoding = Encoding.UTF8;
                 entry.TextData = sectionData;
+                entry.ControlCodeProcessor = new GmdControlCodeProcessor();
+                entry.TextPager = new GmdTextPager();
 
                 result.Add(entry);
             }

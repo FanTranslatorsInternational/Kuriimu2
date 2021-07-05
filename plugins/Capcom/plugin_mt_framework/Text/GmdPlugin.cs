@@ -15,9 +15,9 @@ namespace plugin_mt_framework.Text
 
     public class GmdPlugin : IFilePlugin, IIdentifyFiles
     {
-        public Guid PluginId { get; }
-        public PluginType PluginType { get; }
-        public string[] FileExtensions { get; }
+        public Guid PluginId => Guid.Parse("1b1cce5b-de7a-4e9e-be5e-203162875c2d");
+        public PluginType PluginType => PluginType.Text;
+        public string[] FileExtensions => new[] {"*.gmd"};
         public PluginMetadata Metadata { get; }
 
         public GmdPlugin()

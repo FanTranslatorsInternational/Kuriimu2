@@ -7,27 +7,27 @@ namespace Kontract.Models.Text
 {
     public class ProcessedText
     {
-        private const char EscapeChar_ = '\\';
-        private const char ControlCodeOpen_ = '{';
-        private const char ControlCodeClose_ = '}';
-        private static readonly char[] EscapeableChars = { '{' };
+        public const char ControlCodeOpen = '<';
+        public const char ControlCodeClose = '>';
 
-        // TODO: Give access to those elements for processing in other parts of a text processing pipeline
-        private readonly ProcessedElement[] _processedElements;
+        private const char EscapeChar_ = '\\';
+        private static readonly char[] EscapeableChars = { '<' };
+
+        public IReadOnlyList<ProcessedElement> Elements { get; }
 
         public ProcessedText(string text)
         {
-            _processedElements = new ProcessedElement[] { text };
+            Elements = new ProcessedElement[] { text };
         }
 
-        public ProcessedText(ProcessedElement[] elements)
+        public ProcessedText(IReadOnlyList<ProcessedElement> elements)
         {
-            _processedElements = elements;
+            Elements = elements;
         }
 
         public string Serialize(bool withControlCodes = true)
         {
-            return _processedElements
+            return Elements
                 .Where(x => x.IsString || withControlCodes && x.IsControlCode)
                 .Aggregate("", (a, b) => a + b);
         }
@@ -41,19 +41,19 @@ namespace Kontract.Models.Text
         {
             var elements = new List<ProcessedElement>();
 
-            var result = string.Empty;
+            var partText = string.Empty;
             for (var i = 0; i < text.Length; i++)
             {
                 if (IsControlCode(text, i, out var controlCodeEnd))
                 {
-                    if (result != string.Empty)
+                    if (!string.IsNullOrEmpty(partText))
                     {
-                        elements.Add(result);
-                        result = string.Empty;
+                        elements.Add(partText);
+                        partText = string.Empty;
                     }
 
                     elements.Add(ControlCode.Parse(text[i..controlCodeEnd]));
-                    i += controlCodeEnd - i;
+                    i += controlCodeEnd - i - 1;
 
                     continue;
                 }
@@ -61,10 +61,13 @@ namespace Kontract.Models.Text
                 if (IsEscapedChar(text, i))
                     i++;
 
-                result += text[i];
+                partText += text[i];
             }
 
-            return new ProcessedText(elements.ToArray());
+            if (!string.IsNullOrEmpty(partText))
+                elements.Add(partText);
+
+            return new ProcessedText(elements);
         }
 
         private static bool IsControlCode(string text, int index, out int controlCodeEnd)
@@ -73,13 +76,13 @@ namespace Kontract.Models.Text
 
             // Normally, this should never produce a false positive with escapeable characters,
             // since the check would encounter the escape character first, instead of the { for the control code start
-            if (text[index] != ControlCodeOpen_)
+            if (text[index] != ControlCodeOpen)
                 return false;
 
             // It is not allowed to have a } inside a control code, therefore we may not assume
             // an escaped character inside a control code structure
             for (var i = index + 1; i < text.Length; i++)
-                if (text[i] == ControlCodeClose_)
+                if (text[i] == ControlCodeClose)
                 {
                     controlCodeEnd = i + 1;
                     return true;
@@ -166,13 +169,18 @@ namespace Kontract.Models.Text
 
         public override string ToString()
         {
-            var sb = new StringBuilder("{");
+            var sb = new StringBuilder();
+
+            sb.Append(ProcessedText.ControlCodeOpen);
             sb.Append(Name ?? Id.ToString());
 
             if (Arguments.Length > 0)
+            {
+                sb.Append(' ');
                 sb.AppendJoin(' ', Arguments);
+            }
 
-            sb.Append("}");
+            sb.Append(ProcessedText.ControlCodeClose);
 
             return sb.ToString();
         }
@@ -210,8 +218,8 @@ namespace Kontract.Models.Text
         /// <returns>The parsed control code.</returns>
         public static ControlCode Parse(string code)
         {
-            if (!code.StartsWith('{') || !code.EndsWith('}'))
-                throw new InvalidOperationException("The code is not encased in { and }.");
+            if (!code.StartsWith(ProcessedText.ControlCodeOpen) || !code.EndsWith(ProcessedText.ControlCodeClose))
+                throw new InvalidOperationException($"The code is not encased in {ProcessedText.ControlCodeOpen} and {ProcessedText.ControlCodeClose}.");
 
             var parameter = code[1..^1].Split(' ');
 

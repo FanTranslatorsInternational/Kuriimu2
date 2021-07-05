@@ -13,8 +13,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             _toggleCommand = new Command();
 
-            _firstEntryText = new Label();
-            _toggleButton = new Button { Text = "Toggle codes", Command = _toggleCommand };
+            _firstEntryText = new Label{ Size=new Eto.Drawing.Size(-1,300)};
+            _toggleButton = new Button { Text = "Toggle codes", Command = _toggleCommand, Size=new Eto.Drawing.Size(-1,30) };
 
             Content = new TableLayout
             {

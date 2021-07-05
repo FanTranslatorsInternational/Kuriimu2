@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Kontract.Models.Text.ControlCodeProcessor;
+using Kontract.Models.Text.TextPager;
 
 namespace Kontract.Models.Text
 {
     /// <summary>
-    /// The base class for texts.
+    /// The base class for pages.
     /// </summary>
     public class TextEntry
     {
@@ -28,6 +30,16 @@ namespace Kontract.Models.Text
         /// (Optional) The processor to parse control codes given in the text data.
         /// </summary>
         public IControlCodeProcessor ControlCodeProcessor { get; set; }
+
+        /// <summary>
+        /// (Optional) The pager to split pages from the processed text.
+        /// </summary>
+        public ITextPager TextPager { get; set; }
+
+        /// <summary>
+        /// Determines, if an entry consists of multiple pages.
+        /// </summary>
+        public bool HasPaging => TextPager != null;
 
         /// <summary>
         /// Creates an empty <see cref="TextEntry"/> without a name.
@@ -59,6 +71,19 @@ namespace Kontract.Models.Text
         }
 
         /// <summary>
+        /// Retrieves the decoded, processed and paged text of this entry.
+        /// This will return the same as <see cref="GetText"/> if no <see cref="TextPager"/> is given.
+        /// </summary>
+        /// <returns>The decoded and processed text, paged by <see cref="TextPager"/>.</returns>
+        public IList<ProcessedText> GetTexts()
+        {
+            var text = GetText();
+            var pager = TextPager ?? new DefaultTextPager();
+
+            return pager.Split(text);
+        }
+
+        /// <summary>
         /// Sets the <see cref="TextData"/> of this entry.
         /// </summary>
         /// <param name="text">The text to encode and process.</param>
@@ -69,6 +94,18 @@ namespace Kontract.Models.Text
             text ??= new ProcessedText(string.Empty);
 
             TextData = processor.Write(text, enc);
+        }
+
+        /// <summary>
+        /// Sets the <see cref="TextData"/> of this entry, after merging pages back together.
+        /// </summary>
+        /// <param name="pages">The pages to merge, process, and encode.</param>
+        public void SetTexts(IList<ProcessedText> pages)
+        {
+            var pager = TextPager ?? new DefaultTextPager();
+            var text = pager.Merge(pages);
+
+            SetText(text);
         }
     }
 }
