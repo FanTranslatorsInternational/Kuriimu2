@@ -1,0 +1,249 @@
+{
+  // Kuriimu2 Main GUI texts,
+  "File": "文件",
+  "Tools": "工具类",
+  "Ciphers": "密码器",
+  "Compressions": "压缩",
+  "Settings": "设置",
+
+  "Open": "打开",
+  "OpenWith": "用...打开",
+  "Save": "保存",
+  "SaveAs": "保存为...",
+  "SaveAll": "全部保存",
+  "Close": "关闭",
+
+  "TextSequenceSearcher": "文本搜索器",
+  "BatchExtractor": "全部提取",
+  "BatchInjector": "全部替换",
+
+  "Hashes": "哈希值",
+
+  "Encrypt": "加密",
+  "Decrypt": "解密",
+
+  "Decompress": "解压",
+  "Compress": "压缩",
+
+  "RawImageViewer": "原始图像查看器",
+
+  "IncludeDevBuilds": "包括开发人员的构建",
+  "ChangeLanguage": "改变语言",
+  "ChangeLanguageCaption": "这些改变只有在重新启动后才会生效。",
+  "ChangeLanguageTitle": "更改后的设置 ",
+
+  "Help": "帮助",
+  "AboutKuriimu2": "关于Kuriimu2",
+
+  "LoadErrorCaption": "加载错误",
+  "SaveErrorCaption": "保存错误",
+  "UnsavedChangesCaption": "未保存的更改",
+  "DependantFilesCaption": "依赖的文件",
+  "ExceptionCatchedCaption": "捕获的异常",
+  "UnhandledExceptionCaption": "未处理的异常",
+  "UpdateAvailableCaption": "更新可用",
+  "PluginsNotAvailableCaption": "插件不可用",
+
+  "LoadCancelledStatus": "加载被取消。",
+  "NoPluginSelectedStatus": "没有选择插件。",
+  "NoFileSelectedStatus": "没有选择文件。",
+  "FileAlreadyOpeningStatus": "{0}已经打开。",
+  "FileAlreadySavingStatus": "{0}已经在保存。",
+  "FileSuccessfullyLoaded": "文件加载成功。",
+  "FileNotSuccessfullyLoaded": "文件未加载成功。",
+  "FileNotSuccessfullyLoadedWithPlugin": "文件未成功加载插件{0}。",
+  "FileSavedSuccessfullyStatus": "文件保存成功。",
+  "FileNotSavedSuccessfullyStatus": "文件未保存成功。",
+  "OperationsStillRunningStatus": "操作仍在进行，文件无法关闭。",
+
+  "SelectedFileInvalid": "所选文件无效。",
+  "UnsavedChangesToFile": "对{0}或其打开的子文件进行了修改。你想保存这些更改吗？",
+  "UnsavedChangesGeneric": "对一个或多个文件进行了修改。你想保存这些变化吗？",
+  "DependantFiles": "从这个文件开始，所有打开的文件都将被关闭。继续吗？",
+  "UnhandledExceptionCloseApp": "发生了一个未处理的异常。请参考日志以了解更多信息。该应用程序将被关闭。",
+  "UnhandledExceptionNotCloseApp": "发生了一个未处理的异常。请参考日志以了解更多信息。",
+  "UpdateAvailable": "你想从{0}-{1}更新到{2}-{3}？",
+  "FollowingPluginsNotLoaded": "以下插件无法加载",
+
+  "AllFilesFilter": "所有文件",
+
+  "UnsupportedOperatingSystemException": "不支持的操作系统。{0}.",
+  "UnsupportedPlatformException": "不支持的平台。{0}.",
+
+  // Kuriimu2 Archive Form,
+  "ClearSearch": "清除",
+  "CancelOperation": "撤销",
+
+  "Extract": "提取",
+  "Replace": "替换",
+  "Rename": "重命名",
+  "Delete": "删除",
+  "Add": "添加",
+
+  "ExtractFile": "提取文件",
+  "ReplaceFile": "替换文件",
+  "RenameFile": "重命名文件",
+  "DeleteFile": "删除文件",
+
+  "FileName": "名称",
+  "FileSize": "规模",
+
+  "NoTargetSelectedStatus": "没有选择目标。",
+
+  "NoFilesToExtractStatus": "没有要提取的文件。",
+  "NoFilesToReplaceStatus": "没有要替换的文件。",
+  "NoFilesToRenameStatus": "没有要重命名的文件。",
+  "NoFilesToDeleteStatus": "没有要删除的文件。",
+  "NoFilesToAddStatus": "没有要添加的文件。",
+
+  "ExtractFileProgress": "提取文件",
+  "ReplaceFileProgress": "替换文件",
+  "RenameFileProgress": "重命名文件",
+  "DeleteFileProgress": "删除文件",
+  "AddFileProgress": "添加文件",
+
+  "ExtractFileCancelledStatus": "文件提取被取消。",
+  "ReplaceFileCancelledStatus": "文件替换被取消。",
+  "RenameFileCancelledStatus": "文件重命名被取消。",
+  "DeleteFileCancelledStatus": "文件删除被取消。",
+  "AddFileCancelledStatus": "文件添加被取消。",
+
+  "ExtractFileSuccessfulStatus": "文件提取成功。",
+  "ReplaceFileSuccessfulStatus": "文件替换成功。",
+  "RenameFileSuccessfulStatus": "文件重新命名成功。",
+  "DeleteFileSuccessfulStatus": "成功删除文件。",
+  "AddFileSuccessfulStatus": "文件添加成功。",
+
+  "UnableToAddFilesStatus": "一些文件无法成功添加。请参阅日志以了解更多信息。",
+
+  "NoNameGivenStatus": "没有给出新名称。",
+
+  "RenameFileTitle": "重命名文件",
+  "RenameDirectoryTitle": "重命名目录",
+
+  "RenameItemCaption": "为{0}选择一个新的名字：",
+
+  // Kuriimu2 Image form,
+  "ExportImage": "导出图像",
+  "ImportImage": "导入图像",
+
+  "Width": "宽度:",
+  "Height": "高度。",
+  "Format": "格式。",
+  "Palette": "调色板。",
+
+  "ExportPngTitle": "导出PNG...",
+  "ImportPngTitle": "导入PNG...",
+
+  "ImageSuccessfullyImportedStatus": "图像成功导入。",
+
+  "PngFileFilter": "便携式网络图形(*.png)",
+
+  // Kuriimu2 Text Sequence Searcher,
+  "TextSequenceSearcherTitle": "文本序列搜索器",
+  "SearchSubfolders": "搜索子文件夹",
+
+  "Find": "查找",
+  "FindIn": "查找在。",
+  "FindWhat": "查找什么",
+  "Browse": "浏览...",
+  "Encoding": "编码：",
+
+  "SelectSearchDirectory": "选择要搜索的目录",
+
+  "SelectEncodingCaption": "选择一个编码。",
+  "SelectSearchDirectoryCaption": "选择一个要搜索的目录。",
+  "SelectSearchTextCaption": "选择一个要搜索的文本。",
+
+  // Kuriimu2 ChoosePluginDialog,
+  "ChooseOpenFilePlugin": "选择插件来打开文件。",
+  "MultiplePluginMatchesSelection": "多个插件可以识别这个文件。请选择一个。",
+  "NonIdentifiablePluginSelection": "无法自动确定打开此文件的插件，请手动选择。",
+  "NonIdentifiablePluginSelectionNote": "默认情况下，只显示无法自动确定是否支持该文件的插件。",
+
+  "PluginNameColumn": "文件名称",
+  "PluginTypeColumn": "类型",
+  "PluginDescriptionColumn": "描述",
+  "PluginIdColumn": "识别码",
+
+  "ChoosePluginTitle": "选择插件",
+  "ChoosePluginContinue": "继续",
+  "ChoosePluginRawBytes": "查看原始字节",
+  "ChoosePluginCancel": "取消",
+  "ChoosePluginShowAll": "显示所有插件",
+
+  // Kuriimu2 DialogManager,
+  "CancelDialog": "对话框被取消了。",
+  "UnsupportedDialogFieldType": "不支持的对话字段类型{0}。",
+  "DialogOkButton": "好的",
+
+  // Kuriimu2 InputBox,
+  "InputBoxOkButton": "好的。",
+
+  // Kuriimu2 RawImageViewer,
+  "NoSwizzle": "无",
+  "CustomSwizzle": "自定义",
+
+  "ComponentOrder": "组件顺序",
+  "ByteOrder": "字节顺序",
+  "BitOrder": "位顺序",
+  "ZOrder": "Z-Order",
+  "AlphaLuminance": "阿尔法/亮度",
+  "AlphaMode": "AlphaMode",
+  "SwizzleMode": "混排模式",
+  "BitMapping": "位映射",
+  "InitPoint": "启动点",
+  "YTransform": "Y变形",
+
+  "InvalidInputValuesStatus": "输入值无效。",
+  "InvalidCustomSwizzleStatus": "自定义混排是无效的。",
+
+  "SelectedFileNotExistStatus": "选择的文件不存在。",
+
+  "RawImageViewerEncodingParameters": "编码参数",
+  "RawImageViewerEncodingPaletteParameters": "编码调色板参数",
+  "RawImageViewerSwizzleParameters": "像素混排参数",
+
+  "Offset": "偏移：",
+  "PaletteOffset": "调色板偏移：",
+  "Swizzle": "像素混排：",
+
+  "Process": "处理",
+
+  // Kuriimu2 BatchDialog,
+  "AvgTimePerFile": "每个文件的平均时间。",
+  "AvgTimePerFileTimed": "每个文件的平均时间。{0}ms",
+
+  "BatchAvailablePlugins": "插件",
+  "BatchSelectInput": "选择输入...",
+  "BatchSelectOutput": "选择输出...",
+  "Execute": "执行",
+
+  "BatchSelectPluginStatus": "选择一个插件。",
+
+  "BatchExtractSourceEmpty": "选择一个有文件要提取的目录。",
+  "BatchExtractDestinationEmpty": "选择一个目录来提取文件。",
+
+  "BatchInjectSourceEmpty": "选择一个有要注入的文件的目录。",
+  "BatchInjectDestinationEmpty": "选择一个带有目录的目录来注入文件。",
+
+  // Kuriimu2 Extension Dialogs,
+  "ExtensionParameters": "参数",
+  "AutoExecute": "拖放时自动执行",
+
+  "SelectFolder": "选择文件夹...",
+  "SelectFile": "选择文件...",
+
+  "Compression": "压缩",
+  "Decompression": "解压缩",
+  "Encryption": "加密",
+  "Decryption": "解密",
+
+  "SelectTypeExtension": "选择一个{0}。",
+  "SelectFileOrFolder": "选择一个要处理的文件或目录。",
+  "FileFailed": "{0}失败：{1}",
+  "ProcessFinishedCaption": "结果被写入{0}。",
+  "ProcessFinishedTitle": "完成了!",
+  "CipherNotSupported": "不支持的密码器{0}。",
+  "CompressionNotSupported": "不支持的密码器{0}。"
+}
