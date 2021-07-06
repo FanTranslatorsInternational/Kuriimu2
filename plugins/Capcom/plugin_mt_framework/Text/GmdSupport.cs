@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO.Attributes;
 using Kontract.Models.Text;
 using Kontract.Models.Text.ControlCodeProcessor;
 using Kontract.Models.Text.TextPager;
+using Kryptography;
 
 namespace plugin_mt_framework.Text
 {
@@ -56,6 +58,75 @@ namespace plugin_mt_framework.Text
         Spanish,
         German,
         Italian
+    }
+
+    static class GmdSupport
+    {
+        private static List<string> key1 = new List<string> { "fjfajfahajra;tira9tgujagjjgajgoa", "e43bcc7fcab+a6c4ed22fcd433/9d2e6cb053fa462-463f3a446b19" };
+        private static List<string> key2 = new List<string> { "mva;eignhpe/dfkfjgp295jtugkpejfu", "861f1dca05a0;9ddd5261e5dcc@6b438e6c.8ba7d71c*4fd11f3af1" };
+
+        public static bool IsEncrypted(Stream input)
+        {
+            // Get last byte
+            var lastByte = PeekLastByte(input);
+
+            // Shortcut: If last byte is 0 and key does not produce 0 at that position, we return the stream as is, because it is not encrypted
+            if (lastByte == 0)
+            {
+                for (var i = 0; i < key1.Count; i++)
+                {
+                    var keyPos = (int)input.Length % key1[i].Length - 1;
+                    if (key1[i][keyPos] != key2[i][keyPos])
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static int DetermineKeyIndex(Stream input)
+        {
+            // Get last byte
+            var lastByte = PeekLastByte(input);
+
+            // Determine key pair index
+            var keyIndex = -1;
+            for (var i = 0; i < key1.Count; i++)
+            {
+                var keyPos = (int)input.Length % key1[i].Length - 1;
+                if ((lastByte ^ key1[i][keyPos] ^ key2[i][keyPos]) == 0)
+                {
+                    keyIndex = i;
+                    break;
+                }
+            }
+
+            return keyIndex;
+        }
+
+        public static Stream WrapXor(Stream input, int keyIndex)
+        {
+            if (keyIndex < 0)
+                throw new InvalidOperationException("Unknown key pair for GMD content.");
+
+            // Create key
+            var key = new byte[key1[keyIndex].Length];
+            for (var i = 0; i < key1[keyIndex].Length; i++)
+                key[i] = (byte)(key1[keyIndex][i] ^ key2[keyIndex][i]);
+
+            // Wrap into XOR stream
+            return new XorStream(input, key);
+        }
+
+        private static int PeekLastByte(Stream input)
+        {
+            var bkPos = input.Position;
+            input.Position = input.Length - 1;
+            var lastByte = input.ReadByte();
+            input.Position = bkPos;
+
+            return lastByte;
+        }
     }
 
     class GmdControlCodeProcessor : IControlCodeProcessor

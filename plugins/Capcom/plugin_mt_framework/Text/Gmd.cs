@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Komponent.IO;
+using Komponent.IO.Streams;
 using Kontract.Models.IO;
 using Kontract.Models.Text;
 
@@ -19,6 +20,7 @@ namespace plugin_mt_framework.Text
         private ByteOrder _byteOrder;
         private GmdHeader _header;
         private string _name;
+        private int _keyIndex;
 
         public IList<TextEntry> Load(Stream input)
         {
@@ -38,8 +40,8 @@ namespace plugin_mt_framework.Text
             switch (_header.version)
             {
                 // Version 1
-                //case 0x00010201:
-                //    return ReadVersion1(br);
+                case 0x00010201:
+                    return ReadVersion1(br);
 
                 // Version 2
                 case 0x00010302:
@@ -54,7 +56,51 @@ namespace plugin_mt_framework.Text
 
         private IList<TextEntry> ReadVersion1(BinaryReaderX br)
         {
-            return Array.Empty<TextEntry>();
+            // Read entry infos
+            var entries = br.ReadMultiple<GmdEntryV1>(_header.sectionCount);
+
+            // Skip labels
+            var labelOffset = br.BaseStream.Position;
+            br.BaseStream.Position += _header.labelSize;
+
+            // Wrap section data into decryption, if necessary
+            Stream sectionStream = new SubStream(br.BaseStream, br.BaseStream.Position, _header.sectionSize);
+            if (GmdSupport.IsEncrypted(sectionStream))
+            {
+                _keyIndex = GmdSupport.DetermineKeyIndex(sectionStream);
+                sectionStream = GmdSupport.WrapXor(sectionStream, _keyIndex);
+            }
+
+            // Read section data
+            using var sectionBr = new BinaryReaderX(sectionStream);
+
+            var result = new List<TextEntry>();
+            for (var i = 0; i < _header.labelCount; i++)
+            {
+                var sectionData = sectionBr.ReadBytesUntil(0);
+                var label = string.Empty;
+
+                // Get label
+                var entryInfo = entries.FirstOrDefault(x => x.sectionId == i);
+                if (entryInfo != default)
+                {
+                    var bkPos = br.BaseStream.Position;
+                    br.BaseStream.Position = labelOffset + entryInfo.labelOffset - 0x290802F0;
+                    label = br.ReadCStringASCII();
+                    br.BaseStream.Position = bkPos;
+                }
+
+                // Create entry
+                var entry = string.IsNullOrEmpty(label) ? new TextEntry() : new TextEntry(label);
+                entry.Encoding = Encoding.UTF8;
+                entry.TextData = sectionData;
+                entry.ControlCodeProcessor = new GmdControlCodeProcessor();
+                entry.TextPager = new GmdTextPager();
+
+                result.Add(entry);
+            }
+
+            return result;
         }
 
         private IList<TextEntry> ReadVersion2(BinaryReaderX br)
@@ -67,13 +113,13 @@ namespace plugin_mt_framework.Text
             (int, long)[] entryInfos;
             if (br.BaseStream.Length == mobileLength)
             {
-                entryInfos = br.ReadMultiple<GmdEntryV2Mobile>(_header.labelCount)
+                entryInfos = br.ReadMultiple<GmdEntryV2Mobile>(_header.sectionCount)
                     .Select(e => (e.sectionId, e.labelOffset))
                     .ToArray();
             }
             else
             {
-                entryInfos = br.ReadMultiple<GmdEntryV2>(_header.labelCount)
+                entryInfos = br.ReadMultiple<GmdEntryV2>(_header.sectionCount)
                     .Select(e => (e.sectionId, (long)e.labelOffset))
                     .ToArray();
             }
@@ -85,11 +131,21 @@ namespace plugin_mt_framework.Text
             var labelOffset = br.BaseStream.Position;
             br.BaseStream.Position += _header.labelSize;
 
+            // Wrap section data into decryption, if necessary
+            Stream sectionStream = new SubStream(br.BaseStream, br.BaseStream.Position, _header.sectionSize);
+            if (GmdSupport.IsEncrypted(sectionStream))
+            {
+                _keyIndex = GmdSupport.DetermineKeyIndex(sectionStream);
+                sectionStream = GmdSupport.WrapXor(sectionStream, _keyIndex);
+            }
+
             // Read section data
+            using var sectionBr = new BinaryReaderX(sectionStream);
+
             var result = new List<TextEntry>();
             for (var i = 0; i < _header.labelCount; i++)
             {
-                var sectionData = br.ReadBytesUntil(0);
+                var sectionData = sectionBr.ReadBytesUntil(0);
                 var label = string.Empty;
 
                 // Get label
