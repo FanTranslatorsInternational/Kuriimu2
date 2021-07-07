@@ -1,4 +1,4 @@
-using Eto.Forms;
+﻿using Eto.Forms;
 using Eto.Drawing;
 using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Resources;
@@ -73,6 +73,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Command englishCommand;
         private Command germanCommand;
+        private Command simpleChineseCommand;
 
         #endregion
 
@@ -118,6 +119,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             englishCommand = new Command { MenuText = "English" };
             germanCommand = new Command { MenuText = "Deutsch" };
+            simpleChineseCommand = new Command { MenuText = "简体中文" };
 
             #endregion
 
@@ -186,7 +188,8 @@ namespace Kuriimu2.EtoForms.Forms
                                 Items =
                                 {
                                     englishCommand,
-                                    germanCommand
+                                    germanCommand,
+                                    simpleChineseCommand
                                 }
                             }
                         } 

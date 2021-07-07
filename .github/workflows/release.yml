@@ -115,8 +115,7 @@ jobs:
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Capcom/plugin_capcom/plugin_capcom.csproj --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Capcom/plugin_mt_framework/plugin_mt_framework.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Capcom/Capcom.sln--output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
@@ -136,9 +135,9 @@ jobs:
         dotnet build ./plugins/Nintendo/Nintendo.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/NipponIchiSoftware/NipponIchiSoftware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Primula/Primula.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sega/plugin_sega/plugin_sega.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sega/Sega.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Shade/Shade.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Sony/plugin_sony/plugin_sony.csproj --output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Sony/Sony.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/SpikeChunsoft/SpikeChunsoft.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/SquareEnix/SquareEnix.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/StingEntertainment/StingEntertainment.sln --output ./dist/final/plugins --configuration Release

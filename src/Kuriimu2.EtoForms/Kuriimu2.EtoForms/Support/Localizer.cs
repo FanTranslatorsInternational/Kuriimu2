@@ -21,7 +21,7 @@ namespace Kuriimu2.EtoForms.Support
             LoadLocalization(locale);
         }
 
-        public string GetLocalization(string name, params object[] args)
+        public string GetLocalization(string name)
         {
             if (_localizations == null)
                 return InvalidLocale_;
@@ -29,7 +29,7 @@ namespace Kuriimu2.EtoForms.Support
             if (!_localizations.ContainsKey(name))
                 return UndefinedKey_;
 
-            return string.Format(_localizations[name], args);
+            return _localizations[name];
         }
 
         private void LoadLocalization(string locale)

@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30309.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_e.x._troopers", "plugin_e.x._troopers\plugin_e.x._troopers.csproj", "{90D4FDF5-7A02-4A0F-A6C0-C4216FC97C12}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "plugin_mt_framework", "plugin_mt_framework\plugin_mt_framework.csproj", "{8A2D2E53-E6CE-4026-9F1B-2710AE5FC5FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_capcom", "plugin_capcom\plugin_capcom.csproj", "{574012D9-72B0-427D-8998-42E8B52AAD6F}"

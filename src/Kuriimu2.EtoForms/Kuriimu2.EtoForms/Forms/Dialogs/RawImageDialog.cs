@@ -565,7 +565,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
         {
             switch (SelectedSwizzleExtension.Name)
             {
-                case "Bc":
+                case "BC":
                     return new BcSwizzle(context);
 
                 case "NDS":

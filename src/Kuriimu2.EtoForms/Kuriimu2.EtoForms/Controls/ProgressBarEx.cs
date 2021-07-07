@@ -92,7 +92,7 @@ namespace Kuriimu2.EtoForms.Controls
                 e.ClipRectangle.Height - 1);
 
             // Draw background
-            e.Graphics.FillRectangle(new SolidBrush(BackgroundColor), controlRect);
+            e.Graphics.FillRectangle(new SolidBrush(KnownColors.Control), controlRect);
             e.Graphics.FillRectangle(new SolidBrush(ProgressColor), progressRect);
 
             // Draw border

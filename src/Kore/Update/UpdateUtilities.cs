@@ -5,6 +5,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using Kore.Models.Update;
 using Newtonsoft.Json;
+using Version = Kore.Models.Update.Version;
 
 namespace Kore.Update
 {
@@ -24,14 +25,15 @@ namespace Kore.Update
             if (remoteManifest == null || localManifest == null)
                 return false;
 
+            var localVersion = new Version(localManifest.Version);
+            var remoteVersion = new Version(remoteManifest.Version);
+
             var sourceCheck = remoteManifest.SourceType != localManifest.SourceType;
-            var versionCheck = new Models.Update.Version(localManifest.Version) < new Models.Update.Version(remoteManifest.Version);
+            var versionCheck = localVersion < remoteVersion;
             var buildCheck = remoteManifest.BuildNumber != localManifest.BuildNumber;
 
-            if (!includeDevBuilds)
-                return sourceCheck || versionCheck;
-
-            return sourceCheck || versionCheck || buildCheck;
+            var result = sourceCheck || versionCheck;
+            return includeDevBuilds && localVersion == remoteVersion ? buildCheck : result;
         }
 
         public static string DownloadUpdateExecutable()
