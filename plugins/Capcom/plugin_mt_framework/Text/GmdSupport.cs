@@ -28,7 +28,7 @@ namespace plugin_mt_framework.Text
     class GmdEntryV1
     {
         public int sectionId;
-        public int labelOffset;
+        public uint labelOffset;
     }
 
     class GmdEntryV2
@@ -36,7 +36,7 @@ namespace plugin_mt_framework.Text
         public int sectionId;
         public uint hash1;
         public uint hash2;
-        public int labelOffset;
+        public uint labelOffset;
         public int listLink;
     }
 
@@ -75,7 +75,7 @@ namespace plugin_mt_framework.Text
             {
                 for (var i = 0; i < key1.Count; i++)
                 {
-                    var keyPos = (int)input.Length % key1[i].Length - 1;
+                    var keyPos = (int)(input.Length - 1) % key1[i].Length;
                     if (key1[i][keyPos] != key2[i][keyPos])
                         return false;
                 }
@@ -93,7 +93,7 @@ namespace plugin_mt_framework.Text
             var keyIndex = -1;
             for (var i = 0; i < key1.Count; i++)
             {
-                var keyPos = (int)input.Length % key1[i].Length - 1;
+                var keyPos = (int)(input.Length - 1) % key1[i].Length;
                 if ((lastByte ^ key1[i][keyPos] ^ key2[i][keyPos]) == 0)
                 {
                     keyIndex = i;

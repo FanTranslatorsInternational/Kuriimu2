@@ -4,24 +4,29 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class TextForm : Panel
     {
-        private Label _firstEntryText;
-        private Button _toggleButton;
+        private Label firstEntryText;
+        private Button toggleButton;
+        private Button saveButton;
 
-        private Command _toggleCommand;
+        private Command toggleCommand;
+        private Command saveCommand;
 
         private void InitializeComponent()
         {
-            _toggleCommand = new Command();
+            toggleCommand = new Command();
+            saveCommand = new Command();
 
-            _firstEntryText = new Label{ Size=new Eto.Drawing.Size(-1,300)};
-            _toggleButton = new Button { Text = "Toggle codes", Command = _toggleCommand, Size=new Eto.Drawing.Size(-1,30) };
+            firstEntryText = new Label{ Size=new Eto.Drawing.Size(-1,200)};
+            toggleButton = new Button { Text = "Toggle codes", Command = toggleCommand };
+            saveButton= new Button { Text = "Save", Command = saveCommand };
 
             Content = new TableLayout
             {
                 Rows =
                 {
-                    _firstEntryText,
-                    _toggleButton
+                    firstEntryText,
+                    toggleButton,
+                    saveButton
                 }
             };
         }

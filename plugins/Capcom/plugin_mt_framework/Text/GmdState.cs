@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -9,12 +9,12 @@ using Kontract.Models.Text;
 
 namespace plugin_mt_framework.Text
 {
-    class GmdState : ITextState, ILoadFiles
+    class GmdState : ITextState, ILoadFiles, ISaveFiles
     {
         private Gmd _txt;
 
         public IList<TextEntry> Texts { get; private set; }
-        public bool ContentChanged { get; }
+        public bool ContentChanged => true;
 
         public GmdState()
         {
@@ -29,7 +29,10 @@ namespace plugin_mt_framework.Text
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            throw new NotImplementedException();
+            var fileStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
+            _txt.Save(fileStream, Texts);
+
+            return Task.CompletedTask;
         }
     }
 }
