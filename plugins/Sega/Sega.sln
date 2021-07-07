@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_valkyria_chronicles", "plugin_valkyria_chronicles\plugin_valkyria_chronicles.csproj", "{B72A608F-68AA-47B3-B6F7-D322D7656F2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_space_channel_5", "plugin_space_channel_5\plugin_space_channel_5.csproj", "{2294DA3C-E109-40FD-86D0-2A62AFF26286}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_sega", "plugin_sega\plugin_sega.csproj", "{8AD124BA-F7ED-442D-AB7F-975672237A34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "plugin_sonic_generations", "plugin_sonic_generations\plugin_sonic_generations.csproj", "{4A24B90C-BF27-4902-8510-39259631D5AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +29,10 @@ Global
 		{8AD124BA-F7ED-442D-AB7F-975672237A34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AD124BA-F7ED-442D-AB7F-975672237A34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AD124BA-F7ED-442D-AB7F-975672237A34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A24B90C-BF27-4902-8510-39259631D5AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A24B90C-BF27-4902-8510-39259631D5AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A24B90C-BF27-4902-8510-39259631D5AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A24B90C-BF27-4902-8510-39259631D5AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
