@@ -125,9 +125,9 @@ namespace plugin_mt_framework.Text
                 }
 
                 // Create entry
-                var entry = string.IsNullOrEmpty(label) ? new TextEntry() : new TextEntry(label);
-                entry.Encoding = Encoding.UTF8;
-                entry.TextData = sectionData;
+                var entry = new TextEntry(sectionData, Encoding.UTF8);
+                if (!string.IsNullOrEmpty(label))
+                    entry.Name = label;
                 entry.ControlCodeProcessor = new GmdControlCodeProcessor();
                 entry.TextPager = new GmdTextPager();
 
@@ -200,9 +200,9 @@ namespace plugin_mt_framework.Text
                 }
 
                 // Create entry
-                var entry = string.IsNullOrEmpty(label) ? new TextEntry() : new TextEntry(label);
-                entry.Encoding = Encoding.UTF8;
-                entry.TextData = sectionData;
+                var entry = new TextEntry(sectionData, Encoding.UTF8);
+                if (!string.IsNullOrEmpty(label))
+                    entry.Name = label;
                 entry.ControlCodeProcessor = new GmdControlCodeProcessor();
                 entry.TextPager = new GmdTextPager();
 

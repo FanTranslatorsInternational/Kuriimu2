@@ -5,8 +5,6 @@ using System.Linq;
 using System.Text;
 using Komponent.IO.Attributes;
 using Kontract.Models.Text;
-using Kontract.Models.Text.ControlCodeProcessor;
-using Kontract.Models.Text.TextPager;
 using Kryptography;
 
 namespace plugin_mt_framework.Text

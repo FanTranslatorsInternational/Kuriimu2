@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
-using Kontract.Models.Text.ControlCodeProcessor;
-using Kontract.Models.Text.TextPager;
 
 namespace Kontract.Models.Text
 {
@@ -12,19 +9,19 @@ namespace Kontract.Models.Text
     public class TextEntry
     {
         /// <summary>
-        /// The name for this entry.
-        /// </summary>
-        public string Name { get; } = string.Empty;
-
-        /// <summary>
         /// The text data in bytes for this entry.
         /// </summary>
-        public byte[] TextData { get; set; }
+        public byte[] TextData { get; private set; }
 
         /// <summary>
         /// The encoding for the text data.
         /// </summary>
-        public Encoding Encoding { get; set; }
+        public Encoding Encoding { get; } = Encoding.UTF8;
+
+        /// <summary>
+        /// The name for this entry.
+        /// </summary>
+        public string Name { get; set; }
 
         /// <summary>
         /// (Optional) The processor to parse control codes given in the text data.
@@ -37,37 +34,51 @@ namespace Kontract.Models.Text
         public ITextPager TextPager { get; set; }
 
         /// <summary>
-        /// Determines, if an entry consists of multiple pages.
+        /// Determines if the content of this entry was modified.
         /// </summary>
-        public bool HasPaging => TextPager != null;
+        public bool ContentChanged { get; private set; }
 
         /// <summary>
         /// Creates an empty <see cref="TextEntry"/> without a name.
         /// </summary>
-        public TextEntry()
+        /// <param name="textData">The data to decode and process.</param>
+        /// <param name="encoding">The encoding to decode <see cref="TextData"/> with.</param>
+        public TextEntry(byte[] textData, Encoding encoding)
         {
+            TextData = textData;
+            Encoding = encoding;
         }
 
         /// <summary>
         /// Creates a new <see cref="TextEntry"/>.
         /// </summary>
-        /// <param name="name">The name of the entry.</param>
-        public TextEntry(string name)
+        /// <param name="text">The text to process.</param>
+        public TextEntry(string text)
         {
-            Name = name;
+            TextData = Encoding.GetBytes(text);
+        }
+
+        #region Get methods
+
+        /// <summary>
+        /// Decodes <see cref="TextData"/> with <see cref="Encoding"/>.
+        /// </summary>
+        /// <returns>The decoded text.</returns>
+        public string GetText()
+        {
+            return Encoding.GetString(TextData);
         }
 
         /// <summary>
-        /// Retrieves the decoded and processed text of this entry.
+        /// Decodes <see cref="TextData"/> with <see cref="Encoding"/> and processes control codes with <see cref="ControlCodeProcessor"/>. 
         /// </summary>
-        /// <returns>The processed text of this entry.</returns>
-        public ProcessedText GetText()
+        /// <returns>The decoded and processed text.</returns>
+        public ProcessedText GetProcessedText()
         {
-            var processor = ControlCodeProcessor ?? new DefaultControlCodeProcessor();
-            var enc = Encoding ?? Encoding.ASCII;
-            var data = TextData ?? Array.Empty<byte>();
+            if (ControlCodeProcessor != null)
+                return ControlCodeProcessor.Read(TextData, Encoding);
 
-            return processor.Read(data, enc);
+            return new ProcessedText(GetText());
         }
 
         /// <summary>
@@ -75,37 +86,108 @@ namespace Kontract.Models.Text
         /// This will return the same as <see cref="GetText"/> if no <see cref="TextPager"/> is given.
         /// </summary>
         /// <returns>The decoded and processed text, paged by <see cref="TextPager"/>.</returns>
-        public IList<ProcessedText> GetTexts()
+        public IList<ProcessedText> GetPagedText()
         {
-            var text = GetText();
-            var pager = TextPager ?? new DefaultTextPager();
+            if (TextPager != null)
+                return TextPager.Split(GetProcessedText());
 
-            return pager.Split(text);
+            return new List<ProcessedText> { GetProcessedText() };
+        }
+
+        #endregion
+
+        #region Set methods
+
+        /// <summary>
+        /// Sets the <see cref="TextData"/> of this entry.
+        /// </summary>
+        /// <param name="text">The text to encode.</param>
+        public void SetText(ProcessedText text)
+        {
+            TextData = Encoding.GetBytes(text.Serialize());
+            ContentChanged = true;
         }
 
         /// <summary>
         /// Sets the <see cref="TextData"/> of this entry.
         /// </summary>
         /// <param name="text">The text to encode and process.</param>
-        public void SetText(ProcessedText text)
+        public void SetProcessedText(ProcessedText text)
         {
-            var processor = ControlCodeProcessor ?? new DefaultControlCodeProcessor();
-            var enc = Encoding ?? Encoding.ASCII;
-            text ??= new ProcessedText(string.Empty);
+            if (text == null)
+                return;
 
-            TextData = processor.Write(text, enc);
+            if (ControlCodeProcessor != null)
+            {
+                TextData = ControlCodeProcessor.Write(text, Encoding);
+                ContentChanged = true;
+
+                return;
+            }
+
+            SetText(text);
         }
 
         /// <summary>
         /// Sets the <see cref="TextData"/> of this entry, after merging pages back together.
         /// </summary>
         /// <param name="pages">The pages to merge, process, and encode.</param>
-        public void SetTexts(IList<ProcessedText> pages)
+        public void SetPagedText(IList<ProcessedText> pages)
         {
-            var pager = TextPager ?? new DefaultTextPager();
-            var text = pager.Merge(pages);
+            if (pages.Count <= 0)
+                return;
 
-            SetText(text);
+            if (TextPager != null && pages.Count > 1)
+            {
+                SetProcessedText(TextPager.Merge(pages));
+                return;
+            }
+
+            SetProcessedText(pages[0]);
         }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// The base interface for processing control codes.
+    /// </summary>
+    public interface IControlCodeProcessor
+    {
+        /// <summary>
+        /// Decodes and processes text data.
+        /// </summary>
+        /// <param name="data">The data to decode and process.</param>
+        /// <param name="encoding">The encoding the text data is presented in.</param>
+        /// <returns>The decoded and processed text.</returns>
+        public ProcessedText Read(byte[] data, Encoding encoding);
+
+        /// <summary>
+        /// Encodes and processes text.
+        /// </summary>
+        /// <param name="text">The text to encode and process.</param>
+        /// <param name="encoding">The encoding the text should be encoded in.</param>
+        /// <returns>The encoded and processed text data.</returns>
+        public byte[] Write(ProcessedText text, Encoding encoding);
+    }
+
+    /// <summary>
+    /// The base interface for paging processed texts.
+    /// </summary>
+    public interface ITextPager
+    {
+        /// <summary>
+        /// Splits a processed text by certain conditions into multiple processed texts.
+        /// </summary>
+        /// <param name="text">The text to split.</param>
+        /// <returns>The split text.</returns>
+        IList<ProcessedText> Split(ProcessedText text);
+
+        /// <summary>
+        /// Merges multiple processed texts by certain conditions.
+        /// </summary>
+        /// <param name="texts">The texts to merge.</param>
+        /// <returns>The merged text.</returns>
+        ProcessedText Merge(IList<ProcessedText> texts);
     }
 }
