@@ -4,9 +4,10 @@ using Kontract.Models.Context;
 using Kontract.Models.IO;
 using Kontract.Models.Text;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace plugin_sega.Text
+namespace plugin_sonic_generations.Text
 {
     public class SharpMsgState : ITextState, ILoadFiles, ISaveFiles
     {
@@ -14,7 +15,7 @@ namespace plugin_sega.Text
 
         public IList<TextEntry> Texts { get; private set; }
 
-        public bool ContentChanged { get; private set; }
+        public bool ContentChanged => IsContentChanged();
 
         public SharpMsgState()
         {
@@ -29,8 +30,13 @@ namespace plugin_sega.Text
 
         public async Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var stream = await fileSystem.OpenFileAsync(savePath, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite, System.IO.FileShare.ReadWrite);
+            var stream = await fileSystem.OpenFileAsync(savePath, System.IO.FileMode.Create, System.IO.FileAccess.ReadWrite, System.IO.FileShare.ReadWrite);
             _msg.Save(Texts, stream);
+        }
+
+        private bool IsContentChanged()
+        {
+            return Texts.Any(x => x.ContentChanged);
         }
     }
 }

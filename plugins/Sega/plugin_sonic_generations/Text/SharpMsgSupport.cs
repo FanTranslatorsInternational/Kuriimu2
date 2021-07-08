@@ -1,6 +1,6 @@
 ﻿using Komponent.IO.Attributes;
 
-namespace plugin_sega.Text
+namespace plugin_sonic_generations.Text
 {
     class SharpMsgHeader
     {

@@ -1,23 +1,23 @@
 ﻿using Komponent.IO;
 using Kontract.Models.Text;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace plugin_sega.Text
+namespace plugin_sonic_generations.Text
 {
     public class SharpMsg
     {
         private SharpMsgHeader _header;
-        private List<SharpMsgEntry> entries;
+        private List<SharpMsgEntry> _entries;
 
         public IList<TextEntry> Load(Stream stream)
         {
-            entries = new List<SharpMsgEntry>();
+            var reader = new BinaryReaderX(stream);
 
-            BinaryReaderX reader = new BinaryReaderX(stream, Kontract.Models.IO.ByteOrder.LittleEndian);
+            _entries = new List<SharpMsgEntry>();
+
             _header = reader.ReadType<SharpMsgHeader>();
             var entryInfos = reader.ReadMultiple<SharpMsgEntryInfo>(_header.entryCount);
 
@@ -35,10 +35,10 @@ namespace plugin_sega.Text
                 reader.BaseStream.Position = info.labelOffset;
                 entry.label = reader.ReadASCIIStringUntil(0);
 
-                entries.Add(entry);
+                _entries.Add(entry);
             }
 
-            return entries.Select(e => new TextEntry(e.label) { TextData = Encoding.Unicode.GetBytes(e.message), Encoding = Encoding.Unicode }).ToList();
+            return _entries.Select(e => new TextEntry(e.message) { Name = e.label }).ToList();
         }
 
         public void Save(IList<TextEntry> texts, Stream stream)
@@ -46,45 +46,45 @@ namespace plugin_sega.Text
             // Update all messages
             foreach (var text in texts)
             {
-                foreach (var entry in entries)
+                foreach (var entry in _entries)
                 {
                     if (text.Name == entry.label)
                     {
-                        entry.message = text.GetText().Serialize();
+                        entry.message = text.GetText();
                         break;
                     }
                 }
             }
 
-            _header.entryCount = entries.Count;
+            _header.entryCount = _entries.Count;
 
-            BinaryWriterX writer = new BinaryWriterX(stream, Kontract.Models.IO.ByteOrder.LittleEndian);
+            var writer = new BinaryWriterX(stream);
             var startPosition = writer.BaseStream.Position;
 
-            // Wirite header
+            // Write header
             writer.WriteType(_header);
 
             // Write entry infos for holding places
-            writer.WriteMultiple(entries.Select(e => e.entryInfo));
+            writer.WriteMultiple(_entries.Select(e => e.entryInfo));
 
-            // Write all entries
-            foreach (var e in entries)
+            // Write all _entries
+            foreach (var e in _entries)
             {
                 e.entryInfo.dataOffset = (int)writer.BaseStream.Position;
                 e.entryDataInfo.ppString = e.entryInfo.dataOffset + 0x10;
                 e.entryDataInfo.pString = e.entryDataInfo.ppString + 0x10;
 
                 writer.WriteType(e.entryDataInfo);
-                writer.WriteString(e.message, Encoding.Unicode, leadingCount: false);
-                writer.WriteAlignment(16, 0);
+                writer.WriteString(e.message, Encoding.Unicode, false);
+                writer.WriteAlignment();
 
                 e.entryInfo.labelOffset = (int)writer.BaseStream.Position;
-                writer.WriteString(e.label, Encoding.ASCII, leadingCount: false); // ASCII or UTF8?
+                writer.WriteString(e.label, Encoding.ASCII, false); // ASCII or UTF8?
             }
 
             // Write real entry infos
             writer.BaseStream.Position = startPosition + 0x10;
-            writer.WriteMultiple(entries.Select(e => e.entryInfo));
+            writer.WriteMultiple(_entries.Select(e => e.entryInfo));
         }
     }
 }
