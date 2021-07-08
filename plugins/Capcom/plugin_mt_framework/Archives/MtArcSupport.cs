@@ -544,7 +544,7 @@ namespace plugin_mt_framework.Archives
             [0x6A9197ED] = ".sss",
             [0x3B764DD4] = ".sstr",
             [0x3516C3D2] = ".lfd",
-            [0x0CF7FB37] = ".cfsm",
+            [0x0CF7FB37] = ".msf",
             [0x3D2E1661] = ".ein",
             [0x3B5A0DA5] = ".idx",
             [0x354E1E08] = ".ard",
