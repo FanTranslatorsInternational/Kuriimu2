@@ -117,8 +117,16 @@ namespace plugin_mt_framework.Archives
             if (_header.version != 7 && _header.version != 8)
                 br.ReadInt32();
 
+            // Determine if entries have extended file name section
+            var firstEntry = br.ReadType<MtEntry>();
+            var hasExtendedName = firstEntry.extensionHash == 0 ||
+                                  firstEntry.decompSize == 0 ||
+                                  firstEntry.offset == 0;
+
+            input.Position -= Tools.MeasureType(typeof(MtEntry));
+
             // Read entries
-            var entries = _header.version == 7 ?
+            var entries = hasExtendedName ?
                 (IList<IMtEntry>)br.ReadMultiple<MtEntryExtendedName>(_header.entryCount) :
                 (IList<IMtEntry>)br.ReadMultiple<MtEntry>(_header.entryCount);
 
