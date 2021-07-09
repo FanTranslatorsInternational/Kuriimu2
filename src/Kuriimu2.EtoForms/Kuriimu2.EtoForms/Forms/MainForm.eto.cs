@@ -73,6 +73,8 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Command englishCommand;
         private Command germanCommand;
+        private Command dutchCommand;
+        private Command russianCommand;
         private Command simpleChineseCommand;
 
         #endregion
@@ -119,6 +121,8 @@ namespace Kuriimu2.EtoForms.Forms
 
             englishCommand = new Command { MenuText = "English" };
             germanCommand = new Command { MenuText = "Deutsch" };
+            dutchCommand = new Command { MenuText = "Nederlands" };
+            russianCommand = new Command { MenuText = "русский" };
             simpleChineseCommand = new Command { MenuText = "简体中文" };
 
             #endregion
