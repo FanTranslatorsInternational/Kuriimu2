@@ -45,7 +45,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Constants
 
-        private static readonly Color ColorDefaultState = KnownColors.Black;
+        private static readonly Color ColorDefaultState = Themer.GetTheme().altColor;
         private static readonly Color ColorChangedState = KnownColors.Orange;
 
         #endregion
@@ -358,6 +358,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var gridItem = (TreeGridItem)e.Item;
             var path = GetAbsolutePath(gridItem);
             e.ForegroundColor = _changedDirectories.Contains(path) ? ColorChangedState : ColorDefaultState;
+            //e.BackgroundColor = Support.KnownColors.ThemeDark;
+            
         }
 
         #endregion
@@ -385,6 +387,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var element = (FileElement)e.Item;
             var isChanged = element.ArchiveFileInfo.ContentChanged || _formInfo.FileState.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == element.ArchiveFileInfo.FilePath);
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
+ 
         }
 
         #endregion

@@ -137,7 +137,8 @@ namespace Kuriimu2.EtoForms.Controls
         private const int MinSliderLength_ = 20;
         private const int ArrowLength_ = 17;
 
-        private Color ScrollBarBackgroundColor => Color.FromArgb(0xf0, 0xf0, 0xf0);
+            private Color ScrollBarBackgroundColor => Color.FromArgb(0xf0, 0xf0, 0xf0);
+        //private Color ScrollBarBackgroundColor => Color.FromArgb(0, 0, 0);
         private Color ScrollBarColor => Color.FromArgb(0xcd, 0xcd, 0xcd);
         private Color ScrollBarDarkColor => Color.FromArgb(0xa6, 0xa6, 0xa6);
         private Color ScrollBarArrowBackgroundColor => ScrollBarBackgroundColor;

@@ -121,6 +121,10 @@ namespace Kuriimu2.EtoForms.Forms
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
+            Themer.LoadThemes();
+
+            this.BackgroundColor = Themer.GetTheme().mainColor;
+
             _localizer = InitializeLocalizer();
             Application.Instance.LocalizeString += Instance_LocalizeString;
 
