@@ -67,6 +67,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Command openAboutCommand;
 
+
         #endregion
 
         #region Language Commands
@@ -78,7 +79,12 @@ namespace Kuriimu2.EtoForms.Forms
         private Command simpleChineseCommand;
 
         #endregion
+        #region Theme Commands
 
+        private Command DarkThemeCommand;
+        private Command LightThemeCommand;
+
+        #endregion
         #region Controls
 
         private TabControl tabControl;
@@ -127,6 +133,13 @@ namespace Kuriimu2.EtoForms.Forms
 
             #endregion
 
+            #region Language Commands
+
+            DarkThemeCommand = new Command { MenuText = "Dark" };
+            LightThemeCommand = new Command { MenuText = "Light" };
+
+
+            #endregion
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
             Padding = new Padding(3);
@@ -197,6 +210,20 @@ namespace Kuriimu2.EtoForms.Forms
                                     russianCommand,
                                     simpleChineseCommand
                                 }
+
+
+                            },
+                         new ButtonMenuItem
+                            {
+                                Text = "Themes",
+                                Items =
+                                {
+                                    DarkThemeCommand,
+                                    LightThemeCommand
+
+                                }
+
+
                             }
                         } 
                     }

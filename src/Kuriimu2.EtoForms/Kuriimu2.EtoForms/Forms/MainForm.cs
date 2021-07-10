@@ -121,7 +121,10 @@ namespace Kuriimu2.EtoForms.Forms
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
+
             Themer.LoadThemes();
+
+            
 
             this.BackgroundColor = Themer.GetTheme().mainColor;
 
@@ -185,6 +188,8 @@ namespace Kuriimu2.EtoForms.Forms
             russianCommand.Executed += (sender, args) => ChangeLocale("ru");
             simpleChineseCommand.Executed += (sender, args) => ChangeLocale("zh");
 
+            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark");
+            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light");
             #endregion
         }
 
@@ -1008,7 +1013,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (message == null)
                 return;
 
-            var textColor = isSuccessful ? KnownColors.Black : KnownColors.DarkRed;
+            var textColor = isSuccessful ? Themer.GetTheme().altColor : Themer.GetTheme().failColor;
 
             Application.Instance.Invoke(() =>
             {

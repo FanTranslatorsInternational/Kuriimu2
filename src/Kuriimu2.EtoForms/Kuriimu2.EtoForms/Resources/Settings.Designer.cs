@@ -133,7 +133,7 @@ namespace Kuriimu2.EtoForms.Resources {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("dark")]
+        [global::System.Configuration.DefaultSettingValueAttribute("light")]
         public string Theme {
             get {
                 return ((string)(this["Theme"]));

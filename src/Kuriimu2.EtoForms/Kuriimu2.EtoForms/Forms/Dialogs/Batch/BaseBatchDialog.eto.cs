@@ -42,7 +42,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
             subDirectoryBox = new CheckBox { Text = Localize(SearchSubFoldersKey_) };
             selectedOutputPath = new TextBox { ReadOnly = true };
             timerLabel = new Label { Text = Localize(AvgTimePerFileKey_) };
-            log = new RichTextArea { ReadOnly = true, BackgroundColor = KnownColors.Black, TextColor = KnownColors.NeonGreen };
+            log = new RichTextArea { ReadOnly = true, BackgroundColor = Themer.GetTheme().loggerBackColor, TextColor = Themer.GetTheme().loggerTextColor };
 
             #endregion
 

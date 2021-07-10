@@ -30,7 +30,7 @@
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="Theme" Type="System.String" Scope="User">
-      <Value Profile="(Default)">dark</Value>
+      <Value Profile="(Default)">light</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -21,8 +21,8 @@ namespace Kuriimu2.EtoForms.Controls
 
         //private Color SideBarBackground => Color.FromArgb(0xcd, 0xf7, 0xfd);
         //private Color ByteBackground1 => Color.FromArgb(0xf0, 0xfd, 0xff);
-        private Color SideBarBackground => Support.KnownColors.ThemeDark;
-        private Color ByteBackground1 => Support.KnownColors.DarkRed;
+        private Color SideBarBackground => Themer.GetTheme().hexSidebarBackColor;
+        private Color ByteBackground1 => Themer.GetTheme().hexByteBack1Color;
         #region Properties
 
         #region Backing fields
@@ -222,7 +222,7 @@ namespace Kuriimu2.EtoForms.Controls
                     byteY += _lineHeight;
                 }
 
-                g.DrawLine(KnownColors.ControlLight, new PointF(clipRectangle.X + positionWidth, clipRectangle.Y), new PointF(clipRectangle.X + positionWidth, clipRectangle.Y + clipRectangle.Height));
+                g.DrawLine(Themer.GetTheme().controlColor, new PointF(clipRectangle.X + positionWidth, clipRectangle.Y), new PointF(clipRectangle.X + positionWidth, clipRectangle.Y + clipRectangle.Height));
             }
 
             // Draw header
@@ -240,7 +240,7 @@ namespace Kuriimu2.EtoForms.Controls
                     byteX += byteWidth;
                 }
 
-                g.DrawLine(KnownColors.ControlLight, new PointF(clipRectangle.X, clipRectangle.Y + (int)headerHeight), new PointF(clipRectangle.X + clipRectangle.Width, clipRectangle.Y + (int)headerHeight));
+                g.DrawLine(Themer.GetTheme().controlColor, new PointF(clipRectangle.X, clipRectangle.Y + (int)headerHeight), new PointF(clipRectangle.X + clipRectangle.Width, clipRectangle.Y + (int)headerHeight));
             }
         }
 

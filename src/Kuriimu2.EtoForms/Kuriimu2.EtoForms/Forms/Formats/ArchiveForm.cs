@@ -359,6 +359,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var path = GetAbsolutePath(gridItem);
             e.ForegroundColor = _changedDirectories.Contains(path) ? ColorChangedState : ColorDefaultState;
             //e.BackgroundColor = Support.KnownColors.ThemeDark;
+
             
         }
 
