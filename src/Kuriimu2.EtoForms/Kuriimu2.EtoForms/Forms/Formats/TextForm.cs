@@ -17,7 +17,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             _formInfo = formInfo;
 
-            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetText().Serialize(_toggle);
+            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
 
             toggleCommand.Executed += _toggleCommand_Executed;
             saveCommand.Executed += SaveCommand_Executed;
@@ -26,7 +26,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void _toggleCommand_Executed(object sender, System.EventArgs e)
         {
             _toggle = !_toggle;
-            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetText().Serialize(_toggle);
+            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
         }
 
         private async void SaveCommand_Executed(object sender, System.EventArgs e)
@@ -34,7 +34,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             if (!await _formInfo.FormCommunicator.Save(true))
                 MessageBox.Show("Save Error", MessageBoxButtons.OK);
 
-            (_formInfo.FileState.PluginState as ITextState).Texts[0].GetText().Serialize(_toggle);
+            (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
         }
 
         #region Forminterface methods
