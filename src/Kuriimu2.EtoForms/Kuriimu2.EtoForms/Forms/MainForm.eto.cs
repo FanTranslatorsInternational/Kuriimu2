@@ -193,6 +193,8 @@ namespace Kuriimu2.EtoForms.Forms
                                 {
                                     englishCommand,
                                     germanCommand,
+                                    danishCommand,
+                                    russianCommand,
                                     simpleChineseCommand
                                 }
                             }
