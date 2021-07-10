@@ -115,7 +115,7 @@ jobs:
         dotnet build ./plugins/ArcSystemWorks/ArcSystemWorks.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Atlus/Atlus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/BandaiNamco/BandaiNamco.sln --output ./dist/final/plugins --configuration Release
-        dotnet build ./plugins/Capcom/Capcom.sln--output ./dist/final/plugins --configuration Release
+        dotnet build ./plugins/Capcom/Capcom.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Circus/Circus.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/Criware/Criware.sln --output ./dist/final/plugins --configuration Release
         dotnet build ./plugins/DotEmu/DotEmu.sln --output ./dist/final/plugins --configuration Release
