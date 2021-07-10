@@ -1,12 +1,10 @@
-﻿using Eto;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 using Kuriimu2.EtoForms.Resources;
 using System.Collections.Generic;
 
 namespace Kuriimu2.EtoForms.Support
 {
-    //Will apply to all
 
 
 
@@ -19,92 +17,71 @@ namespace Kuriimu2.EtoForms.Support
         {
             try
             {
-                Themer.themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.Black, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
-KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd),KnownColors.ControlLight
-));
+                Themer.themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
+                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight
+            ));
                 Themer.themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, KnownColors.Wheat, KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight
-                )) ;
+                ));
 
 
 
-            }catch(System.ArgumentException e)
+            }
+            catch (System.ArgumentException e)
             {
 
             }
-
-
-            //Add try and catch later
 
             var theme = GetTheme();
 
             #region Styling
 
-                #region cross platform
-                Eto.Style.Add<Panel>(null, panel =>
+            #region cross platform
+            Eto.Style.Add<Panel>(null, panel =>
             {
-                panel.BackgroundColor = theme.mainColor;
+            panel.BackgroundColor = theme.mainColor;
             });
-
-                Eto.Style.Add<Label>(null, text =>
-                {
-                    text.TextColor = theme.altColor;
-                });
-                Eto.Style.Add<Button>(null, button =>
-                {
-                    button.BackgroundColor = theme.mainColor;
-                    button.TextColor = theme.altColor;
-                });
-                Eto.Style.Add<GridView>(null, gridview =>
-                {
-                    gridview.BackgroundColor = theme.mainColor;
-
-                });
-                Eto.Style.Add<Dialog>(null, dialog =>
-                {
-                    dialog.BackgroundColor = theme.mainColor;
-                });
-                Eto.Style.Add<CheckBox>(null, checkbox =>
-                {
-                    checkbox.BackgroundColor = theme.mainColor;
-                    checkbox.TextColor = theme.altColor;
-                });
-
-
-                Eto.Style.Add<GroupBox>(null, groupBox =>
-                {
-                    groupBox.BackgroundColor = theme.mainColor;
-                    groupBox.TextColor = theme.altColor;
-                });
-
-
-
-
-
-            /*
-            Eto.Style.Add<TabControl>(null, tabPage =>
-                {
-                   tabPage.BackgroundColor = theme.mainColor;
-                tabPage.
-                //Padding = 0;
-                //tabPage.TextColor = Support.KnownColors.White;
+            Eto.Style.Add<Label>(null, text =>
+            {
+                text.TextColor = theme.altColor;
             });
-            */
-                #endregion
-                //WPF
-                #region WPF
-                //Cast like this beacuse WPF can't use eto colors
-                //Alpha has to be 255 otherwise MenuBar doesen't work
+            Eto.Style.Add<Button>(null, button =>
+            {
+                button.BackgroundColor = theme.mainColor;
+                button.TextColor = theme.altColor;
+            });
+            Eto.Style.Add<GridView>(null, gridview =>
+            {
+                gridview.BackgroundColor = theme.mainColor;
 
-            }
+            });
+            Eto.Style.Add<Dialog>(null, dialog =>
+            {
+                dialog.BackgroundColor = theme.mainColor;
+            });
+            Eto.Style.Add<CheckBox>(null, checkbox =>
+            {
+                checkbox.BackgroundColor = theme.mainColor;
+                checkbox.TextColor = theme.altColor;
+            });
+            Eto.Style.Add<GroupBox>(null, groupBox =>
+            {
+                groupBox.BackgroundColor = theme.mainColor;
+                groupBox.TextColor = theme.altColor;
+            });
             #endregion
-            #endregion
-        
+
+
+        }
+        #endregion
+
+
 
 
         public static void ChangeTheme(string theme)
         {
-            if (Application.Instance.Platform.IsWpf) {
+            if (Application.Instance.Platform.IsWpf)
+            {
 
                 Settings.Default.Theme = theme;
                 Settings.Default.Save();
@@ -129,7 +106,7 @@ KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, C
             {
                 return themeDict["light"];
             }
-            
+
         }
 
 
@@ -153,8 +130,8 @@ public class Theme
     public Color hexSidebarBackColor { get; private set; }
     public Color controlColor { get; private set; }
     public Theme(Color mainColor, Color altColor, Color loggerBackColor, Color loggerTextColor,
-        Color failColor,Color logInfoColor,Color logErrorColor,Color logWarningColor,Color logDefaultColor,
-        Color hexByteBack1Color,Color hexSidebarBackColor,Color controlColor)
+        Color failColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
+        Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor)
     {
         this.mainColor = mainColor;
         this.altColor = altColor;

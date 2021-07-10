@@ -32,18 +32,13 @@ namespace Kuriimu2.EtoForms.Wpf
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
+
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.GridViewHandler>(null, handler =>
             {
-            //handler.Control.Foreground = foregroundColor;
             handler.Control.Background = backgroundColor;
             handler.Control.RowBackground = backgroundColor;
-
-
             });
-
-
-
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TreeGridViewHandler>(null, handler =>
             {
                 handler.Control.Foreground = foregroundColor;
@@ -56,53 +51,31 @@ namespace Kuriimu2.EtoForms.Wpf
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-                handler.Control.Resources.Add(System.Windows.SystemColors.WindowTextBrushKey, foregroundColor);
-                handler.Control.Resources.Add(System.Windows.SystemColors.WindowBrushKey, backgroundColor);
             });
-
-            Eto.Style.Add<Eto.Wpf.Forms.Controls.ComboBoxHandler>(null, handler =>
-            {
-
-                handler.Control.Foreground = foregroundColor;
-                handler.Control.Background = backgroundColor;
-
-            });
-
             Eto.Style.Add<Eto.Wpf.Forms.Controls.DropDownHandler>(null, handler =>
             {
-
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-
-                handler.Control.Resources.Add(System.Windows.SystemColors.WindowBrushKey, backgroundColor);
-                handler.Control.Resources.Add(System.Windows.SystemColors.WindowColorKey, backgroundColor);
-
-
-
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.ListBoxHandler>(null, handler =>
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.TabPageHandler>("selected", handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TabPageHandler>(null, handler =>
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-                if (handler.Control.IsLoaded)
-                {
-                    handler.Control.Foreground = backgroundColor;
-                    handler.Control.Background = foregroundColor;
-                }
-                //handler.BackgroundColor = Support.Themer.GetTheme().mainColor;
-
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TabControlHandler>(null, handler =>
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-                //handler.BackgroundColor = Support.Themer.GetTheme().mainColor;
 
             });
 
