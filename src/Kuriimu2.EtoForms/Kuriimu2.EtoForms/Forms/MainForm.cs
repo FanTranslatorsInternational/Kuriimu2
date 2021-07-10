@@ -177,7 +177,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             englishCommand.Executed += (sender, args) => ChangeLocale("en");
             germanCommand.Executed += (sender, args) => ChangeLocale("de");
-            dutchCommand.Executed += (sender, args) => ChangeLocale("da");
+            danishCommand.Executed += (sender, args) => ChangeLocale("da");
             russianCommand.Executed += (sender, args) => ChangeLocale("ru");
             simpleChineseCommand.Executed += (sender, args) => ChangeLocale("zh");
 
