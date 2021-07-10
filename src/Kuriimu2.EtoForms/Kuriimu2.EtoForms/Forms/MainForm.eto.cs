@@ -73,7 +73,7 @@ namespace Kuriimu2.EtoForms.Forms
 
         private Command englishCommand;
         private Command germanCommand;
-        private Command dutchCommand;
+        private Command danishCommand;
         private Command russianCommand;
         private Command simpleChineseCommand;
 
@@ -121,7 +121,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             englishCommand = new Command { MenuText = "English" };
             germanCommand = new Command { MenuText = "Deutsch" };
-            dutchCommand = new Command { MenuText = "Nederlands" };
+            danishCommand = new Command { MenuText = "Dansk" };
             russianCommand = new Command { MenuText = "русский" };
             simpleChineseCommand = new Command { MenuText = "简体中文" };
 
@@ -193,7 +193,7 @@ namespace Kuriimu2.EtoForms.Forms
                                 {
                                     englishCommand,
                                     germanCommand,
-                                    dutchCommand,
+                                    danishCommand,
                                     russianCommand,
                                     simpleChineseCommand,
 
