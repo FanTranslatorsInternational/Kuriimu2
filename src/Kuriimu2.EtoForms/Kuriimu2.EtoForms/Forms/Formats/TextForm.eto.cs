@@ -4,31 +4,31 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class TextForm : Panel
     {
-        private Label firstEntryText;
-        private Button toggleButton;
-        private Button saveButton;
-
-        private Command toggleCommand;
-        private Command saveCommand;
+        private StackLayout entryLayout;
+        private RichTextArea sourceText;
+        private RichTextArea targetText;
 
         private void InitializeComponent()
         {
-            toggleCommand = new Command();
-            saveCommand = new Command();
+            entryLayout=new StackLayout{Orientation=Orientation.Vertical };
 
-            firstEntryText = new Label{ Size=new Eto.Drawing.Size(-1,200)};
-            toggleButton = new Button { Text = "Toggle codes", Command = toggleCommand };
-            saveButton= new Button { Text = "Save", Command = saveCommand };
+            #region Content
 
-            Content = new TableLayout
+            Content = new StackLayout
             {
-                Rows =
+                Orientation = Orientation.Vertical,
+                Items =
                 {
-                    firstEntryText,
-                    toggleButton,
-                    saveButton
+                    new Scrollable
+                    {
+                        Content=entryLayout
+                    },
+                    sourceText,
+                    targetText
                 }
             };
+
+            #endregion
         }
     }
 }

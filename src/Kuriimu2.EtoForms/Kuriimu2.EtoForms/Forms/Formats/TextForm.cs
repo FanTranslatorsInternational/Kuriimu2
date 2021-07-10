@@ -1,40 +1,24 @@
-﻿using Eto.Forms;
+﻿using System.Collections.Generic;
+using Eto.Drawing;
+using Eto.Forms;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Models.Text;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Forms.Models;
+using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class TextForm : Panel, IKuriimuForm
     {
-        private readonly FormInfo _formInfo;
+        private readonly FormInfo<ITextState> _formInfo;
 
-        private bool _toggle = true;
-
-        public TextForm(FormInfo formInfo)
+        public TextForm(FormInfo<ITextState> formInfo)
         {
-            InitializeComponent();
-
             _formInfo = formInfo;
 
-            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
-
-            toggleCommand.Executed += _toggleCommand_Executed;
-            saveCommand.Executed += SaveCommand_Executed;
-        }
-
-        private void _toggleCommand_Executed(object sender, System.EventArgs e)
-        {
-            _toggle = !_toggle;
-            firstEntryText.Text = (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
-        }
-
-        private async void SaveCommand_Executed(object sender, System.EventArgs e)
-        {
-            if (!await _formInfo.FormCommunicator.Save(true))
-                MessageBox.Show("Save Error", MessageBoxButtons.OK);
-
-            (_formInfo.FileState.PluginState as ITextState).Texts[0].GetProcessedText().Serialize(_toggle);
+            InitializeComponent();
+            LoadTextEntries();
         }
 
         #region Forminterface methods
@@ -51,6 +35,33 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         public void UpdateForm()
         {
 
+        }
+
+        #endregion
+
+        #region Load
+
+        // TODO: Remember which rows/cells contain which entry and/or page
+        private void LoadTextEntries()
+        {
+            // Clear existing entries
+            entryLayout.Items.Clear();
+
+            for (var i = 0; i < _formInfo.PluginState.Texts.Count; i++)
+            {
+                var entry = _formInfo.PluginState.Texts[i];
+                var name = string.IsNullOrEmpty(entry.Name) ? $"Entry {i}" : entry.Name;
+
+                // Add entry header
+                entryLayout.Items.Add(new StackLayoutItem(new Label { Text = name }));
+
+                // Add paged texts
+                var pagedText = entry.GetPagedText();
+                foreach (var page in pagedText)
+                {
+                    entryLayout.Items.Add(new StackLayoutItem(new TableLayout(new TableRow(new TableCell(new Label{Text = page.Serialize(),TextColor = KnownColors.DarkRed}){ScaleWidth = true},new TableCell(new Label{Text = page.Serialize()}){ScaleWidth = true}))));
+                }
+            }
         }
 
         #endregion

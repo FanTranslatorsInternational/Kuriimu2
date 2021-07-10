@@ -7,11 +7,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class HexForm : IKuriimuForm
     {
-        public HexForm(FormInfo formInfo)
+        public HexForm(FormInfo<IHexState> formInfo)
         {
             InitializeComponent();
 
-            hexBox.LoadStream((formInfo.FileState.PluginState as IHexState)?.FileStream);
+            hexBox.LoadStream(formInfo.PluginState?.FileStream);
         }
 
         #region Forminterface methods

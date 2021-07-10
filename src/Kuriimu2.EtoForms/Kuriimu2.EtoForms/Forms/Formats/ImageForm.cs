@@ -19,7 +19,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class ImageForm : Panel, IKuriimuForm
     {
-        private readonly FormInfo _formInfo;
+        private readonly FormInfo<IImageState> _formInfo;
         private readonly AsyncOperation _asyncOperation;
 
         private int _selectedImageIndex;
@@ -39,7 +39,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-        public ImageForm(FormInfo formInfo)
+        public ImageForm(FormInfo<IImageState> formInfo)
         {
             InitializeComponent();
 

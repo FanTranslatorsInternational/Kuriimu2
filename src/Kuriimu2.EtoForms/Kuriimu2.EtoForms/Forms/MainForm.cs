@@ -310,13 +310,13 @@ namespace Kuriimu2.EtoForms.Forms
 #if DEBUG
 
                     case ITextState _:
-                        kuriimuForm = new TextForm(new FormInfo(fileState, communicator, _progress, _logger));
+                        kuriimuForm = new TextForm(new FormInfo<ITextState>(fileState, communicator, _progress, _logger));
                         break;
 
 #endif
 
                     case IImageState _:
-                        kuriimuForm = new ImageForm(new FormInfo(fileState, communicator, _progress, _logger));
+                        kuriimuForm = new ImageForm(new FormInfo<IImageState>(fileState, communicator, _progress, _logger));
                         break;
 
                     case IArchiveState _:
@@ -324,7 +324,7 @@ namespace Kuriimu2.EtoForms.Forms
                         break;
 
                     case IHexState _:
-                        kuriimuForm = new HexForm(new FormInfo(fileState, communicator, _progress, _logger));
+                        kuriimuForm = new HexForm(new FormInfo<IHexState>(fileState, communicator, _progress, _logger));
                         break;
 
                     default:
