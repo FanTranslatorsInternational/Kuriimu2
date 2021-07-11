@@ -18,10 +18,12 @@ namespace Kuriimu2.EtoForms.Support
             try
             {
                 Themer.themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
-                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight
+                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight, Color.FromArgb(240, 240, 240)
+                , Color.FromArgb(240, 240, 240)
             ));
-                Themer.themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, KnownColors.Wheat, KnownColors.NeonGreen, KnownColors.DarkRed,
-                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight
+                Themer.themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
+                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10    )
+                ,Color.FromArgb(20, 20, 20)
                 ));
 
 
@@ -37,10 +39,7 @@ namespace Kuriimu2.EtoForms.Support
             #region Styling
 
             #region cross platform
-            Eto.Style.Add<Panel>(null, panel =>
-            {
-            panel.BackgroundColor = theme.mainColor;
-            });
+
             Eto.Style.Add<Label>(null, text =>
             {
                 text.TextColor = theme.altColor;
@@ -50,11 +49,7 @@ namespace Kuriimu2.EtoForms.Support
                 button.BackgroundColor = theme.mainColor;
                 button.TextColor = theme.altColor;
             });
-            Eto.Style.Add<GridView>(null, gridview =>
-            {
-                gridview.BackgroundColor = theme.mainColor;
 
-            });
             Eto.Style.Add<Dialog>(null, dialog =>
             {
                 dialog.BackgroundColor = theme.mainColor;
@@ -69,6 +64,8 @@ namespace Kuriimu2.EtoForms.Support
                 groupBox.BackgroundColor = theme.mainColor;
                 groupBox.TextColor = theme.altColor;
             });
+
+
             #endregion
 
 
@@ -129,9 +126,13 @@ public class Theme
     public Color hexByteBack1Color { get; private set; }
     public Color hexSidebarBackColor { get; private set; }
     public Color controlColor { get; private set; }
+    public Color menuBarBackColor { get; private set; }
+    public Color unselectedTabBackColor { get; private set; }
     public Theme(Color mainColor, Color altColor, Color loggerBackColor, Color loggerTextColor,
         Color failColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
-        Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor)
+        Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor, Color menuBarBackColor,
+        Color unselectedTabBackColor
+        )
     {
         this.mainColor = mainColor;
         this.altColor = altColor;
@@ -144,6 +145,8 @@ public class Theme
         this.hexByteBack1Color = hexByteBack1Color;
         this.hexSidebarBackColor = hexSidebarBackColor;
         this.controlColor = controlColor;
+        this.menuBarBackColor = menuBarBackColor;
+        this.unselectedTabBackColor = unselectedTabBackColor;
     }
 
 

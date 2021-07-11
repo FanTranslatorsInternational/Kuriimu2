@@ -1,0 +1,146 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace Kuriimu2.EtoForms.Wpf
+{
+    class WpfThemer
+    {
+        public static System.Windows.Media.Color ConvertEtoColor(Eto.Drawing.Color color)
+        {
+
+            return System.Windows.Media.Color.FromArgb((byte)(color.A * 255.0), (byte)(color.R * 255.0), (byte)(color.G * 255.0), (byte)(color.B * 255.0));
+        }
+        public static void LoadThemesWpf()
+        {
+            System.Windows.Media.SolidColorBrush backgroundColor = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().mainColor));
+            System.Windows.Media.SolidColorBrush foregroundColor = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().altColor));
+            System.Windows.Media.SolidColorBrush menuBarBackgroundColor = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Support.Themer.GetTheme().menuBarBackColor.A * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.R * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.G * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.B * 255.0)));
+            
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.PanelHandler>(null, panel =>
+            {
+                panel.BackgroundColor = Support.Themer.GetTheme().mainColor;
+            });
+            
+            Eto.Style.Add<Eto.Wpf.Forms.Menu.ButtonMenuItemHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = menuBarBackgroundColor;
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Menu.MenuBarHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = menuBarBackgroundColor;
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Menu.CheckMenuItemHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = menuBarBackgroundColor;
+
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.GridViewHandler>(null, handler =>
+            {
+                handler.Control.Background = backgroundColor;
+                handler.Control.RowBackground = backgroundColor;
+
+                // Style style = new Style(typeof(System.Windows.Controls.Primitives
+                //.DataGridColumnHeader));
+
+                //style.Setters.Add(new Setter { Property =Control.BackgroundProperty, Value = backgroundColor });
+                //style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
+
+
+                //style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = foregroundColor });
+                //style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0,0,1,0) });
+                //handler.Control.ColumnHeaderStyle = style;
+
+            });
+
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.GridViewHandler>(null, handler =>
+            {
+                handler.Control.Background = backgroundColor;
+                handler.Control.RowBackground = backgroundColor;
+
+                Style style = new Style(typeof(System.Windows.Controls.Primitives
+               .DataGridColumnHeader));
+
+                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 40, 40, 40)) });
+                style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
+
+
+                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(230, 200, 200, 200)) });
+                style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 0) });
+
+                handler.Control.ColumnHeaderStyle = style;
+
+
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.TreeGridViewHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+                handler.Control.RowBackground = backgroundColor;
+                handler.Control.ColumnHeaderHeight = 0;
+
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.TextBoxHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.DropDownHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.ComboBoxHandler>(null, handler =>
+            {
+                //Textbox section
+                var textBoxStyle = new Style(typeof(TextBox)); 
+                textBoxStyle.Setters.Add(new Setter() { Property = TextBox.BackgroundProperty, Value = backgroundColor });
+                textBoxStyle.Setters.Add(new Setter() { Property = TextBox.ForegroundProperty, Value = foregroundColor });
+
+                //textBoxStyle.Setters.Add(new Setter() { Property = TextBox.BorderThicknessProperty, Value = new Thickness(0,0,0,0) });
+                handler.Control.Loaded += (sender, e) => {
+                    //^Makes this only execute after it has initialized so Texbox won't return null
+                    handler.Control.TextBox.Style =  textBoxStyle;
+                };
+                //Dropdown section
+                handler.Control.Resources.Add(System.Windows.SystemColors.WindowBrushKey,backgroundColor);
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+
+            });
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.ListBoxHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+            });
+
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.TabPageHandler>(null, handler =>
+            {
+                
+                handler.Control.Background = backgroundColor;
+                handler.Control.Foreground = foregroundColor;
+                var style = new Style(typeof(TabItem));
+                Setter setter = new Setter(){Property = TabItem.ForegroundProperty,Value = backgroundColor };
+                var triggerSelected = new Trigger() {  Property= TabItem.IsSelectedProperty, Value = false }; triggerSelected.Setters.Add(setter);
+                style.Triggers.Add(triggerSelected);
+                handler.Control.Style = style;
+                
+
+    });
+
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.TabControlHandler>(null, handler =>
+            {
+                handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = backgroundColor;
+
+            });
+        }
+
+    }
+}
