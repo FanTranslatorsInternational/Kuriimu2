@@ -139,7 +139,7 @@ namespace Kuriimu2.EtoForms.Forms
 
             
 
-            this.BackgroundColor = Themer.GetTheme().mainColor;
+            this.BackgroundColor = Themer.GetTheme().windowBackColor;
 
             _localizer = InitializeLocalizer();
             Application.Instance.LocalizeString += Instance_LocalizeString;

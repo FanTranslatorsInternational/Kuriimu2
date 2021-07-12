@@ -23,11 +23,11 @@ namespace Kuriimu2.EtoForms.Support
             {
                 themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight, Color.FromArgb(240, 240, 240)
-                ,Color.FromArgb(240, 240, 240)));
+                ,Color.FromArgb(240, 240, 240),Color.FromArgb(230,230,230),KnownColors.Orange));
 
                 themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10)
-                , Color.FromArgb(20, 20, 20)
+                , Color.FromArgb(20, 20, 20), Color.FromArgb(10, 10, 10), KnownColors.Orange
                 ));
 
             }
@@ -114,7 +114,7 @@ namespace Kuriimu2.EtoForms.Support
             {
                 return themeDict[Settings.Default.Theme];
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException)
             {
                 return themeDict["light"];
             }
@@ -143,10 +143,12 @@ public class Theme
     public Color controlColor { get; private set; }
     public Color menuBarBackColor { get; private set; }
     public Color unselectedTabBackColor { get; private set; }
+    public Color windowBackColor { get; private set; }
+    public Color ArchiveChangedColor { get; private set; }
     public Theme(Color mainColor, Color altColor, Color loggerBackColor, Color loggerTextColor,
         Color failColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
         Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor, Color menuBarBackColor,
-        Color unselectedTabBackColor
+        Color unselectedTabBackColor, Color windowBackColor,Color ArchiveChangedColor
         )
     {
         this.mainColor = mainColor;
@@ -162,6 +164,8 @@ public class Theme
         this.controlColor = controlColor;
         this.menuBarBackColor = menuBarBackColor;
         this.unselectedTabBackColor = unselectedTabBackColor;
+        this.windowBackColor = windowBackColor;
+        this.ArchiveChangedColor = ArchiveChangedColor;
     }
 
 

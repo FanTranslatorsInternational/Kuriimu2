@@ -14,11 +14,13 @@ namespace Kuriimu2.EtoForms.Wpf
         {
             System.Windows.Media.SolidColorBrush backgroundColor = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().mainColor));
             System.Windows.Media.SolidColorBrush foregroundColor = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().altColor));
-            System.Windows.Media.SolidColorBrush menuBarBackgroundColor = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(Support.Themer.GetTheme().menuBarBackColor.A * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.R * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.G * 255.0), (byte)(Support.Themer.GetTheme().menuBarBackColor.B * 255.0)));
+            System.Windows.Media.SolidColorBrush menuBarBackgroundColor = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().menuBarBackColor));
 
             Eto.Style.Add<Eto.Wpf.Forms.Controls.PanelHandler>(null, panel =>
             {
                 panel.BackgroundColor = Support.Themer.GetTheme().mainColor;
+ 
+
             });
 
             Eto.Style.Add<Eto.Wpf.Forms.Menu.ButtonMenuItemHandler>(null, handler =>
@@ -45,11 +47,11 @@ namespace Kuriimu2.EtoForms.Wpf
                 Style style = new Style(typeof(System.Windows.Controls.Primitives
                .DataGridColumnHeader));
 
-                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 40, 40, 40)) });
+                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = backgroundColor});
                 style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
 
 
-                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(230, 200, 200, 200)) });
+                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = foregroundColor});
                 style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 0) });
 
                 handler.Control.ColumnHeaderStyle = style;
