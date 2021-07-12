@@ -122,25 +122,25 @@ namespace Kuriimu2.EtoForms.Support
 
 public class Theme
 {
-    public Color mainColor { get; private set; }
-    public Color altColor { get; private set; }
-    public Color loggerBackColor { get; private set; }
-    public Color loggerTextColor { get; private set; }
-    public Color failColor { get; private set; }
-    public Color logInfoColor { get; private set; }
-    public Color logErrorColor { get; private set; }
-    public Color logWarningColor { get; private set; }
-    public Color logDefaultColor { get; private set; }
-    public Color hexByteBack1Color { get; private set; }
-    public Color hexSidebarBackColor { get; private set; }
+    public Color mainColor { get; private set; }//Main background color
+    public Color altColor { get; private set; }//text and foreground color
+    public Color loggerBackColor { get; private set; }//Background of logger text areas
+    public Color loggerTextColor { get; private set; }//Text of logger text areas
+    public Color failColor { get; private set; }//fatal logger errors color
+    public Color logInfoColor { get; private set; }//Info logger text color
+    public Color logErrorColor { get; private set; }//Error logger text color
+    public Color logWarningColor { get; private set; }//warning logger text color
+    public Color logDefaultColor { get; private set; }//defualt logger text color
+    public Color hexByteBack1Color { get; private set; } //every seccond byte in hex viewer
+    public Color hexSidebarBackColor { get; private set; }//side bar color in hex viewer
     public Color controlColor { get; private set; }
-    public Color menuBarBackColor { get; private set; }
-    public Color unselectedTabBackColor { get; private set; }
-    public Color windowBackColor { get; private set; }
-    public Color ArchiveChangedColor { get; private set; }
-    public Color progressColor { get; private set; }
-    public Color progressBorderColor { get; private set; }
-    public Color progressControlColor { get; private set; }
+    public Color menuBarBackColor { get; private set; }//Back colour of top menu bar
+    public Color unselectedTabBackColor { get; private set; }//Background of unselected tab
+    public Color windowBackColor { get; private set; } //Back of the main window, NOT the main panel
+    public Color ArchiveChangedColor { get; private set; }//Archive viewer text color when a file is modifieed
+    public Color progressColor { get; private set; } //Colour of the moving bar in a progress bar
+    public Color progressBorderColor { get; private set; } //border color of progress bar
+    public Color progressControlColor { get; private set; }//Background color of the progress bar
     public Theme(Color mainColor, Color altColor, Color loggerBackColor, Color loggerTextColor,
         Color failColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
         Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor, Color menuBarBackColor,

@@ -112,8 +112,8 @@ namespace Kuriimu2.EtoForms.Wpf
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TabPageHandler>(null, handler =>
             {
 
-                handler.Control.Background = backgroundColor;
-                //handler.Control.Foreground = foregroundColor;
+                handler.Control.Background = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().unselectedTabBackColor));
+
                 var style = new Style(typeof(TabItem));
                 Setter setter = new Setter() { Property = TabItem.ForegroundProperty, Value = foregroundColor };
                 var triggerSelected = new Trigger() { Property = TabItem.IsSelectedProperty, Value = false }; triggerSelected.Setters.Add(setter);
