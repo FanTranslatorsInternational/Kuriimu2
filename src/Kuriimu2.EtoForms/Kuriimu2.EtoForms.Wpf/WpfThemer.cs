@@ -105,7 +105,20 @@ namespace Kuriimu2.EtoForms.Wpf
             Eto.Style.Add<Eto.Wpf.Forms.Controls.ButtonHandler>(null, handler =>
             {
                 handler.Control.Background = backgroundColor;
-                handler.TextColor = Support.Themer.GetTheme().altColor;
+                var style = new Style(typeof(Label));
+
+                //Button's bg is diffrent when it is disabled(greyed out) therefore we have to
+                //change the text colour
+                var triggerDisabled = new Trigger() {Property=Label.IsEnabledProperty,Value=false };
+                triggerDisabled.Setters.Add(new Setter() {Property=Label.ForegroundProperty,Value=new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.GetTheme().buttonDisabledTextColor)) });
+                style.Triggers.Add(triggerDisabled);
+
+                var triggerEnabled = new Trigger() { Property = Label.IsEnabledProperty, Value = true };
+                triggerEnabled.Setters.Add(new Setter() { Property = Label.ForegroundProperty, Value = foregroundColor });
+                style.Triggers.Add(triggerEnabled);
+
+                //handler.Control.Foreground doesen't change text color,we have to use the label part
+                handler.LabelPart.Style = style;
             });
 
 

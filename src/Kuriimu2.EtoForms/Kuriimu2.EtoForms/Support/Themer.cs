@@ -23,11 +23,13 @@ namespace Kuriimu2.EtoForms.Support
             {
                 themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight, Color.FromArgb(240, 240, 240)
-                ,Color.FromArgb(240, 240, 240),Color.FromArgb(230,230,230),KnownColors.Orange,KnownColors.LimeGreen,KnownColors.ControlDark,KnownColors.Control));
+                ,Color.FromArgb(240, 240, 240),Color.FromArgb(230,230,230),KnownColors.Orange,KnownColors.LimeGreen,KnownColors.ControlDark,KnownColors.Control
+                ,KnownColors.Black));
 
                 themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10)
                 , Color.FromArgb(20, 20, 20), Color.FromArgb(10, 10, 10), KnownColors.Orange,KnownColors.LimeGreen, KnownColors.ControlDark,Color.FromArgb(60,60,60)
+                ,KnownColors.Black
                 ));
 
             }
@@ -42,6 +44,7 @@ namespace Kuriimu2.EtoForms.Support
                 {
                     text.TextColor = theme.altColor;
                 });
+
                 Eto.Style.Add<Dialog>(null, dialog =>
                 {
                     dialog.BackgroundColor = theme.mainColor;
@@ -141,11 +144,12 @@ public class Theme
     public Color progressColor { get; private set; } //Colour of the moving bar in a progress bar
     public Color progressBorderColor { get; private set; } //border color of progress bar
     public Color progressControlColor { get; private set; }//Background color of the progress bar
+    public Color buttonDisabledTextColor { get; private set; } //Text colour of a greyedout/disabledbutton
     public Theme(Color mainColor, Color altColor, Color loggerBackColor, Color loggerTextColor,
         Color failColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
         Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor, Color menuBarBackColor,
         Color unselectedTabBackColor, Color windowBackColor,Color ArchiveChangedColor,Color progressColor,Color progressBorderColor
-        ,Color progressControlColor
+        ,Color progressControlColor,Color buttonDisabledTextColor
         )
     {
         this.mainColor = mainColor;
@@ -166,6 +170,7 @@ public class Theme
         this.progressColor = progressColor;
         this.progressBorderColor = progressBorderColor;
         this.progressControlColor = progressControlColor;
+        this.buttonDisabledTextColor = buttonDisabledTextColor;
     }
 
 
