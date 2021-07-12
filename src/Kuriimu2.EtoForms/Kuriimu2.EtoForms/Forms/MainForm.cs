@@ -116,6 +116,12 @@ namespace Kuriimu2.EtoForms.Forms
         private const string UnsupportedOperatingSystemExceptionKey_ = "UnsupportedOperatingSystemException";
         private const string UnsupportedPlatformExceptionKey_ = "UnsupportedPlatformException";
 
+
+        private const string ThemeRestartTextKey_ = "ThemeRestartTextKey";
+        private const string ThemeRestartCaptionKey_ = "ThemeRestartCaptionKey";
+        private const string ThemeUnsupportedPlatformTextKey_ = "ThemeUnsupportedPlatformTextKey_";
+        private const string ThemeUnsupportedPlatformCaptionKey_ = "ThemeUnsupportedPlatformCaptionKey_";
+
         #endregion
 
         // ReSharper disable once UseObjectOrCollectionInitializer
@@ -188,8 +194,10 @@ namespace Kuriimu2.EtoForms.Forms
             russianCommand.Executed += (sender, args) => ChangeLocale("ru");
             simpleChineseCommand.Executed += (sender, args) => ChangeLocale("zh");
 
-            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark");
-            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light");
+            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark",Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
+             ,Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
+            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light", Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
+             , Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
             #endregion
         }
 

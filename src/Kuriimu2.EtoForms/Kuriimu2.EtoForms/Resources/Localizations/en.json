@@ -30,7 +30,15 @@
   "IncludeDevBuilds": "Include Developer Builds",
   "ChangeLanguage": "Change language",
   "ChangeLanguageCaption": "The changes will only take effect after a restart.",
-  "ChangeLanguageTitle": "Changed settings", 
+  "ChangeLanguageTitle": "Changed settings",
+
+  "ChangeTheme": "Change Theme",
+  "ThemeDark": "Dark Theme",
+  "ThemeLight": "Light Theme",
+  "ThemeRestartTextKey": "Please restart to apply the theme.",
+  "ThemeRestartCaptionKey": "Restart",
+  "ThemeUnsupportedPlatformTextKey_": "Unfortunately, themes are not supported on your platform.",
+  "ThemeUnsupportedPlatformCaptionKey_": "Unsupported Platform Error",
 
   "Help": "Help",
   "AboutKuriimu2": "About Kuriimu2",

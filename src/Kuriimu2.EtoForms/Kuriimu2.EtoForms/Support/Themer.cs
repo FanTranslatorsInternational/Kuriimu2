@@ -1,6 +1,7 @@
 ﻿using Eto.Drawing;
 using Eto.Forms;
 using Kuriimu2.EtoForms.Resources;
+using System;
 using System.Collections.Generic;
 
 namespace Kuriimu2.EtoForms.Support
@@ -11,6 +12,9 @@ namespace Kuriimu2.EtoForms.Support
 
     public class Themer
     {
+        #region Localization Keys
+
+        #endregion
         private static Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
 
         public static void LoadThemes()
@@ -75,7 +79,8 @@ namespace Kuriimu2.EtoForms.Support
 
 
 
-        public static void ChangeTheme(string theme)
+        public static void ChangeTheme(string theme, string ThemeRestartText,string ThemeRestartCaption
+            ,string ThemeUnsupportedPlatformText,string ThemeUnsupportedPlatformCaption)
         {
             if (Application.Instance.Platform.IsWpf)
             {
@@ -83,16 +88,23 @@ namespace Kuriimu2.EtoForms.Support
                 Settings.Default.Theme = theme;
                 Settings.Default.Save();
 
-                MessageBox.Show("Please restart to apply the theme.", "Restart");
+                MessageBox.Show(ThemeRestartText, ThemeRestartCaption);
 
 
             }
             else
             {
-                MessageBox.Show("Sorry, themes are not supported on your platform.", "Unsupported Platform Error");
+                MessageBox.Show(ThemeUnsupportedPlatformText, ThemeUnsupportedPlatformCaption);
+
             }
 
         }
+
+        private static string Localize()
+        {
+            throw new NotImplementedException();
+        }
+
         public static Theme GetTheme()
         {
             try
