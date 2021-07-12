@@ -15,7 +15,7 @@ namespace Kuriimu2.EtoForms.Wpf
         public static void Main(string[] args)
         {
             
-            Support.Themer.LoadThemes();
+            Support.Themer.LoadThemes(true);
             WpfThemer.LoadThemesWpf();
 
             // https://stackoverflow.com/a/39348804/10434371

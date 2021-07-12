@@ -17,70 +17,73 @@ namespace Kuriimu2.EtoForms.Support
         #endregion
         private static Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
 
-        public static void LoadThemes()
+        public static void LoadThemes(bool firstTime)
         {
-            try
+            if (firstTime)
             {
-                Themer.themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
+                themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
                 KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight, Color.FromArgb(240, 240, 240)
-                , Color.FromArgb(240, 240, 240)
-            ));
-                Themer.themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
-                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10    )
-                ,Color.FromArgb(20, 20, 20)
+                ,Color.FromArgb(240, 240, 240)));
+
+                themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
+                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10)
+                , Color.FromArgb(20, 20, 20)
                 ));
 
+            }
+            else
+            {
+                #region Styling
+
+                var theme = GetTheme();
+
+
+
+                Eto.Style.Add<Label>(null, text =>
+                {
+                    text.TextColor = theme.altColor;
+                });
+                Eto.Style.Add<Button>(null, button =>
+                {
+                    button.BackgroundColor = theme.mainColor;
+                    button.TextColor = theme.altColor;
+                });
+
+                Eto.Style.Add<Dialog>(null, dialog =>
+                {
+                    dialog.BackgroundColor = theme.mainColor;
+                });
+                Eto.Style.Add<CheckBox>(null, checkbox =>
+                {
+                    checkbox.BackgroundColor = theme.mainColor;
+                    checkbox.TextColor = theme.altColor;
+                });
+                Eto.Style.Add<GroupBox>(null, groupBox =>
+                {
+                    groupBox.BackgroundColor = theme.mainColor;
+                    groupBox.TextColor = theme.altColor;
+                });
+
+
+                #endregion
+
 
 
             }
-            catch (System.ArgumentException e)
-            {
-
-            }
-
-            var theme = GetTheme();
-
-            #region Styling
-
-            #region cross platform
-
-            Eto.Style.Add<Label>(null, text =>
-            {
-                text.TextColor = theme.altColor;
-            });
-            Eto.Style.Add<Button>(null, button =>
-            {
-                button.BackgroundColor = theme.mainColor;
-                button.TextColor = theme.altColor;
-            });
-
-            Eto.Style.Add<Dialog>(null, dialog =>
-            {
-                dialog.BackgroundColor = theme.mainColor;
-            });
-            Eto.Style.Add<CheckBox>(null, checkbox =>
-            {
-                checkbox.BackgroundColor = theme.mainColor;
-                checkbox.TextColor = theme.altColor;
-            });
-            Eto.Style.Add<GroupBox>(null, groupBox =>
-            {
-                groupBox.BackgroundColor = theme.mainColor;
-                groupBox.TextColor = theme.altColor;
-            });
 
 
-            #endregion
+
+
 
 
         }
-        #endregion
 
 
 
 
-        public static void ChangeTheme(string theme, string ThemeRestartText,string ThemeRestartCaption
-            ,string ThemeUnsupportedPlatformText,string ThemeUnsupportedPlatformCaption)
+
+        public static void ChangeTheme(string theme, string ThemeRestartText, string ThemeRestartCaption
+            , string ThemeUnsupportedPlatformText, string ThemeUnsupportedPlatformCaption)
         {
             if (Application.Instance.Platform.IsWpf)
             {
