@@ -9,9 +9,9 @@ namespace Kuriimu2.EtoForms.Controls
         private string _text = string.Empty;
         private int _value;
 
-        private Color _textColor = KnownColors.Black;
-        private Color _progressColor = KnownColors.LimeGreen;
-        private Color _borderColor = KnownColors.ControlDark;
+        private Color _textColor = Themer.GetTheme().altColor;
+        private Color _progressColor = Themer.GetTheme().progressColor;
+        private Color _borderColor = Themer.GetTheme().progressBorderColor;
 
         public int Minimum { get; set; }
 
@@ -92,7 +92,7 @@ namespace Kuriimu2.EtoForms.Controls
                 e.ClipRectangle.Height - 1);
 
             // Draw background
-            e.Graphics.FillRectangle(new SolidBrush(KnownColors.Control), controlRect);
+            e.Graphics.FillRectangle(new SolidBrush(Themer.GetTheme().progressControlColor), controlRect);
             e.Graphics.FillRectangle(new SolidBrush(ProgressColor), progressRect);
 
             // Draw border

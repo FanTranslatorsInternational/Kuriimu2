@@ -101,18 +101,24 @@ namespace Kuriimu2.EtoForms.Wpf
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
             });
+            
+            Eto.Style.Add<Eto.Wpf.Forms.Controls.ButtonHandler>(null, handler =>
+            {
+                handler.Control.Background = backgroundColor;
+                handler.TextColor = Support.Themer.GetTheme().altColor;
+            });
+
 
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TabPageHandler>(null, handler =>
             {
 
                 handler.Control.Background = backgroundColor;
-                handler.Control.Foreground = foregroundColor;
+                //handler.Control.Foreground = foregroundColor;
                 var style = new Style(typeof(TabItem));
-                Setter setter = new Setter() { Property = TabItem.ForegroundProperty, Value = backgroundColor };
+                Setter setter = new Setter() { Property = TabItem.ForegroundProperty, Value = foregroundColor };
                 var triggerSelected = new Trigger() { Property = TabItem.IsSelectedProperty, Value = false }; triggerSelected.Setters.Add(setter);
                 style.Triggers.Add(triggerSelected);
                 handler.Control.Style = style;
-
 
             });
 
@@ -120,8 +126,11 @@ namespace Kuriimu2.EtoForms.Wpf
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
+          
 
             });
+
+
         }
 
     }
