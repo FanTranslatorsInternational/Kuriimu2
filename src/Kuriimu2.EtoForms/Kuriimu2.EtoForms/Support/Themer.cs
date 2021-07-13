@@ -12,25 +12,38 @@ namespace Kuriimu2.EtoForms.Support
 
     public class Themer
     {
-        #region Localization Keys
 
-        #endregion
         private static Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
 
         public static void LoadThemes(bool firstTime)
         {
             if (firstTime)
             {
-                themeDict.Add("light", new Theme(KnownColors.ThemeLight, KnownColors.ThemeDark, KnownColors.Black, KnownColors.NeonGreen, KnownColors.DarkRed,
-                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, Color.FromArgb(0xf0, 0xfd, 0xff), Color.FromArgb(0xcd, 0xf7, 0xfd), KnownColors.ControlLight, Color.FromArgb(240, 240, 240)
-                ,Color.FromArgb(240, 240, 240),Color.FromArgb(230,230,230),KnownColors.Orange,KnownColors.LimeGreen,KnownColors.ControlDark,KnownColors.Control
-                ,KnownColors.Black));
+                #region Themes
 
-                themeDict.Add("dark", new Theme(KnownColors.ThemeDark, KnownColors.White, Color.FromArgb(90, 90, 90), KnownColors.NeonGreen, KnownColors.DarkRed,
-                KnownColors.NeonGreen, KnownColors.Red, KnownColors.Orange, KnownColors.Wheat, KnownColors.DarkRed, KnownColors.DarkRed, KnownColors.ControlLight, Color.FromArgb(10, 10, 10)
-                , Color.FromArgb(20, 20, 20), Color.FromArgb(10, 10, 10), KnownColors.Orange,KnownColors.LimeGreen, KnownColors.ControlDark,Color.FromArgb(60,60,60)
-                ,KnownColors.Black
+                #region light theme
+                themeDict.Add("light", new Theme(
+                mainColor: KnownColors.ThemeLight, altColor: KnownColors.Black, loggerBackColor: KnownColors.Black,
+                loggerTextColor: KnownColors.NeonGreen, failColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
+                logErrorColor: KnownColors.Red, logWarningColor: KnownColors.Orange,logDefaultColor: KnownColors.Wheat, hexByteBack1Color: Color.FromArgb(0xf0, 0xfd, 0xff),
+                hexSidebarBackColor:Color.FromArgb(0xcd, 0xf7, 0xfd), controlColor: Color.FromArgb(0xf0, 0xfd, 0xff), menuBarBackColor: Color.FromArgb(245, 245, 245),
+                unselectedTabBackColor: KnownColors.ControlLight, windowBackColor: Color.FromArgb(240, 240, 240), ArchiveChangedColor: KnownColors.Orange,
+                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.Control,
+                buttonDisabledTextColor: KnownColors.Black));
+                #endregion
+
+                #region dark themes
+                themeDict.Add("dark", new Theme(
+                mainColor: KnownColors.ThemeDark, altColor: KnownColors.White, loggerBackColor: Color.FromArgb(90, 90, 90),
+                loggerTextColor: KnownColors.NeonGreen, failColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
+                logErrorColor: KnownColors.Red, logWarningColor: KnownColors.Orange,logDefaultColor: KnownColors.Wheat, hexByteBack1Color: KnownColors.DarkRed,
+                hexSidebarBackColor: KnownColors.DarkRed, controlColor: Color.FromArgb(100, 100, 100), menuBarBackColor: Color.FromArgb(40, 40, 40),
+                unselectedTabBackColor: Color.FromArgb(40, 40, 40), windowBackColor: Color.FromArgb(20, 20, 20), ArchiveChangedColor: KnownColors.Orange,
+                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.ControlDark,
+                buttonDisabledTextColor: Color.FromArgb(60, 60, 60)
                 ));
+                #endregion
+                #endregion 
 
             }
             else
