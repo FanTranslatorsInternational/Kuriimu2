@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using Kuriimu2.EtoForms.Forms;
@@ -9,12 +8,9 @@ namespace Kuriimu2.EtoForms.Wpf
 {
     class MainClass
     {
-        
-
         [STAThread]
         public static void Main(string[] args)
         {
-            
             Support.Themer.LoadThemes(true);
             WpfThemer.LoadThemes();
 
@@ -22,8 +18,6 @@ namespace Kuriimu2.EtoForms.Wpf
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(true));
 
             new Application(Eto.Platforms.Wpf).Run(new MainForm());
-            
-            
         }
     }
 }
