@@ -127,6 +127,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             fileView.SelectedItemsChanged += fileView_SelectedItemsChanged;
             fileView.CellDoubleClick += fileView_CellDoubleClick;
             fileView.CellFormatting += fileView_CellFormatting;
+            fileView.ColumnHeaderClick += fileView_ColumnHeaderClick;
+
 
             searchClearCommand.Executed += searchClearCommand_Executed;
             cancelCommand.Executed += cancelCommand_Executed;
@@ -387,6 +389,35 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
         }
 
+        private void fileView_ColumnHeaderClick(object sender, GridColumnEventArgs e)
+        {
+            if(e.Column.HeaderText == Localize(FileSizeKey_))
+            {
+                var ascending = fileView.DataStore.OrderBy(f=>f.Size);
+                if (fileView.DataStore.SequenceEqual(ascending))
+                {
+                    fileView.DataStore = ascending.Reverse();
+                }
+                else
+                {
+                    fileView.DataStore = ascending;
+                }
+
+            }
+            if (e.Column.HeaderText == Localize(FileNameKey_))
+            {
+                var ascending = fileView.DataStore.OrderBy(f => f.Name);
+                if (fileView.DataStore.SequenceEqual(ascending))
+                {
+                    fileView.DataStore = ascending.Reverse();
+                }
+                else
+                {
+                    fileView.DataStore = ascending;
+                }
+
+            }
+        }
         #endregion
 
         #region searchTerm
