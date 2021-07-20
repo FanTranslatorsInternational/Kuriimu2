@@ -25,8 +25,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string DeleteKey_ = "Delete";
         private const string AddKey_ = "Add";
 
-        private const string ExtractFileKey_ = "ExtractFiles";
-        private const string ReplaceFileKey_ = "ReplaceFiles";
+        private const string ExtractFileKey_ = "ExtractFile";
+        private const string ReplaceFileKey_ = "ReplaceFile";
         private const string RenameFileKey_ = "RenameFile";
         private const string DeleteFileKey_ = "DeleteFile";
 
