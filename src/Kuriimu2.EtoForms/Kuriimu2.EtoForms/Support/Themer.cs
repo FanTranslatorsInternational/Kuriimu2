@@ -37,15 +37,14 @@ namespace Kuriimu2.EtoForms.Support
                 buttonDisabledTextColor: Color.FromArgb(60, 60, 60)
                 ));
                 #endregion
-                #endregion 
 
+                #endregion 
             }
             else
             {
                 #region Styling
 
                 var theme = GetTheme();
-
                 Eto.Style.Add<Label>(null, text =>
                 {
                     text.TextColor = theme.AltColor;
@@ -68,8 +67,8 @@ namespace Kuriimu2.EtoForms.Support
                 #endregion
             }
         }
-        public static void ChangeTheme(string theme, string ThemeRestartText, string ThemeRestartCaption
-            , string ThemeUnsupportedPlatformText, string ThemeUnsupportedPlatformCaption)
+        public static void ChangeTheme(string theme, string ThemeRestartText, string ThemeRestartCaption,
+             string ThemeUnsupportedPlatformText, string ThemeUnsupportedPlatformCaption)
         {
             if (Application.Instance.Platform.IsWpf)
             {

@@ -141,7 +141,6 @@ namespace Kuriimu2.EtoForms.Forms
             DarkThemeCommand = new Command { MenuText = Localize(ThemeDarkKey_)};
             LightThemeCommand = new Command { MenuText = Localize(ThemeLightKey_) };
 
-
             #endregion
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
@@ -221,7 +220,6 @@ namespace Kuriimu2.EtoForms.Forms
                                 {
                                     DarkThemeCommand,
                                     LightThemeCommand
-
                                 }
                             }
                         } 
