@@ -29,22 +29,18 @@ namespace Kuriimu2.EtoForms.Wpf
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = menuBarBackgroundColor;
-
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.GridViewHandler>(null, handler =>
             {
                 handler.Control.Background = backgroundColor;
                 handler.Control.RowBackground = backgroundColor;
+                handler.Control.Foreground = foregroundColor;
 
-                var style = new Style(typeof(System.Windows.Controls.Primitives
-               .DataGridColumnHeader));
-
+                var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader));
                 style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = backgroundColor});
                 style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
-
                 style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = foregroundColor});
                 style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 0) });
-
                 handler.Control.ColumnHeaderStyle = style;
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TreeGridViewHandler>(null, handler =>
@@ -63,7 +59,6 @@ namespace Kuriimu2.EtoForms.Wpf
             {
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
-
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.ComboBoxHandler>(null, handler =>
             {
@@ -73,7 +68,8 @@ namespace Kuriimu2.EtoForms.Wpf
                 textBoxStyle.Setters.Add(new Setter() { Property = TextBox.ForegroundProperty, Value = foregroundColor });
 
                 handler.Control.Loaded += (sender, e) =>
-                {//Makes this only execute after it has initialized so Textbox won't return null
+                {
+                //Makes this only execute after it has initialized so Textbox won't return null
 
                     handler.Control.TextBox.Style = textBoxStyle;
                 };
@@ -100,7 +96,6 @@ namespace Kuriimu2.EtoForms.Wpf
                 var triggerEnabled = new Trigger() { Property = Label.IsEnabledProperty, Value = true };
                 triggerEnabled.Setters.Add(new Setter() { Property = Label.ForegroundProperty, Value = foregroundColor });
                 style.Triggers.Add(triggerEnabled);
-
                 //handler.Control.Foreground doesen't change text color,we have to use the label part
                 handler.LabelPart.Style = style;
             });
@@ -118,7 +113,6 @@ namespace Kuriimu2.EtoForms.Wpf
                 handler.Control.Foreground = foregroundColor;
                 handler.Control.Background = backgroundColor;
             });
-
         }
         private static System.Windows.Media.Color ConvertEtoColor(Eto.Drawing.Color color)
         {
