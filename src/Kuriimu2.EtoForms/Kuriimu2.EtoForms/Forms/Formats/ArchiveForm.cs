@@ -98,10 +98,19 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string CouldNotAddFileLog_ = "Could not add file: {0}";
 
         #endregion
+        public enum SortingScheme
+        {
+            SizeAsc,
+            SizeDes,
+            NameAsc,
+            NameDes,
+        }
+        SortingScheme sortingScheme = SortingScheme.SizeDes;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
-            InitializeComponent();
+
+        InitializeComponent();
 
             _formInfo = formInfo;
             _fileManager = fileManager;
@@ -389,33 +398,49 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
         }
 
+
+
         private void fileView_ColumnHeaderClick(object sender, GridColumnEventArgs e)
         {
-            if(e.Column.HeaderText == Localize(FileSizeKey_))
+            
+            if (e.Column.HeaderText == Localize(FileSizeKey_))
             {
-                var ascending = fileView.DataStore.OrderBy(f=>f.Size);
-                if (fileView.DataStore.SequenceEqual(ascending))
+                if (sortingScheme == SortingScheme.SizeAsc)
                 {
-                    fileView.DataStore = ascending.Reverse();
+                    sortingScheme = SortingScheme.SizeDes;
                 }
                 else
-                {
-                    fileView.DataStore = ascending;
+                { 
+                    sortingScheme = SortingScheme.SizeAsc;
                 }
-
             }
+
             if (e.Column.HeaderText == Localize(FileNameKey_))
             {
-                var ascending = fileView.DataStore.OrderBy(f => f.Name);
-                if (fileView.DataStore.SequenceEqual(ascending))
+                if (sortingScheme == SortingScheme.NameAsc)
                 {
-                    fileView.DataStore = ascending.Reverse();
+                    sortingScheme = SortingScheme.NameDes;
                 }
                 else
                 {
-                    fileView.DataStore = ascending;
+                    sortingScheme = SortingScheme.NameAsc;
                 }
-
+            }
+            
+            switch (sortingScheme)
+            {
+                case SortingScheme.SizeAsc:
+                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Size);
+                    break;
+                case SortingScheme.SizeDes:
+                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Size);
+                    break;
+                case SortingScheme.NameAsc:
+                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Name);
+                    break;
+                case SortingScheme.NameDes:
+                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Name);
+                    break;
             }
         }
         #endregion
