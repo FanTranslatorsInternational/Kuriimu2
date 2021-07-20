@@ -177,7 +177,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             {
                 ShowHeader = true,
                 AllowMultipleSelection=true,
-                // BackgroundColor = KnownColors.ThemeDark, overrided by null style 
+                //BackgroundColor = KnownColors.ThemeDark, overrided by null style 
 
                 ContextMenu = fileContext,
 

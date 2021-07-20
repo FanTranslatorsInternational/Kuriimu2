@@ -116,30 +116,18 @@ namespace Kuriimu2.EtoForms.Forms
         private const string UnsupportedOperatingSystemExceptionKey_ = "UnsupportedOperatingSystemException";
         private const string UnsupportedPlatformExceptionKey_ = "UnsupportedPlatformException";
 
-
-        private const string ThemeRestartTextKey_ = "ThemeRestartTextKey";
-        private const string ThemeRestartCaptionKey_ = "ThemeRestartCaptionKey";
-        private const string ThemeUnsupportedPlatformTextKey_ = "ThemeUnsupportedPlatformTextKey_";
-        private const string ThemeUnsupportedPlatformCaptionKey_ = "ThemeUnsupportedPlatformCaptionKey_";
+        private const string ThemeRestartTextKey_ = "ThemeRestartText";
+        private const string ThemeRestartCaptionKey_ = "ThemeRestartCaption";
+        private const string ThemeUnsupportedPlatformTextKey_ = "ThemeUnsupportedPlatformText";
+        private const string ThemeUnsupportedPlatformCaptionKey_ = "ThemeUnsupportedPlatformCaption";
 
         #endregion
 
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
-            if (Application.Instance.Platform.IsWpf)
-            {
-                Themer.LoadThemes(false);
-            }
-            else
-            {
-                Themer.LoadThemes(true);
-            }
-
-
-            
-
-            this.BackgroundColor = Themer.GetTheme().windowBackColor;
+            Themer.LoadThemes(Application.Instance.Platform.IsWpf);
+            this.BackgroundColor = Themer.GetTheme().WindowBackColor;
 
             _localizer = InitializeLocalizer();
             Application.Instance.LocalizeString += Instance_LocalizeString;
@@ -1028,7 +1016,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (message == null)
                 return;
 
-            var textColor = isSuccessful ? Themer.GetTheme().altColor : Themer.GetTheme().failColor;
+            var textColor = isSuccessful ? Themer.GetTheme().AltColor : Themer.GetTheme().LogFatalColor;
 
             Application.Instance.Invoke(() =>
             {

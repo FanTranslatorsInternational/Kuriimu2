@@ -19,10 +19,8 @@ namespace Kuriimu2.EtoForms.Controls
 
         private Stream _data;
 
-        //private Color SideBarBackground => Color.FromArgb(0xcd, 0xf7, 0xfd);
-        //private Color ByteBackground1 => Color.FromArgb(0xf0, 0xfd, 0xff);
-        private Color SideBarBackground => Themer.GetTheme().hexSidebarBackColor;
-        private Color ByteBackground1 => Themer.GetTheme().hexByteBack1Color;
+        private Color SideBarBackground => Themer.GetTheme().HexSidebarBackColor;
+        private Color ByteBackground1 => Themer.GetTheme().HexByteBack1Color;
         #region Properties
 
         #region Backing fields
@@ -202,7 +200,7 @@ namespace Kuriimu2.EtoForms.Controls
                         byteX += ByteGroupPadding_;
 
                     var bytePosition = new PointF(byteX, byteY + monoCenteredY);
-                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().altColor), bytePosition, $"{dataBuffer[l * BytesPerLine + i]:X2}");
+                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().AltColor), bytePosition, $"{dataBuffer[l * BytesPerLine + i]:X2}");
 
                     byteX += byteWidth;
                 }
@@ -217,12 +215,12 @@ namespace Kuriimu2.EtoForms.Controls
                 for (var l = 0; l < totalLines; l++)
                 {
                     var linePosition = new PointF(PositionWidthPadding_, byteY + monoCenteredY);
-                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().altColor), linePosition, $"{(startLine + l) * BytesPerLine:X8}");
+                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().AltColor), linePosition, $"{(startLine + l) * BytesPerLine:X8}");
 
                     byteY += _lineHeight;
                 }
 
-                g.DrawLine(Themer.GetTheme().controlColor, new PointF(clipRectangle.X + positionWidth, clipRectangle.Y), new PointF(clipRectangle.X + positionWidth, clipRectangle.Y + clipRectangle.Height));
+                g.DrawLine(Themer.GetTheme().ControlColor, new PointF(clipRectangle.X + positionWidth, clipRectangle.Y), new PointF(clipRectangle.X + positionWidth, clipRectangle.Y + clipRectangle.Height));
             }
 
             // Draw header
@@ -235,12 +233,12 @@ namespace Kuriimu2.EtoForms.Controls
                         byteX += ByteGroupPadding_;
 
                     var bytePosition = new PointF(byteX, clipRectangle.Y + monoCenteredY);
-                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().altColor), bytePosition, $"{i:X2}");
+                    g.DrawText(_monoFont, new SolidBrush(Themer.GetTheme().AltColor), bytePosition, $"{i:X2}");
 
                     byteX += byteWidth;
                 }
 
-                g.DrawLine(Themer.GetTheme().controlColor, new PointF(clipRectangle.X, clipRectangle.Y + (int)headerHeight), new PointF(clipRectangle.X + clipRectangle.Width, clipRectangle.Y + (int)headerHeight));
+                g.DrawLine(Themer.GetTheme().ControlColor, new PointF(clipRectangle.X, clipRectangle.Y + (int)headerHeight), new PointF(clipRectangle.X + clipRectangle.Width, clipRectangle.Y + (int)headerHeight));
             }
         }
 

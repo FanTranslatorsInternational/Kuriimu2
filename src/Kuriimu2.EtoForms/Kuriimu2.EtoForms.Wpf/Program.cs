@@ -16,7 +16,7 @@ namespace Kuriimu2.EtoForms.Wpf
         {
             
             Support.Themer.LoadThemes(true);
-            WpfThemer.LoadThemesWpf();
+            WpfThemer.LoadThemes();
 
             // https://stackoverflow.com/a/39348804/10434371
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(true));
