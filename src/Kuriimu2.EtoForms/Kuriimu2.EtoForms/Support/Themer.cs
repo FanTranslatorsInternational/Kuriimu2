@@ -16,6 +16,7 @@ namespace Kuriimu2.EtoForms.Support
                 #region Themes
 
                 #region light theme
+
                 themeDict.Add("light", new Theme(
                 mainColor: KnownColors.ThemeLight, altColor: KnownColors.Black, loggerBackColor: KnownColors.Black,
                 loggerTextColor: KnownColors.NeonGreen, logFatalColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
@@ -24,9 +25,11 @@ namespace Kuriimu2.EtoForms.Support
                 unselectedTabBackColor: KnownColors.ControlLight, windowBackColor: Color.FromArgb(240, 240, 240), archiveChangedColor: KnownColors.Orange,
                 progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.Control,
                 buttonDisabledTextColor: KnownColors.Black));
+
                 #endregion
 
                 #region dark themes
+
                 themeDict.Add("dark", new Theme(
                 mainColor: KnownColors.ThemeDark, altColor: KnownColors.White, loggerBackColor: Color.FromArgb(90, 90, 90),
                 loggerTextColor: KnownColors.NeonGreen, logFatalColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
@@ -34,8 +37,8 @@ namespace Kuriimu2.EtoForms.Support
                 hexSidebarBackColor: KnownColors.DarkRed, controlColor: Color.FromArgb(100, 100, 100), menuBarBackColor: Color.FromArgb(40, 40, 40),
                 unselectedTabBackColor: Color.FromArgb(40, 40, 40), windowBackColor: Color.FromArgb(20, 20, 20), archiveChangedColor: KnownColors.Orange,
                 progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.ControlDark,
-                buttonDisabledTextColor: Color.FromArgb(60, 60, 60)
-                ));
+                buttonDisabledTextColor: Color.FromArgb(60, 60, 60)));
+
                 #endregion
 
                 #endregion 
