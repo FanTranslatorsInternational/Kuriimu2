@@ -105,12 +105,11 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             NameAsc,
             NameDes,
         }
-        SortingScheme sortingScheme = SortingScheme.SizeDes;
+        SortingScheme sortingScheme = SortingScheme.NameAsc;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
-
-        InitializeComponent();
+            InitializeComponent();
 
             _formInfo = formInfo;
             _fileManager = fileManager;
@@ -137,7 +136,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             fileView.CellDoubleClick += fileView_CellDoubleClick;
             fileView.CellFormatting += fileView_CellFormatting;
             fileView.ColumnHeaderClick += fileView_ColumnHeaderClick;
-
 
             searchClearCommand.Executed += searchClearCommand_Executed;
             cancelCommand.Executed += cancelCommand_Executed;
@@ -402,47 +400,38 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void fileView_ColumnHeaderClick(object sender, GridColumnEventArgs e)
         {
-            
+         
             if (e.Column.HeaderText == Localize(FileSizeKey_))
             {
                 if (sortingScheme == SortingScheme.SizeAsc)
-                {
                     sortingScheme = SortingScheme.SizeDes;
-                }
                 else
-                { 
                     sortingScheme = SortingScheme.SizeAsc;
-                }
-            }
-
-            if (e.Column.HeaderText == Localize(FileNameKey_))
+            }else if (e.Column.HeaderText == Localize(FileNameKey_))
             {
                 if (sortingScheme == SortingScheme.NameAsc)
-                {
                     sortingScheme = SortingScheme.NameDes;
-                }
                 else
-                {
                     sortingScheme = SortingScheme.NameAsc;
-                }
             }
-            
+
             switch (sortingScheme)
             {
                 case SortingScheme.SizeAsc:
-                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Size);
+                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Size ).ToArray();
                     break;
                 case SortingScheme.SizeDes:
-                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Size);
+                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Size).ToArray();
                     break;
                 case SortingScheme.NameAsc:
-                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Name);
+                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Name).ToArray();
                     break;
                 case SortingScheme.NameDes:
-                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Name);
+                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Name).ToArray();
                     break;
             }
         }
+
         #endregion
 
         #region searchTerm
