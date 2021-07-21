@@ -172,13 +172,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             };
 
             files = new ObservableCollection<FileElement>();
+ 
             fileView = new GridView<FileElement>
             {
                 ShowHeader = true,
                 AllowMultipleSelection=true,
-                BackgroundColor = KnownColors.White,
+                //BackgroundColor = KnownColors.ThemeDark, overrided by null style 
 
-                ContextMenu=fileContext,
+                ContextMenu = fileContext,
 
                 Columns =
                 {
