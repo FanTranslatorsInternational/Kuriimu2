@@ -98,14 +98,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string CouldNotAddFileLog_ = "Could not add file: {0}";
 
         #endregion
-        public enum SortingScheme
+
+        private enum SortingScheme
         {
             SizeAsc,
             SizeDes,
             NameAsc,
             NameDes,
         }
-        SortingScheme sortingScheme = SortingScheme.NameAsc;
+        private SortingScheme sortingScheme = SortingScheme.NameAsc;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
