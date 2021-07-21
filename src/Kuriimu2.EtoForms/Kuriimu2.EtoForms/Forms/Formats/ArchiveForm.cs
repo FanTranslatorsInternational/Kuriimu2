@@ -396,18 +396,15 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
         }
 
-
-
         private void fileView_ColumnHeaderClick(object sender, GridColumnEventArgs e)
         {
-         
-            if (e.Column.HeaderText == Localize(FileSizeKey_))
+            if (e.Column.ID == "Size")
             {
                 if (sortingScheme == SortingScheme.SizeAsc)
                     sortingScheme = SortingScheme.SizeDes;
                 else
                     sortingScheme = SortingScheme.SizeAsc;
-            }else if (e.Column.HeaderText == Localize(FileNameKey_))
+            }else if (e.Column.ID == "Name")
             {
                 if (sortingScheme == SortingScheme.NameAsc)
                     sortingScheme = SortingScheme.NameDes;
