@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,6 +34,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private IFileSystem _archiveFileSystem;
         private UPath _selectedPath;
+
+        private SortingScheme _sortingScheme = SortingScheme.NameAsc;
 
         #region Hot Keys
 
@@ -98,8 +99,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string CouldNotAddFileLog_ = "Could not add file: {0}";
 
         #endregion
-
-        private SortingScheme sortingScheme = SortingScheme.NameAsc;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
@@ -210,28 +209,33 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         private void UpdateFiles(UPath path)
         {
-            files.Clear();
+            // Get all files by a given search term in the given path
             var enumeratedFiles = _archiveFileSystem.EnumerateFiles(path, _searchTerm.Get());
-            switch (sortingScheme)
+
+            // Sort all files by the selected sorting scheme
+            switch (_sortingScheme)
             {
                 case SortingScheme.SizeAsc:
-                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    enumeratedFiles = enumeratedFiles.OrderBy(f => _archiveFileSystem.GetFileLength(f));
                     break;
+
                 case SortingScheme.SizeDes:
-                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    enumeratedFiles = enumeratedFiles.OrderByDescending(f => _archiveFileSystem.GetFileLength(f));
                     break;
+
                 case SortingScheme.NameAsc:
-                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    enumeratedFiles = enumeratedFiles.OrderBy(f => f.GetName());
                     break;
+
                 case SortingScheme.NameDes:
-                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    enumeratedFiles = enumeratedFiles.OrderByDescending(f => f.GetName());
                     break;
             }
-            foreach (var file in enumeratedFiles)
-            {
-                var fileEntry = (AfiFileEntry)_archiveFileSystem.GetFileEntry(file);
-                files.Add(new FileElement(fileEntry.ArchiveFileInfo));
-            }
+
+            // Add enumeration of files to the DataStore
+            fileView.DataStore = enumeratedFiles
+                .Select(x => (AfiFileEntry) _archiveFileSystem.GetFileEntry(x))
+                .Select(x => new FileElement(x.ArchiveFileInfo));
         }
 
         private void UpdateFileContextMenu()
@@ -409,16 +413,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         {
             if (e.Column.ID == "Size")
             {
-                if (sortingScheme == SortingScheme.SizeAsc)
-                    sortingScheme = SortingScheme.SizeDes;
+                if (_sortingScheme == SortingScheme.SizeAsc)
+                    _sortingScheme = SortingScheme.SizeDes;
                 else
-                    sortingScheme = SortingScheme.SizeAsc;
+                    _sortingScheme = SortingScheme.SizeAsc;
             }else if (e.Column.ID == "Name")
             {
-                if (sortingScheme == SortingScheme.NameAsc)
-                    sortingScheme = SortingScheme.NameDes;
+                if (_sortingScheme == SortingScheme.NameAsc)
+                    _sortingScheme = SortingScheme.NameDes;
                 else
-                    sortingScheme = SortingScheme.NameAsc;
+                    _sortingScheme = SortingScheme.NameAsc;
             }
             UpdateFiles(_selectedPath);
         }

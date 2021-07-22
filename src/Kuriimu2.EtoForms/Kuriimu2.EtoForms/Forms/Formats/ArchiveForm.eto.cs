@@ -46,7 +46,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private TreeGridItemCollection folders;
 
         private GridView<FileElement> fileView;
-        private ObservableCollection<FileElement> files;
 
         private ButtonToolStripItem saveButton;
         private ButtonToolStripItem saveAsButton;
@@ -170,8 +169,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     deleteFileCommand
                 }
             };
-
-            files = new ObservableCollection<FileElement>();
  
             fileView = new GridView<FileElement>
             {
@@ -199,9 +196,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         AutoSize = true,
                         ID = "Size"
                     }
-                },
-
-                DataStore = files
+                }
             };
 
             #endregion
