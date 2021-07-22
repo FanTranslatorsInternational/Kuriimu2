@@ -22,7 +22,7 @@ namespace Kuriimu2.EtoForms.Support
                 loggerTextColor: KnownColors.NeonGreen, logFatalColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
                 logErrorColor: KnownColors.Red, logWarningColor: KnownColors.Orange,logDefaultColor: KnownColors.Wheat, hexByteBack1Color: Color.FromArgb(0xf0, 0xfd, 0xff),
                 hexSidebarBackColor:Color.FromArgb(0xcd, 0xf7, 0xfd), controlColor: Color.FromArgb(0xf0, 0xfd, 0xff), menuBarBackColor: Color.FromArgb(245, 245, 245),
-                unselectedTabBackColor: KnownColors.ControlLight, windowBackColor: Color.FromArgb(240, 240, 240), archiveChangedColor: KnownColors.Orange,
+                unselectedTabBackColor: KnownColors.White, windowBackColor: Color.FromArgb(240, 240, 240), archiveChangedColor: KnownColors.Orange,
                 progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.Control,
                 buttonDisabledTextColor: KnownColors.Black));
 

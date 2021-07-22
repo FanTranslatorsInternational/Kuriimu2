@@ -41,6 +41,8 @@ namespace Kuriimu2.EtoForms.Wpf
                 style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
                 style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = foregroundColor});
                 style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 0) });
+                style.Setters.Add(new Setter { Property = Control.PaddingProperty, Value = new Thickness(4, 4, 4, 4)});
+
                 handler.Control.ColumnHeaderStyle = style;
             });
             Eto.Style.Add<Eto.Wpf.Forms.Controls.TreeGridViewHandler>(null, handler =>

@@ -188,14 +188,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         DataCell = new TextBoxCell(nameof(FileElement.Name)),
                         HeaderText = Localize(FileNameKey_),
                         Sortable = true,
-                        AutoSize = true
+                        AutoSize = true,
+                        ID = "Name"
                     },
                     new GridColumn
                     {
                         DataCell = new TextBoxCell(nameof(FileElement.Size)),
                         HeaderText = Localize(FileSizeKey_),
                         Sortable = true,
-                        AutoSize = true
+                        AutoSize = true,
+                        ID = "Size"
                     }
                 },
 
