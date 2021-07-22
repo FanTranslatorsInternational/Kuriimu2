@@ -37,6 +37,10 @@ namespace Kuriimu2.EtoForms.Forms
         private const string IncludeDeveloperBuildsKey_ = "IncludeDevBuilds";
         private const string ChangeLanguageKey_ = "ChangeLanguage";
 
+        private const string ChangeThemeKey_ =  "ChangeTheme";
+        private const string ThemeDarkKey_ = "ThemeDark";
+        private const string ThemeLightKey_ = "ThemeLight";
+
         private const string AboutKuriimuKey_ = "AboutKuriimu2";
 
         #endregion
@@ -77,6 +81,11 @@ namespace Kuriimu2.EtoForms.Forms
         private Command russianCommand;
         private Command simpleChineseCommand;
 
+        #endregion
+
+        #region Theme Commands
+        private Command DarkThemeCommand;
+        private Command LightThemeCommand;
         #endregion
 
         #region Controls
@@ -127,6 +136,12 @@ namespace Kuriimu2.EtoForms.Forms
 
             #endregion
 
+            #region Theme Commands
+
+            DarkThemeCommand = new Command { MenuText = Localize(ThemeDarkKey_)};
+            LightThemeCommand = new Command { MenuText = Localize(ThemeLightKey_) };
+
+            #endregion
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
             Padding = new Padding(3);
@@ -196,6 +211,15 @@ namespace Kuriimu2.EtoForms.Forms
                                     danishCommand,
                                     russianCommand,
                                     simpleChineseCommand
+                                }
+                            },
+                         new ButtonMenuItem
+                            {
+                                Text = Localize(ChangeThemeKey_),
+                                Items =
+                                {
+                                    DarkThemeCommand,
+                                    LightThemeCommand
                                 }
                             }
                         } 

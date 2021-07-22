@@ -29,5 +29,8 @@
     <Setting Name="Locale" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="Theme" Type="System.String" Scope="User">
+      <Value Profile="(Default)">light</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -45,8 +45,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Constants
 
-        private static readonly Color ColorDefaultState = KnownColors.Black;
-        private static readonly Color ColorChangedState = KnownColors.Orange;
+        private static readonly Color ColorDefaultState = Themer.GetTheme().AltColor;
+        private static readonly Color ColorChangedState = Themer.GetTheme().ArchiveChangedColor;
 
         #endregion
 
@@ -99,6 +99,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
+        private SortingScheme sortingScheme = SortingScheme.NameAsc;
+
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
         {
             InitializeComponent();
@@ -127,6 +129,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             fileView.SelectedItemsChanged += fileView_SelectedItemsChanged;
             fileView.CellDoubleClick += fileView_CellDoubleClick;
             fileView.CellFormatting += fileView_CellFormatting;
+            fileView.ColumnHeaderClick += fileView_ColumnHeaderClick;
 
             searchClearCommand.Executed += searchClearCommand_Executed;
             cancelCommand.Executed += cancelCommand_Executed;
@@ -208,8 +211,23 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void UpdateFiles(UPath path)
         {
             files.Clear();
-
-            foreach (var file in _archiveFileSystem.EnumerateFiles(path, _searchTerm.Get()))
+            var enumeratedFiles = _archiveFileSystem.EnumerateFiles(path, _searchTerm.Get());
+            switch (sortingScheme)
+            {
+                case SortingScheme.SizeAsc:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    break;
+                case SortingScheme.SizeDes:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    break;
+                case SortingScheme.NameAsc:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    break;
+                case SortingScheme.NameDes:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    break;
+            }
+            foreach (var file in enumeratedFiles)
             {
                 var fileEntry = (AfiFileEntry)_archiveFileSystem.GetFileEntry(file);
                 files.Add(new FileElement(fileEntry.ArchiveFileInfo));
@@ -385,6 +403,24 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             var element = (FileElement)e.Item;
             var isChanged = element.ArchiveFileInfo.ContentChanged || _formInfo.FileState.ArchiveChildren.Where(x => x.StateChanged).Any(x => x.FilePath == element.ArchiveFileInfo.FilePath);
             e.ForegroundColor = isChanged ? ColorChangedState : ColorDefaultState;
+        }
+
+        private void fileView_ColumnHeaderClick(object sender, GridColumnEventArgs e)
+        {
+            if (e.Column.ID == "Size")
+            {
+                if (sortingScheme == SortingScheme.SizeAsc)
+                    sortingScheme = SortingScheme.SizeDes;
+                else
+                    sortingScheme = SortingScheme.SizeAsc;
+            }else if (e.Column.ID == "Name")
+            {
+                if (sortingScheme == SortingScheme.NameAsc)
+                    sortingScheme = SortingScheme.NameDes;
+                else
+                    sortingScheme = SortingScheme.NameAsc;
+            }
+            UpdateFiles(_selectedPath);
         }
 
         #endregion

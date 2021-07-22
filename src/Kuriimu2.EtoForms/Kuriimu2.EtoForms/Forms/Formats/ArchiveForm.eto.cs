@@ -25,8 +25,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private const string DeleteKey_ = "Delete";
         private const string AddKey_ = "Add";
 
-        private const string ExtractFileKey_ = "ExtractFiles";
-        private const string ReplaceFileKey_ = "ReplaceFiles";
+        private const string ExtractFileKey_ = "ExtractFile";
+        private const string ReplaceFileKey_ = "ReplaceFile";
         private const string RenameFileKey_ = "RenameFile";
         private const string DeleteFileKey_ = "DeleteFile";
 
@@ -172,13 +172,14 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             };
 
             files = new ObservableCollection<FileElement>();
+ 
             fileView = new GridView<FileElement>
             {
                 ShowHeader = true,
                 AllowMultipleSelection=true,
-                BackgroundColor = KnownColors.White,
+                //BackgroundColor = KnownColors.ThemeDark, overrided by null style 
 
-                ContextMenu=fileContext,
+                ContextMenu = fileContext,
 
                 Columns =
                 {
@@ -187,14 +188,16 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                         DataCell = new TextBoxCell(nameof(FileElement.Name)),
                         HeaderText = Localize(FileNameKey_),
                         Sortable = true,
-                        AutoSize = true
+                        AutoSize = true,
+                        ID = "Name"
                     },
                     new GridColumn
                     {
                         DataCell = new TextBoxCell(nameof(FileElement.Size)),
                         HeaderText = Localize(FileSizeKey_),
                         Sortable = true,
-                        AutoSize = true
+                        AutoSize = true,
+                        ID = "Size"
                     }
                 },
 

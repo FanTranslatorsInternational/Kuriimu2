@@ -11,9 +11,12 @@ namespace Kuriimu2.EtoForms.Wpf
         [STAThread]
         public static void Main(string[] args)
         {
+            Support.Themer.LoadThemes(true);
+            WpfThemer.LoadThemes();
+
             // https://stackoverflow.com/a/39348804/10434371
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(FrameworkElement), new FrameworkPropertyMetadata(true));
-            
+
             new Application(Eto.Platforms.Wpf).Run(new MainForm());
         }
     }
