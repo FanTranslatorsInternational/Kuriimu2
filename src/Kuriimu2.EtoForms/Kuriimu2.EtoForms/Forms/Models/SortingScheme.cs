@@ -12,4 +12,3 @@ namespace Kuriimu2.EtoForms.Forms.Models
         NameDes,
     }
 }
-

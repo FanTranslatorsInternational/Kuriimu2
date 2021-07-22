@@ -99,7 +99,6 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-
         private SortingScheme sortingScheme = SortingScheme.NameAsc;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
