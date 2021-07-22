@@ -25,5 +25,9 @@ namespace Kuriimu2.EtoForms.Support
         public static Color Control => Color.FromArgb(0xD2, 0xD2, 0xD2);
 
         public static Color ControlDark => Color.FromArgb(0x82, 0x82, 0x82);
+
+        public static Color LabelColor1 => Color.FromArgb(0xCD, 0xEE, 0xFD);
+        public static Color LabelColor2 => Color.FromArgb(0x9A, 0xDD, 0xFD);
+        public static Color SelectedLabelColor => Color.FromArgb(0x35, 0xBA, 0xF6);
     }
 }

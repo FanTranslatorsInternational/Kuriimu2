@@ -1,34 +1,60 @@
 ﻿using Eto.Forms;
+using Kuriimu2.EtoForms.Controls;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
     partial class TextForm : Panel
     {
-        private StackLayout entryLayout;
+        private CatEntryList entryList;
         private RichTextArea sourceText;
         private RichTextArea targetText;
+        private Label withoutCodeLabel;
 
         private void InitializeComponent()
         {
-            entryLayout=new StackLayout{Orientation=Orientation.Vertical };
+            entryList = new CatEntryList(_formInfo.PluginState){ ExpandContentWidth=true,};
+            sourceText = new RichTextArea{ReadOnly=true};
+            targetText = new RichTextArea();
+            withoutCodeLabel = new Label();
 
-            #region Content
-
-            Content = new StackLayout
+            var textContent = new TableLayout
             {
-                Orientation = Orientation.Vertical,
-                Items =
+                Spacing = new Eto.Drawing.Size(2, 2),
+                Padding = new Eto.Drawing.Padding(2, 0, 0, 0),
+                Rows =
                 {
-                    new Scrollable
+                    new TableRow
                     {
-                        Content=entryLayout
+                        ScaleHeight = true,
+                        Cells = { sourceText }
                     },
-                    sourceText,
-                    targetText
+                    new TableRow
+                    {
+                        ScaleHeight = true,
+                        Cells = { targetText }
+                    },
+                    new TableRow
+                    {
+                        ScaleHeight = true,
+                        Cells = { withoutCodeLabel }
+                    }
                 }
             };
 
-            #endregion
+            Content = new TableLayout
+            {
+                Rows =
+                {
+                    new TableRow
+                    {
+                        Cells =
+                        {
+                            new TableCell(entryList){ScaleWidth=true},
+                            new TableCell(textContent){ScaleWidth=true}
+                        }
+                    }
+                }
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Kontract.Models.Text
@@ -6,7 +7,7 @@ namespace Kontract.Models.Text
     /// <summary>
     /// The base class for pages.
     /// </summary>
-    public class TextEntry
+    public class TextEntry : ICloneable
     {
         /// <summary>
         /// The text data in bytes for this entry.
@@ -16,7 +17,7 @@ namespace Kontract.Models.Text
         /// <summary>
         /// The encoding for the text data.
         /// </summary>
-        public Encoding Encoding { get; } = Encoding.UTF8;
+        public Encoding Encoding { get; private set; } = Encoding.UTF8;
 
         /// <summary>
         /// The name for this entry.
@@ -39,6 +40,16 @@ namespace Kontract.Models.Text
         public bool ContentChanged { get; private set; }
 
         /// <summary>
+        /// Determines whether the entry can parse control codes.
+        /// </summary>
+        public bool CanParseControlCodes => ControlCodeProcessor != null;
+
+        /// <summary>
+        /// Determines whether the entry can split the text into pages.
+        /// </summary>
+        public bool CanPageText => TextPager != null;
+
+        /// <summary>
         /// Creates an empty <see cref="TextEntry"/> without a name.
         /// </summary>
         /// <param name="textData">The data to decode and process.</param>
@@ -58,6 +69,13 @@ namespace Kontract.Models.Text
             TextData = Encoding.GetBytes(text);
         }
 
+        /// <summary>
+        /// Creates a new text entry instance; For usage in <see cref="Clone"/>.
+        /// </summary>
+        private TextEntry()
+        {
+        }
+
         #region Get methods
 
         /// <summary>
@@ -75,7 +93,7 @@ namespace Kontract.Models.Text
         /// <returns>The decoded and processed text.</returns>
         public ProcessedText GetProcessedText()
         {
-            if (ControlCodeProcessor != null)
+            if (CanParseControlCodes)
                 return ControlCodeProcessor.Read(TextData, Encoding);
 
             return new ProcessedText(GetText());
@@ -88,7 +106,7 @@ namespace Kontract.Models.Text
         /// <returns>The decoded and processed text, paged by <see cref="TextPager"/>.</returns>
         public IList<ProcessedText> GetPagedText()
         {
-            if (TextPager != null)
+            if (CanPageText)
                 return TextPager.Split(GetProcessedText());
 
             return new List<ProcessedText> { GetProcessedText() };
@@ -117,7 +135,7 @@ namespace Kontract.Models.Text
             if (text == null)
                 return;
 
-            if (ControlCodeProcessor != null)
+            if (CanParseControlCodes)
             {
                 TextData = ControlCodeProcessor.Write(text, Encoding);
                 ContentChanged = true;
@@ -137,7 +155,7 @@ namespace Kontract.Models.Text
             if (pages.Count <= 0)
                 return;
 
-            if (TextPager != null && pages.Count > 1)
+            if (CanPageText && pages.Count > 1)
             {
                 SetProcessedText(TextPager.Merge(pages));
                 return;
@@ -147,6 +165,18 @@ namespace Kontract.Models.Text
         }
 
         #endregion
+
+        public object Clone()
+        {
+            return new TextEntry
+            {
+                TextData = TextData,
+                Encoding = Encoding,
+                Name = Name,
+                ControlCodeProcessor = ControlCodeProcessor,
+                TextPager = TextPager
+            };
+        }
     }
 
     /// <summary>

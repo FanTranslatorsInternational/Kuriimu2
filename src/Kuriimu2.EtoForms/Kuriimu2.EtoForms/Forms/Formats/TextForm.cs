@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using Eto.Drawing;
+﻿using System;
 using Eto.Forms;
 using Kontract.Interfaces.Plugins.State;
 using Kontract.Models.Text;
+using Kuriimu2.EtoForms.Controls;
 using Kuriimu2.EtoForms.Forms.Interfaces;
 using Kuriimu2.EtoForms.Forms.Models;
-using Kuriimu2.EtoForms.Support;
 
 namespace Kuriimu2.EtoForms.Forms.Formats
 {
@@ -18,7 +17,9 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             _formInfo = formInfo;
 
             InitializeComponent();
-            LoadTextEntries();
+
+            entryList.EntryChanged += EntryList_EntryChanged;
+            targetText.TextChanged += TargetText_TextChanged;
         }
 
         #region Forminterface methods
@@ -39,29 +40,21 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-        #region Load
+        #region Events
 
-        // TODO: Remember which rows/cells contain which entry and/or page
-        private void LoadTextEntries()
+        private void EntryList_EntryChanged(object sender, EntryChangedEventArgs e)
         {
-            // Clear existing entries
-            entryLayout.Items.Clear();
+            sourceText.Text = e.SourceText.Serialize();
+            targetText.Text = e.TargetText.Serialize();
 
-            for (var i = 0; i < _formInfo.PluginState.Texts.Count; i++)
-            {
-                var entry = _formInfo.PluginState.Texts[i];
-                var name = string.IsNullOrEmpty(entry.Name) ? $"Entry {i}" : entry.Name;
+            withoutCodeLabel.Visible = e.CanParseControlCodes;
+            withoutCodeLabel.Text = e.TargetText.Serialize(false);
+        }
 
-                // Add entry header
-                entryLayout.Items.Add(new StackLayoutItem(new Label { Text = name }));
-
-                // Add paged texts
-                var pagedText = entry.GetPagedText();
-                foreach (var page in pagedText)
-                {
-                    entryLayout.Items.Add(new StackLayoutItem(new TableLayout(new TableRow(new TableCell(new Label{Text = page.Serialize(),TextColor = KnownColors.DarkRed}){ScaleWidth = true},new TableCell(new Label{Text = page.Serialize()}){ScaleWidth = true}))));
-                }
-            }
+        private void TargetText_TextChanged(object sender, EventArgs e)
+        {
+            entryList.SetText(entryList.SelectedIndex, ProcessedText.Parse(targetText.Text));
+            withoutCodeLabel.Text = entryList.GetText(entryList.SelectedIndex).Serialize(false);
         }
 
         #endregion
