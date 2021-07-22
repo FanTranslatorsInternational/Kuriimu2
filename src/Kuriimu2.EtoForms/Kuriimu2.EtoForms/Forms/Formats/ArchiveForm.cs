@@ -99,13 +99,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #endregion
 
-        private enum SortingScheme
-        {
-            SizeAsc,
-            SizeDes,
-            NameAsc,
-            NameDes,
-        }
+
         private SortingScheme sortingScheme = SortingScheme.NameAsc;
 
         public ArchiveForm(ArchiveFormInfo formInfo, FileManager fileManager)
@@ -218,8 +212,23 @@ namespace Kuriimu2.EtoForms.Forms.Formats
         private void UpdateFiles(UPath path)
         {
             files.Clear();
-
-            foreach (var file in _archiveFileSystem.EnumerateFiles(path, _searchTerm.Get()))
+            var enumeratedFiles = _archiveFileSystem.EnumerateFiles(path, _searchTerm.Get());
+            switch (sortingScheme)
+            {
+                case SortingScheme.SizeAsc:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    break;
+                case SortingScheme.SizeDes:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileLength(f)).ToArray();
+                    break;
+                case SortingScheme.NameAsc:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderBy(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    break;
+                case SortingScheme.NameDes:
+                    enumeratedFiles = enumeratedFiles.AsParallel().OrderByDescending(f => _archiveFileSystem.GetFileEntry(f).Path).ToArray();
+                    break;
+            }
+            foreach (var file in enumeratedFiles)
             {
                 var fileEntry = (AfiFileEntry)_archiveFileSystem.GetFileEntry(file);
                 files.Add(new FileElement(fileEntry.ArchiveFileInfo));
@@ -412,22 +421,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 else
                     sortingScheme = SortingScheme.NameAsc;
             }
-
-            switch (sortingScheme)
-            {
-                case SortingScheme.SizeAsc:
-                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Size ).ToArray();
-                    break;
-                case SortingScheme.SizeDes:
-                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Size).ToArray();
-                    break;
-                case SortingScheme.NameAsc:
-                    fileView.DataStore = fileView.DataStore.OrderBy(f => f.Name).ToArray();
-                    break;
-                case SortingScheme.NameDes:
-                    fileView.DataStore = fileView.DataStore.OrderByDescending(f => f.Name).ToArray();
-                    break;
-            }
+            UpdateFiles(_selectedPath);
         }
 
         #endregion
