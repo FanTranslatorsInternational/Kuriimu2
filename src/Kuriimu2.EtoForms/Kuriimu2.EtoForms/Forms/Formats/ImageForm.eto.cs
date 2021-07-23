@@ -101,7 +101,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                 ItemTextBinding = Binding.Property<string>(nameof(ImageElement.Text)),
             };
 
-            imageView = new ImageViewEx { BackgroundColor = KnownColors.DarkGreen };
+            imageView = new ImageViewEx { BackgroundColor = Themer.GetTheme().ImageViewBackColor };
             imagePalette = new PaletteView { Size = new Size(200, -1),  };
 
             var widthLabel = new Label { Text = Localize(WidthKey_) };
