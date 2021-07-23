@@ -41,7 +41,7 @@ namespace Kuriimu2.EtoForms.Support
                 unselectedTabBackColor: Color.FromArgb(40, 40, 40), windowBackColor: Color.FromArgb(20, 20, 20), archiveChangedColor: KnownColors.Orange,
                 progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.ControlDark,
                 buttonDisabledTextColor: Color.FromArgb(60, 60, 60), Color.FromArgb(12, 12, 12),Color.FromArgb(90,90,90),
-                imageViewBackColor:KnownColors.DarkRed));
+                imageViewBackColor:KnownColors.DarkGreen));
 
                 #endregion
 

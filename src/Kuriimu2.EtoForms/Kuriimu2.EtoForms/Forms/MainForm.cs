@@ -189,10 +189,11 @@ namespace Kuriimu2.EtoForms.Forms
             russianCommand.Executed += (sender, args) => ChangeLocale("ru");
             simpleChineseCommand.Executed += (sender, args) => ChangeLocale("zh");
 
-            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark",Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
-             ,Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
-            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light", Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
-             , Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
+            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light", Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_),
+            Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
+            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark",Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_),
+            Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
+
             #endregion
         }
 
