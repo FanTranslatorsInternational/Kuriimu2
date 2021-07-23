@@ -15,6 +15,7 @@ namespace Kuriimu2.EtoForms.Support
             if (firstTime)
             {
                 currentThemeKey = Settings.Default.Theme;
+
                 #region Themes
 
                 #region light theme
@@ -46,6 +47,12 @@ namespace Kuriimu2.EtoForms.Support
                 #endregion
 
                 #endregion 
+
+                if (!themeDict.ContainsKey(currentThemeKey))
+                {
+                    currentThemeKey = "light";
+
+                }
             }
             else
             {
@@ -90,14 +97,7 @@ namespace Kuriimu2.EtoForms.Support
         }
         public static Theme GetTheme()
         {
-            if (themeDict.ContainsKey(currentThemeKey))
-            {
-                return themeDict[currentThemeKey];
-            }
-            else
-            {
-                return themeDict["light"];
-            }
+            return themeDict[currentThemeKey];
         }
     }
 }

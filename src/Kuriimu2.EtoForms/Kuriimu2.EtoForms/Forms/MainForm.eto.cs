@@ -214,14 +214,13 @@ namespace Kuriimu2.EtoForms.Forms
                                     simpleChineseCommand
                                 }
                             },
-                         new ButtonMenuItem
+                            new ButtonMenuItem
                             {
                                 Text = Localize(ChangeThemeKey_),
                                 Items =
                                 {
                                     LightThemeCommand,
                                     DarkThemeCommand
-
                                 }
                             }
                         } 
