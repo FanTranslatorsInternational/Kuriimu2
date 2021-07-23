@@ -71,7 +71,6 @@ namespace Kuriimu2.EtoForms.Wpf
                 handler.Control.Loaded += (sender, e) =>
                 {
                 //Makes this only execute after it has initialized so Textbox won't return null
-
                     handler.Control.TextBox.Style = textBoxStyle;
                 };
                 //Dropdown section

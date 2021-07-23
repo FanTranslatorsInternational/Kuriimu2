@@ -51,7 +51,6 @@ namespace Kuriimu2.EtoForms.Support
                 if (!themeDict.ContainsKey(currentThemeKey))
                 {
                     currentThemeKey = "light";
-
                 }
             }
             else
