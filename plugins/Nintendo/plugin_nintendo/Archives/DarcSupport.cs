@@ -33,7 +33,7 @@ namespace plugin_nintendo.Archives
 
         public bool IsDirectory
         {
-            get => (tmp1 >> 24) == 1;
+            get => tmp1 >> 24 == 1;
             set => tmp1 = (tmp1 & 0xFFFFFF) | ((value ? 1 : 0) << 24);
         }
 

@@ -19,14 +19,11 @@ namespace plugin_nintendo.Archives
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
-            using var br = new BinaryReaderX(input, true);
+            using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
-            // Select byte order
-            br.ByteOrder = ByteOrder.BigEndian;
-            br.BaseStream.Position = 4;
-            _byteOrder = br.ReadType<ByteOrder>();
-
-            br.ByteOrder = _byteOrder;
+            // Determine byte order
+            input.Position += 4;
+            br.ByteOrder = _byteOrder = br.ReadType<ByteOrder>();
 
             // Read header
             br.BaseStream.Position = 0;
