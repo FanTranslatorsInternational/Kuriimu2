@@ -37,10 +37,10 @@ namespace Kuriimu2.EtoForms.Wpf
                 handler.Control.Foreground = foregroundColor;
 
                 var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader));
-                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.LinearGradientBrush(backgroundColor.Color,ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor),new Point(0,1),new Point(0,0))});
+                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.LinearGradientBrush(backgroundColor.Color,ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor),new Point(0,0),new Point(0,1))});
                 style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
-                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderBorderColor))});
-                style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 0) });
+                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value =new System.Windows.Media.LinearGradientBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderBorderColor), ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor), new Point(0, 1), new Point(0, 0)) });
+                style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 1) });
                 style.Setters.Add(new Setter { Property = Control.PaddingProperty, Value = new Thickness(4, 4, 4, 4)});
 
                 handler.Control.ColumnHeaderStyle = style;
