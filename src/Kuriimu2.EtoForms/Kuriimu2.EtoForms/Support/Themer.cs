@@ -8,7 +8,6 @@ namespace Kuriimu2.EtoForms.Support
 {
     public sealed class Themer
     {
-
         #region Localization Keys
 
         private const string ThemeRestartTextKey_ = "ThemeRestartText";
@@ -18,13 +17,13 @@ namespace Kuriimu2.EtoForms.Support
 
         #endregion
 
-        private static readonly Lazy<Themer>
-        lazy =  new Lazy<Themer>(() => new Themer());
+        private static readonly Lazy<Themer> lazy = new Lazy<Themer>(() => new Themer());
         public static Themer Instance { get { return lazy.Value; } }
+        private Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
+        private string currentThemeKey;
+        private bool firstTime = true;
 
-        private static Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
-        private static string currentThemeKey;
-        public void LoadThemes(bool firstTime)
+        public void LoadThemes()
         {
             if (firstTime)
             {
@@ -66,6 +65,8 @@ namespace Kuriimu2.EtoForms.Support
                 {
                     currentThemeKey = "light";
                 }
+                firstTime = false;
+                return;
             }
             else
             {
