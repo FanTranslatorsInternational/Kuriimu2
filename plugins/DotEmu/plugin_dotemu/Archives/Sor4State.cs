@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Kontract.Extensions;
 using Kontract.Interfaces.FileSystem;
@@ -31,32 +29,32 @@ namespace plugin_dotemu.Archives
         {
             Stream texStream;
             Stream texListStream;
-            if (filePath.GetName() == "textures")
+            if (filePath.GetName().StartsWith("textures"))
             {
                 texStream = await fileSystem.OpenFileAsync(filePath);
-                texListStream = await fileSystem.OpenFileAsync(filePath.GetDirectory() / "texture_table");
+                texListStream = await fileSystem.OpenFileAsync(filePath.GetDirectory() / "texture_table" + filePath.GetName()[8..]);
             }
             else
             {
-                texStream = await fileSystem.OpenFileAsync(filePath.GetDirectory() / "textures");
+                texStream = await fileSystem.OpenFileAsync(filePath.GetDirectory() / "textures" + filePath.GetName()[13..]);
                 texListStream = await fileSystem.OpenFileAsync(filePath);
             }
 
-            Files = _arc.Load(texStream, texListStream);
+            Files = _arc.Load(texStream, texListStream, Sor4Support.DeterminePlatform(texListStream));
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
             Stream texStream;
             Stream texListStream;
-            if (savePath.GetName() == "textures")
+            if (savePath.GetName().StartsWith("textures"))
             {
                 texStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
-                texListStream = fileSystem.OpenFile(savePath.GetDirectory() / "texture_table", FileMode.Create, FileAccess.Write);
+                texListStream = fileSystem.OpenFile(savePath.GetDirectory() / "texture_table" + savePath.GetName()[8..], FileMode.Create, FileAccess.Write);
             }
             else
             {
-                texStream = fileSystem.OpenFile(savePath.GetDirectory() / "textures", FileMode.Create, FileAccess.Write);
+                texStream = fileSystem.OpenFile(savePath.GetDirectory() / "textures" + savePath.GetName()[13..], FileMode.Create, FileAccess.Write);
                 texListStream = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
             }
 

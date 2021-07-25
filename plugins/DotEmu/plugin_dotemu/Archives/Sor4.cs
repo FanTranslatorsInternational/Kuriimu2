@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,24 +11,51 @@ namespace plugin_dotemu.Archives
 {
     class Sor4
     {
-        public IList<IArchiveFileInfo> Load(Stream texStream, Stream texListStream)
+        private Platform _platform;
+
+        public IList<IArchiveFileInfo> Load(Stream texStream, Stream texListStream, Platform platform)
         {
+            _platform = platform;
+
             using var texBr = new BinaryReaderX(texStream, true);
             using var texListBr = new BinaryReaderX(texListStream, Encoding.Unicode);
 
             // Read entries
             var entries = new List<Sor4Entry>();
             while (texListStream.Position < texListStream.Length)
-                entries.Add(texListBr.ReadType<Sor4Entry>());
+            {
+                // TODO: Requires more research as to split texture files
+                try
+                {
+                    entries.Add(texListBr.ReadType<Sor4Entry>());
+                }
+                catch
+                {
+                    break;
+                }
+            }
 
             // Add files
             var result = new List<IArchiveFileInfo>();
             foreach (var entry in entries)
             {
-                texStream.Position = entry.offset;
-                var decompSize = texBr.ReadInt32();
+                Stream fileStream = null;
+                var decompSize = -1;
 
-                var fileStream = new SubStream(texStream, entry.offset + 4, entry.compSize - 4);
+                switch (platform)
+                {
+                    case Platform.Pc:
+                        fileStream = new SubStream(texStream, entry.offset, entry.compSize);
+                        break;
+
+                    case Platform.Switch:
+                        texStream.Position = entry.offset;
+                        decompSize = texBr.ReadInt32();
+
+                        fileStream = new SubStream(texStream, entry.offset + 4, entry.compSize - 4);
+                        break;
+                }
+
                 result.Add(new Sor4ArchiveFileInfo(fileStream, entry.path, entry, Compressions.Deflate, decompSize));
             }
 
@@ -53,11 +79,20 @@ namespace plugin_dotemu.Archives
                 var writtenSize = file.SaveFileData(texStream);
 
                 // Update entry
-                file.Entry.compSize = (int)writtenSize + 4;
+                file.Entry.compSize = (int)writtenSize + _platform == Platform.Pc ? 0 : 4;
                 file.Entry.offset = dataPosition;
                 entries.Add(file.Entry);
 
-                dataPosition = (int)(dataPosition + 4 + writtenSize + 0xF) & ~0xF;
+                switch (_platform)
+                {
+                    case Platform.Pc:
+                        dataPosition = (int)(dataPosition + writtenSize);
+                        break;
+
+                    case Platform.Switch:
+                        dataPosition = (int)(dataPosition + 4 + writtenSize + 0xF) & ~0xF;
+                        break;
+                }
             }
 
             // Write entries
