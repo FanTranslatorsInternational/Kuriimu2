@@ -17,8 +17,8 @@ namespace Kuriimu2.EtoForms.Support
 
         #endregion
 
-        private static readonly Lazy<Themer> lazy = new Lazy<Themer>(() => new Themer());
-        public static Themer Instance { get { return lazy.Value; } }
+        private readonly Lazy<Themer> lazy = new Lazy<Themer>(() => new Themer());
+        public Themer Instance { get { return lazy.Value; } }
         private Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
         private string currentThemeKey;
         private bool firstTime = true;
