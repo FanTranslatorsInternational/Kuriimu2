@@ -29,7 +29,12 @@ namespace plugin_nintendo.Archives
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             using var br = new BinaryReaderX(fileStream);
 
-            return br.ReadString(4) == "darc";
+            var magic = br.ReadString(4);
+            var magic2 = br.ReadString(4);
+            br.BaseStream.Position = 5;
+            var magic3 = br.ReadString(4);
+
+            return magic == "darc" || magic2 == "darc" || magic3 == "darc";
         }
 
         public IPluginState CreatePluginState(IFileManager pluginManager)

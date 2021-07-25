@@ -35,10 +35,13 @@ namespace plugin_nintendo.Compression
 
         public static NintendoCompressionMethod PeekCompressionMethod(Stream input)
         {
-            var method = input.ReadByte();
+            var method = (byte)input.ReadByte();
             input.Position--;
 
-            return (NintendoCompressionMethod)method;
+            if(Enum.IsDefined(typeof(NintendoCompressionMethod),method))
+                return (NintendoCompressionMethod)method;
+
+            return NintendoCompressionMethod.Unsupported;
         }
 
         public static IKompressionConfiguration GetConfiguration(NintendoCompressionMethod method)
@@ -67,7 +70,7 @@ namespace plugin_nintendo.Compression
                     return Kompression.Implementations.Compressions.Nintendo.Rle;
 
                 default:
-                    throw new NotSupportedException($"Unknown compression method {method}");
+                    throw new NotSupportedException($"Invalid compression method {method}");
             }
         }
     }
