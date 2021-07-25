@@ -12,12 +12,14 @@ using Kontract.Interfaces.Providers;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
+using plugin_nintendo.Compression;
 
 namespace plugin_nintendo.Archives
 {
     class DarcState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
-        private readonly DARC _darc;
+        private readonly Darc _arc;
+        private NintendoCompressionMethod _method;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
 
@@ -25,19 +27,33 @@ namespace plugin_nintendo.Archives
 
         public DarcState()
         {
-            _darc = new DARC();
+            _arc = new Darc();
         }
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-            Files = _darc.Load(fileStream);
+            if (TryDecompress(fileStream, out var decompressedFile, out _method))
+                fileStream = decompressedFile;
+
+            Files = _arc.Load(fileStream);
         }
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var output = fileSystem.OpenFile(savePath, FileMode.Create);
-            _darc.Save(output, Files);
+            var output = _method == NintendoCompressionMethod.Unsupported ?
+                fileSystem.OpenFile(savePath, FileMode.Create) :
+                new MemoryStream();
+
+            _arc.Save(output, Files);
+
+            if (_method != NintendoCompressionMethod.Unsupported)
+            {
+                var final = fileSystem.OpenFile(savePath, FileMode.Create);
+
+                output.Position = 0;
+                NintendoCompressor.GetConfiguration(_method).Build().Compress(output, final);
+            }
 
             return Task.CompletedTask;
         }
@@ -50,6 +66,29 @@ namespace plugin_nintendo.Archives
         private bool IsChanged()
         {
             return Files.Any(x => x.ContentChanged);
+        }
+
+        private bool TryDecompress(Stream input, out Stream decompressedFile, out NintendoCompressionMethod method)
+        {
+            decompressedFile = null;
+
+            method = NintendoCompressor.PeekCompressionMethod(input);
+            if (method == NintendoCompressionMethod.Unsupported)
+                return false;
+
+            try
+            {
+                decompressedFile = new MemoryStream();
+                NintendoCompressor.GetConfiguration(method).Build().Decompress(input, decompressedFile);
+                decompressedFile.Position = 0;
+            }
+            catch
+            {
+                input.Position = 0;
+                return false;
+            }
+
+            return true;
         }
     }
 }

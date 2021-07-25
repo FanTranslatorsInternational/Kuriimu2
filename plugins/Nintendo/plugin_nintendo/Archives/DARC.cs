@@ -10,10 +10,10 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
-    public class DARC
+    public class Darc
     {
-        private static int _headerSize = Tools.MeasureType(typeof(DarcHeader));
-        private static int _entrySize = Tools.MeasureType(typeof(DarcEntry));
+        private static readonly int HeaderSize = Tools.MeasureType(typeof(DarcHeader));
+        private static readonly int EntrySize = Tools.MeasureType(typeof(DarcEntry));
 
         private ByteOrder _byteOrder;
 
@@ -89,10 +89,10 @@ namespace plugin_nintendo.Archives
             var entries = darcTreeBuilder.Entries;
             var nameStream = darcTreeBuilder.NameStream;
 
-            var namePosition = _headerSize + entries.Count * _entrySize;
+            var namePosition = HeaderSize + entries.Count * EntrySize;
             var dataOffset = (namePosition + (int)nameStream.Length + 3) & ~3;
 
-            using var bw = new BinaryWriterX(output, _byteOrder);
+            using var bw = new BinaryWriterX(output, true, _byteOrder);
 
             // Write names
             bw.BaseStream.Position = namePosition;
@@ -117,7 +117,7 @@ namespace plugin_nintendo.Archives
             }
 
             // Write entries
-            bw.BaseStream.Position = _headerSize;
+            bw.BaseStream.Position = HeaderSize;
             bw.WriteMultiple(entries.Select(x => x.Item1));
 
             // Write header
@@ -127,7 +127,7 @@ namespace plugin_nintendo.Archives
                 byteOrder = _byteOrder,
                 dataOffset = dataOffset,
                 fileSize = (int)bw.BaseStream.Length,
-                tableLength = entries.Count * _entrySize + (int)nameStream.Length
+                tableLength = entries.Count * EntrySize + (int)nameStream.Length
             });
         }
     }
