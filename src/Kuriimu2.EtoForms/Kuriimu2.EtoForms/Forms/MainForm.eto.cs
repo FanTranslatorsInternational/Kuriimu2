@@ -138,10 +138,11 @@ namespace Kuriimu2.EtoForms.Forms
 
             #region Theme Commands
 
+            LightThemeCommand = new Command { MenuText = Localize(ThemeLightKey_)};
             DarkThemeCommand = new Command { MenuText = Localize(ThemeDarkKey_)};
-            LightThemeCommand = new Command { MenuText = Localize(ThemeLightKey_) };
 
             #endregion
+
             Title = "Kuriimu2";
             ClientSize = new Size(1116, 643);
             Padding = new Padding(3);
@@ -213,13 +214,13 @@ namespace Kuriimu2.EtoForms.Forms
                                     simpleChineseCommand
                                 }
                             },
-                         new ButtonMenuItem
+                            new ButtonMenuItem
                             {
                                 Text = Localize(ChangeThemeKey_),
                                 Items =
                                 {
-                                    DarkThemeCommand,
-                                    LightThemeCommand
+                                    LightThemeCommand,
+                                    DarkThemeCommand
                                 }
                             }
                         } 

@@ -64,7 +64,7 @@ namespace Kuriimu2.EtoForms.Controls
             var posY = _selectedIndex / dimPalette * height;
 
             var paletteColor = Palette[_selectedIndex];
-            var borderColor = paletteColor.GetBrightness() <= 0.49 ? Themer.GetTheme().MainColor : Themer.GetTheme().AltColor;
+            var borderColor = paletteColor.GetBrightness() <= 0.49 ? Themer.Instance.GetTheme().MainColor : Themer.Instance.GetTheme().AltColor;
 
             e.Graphics.DrawRectangle(new Pen(borderColor, 2), new RectangleF(new PointF(posX, posY), new SizeF(width, height)));
         }

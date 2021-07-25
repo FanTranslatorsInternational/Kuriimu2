@@ -116,18 +116,13 @@ namespace Kuriimu2.EtoForms.Forms
         private const string UnsupportedOperatingSystemExceptionKey_ = "UnsupportedOperatingSystemException";
         private const string UnsupportedPlatformExceptionKey_ = "UnsupportedPlatformException";
 
-        private const string ThemeRestartTextKey_ = "ThemeRestartText";
-        private const string ThemeRestartCaptionKey_ = "ThemeRestartCaption";
-        private const string ThemeUnsupportedPlatformTextKey_ = "ThemeUnsupportedPlatformText";
-        private const string ThemeUnsupportedPlatformCaptionKey_ = "ThemeUnsupportedPlatformCaption";
-
         #endregion
 
         // ReSharper disable once UseObjectOrCollectionInitializer
         public MainForm()
         {
-            Themer.LoadThemes(!Application.Instance.Platform.IsWpf);
-            this.BackgroundColor = Themer.GetTheme().WindowBackColor;
+            Themer.Instance.LoadThemes();
+            this.BackgroundColor = Themer.Instance.GetTheme().WindowBackColor;
 
             _localizer = InitializeLocalizer();
             Application.Instance.LocalizeString += Instance_LocalizeString;
@@ -189,10 +184,9 @@ namespace Kuriimu2.EtoForms.Forms
             russianCommand.Executed += (sender, args) => ChangeLocale("ru");
             simpleChineseCommand.Executed += (sender, args) => ChangeLocale("zh");
 
-            DarkThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("dark",Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
-             ,Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
-            LightThemeCommand.Executed += (sender, args) => Themer.ChangeTheme("light", Localize(ThemeRestartTextKey_), Localize(ThemeRestartCaptionKey_)
-             , Localize(ThemeUnsupportedPlatformTextKey_), Localize(ThemeUnsupportedPlatformCaptionKey_));
+            LightThemeCommand.Executed += (sender, args) => Themer.Instance.ChangeTheme("light");
+            DarkThemeCommand.Executed += (sender, args) => Themer.Instance.ChangeTheme("dark");
+
             #endregion
         }
 
@@ -1016,7 +1010,7 @@ namespace Kuriimu2.EtoForms.Forms
             if (message == null)
                 return;
 
-            var textColor = isSuccessful ? Themer.GetTheme().AltColor : Themer.GetTheme().LogFatalColor;
+            var textColor = isSuccessful ? Themer.Instance.GetTheme().AltColor : Themer.Instance.GetTheme().LogFatalColor;
 
             Application.Instance.Invoke(() =>
             {
