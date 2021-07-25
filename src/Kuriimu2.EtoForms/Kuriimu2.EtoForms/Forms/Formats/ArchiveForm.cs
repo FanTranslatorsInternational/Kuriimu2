@@ -46,8 +46,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
         #region Constants
 
-        private static readonly Color ColorDefaultState = Themer.GetTheme().AltColor;
-        private static readonly Color ColorChangedState = Themer.GetTheme().ArchiveChangedColor;
+        private static readonly Color ColorDefaultState = Themer.Instance.GetTheme().AltColor;
+        private static readonly Color ColorChangedState = Themer.Instance.GetTheme().ArchiveChangedColor;
 
         #endregion
 

@@ -6,11 +6,25 @@ using System.Collections.Generic;
 
 namespace Kuriimu2.EtoForms.Support
 {
-    public class Themer
+    public sealed class Themer
     {
+
+        #region Localization Keys
+
+        private const string ThemeRestartTextKey_ = "ThemeRestartText";
+        private const string ThemeRestartCaptionKey_ = "ThemeRestartCaption";
+        private const string ThemeUnsupportedPlatformTextKey_ = "ThemeUnsupportedPlatformText";
+        private const string ThemeUnsupportedPlatformCaptionKey_ = "ThemeUnsupportedPlatformCaption";
+
+        #endregion
+
+        private static readonly Lazy<Themer>
+        lazy =  new Lazy<Themer>(() => new Themer());
+        public static Themer Instance { get { return lazy.Value; } }
+
         private static Dictionary<string, Theme> themeDict = new Dictionary<string, Theme>();
         private static string currentThemeKey;
-        public static void LoadThemes(bool firstTime)
+        public void LoadThemes(bool firstTime)
         {
             if (firstTime)
             {
@@ -25,8 +39,8 @@ namespace Kuriimu2.EtoForms.Support
                 loggerTextColor: KnownColors.NeonGreen, logFatalColor: KnownColors.DarkRed, logInfoColor: KnownColors.NeonGreen,
                 logErrorColor: KnownColors.Red, logWarningColor: KnownColors.Orange,logDefaultColor: KnownColors.Wheat, hexByteBack1Color: Color.FromArgb(0xf0, 0xfd, 0xff),
                 hexSidebarBackColor:Color.FromArgb(0xcd, 0xf7, 0xfd), controlColor: Color.FromArgb(0xf0, 0xfd, 0xff), menuBarBackColor: Color.FromArgb(245, 245, 245),
-                unselectedTabBackColor: KnownColors.White, windowBackColor: Color.FromArgb(240, 240, 240), archiveChangedColor: KnownColors.Orange,
-                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.Control,
+                unselectedTabBackColor: Color.FromArgb(238,238,238), windowBackColor: Color.FromArgb(240, 240, 240), archiveChangedColor: KnownColors.Orange,
+                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.Control,buttonBackColor:Color.FromArgb(221,221,221),
                 buttonDisabledTextColor: KnownColors.Black, gridViewHeaderGradientColor: Color.FromArgb(243,243,243),gridViewHeaderBorderColor: Color.FromArgb(213,213,213),
                 imageViewBackColor: KnownColors.DarkGreen));
 
@@ -40,8 +54,8 @@ namespace Kuriimu2.EtoForms.Support
                 logErrorColor: KnownColors.Red, logWarningColor: KnownColors.Orange,logDefaultColor: KnownColors.Wheat, hexByteBack1Color: KnownColors.DarkRed,
                 hexSidebarBackColor: KnownColors.DarkRed, controlColor: Color.FromArgb(100, 100, 100), menuBarBackColor: Color.FromArgb(40, 40, 40),
                 unselectedTabBackColor: Color.FromArgb(40, 40, 40), windowBackColor: Color.FromArgb(20, 20, 20), archiveChangedColor: KnownColors.Orange,
-                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.ControlDark,
-                buttonDisabledTextColor: Color.FromArgb(60, 60, 60), Color.FromArgb(12, 12, 12),Color.FromArgb(90,90,90),
+                progressColor: KnownColors.LimeGreen, progressBorderColor: KnownColors.ControlDark, progressControlColor: KnownColors.ControlDark,buttonBackColor:KnownColors.ThemeDark,
+                buttonDisabledTextColor: Color.FromArgb(60, 60, 60), gridViewHeaderGradientColor:Color.FromArgb(12, 12, 12), gridViewHeaderBorderColor: Color.FromArgb(90,90,90),
                 imageViewBackColor:KnownColors.DarkGreen));
 
                 #endregion
@@ -80,21 +94,20 @@ namespace Kuriimu2.EtoForms.Support
                 #endregion
             }
         }
-        public static void ChangeTheme(string theme, string ThemeRestartText, string ThemeRestartCaption,
-             string ThemeUnsupportedPlatformText, string ThemeUnsupportedPlatformCaption)
+        public void ChangeTheme(string theme)
         {
             if (Application.Instance.Platform.IsWpf)
             {
                 Settings.Default.Theme = theme;
                 Settings.Default.Save();
-                MessageBox.Show(ThemeRestartText, ThemeRestartCaption);
+                MessageBox.Show(Application.Instance.Localize(this,ThemeRestartTextKey_), Application.Instance.Localize(this,ThemeRestartCaptionKey_));
             }
             else
             {
-                MessageBox.Show(ThemeUnsupportedPlatformText, ThemeUnsupportedPlatformCaption);
+                MessageBox.Show(Application.Instance.Localize(this,ThemeUnsupportedPlatformTextKey_), Application.Instance.Localize(this,ThemeUnsupportedPlatformCaptionKey_));
             }
         }
-        public static Theme GetTheme()
+        public Theme GetTheme()
         {
             return themeDict[currentThemeKey];
         }
@@ -122,6 +135,7 @@ public class Theme
     public Color ProgressColor {get;} //Colour of the moving bar in a progress bar
     public Color ProgressBorderColor {get;} //border color of progress bar
     public Color ProgressControlColor {get;}//Background color of the progress bar
+    public Color ButtonBackColor { get; } //Background colour of a button
     public Color ButtonDisabledTextColor {get;} //Text colour of a greyedout/disabledbutton
     public Color GridViewHeaderGradientColor {get;} //Graident END color of gridview header
     public Color GridViewHeaderBorderColor {get;} //Border of grid view header
@@ -130,7 +144,7 @@ public class Theme
         Color logFatalColor, Color logInfoColor, Color logErrorColor, Color logWarningColor, Color logDefaultColor,
         Color hexByteBack1Color, Color hexSidebarBackColor, Color controlColor, Color menuBarBackColor,
         Color unselectedTabBackColor, Color windowBackColor,Color archiveChangedColor,Color progressColor,Color progressBorderColor,
-        Color progressControlColor,Color buttonDisabledTextColor,Color gridViewHeaderGradientColor,Color gridViewHeaderBorderColor,
+        Color progressControlColor,Color buttonDisabledTextColor,Color buttonBackColor,Color gridViewHeaderGradientColor,Color gridViewHeaderBorderColor,
         Color imageViewBackColor)
     {
         MainColor = mainColor;
@@ -152,6 +166,7 @@ public class Theme
         ProgressColor = progressColor;
         ProgressBorderColor = progressBorderColor;
         ProgressControlColor = progressControlColor;
+        ButtonBackColor = buttonBackColor;
         ButtonDisabledTextColor = buttonDisabledTextColor;
         GridViewHeaderGradientColor = gridViewHeaderGradientColor;
         GridViewHeaderBorderColor = gridViewHeaderBorderColor;

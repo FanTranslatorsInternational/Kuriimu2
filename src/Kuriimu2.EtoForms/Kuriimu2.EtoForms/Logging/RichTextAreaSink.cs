@@ -29,19 +29,19 @@ namespace Kuriimu2.EtoForms.Logging
             switch (logLevel)
             {
                 case LogEventLevel.Information:
-                    return Themer.GetTheme().LogInfoColor;
+                    return Themer.Instance.GetTheme().LogInfoColor;
 
                 case LogEventLevel.Warning:
-                    return Themer.GetTheme().LogWarningColor;
+                    return Themer.Instance.GetTheme().LogWarningColor;
 
                 case LogEventLevel.Error:
-                    return Themer.GetTheme().LogErrorColor;
+                    return Themer.Instance.GetTheme().LogErrorColor;
 
                 case LogEventLevel.Fatal:
-                    return Themer.GetTheme().LogFatalColor;
+                    return Themer.Instance.GetTheme().LogFatalColor;
 
                 default:
-                    return Themer.GetTheme().LogDefaultColor;
+                    return Themer.Instance.GetTheme().LogDefaultColor;
             }
         }
 
