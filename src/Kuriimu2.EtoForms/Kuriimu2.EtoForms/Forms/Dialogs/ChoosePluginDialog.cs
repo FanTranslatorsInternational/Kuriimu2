@@ -37,6 +37,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
 
         public ChoosePluginDialog(IList<IFilePlugin> allFilePlugins, IList<IFilePlugin> filteredFilePlugins, SelectionStatus status)
         {
+            InitializeComponent();
+
             _allPlugins = allFilePlugins.ToArray();
             _filteredPlugins = filteredFilePlugins.ToArray();
 
@@ -58,7 +60,6 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs
                     break;
             }
 
-            InitializeComponent();
             ListPlugins(_filteredPlugins);
 
             continueButtonCommand.Executed += ContinueButtonCommandExecuted;
