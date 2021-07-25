@@ -1,0 +1,38 @@
+{
+  "executable": "Kuriimu2.Electron",
+  "splashscreen": {
+    "imageFile": ""
+  },
+  "name": "Kuriimu2.Electron",
+  "author": "",
+  "singleInstance": false,
+  "environment": "Production",
+  "build": {
+    "appId": "com.Kuriimu2.Electron.app",
+    "productName": "Kuriimu2.Electron",
+    "copyright": "Copyright © 2020",
+    "buildVersion": "1.0.0",
+    "compression": "maximum",
+    "directories": {
+      "output": "../../../bin/Desktop"
+    },
+	"win": {
+		"target": "portable"
+	},
+    "extraResources": [
+      {
+        "from": "./bin",
+        "to": "bin",
+        "filter": [ "**/*" ]
+      }
+    ],
+    "files": [
+      {
+        "from": "./ElectronHostHook/node_modules",
+        "to": "ElectronHostHook/node_modules",
+        "filter": [ "**/*" ]
+      },
+      "**/*"
+    ]
+  }
+}
