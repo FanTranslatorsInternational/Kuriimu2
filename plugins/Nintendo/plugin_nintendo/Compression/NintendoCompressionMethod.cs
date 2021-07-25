@@ -14,6 +14,8 @@ namespace plugin_nintendo.Compression
         Lz60 = 0x60,
         Huffman4 = 0x24,
         Huffman8 = 0x28,
-        Rle = 0x30
+        Rle = 0x30,
+        
+        Unsupported = 0xFF
     }
 }
