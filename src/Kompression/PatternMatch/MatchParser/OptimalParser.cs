@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Kompression.Extensions;
 using Kompression.PatternMatch.MatchParser.Support;
 using Kontract.Kompression;
 using Kontract.Kompression.Model;
@@ -10,46 +8,28 @@ using Kontract.Kompression.Model.PatternMatch;
 
 namespace Kompression.PatternMatch.MatchParser
 {
-    public class OptimalParser : IMatchParser
+    public class OptimalParser : BaseParser
     {
         private readonly IPriceCalculator _priceCalculator;
-        private readonly IMatchFinder[] _finders;
 
-        public FindOptions FindOptions { get; }
-
-        public OptimalParser(FindOptions options, IPriceCalculator priceCalculator, params IMatchFinder[] finders)
+        public OptimalParser(FindOptions options, IPriceCalculator priceCalculator, params IMatchFinder[] finders):
+            base(options,finders)
         {
             if (finders.Any(x => x.FindOptions.UnitSize != finders[0].FindOptions.UnitSize))
                 throw new InvalidOperationException("All Match finder have to have the same unit size.");
 
-            FindOptions = options;
             _priceCalculator = priceCalculator ?? throw new ArgumentNullException(nameof(priceCalculator));
-            _finders = finders;
         }
 
-        // TODO: Maybe not rely on input position, and set position by manipulators
-        public IEnumerable<Match> ParseMatches(Stream input)
+        protected override IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
         {
-            var manipulatedStream = FindOptions.InputManipulator.Manipulate(input);
-
-            var matches = InternalParseMatches(manipulatedStream.ToArray(), (int)manipulatedStream.Position);
-            foreach (var match in matches)
-            {
-                FindOptions.InputManipulator.AdjustMatch(match);
-                yield return match;
-            }
-        }
-
-        private IEnumerable<Match> InternalParseMatches(byte[] input, int startPosition)
-        {
-            foreach (var finder in _finders)
-                finder.PreProcess(input);
-
+            // Initialize history
             var history = new PositionElement[input.Length - startPosition + 1];
             for (var i = 0; i < history.Length; i++)
                 history[i] = new PositionElement(0, false, null, int.MaxValue);
             history[0].Price = 0;
 
+            // Two-Pass for optimal pathing
             ForwardPass(input, startPosition, history);
             return BackwardPass(history).Reverse();
         }
@@ -81,13 +61,13 @@ namespace Kompression.PatternMatch.MatchParser
                 }
 
                 // Then go through all longest matches at current position
-                for (var finderIndex = 0; finderIndex < _finders.Length; finderIndex++)
+                for (var finderIndex = 0; finderIndex < Finders.Length; finderIndex++)
                 {
                     var finderMatch = matches[finderIndex][dataPosition];
                     if (finderMatch == null || !finderMatch.HasMatches)
                         continue;
 
-                    for (var j = _finders[finderIndex].FindLimitations.MinLength; j <= finderMatch.MaxLength; j += unitSize)
+                    for (var j = Finders[finderIndex].FindLimitations.MinLength; j <= finderMatch.MaxLength; j += unitSize)
                     {
                         var displacement = finderMatch.GetDisplacement(j);
                         if (displacement < 0)
@@ -135,12 +115,12 @@ namespace Kompression.PatternMatch.MatchParser
 
         private IList<IList<AggregateMatch>> GetAllMatches(byte[] input, int startPosition)
         {
-            var result = new IList<AggregateMatch>[_finders.Length];
+            var result = new IList<AggregateMatch>[Finders.Length];
 
-            for (var i = 0; i < _finders.Length; i++)
+            for (var i = 0; i < Finders.Length; i++)
             {
                 result[i] = Enumerable.Range(startPosition, input.Length).AsParallel().AsOrdered()
-                    .Select(x => _finders[i].FindMatchesAtPosition(input, x)).ToArray();
+                    .Select(x => Finders[i].FindMatchesAtPosition(input, x)).ToArray();
             }
 
             return result;
@@ -157,10 +137,6 @@ namespace Kompression.PatternMatch.MatchParser
             }
 
             return true;
-        }
-
-        public void Dispose()
-        {
         }
     }
 }
