@@ -12,7 +12,11 @@ namespace Kontract.Kompression.Configuration
         /// <returns>The option object.</returns>
         IInternalMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory);
 
-        // TODO: Add shortcuts for optimal and greedy parse
+        /// <summary>
+        /// Sets a default parser to parse matches via "Optimal Parsing".
+        /// </summary>
+        /// <returns>The option object.</returns>
+        IInternalMatchOptions ParseOptimal();
 
         /// <summary>
         /// Add a match finder.

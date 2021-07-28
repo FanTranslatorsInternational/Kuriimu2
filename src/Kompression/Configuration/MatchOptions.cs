@@ -34,6 +34,15 @@ namespace Kompression.Configuration
         private UnitSize _unitSize = UnitSize.Byte;
         private int _taskCount = Environment.ProcessorCount;
 
+        #region ParseWith method declarations
+
+        public IInternalMatchOptions ParseOptimal()
+        {
+            return ParseMatchesWith(DefaultMatchParser);
+        }
+
+        #endregion
+
         #region FindWith method declarations
 
         /// <inheritdoc cref="FindWith"/>
