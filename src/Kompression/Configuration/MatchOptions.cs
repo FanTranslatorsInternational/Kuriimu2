@@ -117,7 +117,7 @@ namespace Kompression.Configuration
         #region General
 
         /// <inheritdoc cref="ParseMatchesWith"/>
-        public IMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory)
+        public IInternalMatchOptions ParseMatchesWith(Func<FindOptions, IPriceCalculator, IMatchFinder[], IMatchParser> matchParserFactory)
         {
 	        ContractAssertions.IsNotNull(matchParserFactory, nameof(matchParserFactory));
 

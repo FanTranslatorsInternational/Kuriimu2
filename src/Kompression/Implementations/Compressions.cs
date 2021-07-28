@@ -5,6 +5,7 @@ using Kompression.Implementations.Decoders.Nintendo;
 using Kompression.Implementations.Encoders;
 using Kompression.Implementations.Encoders.Headerless;
 using Kompression.Implementations.Encoders.Nintendo;
+using Kompression.PatternMatch.MatchParser;
 using Kontract.Kompression.Configuration;
 using Kontract.Models.IO;
 
@@ -12,7 +13,7 @@ namespace Kompression.Implementations
 {
     public static class Compressions
     {
-        private static IKompressionConfiguration NewKompressionConfiguration =>
+        private static KompressionConfiguration NewKompressionConfiguration =>
             new KompressionConfiguration();
 
         public static class Nintendo
