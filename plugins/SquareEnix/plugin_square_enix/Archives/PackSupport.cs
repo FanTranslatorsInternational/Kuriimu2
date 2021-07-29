@@ -56,6 +56,7 @@ namespace plugin_square_enix.Archives
             {
                 case ".bch":
                 case ".ptcl":
+                case ".arc":
                     return 0x80;
             }
 
