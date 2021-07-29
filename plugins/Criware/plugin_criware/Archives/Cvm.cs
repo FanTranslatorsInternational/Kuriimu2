@@ -71,7 +71,7 @@ namespace plugin_criware.Archives
 
         private IEnumerable<IArchiveFileInfo> ParseDirTree(BinaryReaderX br, Stream isoStream, uint dirExtent, uint dirSize, UPath path)
         {
-            br.BaseStream.Position = dirExtent * 0x800;
+            long currentPosition = dirExtent * 0x800;
             while (dirSize > 0)
             {
                 var dirChunk = Math.Min(0x800, dirSize);
@@ -79,17 +79,21 @@ namespace plugin_criware.Archives
 
                 while (dirChunk > 0)
                 {
+                    br.BaseStream.Position = currentPosition;
+
                     // Check if alignment to next sector is needed
                     var length = br.ReadByte();
                     if (length == 0)
                     {
                         br.SeekAlignment(0x800);
+                        currentPosition = br.BaseStream.Position;
                         break;
                     }
 
                     // Read dir entry
                     br.BaseStream.Position--;
                     var dirRecord = br.ReadType<IsoDirectoryRecord>();
+                    currentPosition = br.BaseStream.Position;
 
                     if ((dirRecord.flags & 2) > 0)
                     {
