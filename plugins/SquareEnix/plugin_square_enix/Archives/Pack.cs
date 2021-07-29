@@ -78,10 +78,8 @@ namespace plugin_square_enix.Archives
                 bw.WriteString(file.FilePath.GetName(), Encoding.ASCII, false);
 
                 // Pad to file start
-                var alignment = PackSupport.GetAlignment(file.FilePath.GetExtensionWithDot());
-                output.Position = dataOffset + 0x28;
-                bw.WriteAlignment(alignment);
-                file.Entry.fileStart = (short)(output.Position - dataOffset);
+                var npad = dataOffset + file.Entry.fileStart - output.Position;
+                bw.WritePadding((int)npad);;
 
                 // Write file data
                 output.Position = dataOffset + file.Entry.fileStart;
