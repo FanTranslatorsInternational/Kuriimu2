@@ -219,7 +219,7 @@ namespace plugin_criware.Archives
             var sectorFilled = (EntrySize_ + dirEntry.Name.Length + 1) & ~1;
 
             // Write file entries
-            tocBw.BaseStream.Position = sectorFilled;
+            tocBw.BaseStream.Position = entryOffset + totalSize + sectorFilled;
             foreach (var file in dirEntry.Files.Cast<ArchiveFileInfo>())
             {
                 var entrySize = (EntrySize_ + file.FilePath.GetName().Length + 3) & ~1;
@@ -259,7 +259,7 @@ namespace plugin_criware.Archives
             }
 
             // Calculate first sub dir offset
-            var subDirOffset = totalSize;
+            var subDirOffset = totalSize + (sectorFilled != 0 ? 0x800 : 0);
             var sectorFilled2 = sectorFilled;
             foreach (var dir in dirEntry.Directories)
             {
@@ -283,7 +283,7 @@ namespace plugin_criware.Archives
                 var entrySize = (EntrySize_ + dir.Name.Length + 1) & ~1;
 
                 // Write sub directory
-                WriteDirTree(dir, input, tocBw, subDirOffset, ref fileOffset);
+                WriteDirTree(dir, input, tocBw, entryOffset + subDirOffset, ref fileOffset);
 
                 // Advance positioning
                 if (sectorFilled + entrySize >= 0x800)
@@ -298,12 +298,12 @@ namespace plugin_criware.Archives
                 tocBw.WriteType(new IsoDirectoryRecord
                 {
                     length = (byte)entrySize,
-                    extentBe = (uint)(subDirOffset / 0x800),
-                    extentLe = (uint)(subDirOffset / 0x800),
+                    extentBe = (uint)((entryOffset + subDirOffset) / 0x800),
+                    extentLe = (uint)((entryOffset + subDirOffset) / 0x800),
                     sizeBe = (uint)dirSize,
                     sizeLe = (uint)dirSize,
                     date = new byte[7],
-                    flags = 0,
+                    flags = 2,
                     volumeSequenceNumber = 0x10000001,
                     nameLength = (byte)dir.Name.Length,
                     name = dir.Name
@@ -319,7 +319,7 @@ namespace plugin_criware.Archives
                 tocBw.WriteAlignment(0x800);
             }
 
-            // Write current directory directory
+            // Write current directory entry
             var bkPos = tocBw.BaseStream.Position;
 
             tocBw.BaseStream.Position = entryOffset;
