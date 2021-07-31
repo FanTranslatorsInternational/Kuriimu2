@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Komponent.IO;
+using Komponent.IO.Streams;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
@@ -15,7 +17,7 @@ namespace plugin_nintendo.Archives
     {
         public Guid PluginId => Guid.Parse("1be80d18-e44e-43d6-884a-65d0b42bfa20");
         public PluginType PluginType => PluginType.Archive;
-        public string[] FileExtensions => new[] { "*.szs", "*.arc", "*.sblarc" };
+        public string[] FileExtensions => new[] { "*.szs", "*.arc", "*.sblarc", "*.zlib" };
         public PluginMetadata Metadata { get; }
 
         public SarcPlugin()
@@ -26,13 +28,19 @@ namespace plugin_nintendo.Archives
         public async Task<bool> IdentifyAsync(IFileSystem fileSystem, UPath filePath, IdentifyContext identifyContext)
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
-
             using var br = new BinaryReaderX(fileStream);
-            var magic = br.ReadString(4);
-            fileStream.Position = 0x11;
-            var magic1 = br.ReadString(4);
 
-            return magic == "SARC" || magic1 == "SARC";
+            if (br.PeekString() == "SARC")
+                return true;
+
+            fileStream.Position = 0x11;
+            if (br.PeekString() == "SARC")
+                return true;
+
+            using var zlibStream = new InflaterInputStream(new SubStream(fileStream, 4, fileStream.Length - 4)) {IsStreamOwner = false};
+            using var zlibBr = new BinaryReaderX(zlibStream);
+
+            return zlibBr.ReadString(4) == "SARC";
         }
 
         public IPluginState CreatePluginState(IFileManager fileManager)

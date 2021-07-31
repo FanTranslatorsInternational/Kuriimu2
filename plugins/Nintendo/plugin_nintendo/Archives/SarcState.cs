@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Komponent.IO;
+using Komponent.IO.Streams;
 using Kompression.Implementations;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
@@ -70,19 +73,37 @@ namespace plugin_nintendo.Archives
         private Stream Decompress(Stream input)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
-            _compMagic = br.ReadString(4);
+            br.BaseStream.Position += 4;
 
-            var decompStream = new MemoryStream();
-            switch (_compMagic)
+            // Detect ZLib
+            var magicByte = br.ReadByte();
+            if ((magicByte & 0xF) == 8 && (magicByte & 0xF0) <= 0x70)
             {
-                case "Yaz0":
-                    input.Position = 0;
-                    Compressions.Nintendo.Yaz0Be.Build().Decompress(input, decompStream);
+                _compMagic = "zlib";
 
-                    decompStream.Position = 0;
-                    return decompStream;
+                var destination=new MemoryStream();
+                Compressions.ZLib.Build().Decompress(new SubStream(input, 4, input.Length - 4),destination);
+                destination.Position = 0;
+
+                return destination;
             }
 
+            // Detect Yaz0
+            br.BaseStream.Position = 0;
+            _compMagic = br.PeekString();
+
+            if (_compMagic == "Yaz0")
+            {
+                var decompStream = new MemoryStream();
+
+                input.Position = 0;
+                Compressions.Nintendo.Yaz0Be.Build().Decompress(input, decompStream);
+
+                decompStream.Position = 0;
+                return decompStream;
+            }
+
+            // Default to no compression
             _compMagic = null;
 
             input.Position = 0;
@@ -95,6 +116,15 @@ namespace plugin_nintendo.Archives
             {
                 case "Yaz0":
                     Compressions.Nintendo.Yaz0Be.Build().Compress(input, output);
+                    break;
+
+                case "zlib":
+                    var decompSizeBytes = new byte[4];
+
+                    BinaryPrimitives.WriteInt32BigEndian(decompSizeBytes,(int)input.Length);
+                    output.Write(decompSizeBytes);
+
+                    Compressions.ZLib.Build().Compress(input, output);
                     break;
             }
         }
