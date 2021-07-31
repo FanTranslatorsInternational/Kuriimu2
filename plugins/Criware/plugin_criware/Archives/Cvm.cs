@@ -120,17 +120,18 @@ namespace plugin_criware.Archives
             var fileTree = files.ToTree();
 
             // Pre-calculate size of the TOC
-            var dirSize = CalculateDirTreeSize(fileTree);
+            var dirTotalSize = CalculateDirTreeSize(fileTree);
+            var dirOnlySize = CalculateDirTreeSize(fileTree, false);
 
             // Prepare streams
-            output.SetLength(0xB800 + dirSize);
-            Stream tocStream = new SubStream(output, 0x1800, 0xA000 + dirSize);
+            output.SetLength(0xB800 + dirTotalSize);
+            Stream tocStream = new SubStream(output, 0x1800, 0xA000 + dirTotalSize);
             if (_header.IsEncrypted)
                 tocStream = new RofsCryptoStream(tocStream, _detectedPassword, 0, 0x800);
 
             // Write files and TOC
             using var tocBw = new BinaryWriterX(tocStream);
-            var fileOffset = (long)(0xB800 + dirSize);
+            var fileOffset = (long)(0xB800 + dirTotalSize);
             WriteDirTree(fileTree, output, tocBw, 0xA000, ref fileOffset);
 
             // Write pre TOC information
@@ -138,8 +139,8 @@ namespace plugin_criware.Archives
             _primeDesc.volSizeLe = (int)((output.Length - 0x1800 + 0x7FF) & ~0x7FF);
             _primeDesc.logicalBlockSizeLe = 0x800;
             _primeDesc.logicalBlockSizeBe = 0x800;
-            _primeDesc.rootDirRecord.sizeLe = (uint)dirSize;
-            _primeDesc.rootDirRecord.sizeBe = (uint)dirSize;
+            _primeDesc.rootDirRecord.sizeLe = (uint)dirOnlySize;
+            _primeDesc.rootDirRecord.sizeBe = (uint)dirOnlySize;
 
             tocStream.Position = 0x8000;
             tocBw.WriteType(_primeDesc);
@@ -174,10 +175,10 @@ namespace plugin_criware.Archives
             bw.Write(_unkDataLoc);
         }
 
-        private int CalculateDirTreeSize(DirectoryEntry dirEntry)
+        private int CalculateDirTreeSize(DirectoryEntry dirEntry, bool calculateSubDirs = true, bool first = true)
         {
             var totalSize = 0;
-            var sectorFilled = (EntrySize_ + dirEntry.Name.Length + 1) & ~1;
+            var sectorFilled = first ? (EntrySize_ + dirEntry.Name.Length + 1) & ~1 : 0;
 
             // First calculate all file entries of the directory
             foreach (var file in dirEntry.Files)
@@ -204,7 +205,8 @@ namespace plugin_criware.Archives
 
                 sectorFilled += entrySize;
 
-                totalSize += CalculateDirTreeSize(dir);
+                if (calculateSubDirs)
+                    totalSize += CalculateDirTreeSize(dir, true, false);
             }
 
             if (sectorFilled != 0)
@@ -213,10 +215,10 @@ namespace plugin_criware.Archives
             return totalSize;
         }
 
-        private void WriteDirTree(DirectoryEntry dirEntry, Stream input, BinaryWriterX tocBw, long entryOffset, ref long fileOffset)
+        private void WriteDirTree(DirectoryEntry dirEntry, Stream input, BinaryWriterX tocBw, long entryOffset, ref long fileOffset, bool first = true)
         {
             var totalSize = 0;
-            var sectorFilled = (EntrySize_ + dirEntry.Name.Length + 1) & ~1;
+            var sectorFilled = first ? (EntrySize_ + dirEntry.Name.Length + 1) & ~1 : 0;
 
             // Write file entries
             tocBw.BaseStream.Position = entryOffset + totalSize + sectorFilled;
@@ -259,7 +261,7 @@ namespace plugin_criware.Archives
             }
 
             // Calculate first sub dir offset
-            var subDirOffset = totalSize + (sectorFilled != 0 ? 0x800 : 0);
+            var subDirOffset = totalSize;
             var sectorFilled2 = sectorFilled;
             foreach (var dir in dirEntry.Directories)
             {
@@ -279,11 +281,11 @@ namespace plugin_criware.Archives
             // Write directory entries
             foreach (var dir in dirEntry.Directories)
             {
-                var dirSize = CalculateDirTreeSize(dir);
+                var dirSize = CalculateDirTreeSize(dir, false);
                 var entrySize = (EntrySize_ + dir.Name.Length + 1) & ~1;
 
                 // Write sub directory
-                WriteDirTree(dir, input, tocBw, entryOffset + subDirOffset, ref fileOffset);
+                WriteDirTree(dir, input, tocBw, entryOffset + subDirOffset, ref fileOffset, false);
 
                 // Advance positioning
                 if (sectorFilled + entrySize >= 0x800)
@@ -320,24 +322,27 @@ namespace plugin_criware.Archives
             }
 
             // Write current directory entry
-            var bkPos = tocBw.BaseStream.Position;
-
-            tocBw.BaseStream.Position = entryOffset;
-            tocBw.WriteType(new IsoDirectoryRecord
+            if (first)
             {
-                length = (byte)((EntrySize_ + dirEntry.Name.Length + 1) & ~1),
-                extentBe = (uint)(entryOffset / 0x800),
-                extentLe = (uint)(entryOffset / 0x800),
-                sizeBe = (uint)totalSize,
-                sizeLe = (uint)totalSize,
-                date = new byte[7],
-                flags = 2,
-                volumeSequenceNumber = 0x10000001,
-                nameLength = (byte)(dirEntry.Name.Length == 0 ? 1 : dirEntry.Name.Length),
-                name = string.IsNullOrEmpty(dirEntry.Name) ? "\0" : dirEntry.Name
-            });
+                var bkPos = tocBw.BaseStream.Position;
 
-            tocBw.BaseStream.Position = bkPos;
+                tocBw.BaseStream.Position = entryOffset;
+                tocBw.WriteType(new IsoDirectoryRecord
+                {
+                    length = (byte)((EntrySize_ + dirEntry.Name.Length + 1) & ~1),
+                    extentBe = (uint)(entryOffset / 0x800),
+                    extentLe = (uint)(entryOffset / 0x800),
+                    sizeBe = (uint)totalSize,
+                    sizeLe = (uint)totalSize,
+                    date = new byte[7],
+                    flags = 2,
+                    volumeSequenceNumber = 0x10000001,
+                    nameLength = (byte)(dirEntry.Name.Length == 0 ? 1 : dirEntry.Name.Length),
+                    name = string.IsNullOrEmpty(dirEntry.Name) ? "\0" : dirEntry.Name
+                });
+
+                tocBw.BaseStream.Position = bkPos;
+            }
         }
 
         #endregion
