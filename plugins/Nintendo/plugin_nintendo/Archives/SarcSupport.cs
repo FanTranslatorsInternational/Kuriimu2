@@ -79,17 +79,15 @@ namespace plugin_nintendo.Archives
 
     class SarcSupport
     {
+        private const int DefaultAlignmentCompressed = 0x80;
         private const int DefaultAlignment = 0x4;
 
         private static readonly IDictionary<string, int> AlignmentLittleEndianCompressed = new Dictionary<string, int>
         {
-            ["FFNT"] = 0x80,
-            ["CFNT"] = 0x80,
-            ["CFNU"] = 0x80,
-            ["CTPK"] = 0x80,
-            ["SPBD"] = 0x80,
-            ["BCH\0"] = 0x80,
-            ["DVLB"] = 0x80
+            ["MsgS"] = 0x4,
+            ["MsgF"] = 0x4,
+            ["SMDH"] = 0x4,
+            ["YB\x1\0"] = 0x4
         };
 
         private static readonly IDictionary<string, int> AlignmentLittleEndian = new Dictionary<string, int>
@@ -101,9 +99,8 @@ namespace plugin_nintendo.Archives
 
         private static readonly IDictionary<string, int> AlignmentBigEndian = new Dictionary<string, int>
         {
-            //["SPBD"] = 0x80,
-            //["DVLB"] = 0x80,
-            //["FFNT"] = 0x80
+            ["FLAN"] = 0x4,
+            ["FLYT"] = 0x4
         };
 
         private static readonly IDictionary<string, string> Extensions = new Dictionary<string, string>
@@ -171,7 +168,7 @@ namespace plugin_nintendo.Archives
                 AlignmentBigEndian;
 
             if (string.IsNullOrEmpty(file.Type) || !alignments.ContainsKey(file.Type))
-                return DefaultAlignment;
+                return isCompressed ? DefaultAlignmentCompressed : DefaultAlignment;
 
             return alignments[file.Type];
         }
