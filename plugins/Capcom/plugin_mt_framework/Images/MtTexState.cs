@@ -30,7 +30,7 @@ namespace plugin_mt_framework.Images
         {
             var fileStream = await fileSystem.OpenFileAsync(filePath);
 
-            var platform = MtTexSupport.DeterminePlatform(fileStream);
+            var platform = MtTexSupport.DeterminePlatform(fileStream, loadContext.DialogManager);
             EncodingDefinition = MtTexSupport.GetEncodingDefinition(platform);
 
             Images = _tex.Load(fileStream, platform).Select(x => new KanvasImage(EncodingDefinition, x, ShouldLock(platform, x))).ToArray();

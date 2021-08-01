@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using Kanvas;
-using Kanvas.Encoding;
 using Komponent.IO;
 using Komponent.IO.Attributes;
+using Kontract.Interfaces.Managers;
 using Kontract.Kanvas;
+using Kontract.Models.Dialog;
 using Kontract.Models.Image;
 using Kontract.Models.IO;
 
@@ -21,7 +22,7 @@ namespace plugin_mt_framework.Images
         [BitField(12)]
         public short version;
         [BitField(12)]
-        public short unk1;
+        public short swizzle;   // TODO: Has to be proven, but seems to work for version A3 found on both, PC and Switch. which use different swizzles
         [BitField(4)]
         public byte reserved1;
         [BitField(4)]
@@ -129,7 +130,21 @@ namespace plugin_mt_framework.Images
             [0x14] = ImageFormats.Dxt1(),
             [0x17] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1A(),
-            [0x1F] = ImageFormats.Ati2()
+            [0x1F] = ImageFormats.Ati2(),
+
+            [0x2A] = ImageFormats.Bc7()
+        };
+
+        public static readonly IDictionary<int, IColorEncoding> PcFormats = new Dictionary<int, IColorEncoding>
+        {
+            [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
+            [0x13] = ImageFormats.Dxt1(),
+            [0x14] = ImageFormats.Dxt1(),
+            [0x17] = ImageFormats.Dxt5(),
+            [0x19] = ImageFormats.Ati1A(),
+            [0x1F] = ImageFormats.Ati2(),
+
+            [0x2A] = ImageFormats.Bc7()
         };
 
         public static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
@@ -137,8 +152,6 @@ namespace plugin_mt_framework.Images
             [0x1] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
             [0x7] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
             [0xa] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
-            [0xb] = ImageFormats.Pvrtc_4bpp(),
-            [0xd] = ImageFormats.PvrtcA_4bpp(),
 
             // Used as placeholders for format 0x0C, which defines 3 images of different encodings for different mobile platforms
             [0xFD] = ImageFormats.Dxt5(),
@@ -146,13 +159,23 @@ namespace plugin_mt_framework.Images
             [0xFF] = ImageFormats.AtcInterpolated()
         };
 
-        private static readonly IDictionary<int, IColorShader> Shaders = new Dictionary<int, IColorShader>
+        private static readonly IDictionary<int, IColorShader> ShadersPs3 = new Dictionary<int, IColorShader>
         {
             [0x21] = new MtTex_NoAlphaShader(),
             [0x2A] = new MtTex_YCbCrColorShader()
         };
 
-        public static MtTexPlatform DeterminePlatform(Stream file)
+        private static readonly IDictionary<int, IColorShader> ShadersSwitch = new Dictionary<int, IColorShader>
+        {
+            [0x2A] = new MtTex_YCbCrColorShader()
+        };
+
+        private static readonly IDictionary<int, IColorShader> ShadersPc = new Dictionary<int, IColorShader>
+        {
+            [0x2A] = new MtTex_YCbCrColorShader()
+        };
+
+        public static MtTexPlatform DeterminePlatform(Stream file, IDialogManager dialogManager)
         {
             using var br = new BinaryReaderX(file, true);
 
@@ -188,8 +211,13 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.PS3;
 
                 case 0xa0:
-                case 0xa3:
                     return MtTexPlatform.Switch;
+
+                case 0xa3:
+                    var selection = new DialogField(DialogFieldType.DropDown, "Platform", MtTexPlatform.Pc.ToString(), MtTexPlatform.Pc.ToString(), MtTexPlatform.Switch.ToString());
+                    dialogManager.ShowDialog(new[] { selection });
+
+                    return Enum.Parse<MtTexPlatform>(selection.Result);
 
                 default:
                     throw new InvalidOperationException($"MtTex version 0x{version:X2} is not supported.");
@@ -208,15 +236,21 @@ namespace plugin_mt_framework.Images
 
                 case MtTexPlatform.Switch:
                     definition.AddColorEncodings(SwitchFormats);
+                    definition.AddColorShaders(ShadersSwitch);
                     break;
 
                 case MtTexPlatform.PS3:
                     definition.AddColorEncodings(Ps3Formats);
-                    definition.AddColorShaders(Shaders);
+                    definition.AddColorShaders(ShadersPs3);
                     break;
 
                 case MtTexPlatform.Mobile:
                     definition.AddColorEncodings(MobileFormats);
+                    break;
+
+                case MtTexPlatform.Pc:
+                    definition.AddColorEncodings(PcFormats);
+                    definition.AddColorShaders(ShadersPc);
                     break;
 
                 case MtTexPlatform.Wii:
@@ -235,7 +269,8 @@ namespace plugin_mt_framework.Images
 
         PS3,
 
-        Mobile
+        Mobile,
+        Pc
     }
 
     class MtTex_YCbCrColorShader : IColorShader
