@@ -144,7 +144,8 @@ namespace plugin_mt_framework.Images
             [0x19] = ImageFormats.Ati1A(),
             [0x1F] = ImageFormats.Ati2(),
 
-            [0x2A] = ImageFormats.Bc7()
+            [0x2A] = ImageFormats.Bc7(),
+            [0x36] = ImageFormats.Bc7()
         };
 
         public static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
