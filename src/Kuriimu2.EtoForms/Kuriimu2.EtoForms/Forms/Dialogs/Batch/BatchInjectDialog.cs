@@ -9,7 +9,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         #region Localization Keys
 
         private const string BatchInjectorKey_ = "BatchInjector";
-        
+
         private const string BatchInjectSourceEmptyKey_ = "BatchInjectSourceEmpty";
         private const string BatchInjectDestinationEmptyKey_ = "BatchInjectDestinationEmpty";
 

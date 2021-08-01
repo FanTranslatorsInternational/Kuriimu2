@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Web;
 using Eto.Forms;
@@ -35,6 +36,8 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         private const string BatchSelectPluginStatusKey_ = "BatchSelectPluginStatus";
 
+        private const string UnsupportedOperatingSystemExceptionKey_ = "UnsupportedOperatingSystemException";
+
         #endregion
 
         public BaseBatchDialog(IInternalFileManager fileManager)
@@ -43,7 +46,10 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
             InitializeComponent();
 
-            Logger = new LoggerConfiguration().WriteTo.Sink(new RichTextAreaSink(log)).CreateLogger();
+            Logger = new LoggerConfiguration()
+                .WriteTo.Sink(new RichTextAreaSink(log))
+                .WriteTo.File($"{GetBaseDirectory()}/Kuriimu2_Extensions.log")
+                .CreateLogger();
             _batchProcessor = InitializeBatchProcessor(fileManager, Logger);
 
             _avgTimer = new System.Timers.Timer(300);
@@ -210,6 +216,18 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
             };
 
             return sfd.ShowDialog(this) != DialogResult.Ok ? string.Empty : sfd.Directory;
+        }
+
+        private string GetBaseDirectory()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return ".";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return "~/Applications/Kuriimu2";
+
+            throw new InvalidOperationException(Localize(UnsupportedOperatingSystemExceptionKey_, RuntimeInformation.OSDescription));
         }
 
         #endregion

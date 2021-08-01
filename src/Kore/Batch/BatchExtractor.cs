@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -59,7 +60,7 @@ namespace Kore.Batch
             switch (loadedFileState.PluginState)
             {
                 case IArchiveState archiveState:
-                    await ExtractArchive(archiveState, destinationFileSystem, filePath);
+                    await ExtractArchive(archiveState, loadedFileState.FilePath, destinationFileSystem, filePath);
                     break;
 
                 case IImageState imageState:
@@ -82,17 +83,29 @@ namespace Kore.Batch
             _openedFiles.Add(e.OpenedPath);
         }
 
-        private async Task ExtractArchive(IArchiveState archiveState, IFileSystem destinationFileSystem, UPath filePath)
+        private async Task ExtractArchive(IArchiveState archiveState, UPath originalFilepath, IFileSystem destinationFileSystem, UPath filePath)
         {
             if (archiveState.Files.Count > 0)
                 CreateDirectory(destinationFileSystem, filePath);
 
             foreach (var afi in archiveState.Files)
             {
-                var newFileStream = destinationFileSystem.OpenFile(filePath / afi.FilePath.ToRelative(), FileMode.Create, FileAccess.Write);
-                (await afi.GetFileData()).CopyTo(newFileStream);
+                var systemPath = filePath / afi.FilePath.ToRelative();
+                Stream newFileStream = null;
 
-                newFileStream.Close();
+                try
+                {
+                    newFileStream = destinationFileSystem.OpenFile(systemPath, FileMode.Create, FileAccess.Write);
+                    (await afi.GetFileData()).CopyTo(newFileStream);
+                }
+                catch (Exception e)
+                {
+                    Logger.Fatal(e, "Unexpected error extracting {0}.", originalFilepath);
+                }
+                finally
+                {
+                    newFileStream?.Close();
+                }
             }
         }
 

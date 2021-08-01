@@ -37,11 +37,11 @@ namespace Kuriimu2.EtoForms.Wpf
                 handler.Control.Foreground = foregroundColor;
 
                 var style = new Style(typeof(System.Windows.Controls.Primitives.DataGridColumnHeader));
-                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.LinearGradientBrush(backgroundColor.Color,ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor),new Point(0,0),new Point(0,1))});
+                style.Setters.Add(new Setter { Property = Control.BackgroundProperty, Value = new System.Windows.Media.LinearGradientBrush(backgroundColor.Color, ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor), new Point(0, 0), new Point(0, 1)) });
                 style.Setters.Add(new Setter { Property = Control.ForegroundProperty, Value = foregroundColor });
-                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value =new System.Windows.Media.LinearGradientBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderBorderColor), ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor), new Point(0, 1), new Point(0, 0)) });
+                style.Setters.Add(new Setter { Property = Control.BorderBrushProperty, Value = new System.Windows.Media.LinearGradientBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderBorderColor), ConvertEtoColor(Support.Themer.Instance.GetTheme().GridViewHeaderGradientColor), new Point(0, 1), new Point(0, 0)) });
                 style.Setters.Add(new Setter { Property = Control.BorderThicknessProperty, Value = new Thickness(0, 0, 1, 1) });
-                style.Setters.Add(new Setter { Property = Control.PaddingProperty, Value = new Thickness(4, 4, 4, 4)});
+                style.Setters.Add(new Setter { Property = Control.PaddingProperty, Value = new Thickness(4, 4, 4, 4) });
 
                 handler.Control.ColumnHeaderStyle = style;
             });
@@ -70,8 +70,8 @@ namespace Kuriimu2.EtoForms.Wpf
                 textBoxStyle.Setters.Add(new Setter() { Property = TextBox.ForegroundProperty, Value = foregroundColor });
                 handler.Control.Loaded += (sender, e) =>
                 {
-                //Makes this only execute after it has initialized so Textbox won't return null
-                    handler.Control.TextBox.Style = textBoxStyle;
+                    if (handler.Control.TextBox != null)
+                        handler.Control.TextBox.Style = textBoxStyle;
                 };
                 //Dropdown section
                 handler.Control.Resources.Add(SystemColors.WindowBrushKey, backgroundColor);
@@ -86,11 +86,11 @@ namespace Kuriimu2.EtoForms.Wpf
             Eto.Style.Add<Eto.Wpf.Forms.Controls.ButtonHandler>(null, handler =>
             {
                 handler.Control.Background = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().ButtonBackColor));
-                
+
                 var style = new Style(typeof(Label));
                 //Button's bg is diffrent when it is disabled(greyed out) therefore we have to change the text colour
-                var triggerDisabled = new Trigger() {Property=Label.IsEnabledProperty,Value=false };
-                triggerDisabled.Setters.Add(new Setter() {Property=Label.ForegroundProperty,Value=new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().ButtonDisabledTextColor)) });
+                var triggerDisabled = new Trigger() { Property = Label.IsEnabledProperty, Value = false };
+                triggerDisabled.Setters.Add(new Setter() { Property = Label.ForegroundProperty, Value = new System.Windows.Media.SolidColorBrush(ConvertEtoColor(Support.Themer.Instance.GetTheme().ButtonDisabledTextColor)) });
                 style.Triggers.Add(triggerDisabled);
                 style.Setters.Add(new Setter() { Property = Label.ForegroundProperty, Value = foregroundColor });
                 //handler.Control.Foreground doesen't change text color,we have to use the label part

@@ -45,6 +45,7 @@ namespace Kuriimu2.EtoForms.Forms
         private readonly Random _rand = new Random();
 
         private readonly IProgressContext _progress;
+        private readonly string _logFile;
         private readonly ILogger _logger;
         private readonly FileManager _fileManager;
 
@@ -134,7 +135,8 @@ namespace Kuriimu2.EtoForms.Forms
             _localManifest = LoadLocalManifest();
             UpdateFormText();
 
-            _logger = new LoggerConfiguration().WriteTo.File($"{GetBaseDirectory()}/Kuriimu2.log").CreateLogger();
+            _logFile = $"{GetBaseDirectory()}/Kuriimu2.log";
+            _logger = new LoggerConfiguration().WriteTo.File(_logFile).CreateLogger();
             _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 20));
             _fileManager = new FileManager($"{GetBaseDirectory()}/plugins")
             {
