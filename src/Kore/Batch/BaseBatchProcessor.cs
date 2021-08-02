@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Kontract;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
+using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Models;
 using Kontract.Models.IO;
 using Kore.Managers.Plugins;
@@ -27,7 +28,7 @@ namespace Kore.Batch
 
         public bool ScanSubDirectories { get; set; }
 
-        public Guid PluginId { get; set; }
+        public IFilePlugin Plugin { get; set; }
 
         public TimeSpan AverageFileTime { get; private set; }
 
@@ -47,12 +48,18 @@ namespace Kore.Batch
 
             SourceFileSystemWatcher = sourceFileSystem.Watch(UPath.Root);
 
-            var files = sourceFileSystem.EnumerateAllFiles(UPath.Root).ToArray();
+            // Collect files
+            IEnumerable<UPath> fileEnumeration = Array.Empty<UPath>();
+            if (Plugin?.FileExtensions != null && Plugin.FileExtensions.Length > 0)
+                foreach (var ext in Plugin.FileExtensions)
+                    fileEnumeration = fileEnumeration.Concat(sourceFileSystem.EnumerateAllFiles(UPath.Root, ext));
+            else
+                fileEnumeration = sourceFileSystem.EnumerateAllFiles(UPath.Root);
 
             var isManualSelection = FileManager.AllowManualSelection;
             FileManager.AllowManualSelection = false;
 
-            await ProcessMeasurement(files, sourceFileSystem, destinationFileSystem);
+            await ProcessMeasurement(fileEnumeration.ToArray(), sourceFileSystem, destinationFileSystem);
 
             FileManager.AllowManualSelection = isManualSelection;
 
@@ -81,9 +88,9 @@ namespace Kore.Batch
             LoadResult loadResult;
             try
             {
-                loadResult = PluginId == Guid.Empty ?
+                loadResult = Plugin == null || Plugin.PluginId == Guid.Empty ?
                     await FileManager.LoadFile(sourceFileSystem, filePath) :
-                    await FileManager.LoadFile(sourceFileSystem, filePath, PluginId);
+                    await FileManager.LoadFile(sourceFileSystem, filePath, Plugin.PluginId);
             }
             catch (Exception e)
             {
@@ -127,7 +134,7 @@ namespace Kore.Batch
                 {
                     try
                     {
-                        files.AsParallel().WithCancellation(_processTokenSource.Token)
+                        files.AsParallel().WithDegreeOfParallelism(1).WithCancellation(_processTokenSource.Token)
                             .ForAll(async x =>
                             {
                                 if (_processTokenSource.Token.IsCancellationRequested)
