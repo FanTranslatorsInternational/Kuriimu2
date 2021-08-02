@@ -18,6 +18,7 @@ namespace Kuriimu2.EtoForms.Progress
         {
             Application.Instance.Invoke(() =>
             {
+                if (_progressBarEx == null) return;
                 _progressBarEx.Value = Convert.ToInt32(completion);
                 _progressBarEx.Text = message + $@" - {completion:0.00}%";
             });
