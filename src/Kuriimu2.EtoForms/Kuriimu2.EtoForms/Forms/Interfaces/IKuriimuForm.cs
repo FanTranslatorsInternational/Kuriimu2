@@ -5,5 +5,7 @@
         void UpdateForm();
 
         bool HasRunningOperations();
+
+        void CancelOperations();
     }
 }

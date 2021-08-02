@@ -29,6 +29,10 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             return false;
         }
 
+        public void CancelOperations()
+        {
+        }
+
         #endregion
 
         #region Update

@@ -90,6 +90,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             return _asyncOperation.IsRunning;
         }
 
+        public void CancelOperations()
+        {
+            if (HasRunningOperations())
+                _asyncOperation.Cancel();
+        }
+
         #endregion
 
         #region Load methods

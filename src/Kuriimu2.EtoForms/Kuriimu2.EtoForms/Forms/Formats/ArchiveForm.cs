@@ -160,6 +160,12 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             return _asyncOperation.IsRunning;
         }
 
+        public void CancelOperations()
+        {
+            if (HasRunningOperations())
+                _asyncOperation.Cancel();
+        }
+
         #endregion
 
         #region Update
@@ -234,7 +240,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
 
             // Add enumeration of files to the DataStore
             fileView.DataStore = enumeratedFiles
-                .Select(x => (AfiFileEntry) _archiveFileSystem.GetFileEntry(x))
+                .Select(x => (AfiFileEntry)_archiveFileSystem.GetFileEntry(x))
                 .Select(x => new FileElement(x.ArchiveFileInfo));
         }
 
@@ -417,7 +423,8 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     _sortingScheme = SortingScheme.SizeDes;
                 else
                     _sortingScheme = SortingScheme.SizeAsc;
-            }else if (e.Column.ID == "Name")
+            }
+            else if (e.Column.ID == "Name")
             {
                 if (_sortingScheme == SortingScheme.NameAsc)
                     _sortingScheme = SortingScheme.NameDes;
@@ -692,7 +699,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
                     {
                         continue;
                     }
-                    var currentFileStream = await file.GetFileData();
+                    var currentFileStream = file.GetFileData().Result;
 
                     currentFileStream.CopyTo(newFileStream);
 
@@ -1036,7 +1043,7 @@ namespace Kuriimu2.EtoForms.Forms.Formats
             }
 
             // Select new directory name
-            var inputBox = new InputBoxDialog(Localize(RenameItemCaptionKey_,GetItemName(item)),
+            var inputBox = new InputBoxDialog(Localize(RenameItemCaptionKey_, GetItemName(item)),
                 Localize(RenameDirectoryTitleKey_), GetItemName(item));
             var newName = inputBox.ShowModal(this);
 

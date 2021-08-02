@@ -673,6 +673,12 @@ namespace Kuriimu2.EtoForms.Forms
 
         private void mainForm_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            // Cancel all operations on the forms first
+            foreach (var tabEntry in _tabDictionary)
+            {
+                tabEntry.Value.KuriimuForm.CancelOperations();
+            }
+
             if (_stateDictionary.Keys.Any(x => x.StateChanged))
             {
                 var result = ConfirmSavingChanges();
