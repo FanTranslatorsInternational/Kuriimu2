@@ -225,7 +225,7 @@ namespace plugin_mt_framework.Images
         private ImageInfo LoadPc(BinaryReaderX br)
         {
             // Skip unknown data between header and mipOffsets
-            var texSize = br.ReadUInt32();
+            var texOffset = br.ReadUInt32();
 
             // Skip mip offsets
             br.ReadMultiple<int>(_header.mipCount);
@@ -491,8 +491,8 @@ namespace plugin_mt_framework.Images
         {
             bw.BaseStream.Position = HeaderSize_;
 
-            // Write total tex size
-            bw.Write(imageInfo.ImageData.Length + imageInfo.MipMapData.Sum(m => m.Length));
+            // Write data offset
+            bw.Write(HeaderSize_ + 4 + (imageInfo.MipMapCount + 1) * 4);
 
             // Write mip offsets
             var mipPosition = 0;
