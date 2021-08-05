@@ -10,12 +10,17 @@ using Kontract.Models.IO;
 
 namespace plugin_nintendo.Archives
 {
+    // HINT: DARC's can contain paths with dots. UPath will resolve to the current directory, and will therefore invalidate them
+    // To act against this (desired) behaviour, the Afi will hold the original path, which will be used in the Save process to regenerate the tree
+
     public class Darc
     {
         private static readonly int HeaderSize = Tools.MeasureType(typeof(DarcHeader));
         private static readonly int EntrySize = Tools.MeasureType(typeof(DarcEntry));
 
         private ByteOrder _byteOrder;
+
+        #region Load
 
         public IList<IArchiveFileInfo> Load(Stream input)
         {
@@ -58,36 +63,37 @@ namespace plugin_nintendo.Archives
 
                 // Find whole path recursively from lastDirectoryEntry
                 var currentDirectoryEntry = lastDirectoryEntry;
-                var currentPath = UPath.Empty;
+                var currentPath = string.Empty;
                 while (currentDirectoryEntry != entries[0])
                 {
                     nameBr.BaseStream.Position = currentDirectoryEntry.NameOffset;
-                    currentPath = nameBr.ReadCStringUTF16() / currentPath;
+                    currentPath = Path.Combine(nameBr.ReadCStringUTF16(), currentPath);
 
                     currentDirectoryEntry = entries[currentDirectoryEntry.offset];
                 }
 
                 // Get file name
                 nameBr.BaseStream.Position = entry.NameOffset;
-                var fileName = currentPath / nameBr.ReadCStringUTF16();
+                var fileName = Path.Combine(currentPath, nameBr.ReadCStringUTF16());
 
                 var fileStream = new SubStream(input, entry.offset, entry.size);
-                result.Add(new ArchiveFileInfo(fileStream, fileName.FullName));
+                result.Add(new DarcArchiveFileInfo(fileStream, fileName));
             }
 
             return result;
         }
 
+        #endregion
+
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
             var darcTreeBuilder = new DarcTreeBuilder(Encoding.Unicode);
-            darcTreeBuilder.Build(files.Select(x => ("/." + x.FilePath.FullName, x)).ToArray());
+            darcTreeBuilder.Build(files.Cast<DarcArchiveFileInfo>().ToArray());
 
             var entries = darcTreeBuilder.Entries;
             var nameStream = darcTreeBuilder.NameStream;
 
             var namePosition = HeaderSize + entries.Count * EntrySize;
-            var dataOffset = (namePosition + (int)nameStream.Length + 3) & ~3;
 
             using var bw = new BinaryWriterX(output, true, _byteOrder);
 
@@ -101,13 +107,13 @@ namespace plugin_nintendo.Archives
             foreach (var (darcEntry, afi) in entries.Where(x => x.Item2 != null))
             {
                 var alignment = 4;
-                if (afi.FilePath.GetExtensionWithDot() == ".bclim")
+                if (afi.FilePath.GetExtensionWithDot() == ".bclim" || afi.FilePath.GetExtensionWithDot() == ".arc" || afi.FilePath.GetExtensionWithDot() == ".snd")
                     alignment = 0x80;
 
                 bw.WriteAlignment(alignment);
                 var fileOffset = (int)bw.BaseStream.Position;
 
-                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream, null);
+                var writtenSize = (afi as ArchiveFileInfo).SaveFileData(bw.BaseStream);
 
                 darcEntry.offset = fileOffset;
                 darcEntry.size = (int)writtenSize;
@@ -122,7 +128,7 @@ namespace plugin_nintendo.Archives
             bw.WriteType(new DarcHeader
             {
                 byteOrder = _byteOrder,
-                dataOffset = dataOffset,
+                dataOffset = entries.Where(x => x.Item2 != null).Select(x => x.Item1.offset).Min(),
                 fileSize = (int)bw.BaseStream.Length,
                 tableLength = entries.Count * EntrySize + (int)nameStream.Length
             });

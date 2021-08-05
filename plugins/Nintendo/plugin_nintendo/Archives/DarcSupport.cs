@@ -29,7 +29,7 @@ namespace plugin_nintendo.Archives
     {
         public int tmp1;
         public int offset;
-        public int size;
+        public int size;        // end index of directory
 
         public bool IsDirectory
         {
@@ -41,6 +41,16 @@ namespace plugin_nintendo.Archives
         {
             get => tmp1 & 0xFFFFFF;
             set => tmp1 = (tmp1 & ~0xFFFFFF) | (value & 0xFFFFFF);
+        }
+    }
+
+    class DarcArchiveFileInfo:ArchiveFileInfo
+    {
+        public string UnescapedPath { get; }
+
+        public DarcArchiveFileInfo(Stream fileData, string filePath) : base(fileData, filePath)
+        {
+            UnescapedPath = filePath;
         }
     }
 
@@ -58,7 +68,7 @@ namespace plugin_nintendo.Archives
             _nameEncoding = nameEncoding;
         }
 
-        public void Build(IList<(string path, IArchiveFileInfo afi)> files)
+        public void Build(IList<DarcArchiveFileInfo> files)
         {
             // Build directory tree
             var directoryTree = BuildDirectoryTree(files);
@@ -72,21 +82,21 @@ namespace plugin_nintendo.Archives
             PopulateEntryList(files, directoryTree, 0);
         }
 
-        private IList<(string, int)> BuildDirectoryTree(IList<(string, IArchiveFileInfo)> files)
+        private IList<(string, int)> BuildDirectoryTree(IList<DarcArchiveFileInfo> files)
         {
             var distinctDirectories = files
-                .OrderBy(x => GetDirectory(x.Item1))
-                .Select(x => GetDirectory(x.Item1))
+                .OrderBy(x => GetDirectory(x.UnescapedPath))
+                .Select(x => GetDirectory(x.UnescapedPath))
                 .Distinct();
 
-            var directories = new List<(string, int)> { ("/", -1) };
+            var directories = new List<(string, int)> { (string.Empty, -1) };
             foreach (var directory in distinctDirectories)
             {
                 var splittedDirectory = SplitPath(directory);
                 for (var i = 0; i < splittedDirectory.Length; i++)
                 {
-                    var parentDirectory = "/" + Combine(splittedDirectory.Take(i));
-                    var currentDirectory = "/" + Combine(splittedDirectory.Take(i + 1));
+                    var parentDirectory = Combine(splittedDirectory.Take(i));
+                    var currentDirectory = Combine(splittedDirectory.Take(i + 1));
 
                     if (directories.Any(x => x.Item1 == currentDirectory))
                         continue;
@@ -99,7 +109,7 @@ namespace plugin_nintendo.Archives
             return directories;
         }
 
-        private void PopulateEntryList(IList<(string path, IArchiveFileInfo afi)> files,
+        private void PopulateEntryList(IList<DarcArchiveFileInfo> files,
             IList<(string, int)> directories, int parentIndex)
         {
             var directoryIndex = 0;
@@ -123,12 +133,12 @@ namespace plugin_nintendo.Archives
                 Entries.Add((currentDirectoryEntry, null));
 
                 // Add file entries
-                var filesInDirectory = files.Where(x => GetDirectory(x.path) == currentDirectory.Item1);
+                var filesInDirectory = files.Where(x => GetDirectory(x.UnescapedPath) == currentDirectory.Item1);
                 foreach (var file in filesInDirectory)
                 {
                     // Write file name
                     var nameOffset = (int)_nameBw.BaseStream.Position;
-                    _nameBw.WriteString(GetName(file.path), _nameEncoding, false);
+                    _nameBw.WriteString(GetName(file.UnescapedPath), _nameEncoding, false);
 
                     // Add file entry
                     var fileEntry = new DarcEntry
@@ -136,7 +146,7 @@ namespace plugin_nintendo.Archives
                         IsDirectory = false,
                         NameOffset = nameOffset
                     };
-                    Entries.Add((fileEntry, file.afi));
+                    Entries.Add((fileEntry, file));
                 }
 
                 // Add sub directories
@@ -155,32 +165,32 @@ namespace plugin_nintendo.Archives
 
         private string GetDirectory(string path)
         {
-            if (path.EndsWith("/"))
+            if (path.EndsWith(Path.DirectorySeparatorChar))
                 path = path.Substring(0, path.Length - 1);
 
-            var splitted = path.Split("/");
-            return string.Join("/", splitted.Take(splitted.Length - 1));
+            var splitted = path.Split(Path.DirectorySeparatorChar);
+            return string.Join(Path.DirectorySeparatorChar, splitted.Take(splitted.Length - 1));
         }
 
         private string GetName(string path)
         {
-            if (path.EndsWith("/"))
+            if (path.EndsWith(Path.DirectorySeparatorChar))
                 return string.Empty;
 
-            return path.Split("/").Last();
+            return path.Split(Path.DirectorySeparatorChar).Last();
         }
 
         private string[] SplitPath(string path)
         {
-            if (path.EndsWith("/"))
+            if (path.EndsWith(Path.DirectorySeparatorChar))
                 path = path.Substring(0, path.Length - 1);
 
-            return path.Split("/", StringSplitOptions.RemoveEmptyEntries);
+            return path.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
         }
 
         private string Combine(IEnumerable<string> parts)
         {
-            return string.Join('/', parts);
+            return string.Join(Path.DirectorySeparatorChar, parts);
         }
     }
 }
