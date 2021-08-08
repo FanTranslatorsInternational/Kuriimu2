@@ -30,7 +30,15 @@
   "IncludeDevBuilds": "Включить сборки разработчиков",
   "ChangeLanguage": "Изменить язык",
   "ChangeLanguageCaption": "Изменения будут применены только после перезапуска.",
-  "ChangeLanguageTitle": "Изменённые настройки", 
+  "ChangeLanguageTitle": "Изменённые настройки",
+  
+  "ChangeTheme": "Изменить тему",
+  "ThemeDark": "Тёмная тема",
+  "ThemeLight": "Светлая тема",
+  "ThemeRestartText": "Чтобы применить тему, необходим перезапуск.",
+  "ThemeRestartCaption": "Перезапуск",
+  "ThemeUnsupportedPlatformText": "К сожалению, темы не поддерживаются на вашей платформе.",
+  "ThemeUnsupportedPlatformCaption": "Ошибка из-за неподдерживаемой платформы",
 
   "Help": "Помощь",
   "AboutKuriimu2": "О Kuriimu2",
@@ -93,14 +101,14 @@
   "NoFilesToExtractStatus": "Нет файлов для извлечения.",
   "NoFilesToReplaceStatus": "Нет файлов для замены.",
   "NoFilesToRenameStatus": "Нет файлов для переименования.",
-  "NoFilesToDeleteStatus": "Нет фалов для удаления.",
+  "NoFilesToDeleteStatus": "Нет файлов для удаления.",
   "NoFilesToAddStatus": "Нет файлов для добавления.",
 
-  "ExtractFileProgress": "Извлечь файлы",
-  "ReplaceFileProgress": "Заменить файлы",
-  "RenameFileProgress": "Переименовать файлы",
-  "DeleteFileProgress": "Удалить файлы",
-  "AddFileProgress": "Добавить файлы",
+  "ExtractFileProgress": "Извлечение файлов",
+  "ReplaceFileProgress": "Замена файлов",
+  "RenameFileProgress": "Переименование файлов",
+  "DeleteFileProgress": "Удаление файлов",
+  "AddFileProgress": "Добавление файлов",
 
   "ExtractFileCancelledStatus": "Извлечение отменено.",
   "ReplaceFileCancelledStatus": "Замена отменена.",
@@ -108,7 +116,7 @@
   "DeleteFileCancelledStatus": "Удаление отменено",
   "AddFileCancelledStatus": "Добавление отменено.",
 
-  "ExtractFileSuccessfulStatus": "Файлы(ы) извлечены успешно.",
+  "ExtractFileSuccessfulStatus": "Файл(ы) извлечены успешно.",
   "ReplaceFileSuccessfulStatus": "Файл(ы) заменены успешно.",
   "RenameFileSuccessfulStatus": "Файл(ы) переименованы успешно.",
   "DeleteFileSuccessfulStatus": "Файл(ы) удалены успешно.",
@@ -149,7 +157,7 @@
   "Browse": "Обзор...",
   "Encoding": "Кодировка:",
 
-  "SelectSearchDirectory": "Выберите директрорию для поиска",
+  "SelectSearchDirectory": "Выберите директорию для поиска",
 
   "SelectEncodingCaption": "Выберите кодировку.",
   "SelectSearchDirectoryCaption": "Выберите директорию для поиска.",
@@ -159,7 +167,7 @@
   "ChooseOpenFilePlugin": "Выберите плагин для открытия файла:",
   "MultiplePluginMatchesSelection": "Несколько плагинов могут открыть этот файл. Выберите один из них:",
   "NonIdentifiablePluginSelection": "Не удалось определить плагин автоматически. Пожалуйста, выберите вручную:",
-  "NonIdentifiablePluginSelectionNote": "По умолчанию показываны только плагины, не умеющие определять поддержку файла",
+  "NonIdentifiablePluginSelectionNote": "По умолчанию показаны только плагины, не умеющие определять поддержку файла",
 
   "PluginNameColumn": "Название",
   "PluginTypeColumn": "Тип",
