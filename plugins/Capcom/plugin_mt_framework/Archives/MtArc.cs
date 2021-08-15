@@ -205,7 +205,7 @@ namespace plugin_mt_framework.Archives
 
             // Calculate offsets
             var entryOffset = HeaderSize + (isExtendedHeader ? 4 : 0);
-            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset);
+            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset, (files[0] as MtArchiveFileInfo)?.Entry.GetType() == typeof(MtEntryExtendedName));
 
             // Write files
             var entries = new List<IMtEntry>();
@@ -241,7 +241,7 @@ namespace plugin_mt_framework.Archives
 
             // Calculate offsets
             var entryOffset = HeaderSize;
-            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.BigEndian, _header.version, files.Count, entryOffset);
+            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.BigEndian, _header.version, files.Count, entryOffset, files[0].GetType() == typeof(MtEntryExtendedName));
 
             // Write files
             var entries = new List<IMtEntry>();
@@ -277,7 +277,7 @@ namespace plugin_mt_framework.Archives
 
             // Calculate offsets
             var entryOffset = HeaderSize;
-            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset);
+            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset, false);
 
             // Write files
             var entries = new List<IMtEntry>();
@@ -318,7 +318,7 @@ namespace plugin_mt_framework.Archives
             var headerSize = HeaderSize + (isExtendedHeader ? 4 : 0);
 
             // Get file offset
-            var fileOffset = MtArcSupport.DetermineFileOffset(byteOrder, version, files.Count, headerSize);
+            var fileOffset = MtArcSupport.DetermineFileOffset(byteOrder, version, files.Count, headerSize, files[0].GetType() == typeof(MtEntryExtendedName));
 
             // Add file sizes
             var fileRegionSize = (int)files.Cast<MtArchiveFileInfo>().Sum(x => x.GetFinalStream().Length);

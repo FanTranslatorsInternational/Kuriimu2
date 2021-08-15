@@ -308,8 +308,10 @@ namespace plugin_mt_framework.Archives
             return _extensionMap.ContainsValue(extension) ? _extensionMap.First(x => x.Value == extension).Key : throw new InvalidOperationException($"Extension '{extension}' cannot be mapped to a hash.");
         }
 
-        public static int DetermineFileOffset(ByteOrder byteOrder, int version, int fileCount, int entryOffset)
+        public static int DetermineFileOffset(ByteOrder byteOrder, int version, int fileCount, int entryOffset, bool hasExtendedNames)
         {
+            var entrySize = hasExtendedNames ? Tools.MeasureType(typeof(MtEntryExtendedName)) : Tools.MeasureType(typeof(MtEntry));
+
             switch (version)
             {
                 case 0x4:
@@ -317,7 +319,7 @@ namespace plugin_mt_framework.Archives
                 case 0x8:
                 case 0x10:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return Math.Max(entryOffset + Tools.MeasureType(typeof(MtEntry)) * fileCount, 0x8000);
+                        return (entryOffset + entrySize * fileCount + 0x7FFF) & ~0x7FFF;
                     break;
 
                 case 0x9:
@@ -325,11 +327,11 @@ namespace plugin_mt_framework.Archives
 
                 case 0x11:
                     if (byteOrder == ByteOrder.LittleEndian)
-                        return (entryOffset + Tools.MeasureType(typeof(MtEntry)) * fileCount + 0xFF) & ~0xFF;
+                        return (entryOffset + entrySize * fileCount + 0xFF) & ~0xFF;
                     break;
             }
 
-            return entryOffset + Tools.MeasureType(typeof(MtEntry)) * fileCount;
+            return entryOffset + entrySize * fileCount;
         }
 
         private static uint GetHash(string input)

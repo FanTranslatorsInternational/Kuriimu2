@@ -51,7 +51,7 @@ namespace plugin_mt_framework.Archives
 
             // Calculate offsets
             var entryOffset = HeaderSize;
-            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset);
+            var fileOffset = MtArcSupport.DetermineFileOffset(ByteOrder.LittleEndian, _header.version, files.Count, entryOffset, false);
 
             // Prepare output stream
             output.SetLength(MtArc.GetArchiveSize(files, _header.version, ByteOrder.LittleEndian));
@@ -78,7 +78,7 @@ namespace plugin_mt_framework.Archives
 
             // Write entries
             Stream entryStream = new SubStream(output, entryOffset, output.Length - entryOffset);
-            entryStream=new MtBlowfishStream(entryStream,key);
+            entryStream = new MtBlowfishStream(entryStream, key);
             using var entryBw = new BinaryWriterX(entryStream);
 
             entryBw.WriteMultiple(entries);
