@@ -1,6 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -52,7 +50,7 @@ namespace plugin_ganbarion.Archives
             // Calculate offsets
             var entryOffset = HeaderSize;
             var nameOffset = entryOffset + files.Count * EntrySize;
-            var dataOffset = (nameOffset + 0x7F) & ~0x7F;
+            var dataOffset = (nameOffset + files.Sum(x => x.FilePath.ToRelative().FullName.Length + 1) + 0x7F) & ~0x7F;
 
             // Write files
             var namePosition = nameOffset;
