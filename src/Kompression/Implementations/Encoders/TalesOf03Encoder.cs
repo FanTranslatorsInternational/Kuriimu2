@@ -27,7 +27,7 @@ namespace Kompression.Implementations.Encoders
         {
             matchOptions.CalculatePricesWith(() => new TalesOf03PriceCalculator())
                 .FindMatches().WithinLimitations(3, 0x11, 1, 0x1000)
-                .AndFindMatches().WithinLimitations(4, 0x112)
+                .AndFindRunLength().WithinLimitations(4, 0x112)
                 .AdjustInput(input => input.Prepend(PreBufferSize_));
         }
 
@@ -98,7 +98,7 @@ namespace Kompression.Implementations.Encoders
             else
             {
                 // Encode LZ
-                var bufferPosition = (match.Position - match.Displacement) % WindowBufferLength_;
+                var bufferPosition = (match.Position - match.Displacement + PreBufferSize_) % WindowBufferLength_;
 
                 var byte1 = (byte)bufferPosition;
                 var byte2 = (byte)((match.Length - 3) & 0xF);
