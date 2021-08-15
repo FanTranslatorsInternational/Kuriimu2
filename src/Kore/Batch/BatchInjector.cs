@@ -37,7 +37,7 @@ namespace Kore.Batch
                     break;
 
                 default:
-                    Logger.Error("'{0}' is not supported.", filePath.FullName);
+                    Logger.Error("{0} is not supported.", filePath.FullName);
                     return;
             }
 

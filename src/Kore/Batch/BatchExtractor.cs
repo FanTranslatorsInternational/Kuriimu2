@@ -27,7 +27,7 @@ namespace Kore.Batch
 
         protected override async Task ProcessInternal(IFileSystem sourceFileSystem, UPath filePath, IFileSystem destinationFileSystem)
         {
-            Logger.Information("Extract '{0}'.", filePath.FullName);
+            Logger.Information("Extract {0}.", filePath.FullName);
 
             IFileState loadedFileState;
             lock (_lock)
@@ -48,7 +48,7 @@ namespace Kore.Batch
                 {
                     FileManager.Close(loadedFileState);
 
-                    Logger.Information("'{0}' is/was already processed.", filePath.FullName);
+                    Logger.Information("{0} is/was already processed.", filePath.FullName);
                     return;
                 }
 
@@ -68,14 +68,14 @@ namespace Kore.Batch
                     break;
 
                 default:
-                    Logger.Error("'{0}' is not supported.", filePath.FullName);
+                    Logger.Error("{0} is not supported.", filePath.FullName);
                     FileManager.Close(loadedFileState);
                     return;
             }
 
             FileManager.Close(loadedFileState);
 
-            Logger.Information("Extracted '{0}'.", filePath.FullName);
+            Logger.Information("Extracted {0}.", filePath.FullName);
         }
 
         private void SourceFileSystemWatcher_Opened(object sender, FileOpenedEventArgs e)
