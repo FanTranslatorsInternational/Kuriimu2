@@ -20,7 +20,7 @@ namespace plugin_mt_framework.Images
         private MobileMtTexHeader _mobileHeader;
 
         private byte[] _unkRegion;
-        private bool _isGpuIndependent;
+        private bool _isGpuDependent;
 
         public IList<ImageInfo> Load(Stream input, MtTexPlatform platform)
         {
@@ -262,15 +262,21 @@ namespace plugin_mt_framework.Images
             var infos = new List<ImageInfo>();
 
             // Determine GPU independent mobile format specification
-            var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
-            var expectedLength = HeaderSize_;
-            for (var i = 0; i < _mobileHeader.mipCount; i++)
-                expectedLength += (_mobileHeader.width >> i) * (_mobileHeader.height >> i) * bitDepth / 8;
+            _isGpuDependent = _mobileHeader.format == 0xC;
 
-            _isGpuIndependent = expectedLength == br.BaseStream.Length;
+            // HINT: For GPU dependent
+            if (_mobileHeader.format != 0xC)
+            {
+                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
+                var expectedLength = HeaderSize_;
+                for (var i = 0; i < _mobileHeader.mipCount; i++)
+                    expectedLength += (_mobileHeader.width >> i) * (_mobileHeader.height >> i) * bitDepth / 8;
+
+                _isGpuDependent = expectedLength != br.BaseStream.Length;
+            }
 
             // Specially handle gpu dependent tex, which include specially encoded images based on the used GPU of the mobile platform
-            if (!_isGpuIndependent)
+            if (_isGpuDependent)
             {
                 var texOffsets = br.ReadMultiple<int>(3);
                 var texSizes = br.ReadMultiple<int>(3);
@@ -285,7 +291,7 @@ namespace plugin_mt_framework.Images
                         continue;
 
                     // Read image data
-                    bitDepth = MtTexSupport.MobileFormats[formats[i]].BitDepth;
+                    var bitDepth = MtTexSupport.MobileFormats[formats[i]].BitDepth;
                     var colorsPerValue = MtTexSupport.MobileFormats[formats[i]].ColorsPerValue;
                     var dataSize = _mobileHeader.width * _mobileHeader.height * bitDepth / 8;
 
@@ -301,8 +307,7 @@ namespace plugin_mt_framework.Images
                     }
 
                     // Add image info
-                    var imageInfo = new ImageInfo(imageData, formats[i],
-                        new Size(_mobileHeader.width, _mobileHeader.height));
+                    var imageInfo = new ImageInfo(imageData, formats[i], new Size(_mobileHeader.width, _mobileHeader.height));
 
                     if (_mobileHeader.mipCount > 1)
                         imageInfo.MipMapData = mipData;
@@ -317,7 +322,7 @@ namespace plugin_mt_framework.Images
             else
             {
                 // Read image data
-                bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
+                var bitDepth = MtTexSupport.MobileFormats[_mobileHeader.format].BitDepth;
                 var colorsPerValue = MtTexSupport.MobileFormats[_mobileHeader.format].ColorsPerValue;
                 var dataSize = _mobileHeader.width * _mobileHeader.height * bitDepth / 8;
                 var imageData = br.ReadBytes(dataSize);
@@ -525,49 +530,62 @@ namespace plugin_mt_framework.Images
 
         private void SaveMobile(BinaryWriterX bw, IList<ImageInfo> imageInfos)
         {
-            var texOffsets = new List<int>();
-            var texSizes = new List<int>();
-
-            // Write image data
-            bw.BaseStream.Position = HeaderSize_ + 0x18;
-
-            for (var i = 0; i < imageInfos.Count; i++)
+            if (_isGpuDependent)
             {
-                var imageInfo = imageInfos[i];
+                var texOffsets = new List<int>();
+                var texSizes = new List<int>();
 
-                if (i > 0 && imageInfo.ImageFormat < 0xFD)
+                // Write image data
+                bw.BaseStream.Position = HeaderSize_ + 0x18;
+
+                var texBase = bw.BaseStream.Position;
+                foreach (var imageInfo in imageInfos)
                 {
-                    texOffsets.Add(texOffsets[0]);
-                    texSizes.Add(0);
+                    // HINT: If the special format 0xC is not used, all lengths are 0, and the offset is the same for all 3 GPU entries
+                    var texOffset = imageInfo.ImageFormat >= 0xFD ? bw.BaseStream.Position : texBase;
+                    var texSize = imageInfo.ImageFormat >= 0xFD ? imageInfo.ImageData.Length : 0;
+
+                    bw.Write(imageInfo.ImageData);
+
+                    // Write mip data
+                    if (imageInfo.MipMapCount > 1)
+                        foreach (var mipData in imageInfo.MipMapData)
+                            bw.Write(mipData);
+
+                    texOffsets.Add((int)texOffset);
+                    texSizes.Add(texSize);
                 }
 
-                var texOffset = (int)bw.BaseStream.Position;
-                texOffsets.Add(texOffset);
+                // Pad offset and size lists
+                while (texOffsets.Count < 3)
+                    texOffsets.Add((int)texBase);
+                while (texSizes.Count < 3)
+                    texSizes.Add(0);
 
-                bw.Write(imageInfo.ImageData);
+                // Write offsets and sizes
+                bw.BaseStream.Position = HeaderSize_;
+                bw.WriteMultiple(texOffsets);
+                bw.WriteMultiple(texSizes);
 
-                if (imageInfo.MipMapCount > 1)
-                    foreach (var mipData in imageInfo.MipMapData)
+                // Update header format
+                _mobileHeader.format = imageInfos[0].ImageFormat == 0xFD ? (byte)0x0C : (byte)imageInfos[0].ImageFormat;
+            }
+            else
+            {
+                // Write image data
+                bw.BaseStream.Position = HeaderSize_;
+                bw.Write(imageInfos[0].ImageData);
+
+                // Write mip data
+                if (imageInfos[0].MipMapCount > 1)
+                    foreach (var mipData in imageInfos[0].MipMapData)
                         bw.Write(mipData);
 
-                if (imageInfo.ImageFormat >= 0xFD)
-                    texSizes.Add((int)bw.BaseStream.Length - texOffset);
-                else texSizes.Add(0);
+                // Update header format
+                _mobileHeader.format = (byte)imageInfos[0].ImageFormat;
             }
 
-            // Pad tex lists
-            while (texOffsets.Count < 3)
-                texOffsets.Add(texOffsets[0]);
-            while (texSizes.Count < 3)
-                texSizes.Add(0);
-
-            // Write tex offsets and sizes
-            bw.BaseStream.Position = HeaderSize_;
-            bw.WriteMultiple(texOffsets);
-            bw.WriteMultiple(texSizes);
-
             // Update header
-            _mobileHeader.format = imageInfos[0].ImageFormat == 0xFD ? (byte)0x0C : (byte)imageInfos[0].ImageFormat;
             _mobileHeader.width = (short)imageInfos[0].ImageSize.Width;
             _mobileHeader.height = (short)imageInfos[0].ImageSize.Height;
             _mobileHeader.mipCount = (byte)(imageInfos[0].MipMapCount + 1);

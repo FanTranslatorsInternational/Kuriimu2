@@ -152,7 +152,9 @@ namespace plugin_mt_framework.Images
         {
             [0x1] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
             [0x7] = ImageFormats.Rgba4444(ByteOrder.BigEndian),
-            [0xa] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
+            [0xA] = ImageFormats.Etc1(false, ByteOrder.BigEndian),
+            [0xB] = ImageFormats.Pvrtc_4bpp(),
+            [0xD] = ImageFormats.PvrtcA_4bpp(),
 
             // Used as placeholders for format 0x0C, which defines 3 images of different encodings for different mobile platforms
             [0xFD] = ImageFormats.Dxt5(),
