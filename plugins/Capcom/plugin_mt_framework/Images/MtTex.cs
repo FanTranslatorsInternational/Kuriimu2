@@ -14,9 +14,11 @@ namespace plugin_mt_framework.Images
     class MtTex
     {
         private const int HeaderSize_ = 0x10;
+        private const int HeaderSize87_ = 0x14;
 
         private MtTexPlatform _platform;
         private MtTexHeader _header;
+        private MtTexHeader87 _header87;
         private MobileMtTexHeader _mobileHeader;
 
         private byte[] _unkRegion;
@@ -33,6 +35,9 @@ namespace plugin_mt_framework.Images
 
             // Read header
             _header = br.ReadType<MtTexHeader>();
+
+            input.Position = 0;
+            _header87 = br.ReadType<MtTexHeader87>();
 
             input.Position = 0;
             _mobileHeader = br.ReadType<MobileMtTexHeader>();
@@ -52,6 +57,7 @@ namespace plugin_mt_framework.Images
                     return new[] { LoadSwitch(br) };
 
                 case MtTexPlatform.Pc:
+                case MtTexPlatform.Pc87:
                     return new[] { LoadPc(br) };
 
                 case MtTexPlatform.Mobile:
@@ -82,6 +88,7 @@ namespace plugin_mt_framework.Images
                     break;
 
                 case MtTexPlatform.Pc:
+                case MtTexPlatform.Pc87:
                     SavePc(bw, imageInfos[0]);
                     break;
 
@@ -224,31 +231,45 @@ namespace plugin_mt_framework.Images
 
         private ImageInfo LoadPc(BinaryReaderX br)
         {
+            // We can use the version of the normal header here, since the version of both normal and 87 header overlap
+            var version = _header.version;
+            var headerSize = version == 0x87 ? HeaderSize87_ : HeaderSize_;
+
+            br.BaseStream.Position = headerSize;
+
             // Skip unknown data between header and mipOffsets
-            var texOffset = br.ReadUInt32();
+            if (version != 0x87)
+                br.ReadUInt32();    // texOffset?
 
             // Skip mip offsets
-            br.ReadMultiple<int>(_header.mipCount);
+            var mipCount = version == 0x87 ? _header87.mipCount : _header.mipCount;
+            br.ReadMultiple<int>(mipCount);
+
+            // Collect values
+            var format = version == 0x87 ? _header87.format == 0x19 && _header87.useDxt10 == 0 ? 0xFF : _header87.format : _header.format;
+            var width = version == 0x87 ? _header87.width : _header.width;
+            var height = version == 0x87 ? _header87.height : _header.height;
+            var encodings = version == 0x87 ? MtTexSupport.Pc87Formats : MtTexSupport.PcFormats;
 
             // Read image data
             // HINT: Calculating dataSize by bitsPerValue and colorsPerValue, since bitDepth can be 0 or some float due to ASTC
-            var bitsPerValue = MtTexSupport.PcFormats[_header.format].BitsPerValue;
-            var colorsPerValue = MtTexSupport.PcFormats[_header.format].ColorsPerValue;
-            var dataSize = _header.width * _header.height / colorsPerValue * bitsPerValue / 8;
+            var bitsPerValue = encodings[format].BitsPerValue;
+            var colorsPerValue = encodings[format].ColorsPerValue;
+            var dataSize = width * height / colorsPerValue * bitsPerValue / 8;
             var imageData = br.ReadBytes(dataSize);
 
             // Read mips
             var mipData = new List<byte[]>();
-            for (var i = 1; i < _header.mipCount; i++)
+            for (var i = 1; i < mipCount; i++)
             {
-                var mipSize = (_header.width >> i) * (_header.height >> i) / colorsPerValue * bitsPerValue / 8;
+                var mipSize = (width >> i) * (height >> i) / colorsPerValue * bitsPerValue / 8;
                 mipData.Add(br.ReadBytes(mipSize));
             }
 
             // Create image info
-            var imageInfo = new ImageInfo(imageData, _header.format, new Size(_header.width, _header.height));
+            var imageInfo = new ImageInfo(imageData, format, new Size(width, height));
 
-            if (_header.mipCount > 1)
+            if (mipCount > 1)
                 imageInfo.MipMapData = mipData;
 
             if (colorsPerValue > 1)
@@ -494,13 +515,18 @@ namespace plugin_mt_framework.Images
 
         private void SavePc(BinaryWriterX bw, ImageInfo imageInfo)
         {
-            bw.BaseStream.Position = HeaderSize_;
+            var version = _header.version;
+            var headerSize = version == 0x87 ? HeaderSize87_ : HeaderSize_;
 
             // Write data offset
-            bw.Write(HeaderSize_ + 4 + (imageInfo.MipMapCount + 1) * 4);
+            var dataOffset = headerSize + (version == 0x87 ? 0 : 4) + (imageInfo.MipMapCount + 1) * 4;
+
+            bw.BaseStream.Position = headerSize;
+            if (version != 0x87)
+                bw.Write(dataOffset);
 
             // Write mip offsets
-            var mipPosition = 0;
+            var mipPosition = version == 0x87 ? dataOffset : 0;
             bw.Write(mipPosition);
             mipPosition += imageInfo.ImageData.Length;
 
@@ -518,14 +544,27 @@ namespace plugin_mt_framework.Images
                 bw.Write(mipData);
 
             // Update header
-            _header.format = (byte)imageInfo.ImageFormat;
-            _header.width = (short)imageInfo.ImageSize.Width;
-            _header.height = (short)imageInfo.ImageSize.Height;
-            _header.mipCount = (byte)(imageInfo.MipMapCount + 1);
+            if (version == 0x87)
+            {
+                _header87.format = (byte)(imageInfo.ImageFormat == 0xFF ? 0x19 : imageInfo.ImageFormat);
+                _header87.width = (short)imageInfo.ImageSize.Width;
+                _header87.height = (short)imageInfo.ImageSize.Height;
+                _header87.mipCount = (byte)(imageInfo.MipMapCount + 1);
+            }
+            else
+            {
+                _header.format = (byte)imageInfo.ImageFormat;
+                _header.width = (short)imageInfo.ImageSize.Width;
+                _header.height = (short)imageInfo.ImageSize.Height;
+                _header.mipCount = (byte)(imageInfo.MipMapCount + 1);
+            }
 
             // Write header
             bw.BaseStream.Position = 0;
-            bw.WriteType(_header);
+            if (version == 0x87)
+                bw.WriteType(_header87);
+            else
+                bw.WriteType(_header);
         }
 
         private void SaveMobile(BinaryWriterX bw, IList<ImageInfo> imageInfos)

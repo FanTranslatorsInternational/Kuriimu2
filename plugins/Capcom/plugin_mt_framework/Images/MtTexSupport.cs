@@ -44,6 +44,38 @@ namespace plugin_mt_framework.Images
     }
 
     [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
+    class MtTexHeader87
+    {
+        [FixedLength(4)]
+        public string magic;
+
+        [BitField(8)]
+        public byte version;
+        [BitField(8)]
+        public byte useDxt10;
+        [BitField(16)]
+        public short reserved1;
+
+        [BitField(4)]
+        public byte reserved2;
+        [BitField(4)]
+        public byte mipCount;
+        [BitField(9)]
+        public short reserved3;
+        [BitField(13)]
+        public short width;
+        [BitField(2)]
+        public byte padding1;
+
+        [BitField(13)]
+        public short height;
+        [BitField(19)]
+        public int imgCount;
+
+        public int format;
+    }
+
+    [BitFieldInfo(BitOrder = BitOrder.LeastSignificantBitFirst, BlockSize = 4)]
     class MobileMtTexHeader
     {
         [FixedLength(4)]
@@ -140,12 +172,31 @@ namespace plugin_mt_framework.Images
             [0x07] = ImageFormats.Rgba8888(ByteOrder.BigEndian),
             [0x13] = ImageFormats.Dxt1(),
             [0x14] = ImageFormats.Dxt1(),
+            [0x15] = ImageFormats.Dxt3(),
             [0x17] = ImageFormats.Dxt5(),
             [0x19] = ImageFormats.Ati1A(),
             [0x1F] = ImageFormats.Ati2(),
 
+            [0x22] = ImageFormats.Dxt5(),
+
             [0x2A] = ImageFormats.Bc7(),
             [0x36] = ImageFormats.Bc7()
+        };
+
+        public static readonly IDictionary<int, IColorEncoding> Pc87Formats = new Dictionary<int, IColorEncoding>
+        {
+            [0x13] = ImageFormats.Dxt1(),
+            [0x15] = ImageFormats.Dxt3(),
+            [0x17] = ImageFormats.Dxt5(),
+            [0x19] = ImageFormats.Ati1(),
+
+            [0x1E] = ImageFormats.Dxt1(),
+            [0x1F] = ImageFormats.Dxt5(),
+            [0x20] = ImageFormats.Dxt5(),
+
+            [0x27] = ImageFormats.Rgba8888(),
+
+            [0xFF] = ImageFormats.Dxt1()
         };
 
         public static readonly IDictionary<int, IColorEncoding> MobileFormats = new Dictionary<int, IColorEncoding>
@@ -206,7 +257,11 @@ namespace plugin_mt_framework.Images
                     return MtTexPlatform.N3DS;
 
                 case 0x87:
-                    return MtTexPlatform.Wii;
+                    file.Position = 0x20;
+                    var wiiMagic = br.ReadString(4);
+                    file.Position = 0;
+
+                    return wiiMagic == "bres" ? MtTexPlatform.Wii : MtTexPlatform.Pc87;
 
                 case 0x97:
                 case 0x9a:
@@ -256,6 +311,10 @@ namespace plugin_mt_framework.Images
                     definition.AddColorShaders(ShadersPc);
                     break;
 
+                case MtTexPlatform.Pc87:
+                    definition.AddColorEncodings(Pc87Formats);
+                    break;
+
                 case MtTexPlatform.Wii:
                     throw new InvalidOperationException("Cannot obtain encoding definition for Wii MT Tex.");
             }
@@ -273,7 +332,8 @@ namespace plugin_mt_framework.Images
         PS3,
 
         Mobile,
-        Pc
+        Pc,
+        Pc87
     }
 
     class MtTex_YCbCrColorShader : IColorShader
