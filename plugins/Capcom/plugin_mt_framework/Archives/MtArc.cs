@@ -219,6 +219,7 @@ namespace plugin_mt_framework.Archives
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
                 file.Entry.CompSize = (int)writtenSize;
+                file.Entry.FileName = file.FilePath.FullName;
                 entries.Add(file.Entry);
 
                 filePosition += (int)writtenSize;
@@ -255,6 +256,7 @@ namespace plugin_mt_framework.Archives
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
                 file.Entry.CompSize = (int)writtenSize;
+                file.Entry.FileName = file.FilePath.FullName;
                 entries.Add(file.Entry);
 
                 filePosition += (int)writtenSize;
@@ -291,6 +293,7 @@ namespace plugin_mt_framework.Archives
                 file.Entry.Offset = filePosition;
                 file.Entry.SetDecompressedSize((int)file.FileSize, _platform);
                 file.Entry.CompSize = (int)writtenSize;
+                file.Entry.FileName = file.FilePath.FullName;
                 entries.Add(file.Entry);
 
                 filePosition += (int)writtenSize;
