@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -43,7 +43,7 @@ namespace plugin_nintendo.BCLIM
             return (header.magic == "CLIM" || header.magic == "FLIM") && header.fileSize == fileStream.Length;
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new BxlimState();
         }

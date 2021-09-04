@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -37,7 +37,7 @@ namespace plugin_nintendo.Archives
             return magic == "darc" || magic2 == "darc" || magic3 == "darc";
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new DarcState();
         }

@@ -18,7 +18,7 @@ namespace plugin_koei_tecmo.Archives
             Metadata = new PluginMetadata("BIN", "onepiecefreak", "One file archive found in Yo-Kai Watch Sangokushi.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SangoBinState();
         }

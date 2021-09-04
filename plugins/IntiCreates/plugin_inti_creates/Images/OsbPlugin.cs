@@ -18,7 +18,7 @@ namespace plugin_inti_creates.Images
             Metadata = new PluginMetadata("OSB", "onepiecefreak", "The main image resource for IntiCreate games.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new OsbState();
         }

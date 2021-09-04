@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Komponent.IO;
@@ -41,7 +41,7 @@ namespace plugin_level5.General
             return Magics.Contains(magic);
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new ImgxState(fileManager);
         }

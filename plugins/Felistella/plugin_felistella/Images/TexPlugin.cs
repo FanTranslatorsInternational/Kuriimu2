@@ -18,7 +18,7 @@ namespace plugin_felistella.Images
             Metadata=new PluginMetadata("TEX_VITA","onepiecefreak","The main image resource in Genka Tikko Seven Pirates.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new TexState();
         }

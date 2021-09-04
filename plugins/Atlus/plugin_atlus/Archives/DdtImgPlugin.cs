@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_atlus.Archives
             Metadata=new PluginMetadata("DDTIMG","IcySon55","Main archive of PS2 Atlus games.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new DdtImgState();
         }

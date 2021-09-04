@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Komponent.IO;
@@ -25,7 +25,7 @@ namespace plugin_level5.General
 
         public EncodingDefinition EncodingDefinition => _imageState.EncodingDefinition;
 
-        public ImageInfo Load(Stream input, IFileManager pluginManager)
+        public ImageInfo Load(Stream input, IBaseFileManager pluginManager)
         {
             using var br = new BinaryReaderX(input);
 
@@ -38,7 +38,7 @@ namespace plugin_level5.General
             return _imageState.Images[0].ImageInfo;
         }
 
-        public void Save(Stream output, IFileManager pluginManager)
+        public void Save(Stream output, IBaseFileManager pluginManager)
         {
             using var bw = new BinaryWriterX(output);
 
@@ -69,7 +69,7 @@ namespace plugin_level5.General
             pluginManager.Close(_ktxState);
         }
 
-        private async Task<IImageState> LoadKtx(Stream fileStream, UPath filePath, IFileManager pluginManager)
+        private async Task<IImageState> LoadKtx(Stream fileStream, UPath filePath, IBaseFileManager pluginManager)
         {
             var imgData = new SubStream(fileStream, _header.tableDataOffset, _header.imgDataSize);
             _dataCompressionFormat = Level5Compressor.PeekCompressionMethod(imgData);

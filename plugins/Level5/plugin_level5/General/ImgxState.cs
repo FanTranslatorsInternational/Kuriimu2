@@ -15,7 +15,7 @@ namespace plugin_level5.General
 {
     public class ImgxState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IFileManager _fileManager;
+        private readonly IBaseFileManager _fileManager;
 
         private Imgx _img;
         private ImgxKtx _ktx;
@@ -26,7 +26,7 @@ namespace plugin_level5.General
 
         public bool ContentChanged => IsContentChanged();
 
-        public ImgxState(IFileManager fileManager)
+        public ImgxState(IBaseFileManager fileManager)
         {
             _img = new Imgx();
             _ktx = new ImgxKtx();

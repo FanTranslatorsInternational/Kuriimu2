@@ -14,7 +14,7 @@ namespace plugin_atlus.Images
 {
     class Spr3State : IImageState, ILoadFiles, ISaveFiles
     {
-        private IFileManager _manager;
+        private IBaseFileManager _manager;
         private Spr3 _img;
 
         public EncodingDefinition EncodingDefinition { get; }
@@ -22,7 +22,7 @@ namespace plugin_atlus.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public Spr3State(IFileManager fileManager)
+        public Spr3State(IBaseFileManager fileManager)
         {
             _manager = fileManager;
             _img = new Spr3();

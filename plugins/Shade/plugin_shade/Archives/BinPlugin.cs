@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -17,7 +17,7 @@ namespace plugin_shade.Archives
             Metadata = new PluginMetadata("BIN", "Obluda;Alpha", "Archive in various SHADE games");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new BinState();
         }

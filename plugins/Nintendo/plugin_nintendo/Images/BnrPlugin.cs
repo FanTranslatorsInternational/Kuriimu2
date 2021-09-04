@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_nintendo.Images
             Metadata=new PluginMetadata("BNR","onepiecefreak","The DS Banner format.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new BnrState();
         }

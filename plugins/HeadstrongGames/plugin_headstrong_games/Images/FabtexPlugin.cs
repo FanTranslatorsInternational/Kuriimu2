@@ -36,7 +36,7 @@ namespace plugin_headstrong_games.Images
             return magic == "FBRC" && magic2 == "TXTR";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new FabtexState(fileManager);
         }

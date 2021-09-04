@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -16,7 +16,7 @@ namespace plugin_level5._3DS.Fonts
 {
     public class XfState : IFontState, ILoadFiles, ISaveFiles, IAddCharacters, IRemoveCharacters
     {
-        private readonly IFileManager _pluginManager;
+        private readonly IBaseFileManager _pluginManager;
         private readonly Xf _xf;
 
         private bool _isChanged;
@@ -32,7 +32,7 @@ namespace plugin_level5._3DS.Fonts
 
         public bool ContentChanged => IsChanged();
 
-        public XfState(IFileManager pluginManager)
+        public XfState(IBaseFileManager pluginManager)
         {
             _pluginManager = pluginManager;
             _xf = new Xf();

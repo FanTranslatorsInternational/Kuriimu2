@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -23,7 +23,7 @@ namespace plugin_atlus.Archives
             Metadata = new PluginMetadata("DsPspBin", "Megaflan", "The Bin resource container seen in Shin Megami Tensei: Devil Summoner (PSP).");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new DsPspBinState();
         }

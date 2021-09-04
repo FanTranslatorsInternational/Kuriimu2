@@ -35,7 +35,7 @@ namespace plugin_mt_framework.Text
             return magic == "GMD\0" || magic == "\0DMG";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new GmdState();
         }

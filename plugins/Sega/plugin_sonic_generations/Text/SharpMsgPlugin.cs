@@ -36,7 +36,7 @@ namespace plugin_sonic_generations.Text
             return header.magic == "#MSG";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SharpMsgState();
         }

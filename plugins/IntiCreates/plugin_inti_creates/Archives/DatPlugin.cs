@@ -18,7 +18,7 @@ namespace plugin_inti_creates.Archives
             Metadata=new PluginMetadata("DAT","onepiecefreak","A data resource found in Azure Strikers Gunvokt.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new DatState();
         }

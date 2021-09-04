@@ -21,7 +21,7 @@ namespace plugin_headstrong_games.Images
         private FabNode _root;
         private IFileState _ctpkState;
 
-        public IList<IKanvasImage> Load(Stream input, IFileManager fileManager)
+        public IList<IKanvasImage> Load(Stream input, IBaseFileManager fileManager)
         {
             using var br = new BinaryReaderX(input, true, ByteOrder.BigEndian);
 
@@ -38,7 +38,7 @@ namespace plugin_headstrong_games.Images
             return (_ctpkState.PluginState as IImageState).Images;
         }
 
-        public void Save(Stream output, IFileManager fileManager)
+        public void Save(Stream output, IBaseFileManager fileManager)
         {
             var imageState = _ctpkState.PluginState as IImageState;
             var buffer = new byte[4];

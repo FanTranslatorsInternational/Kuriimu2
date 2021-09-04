@@ -18,7 +18,7 @@ namespace plugin_nintendo.Images
             Metadata = new PluginMetadata("BIMG", "onepiecefreak", "The thumbnail format for 3DS movies from the eshop.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new BimgState();
         }

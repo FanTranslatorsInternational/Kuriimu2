@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using Kontract.Interfaces.Managers;
@@ -20,7 +20,7 @@ namespace plugin_beeworks.Archives
             Metadata = new PluginMetadata("Touch Detective 3", "onepiecefreak", "The main resource archive in Touch Detective 3.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new TD3State();
         }

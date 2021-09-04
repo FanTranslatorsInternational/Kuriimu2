@@ -22,7 +22,7 @@ namespace plugin_atlus.Images
         private IList<byte[]> _entries;
         private IList<IFileState> _ctpkStates;
 
-        public IList<IKanvasImage> Load(Stream input, IFileManager manager)
+        public IList<IKanvasImage> Load(Stream input, IBaseFileManager manager)
         {
             using var br = new BinaryReaderX(input, true);
 
@@ -66,7 +66,7 @@ namespace plugin_atlus.Images
             return result;
         }
 
-        public void Save(Stream output, IFileManager manager)
+        public void Save(Stream output, IBaseFileManager manager)
         {
             using var bw = new BinaryWriterX(output);
 

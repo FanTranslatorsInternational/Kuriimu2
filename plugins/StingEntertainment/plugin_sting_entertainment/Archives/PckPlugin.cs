@@ -31,7 +31,7 @@ namespace plugin_sting_entertainment.Archives
             return br.ReadString(8) == "Filename";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new PckState();
         }

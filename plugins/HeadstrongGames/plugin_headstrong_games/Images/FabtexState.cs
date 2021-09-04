@@ -15,7 +15,7 @@ namespace plugin_headstrong_games.Images
 {
     class FabtexState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IFileManager _fileManager;
+        private readonly IBaseFileManager _fileManager;
         private Fabtex _img;
 
         public EncodingDefinition EncodingDefinition { get; }
@@ -23,7 +23,7 @@ namespace plugin_headstrong_games.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public FabtexState(IFileManager fileManager)
+        public FabtexState(IBaseFileManager fileManager)
         {
             _fileManager = fileManager;
             _img = new Fabtex();

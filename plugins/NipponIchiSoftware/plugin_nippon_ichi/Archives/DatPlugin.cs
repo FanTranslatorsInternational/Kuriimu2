@@ -31,7 +31,7 @@ namespace plugin_nippon_ichi.Archives
             return br.ReadString(7) == "NISPACK";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new DatState();
         }

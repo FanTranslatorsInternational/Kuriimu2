@@ -1,4 +1,4 @@
-//using System;
+﻿//using System;
 //using System.Threading.Tasks;
 //using Komponent.IO;
 //using Kontract.Interfaces.FileSystem;
@@ -35,7 +35,7 @@
 //            return br.ReadString(4) == "CGFX";
 //        }
 
-//        public IPluginState CreatePluginState(IFileManager pluginManager)
+//        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
 //        {
 //            return new CgfxState();
 //        }

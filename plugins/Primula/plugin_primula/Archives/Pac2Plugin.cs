@@ -31,7 +31,7 @@ namespace plugin_primula.Archives
             return br.ReadString(12) == "GAMEDAT PAC2";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new Pac2State();
         }

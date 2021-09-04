@@ -31,7 +31,7 @@ namespace plugin_sting_entertainment.Images
             return br.ReadString(8) == "Texture ";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new TexState();
         }

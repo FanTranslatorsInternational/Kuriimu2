@@ -1,4 +1,4 @@
-using Kontract.Interfaces.Plugins.Identifier;
+﻿using Kontract.Interfaces.Plugins.Identifier;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,7 +20,7 @@ namespace plugin_hunex.Archives
             Metadata = new PluginMetadata("HED", "Sn0wCrack; onepiecefreak", "The first main archive for HuneX games.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new HEDState();
         }

@@ -36,7 +36,7 @@ namespace plugin_spike_chunsoft.Images
             return br.ReadString(4) == "$CFH";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SrdState();
         }

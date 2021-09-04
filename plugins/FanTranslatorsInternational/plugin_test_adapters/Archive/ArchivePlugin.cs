@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Komponent.IO;
@@ -24,7 +24,7 @@ namespace plugin_test_adapters.Archive
             Metadata = new PluginMetadata("ArchiveTest", "onepiecefreak3");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new ArchiveState();
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
 using Kontract.Interfaces.Plugins.State;
@@ -18,7 +18,7 @@ namespace plugin_capcom.Archives
             Metadata = new PluginMetadata("AAPack", "onepiecefreak", "The main archive of Ace Attorney Trilogy and Apollo Justice 3DS.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new AAPackState();
         }

@@ -43,7 +43,7 @@ namespace plugin_nintendo.Archives
             return zlibBr.ReadString(4) == "SARC";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SarcState();
         }

@@ -20,7 +20,7 @@ namespace plugin_dotemu.Archives
             Metadata = new PluginMetadata("SOR4", "onepiecefreak", "The main texture resource archive in Streets Of Rage 4.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new Sor4State();
         }

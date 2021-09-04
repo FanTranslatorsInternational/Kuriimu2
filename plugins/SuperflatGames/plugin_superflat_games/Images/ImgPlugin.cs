@@ -34,7 +34,7 @@ namespace superflat_games.Images
             return magic1 == "IMG0" && fileStream.Length == size;
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new ImgState();
         }

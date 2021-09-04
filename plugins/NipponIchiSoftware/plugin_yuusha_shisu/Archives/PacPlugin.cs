@@ -1,4 +1,4 @@
-using Komponent.IO;
+﻿using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
 using Kontract.Interfaces.Plugins.Identifier;
@@ -30,7 +30,7 @@ namespace plugin_yuusha_shisu.PAC
                 return br.ReadString(4) == "ARC\0";
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new PacState();
         }

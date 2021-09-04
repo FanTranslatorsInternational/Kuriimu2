@@ -36,7 +36,7 @@ namespace plugin_cattle_call.Images
             return magic1 == "F3XT" || magic2 == "F3XT";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new F3xtState();
         }

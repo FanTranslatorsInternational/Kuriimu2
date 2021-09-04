@@ -31,7 +31,7 @@ namespace plugin_mercury_steam.Images
             return br.ReadString(4) == "MTXT";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new MtxtState(fileManager);
         }

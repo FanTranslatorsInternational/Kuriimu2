@@ -31,7 +31,7 @@ namespace plugin_level5._3DS.Images
             return br.ReadString(4) == "ztex";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new ZtexState();
         }

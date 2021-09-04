@@ -18,7 +18,7 @@ namespace plugin_level5._3DS.Archives
             Metadata=new PluginMetadata("FLBin","onepiecefreak","The main archive resource in Fantasy Life");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new FLState();
         }

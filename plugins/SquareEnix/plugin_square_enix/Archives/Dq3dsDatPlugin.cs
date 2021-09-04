@@ -18,7 +18,7 @@ namespace plugin_square_enix.Archives
             Metadata = new PluginMetadata("DQ DAT", "onepiecefreak", "The DAT resource found in Dragon Quest Ports on the 3DS.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new Dq3dsDatState();
         }

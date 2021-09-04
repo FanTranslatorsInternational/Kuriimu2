@@ -40,7 +40,7 @@ namespace plugin_bandai_namco.Archives
             return headerCount == 1;
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new ApkState();
         }

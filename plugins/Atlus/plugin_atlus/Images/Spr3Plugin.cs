@@ -33,7 +33,7 @@ namespace plugin_atlus.Images
             return br.ReadString(4) == "SPR3";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new Spr3State(fileManager);
         }

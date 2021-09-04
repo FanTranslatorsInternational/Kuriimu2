@@ -18,7 +18,7 @@ namespace plugin_cattle_call.Archives
             Metadata = new PluginMetadata("PACK", "onepiecefreak", "Extensionless pack files in Metal Max 4.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new PackState();
         }

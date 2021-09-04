@@ -31,7 +31,7 @@ namespace plugin_koei_tecmo.Archives
             return br.ReadString(4) == "CRAE";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new CraeState();
         }

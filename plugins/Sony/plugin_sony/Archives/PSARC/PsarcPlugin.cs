@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -34,7 +34,7 @@ namespace plugin_sony.Archives.PSARC
         /// </summary>
         /// <param name="pluginManager"></param>
         /// <returns></returns>
-        public IPluginState CreatePluginState(IFileManager pluginManager) => new PsarcState();
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager) => new PsarcState();
 
         /// <summary>
         /// 

@@ -18,7 +18,7 @@ namespace plugin_mercury_steam.Archives
             Metadata = new PluginMetadata("PKG", "onepiecefreak", "The main archive resource in Metroid: Samus Returns.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new PkgState();
         }

@@ -31,7 +31,7 @@ namespace plugin_square_enix.Archives
             return br.ReadString(4) == "sar ";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SarState();
         }

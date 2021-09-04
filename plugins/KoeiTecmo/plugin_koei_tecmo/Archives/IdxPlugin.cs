@@ -18,7 +18,7 @@ namespace plugin_koei_tecmo.Archives
             Metadata = new PluginMetadata("BIN_IDX", "onepiecefreak", "The main resource package in KoeiTecmo games.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new IdxState();
         }

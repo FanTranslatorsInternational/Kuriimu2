@@ -31,7 +31,7 @@ namespace plugin_alchemist.Images
             return br.ReadString(4) == "RTEX";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new RtexState();
         }

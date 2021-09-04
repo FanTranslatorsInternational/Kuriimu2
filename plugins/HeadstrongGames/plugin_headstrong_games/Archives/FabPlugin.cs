@@ -36,7 +36,7 @@ namespace plugin_headstrong_games.Archives
             return magic == "FBRC" && magic2 == "BNDL";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new FabState();
         }

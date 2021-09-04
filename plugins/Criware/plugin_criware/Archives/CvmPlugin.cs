@@ -31,7 +31,7 @@ namespace plugin_criware.Archives
             return br.ReadString(4) == "CVMH";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new CvmState();
         }

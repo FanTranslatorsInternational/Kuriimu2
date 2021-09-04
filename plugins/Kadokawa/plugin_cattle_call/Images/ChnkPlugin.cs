@@ -31,7 +31,7 @@ namespace plugin_cattle_call.Images
             return br.ReadString(4) == "CHNK";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new ChnkState();
         }

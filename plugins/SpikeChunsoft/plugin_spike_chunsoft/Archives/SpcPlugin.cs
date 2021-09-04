@@ -31,7 +31,7 @@ namespace plugin_spike_chunsoft.Archives
             return br.ReadString(4) == "CPS.";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new SpcState();
         }

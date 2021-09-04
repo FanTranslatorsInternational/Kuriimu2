@@ -31,7 +31,7 @@ namespace plugin_sega.Images
             return br.ReadString(4) == "HTEX";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new HtexState();
         }

@@ -18,7 +18,7 @@ namespace plugin_felistella.Archives
             Metadata = new PluginMetadata("PAC", "onepiecefreak", "The package resource in Genkai Tokki Seven Pirates.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new PacState();
         }

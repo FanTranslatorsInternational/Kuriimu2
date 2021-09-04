@@ -31,7 +31,7 @@ namespace plugin_dotemu.Images
             return br.ReadString(3) == "XNB";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new XnbState();
         }

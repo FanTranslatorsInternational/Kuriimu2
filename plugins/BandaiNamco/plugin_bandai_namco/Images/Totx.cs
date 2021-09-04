@@ -17,7 +17,7 @@ namespace plugin_bandai_namco.Images
 
         private IFileState _state;
 
-        public IList<IKanvasImage> Load(Stream input, IFileManager fileManager)
+        public IList<IKanvasImage> Load(Stream input, IBaseFileManager fileManager)
         {
             using var br = new BinaryReaderX(input);
 
@@ -39,7 +39,7 @@ namespace plugin_bandai_namco.Images
             return images;
         }
 
-        public void Save(Stream output, IFileManager fileManager)
+        public void Save(Stream output, IBaseFileManager fileManager)
         {
             var images = (_state.PluginState as IImageState).Images;
 

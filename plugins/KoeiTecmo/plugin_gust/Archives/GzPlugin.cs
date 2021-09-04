@@ -18,7 +18,7 @@ namespace plugin_gust.Archives
             Metadata = new PluginMetadata("GZ", "onepiecefreak", "An archive resource found in Persona 5 Strikers.");
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new GzState();
         }

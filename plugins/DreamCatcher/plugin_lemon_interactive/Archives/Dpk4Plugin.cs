@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Komponent.IO;
 using Kontract.Interfaces.FileSystem;
@@ -64,7 +64,7 @@ namespace plugin_lemon_interactive.Archives
         /// </summary>
         /// <param name="pluginManager"></param>
         /// <returns></returns>
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new Dpk4State();
         }

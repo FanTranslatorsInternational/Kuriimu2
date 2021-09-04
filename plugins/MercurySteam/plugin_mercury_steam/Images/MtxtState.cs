@@ -20,7 +20,7 @@ namespace plugin_mercury_steam.Images
 {
     class MtxtState : IImageState, ILoadFiles, ISaveFiles
     {
-        private IFileManager _fileManager;
+        private IBaseFileManager _fileManager;
         private IFileState _ctpkState;
 
         private MtxtHeader _header;
@@ -30,7 +30,7 @@ namespace plugin_mercury_steam.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public MtxtState(IFileManager fileManager)
+        public MtxtState(IBaseFileManager fileManager)
         {
             _fileManager = fileManager;
         }

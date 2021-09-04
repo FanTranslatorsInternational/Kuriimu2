@@ -14,7 +14,7 @@ namespace plugin_bandai_namco.Images
 {
     class TotxState : IImageState, ILoadFiles, ISaveFiles
     {
-        private readonly IFileManager _fileManager;
+        private readonly IBaseFileManager _fileManager;
         private Totx _img;
 
         public EncodingDefinition EncodingDefinition { get; }
@@ -22,7 +22,7 @@ namespace plugin_bandai_namco.Images
 
         public bool ContentChanged => IsContentChanged();
 
-        public TotxState(IFileManager fileManager)
+        public TotxState(IBaseFileManager fileManager)
         {
             _fileManager = fileManager;
             _img = new Totx();

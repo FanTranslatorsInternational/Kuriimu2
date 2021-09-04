@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Managers;
@@ -22,7 +22,7 @@ namespace plugin_nintendo.Archives
             Metadata = new PluginMetadata("MMBin", "IcySon55", "2D resource from Mario Maker.");
         }
 
-        public IPluginState CreatePluginState(IFileManager pluginManager)
+        public IPluginState CreatePluginState(IBaseFileManager pluginManager)
         {
             return new MMBinState();
         }

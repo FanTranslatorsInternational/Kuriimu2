@@ -38,7 +38,7 @@ namespace most_wanted_ent.Images
             return magic == "nns_" || magic1 == "nns_";
         }
 
-        public IPluginState CreatePluginState(IFileManager fileManager)
+        public IPluginState CreatePluginState(IBaseFileManager fileManager)
         {
             return new CtgdState();
         }
