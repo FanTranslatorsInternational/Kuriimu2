@@ -25,7 +25,7 @@ namespace Kontract.Interfaces.Plugins.Identifier
         /// </summary>
         /// <param name="fileManager">The plugin manager to load files with the Kuriimu runtime.</param>
         /// <returns>Newly created <see cref="IPluginState"/>.</returns>
-        IPluginState CreatePluginState(IFileManager fileManager);
+        IPluginState CreatePluginState(IBaseFileManager fileManager);
         
         #region Optional feature support checks
         

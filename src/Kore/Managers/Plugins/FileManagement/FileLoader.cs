@@ -163,7 +163,7 @@ namespace Kore.Managers.Plugins.FileManagement
         /// <param name="pluginState">The created state.</param>
         /// <param name="loadInfo">The load info for this loading operation.</param>
         /// <returns>If the creation was successful.</returns>
-        private LoadResult TryCreateState(IFilePlugin plugin, IFileManager fileManager, LoadInfo loadInfo, out IPluginState pluginState)
+        private LoadResult TryCreateState(IFilePlugin plugin, IBaseFileManager fileManager, LoadInfo loadInfo, out IPluginState pluginState)
         {
             pluginState = null;
 

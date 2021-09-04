@@ -40,7 +40,7 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         #endregion
 
-        public BaseBatchDialog(IInternalFileManager fileManager)
+        public BaseBatchDialog(IFileManager fileManager)
         {
             ContractAssertions.IsNotNull(fileManager, nameof(fileManager));
 
@@ -75,11 +75,11 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
 
         #region Initialization
 
-        protected abstract BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger);
+        protected abstract BaseBatchProcessor InitializeBatchProcessor(IFileManager fileManager, ILogger logger);
 
-        private IList<PluginElement> LoadPlugins(IInternalFileManager fileManager)
+        private IList<PluginElement> LoadPlugins(IFileManager baseFileManager)
         {
-            return fileManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x => x.ToString()).ToArray();
+            return baseFileManager.GetFilePlugins().Select(x => new PluginElement(x)).OrderBy(x => x.ToString()).ToArray();
         }
 
         #endregion

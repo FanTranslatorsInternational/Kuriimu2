@@ -18,14 +18,14 @@ namespace Kuriimu2.EtoForms.Forms.Dialogs.Batch
         protected override string SourceEmptyText { get; }
         protected override string DestinationEmptyText { get; }
 
-        public BatchInjectDialog(IInternalFileManager fileManager) : base(fileManager)
+        public BatchInjectDialog(IFileManager fileManager) : base(fileManager)
         {
             Title = Localize(BatchInjectorKey_);
             SourceEmptyText = Localize(BatchInjectSourceEmptyKey_);
             DestinationEmptyText = Localize(BatchInjectDestinationEmptyKey_);
         }
 
-        protected override BaseBatchProcessor InitializeBatchProcessor(IInternalFileManager fileManager, ILogger logger)
+        protected override BaseBatchProcessor InitializeBatchProcessor(IFileManager fileManager, ILogger logger)
         {
             return new BatchInjector(fileManager, logger);
         }

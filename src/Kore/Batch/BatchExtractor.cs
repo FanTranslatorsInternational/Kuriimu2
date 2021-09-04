@@ -20,7 +20,7 @@ namespace Kore.Batch
         private readonly object _lock = new object();
         private readonly IList<UPath> _openedFiles = new List<UPath>();
 
-        public BatchExtractor(IInternalFileManager fileManager, ILogger logger) :
+        public BatchExtractor(IFileManager fileManager, ILogger logger) :
             base(fileManager, logger)
         {
         }

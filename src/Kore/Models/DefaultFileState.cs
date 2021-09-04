@@ -15,7 +15,7 @@ namespace Kore.Models
     class DefaultFileState : IFileState
     {
         /// <inheritdoc />
-        public IFileManager FileManager { get; private set; }
+        public IBaseFileManager FileManager { get; private set; }
 
         /// <inheritdoc />
         public IFilePlugin FilePlugin { get; private set; }
@@ -65,7 +65,7 @@ namespace Kore.Models
         /// <param name="fileManager">The plugin manager for this state.</param>
         public DefaultFileState(IFilePlugin filePlugin, IPluginState pluginState, IFileState parentFileState,
             IFileSystem fileSystem, UPath filePath,
-            IStreamManager streamManager, IFileManager fileManager)
+            IStreamManager streamManager, IBaseFileManager fileManager)
         {
             ContractAssertions.IsNotNull(filePlugin, nameof(filePlugin));
             ContractAssertions.IsNotNull(pluginState, nameof(pluginState));

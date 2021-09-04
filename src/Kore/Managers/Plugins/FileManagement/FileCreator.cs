@@ -7,10 +7,10 @@ namespace Kore.Managers.Plugins.FileManagement
     class FileCreator
     {
         // TODO: Rethink creation process
-        public IFileState Create(IFilePlugin entryPoint, IFileManager fileManager)
+        public IFileState Create(IFilePlugin entryPoint, IBaseFileManager baseFileManager)
         {
             // 1. Create new state of the plugin
-            var createdPlugin = entryPoint.CreatePluginState(fileManager);
+            var createdPlugin = entryPoint.CreatePluginState(baseFileManager);
 
             // 2. Create empty file state
             if (!TryCreateState(createdPlugin))

@@ -22,7 +22,7 @@ namespace Kore.Batch
         private HashSet<UPath> _batchedFiles;
         private CancellationTokenSource _processTokenSource;
 
-        protected IInternalFileManager FileManager { get; }
+        protected IFileManager FileManager { get; }
         protected ILogger Logger { get; }
         protected IFileSystemWatcher SourceFileSystemWatcher { get; private set; }
 
@@ -32,7 +32,7 @@ namespace Kore.Batch
 
         public TimeSpan AverageFileTime { get; private set; }
 
-        public BaseBatchProcessor(IInternalFileManager fileManager, ILogger logger)
+        public BaseBatchProcessor(IFileManager fileManager, ILogger logger)
         {
             ContractAssertions.IsNotNull(fileManager, nameof(fileManager));
             ContractAssertions.IsNotNull(logger, nameof(logger));

@@ -15,7 +15,7 @@ namespace Kontract.Interfaces.Managers
         /// <summary>
         /// The plugin manager for this state.
         /// </summary>
-        IFileManager FileManager { get; }
+        IBaseFileManager FileManager { get; }
 
         /// <summary>
         /// The entry class of the plugin for this file.

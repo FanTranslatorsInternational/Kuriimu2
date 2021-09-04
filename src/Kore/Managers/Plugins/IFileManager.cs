@@ -17,7 +17,7 @@ namespace Kore.Managers.Plugins
     /// <summary>
     /// Exposes methods to load physical and virtual files directly.
     /// </summary>
-    public interface IInternalFileManager : IFileManager, IDisposable
+    public interface IFileManager : IBaseFileManager, IDisposable
     {
         /// <summary>
         /// An event to allow for manual selection by the user.
@@ -59,6 +59,18 @@ namespace Kore.Managers.Plugins
         /// </summary>
         /// <returns></returns>
         IPluginLoader<IGameAdapter>[] GetGamePluginLoaders();
+
+        #endregion
+
+        #region Identify file
+
+        /// <summary>
+        /// Identifies a stream against a given plugin.
+        /// </summary>
+        /// <param name="file">The physical file to identify.</param>
+        /// <param name="pluginId">The plugin ID to identify with.</param>
+        /// <returns>If the file could be identified by the denoted plugin.</returns>
+        Task<bool> CanIdentify(string file, Guid pluginId);
 
         #endregion
 

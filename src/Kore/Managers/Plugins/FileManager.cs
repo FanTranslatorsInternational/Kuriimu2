@@ -31,7 +31,7 @@ namespace Kore.Managers.Plugins
     /// <summary>
     /// The core component of the Kuriimu runtime.
     /// </summary>
-    public class FileManager : IInternalFileManager
+    public class FileManager : IFileManager
     {
         private readonly IPluginLoader<IFilePlugin>[] _filePluginLoaders;
         private readonly IPluginLoader<IGameAdapter>[] _gameAdapterLoaders;
@@ -186,6 +186,75 @@ namespace Kore.Managers.Plugins
             {
                 return _closingStates.Contains(fileState);
             }
+        }
+
+        #endregion
+
+        #region Identfy File
+
+        public Task<bool> CanIdentify(string file, Guid pluginId)
+        {
+            // 1. Create file system
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreatePhysicalFileSystem(streamManager);
+            var filePath = fileSystem.ConvertPathFromInternal(file);
+
+            var root = filePath.GetRoot();
+            fileSystem = FileSystemFactory.CreateSubFileSystem(fileSystem, root);
+
+            // 2. Identify file
+            return CanIdentify(fileSystem, filePath.GetSubDirectory(root), streamManager, pluginId);
+        }
+
+        public Task<bool> CanIdentify(IFileState fileState, IArchiveFileInfo afi, Guid pluginId)
+        {
+            // 1. Create file system
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreateAfiFileSystem(fileState, UPath.Root, streamManager);
+
+            // 2. Identify file
+            return CanIdentify(fileSystem, afi.FilePath, streamManager, pluginId);
+        }
+
+        public Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId)
+        {
+            // 1. Create file system
+            var streamManager = CreateStreamManager();
+            var fileSystem = FileSystemFactory.CreateMemoryFileSystem(streamFile, streamManager);
+
+            // 2. Identify file
+            return CanIdentify(fileSystem, streamFile.Path.ToAbsolute(), streamManager, pluginId);
+        }
+
+        public Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId)
+        {
+            // 1. Create controlled file system
+            var streamManager = CreateStreamManager();
+            var clonedFileSystem = fileSystem.Clone(streamManager);
+
+            // 2. Identify file
+            return CanIdentify(clonedFileSystem, path, streamManager, pluginId);
+        }
+
+        private async Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, IStreamManager streamManager, Guid pluginId)
+        {
+            // 1. Get plugin
+            var plugin = GetFilePlugin(pluginId);
+            if (plugin == null)
+                return false;
+
+            // 2. If plugin cannot identify
+            if (!plugin.CanIdentifyFiles)
+                return false;
+
+            // 3. Identify file by plugin
+            var identifyContext = new IdentifyContext(streamManager.CreateTemporaryStreamProvider());
+            var result = await (plugin as IIdentifyFiles).IdentifyAsync(fileSystem, path, identifyContext);
+
+            // 4. Clean up
+            streamManager.ReleaseAll();
+
+            return result;
         }
 
         #endregion
@@ -663,6 +732,11 @@ namespace Kore.Managers.Plugins
         private IStreamManager CreateStreamManager()
         {
             return _streamMonitor.CreateStreamManager();
+        }
+
+        private IFilePlugin GetFilePlugin(Guid pluginId)
+        {
+            return GetFilePluginLoaders().SelectMany(x => x.Plugins).FirstOrDefault(x => x.PluginId == pluginId);
         }
     }
 }

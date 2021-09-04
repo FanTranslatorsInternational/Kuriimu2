@@ -11,7 +11,7 @@ namespace Kontract.Interfaces.Managers
     /// <summary>
     /// Exposes methods to load files in the Kuriimu runtime.
     /// </summary>
-    public interface IFileManager
+    public interface IBaseFileManager
     {
         #region Check
 
@@ -37,6 +37,36 @@ namespace Kontract.Interfaces.Managers
         /// <param name="fileState">The state to check for closing.</param>
         /// <returns>If the state is currently closing.</returns>
         bool IsClosing(IFileState fileState);
+
+        #endregion
+
+        #region Identify file
+
+        /// <summary>
+        /// Identifies a file from an open archive plugin against a given plugin.
+        /// </summary>
+        /// <param name="fileState">The file state to identify the file from.</param>
+        /// <param name="afi">The AFI to identify from the file state.</param>
+        /// <param name="pluginId">The plugin ID to identify with.</param>
+        /// <returns>If the file could be identified by the denoted plugin.</returns>
+        Task<bool> CanIdentify(IFileState fileState, IArchiveFileInfo afi, Guid pluginId);
+
+        /// <summary>
+        /// Identifies a stream against a given plugin.
+        /// </summary>
+        /// <param name="streamFile">The stream file to identify.</param>
+        /// <param name="pluginId">The plugin ID to identify with.</param>
+        /// <returns>If the file could be identified by the denoted plugin.</returns>
+        Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId);
+
+        /// <summary>
+        /// Identifies a file from a file system against a given plugin.
+        /// </summary>
+        /// <param name="fileSystem">The file system to identify the file from.</param>
+        /// <param name="path">The file to identify from the file system.</param>
+        /// <param name="pluginId">The plugin ID to identify with.</param>
+        /// <returns>If the file could be identified by the denoted plugin.</returns>
+        Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId);
 
         #endregion
 

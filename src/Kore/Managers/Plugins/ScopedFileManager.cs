@@ -13,16 +13,16 @@ using Kontract.Models.IO;
 namespace Kore.Managers.Plugins
 {
     /// <summary>
-    /// A nested <see cref="IFileManager"/> for passing into plugins and controlling their behaviour.
+    /// A nested <see cref="IBaseFileManager"/> for passing into plugins and controlling their behaviour.
     /// </summary>
-    class ScopedFileManager : IFileManager
+    class ScopedFileManager : IBaseFileManager
     {
-        private readonly IInternalFileManager _parentFileManager;
+        private readonly IFileManager _parentFileManager;
         private IFileState _fileState;
 
         private readonly IList<IFileState> _loadedFiles;
 
-        public ScopedFileManager(IInternalFileManager parentFileManager)
+        public ScopedFileManager(IFileManager parentFileManager)
         {
             ContractAssertions.IsNotNull(parentFileManager, nameof(parentFileManager));
 
@@ -62,6 +62,25 @@ namespace Kore.Managers.Plugins
         public bool IsClosing(IFileState fileState)
         {
             return _parentFileManager.IsClosing(fileState);
+        }
+
+        #endregion
+
+        #region Identify file
+
+        public Task<bool> CanIdentify(IFileState fileState, IArchiveFileInfo afi, Guid pluginId)
+        {
+            return _parentFileManager.CanIdentify(fileState, afi, pluginId);
+        }
+
+        public Task<bool> CanIdentify(StreamFile streamFile, Guid pluginId)
+        {
+            return _parentFileManager.CanIdentify(streamFile, pluginId);
+        }
+
+        public Task<bool> CanIdentify(IFileSystem fileSystem, UPath path, Guid pluginId)
+        {
+            return _parentFileManager.CanIdentify(fileSystem, path, pluginId);
         }
 
         #endregion

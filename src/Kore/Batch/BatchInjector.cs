@@ -11,7 +11,7 @@ namespace Kore.Batch
 {
     public class BatchInjector : BaseBatchProcessor
     {
-        public BatchInjector(IInternalFileManager fileManager, ILogger logger) : 
+        public BatchInjector(IFileManager fileManager, ILogger logger) : 
             base(fileManager, logger)
         {
         }
