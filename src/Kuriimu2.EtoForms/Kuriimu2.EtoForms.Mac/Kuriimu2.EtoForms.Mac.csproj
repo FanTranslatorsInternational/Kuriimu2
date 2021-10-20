@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFrameworks>netcoreapp31</TargetFrameworks>
+    <AssemblyName>Kuriimu2</AssemblyName>
+    <MacBundleName>Kuriimu2</MacBundleName>
     
     <RuntimeIdentifiers>osx-x64</RuntimeIdentifiers>
 
@@ -15,7 +17,7 @@
   </ItemGroup>
 	
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Mac64" Version="2.6.0-ci-20210612.931419801" />
+    <PackageReference Include="Eto.Platform.Mac64" Version="2.6.0-ci-20211019.1357802759" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -25,5 +27,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <OutputPath>..\..\..\dist\Release\</OutputPath>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- compile plugins first.. -->
+    <None Include="..\..\..\dist\final\plugins\*.dll" Link="plugins\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>
