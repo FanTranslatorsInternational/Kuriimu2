@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace Kryptography.InitCreates
+namespace Kryptography.IntiCreates
 {
     // TODO: Remove from Kryptography if cipher extensions are plugin-able
     public class IntiCreatesStream : Stream
