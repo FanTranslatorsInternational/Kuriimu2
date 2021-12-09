@@ -8,6 +8,7 @@ using Kontract.Models.IO;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,8 +20,8 @@ namespace plugin_square_enix.Archives
         
         public IList<IArchiveFileInfo> Files { get; private set; }
         
-        public bool ContentChanged { get; private set; }
-        
+        public bool ContentChanged => IsContentChanged();
+
         public BinState()
         {
             _bin = new Bin();
@@ -39,6 +40,11 @@ namespace plugin_square_enix.Archives
 
             return Task.CompletedTask;
         }
+        private bool IsContentChanged()
+        {
+            return Files.Any(x => x.ContentChanged);
+        }
+
 
     }
 

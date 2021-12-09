@@ -20,8 +20,4 @@ namespace plugin_square_enix.Archives
         public int offset;
         public int fileSize;
     }
-
-    class BinStructure
-    {
-    }
 }

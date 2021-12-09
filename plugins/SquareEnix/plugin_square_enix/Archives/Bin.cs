@@ -27,7 +27,7 @@ namespace plugin_square_enix.Archives
         }
         public void Save(Stream output, IList<IArchiveFileInfo> files)
         {
-
+            using var bw = new BinaryWriterX(output);
         }
     }
 }
