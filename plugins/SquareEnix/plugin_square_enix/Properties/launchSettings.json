@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "plugin_square_enix": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\razen\\Desktop\\code\\Kuriimu2\\dist\\Debug\\netcoreapp31\\Kuriimu2.EtoForms.Wpf.exe",
+      "workingDirectory": "C:\\Users\\razen\\Desktop\\code\\Kuriimu2\\dist\\Debug\\netcoreapp31"
+    }
+  }
+}
