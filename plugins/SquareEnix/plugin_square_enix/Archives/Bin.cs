@@ -18,10 +18,12 @@ namespace plugin_square_enix.Archives
 
             var header = reader.ReadType<Binheader>();
             var binFiles = reader.ReadMultiple<BinTableEntry>(header.fileCount);
-            for (int i = 0; i < binFiles.Count; i++)
+            reader.BaseStream.Position = binFiles[0].offset + 0x20;
+            var fileCount = reader.ReadInt32();
+            for (int i = 1; i < fileCount; i++)
             {
-                using (var sub = new SubStream(input, binFiles[i].offset, binFiles[i].fileSize))
-                    _entries.Add(new ArchiveFileInfo(sub, $"file{i}"));
+                using (var sub = new SubStream(input, binFiles[i].offset + 0x20, binFiles[i].fileSize))
+                _entries.Add(new ArchiveFileInfo(sub, $"file{i}"));
             }
             return _entries;
         }
