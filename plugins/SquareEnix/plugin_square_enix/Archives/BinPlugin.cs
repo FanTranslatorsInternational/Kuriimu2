@@ -25,7 +25,7 @@ namespace plugin_square_enix.Archives
         public string[] FileExtensions => new[] { "*.bin" };
 
         // Additional plugin meta data
-        public PluginMetadata Metadata => new PluginMetadata(".bin", "Caleb Mabry", "The archive file format found in 3DS");
+        public PluginMetadata Metadata => new PluginMetadata(".bin", "Caleb Mabry; OnePieceFreak", "The archive file format found in 3DS");
 
         // Allows an identification of one or more files of the parent file system to identify
         // if the given file is the supported file format.
