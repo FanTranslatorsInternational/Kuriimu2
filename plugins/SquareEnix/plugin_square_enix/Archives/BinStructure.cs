@@ -9,7 +9,7 @@ namespace plugin_square_enix.Archives
     {
         [FixedLength(4)]
         public string magic;
-        public int fileCount;
+        public int fileCountOffsetUnCalc;
         public int totalFileSizes;
         [FixedLength(5)]
         public int[] unknowns;
@@ -18,11 +18,5 @@ namespace plugin_square_enix.Archives
     {
         public int offset;
         public int fileSize;
-    }
-    public class BinStructure
-    {
-        public Binheader header;
-        [VariableLength("header.fileCount")]
-        public BinTableEntry[] entries;
     }
 }

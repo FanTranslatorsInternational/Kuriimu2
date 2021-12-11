@@ -13,20 +13,16 @@ namespace plugin_square_enix.Archives
     class Bin
     {
         private const int HeaderSize_ = 0x20;
-        private BinStructure _binStruct;
+        private const int BinTableOffset_ = 0x28;
         public IList<IArchiveFileInfo> Load(Stream input)
         {
             var _entries = new List<IArchiveFileInfo>();
             var reader = new BinaryReaderX(input);
 
-            var header = reader.ReadType<Binheader>();
-            //var fileCountOffset = ((header.fileCount * 0x08) + 0x20);
-            //reader.BaseStream.Position = fileCountOffset;
-            //var fileCount = reader.ReadInt32();
             var fileCountEntry = reader.ReadType<BinTableEntry>();
             reader.BaseStream.Position = fileCountEntry.offset + 0x20;
             var fileCount = reader.ReadInt32();
-            reader.BaseStream.Position = 0x28;
+            reader.BaseStream.Position = BinTableOffset_;
             var binFiles = reader.ReadMultiple<BinTableEntry>(fileCount);
             for (int i = 0; i < fileCount; i++)
             {
