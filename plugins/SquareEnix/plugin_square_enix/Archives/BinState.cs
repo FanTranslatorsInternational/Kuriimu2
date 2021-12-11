@@ -2,6 +2,7 @@
 using Komponent.IO.Streams;
 using Kontract.Interfaces.FileSystem;
 using Kontract.Interfaces.Plugins.State;
+using Kontract.Interfaces.Plugins.State.Archive;
 using Kontract.Models.Archive;
 using Kontract.Models.Context;
 using Kontract.Models.IO;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace plugin_square_enix.Archives
 {
-    public class BinState : IArchiveState, ILoadFiles, ISaveFiles
+    public class BinState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
     {
         private readonly Bin _bin;
         
@@ -35,7 +36,7 @@ namespace plugin_square_enix.Archives
 
         public Task Save(IFileSystem fileSystem, UPath savePath, SaveContext saveContext)
         {
-            var output = fileSystem.OpenFile(savePath, FileMode.Create);
+            var output = fileSystem.OpenFile(savePath, FileMode.Create, FileAccess.Write);
             _bin.Save(output, Files);
 
             return Task.CompletedTask;
@@ -45,7 +46,10 @@ namespace plugin_square_enix.Archives
             return Files.Any(x => x.ContentChanged);
         }
 
-
+        public void ReplaceFile(IArchiveFileInfo afi, Stream fileData)
+        {
+            afi.SetFileData(fileData);
+        }
     }
 
 }

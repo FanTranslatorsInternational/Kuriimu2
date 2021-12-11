@@ -7,20 +7,22 @@ namespace plugin_square_enix.Archives
 {
     public class Binheader
     {
-        public int magic;
+        [FixedLength(4)]
+        public string magic;
         public int fileCount;
-        public int fileSize;
+        public int totalFileSizes;
         [FixedLength(5)]
         public int[] unknowns;
-        //public int unk1;
-        //public int unk2;
-        //public int unk3;
-        //public int unk4;
-        //public int unk5;
     }
     public class BinTableEntry
     {
         public int offset;
         public int fileSize;
+    }
+    public class BinStructure
+    {
+        public Binheader header;
+        [VariableLength("header.fileCount")]
+        public BinTableEntry[] entries;
     }
 }
