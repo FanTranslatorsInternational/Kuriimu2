@@ -13,6 +13,7 @@
 
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <ApplicationIcon>kuriimu2.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@ using Komponent.Extensions;
 using Kryptography;
 using Kryptography.AES;
 using Kryptography.Blowfish;
-using Kryptography.InitCreates;
+using Kryptography.IntiCreates;
 using Kuriimu2.EtoForms.Forms.Models;
 
 namespace Kuriimu2.EtoForms.Forms.Dialogs.Extensions.Base

@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using Eto;
 using Eto.Drawing;
 using Eto.Forms;
 using Kontract.Extensions;
@@ -138,7 +139,7 @@ namespace Kuriimu2.EtoForms.Forms
             _logFile = $"{GetBaseDirectory()}/Kuriimu2.log";
             _logger = new LoggerConfiguration().WriteTo.File(_logFile).CreateLogger();
             _progress = new ProgressContext(new ProgressBarExOutput(_progressBarEx, 20));
-            _fileManager = new FileManager($"{GetBaseDirectory()}/plugins")
+            _fileManager = new FileManager(Path.Combine(GetBaseDirectory(), "plugins"))
             {
                 AllowManualSelection = true,
 
@@ -894,7 +895,7 @@ namespace Kuriimu2.EtoForms.Forms
                 return ".";
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return "~/Applications/Kuriimu2";
+                return EtoEnvironment.GetFolderPath(EtoSpecialFolder.EntryExecutable);
 
             throw new InvalidOperationException(Localize(UnsupportedOperatingSystemExceptionKey_, RuntimeInformation.OSDescription));
         }
