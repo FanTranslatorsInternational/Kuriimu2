@@ -25,7 +25,7 @@ namespace Kuriimu2.Wpf.ViewModels
         private CharacterInfo _selectedCharacter;
         private ImageSource _selectedCharacterTexture;
 
-        public IStateInfo KoreFile { get; set; }
+        public IFileState KoreFile { get; set; }
         public ObservableCollection<CharacterInfo> Characters { get; private set; }
 
         public CharacterInfo SelectedCharacter
@@ -64,7 +64,7 @@ namespace Kuriimu2.Wpf.ViewModels
         public string CharacterCount => Characters.Count + (Characters.Count == 1 ? " Character" : " Characters");
 
         // Constructor
-        public FontEditorViewModel(IStateInfo koreFile)
+        public FontEditorViewModel(IFileState koreFile)
         {
             KoreFile = koreFile;
 

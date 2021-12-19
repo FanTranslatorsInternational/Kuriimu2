@@ -30,7 +30,7 @@ namespace Kuriimu2.Wpf.ViewModels
     {
         private IWindowManager _wm = new WindowManager();
         private List<IScreen> _windows = new List<IScreen>();
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _pluginManager;
         private readonly ITextState _state;
         private int _selectedZoomLevel;
         private GameAdapter _selectedGameAdapter;
@@ -38,7 +38,7 @@ namespace Kuriimu2.Wpf.ViewModels
 
         private TextEntry _selectedEntry;
 
-        public IStateInfo KoreFile { get; set; }
+        public IFileState KoreFile { get; set; }
         public ObservableCollection<TextEntry> Entries { get; private set; }
 
         public bool OriginalTextReadOnly => true;
@@ -46,7 +46,7 @@ namespace Kuriimu2.Wpf.ViewModels
         public string EntryCount => Entries.Count + (Entries.Count > 1 ? " Entries" : " Entry");
 
         // Constructor
-        public TextEditor2ViewModel(PluginManager pluginManager, IStateInfo koreFile)
+        public TextEditor2ViewModel(FileManager pluginManager, IFileState koreFile)
         {
             _pluginManager = pluginManager;
             KoreFile = koreFile;
@@ -127,11 +127,11 @@ namespace Kuriimu2.Wpf.ViewModels
 
                 // Entries
                 LoadEntries();
-                foreach (var entry in Entries)
-                    entry.Edited += (sender, args) =>
-                    {
-                        NotifyOfPropertyChange(() => PreviewImage);
-                    };
+                //foreach (var entry in Entries)
+                //    entry.Edited += (sender, args) =>
+                //    {
+                //        NotifyOfPropertyChange(() => PreviewImage);
+                //    };
             }
         }
 
@@ -190,11 +190,11 @@ namespace Kuriimu2.Wpf.ViewModels
             if (added)
             {
                 LoadEntries();
-                foreach (var ent in Entries.Where(e => e.Name == entry.Name))
-                    ent.Edited += (sender, args) =>
-                    {
-                        NotifyOfPropertyChange(() => PreviewImage);
-                    };
+                //foreach (var ent in Entries.Where(e => e.Name == entry.Name))
+                //    ent.Edited += (sender, args) =>
+                //    {
+                //        NotifyOfPropertyChange(() => PreviewImage);
+                //    };
                 SelectedEntry = entry;
             }
         }

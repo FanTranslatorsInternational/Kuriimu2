@@ -21,9 +21,9 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
     // TODO: Revise encoding selection and process
     public sealed class EncodeImageViewModel : Screen
     {
-        private readonly PluginManager _pluginManager;
+        private readonly FileManager _pluginManager;
         private readonly IImageState _state;
-        private readonly KanvasImage _kanvasImage;
+        private readonly IKanvasImage _kanvasImage;
 
         private IEncodingInfo _selectedEncoding;
         private bool _controlsEnabled = true;
@@ -42,13 +42,12 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public EncodeImageViewModel(PluginManager pluginManager, IImageState state, ImageInfo imageInfo)
+        public EncodeImageViewModel(FileManager pluginManager, IKanvasImage kanvasImage)
         {
             _pluginManager = pluginManager;
-            _state = state;
-            _kanvasImage = new KanvasImage(state, imageInfo);
+            _kanvasImage = kanvasImage;
 
-            SelectedEncoding = state.SupportedEncodings[_kanvasImage.ImageFormat];
+            //SelectedEncoding = _kanvasImage.EncodingDefinition.SupportedEncodings[_kanvasImage.ImageFormat];
             SourceImage = _kanvasImage.GetImage().ToBitmapImage();
             OutputImage = SourceImage;
         }

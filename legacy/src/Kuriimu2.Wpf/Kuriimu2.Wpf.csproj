@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp31</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>Kuriimu2.Wpf</AssemblyName>
     <RootNamespace>Kuriimu2.Wpf</RootNamespace>

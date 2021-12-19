@@ -26,7 +26,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
 
         public Func<ValidationResult> ValidationCallback;
 
-        public SelectAdapterViewModel(List<IFilePlugin> adapters, PluginManager pluginManager, string fileName)
+        public SelectAdapterViewModel(List<IFilePlugin> adapters, FileManager pluginManager, string fileName)
         {
             foreach (var adapter in adapters)
                 Adapters.Add(new SelectableAdapter(adapter.PluginId, pluginManager));
@@ -95,7 +95,7 @@ namespace Kuriimu2.Wpf.Dialogs.ViewModels
         public string About { get; }
         public string Version { get; }
 
-        public SelectableAdapter(Guid pluginId, PluginManager pluginManager)
+        public SelectableAdapter(Guid pluginId, FileManager pluginManager)
         {
             FilePlugin = pluginManager.GetFilePlugins().FirstOrDefault(x => x.PluginId == pluginId);
 
