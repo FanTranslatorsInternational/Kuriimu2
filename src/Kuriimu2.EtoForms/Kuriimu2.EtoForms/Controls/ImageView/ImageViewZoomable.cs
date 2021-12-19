@@ -1,5 +1,4 @@
-﻿using System;
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 
 namespace Kuriimu2.EtoForms.Controls.ImageView
@@ -40,13 +39,6 @@ namespace Kuriimu2.EtoForms.Controls.ImageView
             Invalidate();
 
             e.Handled = true;
-        }
-
-        public void MoveGraphic(Point offset)
-        {
-            var move = Matrix.FromTranslation(offset);
-
-            Matrix.Prepend(_transform, move);
         }
 
         #region Mouse Panning
