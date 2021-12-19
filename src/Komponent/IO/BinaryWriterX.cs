@@ -12,9 +12,8 @@ namespace Komponent.IO
     // TODO: Remove nibble order?
     public class BinaryWriterX : BinaryWriter
     {
-        private int _nibble = -1;
         private int _blockSize;
-        private int _bitPosition = 0;
+        private int _bitPosition;
         private long _buffer;
 
         public ByteOrder ByteOrder { get; set; }
@@ -113,7 +112,6 @@ namespace Komponent.IO
         public override void Flush()
         {
             FlushBuffer();
-            FlushNibble();
 
             base.Flush();
         }
@@ -329,16 +327,6 @@ namespace Komponent.IO
             _buffer = 0;
         }
 
-        private void FlushNibble()
-        {
-            if (_nibble != -1)
-            {
-                var value = _nibble;
-                _nibble = -1;
-                Write((byte)value);
-            }
-        }
-
         #endregion
 
         #region Generic type writing
@@ -362,8 +350,6 @@ namespace Komponent.IO
         // Bit Fields
         public void WriteBit(bool value)
         {
-            FlushNibble();
-
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
                 _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
@@ -375,8 +361,6 @@ namespace Komponent.IO
 
         private void WriteBit(bool value, bool writeBuffer)
         {
-            FlushNibble();
-
             if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)
                 _buffer |= (value ? 1L : 0L) << _bitPosition++;
             else
@@ -388,8 +372,6 @@ namespace Komponent.IO
 
         public void WriteBits(long value, int bitCount)
         {
-            FlushNibble();
-
             if (bitCount > 0)
             {
                 if (EffectiveBitOrder == BitOrder.LeastSignificantBitFirst)

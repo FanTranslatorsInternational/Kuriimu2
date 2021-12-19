@@ -12,7 +12,6 @@ namespace Komponent.IO
     // TODO: Remove nibble order?
     public sealed class BinaryReaderX : BinaryReader
     {
-        private int _nibble = -1;
         private int _blockSize;
         private int _currentBlockSize;
         private int _bitPosition = 64;
@@ -351,18 +350,12 @@ namespace Komponent.IO
         private void Reset()
         {
             ResetBitBuffer();
-            ResetNibbleBuffer();
         }
 
         public void ResetBitBuffer()
         {
             _bitPosition = 64;
             _buffer = 0;
-        }
-
-        public void ResetNibbleBuffer()
-        {
-            _nibble = -1;
         }
 
         private void FillBuffer()
@@ -471,8 +464,6 @@ namespace Komponent.IO
 
         private int ReadBitInteger()
         {
-            ResetNibbleBuffer();
-
             if (_bitPosition >= _currentBlockSize * 8)
                 FillBuffer();
 
