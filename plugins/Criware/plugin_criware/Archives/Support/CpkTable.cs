@@ -103,9 +103,9 @@ namespace plugin_criware.Archives.Support
             // Read rows
             tableStream.Position = tableInfo.valuesOffset;
 
-            var rows = new CpkRow[tableInfo.rowCount];
+            var rows = new List<CpkRow>(tableInfo.rowCount);
             for (var i = 0; i < tableInfo.rowCount; i++)
-                rows[i] = ReadRow(tableBr, stringBr, dataBr, columns);
+                rows.Add(ReadRow(tableBr, stringBr, dataBr, columns));
 
             return new CpkTable(tableMagic, name, columns, rows);
         }

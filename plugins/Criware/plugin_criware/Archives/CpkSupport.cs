@@ -149,6 +149,8 @@ namespace plugin_criware.Archives
 
         public TType Get<TType>(string valueName)
         {
+            if (!_values.ContainsKey(valueName))
+                return default;
             return _values[valueName].Get<TType>();
         }
 

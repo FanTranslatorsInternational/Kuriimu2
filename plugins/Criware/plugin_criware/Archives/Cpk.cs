@@ -102,6 +102,53 @@ namespace plugin_criware.Archives
             _header.Write(output, 0, _align);
         }
 
+        public void DeleteFile(IArchiveFileInfo afi)
+        {
+            var fileInfo = afi as CpkArchiveFileInfo;
+            if (fileInfo == null)
+                return;
+
+            // TocTable
+            _tocTable?.Rows.Remove(fileInfo.Row);
+
+            // ItocTable
+            switch (_itocTable?.Name)
+            {
+                case "CpkItocInfo":
+                    _dataLTable?.Rows.Remove(fileInfo.Row);
+                    _dataHTable?.Rows.Remove(fileInfo.Row);
+                    break;
+
+                case "CpkExtendId":
+                    _itocTable?.Rows.Remove(fileInfo.Row);
+                    _tocTable?.Rows.Remove(_tocTable.Rows.FirstOrDefault(x => x.Get<int>("ID") == fileInfo.Row.Get<int>("ID")));
+                    break;
+            }
+
+            // EtocTable
+            _etocTable?.Rows.Remove(fileInfo.Row);
+
+            // GtocTable
+            _gtocTable?.Rows.Remove(fileInfo.Row);
+        }
+
+        public void DeleteAll()
+        {
+            // TocTable
+            _tocTable?.Rows.Clear();
+
+            // ItocTable
+            _dataLTable?.Rows.Clear();
+            _dataHTable?.Rows.Clear();
+            _itocTable?.Rows.Clear();
+
+            // EtocTable
+            _etocTable?.Rows.Clear();
+
+            // GtocTable
+            _gtocTable?.Rows.Clear();
+        }
+
         #region Read tables
 
         private IEnumerable<IArchiveFileInfo> ReadTocTable(BinaryReaderX br, long tocOffset, long contentOffset)

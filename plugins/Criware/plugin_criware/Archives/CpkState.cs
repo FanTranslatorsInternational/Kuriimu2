@@ -11,9 +11,10 @@ using Kontract.Models.IO;
 
 namespace plugin_criware.Archives
 {
-    class CpkState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles
+    class CpkState : IArchiveState, ILoadFiles, ISaveFiles, IReplaceFiles, IRemoveFiles
     {
         private readonly Cpk _cpk;
+        private bool _filesDeleted;
 
         public IList<IArchiveFileInfo> Files { get; private set; }
 
@@ -26,6 +27,8 @@ namespace plugin_criware.Archives
 
         public async Task Load(IFileSystem fileSystem, UPath filePath, LoadContext loadContext)
         {
+            _filesDeleted = false;
+
             var fileStream = await fileSystem.OpenFileAsync(filePath);
             Files = _cpk.Load(fileStream);
         }
@@ -45,7 +48,23 @@ namespace plugin_criware.Archives
 
         private bool IsContentChanged()
         {
-            return Files.Any(x => x.ContentChanged);
+            return Files.Any(x => x.ContentChanged) ||_filesDeleted;
+        }
+
+        public void RemoveFile(IArchiveFileInfo afi)
+        {
+            Files.Remove(afi);
+            _cpk.DeleteFile(afi);
+
+            _filesDeleted = true;
+        }
+
+        public void RemoveAll()
+        {
+            Files.Clear();
+            _cpk.DeleteAll();
+
+            _filesDeleted = true;
         }
     }
 }
