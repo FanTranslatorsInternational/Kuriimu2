@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using Komponent.IO;
 using Komponent.IO.Attributes;
 using Komponent.IO.Streams;
@@ -49,6 +50,7 @@ namespace Kompression.Implementations.Decoders
 
                 circularBuffer.Copy(reverseOutputStream, displacement, length);
             }
+
         }
 
         private int ReadLength(BinaryReaderX br)

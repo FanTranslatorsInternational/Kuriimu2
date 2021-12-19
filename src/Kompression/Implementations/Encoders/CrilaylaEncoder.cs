@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Komponent.IO;
@@ -58,6 +59,8 @@ namespace Kompression.Implementations.Encoders
                 bw.WriteBit(false);
                 bw.WriteBits(inputReverseStream.ReadByte(), 8);
             }
+
+            bw.Flush();
 
             // Write raw start data
             input.Position = 0;
