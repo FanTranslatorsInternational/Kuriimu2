@@ -96,6 +96,9 @@ namespace Kontract.Models.Text
             var result = text[index] == EscapeChar_ && index + 1 < text.Length;
             return result && EscapeableChars.Any(c => text[index + 1] == c);
         }
+
+        public static implicit operator ProcessedText(string s) => Parse(s);
+        public static explicit operator string(ProcessedText pt) => pt.Serialize();
     }
 
     public class ProcessedElement

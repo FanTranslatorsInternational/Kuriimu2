@@ -48,9 +48,7 @@ namespace Kore.Managers.Plugins.FileManagement
             // 2. Identify the plugin to use
             var plugin = loadInfo.Plugin ?? await IdentifyPluginAsync(fileSystem, filePath, loadInfo);
             if (plugin == null)
-            {
-                return LoadResult.CancelledResult;
-            }
+                return new LoadResult(false, "No plugin could open the file.");
 
             // 3. Create state from identified plugin
             var subPluginManager = new ScopedFileManager(loadInfo.FileManager);
