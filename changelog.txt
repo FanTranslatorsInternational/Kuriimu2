@@ -1,22 +1,20 @@
-An intermediate release supporting all image plugins from Kukkii.
+An intermediate release changing the GUI framework from EtoForms to Dear ImGui.
+This allows for cross-platform support and styling, without platform-dependant projects or reimplementations of controls.
 
 General changes:
-- Major cleanup of GUI features (credits to @HoldYourWaffle)
-- Many bug fixes in the underlying frameworks
-- Add Batch injection in the Command Line
-- Add palette support to Raw Image Viewer
-- Add more swizzles to Raw Image Viewer
+- Switch from EtoForms to Dear ImGui for the GUI
 
 API Changes:
-- None
+- Flush remaining bits in Crilayla compression
+- Remove nibble read/write from Komponent.IO
 
 Plugin changes:
-- Includes all image plugins with equal or better support from Kukkii
-- Add/Change plugins as requested by over 3 years worth of issues on the Kuriimu github
-	- Closed >130 issues on Kuriimu by adding new plugins, disregarding obsolete bugs, and enhancing current plugins
+- Add simple NCCH identification for unencrypted NCCH's
+- Direct XPCK archive load in XF plugin
+- Add CPK deletion support
+- Other smaller changes
 
 Future plans:
-- 1.2.2: Introducing dark mode and localizations
 - 1.3.0: Introduce text API and port all text plugins from Kuriimu
 
 Overview of our current and future file format support:

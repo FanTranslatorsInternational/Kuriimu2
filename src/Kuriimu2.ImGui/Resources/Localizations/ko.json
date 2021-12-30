@@ -1,0 +1,259 @@
+﻿{
+  "Name": "한국인",
+
+  // Kuriimu2 Main GUI texts
+  "File": "파일",
+  "Tools": "도구",
+  "Ciphers": "암호화",
+  "Compressions": "압축",
+  "Settings": "설정",
+
+  "Open": "열기",
+  "OpenWith": "...로 열기",
+  "Save": "저장",
+  "SaveAs": "다른 이름으로 저장...",
+  "SaveAll": "모두 저장",
+  "Close": "닫기",
+
+  "TextSequenceSearcher": "문자 검색기",
+  "BatchExtractor": "모두 추출하기",
+  "BatchInjector": "모두 바꾸기",
+
+  "Hashes": "해시",
+
+  "Encrypt": "암호화",
+  "Decrypt": "복호화",
+
+  "Decompress": "압축 해제",
+  "Compress": "압축",
+
+  "RawImageViewer": "Raw 이미지 뷰어",
+
+  "IncludeDevBuilds": "개발자 빌드 포함",
+  "ChangeLanguage": "언어 변경",
+  "ChangeLanguageCaption": "변경 사항은 다시 시작한 후 적용됩니다.",
+  "ChangeLanguageTitle": "변경된 설정",
+
+  "ChangeTheme": "테마 바꾸기",
+  "ThemeDark": "다크 테마",
+  "ThemeLight": "라이트 테마",
+  "ThemeRestartText": "테마를 바꾸려면 재시작하세요.",
+  "ThemeRestartCaption": "재시작",
+  "ThemeUnsupportedPlatformText": "안타깝게도, 이 테마는 이 플랫폼에서 지원하지 않습니다.",
+  "ThemeUnsupportedPlatformCaption": "미지원 플랫폼 에러",
+
+  "Help": "도움",
+  "AboutKuriimu2": "Kuriimu2에 관하여",
+
+  "LoadErrorCaption": "불러오기 오류",
+  "SaveErrorCaption": "저장 오류",
+  "UnsavedChangesCaption": "저장하지 않은 변경사항",
+  "DependantFilesCaption": "종속 파일",
+  "ExceptionCatchedCaption": "예외 캐치됨",
+  "UnhandledExceptionCaption": "처리되지 않은 예외",
+  "UpdateAvailableCaption": "업데이트 존재",
+  "PluginsNotAvailableCaption": "플러그인 미존재",
+
+  "LoadCancelledStatus": "로드 취소됨.",
+  "NoPluginSelectedStatus": "플러그인 선택되지 않음.",
+  "NoFileSelectedStatus": "파일 선택되지 않음.",
+  "FileAlreadyOpeningStatus": "{0} 이 이미 열려있음.",
+  "FileAlreadySavingStatus": "{0} 이 이미 저장중임.",
+  "FileSuccessfullyLoaded": "파일 정상적으로 불러옴.",
+  "FileNotSuccessfullyLoaded": "파일 정상적으로 불러오지 못함.",
+  "FileNotSuccessfullyLoadedWithPlugin": "파일을 {0} 플러그인으로 불러오지 못했습니다.",
+  "FileSavedSuccessfullyStatus": "파일 정상적으로 저장함.",
+  "FileNotSavedSuccessfullyStatus": "파일 정상적으로 저장하지 못함.",
+  "OperationsStillRunningStatus": "작업이 진행중이므로 파일을 저장하지 못했습니다.",
+
+  "SelectedFileInvalid": "선택한 파일이 잘못되었습니다.",
+  "UnsavedChangesToFile": "{0} 혹은 그 하위 파일이 변경되었습니다. 변경 내용을 저장하시겠습니까?",
+  "UnsavedChangesGeneric": "하나 이상의 파일이 변경되었습니다. 변경 내용을 저장하시겠습니까?",
+  "DependantFiles": "이 파일과 이 파일 하위에서 열린 파일이 닫힙니다. 계속하기겠습니까?",
+  "UnhandledExceptionCloseApp": "처리되지 않은 예외가 발생했습니다. 자세한 사항은 로그를 확인하세요. 프로그램이 곧 닫힙니다.",
+  "UnhandledExceptionNotCloseApp": "처리되지 않은 예외가 발생했습니다. 자세한 사항은 로그를 확인하세요.",
+  "UpdateAvailable": "{0}-{1} 에서 {2}-{3} 로 업데이트하시겠습니까?",
+  "FollowingPluginsNotLoaded": "이 플러그인들을 불러올 수 없습니다.",
+
+  "AllFilesFilter": "모든 파일들",
+
+  "UnsupportedOperatingSystemException": "Unsupported operating system: {0}.",
+  "UnsupportedPlatformException": "Unsupported platform: {0}.",
+
+  // Kuriimu2 Archive Form
+  "ClearSearch": "비우기",
+  "CancelOperation": "취소",
+
+  "Extract": "추출",
+  "Replace": "교체",
+  "Rename": "이름 변경",
+  "Delete": "삭제",
+  "Add": "추가",
+
+  "ExtractFile": "파일(들) 추출",
+  "ReplaceFile": "파일(들) 교체",
+  "RenameFile": "파일 이름 변경",
+  "DeleteFile": "파일 삭제",
+
+  "FileName": "이름",
+  "FileSize": "크기",
+
+  "NoTargetSelectedStatus": "아무것도 선택되지 않음.",
+
+  "NoFilesToExtractStatus": "추출할 파일 없음.",
+  "NoFilesToReplaceStatus": "대체할 파일 없음.",
+  "NoFilesToRenameStatus": "이름 변경할 파일 없음.",
+  "NoFilesToDeleteStatus": "삭제할 파일 없음.",
+  "NoFilesToAddStatus": "추가할 파일 없음.",
+
+  "ExtractFileProgress": "파일들 추출",
+  "ReplaceFileProgress": "파일들 대체",
+  "RenameFileProgress": "파일들 이름 변경",
+  "DeleteFileProgress": "파일들 삭제",
+  "AddFileProgress": "파일들 추가",
+
+  "ExtractFileCancelledStatus": "파일 추출이 취소되었습니다.",
+  "ReplaceFileCancelledStatus": "파일 대체가 취소되었습니다.",
+  "RenameFileCancelledStatus": "파일 이름 변경이 취소되었습니다.",
+  "DeleteFileCancelledStatus": "파일 삭제가 취소되었습니다.",
+  "AddFileCancelledStatus": "파일 추가가 취소되었습니다.",
+
+  "ExtractFileSuccessfulStatus": "파일(들)이 성공적으로 추출되었습니다.",
+  "ReplaceFileSuccessfulStatus": "파일(들)이 성공적으로 대체되었습니다.",
+  "RenameFileSuccessfulStatus": "파일(들)이 성공적으로 이름변경 되었습니다.",
+  "DeleteFileSuccessfulStatus": "파일(들)이 성공적으로 삭제되었습니다.",
+  "AddFileSuccessfulStatus": "파일(들)이 성공적으로 추가되었습니다.",
+
+  "UnableToAddFilesStatus": "일부 파일들을 추가할 수 없습니다. 자세한 사항은 로그를 확인해 주세요.",
+
+  "NoNameGivenStatus": "새 이름이 주어지지 않았습니다.",
+
+  "RenameFileTitle": "파일 이름 변경",
+  "RenameDirectoryTitle": "디렉토리 이름 변경",
+
+  "RenameItemCaption": "{0}을 위한 새 이름 설정:",
+
+  // Kuriimu2 Image form
+  "ExportImage": "이미지 추출",
+  "ImportImage": "이미지 삽입",
+
+  "Width": "폭:",
+  "Height": "높이:",
+  "Format": "포맷:",
+  "Palette": "팔레트:",
+
+  "ExportPngTitle": "PNG 추출...",
+  "ImportPngTitle": "PNG 삽입...",
+
+  "ImageSuccessfullyImportedStatus": "이미지를 성공적으로 삽입했습니다",
+
+  "PngFileFilter": "Portable Network Graphics (*.png)",
+
+  // Kuriimu2 Text Sequence Searcher
+  "TextSequenceSearcherTitle": "텍스트 시퀸스 검색기",
+  "SearchSubfolders": "서브폴더 포함해 검색",
+
+  "Find": "찾기",
+  "FindIn": "검색 위치:",
+  "FindWhat": "검색 텍스트:",
+  "Browse": "탐색...",
+  "Encoding": "인코딩:",
+
+  "SelectSearchDirectory": "검색할 디렉토리 선택",
+
+  "SelectEncodingCaption": "인코딩을 선택하세요.",
+  "SelectSearchDirectoryCaption": "검색할 디렉토리를 선택하세요.",
+  "SelectSearchTextCaption": "검색할 텍스트를 입력하세요.",
+
+  // Kuriimu2 ChoosePluginDialog
+  "ChooseOpenFilePlugin": "파일을 열 플러그인 선택:",
+  "MultiplePluginMatchesSelection": "여러 플러그인이 이 파일을 인식할 수 있습니다. 하나를 선택하세요:",
+  "NonIdentifiablePluginSelection": "이 파일을 열기 위한 플러그인을 찾을 수 없습니다. 수동으로 선택하세요:",
+  "NonIdentifiablePluginSelectionNote": "기본적으로 파일을 지원하는지 여부를 자동으로 확인할 수 없는 플러그인만 표시됩니다.",
+
+  "PluginNameColumn": "이름",
+  "PluginTypeColumn": "타입",
+  "PluginDescriptionColumn": "설명",
+  "PluginIdColumn": "GUID",
+
+  "ChoosePluginTitle": "플러그인 선택",
+  "ChoosePluginContinue": "계속하기",
+  "ChoosePluginRawBytes": "헥스 값으로 보기",
+  "ChoosePluginCancel": "취소",
+  "ChoosePluginShowAll": "모든 플러그인 표시",
+
+  // Kuriimu2 DialogManager
+  "CancelDialog": "대화 상자가 취소되었습니다.",
+  "UnsupportedDialogFieldType": "지원하지 않는 대화 상자 필드 유형 {0}.",
+  "DialogOkButton": "확인",
+
+  // Kuriimu2 InputBox
+  "InputBoxOkButton": "확인",
+
+  // Kuriimu2 RawImageViewer
+  "NoSwizzle": "None",
+  "CustomSwizzle": "Custom",
+
+  "ComponentOrder": "ComponentOrder",
+  "ByteOrder": "ByteOrder",
+  "BitOrder": "BitOrder",
+  "ZOrder": "Z-Order",
+  "AlphaLuminance": "Alpha/Luminance",
+  "AlphaMode": "AlphaMode",
+  "SwizzleMode": "SwizzleMode",
+  "BitMapping": "BitMapping",
+  "InitPoint": "InitPoint",
+  "YTransform": "YTransform",
+
+  "InvalidInputValuesStatus": "입력 값이 잘못되었습니다.",
+  "InvalidCustomSwizzleStatus": "커스텀 swizzle이 잘못되었습니다.",
+
+  "SelectedFileNotExistStatus": "선택한 파일이 존재하지 않습니다.",
+
+  "RawImageViewerEncodingParameters": "인코딩 매개 변수",
+  "RawImageViewerEncodingPaletteParameters": "팔레트 인코딩 매개 변수",
+  "RawImageViewerSwizzleParameters": "Swizzle 매개 변수",
+
+  "Offset": "오프셋:",
+  "PaletteOffset": "팔레트 오프셋:",
+  "Swizzle": "Swizzle:",
+
+  "Process": "작업",
+
+  // Kuriimu2 BatchDialog
+  "AvgTimePerFile": "파일당 평균 시간:",
+  "AvgTimePerFileTimed": "파일당 평균 시간: {0}ms",
+
+  "BatchAvailablePlugins": "플러그인",
+  "BatchSelectInput": "입력 선택...",
+  "BatchSelectOutput": "출력 선택...",
+  "Execute": "실행",
+
+  "BatchSelectPluginStatus": "플러그인을 선택하세요.",
+
+  "BatchExtractSourceEmpty": "추출할 파일이 있는 디렉토리를 선택하세요.",
+  "BatchExtractDestinationEmpty": "추출한 파일을 저장할 디렉토리를 선택하세요.",
+
+  "BatchInjectSourceEmpty": "주입할 파일이 있는 디렉토리를 선택하세요.",
+  "BatchInjectDestinationEmpty": "주입한 파일을 저장할 디렉토리를 선택하세요.",
+
+  // Kuriimu2 Extension Dialogs
+  "ExtensionParameters": "매개 변수",
+  "AutoExecute": "드랍 시 자동 실행",
+
+  "SelectFolder": "폴더 선택...",
+  "SelectFile": "파일 선택...",
+
+  "Compression": "압축",
+  "Decompression": "압축 해제",
+  "Encryption": "암호화",
+  "Decryption": "복호화",
+
+  "SelectTypeExtension": "{0}를 선택하세요.",
+  "SelectFileOrFolder": "작업할 파일이나 디렉토리를 선택하세요.",
+  "FileFailed": "{0} 실패함: {1}",
+  "ProcessFinishedCaption": "결과가 {0}에 작성되었습니다.",
+  "ProcessFinishedTitle": "완료!",
+  "CipherNotSupported": "지원하지 않는 암호화 {0}.",
+  "CompressionNotSupported": "지원하지 않는 압축 암호화 {0}."
+}

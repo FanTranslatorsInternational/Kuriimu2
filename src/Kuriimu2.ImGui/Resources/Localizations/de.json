@@ -1,0 +1,251 @@
+﻿{
+  "Name": "Deutsch", 
+
+  // Kuriimu2 GUI texts
+  "File": "Datei",
+  "Tools": "Werkzeuge",
+  "Ciphers": "Verschlüsselung",
+  "Compressions": "Kompressionen",
+  "Settings": "Einstellungen",
+
+  "Open": "Öffnen",
+  "OpenWith": "Öffnen mit...",
+  "Save": "Speichern",
+  "SaveAs": "Speichern unter...",
+  "SaveAll": "Alles speichern",
+  "Close": "Schließen",
+
+  "TextSequenceSearcher": "Textsuche",
+  "BatchExtractor": "Alles entpacken",
+  "BatchInjector": "Alles ersetzen",
+
+  "Hashes": "Prüfsummen",
+
+  "Encrypt": "Verschlüsseln",
+  "Decrypt": "Entschlüsseln",
+
+  "Decompress": "Komprimieren",
+  "Compress": "Dekomprimieren",
+
+  "RawImageViewer": "Rohbildansicht",
+
+  "IncludeDevBuilds": "Entwicklerversionen einbeziehen",
+  "ChangeLanguage": "Sprache ändern",
+  "ChangeLanguageCaption": "Die Änderungen werden erst nach einem Neustart effektiv.",
+  "ChangeLanguageTitle": "Geänderte Einstellungen",
+
+  "Help": "Hilfe",
+  "AboutKuriimu2": "Über Kuriimu2",
+
+  "LoadErrorCaption": "Fehler beim Laden",
+  "SaveErrorCaption": "Fehler beim Speichern",
+  "UnsavedChangesCaption": "Ungespeicherte Änderungen",
+  "DependantFilesCaption": "Dateiabhängigkeiten",
+  "ExceptionCatchedCaption": "Ausnahme abgefangen",
+  "UnhandledExceptionCaption": "Unbehandelte Ausnahme",
+  "UpdateAvailableCaption": "Updates verfügbar",
+  "PluginsNotAvailableCaption": "Fehlerhafte Plugins",
+
+  "LoadCancelledStatus": "Laden abgebrochen.",
+  "NoPluginSelectedStatus": "Kein Plugin ausgewählt.",
+  "NoFileSelectedStatus": "Keine Datei ausgewählt.",
+  "FileAlreadyOpeningStatus": "{0} wird bereits geöffnet.",
+  "FileAlreadySavingStatus": "{0} wird bereits gespeichert.",
+  "FileSuccessfullyLoaded": "Datei erfolgreich geladen.",
+  "FileNotSuccessfullyLoaded": "Datei nicht erfolgreich geladen.",
+  "FileNotSuccessfullyLoadedWithPlugin": "Datei nicht erfolgreich mit Plugin {0} geladen.",
+  "FileSavedSuccessfullyStatus": "Datei erfolgreich gespeichert.",
+  "FileNotSavedSuccessfullyStatus": "Datei nicht erfolgreich gespeichert.",
+  "OperationsStillRunningStatus": "Es werden noch immer Operationen ausgeführt und die Datei kann nicht geschlossen werden.",
+
+  "SelectedFileInvalid": "Die ausgewählte Datei ist ungültig.",
+  "UnsavedChangesToFile": "Es wurden Änderungen an {0} oder dessen beinhaltete Dateien gemacht. Möchtest du diese Änderungen speichern?",
+  "UnsavedChangesGeneric": "Es wurden Änderungen an einer oder mehr Dateien gemacht. Möchtest du diese Änderungen speichern?",
+  "DependantFiles": "Diese und dessen beinhaltete Dateien werden geschlossen. Fortfahren?",
+  "UnhandledExceptionCloseApp": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen. Die Anwendung wird geschlossen.",
+  "UnhandledExceptionNotCloseApp": "Eine unbehandelte Ausnahme ist aufgetreten. Siehe den Log für mehr Informationen.",
+  "UpdateAvailable": "Möchtest du von {0}-{1} nach {2}-{3} aktualisieren?",
+  "FollowingPluginsNotLoaded": "Folgende Plugins konnten nicht geladen werden",
+
+  "AllFilesFilter": "Alle Dateien",
+
+  "UnsupportedOperatingSystemException": "Nicht unterstütztes Betriebssystem: {0}.",
+  "UnsupportedPlatformException": "Nicht unterstützte Plattform: {0}.",
+
+  // Kuriimu2 Archive Form
+  "ClearSearch": "Leeren",
+  "CancelOperation": "Abbrechen",
+
+  "Extract": "Entpacken",
+  "Replace": "Ersetzen",
+  "Rename": "Umbenennen",
+  "Delete": "Löschen",
+  "Add": "Hinzufügen",
+
+  "ExtractFile": "Datei(en) entpacken",
+  "ReplaceFile": "Datei(en) ersetzen",
+  "RenameFile": "Datei umbenennen",
+  "Delete file": "Datei löschen",
+
+  "FileName": "Name",
+  "FileSize": "Größe",
+
+  "NoTargetSelectedStatus": "Kein Ziel ausgewählt.",
+
+  "NoFilesToExtractStatus": "Keine Dateien zum Entpacken.",
+  "NoFilesToReplaceStatus": "Keine Dateien zum Ersetzen.",
+  "NoFilesToRenameStatus": "Keine Dateien zum Umbenennen.",
+  "NoFilesToDeleteStatus": "Keine Dateien zum Löschen.",
+  "NoFilesToAddStatus": "Keine Dateien zum Hinzufügen.",
+
+  "ExtractFileProgress": "Entpacke Dateien",
+  "ReplaceFileProgress": "Ersetze Dateien",
+  "RenameFileProgress": "Bename Dateien um",
+  "DeleteFileProgress": "Lösche Dateien",
+  "AddFileProgress": "Füge Dateien hinzu",
+
+  "ExtractFileCancelledStatus": "Entpacken abgebrochen.",
+  "ReplaceFileCancelledStatus": "Ersetzen abgebrochen.",
+  "RenameFileCancelledStatus": "Umbennen abgebrochen.",
+  "DeleteFileCancelledStatus": "Löschen abgebrochen.",
+  "AddFileCancelledStatus": "Hinzufügen abgebrochen.",
+
+  "ExtractFileSuccessfulStatus": "Datei(en) erfolgreich entpackt.",
+  "ReplaceFileSuccessfulStatus": "Datei(en) erfolgreich ersetzt.",
+  "RenameFileSuccessfulStatus": "Datei(en) erfolgreich umbenannt.",
+  "DeleteFileSuccessfulStatus": "Datei(en) erfolgreich gelöscht.",
+  "AddFileSuccessfulStatus": "Datei(en) erfolgreich hinzugefügt.",
+
+  "UnableToAddFilesStatus": "Einige Dateien konnten nicht erfolgreich hinzugefügt werden. Siehe den Log für mehr Informationen.",
+
+  "NoNameGivenStatus": "Kein neuer Name angegeben.",
+
+  "RenameFileTitle": "Datei umbenennen",
+  "RenameDirectoryTitle": "Ordner umbenennen",
+
+  "RenameItemCaption": "Wähle einen neuen Namen für {0}:",
+
+  // Kuriimu2 Image form
+  "ExportImage": "Bild exportieren",
+  "ImportImage": "Bild importieren",
+
+  "Width": "Breite:",
+  "Height": "Höhe:",
+  "Format": "Format:",
+  "Palette": "Palette:",
+
+  "ExportPngTitle": "PNG exportieren...",
+  "ImportPngTitle": "PNG importieren...",
+
+  "ImageSuccessfullyImportedStatus": "Bild erfolgreich importiert.",
+
+  "PngFileFilter": "Portable Network Graphics (*.png)",
+
+  // Kuriimu2 Text Sequence Searcher
+  "TextSequenceSearcherTitle": "Textsuche",
+  "SearchSubfolders": "Durchsuche Unterordner",
+
+  "Find": "Suche",
+  "FindIn": "Suche in:",
+  "FindWhat": "Suchtext:",
+  "Browse": "Durchsuchen...",
+  "Encoding": "Textkodierung:",
+
+  "SelectSearchDirectory": "Wähle den Ordner, in dem gesucht werden soll",
+
+  "SelectEncodingCaption": "Wähle eine Textkodierung.",
+  "SelectSearchDirectoryCaption": "Wähle einen Ordner, in dem gesucht werden soll.",
+  "SelectSearchTextCaption": "Wähle einen Text, nach dem gesucht werden soll.",
+
+  // Kuriimu2 ChoosePluginDialog
+  "ChooseOpenFilePlugin": "Wähle ein Plugin, um die Datei zu öffnen:",
+  "MultiplePluginMatchesSelection": "Mehrere Plugins können diese Datei identifizieren. Bitte wähle eins aus:",
+  "NonIdentifiablePluginSelection": "Kein Plugin konnte die Datei automatisch identifizieren. Bitte wähle manuell ein Plugin aus:",
+  "NonIdentifiablePluginSelectionNote": "Standardmäßig werden nur Plugins angezeigt, die generell keine Plugins identifizieren können.",
+
+  "PluginNameColumn": "Name",
+  "PluginTypeColumn": "Typ",
+  "PluginDescriptionColumn": "Beschreibung",
+  "PluginIdColumn": "GUID",
+
+  "ChoosePluginTitle": "Pluginauswahl",
+  "ChoosePluginContinue": "Fortsetzen",
+  "ChoosePluginRawBytes": "Öffne Rohdaten",
+  "ChoosePluginCancel": "Abbrechen",
+  "ChoosePluginShowAll": "Zeige alle Plugins",
+
+  // Kuriimu2 DialogManager
+  "CancelDialog": "Dialog abgebrochen.",
+  "UnsupportedDialogFieldType": "Nicht unterstütztes Dialogfeld {0}.",
+  "DialogOkButton": "Ok",
+
+  // Kuriimu2 InputBox
+  "InputBoxOkButton": "Ok",
+
+  // Kuriimu2 RawImageViewer
+  "NoSwizzle": "Keiner",
+  "CustomSwizzle": "Benutzerdefiniert",
+
+  "ComponentOrder": "ComponentOrder",
+  "ByteOrder": "ByteOrder",
+  "BitOrder": "BitOrder",
+  "ZOrder": "Z-Order",
+  "AlphaLuminance": "Alpha/Helligkeit",
+  "AlphaMode": "AlphaMode",
+  "SwizzleMode": "SwizzleMode",
+  "BitMapping": "BitMapping",
+  "InitPoint": "InitPoint",
+  "YTransform": "YTransform",
+
+  "InvalidInputValuesStatus": "Eingabewerte sind ungültig.",
+  "InvalidCustomSwizzleStatus": "Benutzerdefinierter Swizzle ist ungültig.",
+
+  "SelectedFileNotExistStatus": "Ausgewählte Datei existiert nicht.",
+
+  "RawImageViewerEncodingParameters": "Kodierungsparameter",
+  "RawImageViewerEncodingPaletteParameters": "Palettenkodierungsparameter",
+  "RawImageViewerSwizzleParameters": "Swizzleparameter",
+
+  "Offset": "Offset:",
+  "PaletteOffset": "Palettenoffset:",
+  "Swizzle": "Swizzle:",
+
+  "Process": "Ausführen",
+
+  // Kuriimu2 BatchDialog
+  "AvgTimePerFile": "Durchschn. Zeit pro Datei:",
+  "AvgTimePerFileTimed": "Durchschn. Zeit pro Datei: {0}ms",
+
+  "BatchAvailablePlugins": "Plugins",
+  "BatchSelectInput": "Wähle Eingabe...",
+  "BatchSelectOutput": "Wähle Ausgabe...",
+  "BatchExecute": "Ausführen",
+
+  "BatchSelectPluginStatus": "Wähle ein Plugin.",
+
+  "BatchExtractSourceEmpty": "Wähle einen Ordner mit Dateien, die entpackt werden sollen.",
+  "BatchExtractDestinationEmpty": "Wähle einen Ordner, in den entpackt wird.",
+
+  "BatchInjectSourceEmpty": "Wähle einen Ordner mit Dateien, die eingefügt werden sollen.",
+  "BatchInjectDestinationEmpty": "Wähle einen Ordner mit Unterordnern, die eingefügt werden sollen.",
+
+  // Kuriimu2 Extension Dialogs
+  "ExtensionParameters": "Parameter",
+  "AutoExecute": "Führe automatisch beim Ablegen aus",
+
+  "SelectFolder": "Wähle Ordner...",
+  "SelectFile": "Wähle Datei...",
+
+  "Compression": "Kompression",
+  "Decompression": "Dekompression",
+  "Encryption": "Verschlüsselung",
+  "Decryption": "Entschlüsselung",
+
+  "SelectTypeExtension": "Wähle eine {0}.",
+  "SelectFileOrFolder": "Wähle eine Datei oder einen Ordner zum Bearbeiten.",
+  "FileFailed": "{0} fehlgeschlagen: {1}",
+  "CipherProcessFinishedCaption": "Ergebnisse werden nach {0} geschrieben.",
+  "ProcessFinishedTitle": "Erledigt!",
+  "CipherNotSupported": "Nicht unterstützte Verschlüsselung {0}.",
+  "CompressionNotSupported": "Nicht unterstützte Kompression {0}."
+}

@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp31</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+	
+  <ItemGroup>
+    <None Remove="Resources\Images\kuriimu2.ico" />
+    <None Remove="Resources\Localizations\da.json" />
+    <None Remove="Resources\Localizations\de.json" />
+    <None Remove="Resources\Localizations\en.json" />
+    <None Remove="Resources\Localizations\ru.json" />
+    <None Remove="Resources\Localizations\zh.json" />
+    <None Remove="Resources\version.json" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\kuriimu2.ico" />
+    <EmbeddedResource Include="Resources\Localizations\en.json" />
+    <EmbeddedResource Include="Resources\Localizations\da.json" />
+    <EmbeddedResource Include="Resources\Localizations\de.json" />
+    <EmbeddedResource Include="Resources\Localizations\ru.json" />
+    <EmbeddedResource Include="Resources\Localizations\zh.json" />
+    <EmbeddedResource Include="Resources\Localizations\ko.json" />
+    <EmbeddedResource Include="Resources\version.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="ImGui.Forms" Version="1.0.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
+    <ProjectReference Include="..\Komponent\Komponent.csproj" />
+    <ProjectReference Include="..\Kompression\Kompression.csproj" />
+    <ProjectReference Include="..\Kontract\Kontract.csproj" />
+    <ProjectReference Include="..\Kore\Kore.csproj" />
+    <ProjectReference Include="..\Kryptography\Kryptography.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Resources\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Resources\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  
+  <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>
+  
+</Project>
