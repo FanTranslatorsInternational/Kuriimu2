@@ -3,7 +3,7 @@ name: Kuriimu2 EtoForms Dev
 on:
   push:
     branches:
-      - dev
+      - imgui
 
 jobs:
   build:
