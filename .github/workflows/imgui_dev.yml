@@ -170,7 +170,7 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         directory: ./update_repo
-        repository: FanTranslatorsInternational/Kuriimu2-ImGui-Update
+        repository: FanTranslatorsInternational/Kuriimu2-ImGuiForms-Update
         github_token: ${{ secrets.PRIVATE_ACCESS_TOKEN }}
       
     - name: Upload Windows artifact
