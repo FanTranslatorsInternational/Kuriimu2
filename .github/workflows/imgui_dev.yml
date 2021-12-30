@@ -104,15 +104,16 @@ jobs:
         dotnet publish ./src/Kuriimu2.ImGui/Kuriimu2.ImGui.csproj --output ./dist/final/Mac --configuration Release --framework netcoreapp31 --runtime osx-x64 /p:PublishSingleFile=true
         mv ./dist/final/Windows/Kuriimu2.ImGui.exe ./dist/final/Windows/Kuriimu2.exe
         mv ./dist/final/Linux/Kuriimu2.ImGui ./dist/final/Linux/Kuriimu2
-        mkdir ./dist/final/Mac
-        mv ./dist/Release/netcoreapp31/Kuriimu2.app ./dist/final/Mac/Kuriimu2.app
+        mv ./dist/final/Mac/Kuriimu2.ImGui ./dist/final/Mac/Kuriimu2
         rm ./dist/final/Windows/*.pdb
         rm ./dist/final/Linux/*.pdb
+        rm ./dist/final/Mac/*.pdb
         
     - name: Copy plugins to applications
       run: |
         xcopy /I .\dist\final\plugins .\dist\final\Windows\plugins
         xcopy /I .\dist\final\plugins .\dist\final\Linux\plugins
+        xcopy /I .\dist\final\plugins .\dist\final\Mac\plugins
       shell: cmd
       
     - name: Zip Windows release
