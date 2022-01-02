@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -17,9 +18,9 @@ namespace Kompression.Implementations.Decoders
 
             var buffer = new byte[4];
             input.Read(buffer, 0, 4);
-            var compressedDataSize = buffer.GetInt32LittleEndian(0);
+            var compressedDataSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var decompressedSize = buffer.GetInt32LittleEndian(0);
+            var decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
 
             var circularBuffer=new CircularBuffer(0x1000)
             {

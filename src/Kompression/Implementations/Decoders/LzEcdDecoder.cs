@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
 using Kompression.Extensions;
@@ -29,11 +31,11 @@ namespace Kompression.Implementations.Decoders
             }
 
             input.Read(buffer, 0, 4);
-            var skipData = buffer.GetInt32BigEndian(0);
+            var skipData = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var compressedLength = buffer.GetInt32BigEndian(0);
+            var compressedLength = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var uncompressedLength = buffer.GetInt32BigEndian(0);
+            var uncompressedLength = BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
 
             var circularBuffer = new CircularBuffer(0x400)
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
@@ -25,7 +26,7 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidCompressionException("IECP");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = buffer.GetInt32LittleEndian(0);
+            var decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
 
             _decoder.Decode(input, output, decompressedSize);
         }

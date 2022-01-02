@@ -68,7 +68,6 @@ namespace Kanvas.Quantization.Quantizers
                 (key, info) => info.IncreaseCount());
         }
 
-        // TODO: Review method
         private List<Color> FilterColorInfos(IDictionary<uint, DistinctColorInfo> distinctColors)
         {
             var colorInfoList = distinctColors.Values.ToList();
@@ -96,9 +95,7 @@ namespace Kanvas.Quantization.Quantizers
             };
 
             while (ProcessList(maxColorCount, colorInfoList, comparers,
-                out colorInfoList))
-            {
-            }
+                out colorInfoList)) { }
 
             int listColorCount = colorInfoList.Count;
 

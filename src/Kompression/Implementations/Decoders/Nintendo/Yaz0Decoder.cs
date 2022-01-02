@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using System.Linq;
 using Kompression.Exceptions;
 using Kompression.Extensions;
@@ -26,7 +28,7 @@ namespace Kompression.Implementations.Decoders.Nintendo
 
             input.Read(buffer, 0, 4);
             var uncompressedLength =
-                _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+                _byteOrder == ByteOrder.LittleEndian ?  BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) : BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
             input.Position += 0x8;
 
             var circularBuffer = new CircularBuffer(0x1000);

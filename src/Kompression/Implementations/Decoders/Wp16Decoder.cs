@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 using Kompression.Extensions;
@@ -19,7 +20,7 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidOperationException("Not Wp16 compressed.");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = buffer.GetInt32LittleEndian(0);
+            var decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
 
             var circularBuffer = new CircularBuffer(0xFFE)
             {
@@ -33,7 +34,7 @@ namespace Kompression.Implementations.Decoders
                 if (flagPosition == 32)
                 {
                     input.Read(buffer, 0, 4);
-                    flags = buffer.GetInt32LittleEndian(0);
+                    flags = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
                     flagPosition = 0;
                 }
 

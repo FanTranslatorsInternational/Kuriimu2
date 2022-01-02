@@ -28,7 +28,6 @@ namespace Kontract.Attributes
         /// </summary>
         public int MaxLength { get; }
 
-        // TODO: Remove optional parameters from attribute ctor
         /// <summary>
         /// Create a new instance of <see cref="FormFieldAttribute"/>.
         /// </summary>

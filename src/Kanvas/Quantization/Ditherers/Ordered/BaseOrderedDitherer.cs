@@ -27,7 +27,7 @@ namespace Kanvas.Quantization.Ditherers.Ordered
 
         public IEnumerable<int> Process(IEnumerable<Color> colors, IColorCache colorCache)
         {
-            return Zip(colors, Composition.GetPointSequence(_imageSize))
+            return colors.Zip(Composition.GetPointSequence(_imageSize))
                 .AsParallel().AsOrdered()
                 .WithDegreeOfParallelism(_taskCount)
                 .Select(cp => DitherColor(cp, colorCache));
@@ -37,9 +37,9 @@ namespace Kanvas.Quantization.Ditherers.Ordered
         {
             var threshold = GetThreshold(colorPoint.Item2);
 
-            var red = Clamp(colorPoint.Item1.R + threshold, 0, 255);
-            var green = Clamp(colorPoint.Item1.G + threshold, 0, 255);
-            var blue = Clamp(colorPoint.Item1.B + threshold, 0, 255);
+            var red = Math.Clamp(colorPoint.Item1.R + threshold, 0, 255);
+            var green = Math.Clamp(colorPoint.Item1.G + threshold, 0, 255);
+            var blue = Math.Clamp(colorPoint.Item1.B + threshold, 0, 255);
 
             return colorCache.GetPaletteIndex(Color.FromArgb(colorPoint.Item1.A, red, green, blue));
         }
@@ -50,26 +50,6 @@ namespace Kanvas.Quantization.Ditherers.Ordered
             var y = point.Y % _matrixHeight;
 
             return Convert.ToInt32(Matrix[x, y]);
-        }
-
-        // TODO: Remove when targeting only netcoreapp31
-        private IEnumerable<(TFirst First, TSecond Second)> Zip<TFirst, TSecond>(IEnumerable<TFirst> first, IEnumerable<TSecond> second)
-        {
-#if NET_CORE_31
-            return first.Zip(second);
-#else
-            return first.Zip(second, (f, s) => (f, s));
-#endif
-        }
-
-        // TODO: Remove when targeting only netcoreapp31
-        private static int Clamp(int value, int min, int max)
-        {
-#if NET_CORE_31
-            return Math.Clamp(value, min, max);
-#else
-            return Math.Max(min, Math.Min(value, max));
-#endif
         }
     }
 }

@@ -8,7 +8,6 @@ using Kontract.Kanvas.Quantization;
 
 namespace Kanvas.Configuration
 {
-    // TODO: PixelShader
     public class ImageConfiguration : IIndexConfiguration
     {
         private readonly TranscodeConfiguration _transcodeConfiguration;

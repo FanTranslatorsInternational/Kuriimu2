@@ -142,7 +142,6 @@ namespace Kontract.Models.Archive
 
             progress?.ReportProgress($"Writing file '{FilePath}'.", 0, 1);
 
-            // TODO: Change that to a manual bulk copy to better watch progress?
             dataToCopy.CopyTo(output);
 
             progress?.ReportProgress($"Writing file '{FilePath}'.", 1, 1);

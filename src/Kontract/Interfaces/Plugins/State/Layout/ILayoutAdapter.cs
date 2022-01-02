@@ -65,7 +65,6 @@ namespace Kontract.Interfaces.Plugins.State.Layout
     ///// </summary>
     //public interface IItemsHaveExtendedProperties
     //{
-    //    // TODO: Figure out how to best implement this feature with WPF.
     //    /// <summary>
     //    /// Opens the extended properties dialog for an Item.
     //    /// </summary>

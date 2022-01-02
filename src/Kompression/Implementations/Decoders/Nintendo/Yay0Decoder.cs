@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using System.Linq;
 using Komponent.IO;
 using Kompression.Exceptions;
@@ -28,11 +30,11 @@ namespace Kompression.Implementations.Decoders.Nintendo
                 throw new InvalidCompressionException("Yay0" + (_byteOrder == ByteOrder.LittleEndian ? "LE" : "BE"));
 
             input.Read(buffer, 0, 4);
-            var uncompressedLength = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+            var uncompressedLength = _byteOrder == ByteOrder.LittleEndian ? BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) : BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var compressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+            var compressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) : BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+            var uncompressedTableOffset = _byteOrder == ByteOrder.LittleEndian ? BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) : BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
 
             var circularBuffer = new CircularBuffer(0x1000);
             var compressedTablePosition = 0;

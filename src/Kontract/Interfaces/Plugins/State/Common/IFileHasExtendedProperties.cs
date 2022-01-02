@@ -5,7 +5,6 @@
     /// </summary>
     public interface IFileHasExtendedProperties
     {
-        // TODO: Figure out how to best implement this feature with WPF.
         /// <summary>
         /// Opens the extended properties dialog.
         /// </summary>

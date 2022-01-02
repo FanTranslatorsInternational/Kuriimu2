@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Buffers.Binary;
+using System.Diagnostics;
 using System.IO;
 using Komponent.IO.Streams;
 using Kompression.Extensions;
@@ -23,10 +25,10 @@ namespace Kompression.Implementations.Decoders.Nintendo
             input.Position = input.Length - 8;
 
             input.Read(buffer, 0, 4);
-            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+            var bufferTopAndBottom = _byteOrder == ByteOrder.LittleEndian ? BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) : BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
 
             input.Read(buffer, 0, 4);
-            var decompressedOffset = _byteOrder == ByteOrder.LittleEndian ? buffer.GetInt32LittleEndian(0) : buffer.GetInt32BigEndian(0);
+            var decompressedOffset = _byteOrder == ByteOrder.LittleEndian ? BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0)) :  BinaryPrimitives.ReadInt32BigEndian(buffer.AsSpan(0));
 
             var footerLength = bufferTopAndBottom >> 24;
             var compressedSize = bufferTopAndBottom & 0xFFFFFF;

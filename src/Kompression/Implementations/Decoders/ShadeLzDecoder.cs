@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.Implementations.Decoders.Headerless;
@@ -19,14 +21,14 @@ namespace Kompression.Implementations.Decoders
         {
             var buffer = new byte[4];
             input.Read(buffer, 0, 4);
-            var magic = (uint)buffer.GetInt32BigEndian(0);
+            var magic = (uint)BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
             if (magic != 0xFCAA55A7)
                 throw new InvalidCompressionException("Spike Chunsoft");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = buffer.GetInt32LittleEndian(0);
+            var decompressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
             input.Read(buffer, 0, 4);
-            var compressedSize = buffer.GetInt32LittleEndian(0);
+            var compressedSize = BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
 
             _decoder.Decode(input, output, decompressedSize);
         }

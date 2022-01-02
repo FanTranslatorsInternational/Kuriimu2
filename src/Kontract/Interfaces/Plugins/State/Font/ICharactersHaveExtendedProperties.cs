@@ -7,7 +7,6 @@ namespace Kontract.Interfaces.Plugins.State.Font
     /// </summary>
     public interface ICharactersHaveExtendedProperties
     {
-        // TODO: Figure out how to best implement this feature with WPF.
         /// <summary>
         /// Opens the extended properties dialog for an character.
         /// </summary>

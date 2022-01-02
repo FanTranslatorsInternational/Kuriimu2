@@ -88,9 +88,9 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
             // Add Error component Values to source color
             var errorDiffusedColor = Color.FromArgb(
                 sourceColor.A,
-                Clamp(sourceColor.R + error.RedError, 0, 255),
-                Clamp(sourceColor.G + error.GreenError, 0, 255),
-                Clamp(sourceColor.B + error.BlueError, 0, 255));
+                Math.Clamp(sourceColor.R + error.RedError, 0, 255),
+                Math.Clamp(sourceColor.G + error.GreenError, 0, 255),
+                Math.Clamp(sourceColor.B + error.BlueError, 0, 255));
 
             // Quantize Error diffused source color
             element.Indices[index] = _colorCache.GetPaletteIndex(errorDiffusedColor);
@@ -136,16 +136,6 @@ namespace Kanvas.Quantization.Ditherers.ErrorDiffusion
 
                 element.Errors.Remove(index);
             }
-        }
-
-        // TODO: Remove when targeting only netcoreapp31
-        private static int Clamp(int value, int min, int max)
-        {
-#if NET_CORE_31
-            return Math.Clamp(value, min, max);
-#else
-            return Math.Max(min, Math.Min(value, max));
-#endif
         }
     }
 }

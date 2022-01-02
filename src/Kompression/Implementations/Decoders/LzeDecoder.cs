@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers.Binary;
+using System.IO;
 using Kompression.Exceptions;
 using Kompression.Extensions;
 using Kompression.IO;
@@ -16,7 +18,7 @@ namespace Kompression.Implementations.Decoders
                 throw new InvalidCompressionException("Lze");
 
             input.Read(buffer, 0, 4);
-            var decompressedSize = buffer.GetInt32LittleEndian(0);
+            var decompressedSize =  BinaryPrimitives.ReadInt32LittleEndian(buffer.AsSpan(0));
 
             var circularBuffer = new CircularBuffer(0x1004);
             ReadCompressedData(input, output, circularBuffer, decompressedSize);

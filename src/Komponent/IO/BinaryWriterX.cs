@@ -9,7 +9,6 @@ using Kontract.Models.IO;
 
 namespace Komponent.IO
 {
-    // TODO: Remove nibble order?
     public class BinaryWriterX : BinaryWriter
     {
         private int _blockSize;

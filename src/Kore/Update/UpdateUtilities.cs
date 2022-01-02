@@ -44,7 +44,7 @@ namespace Kore.Update
             var resourceStream = GetResourceStream(updateUrl);
             var currentDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 
-            var executablePath = currentDirectory + "/" + ExecutableName_;
+            var executablePath = Path.Combine(currentDirectory, ExecutableName_);
             var executableFileStream = File.Open(executablePath, FileMode.Create);
 
             resourceStream.CopyTo(executableFileStream);

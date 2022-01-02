@@ -7,7 +7,6 @@ namespace Kontract.Interfaces.Plugins.State.Text
     /// </summary>
     public interface ITextEntriesHaveExtendedProperties
     {
-        // TODO: Figure out how to best implement this feature with WPF.
         /// <summary>
         /// Opens the extended properties dialog for an entry.
         /// </summary>
