@@ -65,6 +65,7 @@
   "FileSavedSuccessfullyStatus": "File saved successfully.",
   "FileNotSavedSuccessfullyStatus": "File not saved successfully.",
   "OperationsStillRunningStatus": "Operations are still running and the file cannot be closed.",
+  "UnknownPluginState": "Unknown plugin state type {0}.",
 
   "SelectedFileInvalid": "The selected file is invalid.",
   "UnsavedChangesToFile": "Changes were made to {0} or its opened sub files. Do you want to save those changes?",
@@ -73,7 +74,7 @@
   "UnhandledExceptionCloseApp": "An unhandled exception occurred. Refer to the log for more information. The application will be closed.",
   "UnhandledExceptionNotCloseApp": "An unhandled exception occurred. Refer to the log for more information.",
   "UpdateAvailable": "Do you want to update from {0}-{1} to {2}-{3}?",
-  "FollowingPluginsNotLoaded": "Following plugins could not be loaded",
+  "FollowingPluginsNotLoaded": "Following plugins could not be loaded:",
 
   "AllFilesFilter": "All Files",
 

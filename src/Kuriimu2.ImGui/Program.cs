@@ -8,7 +8,7 @@ namespace Kuriimu2.ImGui
     {
         public static void Main(string[] args)
         {
-            Application.Create(new MainForm(), LocalizationResources.Instance).Execute();
+            new Application(LocalizationResources.Instance).Execute(new MainForm());
         }
     }
 }

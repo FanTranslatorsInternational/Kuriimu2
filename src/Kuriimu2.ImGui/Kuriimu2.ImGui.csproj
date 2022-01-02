@@ -27,7 +27,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="ImGui.Forms" Version="1.0.6" />
+    <PackageReference Include="ImGui.Forms" Version="1.0.7" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
@@ -55,6 +55,10 @@
       <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Forms\Formats\" />
   </ItemGroup>
   
   <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>

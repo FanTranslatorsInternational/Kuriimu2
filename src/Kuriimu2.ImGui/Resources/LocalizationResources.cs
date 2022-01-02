@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using ImGui.Forms.Localization;
+using Kontract.Interfaces.Plugins.State;
+using Kontract.Models.IO;
 using Newtonsoft.Json;
 
 namespace Kuriimu2.ImGui.Resources
@@ -64,9 +66,59 @@ namespace Kuriimu2.ImGui.Resources
         public static string ThemeDarkResource() => Instance.Localize("ThemeDark");
         public static string ThemeLightResource() => Instance.Localize("ThemeLight");
 
-        public static string UpdateAvailableResource(string version, string build, string remoteVersion, string remoteBuild) 
-            => string.Format(Instance.Localize("UpdateAvailable"), version, build, remoteVersion, remoteBuild);
+        public static string UpdateAvailableResource(string version, string build, string remoteVersion, string remoteBuild)
+            => Instance.Localize("UpdateAvailable", version, build, remoteVersion, remoteBuild);
         public static string UpdateAvailableCaptionResource() => Instance.Localize("UpdateAvailableCaption");
+
+        public static string UnsupportedOperatingSystemExceptionResource(string os) => Instance.Localize("UnsupportedOperatingSystemException", os);
+
+        public static string FollowingPluginsNotLoadedResource() => Instance.Localize("FollowingPluginsNotLoaded");
+        public static string PluginsNotAvailableCaptionResource() => Instance.Localize("PluginsNotAvailableCaption");
+
+        public static string ChangeLanguageTitleResource() => Instance.Localize("ChangeLanguageTitle");
+        public static string ChangeLanguageCaptionResource() => Instance.Localize("ChangeLanguageCaption");
+
+        public static string UnsavedChangesCaptionResource() => Instance.Localize("UnsavedChangesCaption");
+        public static string UnsavedChangesGenericResource() => Instance.Localize("UnsavedChangesGeneric");
+        public static string UnsavedChangesToFileResource(UPath path) => Instance.Localize("UnsavedChangesToFile", path);
+
+        public static string DependantFilesCaptionResource() => Instance.Localize("DependantFilesCaption");
+        public static string DependantFilesResource() => Instance.Localize("DependantFiles");
+
+        public static string OperationsStillRunningStatusResource() => Instance.Localize("OperationsStillRunningStatus");
+
+        public static string FileAlreadySavingStatusResource(UPath path) => Instance.Localize("FileAlreadySavingStatus", path);
+        public static string FileNotSavedSuccessfullyStatusResource() => Instance.Localize("FileNotSavedSuccessfullyStatus");
+        public static string FileSavedSuccessfullyStatusResource() => Instance.Localize("FileSavedSuccessfullyStatus");
+        public static string SaveErrorCaptionResource() => Instance.Localize("SaveErrorCaption");
+
+        public static string FileAlreadyOpeningStatusResource(UPath path) => Instance.Localize("FileAlreadyOpeningStatus", path);
+        public static string LoadErrorCaptionResource() => Instance.Localize("LoadErrorCaption");
+        public static string LoadCancelledStatusResource() => Instance.Localize("LoadCancelledStatus");
+        public static string NoPluginSelectedStatusResource() => Instance.Localize("NoPluginSelectedStatus");
+        public static string UnknownPluginStateResource(IPluginState state) => Instance.Localize("UnknownPluginState", state.GetType().Name);
+
+        public static string SelectedFileInvalidResource() => Instance.Localize("SelectedFileInvalid");
+        public static string NoFileSelectedStatusResource() => Instance.Localize("NoFileSelectedStatus");
+
+        public static string AllFilesFilterResource() => Instance.Localize("AllFilesFilter");
+
+        public static string ExceptionCatchedCaptionResource() => Instance.Localize("ExceptionCatchedCaption");
+
+        public static string ChoosePluginTitleResource() => Instance.Localize("ChoosePluginTitle");
+        public static string ChooseOpenFilePluginResource() => Instance.Localize("ChooseOpenFilePlugin");
+        public static string MultiplePluginMatchesSelectionResource() => Instance.Localize("MultiplePluginMatchesSelection");
+        public static string NonIdentifiablePluginSelectionResource() => Instance.Localize("NonIdentifiablePluginSelection");
+        public static string NonIdentifiablePluginSelectionNoteResource() => Instance.Localize("NonIdentifiablePluginSelectionNote");
+        public static string ChoosePluginContinueResource() => Instance.Localize("ChoosePluginContinue");
+        public static string ChoosePluginRawBytesResource() => Instance.Localize("ChoosePluginRawBytes");
+        public static string ChoosePluginCancelResource() => Instance.Localize("ChoosePluginCancel");
+        public static string ChoosePluginShowAllResource() => Instance.Localize("ChoosePluginShowAll");
+
+        public static string PluginNameColumnResource() => Instance.Localize("PluginNameColumn");
+        public static string PluginTypeColumnResource() => Instance.Localize("PluginTypeColumn");
+        public static string PluginDescriptionColumnResource() => Instance.Localize("PluginDescriptionColumn");
+        public static string PluginIdColumnResource() => Instance.Localize("PluginIdColumn");
 
         #endregion
 

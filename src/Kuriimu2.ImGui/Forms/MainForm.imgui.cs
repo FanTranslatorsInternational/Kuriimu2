@@ -150,7 +150,6 @@ namespace Kuriimu2.ImGui.Forms
 
             DefaultFont = Fonts.Arial(15);
 
-            Title = "Kuriimu2";
             Icon = ImageResources.Icon;
 
             Size = new Vector2(1116, 643);
