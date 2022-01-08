@@ -47,10 +47,10 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
 
             ListPlugins(_filteredPlugins);
 
-            _continueButton.Clicked += _continueButton_Clicked; ;
-            _viewRawButton.Clicked += _viewRawButton_Clicked; ;
-            _cancelButton.Clicked += _cancelButton_Clicked; ;
-            _showAllPlugins.CheckChanged += _showAllPlugins_CheckChanged; ;
+            _continueButton.Clicked += _continueButton_Clicked;
+            _viewRawButton.Clicked += _viewRawButton_Clicked;
+            _cancelButton.Clicked += _cancelButton_Clicked;
+            _showAllPlugins.CheckChanged += _showAllPlugins_CheckChanged;
         }
 
         private void ListPlugins(IEnumerable<IFilePlugin> plugins)
@@ -78,13 +78,13 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Columns =
                 {
                     new DataTableColumn<ChoosePluginElement>(e => e.Name, LocalizationResources.PluginNameColumnResource()),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Type.ToString(),LocalizationResources.PluginTypeColumnResource()),
-                    new DataTableColumn<ChoosePluginElement>(e => e.Description,LocalizationResources.PluginDescriptionColumnResource()),
+                    new DataTableColumn<ChoosePluginElement>(e => e.Type.ToString(), LocalizationResources.PluginTypeColumnResource()),
+                    new DataTableColumn<ChoosePluginElement>(e => e.Description, LocalizationResources.PluginDescriptionColumnResource()),
                     new DataTableColumn<ChoosePluginElement>(e => e.PluginId.ToString("N"), LocalizationResources.PluginIdColumnResource())
-                }
+                },
+                Rows = plugins
             };
 
-            dataTable.Rows = plugins;
 
             dataTable.SelectedRowsChanged += DataTable_SelectedRowsChanged;
             dataTable.DoubleClicked += DataTable_DoubleClicked; ;

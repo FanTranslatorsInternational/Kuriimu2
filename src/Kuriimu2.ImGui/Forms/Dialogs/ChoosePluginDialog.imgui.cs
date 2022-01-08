@@ -12,7 +12,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
     partial class ChoosePluginDialog
     {
         private Label _msgLabel;
-        private StackLayout _pluginList;
+        private List _pluginList;
         private CheckBox _showAllPlugins;
 
         private Button _continueButton;
@@ -24,7 +24,7 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
             #region Controls
 
             _msgLabel = new Label();
-            _pluginList = new StackLayout { ItemSpacing = 4 };
+            _pluginList = new List { ItemSpacing = 4 };
             _showAllPlugins = new CheckBox { Caption = LocalizationResources.ChoosePluginShowAllResource() };
 
             _continueButton = new Button { Caption = LocalizationResources.ChoosePluginContinueResource(), Enabled = false };
@@ -40,11 +40,11 @@ namespace Kuriimu2.ImGui.Forms.Dialogs
                 Items =
                 {
                     _msgLabel,
-                    _pluginList,
+                    new StackItem(_pluginList) {HasBorder = true},
                     _showAllPlugins,
                     new StackLayout
                     {
-                        Size=new Size(1f,-1),
+                        Size = new Size(1f, -1),
                         Alignment = Alignment.Horizontal,
                         HorizontalAlignment = HorizontalAlignment.Right,
                         ItemSpacing = 4,

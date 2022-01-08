@@ -24,12 +24,12 @@ using Kontract.Models;
 using Kontract.Models.Archive;
 using Kontract.Models.IO;
 using Kore.Extensions;
-using Kore.Generators;
 using Kore.Managers.Plugins;
 using Kore.Models.Update;
 using Kore.Progress;
 using Kore.Update;
 using Kuriimu2.ImGui.Forms.Dialogs;
+using Kuriimu2.ImGui.Forms.Formats;
 using Kuriimu2.ImGui.Interfaces;
 using Kuriimu2.ImGui.Models;
 using Kuriimu2.ImGui.Progress;
@@ -79,6 +79,8 @@ namespace Kuriimu2.ImGui.Forms
             #region Events
 
             Load += MainForm_Load;
+            Closing += MainForm_Closing;
+            DragDrop += MainForm_DragDrop;
 
             _fileManager.OnManualSelection += _fileManager_OnManualSelection;
 
@@ -88,6 +90,10 @@ namespace Kuriimu2.ImGui.Forms
 
             _openButton.Clicked += _openButton_Clicked;
             _openWithButton.Clicked += _openWithButton_Clicked;
+            _saveAllButton.Clicked += _saveAllButton_Clicked;
+
+            _tabControl.PageRemoving += _tabControl_PageRemoving;
+            _tabControl.PageRemoved += _tabControl_PageRemoved;
 
             #endregion
 
@@ -111,7 +117,7 @@ namespace Kuriimu2.ImGui.Forms
             await DisplayPluginErrors(_fileManager.LoadErrors);
         }
 
-        protected override async Task OnClosingAsync(ClosingEventArgs e)
+        private async Task MainForm_Closing(object sender, ClosingEventArgs e)
         {
             // Cancel all operations on the forms first
             foreach (var tabEntry in _tabDictionary)
@@ -124,7 +130,7 @@ namespace Kuriimu2.ImGui.Forms
                 {
                     case DialogResult.Yes:
                         // Save all files in place that need saving
-                        SaveAll(false).Wait();
+                        await SaveAll(false);
                         break;
 
                     case DialogResult.Cancel:
@@ -149,6 +155,11 @@ namespace Kuriimu2.ImGui.Forms
             }
         }
 
+        private async void MainForm_DragDrop(object sender, Veldrid.Sdl2.DragDropEvent e)
+        {
+            await OpenPhysicalFiles(new List<string> { e.File }, false);
+        }
+
         #endregion
 
         #region File Management
@@ -161,6 +172,11 @@ namespace Kuriimu2.ImGui.Forms
         private async void _openWithButton_Clicked(object sender, EventArgs e)
         {
             await OpenPhysicalFile(true);
+        }
+
+        private async void _saveAllButton_Clicked(object sender, EventArgs e)
+        {
+            await SaveAll(true);
         }
 
         #endregion
@@ -198,6 +214,9 @@ namespace Kuriimu2.ImGui.Forms
             Settings.Default.Save();
 
             Theme = parsedTheme;
+
+            // Update colors manually
+            _progressBar.ProgressColor = ColorResources.Progress;
         }
 
         #endregion
@@ -209,6 +228,37 @@ namespace Kuriimu2.ImGui.Forms
             var selectedPlugin = await ChoosePlugin(e.FilePlugins.ToArray(), e.FilteredFilePlugins.ToArray(), e.SelectionStatus);
             if (selectedPlugin != null)
                 e.Result = selectedPlugin;
+        }
+
+        #endregion
+
+        #region TabControl
+
+        private void _tabControl_PageRemoved(object sender, RemoveEventArgs e)
+        {
+            UpdateFormTitle();
+        }
+
+        private async Task _tabControl_PageRemoving(object sender, RemovingEventArgs e)
+        {
+            var tabEntry = _tabDictionary[e.Page];
+            var parentStateInfo = tabEntry.FileState.ParentFileState;
+
+            // Select parent tab
+            TabPage parentTab = null;
+            if (parentStateInfo != null && _stateDictionary.ContainsKey(parentStateInfo))
+                parentTab = _stateDictionary[parentStateInfo].TabPage;
+
+            // Close file
+            if (!await CloseFile(tabEntry.FileState))
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            // Switch to parent tab
+            if (parentTab != null)
+                _tabControl.SelectedPage = parentTab;
         }
 
         #endregion
@@ -272,9 +322,7 @@ namespace Kuriimu2.ImGui.Forms
             foreach (var fileToOpen in filesToOpen)
             {
                 var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
-                    plugin == null ?
-                        _fileManager.LoadFile(fileToOpen) :
-                        _fileManager.LoadFile(fileToOpen, plugin.PluginId));
+                    _fileManager.LoadFile(fileToOpen, plugin?.PluginId ?? Guid.Empty));
                 var tabColor = Color.FromArgb(_rand.Next(256), _rand.Next(256), _rand.Next(256));
 
                 await OpenFile(fileToOpen, manualIdentification, loadAction, tabColor);
@@ -480,13 +528,11 @@ namespace Kuriimu2.ImGui.Forms
 
             // Remove all tabs related to the state, if closing was successful
             foreach (var childState in childrenStates)
-                CloseTab(childState);
-            CloseTab(fileState);
+                RemoveOpenedFile(childState);
+            RemoveOpenedFile(fileState);
 
             // Update parents before state is disposed
             UpdateTab(parentState, true);
-
-            UpdateFormTitle();
 
             return true;
         }
@@ -497,7 +543,7 @@ namespace Kuriimu2.ImGui.Forms
             return MessageBox.ShowYesNoCancelAsync(LocalizationResources.UnsavedChangesCaptionResource(), text);
         }
 
-        private void CloseTab(IFileState fileState)
+        private void RemoveOpenedFile(IFileState fileState)
         {
             // We only close the tab related to the state itself, not its archive children
             // Closing archive children is done by CloseFile, to enable proper rollback if closing the state itself was unsuccessful
@@ -505,9 +551,8 @@ namespace Kuriimu2.ImGui.Forms
                 return;
 
             var stateEntry = _stateDictionary[fileState];
-            _tabDictionary.Remove(stateEntry.TabPage);
 
-            _tabControl.RemovePage(stateEntry.TabPage);
+            _tabDictionary.Remove(stateEntry.TabPage);
             _stateDictionary.Remove(fileState);
         }
 
@@ -541,7 +586,6 @@ namespace Kuriimu2.ImGui.Forms
 
             // Update this tab pages information
             var stateEntry = _stateDictionary[fileState];
-            stateEntry.TabPage.Title = (fileState.StateChanged ? "* " : "") + fileState.FilePath.GetName();
 
             // If the call was not made by the requesting state, propagate an update action to it
             if (invokeUpdateForm)
@@ -662,8 +706,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private async Task<string> SelectNewFile(string fileName)
         {
-            // TODO: Add FileName to SaveFileDialog
-            var sfd = new SaveFileDialog();
+            var sfd = new SaveFileDialog(fileName);
             return await sfd.ShowAsync() == DialogResult.Ok ? sfd.SelectedPath : null;
         }
 
@@ -731,23 +774,19 @@ namespace Kuriimu2.ImGui.Forms
                     //    kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _fileManager);
                     //    break;
 
-                    //case IHexState _:
-                    //    kuriimuForm = new HexForm(new FormInfo<IHexState>(fileState, communicator, _progress, _logger));
-                    //    break;
-
-                    // TODO: Remove hex state dummy
                     case IHexState _:
-                        kuriimuForm = null;
+                        kuriimuForm = new HexForm(new FormInfo<IHexState>(fileState, communicator, _progress, _logger));
                         break;
 
                     default:
+                        ReportStatus(false, LocalizationResources.UnknownPluginStateResource(fileState.PluginState));
                         throw new InvalidOperationException(LocalizationResources.UnknownPluginStateResource(fileState.PluginState));
                 }
             }
             catch (Exception e)
             {
                 _logger.Fatal(e.Message, e);
-                await MessageBox.ShowInformationAsync(LocalizationResources.ExceptionCatchedCaptionResource(), e.Message);
+                await MessageBox.ShowErrorAsync(LocalizationResources.ExceptionCatchedCaptionResource(), e.Message);
 
                 return false;
             }
@@ -780,10 +819,8 @@ namespace Kuriimu2.ImGui.Forms
         public Task<bool> OpenFile(IFileState fileState, IArchiveFileInfo file, Guid pluginId)
         {
             var absoluteFilePath = fileState.AbsoluteDirectory / fileState.FilePath.ToRelative() / file.FilePath.ToRelative();
-            var loadAction = new Func<IFilePlugin, Task<LoadResult>>(plugin =>
-                pluginId == Guid.Empty ?
-                    _fileManager.LoadFile(fileState, file) :
-                    _fileManager.LoadFile(fileState, file, pluginId));
+            var loadAction = new Func<IFilePlugin, Task<LoadResult>>(_ =>
+                _fileManager.LoadFile(fileState, file, pluginId));
             var tabColor = _stateDictionary[fileState].TabColor;
 
             return OpenFile(absoluteFilePath, false, loadAction, tabColor);
@@ -828,11 +865,8 @@ namespace Kuriimu2.ImGui.Forms
             if (message == null)
                 return;
 
-            // TODO: Get color from style somehow
-            var textColor = isSuccessful ? Color.ForestGreen : Color.Red;//isSuccessful ? Themer.Instance.GetTheme().AltColor : Themer.Instance.GetTheme().LogFatalColor;
-
             _statusText.Caption = message;
-            _statusText.TextColor = textColor;
+            _statusText.IsSuccessful = isSuccessful;
         }
 
         #endregion

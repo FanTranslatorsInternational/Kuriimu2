@@ -4,6 +4,7 @@ using ImGui.Forms.Controls;
 using ImGui.Forms.Controls.Layouts;
 using ImGui.Forms.Controls.Menu;
 using ImGui.Forms.Models;
+using Kuriimu2.ImGui.Controls;
 using Kuriimu2.ImGui.Resources;
 
 namespace Kuriimu2.ImGui.Forms
@@ -32,7 +33,7 @@ namespace Kuriimu2.ImGui.Forms
 
         private TabControl _tabControl;
         private ProgressBar _progressBar;
-        private Label _statusText;
+        private StatusLabel _statusText;
 
         private void InitializeComponent()
         {
@@ -118,8 +119,8 @@ namespace Kuriimu2.ImGui.Forms
             #region Main Content
 
             _tabControl = new TabControl();
-            _progressBar = new ProgressBar { Size = new Size(.5f, 24) };
-            _statusText = new Label();
+            _progressBar = new ProgressBar { Size = new Size(.5f, 24), ProgressColor = ColorResources.Progress };
+            _statusText = new StatusLabel { Width = SizeValue.Relative(.5f) };
 
             var mainLayout = new StackLayout
             {
@@ -151,6 +152,7 @@ namespace Kuriimu2.ImGui.Forms
             DefaultFont = Fonts.Arial(15);
 
             Icon = ImageResources.Icon;
+            AllowDragDrop = true;
 
             Size = new Vector2(1116, 643);
             Padding = new Vector2(4);
