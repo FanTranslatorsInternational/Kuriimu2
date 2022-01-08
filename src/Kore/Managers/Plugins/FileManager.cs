@@ -22,6 +22,7 @@ using Kore.Managers.Plugins.FileManagement;
 using Kore.Managers.Plugins.PluginLoader;
 using Kore.Models;
 using Kore.Models.LoadInfo;
+using Kore.Models.UnsupportedPlugin;
 using Kore.Progress;
 using MoreLinq;
 using Serilog;
@@ -472,7 +473,9 @@ namespace Kore.Managers.Plugins
         {
             // 1. Find plugin
             IFilePlugin plugin = null;
-            if (loadFileContext.PluginId != Guid.Empty)
+            if (loadFileContext.PluginId == HexPlugin.Guid)
+                plugin = new HexPlugin();
+            else if (loadFileContext.PluginId != Guid.Empty)
                 plugin = _filePluginLoaders.Select(pl => pl.GetPlugin(loadFileContext.PluginId)).First();
 
             var isRunning = Progress.IsRunning();
