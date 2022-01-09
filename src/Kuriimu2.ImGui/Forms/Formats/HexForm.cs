@@ -16,6 +16,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
             _hexBox.Data = formInfo.PluginState.FileStream;
         }
 
+        #region Component implementation
+
         public override Size GetSize()
         {
             return _hexBox.GetSize();
@@ -25,6 +27,8 @@ namespace Kuriimu2.ImGui.Forms.Formats
         {
             _hexBox.Update(contentRect);
         }
+
+        #endregion
 
         #region IKuriimuForm implementation
 

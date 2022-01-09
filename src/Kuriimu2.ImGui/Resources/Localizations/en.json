@@ -82,6 +82,9 @@
   "UnsupportedPlatformException": "Unsupported platform: {0}.",
 
   // Kuriimu2 Archive Form
+  "FileCount": "Files: {0}",
+  "SearchPlaceholder": "Search...",
+
   "ClearSearch": "Clear",
   "CancelOperation": "Cancel",
 
@@ -123,7 +126,7 @@
   "ReplaceFileSuccessfulStatus": "File(s) replaced successfully.",
   "RenameFileSuccessfulStatus": "File(s) renamed successfully.",
   "DeleteFileSuccessfulStatus": "File(s) deleted successfully.",
-  "AddFileSuccessfulStatus": "File(s) adding successfully.",
+  "AddFileSuccessfulStatus": "File(s) added successfully.",
 
   "UnableToAddFilesStatus": "Some files could not be added successfully. Refer to the log for more information.",
 

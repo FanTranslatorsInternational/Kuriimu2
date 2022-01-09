@@ -770,9 +770,9 @@ namespace Kuriimu2.ImGui.Forms
                     //    kuriimuForm = new ImageForm(new FormInfo<IImageState>(fileState, communicator, _progress, _logger));
                     //    break;
 
-                    //case IArchiveState _:
-                    //    kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _fileManager);
-                    //    break;
+                    case IArchiveState _:
+                        kuriimuForm = new ArchiveForm(new ArchiveFormInfo(fileState, communicator, _progress, _logger), _fileManager);
+                        break;
 
                     case IHexState _:
                         kuriimuForm = new HexForm(new FormInfo<IHexState>(fileState, communicator, _progress, _logger));

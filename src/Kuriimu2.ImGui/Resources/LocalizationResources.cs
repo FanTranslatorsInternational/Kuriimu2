@@ -120,6 +120,55 @@ namespace Kuriimu2.ImGui.Resources
         public static string PluginDescriptionColumnResource() => Instance.Localize("PluginDescriptionColumn");
         public static string PluginIdColumnResource() => Instance.Localize("PluginIdColumn");
 
+        // Archive Form
+        public static string FileCountCaptionResource(int count) => Instance.Localize("FileCount", count);
+        public static string SearchCaptionResource() => Instance.Localize("SearchPlaceholder");
+
+        public static string FileNameCaptionResource() => Instance.Localize("FileName");
+        public static string FileSizeCaptionResource() => Instance.Localize("FileSize");
+
+        public static string ExtractCaptionResource() => Instance.Localize("Extract");
+        public static string ReplaceCaptionResource() => Instance.Localize("Replace");
+        public static string RenameCaptionResource() => Instance.Localize("Rename");
+        public static string DeleteCaptionResource() => Instance.Localize("Delete");
+        public static string AddCaptionResource() => Instance.Localize("Add");
+
+        public static string FileNotSuccessfullyLoadedCaptionResource() => Instance.Localize("FileNotSuccessfullyLoaded");
+        public static string FileNotSuccessfullyLoadedWithPluginCaptionResource(Guid id) => Instance.Localize("FileNotSuccessfullyLoadedWithPlugin", id);
+
+        public static string NoNameGivenStatusResource() => Instance.Localize("NoNameGivenStatus");
+        public static string RenameFileTitleResource() => Instance.Localize("RenameFileTitle");
+        public static string RenameDirectoryTitleResource() => Instance.Localize("RenameDirectoryTitle");
+        public static string RenameItemCaptionResource(string file) => Instance.Localize("RenameItemCaption", file);
+
+        public static string NoTargetSelectedStatusResource() => Instance.Localize("NoTargetSelectedStatus");
+        public static string NoFilesToExtractStatusResource() => Instance.Localize("NoFilesToExtractStatus");
+        public static string NoFilesToReplaceStatusResource() => Instance.Localize("NoFilesToReplaceStatus");
+        public static string NoFilesToRenameStatusResource() => Instance.Localize("NoFilesToRenameStatus");
+        public static string NoFilesToAddStatusResource() => Instance.Localize("NoFilesToAddStatus");
+        public static string NoFilesToDeleteStatusResource() => Instance.Localize("NoFilesToDeleteStatus");
+
+        public static string ExtractFileProgressResource() => Instance.Localize("ExtractFileProgress");
+        public static string ExtractFileCancelledStatusResource() => Instance.Localize("ExtractFileCancelledStatus");
+        public static string ExtractFileSuccessfulStatusResource() => Instance.Localize("ExtractFileSuccessfulStatus");
+
+        public static string ReplaceFileProgressResource() => Instance.Localize("ReplaceFileProgress");
+        public static string ReplaceFileCancelledStatusResource() => Instance.Localize("ReplaceFileCancelledStatus");
+        public static string ReplaceFileSuccessfulStatusResource() => Instance.Localize("ReplaceFileSuccessfulStatus");
+
+        public static string RenameFileProgressResource() => Instance.Localize("RenameFileProgress");
+        public static string RenameFileCancelledStatusResource() => Instance.Localize("RenameFileCancelledStatus");
+        public static string RenameFileSuccessfulStatusResource() => Instance.Localize("RenameFileSuccessfulStatus");
+
+        public static string AddFileProgressResource() => Instance.Localize("AddFileProgress");
+        public static string AddFileCancelledStatusResource() => Instance.Localize("AddFileCancelledStatus");
+        public static string AddFileSuccessfulStatusResource() => Instance.Localize("AddFileSuccessfulStatus");
+        public static string UnableToAddFilesStatusResource() => Instance.Localize("UnableToAddFilesStatus");
+
+        public static string DeleteFileProgressResource() => Instance.Localize("DeleteFileProgress");
+        public static string DeleteFileCancelledStatusResource() => Instance.Localize("DeleteFileCancelledStatus");
+        public static string DeleteFileSuccessfulStatusResource() => Instance.Localize("DeleteFileSuccessfulStatus");
+
         #endregion
 
         #region ILocalizer implementation

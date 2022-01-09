@@ -6,6 +6,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <None Remove="Resources\Images\close.png" />
     <None Remove="Resources\Images\kuriimu2.ico" />
     <None Remove="Resources\Localizations\da.json" />
     <None Remove="Resources\Localizations\de.json" />
@@ -16,6 +17,7 @@
   </ItemGroup>
 	
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\close.png" />
     <EmbeddedResource Include="Resources\Images\kuriimu2.ico" />
     <EmbeddedResource Include="Resources\Localizations\en.json" />
     <EmbeddedResource Include="Resources\Localizations\da.json" />
@@ -27,13 +29,13 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="ImGui.Forms" Version="1.0.9" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0-dev-00909" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\ImGui.Forms\ImGui.Forms\ImGui.Forms.csproj" />
     <ProjectReference Include="..\Kanvas\Kanvas.csproj" />
     <ProjectReference Include="..\Komponent\Komponent.csproj" />
     <ProjectReference Include="..\Kompression\Kompression.csproj" />
@@ -55,10 +57,6 @@
       <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Forms\Formats\" />
   </ItemGroup>
   
   <ProjectExtensions><VisualStudio><UserProperties resources_4localizations_4en_1json__JsonSchema="https://beaujs.com/schema.json" /></VisualStudio></ProjectExtensions>
